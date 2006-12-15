@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+    <channel>
+        <title>H2 Database Engine</title>
+        <link>http://www.h2database.com</link>
+        <description>H2 Database Engine</description>
+        <language>en-us</language>
+        <pubDate>Thu, 15 Jun 2006 05:59:06 GMT</pubDate>
+
+        <lastBuildDate>Thu, 15 Jun 2006 05:59:06 GMT</lastBuildDate>
+            <item>
+                <title>New version available: 0.9 Alpha / 2006-06-02</title>
+                <link>http://www.h2database.com</link>
+                <description>
+                    <![CDATA[A new version of H2 is available for download at http://www.h2database.com
+                    Changes and new functionality:
+                    
+                    - The GCJ version for Windows is no longer included in the download.
+                      It was not stable in this release.
+                    - ORDER BY now uses an index if possible.
+                      Queries with LIMIT with ORDER BY
+                      are faster when the index can be used.
+                    - Statements containing LIKE are now re-compiled when executed.
+                      Depending on the data, an index on the column is used or not.
+                    - New option to disable automatic closing of a database
+                      when the virtual machine exits.
+                      Database URL: jdbc:h2:test;db_close_on_exit=false
+                    - New event: DatabaseEventListener.closingDatabase()
+                    - Connection.getCatalog() now returns the database name
+                    - The function DATABASE() now return the short name
+                    - Automatic starting of a web browser for Mac OS X should work now.
+                    
+                    Security:
+                    
+                    - TCP Server: Can now specifiy a password (tcpPassword).
+                    - New option -ifExists for the TCP and ODBC server
+                      to disallow creating new databases.
+                      
+                    Bugfixes:
+                    
+                    - Issue #103: Shutdown of a TCP Server from command line
+                      didn't always work.
+                    - Issue #104: A HAVING condition on a column
+                      that was not in the GROUP BY list didn't work.
+                    - Issue #105: RUNSCRIPT (the command) didn't commit
+                      after each command if autocommit was on.
+                    - Issue #106: SET commands where not persisted
+                    - Issue# 107: When executing scripts that contained inserts
+                      with many columns, an OutOfMemory error could occur.
+                    - Issue #108: There is a concurrency problem when multi threads
+                      access the same database.
+                    - Issue #109: ALTER TABLE ADD COLUMN can make
+                      the database unusable.
+                    
+                    For details see also the history. The plans for the next release are:
+                    
+                    - Bugfixes, write more tests, more bugfixes, more tests
+                    - Define which modules are alpha, beta and production quality
+                    - Proposal for changed license (still pending...)
+                    - For other plans, see the new 'Roadmap' part on the web site
+                    ]]>
+
+                </description>
+        </item>
+    </channel>
+</rss>

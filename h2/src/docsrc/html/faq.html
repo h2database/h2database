@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+Frequently Asked Questions
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>Frequently Asked Questions</h1>
+
+<h3>Are there any known bugs? When is the next release?</h3>
+Usually, bugs get fixes as they are found. There is a release every few weeks.
+The next release is planned for
+2006-12-18.
+Here is the list of known and confirmed issues as of
+2006-12-03:
+<ul>
+<li>There are some browser issues with the autocomplete feature. Firefox should work however.
+<li>Some problems have been found with right outer join. Internally, it is converted to left outer join, which
+    does not always produce the correct results when used in combination with other joins.
+</ul>
+
+<h3>Is this Database Engine Open Source?</h3>
+Yes. It is free to use and distribute, and the source code is included.
+See also under license.
+
+<h3>Is the GCJ version stable? Faster?</h3>
+The GCJ version is not as stable as the Java version.
+When running the regression test with the GCJ version, sometimes the application just stops
+at what seems to be a random point without error message.
+Currently, the GCJ version is also slower than when using the Sun VM.
+However, the startup of the GCJ version is faster than when using a VM.
+
+<h3>Is it Reliable?</h3>
+That is not easy to say. It is still a quite new product. A lot of tests have been written,
+and the code coverage of these tests is very high. Randomized stress tests
+are run regularly. But as this is a relatively new product, there are probably
+some problems that have not yet been found.
+Areas that are not completely tested:
+<ul>
+<li>Platforms other than Windows XP and the Sun JVM 1.4
+<li>Data types BLOBs / CLOBs, VARCHAR_IGNORECASE, OTHER
+<li>Cluster mode, 2-Phase Commit, Savepoints
+<li>Server mode (well tested, but not as well as Embedded mode)
+<li>Multi-Threading and using multiple connections
+<li>Updatable result sets
+<li>Referential integrity and check constraints, Triggers
+<li>ALTER TABLE statements, Views, Linked Tables, Schema, UNION
+<li>Not all built-in functions are completely tested
+<li>The Optimizer may not always select the best plan
+<li>24/7 operation and large databases (500 MB and up)
+<li>Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
+</ul>
+
+Areas considered Experimental:
+<ul>
+<li>ODBC driver and the GCJ native version on Windows
+<li>Linear Hash Index
+<li>Compatibility modes for other databases (only some features are implemented)
+</ul>
+
+<h3>How to Create a New Database?</h3>
+By default, a new database is automatically created if it does not yet exist.
+
+<h3>How to Connect to a Database?</h3>
+The database driver is <code>org.h2.Driver</code>,
+and the database URL starts with <code>jdbc:h2:</code>.
+To connect to a database using JDBC, use the following code:
+<pre>
+Class.forName("org.h2.Driver");
+Connection conn = DriverManager.getConnection("jdbc:h2:test", "sa", "");
+</pre>
+
+<h3>Where are the Database Files Stored?</h3>
+If the base directory is not set, the database files are stored in the directory where the application is started
+(the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin.
+The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
+jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory).
+The directory must exist. It is also possible to use the fully qualified directory (and for Windows, drive) name.
+Example: jdbc:h2:file:C:/data/test
+
+<h3>What is the Size Limit of a Database?</h3>
+The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data:
+Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
+
+</div></td></tr></table></body></html>

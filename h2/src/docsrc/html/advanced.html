@@ -1,0 +1,743 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- 
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+Advanced Topics
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>Advanced Topics</h1>
+<a href="#resultsets">
+    Result Sets</a><br />
+<a href="#large_objects">
+    Large Objects</a><br />
+<a href="#linked_tables">
+    Linked Tables</a><br />
+<a href="#transaction_isolation">
+    Transaction Isolation</a><br />
+<a href="#clustering">
+    Clustering / High Availability</a><br />
+<a href="#two_phase_commit">
+    Two Phase Commit</a><br />
+<a href="#compatibility">
+    Compatibility</a><br />
+<a href="#windows_service">
+    Run as Windows Service</a><br />
+<a href="#odbc_driver">
+    ODBC Driver</a><br />
+<a href="#acid">
+    ACID</a><br />
+<a href="#using_recover_tool">
+    Using the Recover Tool</a><br />
+<a href="#file_locking_protocols">
+    File Locking Protocols</a><br />
+<a href="#sql_injection">
+    Protection against SQL Injection</a><br />
+<a href="#security_protocols">
+    Security Protocols</a><br />
+<a href="#uuid">
+    Universally Unique Identifiers (UUID)</a><br />
+<a href="#glossary_links">
+    Glossary and Links</a><br />
+
+<br /><a name="resultsets"></a>
+<h2>Result Sets</h2>
+
+<h3>Limiting the Number of Rows</h3>
+Before the result is returned to the application, all rows are read by the database.
+Server side cursors are not supported currently.
+If only the first few rows are interesting for the application, then the
+result set size should be limited to improve the performance.
+This can be done using LIMIT in a query (example: SELECT * FROM TEST LIMIT 100),
+or by using Statement.setMaxRows(max).
+
+<h3>Large Result Sets and External Sorting</h3>
+For result set larger than 1000 rows, the result is buffered to disk. If ORDER BY is used,
+the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
+quick sort, then written to disk; when reading the data, the blocks are merged together.
+
+<br /><a name="large_objects"></a>
+<h2>Large Objects</h2>
+
+<h3>Storing and Reading Large Objects</h3>
+If it is possible that the objects don't fit into memory, then the data type
+CLOB (for textual data) or BLOB (for binary data) should be used.
+For these data types, the objects are not fully read into memory, by using streams.
+To store a BLOB, use PreparedStatement.setBinaryStream. To store a CLOB, use
+PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStream,
+and to read a CLOB, use ResultSet.getCharacterStream.
+If the client/server mode is used, the BLOB and CLOB data is fully read into memory when
+accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
+
+<br /><a name="linked_tables"></a>
+<h2>Linked Tables</h2>
+
+This database supports linked tables, which means tables that don't exist in the current database but
+are just links to another database. To create such a link, use the CREATE LINKED TABLE statement:
+<pre>
+CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 'sa', 'TEST');
+</pre>
+It is then possible to access the table in the usual way. 
+There is a restriction when inserting data to this table: When inserting or updating rows into the table,
+NULL values and values that are not set in the insert statement are both inserted as NULL.
+This may not have the desired effect if a default value in the target table is other than NULL.
+
+<br /><a name="transaction_isolation"></a>
+<h2>Transaction Isolation</h2>
+This database supports the transaction isolation level 'serializable', in which dirty reads, non-repeatable
+reads and phantom reads are prohibited.
+
+<ul>
+<li><b>Dirty Reads</b><br>
+    Means a connection can read uncommitted changes made by another connection.
+<li><b>Non-Repeatable Reads</b><br>
+    A connection reads a row, another connection changes a row and commits,
+    and the first connection re-reads the same row and gets the new result.
+<li><b>Phantom Reads</b><br>
+    A connection reads a set of rows using a condition, another connection
+    inserts a row that falls in this condition and commits, then the first connection
+    re-reads using the same condition and gets the new row.
+</ul>
+
+<h3>Table Level Locking</h3>
+The database allows multiple concurrent connections to the same database.
+To make sure all connections only see consistent data, table level locking is used.
+This mechanism does not allow high concurrency, but is very fast.
+Shared locks and exclusive locks are supported.
+Before reading from a table, the database tries to add a shared lock to the table
+(this is only possible if there is no exclusive lock on the object by another connection).
+If the shared lock is added successfully, the table can be read. It is allowed that
+other connections also have a shared lock on the same object. If a connection wants
+to write to a table (update or delete a row), an exclusive lock is required. To get the
+exclusive lock, other connection must not have any locks on the object. After the
+connection commits, all locks are released.
+This database keeps all locks in memory.
+
+<h3>Lock Timeout</h3>
+If a connection cannot get a lock on an object, the connection waits for some amount
+of time (the lock timeout). During this time, hopefully the connection holding the
+lock commits and it is then possible to get the lock. If this is not possible because
+the other connection does not release the lock for some time, the unsuccessful
+connection will get a lock timeout exception. The lock timeout can be set individually
+for each connection.
+
+<br /><a name="clustering"></a>
+<h2>Clustering / High Availability</h2>
+This database supports a simple clustering / high availability mechanism. The architecture is:
+two database servers run on two different computers, and on both computers is a copy of the
+same database. If both servers run, each database operation is executed on both computers.
+If one server fails (power, hardware or network failure), the other server can still continue to work.
+From this point on, the operations will be executed only on one server until the other server
+is back up.
+Clustering can only be used in the server mode (the embedded mode does not support clustering).
+It is possible to restore the cluster without stopping the server, however it is critical that no other
+application is changing the data in the first database while the second database is restored, so
+restoring the cluster is currently a manual process.
+<p>
+To initialize the cluster, use the following steps:
+<ul>
+<li>Create a database
+<li>Use the CreateCluster tool to copy the database to another location and initialize the clustering.
+    Afterwards, you have two databases containing the same data.
+<li>Start two servers (one for each copy of the database)
+<li>You are now ready to connect to the databases with the client application(s)
+</ul>
+
+<h3>Using the CreateCluster Tool</h3>
+To understand how clustering works, please try out the following example.
+In this example, the two databases reside on the same computer, but usually, the
+databases will be on different servers.
+<ul>
+<li>Create two directories: server1 and server2.
+    Each directory will simulate a directory on a computer.
+<li>Start a TCP server pointing to the first directory.
+    You can do this using the command line:
+<pre>
+java org.h2.tools.Server
+    -tcp -tcpPort 9101
+    -baseDir server1
+</pre>
+<li>Start a second TCP server pointing to the second directory.
+    This will simulate a server running on a second (redundant) computer.
+    You can do this using the command line:
+<pre>
+java org.h2.tools.Server
+    -tcp -tcpPort 9102
+    -baseDir server2
+</pre>
+<li>Use the CreateCluster tool to initialize clustering.
+    This will automatically create a new, empty database if it does not exist.
+    Run the tool on the command line:
+<pre>
+java org.h2.tools.CreateCluster
+  -urlSource jdbc:h2:tcp://localhost:9101/test
+  -urlTarget jdbc:h2:tcp://localhost:9102/test
+  -user sa
+  -serverlist localhost:9101,localhost:9102
+</pre>
+<li>You can now connect to the databases using
+an application or the H2 Console using the JDBC URL
+jdbc:h2:tcp://localhost:9101,localhost:9102/test
+<li>If you stop a server (by killing the process),
+you will notice that the other machine continues to work,
+and therefore the database is still accessible.
+<li>To restore the cluster, you first need to delete the
+database that failed, then restart the server that was stopped,
+and re-run the CreateCluster tool.
+</ul>
+
+<br /><a name="two_phase_commit"></a>
+<h2>Two Phase Commit</h2>
+The two phase commit protocol is supported. 2-phase-commit works as follows:
+<ul>
+<li>Autocommit needs to be switched off
+<li>A transaction is started, for example by inserting a row
+<li>The transaction is marked 'prepared' by executing the SQL statement
+    <code>PREPARE COMMIT transactionName</code>
+<li>The transaction can now be committed or rolled back
+<li>If a problem occurs before the transaction was successfully committed or rolled back
+    (for example because a network problem occurred), the transaction is in the state 'in-doubt'
+<li>When re-connecting to the database, the in-doubt transactions can be listed
+    with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+<li>Each transaction in this list must now be committed or rolled back by executing
+    <code>COMMIT TRANSACTION transactionName</code> or
+    <code>ROLLBACK TRANSACTION transactionName</code>
+<li>The database needs to be closed and re-opened to apply the changes
+</ul>
+
+<br /><a name="compatibility"></a>
+<h2>Compatibility</h2>
+
+This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL.
+There are certain areas where H2 is incompatible.
+
+<h3>Transaction Commit when Autocommit is On</h3>
+At this time, this database engine commits a transaction (if autocommit is switched on) just before returning the result.
+For a query, this means the transaction is committed even before the application scans through the result set, and before the result set is closed.
+Other database engines may commit the transaction in this case when the result set is closed.
+
+<h3>Keywords / Reserved Words</h3>
+There is a list of keywords that can't be used as identifiers (table names, column names and so on),
+unless they are quoted (surrounded with double quotes). The list is currently:
+<p>
+CURRENT_TIMESTAMP, CURRENT_TIME, CURRENT_DATE, CROSS, DISTINCT, EXCEPT, EXISTS, FROM,
+FOR, FALSE, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, MINUS, NATURAL, NOT, NULL,
+ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
+<p>
+Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
+for example CURRENT_TIMESTAMP.
+
+<br /><a name="windows_service"></a>
+<h2>Run as Windows Service</h2>
+Using a native wrapper / adapter, Java applications can be run as a Windows Service. 
+There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
+(<a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a>)
+is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service.
+This service contains the TCP Server and the H2 Console web application.
+The batch files are located in the directory H2/service.
+
+<h3>Install the Service</h3>
+The service needs to be registered as a Windows Service first.
+To do that, double click on 1_install_service.bat. 
+If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+
+<h3>Start the Service</h3>
+You can start the H2 Database Engine Service using the service manager of Windows,
+or by double clicking on 2_start_service.bat. 
+Please note that the batch file does not print an error message if the service is not installed.
+
+<h3>Connect to the H2 Console</h3>
+After installing and starting the service, you can connect to the H2 Console application using a browser.
+Double clicking on 3_start_browser.bat to do that. The
+default port (8082) is hard coded in the batch file.
+
+<h3>Stop the Service</h3>
+To stop the service, double click on 4_stop_service.bat.
+Please note that the batch file does not print an error message if the service is not installed or started.
+
+<h3>Uninstall the Service</h3>
+To uninstall the service, double click on 5_uninstall_service.bat.
+If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+
+<br /><a name="odbc_driver"></a>
+<h2>ODBC Driver</h2>
+The ODBC driver of this database is currently not very stable and only tested superficially
+with a few applications (OpenOffice 2.0, Microsoft Excel and Microsoft Access) and
+data types (INT and VARCHAR), and should not be used for production applications.
+Only a Windows version of the driver is available at this time.
+
+<h3>ODBC Installation</h3>
+Before the ODBC driver can be used, it needs to be installed. To do this,
+double click on h2odbcSetup.exe. If you do this the first time, it will ask you to locate the
+driver dll (h2odbc.dll). If you already installed it, the ODBC administration dialog will open
+where you can create new or modify existing data sources.
+When you create a new H2 ODBC data source, a dialog window will appear
+and ask for the database settings:
+<p>
+<img src="odbcDataSource.png" alt="ODBC Configuration">
+
+<h3>Log Option</h3>
+The driver is able to log operations to a file.
+To enable logging, the log file name must be set in the registry under the key
+CURRENT_USER/Software/H2/ODBC/LogFile. This key will only be read when the
+driver starts, so you need to make sure all applications that may use the driver
+are closed before changing this setting.
+If this registry entry is not found when the driver starts, logging is disabled.
+A sample registry key file may look like this:
+<pre>
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\H2\ODBC]
+"LogFile"="C:\\temp\\h2odbc.txt"
+</pre>
+
+<h3>Security Considerations</h3>
+Currently, the ODBC does not encrypt the password before sending it over TCP/IP to the server.
+This may be a problem if an attacker can listen to the data transferred between the ODBC client
+and the server, because the password is readable to the attacker.
+Also, it is currently not possible to use encrypted SSL connections.
+The password for a data source is stored unencrypted in the registry.
+Therefore the ODBC driver should not be used where security is important.
+
+<h3>Uninstalling</h3>
+To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uninstall the driver.
+
+<br /><a name="acid"></a>
+<h2>ACID</h2>
+In the DBMS world, ACID stands for Atomicity, Consistency, Isolation, and Durability.
+<ul>
+<li>Atomicity: Transactions must be atomic, that means either all tasks of a transaction are performed, or none.
+<li>Consistency: Only operations that comply with the defined constraints are allowed.
+<li>Isolation: Transactions must be completely isolated from each other.
+<li>Durability: Transaction committed to the database will not be lost.
+</ul>
+This database also supports these properties by default, except durability, which can only
+be guaranteed by other means (battery, clustering).
+
+<h3>Atomicity</h3>
+Transactions in this database are always atomic.
+
+<h3>Consistency</h3>
+This database is always in a consistent state.
+Referential integrity rules are always enforced.
+
+<h3>Isolation</h3>
+Currently, only the transaction isolation level 'serializable' is supported.
+In many database, this rule is often relaxed to provide better performance,
+by supporting other transaction isolation levels.
+
+<h3>Durability</h3>
+This database does not guarantee that all committed transactions survive a power failure.
+If durability is required even in case of power failure, some sort of uninterruptible power supply (UPS) is required
+(like using a laptop, or a battery pack). If durability is required even in case of hardware failure,
+the clustering mode of this database should be used.
+<p>
+To achieve durability, it would be required to flush all file buffers (including system buffers) to hard disk for each commit.
+In Java, there are two ways how this can be achieved:
+<ul>
+<li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
+Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDesecriptor
+have been written to the physical medium.
+<li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
+to be written to the storage device that contains it.
+</ul>
+There is one related option, but it does not force changes to disk: RandomAccessFile(.., "rws" / "rwd"):
+<ul>
+<li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
+<li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
+</ul>
+A simple power-off test using two computers (they communicate over the network, and one the power
+is switched off on one computer) shows that the data is not always persisted to the hard drive,
+even when calling FileDescriptor.sync() or FileChannel.force().
+The reason for this is that most hard drives do not obey the fsync() function.
+For more information, see 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252&amp;tid=198&amp;tid=128).
+The test was made with this database, as well as with PostgreSQL, Derby, and HSQLDB.
+None of those databases was able to guarantee complete transaction durability.
+<p>
+The test also shows that when calling FileDescriptor.sync() or FileChannel.force() after each file operation,
+only around 30 file operations per second can be made. That means, the fastest possible Java database
+that calls one of those functions can reach a maximum of around 30 committed
+transactions per second.
+Without calling these functions, around 400000 file operations per second are possible
+when using RandomAccessFile(..,"rw"), and around 2700 when using
+RandomAccessFile(.., "rws"/"rwd").
+<p>
+That means that when using one of those functions, the performance goes down to at most
+30 committed transactions per second, and even then there is no guarantee that transactions are durable.
+These are the reasons that this database does not guarantee durability of transaction by default.
+The database calls FileDescriptor.sync() when executing the SQL statement CHECKPOINT SYNC.
+But by default, this database uses an asynchronous commit.
+
+<h3>Running the Durability Test</h3>
+To test the durability / non-durability of this and other databases, you can use the test application
+in the package org.h2.test.poweroff. Two computers with network connection are required to run this test.
+One computer acts as the listener, the test application is run on the other computer.
+The computer with the listener application opens a TCP/IP port and listens for an incoming connection.
+The second computer first connects to the listener, and then created the databases and starts inserting
+records. The connection is set to 'autocommit', which means after each inserted record a commit is performed
+automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully.
+The listener computer displays the last inserted record number every 10 seconds. Now, the power needs
+to be switched off manually while the test is still running. Now you can restart the computer, and
+run the application again. You will find out that in most cases, none of the databases contains all the
+records that the listener computer knows about. For details, please consult the source code of the
+listener and test application.
+
+<br /><a name="using_recover_tool"></a>
+<h2>Using the Recover Tool</h2>
+The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
+At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
+To run the tool, type on the command line:
+<pre>
+java org.h2.tools.Recover
+</pre>
+For each database in the current directory, a text file will be created.
+This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate
+the schema of the database. This file cannot be executed directly, as the raw insert statements
+don't have the correct table names, so the file needs to be pre-processed manually before executing.
+
+<br /><a name="file_locking_protocols"></a>
+<h2>File Locking Protocols</h2>
+Whenever a database is opened, a lock file is created to signal other processes
+that the database is in use. If database is closed, or if the process that opened
+the database terminates, this lock file is deleted.
+<p>
+In special cases (if the process did not terminate normally, for example because
+there was a blackout), the lock file is not deleted by the process that created it.
+That means the existence of the lock file is not a safe protocol for file locking.
+However, this software uses a challenge-response protocol to protect the database
+files. There are two methods (algorithms) implemented to provide both security
+(that is, the same database files cannot be opened by two processes at the same time)
+and simplicity (that is, the lock file does not need to be deleted manually by the user).
+The two methods are 'file method' and 'socket methods'.
+
+<h3>File Locking Method 'File'</h3>
+The default method for database file locking is the 'File Method'. The algorithm is:
+<ul>
+<li>When the lock file does not exist, it is created (using the atomic operation File.createNewFile).
+Then, the process waits a little bit (20ms) and checks the file again. If the file was changed
+during this time, the operation is aborted. This protects against a race condition
+when a process deletes the lock file just after one create it, and a third process creates
+the file again. It does not occur if there are only two writers.
+<li>
+If the file can be created, a random number is inserted together with the locking method
+('file'). Afterwards, a watchdog thread is started that
+checks regularly (every second once by default) if the file was deleted or modified by
+another (challenger) thread / process. Whenever that occurs, the file is overwritten with the
+old data. The watchdog thread runs with high priority so that a change to the lock file does
+not get through undetected even if the system is very busy. However, the watchdog thread
+does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk
+and does not write to it.
+<li>
+If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times).
+If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent
+writers. Afterwards, the file is overwritten with a new version (challenge).
+After that, the thread waits for 2 seconds.
+If there is a watchdog thread protecting the file, he will overwrite the change
+and this process will fail to lock the database.
+However, if there is no watchdog thread, the lock file will still be as written by
+this thread. In this case, the file is deleted and atomically created again.
+The watchdog thread is started in this case and the file is locked.
+</ul>
+<p>
+This algorithm is tested with over 100 concurrent threads. In some cases, when there are
+many concurrent threads trying to lock the database, they block each other (meaning
+the file cannot be locked by any of them) for some time. However, the file never gets
+locked by two threads at the same time. However using that many concurrent threads
+/ processes is not the common use case. Generally, an application should throw an error
+to the user if it cannot open a database, and not try again in a (fast) loop.
+
+<h3>File Locking Method 'Socket'</h3>
+There is a second locking mechanism implemented, but disabled by default.
+The algorithm is:
+<ul>
+<li>If the lock file does not exist, it is created.
+Then a server socket is opened on a defined port, and kept open.
+The port and IP address of the process that opened the database is written
+into the lock file.
+<li>If the lock file exists, and the lock method is 'file', then the software switches
+to the 'file' method.
+<li>If the lock file exists, and the lock method is 'socket', then the process
+checks if the port is in use. If the original process is still running, the port is in use
+and this process throws an exception (database is in use). If the original process
+died (for example due to a blackout, or abnormal termination of the virtual machine),
+then the port was released. The new process deletes the lock file and starts again.
+</ul>
+This method does not require a watchdog thread actively polling (reading) the same
+file every second. The problem with this method is, if the file is stored on a network
+share, two processes (running on different computers) could still open the same
+database files, if they do not have a direct TCP/IP connection.
+
+<br /><a name="sql_injection"></a>
+<h2>Protection against SQL Injection</h2>
+<h3>What is SQL Injection</h3>
+This database engine provides a solution for the security vulnerability known as 'SQL Injection'. 
+Some applications build SQL statements with embedded user input such as:
+<pre>
+String sql = "SELECT * FROM USERS WHERE PASSWORD='"+pwd+"'";
+ResultSet rs = conn.createStatement().executeQuery(sql);
+</pre>
+If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded,
+it is possible for a user to inject SQL functionality or statements by using specially built input 
+such as (in this example) this password: ' OR ''='. In this case the statement becomes:
+<pre>
+SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
+</pre>
+Which is always true no matter what the password stored in the database is. 
+For more information about SQL Injection, see Glossary and Links.
+
+<h3>Disabling Literals</h3>
+SQL Injection is not possible if user input is not directly embedded in SQL statements.
+A simple solution for the problem above is to use a PreparedStatement:
+<pre>
+String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
+PreparedStatement prep = conn.prepareStatement(sql);
+prep.setString(1, pwd);
+ResultSet rs = prep.executeQuery();
+</pre>
+This database provides a way to enforce usage of parameters when passing user input
+to the database. This is done by disabling embedded literals in SQL statements.
+To do this, execute the statement:
+<pre>
+SET ALLOW_LITERALS NONE;
+</pre>
+Afterwards, SQL statements with text and number literals are not allowed any more.
+That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail.
+It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate
+SQL statements dynamically, and use the Statement API, as long as the SQL statements
+do not include literals.
+There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS.
+To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting).
+Literals can only be enabled or disabled by an administrator.
+
+<h3>Using Constants</h3>
+Disabling literals also means disabling hard-coded 'constant' literals. This database supports
+defining constants using the CREATE CONSTANT command. Constants can be defined only 
+when literals are enabled, but used even when literals are disabled. To avoid name clashes
+with column names, constants can be defined in other schemas:
+<pre>
+CREATE SCHEMA CONST AUTHORIZATION SA;
+CREATE CONSTANT CONST.ACTIVE VALUE 'Active';
+CREATE CONSTANT CONST.INACTIVE VALUE 'Inactive';
+SELECT * FROM USERS WHERE TYPE=CONST.ACTIVE;
+</pre>
+Even when literals are enabled, it is better to use constants instead
+of hard-coded number or text literals in queries or views. With constants, typos are found at compile
+time, the source code is easier to understand and change.
+
+<h3>Using the ZERO() Function</h3>
+It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
+<pre>
+SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
+</pre>
+
+<br /><a name="security_protocols"></a>
+<h2>Security Protocols</h2>
+The following paragraphs document the security protocols used in this database.
+These descriptions are very technical and only intended for security experts that already know
+the underlying security primitives.
+
+<h3>User Password Encryption</h3>
+When a user tries to connect to a database, the combination of
+user name, @, and password hashed using SHA-256, and this hash value
+is transmitted to the database.
+This step does not try to an attacker from re-using the value if he is able to listen to the
+(unencrypted) transmission between the client and the server.
+But, the passwords are never transmitted as plain text,
+even when using an unencrypted connection between client and server.
+That means if a user reuses the same password for different things,
+this password is still protected up to some point. See also
+'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication'
+for more information.
+<p>
+When a new database or user is created, a new cryptographically secure
+random salt value is generated. The size of the salt is 64 bit.
+Using the random salt reduces the risk of an attacker pre-calculating hash values
+for many different (commonly used) passwords.
+<p>
+The combination of user-password hash value (see above) and salt is hashed
+using SHA-256. The resulting value is stored in the database.
+When a user tries to connect to the database, the database combines
+user-password hash value with the stored salt value and calculated the
+hash value. Other products use multiple iterations (hash the hash value again and again),
+but this is not done in this product to reduce the risk of denial of service attacks
+(where the attacker tries to connect with bogus passwords, and the server
+spends a lot of time calculating the hash value for each password).
+The reasoning is: if the attacker has access to the hashed passwords, he also has
+access to the data in plain text, and therefore does not need the password any more.
+If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
+
+<h3>File Encryption</h3>
+The database files can be encrypted using two different algorithms: AES-128 and
+XTEA (using 32 rounds). The reasons for supporting XTEA is performance
+(XTEA is about twice as fast as AES) and to have an alternative algorithm if
+AES is suddenly broken.
+<p>
+When a user tries to connect to an encrypted database, the combination of the word
+'file', @, and the file password is hashed using SHA-256. This hash value is
+transmitted to the server.
+<p>
+When a new database file is created, a new cryptographically secure
+random salt value is generated. The size of the salt is 64 bit.
+The combination of the file password hash and the salt value is hashed 1024 times
+using SHA-256. The reason for the iteration is to make it harder for an attacker to
+calculate hash values for common passwords.
+<p>
+The resulting hash value is used as the key for the block cipher algorithm
+(AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key
+is calculated by hashing the key again using SHA-256.
+This is to make sure the IV is unknown to the attacker.
+The reason for using a secret IV is to protect against watermark attacks.
+<p>
+Before saving a block of data (each block is 8 bytes long), the following operations are executed:
+First, the IV is calculated by encrypting the block number with the IV key (using the same
+block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is
+encrypted using the AES-128 or XTEA algorithm.
+<p>
+When decrypting, the operation is done in reverse. First, the block is decrypted using the key,
+and then the IV is calculated combined with the decrypted text using XOR.
+<p>
+Therefore, the block cipher modes of operation is CBC (Cipher-block chaining), but each chain
+is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns
+in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits
+are not propagated to flipped plaintext bits in the next block.
+
+<h3>SSL/TLS Connections</h3>
+Remote SSL/TLS connections are supported using the Java Secure Socket Extension
+(SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
+The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
+
+<h3>HTTPS Connections</h3>
+The web server supports HTTP and HTTPS connections using SSLServerSocket.
+There is a default self-certified certificate to support an easy starting point, but
+custom certificates are supported as well.
+
+<br /><a name="uuid"></a>
+<h2>Universally Unique Identifiers (UUID)</h2>
+This database supports the UUIDs, and function to create new value using 
+a cryptographically strong pseudo random number generator.
+With random UUIDs, the chance of two having the same value can be calculated
+using the probability theory. See also 'Birthday Paradox'.
+Standarized randomly generated UUIDs have 122 random bits.
+4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
+This database supports generating such UUIDs using the built-in function RANDOM_UUID().
+Here is a small program to estimate the proability of having two identical UUIDs
+after generating a number of values:
+<pre>
+double x = Math.pow(2, 122);
+for(int i=35; i<62; i++) {
+    double n = Math.pow(2, i);
+    double p = 1 - Math.exp(-(n*n)/(2*x));
+    String ps = String.valueOf(1+p).substring(1); 
+    System.out.println("2^"+i+"="+(1L&lt;&lt;i)+" probability: 0"+ps);
+}         
+</pre>
+Some values are:
+<pre>
+2^36=68'719'476'736 probability: 0.000'000'000'000'000'4
+2^41=2'199'023'255'552 probability: 0.000'000'000'000'4
+2^46=70'368'744'177'664 probability: 0.000'000'000'4
+</pre>
+One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, 
+that means the probability is about 0.000'000'000'06.
+
+<br /><a name="glossary_links"></a>
+<h2>Glossary and Links</h2>
+<table><tr><th>Term</th><th>Description</th></tr>
+<tr>
+  <td>AES-128</td>
+  <td>
+    A block encryption algorithm. See also:
+    <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
+  </td>
+</tr>
+<tr>
+  <td>Birthday Paradox</td>
+  <td>
+      Describes the higher than expected probability that two persons in a room have the same birthday.
+    Also valid for randomly generated UUIDs. See also:
+    <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
+  </td>
+</tr>
+<tr>
+  <td>Digest</td>
+  <td>
+    Protocol to protect a password (but not to protect data). See also:
+    <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
+  </td>
+</tr>
+<tr>
+  <td>GCJ</td>
+  <td>
+    GNU Compiler for Java.
+    <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and 
+    <a href="http://javacompiler.mtsystems.ch/">http://javacompiler.mtsystems.ch/</a>
+  </td>
+</tr>
+<tr>
+  <td>HTTPS</td>
+  <td>
+    A protocol to provide security to HTTP connections. See also:
+    <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
+  </td>
+</tr>
+<tr>
+  <td>Modes of Operation</td>
+  <td>
+  <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation">Wikipedia: Block cipher modes of operation</a>
+  </td>
+</tr>
+<tr>
+  <td>Salt</td>
+  <td>
+      Random number to increase the security of passwords.
+      See also:
+    <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
+  </td>
+</tr>
+<tr>
+  <td>SHA-256</td>
+  <td>
+      A cryptographic one-way hash function.
+      See also:
+    <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
+  </td>
+</tr>
+<tr>
+  <td>SQL Injection</td>
+  <td>
+      A security vulnerability where an application generates SQL statements with embedded user input.
+      See also:
+    <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
+  </td>
+</tr>
+<tr>
+  <td>Watermark Attack</td>
+  <td>
+    Security problem of certain encryption programs where the existence of certain
+    data can be proven without decrypting.
+    For more information, search in the internet for 'watermark attack cryptoloop'
+  </td>
+</tr>
+<tr>
+  <td>SSL/TLS</td>
+  <td>
+    Secure Sockets Layer / Transport Layer Security.
+    See also:
+      <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
+  </td>
+</tr>
+<tr>
+  <td>XTEA</td>
+  <td>
+    A block encryption algorithm.
+      See also:
+    <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
+  </td>
+</tr>
+</table>
+
+</div></td></tr></table></body></html>

@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- 
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+Build
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>Build</h1>
+
+<a href="#portability">
+    Portability</a><br />
+<a href="#environment">
+    Environment</a><br />
+<a href="#building">
+    Building the Software</a><br />
+<a href="#maven2">
+    Using Maven 2</a><br />
+
+<br /><a name="portability"></a>
+<h2>Portability</h2>
+This database is written in Java and therefore works on many platforms.
+It is also possible to compile it to a native executable using GCJ. 
+
+<br /><a name="environment"></a>
+<h2>Environment</h2>
+To build the database executables, the following software stack was used.
+In most cases, newer version or compatible software works too, but this was not tested.
+<ul>
+    <li>Windows XP
+    <li>Sun JDK Version 1.4
+    <li>Apache Ant Version 1.6.5
+    <li>Mozilla Firefox 1.5
+    <li>Eclipse Version 3.2.1
+    <li>YourKit Java Profiler
+</ul>
+
+<br /><a name="building"></a>
+<h2>Building the Software</h2>
+On the command line, go to the directory src and execute the following command:
+<pre>
+ant -projecthelp
+</pre>
+You will get a list of targets. If you want to build the jar files, execute:
+<pre>
+ant jar
+</pre>
+To create a jar file with the JDBC API and the classes required to connect to a server only,
+use the target jarClient:
+<pre>
+ant jarClient
+</pre>
+The other targets may be used as well.
+
+<br /><a name="maven2"></a>
+<h2>Using Maven 2</h2>
+To build and upload the H2 .jar file to the local Maven 2 repository, execute the following command:
+<pre>
+ant mavenUploadLocal
+</pre>
+Afterwards, you can include the database in your Maven 2 project as a dependency:
+<pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;org.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+
+</div></td></tr></table></body></html>

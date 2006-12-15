@@ -1,0 +1,1605 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+History
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>History and Roadmap</h1>
+<a href="#history">
+    History of this Database Engine</a><br />
+<a href="#changelog">
+    Change Log</a><br />
+<a href="#roadmap">
+    Roadmap</a><br />
+
+<br /><a name="history"></a>
+<h2>History of this Database Engine</h2>
+The development of H2 was started in May 2004,
+but it was first published on December 14th 2005.
+The author of H2, Thomas Mueller, is also the original developer of Hypersonic SQL.
+In 2001, he joined PointBase Inc. where he created PointBase Micro.
+At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group was formed
+to continued to work on the Hypersonic SQL codebase.
+The name H2 stands for Hypersonic 2; however H2 does not share any code with
+Hypersonic SQL or HSQLDB. H2 is built from scratch.
+
+<br /><a name="changelog"></a>
+<h2>Change Log</h2>
+
+<h3>Version 1.0 (Current)</h3>
+
+<h3>Version 1.0 / 2006-12-..</h3><ul>
+<li>String.toUpperCase and toLowerCase can not be to processing SQL, as they depend on the current locale.
+	Now use toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..)
+<li>Table aliases are now supported in DELETE and UPDATE. Example: DELETE FROM TEST T0.
+<li>The RunScript tool can now include other files using a new syntax: @INCLUDE fileName.
+	It was already possible to do that using embedded RUNSCRIPT statements, but not remotely.
+<li>When the database URL contains ;RECOVERY=TRUE then the index file is now deleted if it was not closed before.
+<li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
+<li>Deleting old temp files now uses a phantom reference queue. Generally, temp files should now be deleted
+	earlier.
+<li>Opening a large database is now much faster when even when using the default log mode (LOG=1),
+    if the database was closed previously.
+<li>Very large BLOBs and CLOBs can now be used with the server and the cluster mode.
+    The objects will temporarily be buffered on the client side if they are larger than some
+    size (currently 64 KB).
+<li>PreparedStatement.setObject(x, y, Types.OTHER) does now serialize the object in every case
+    (even for Integer).
+<li>EXISTS subqueries with parameters were not re-evaluated when the prepared statement was
+    reused. This could lead to incorrect results.
+<li>Support for indexed parameters in PreparedStatements: update test set name=?2 where id=?1
+</ul>
+
+<h3>Version 1.0 / 2006-12-03</h3><ul>
+<li>The SQL statement COMMENT did not work as expected. Many bugs have been fixed in this area.
+    If you already have comments in the database, it is recommented to backup and restore the database,
+    using the Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
+<li>Mixing certain data types in an operation, for example VARCHAR and TIMESTAMP, now converts both expressions to TIMESTAMP.
+    This was a problem when comparing a string against a date.
+<li>Improved performance for CREATE INDEX. This method is about 10% faster if the original order is random.
+<li>Server: If an object was already closed on the server side because it was too 'old' (not used for a long time),
+    even calling close() threw an exception. This is not done any more as it is not a problem.
+<li>Optimization: The left and right side of a AND and OR conditions are now ordered by the expected cost.
+<li>There was a bug in the database encryption algorithm. The initalization vector was not correctly calculated, and 
+    pattern of repeated encrypted bytes where generated for empty blocks in the file. This has been is fixed. 
+    The security of the data itself was not compromised, but this was not the intended behaviour.
+    If you have an encrypted database, you will need to decrypt the database using the org.h2.tools.ChangePassword
+    (using the old database engine), and encrypt the database using the new engine. Alternatively, you can 
+    use the Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
+<li>New connection time setting CACHE_TYPE=TQ to use the 2Q page replacement algorithm.
+    The overall performance seems to be a bit better when using 2Q. Also, 2Q should be more resistant to table scan.
+<li>Change behaviour: If both sides of a comparison are parameters with unknown data type, then an exception is thrown now.
+    The same happens for UNION SELECT if both columns are parameters.
+<li>New system function SESSION_ID().
+<li>Deeply nested views where slow to execute, because the query was parsed many times. Fixed.
+<li>The service wrapper is now included in the default installation and documented.
+<li>Java functions returning a result set (such as CSVREAD) now can be used in a SELECT statement like a table.
+    The function is still called twice (first to get the column list at parse time, and then at execute time). 
+    The behaviour has been changed: Now first call contains the values if set, but the connection URL is different
+    (jdbc:columnlist:connection instead of jdbc:default:connection).
+</ul>
+
+<h3>Version 1.0 / 2006-11-20</h3><ul>
+<li>SCRIPT: New option BLOCKSIZE to split BLOBs and CLOBs into separate blocks, to avoid OutOfMemory problems.
+<li>When using the READ_COMMITTED isolation level, a transaction now waits until there are no write locks
+    when trying to read data. However, it still does not add a read lock.
+<li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOBs and/or BLOBs did not work. Fixed.
+<li>CSV tool: the methods setFieldSeparatorWrite and setRowSeparatorWrite where not accessible. 
+    The API has been changed, there is now only one static method, getInstance().
+<li>ALTER TABLE ADD did throw a strange message if the table contained views. Now the message is better,
+    but it is still not possible to do that if views on this table exist.
+<li>Direct links to the Javadoc were not working.
+<li>CURRVAL and NEXTVAL functions: New optional sequence name parameter.
+<li>ALTER TABLE: If there was a foreign key in another table that references to the change table,
+    the constraint was dropped.
+<li>The input streams returned from this database did not always read all data when calling
+    read. This was not wrong, but unexpected. Now changed that read behaves like readFully.
+<li>The default cache size is now 65536 pages instead of 32768. Like this the memory used for caching
+    is about 10 MB. Before, it used to be about 6 MB.
+<li>Inserting rows into linked tables did not work for HSQLDB when the value was NULL. 
+    Now NULL values are inserted if the value for a column was not set in the insert statement.
+<li>New optimization to reuse subquery results. Can be disabled with SET OPTIMIZE_REUSE_RESULTS 0.
+<li>Oracle SYNONYM tables are now listed in the H2 Console.
+<li>CREATE LINKED TABLE didn't work for Oracle SYNONYM tables. Fixed.
+<li>Dependencies between the JDBC client and the database have been removed.
+    The h2client.jar is now 295 KB. There are still some classes included that should not be there.
+    The theoretical limit is about 253 KB currently.
+<li>When using the server version, when not closing result sets or using nested DatabaseMetaData result sets,
+    the connection could break. This has been fixed.
+<li>EXPLAIN... results are now formatted on multiple lines so it is easier to read them.
+<li>The Spanish translation was completed by Miguel Angel. Thanks a lot! Translations to other languages are always welcome.
+<li>New system function SCHEMA() to get the current schema.
+<li>New SQL statement SET SCHEMA to change the current schema of this session.
+<li>The Recovery tool has been improved. It now creates a SQL script file that can be executed directly.
+<li>LENGTH now returns the precision for CLOB, BLOB, and BINARY (and is therefore faster).
+<li>The built-in FTP server can now access a virtual directory stored in a database.
+</ul>
+
+<h3>Version 1.0 / 2006-11-03</h3><ul>
+<li>
+    Two simple full text search implementations (Lucene and native) are now included. 
+    This is work in progress, and currently undocumented.
+    See test/org/h2/samples/fullTextSearch.sql.
+    To enable the Lucene implementation, you first need to install Lucene, 
+    rename FullTextLucene.java.txt to *.java and call 'ant compile'.
+<li>
+    Wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
+<li>
+    If a custom shutdown hook was installed, and the database was called at shutdown,
+    a NullPointException was thrown. Now, the following exception is thrown:
+    Database called at VM shutdown; add ";DB_CLOSE_ON_EXIT=FALSE" to the db URL to disable automatic database closing
+<li>
+    If SHUTDOWN was called and DB_CLOSE_DELAY was set, the database was not closed.
+    This has been changed so that shutdown always closes the database.
+<li>
+    Subqueries with order by outside the column list didn't work correctly. Example:
+    SELECT (SELECT NAME FROM TEST ORDER BY ID);
+    This is fixed now.
+<li>
+    Linked Tables: Only the first column was linked when linking to PostgreSQL, or a subquery. Fixed.
+<li>
+    Sequences: When the database is not closed normally, the value was not set correctly. Fixed.
+<li>
+    The optimization for IN(SELECT...) was too agressive; changes in the inner query where not accounted for.
+<li>
+    Index names of referential constraints are now prefixed with the constraint name.
+<li>
+    Blob.getBytes skipped the wrong number of bytes. Fixed.
+<li>
+    Group by a function didn't work if a column list was specified in the select list. Fixed.
+<li>
+    Improved search functionality in the HTML documentation.
+<li>
+    Triggers can now be defined on a list of actions (for example: INSERT, UPDATE) instead of just one action per trigger.
+<li>
+    On some systems (for example, some Linux VFAT and USB flash disk drivers), RandomAccessFile.setLength does not work correctly.
+    A workaround for this problem has been implemented.
+<li>
+    DatabaseMetaData.getTableTypes now also returns SYSTEM TABLE and TABLE VIEW.
+    This was done for DbVisualizer. Please tell me if this breaks other applications or tools.
+<li>
+    Java functions with Blob or Clob parameters are now supported.
+<li>
+    LOCK_MODE 0 (READ_UNCOMMITTED) did not work when using multiple connections.
+    Fixed, however LOCK_MODE 0 should still not be used when using multiple connections.
+<li>
+    New SQL statement COMMENT ON ... IS ...
+<li>
+    Added a 'remarks' column to most system tables.
+    New system table INFORMATION_SCHEMA.TRIGGERS
+<li>
+    PostgreSQL compatibility: Support for the date format 2006-09-22T13:18:17.061
+<li>
+    MySQL compatibility: ResultSet.getString("PEOPLE.NAME") is now supported.
+<li>
+    JDBC 4.0 driver auto discovery: When using JDK 1.6, Class.forName("org.h2.Driver") is no longer required.
+</ul>
+
+<h3>Version 1.0 / 2006-10-10</h3><ul>
+<li>
+    Redundant () in a IN subquery is now supported: where id in ((select id from test))
+<li>
+    The multi-threaded kernel can not be enabled using SET MULTI_THREADED 1 or jdbc:h2:test;MULTI_THREADED=1.
+    A new tests has been written for this feature, but more tests are required, so this is still experimental.
+<li>
+    Can now compile everything with JDK 1.6. However, only very few of the JDBC 4.0 features are implemented so far.
+<li>
+    A small FTP server is now included. Disabled by default. Intended as a simple mechanism to transfer data in ad-hoc networks.
+<li>
+    GROUP BY an formula or function didn't work if the same expression was used in the select list. Fixed.
+<li>
+    Reconnect didn't work after renaming a user if rights were granted for this user. Fixed.
+<li>
+    Opening and closing connections in many threads sometimes failed because opening a session
+    was not correctly synchronized. Fixed.
+<li>
+    Function aliases may optionally include parameter classes. Example:
+    CREATE ALIAS PARSEINT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)"
+<li>
+    Support for UUID
+<li>
+    Support for DOMAIN (user defined data types).
+<li>
+    Could not re-connect to a database when ALLOW_LITERALS or COMPRESS_LOB was set. Fixed.
+</ul>
+
+<h3>Version 1.0 / 2006-09-24</h3><ul>
+<li>
+    New LOCK_MODE 3 (READ_COMMITTED). Table level locking, but only when writing (no read locks).
+<li>
+    Connection.setTransactionIsolation and getTransactionIsolation now set / get the LOCK_MODE of the database.
+<li>
+    New system function LOCK_MODE()
+<li>
+    Optimizations for WHERE ... IN(...) and SELECT MIN(..), MAX(..) are now enabled by default, but can be disabled
+    in the application (Constants.OPTIMIZE_MIN_MAX, OPTIMIZE_IN)
+<li>
+    LOBs are now automatically converted to files. Constants.AUTO_CONVERT_LOB_TO_FILES is now set to true by default,
+    however this can be disabled in the application.
+<li>
+    Reading from compressed LOBs didn't work in some cases. Fixed.
+<li>
+    CLOB / BLOB: Copying LOB data directly from one table to another, and altering a table with with LOBs did not work,
+    the BLOB data was deleted when the old table was deleted. Fixed.
+<li>
+    Wide b-tree indexes (with large VARCHAR columns for example) with a long common prefix (where many
+    rows start with the same text) could get corrupted. Fixed.
+<li>
+    For compatibility with Derby, the precision in a data type definition can now include K, M or G as in BLOB(10M).
+<li>
+    CREATE TABLE ... AS SELECT ... is now supported.
+<li>
+    DROP TABLE: Can now drop more than one column in one step: DROP TABLE A, B
+<li>
+    CREATE SCHEMA: The authorization part is now optional.
+<li>
+    Protection against SQL injection: New command SET ALLOW_LITERALS {NONE|ALL|NUMBERS}.
+    With SET ALLOW_LITERALS NONE, SQL injections are not possible because literals in SQL statements are rejected;
+    User input must be set using parameters ('?') in this case.
+<li>
+    New concept 'Constants': New SQL statements CREATE CONSTANT and DROP CONSTANT. Constants can be used
+    where expressions can be used. New metadata table INFORMATION_SCHEMA.CONSTANTS.
+    Built-in constant function ZERO() to get the integer value 0.
+<li>
+    New data type OTHER (alternative names OBJECT and JAVA_OBJECT). When using this data type,
+    Java Objects are automatically serialized and deserialized in the JDBC layer. Constants.SERIALIZE_JAVA_OBJECTS is
+    now true by default.
+<li>
+    [NOT] EXISTS(SELECT ... EXCEPT SELECT ...) did not work in all cases. Fixed.
+<li>
+    DatabaseMetaData.getProcedures and getProcedureColumns are implemented now.
+    INFORMATION_SCHEMA.FUNCTION_ALIASES was changed, and there is a new table
+    INFORMATION_SCHEMA.FUNCTION_COLUMNS.
+<li>
+    As a workaround for a problem on (maybe misconfigured) Linux system, now use
+    InetAddress.getByName("127.0.0.1")  instead of InetAddress.getLocalHost() to get the loopback address.
+<li>
+    Functions returning a result set that are used like a table are now first called
+    (to get the column names) with null values (or 0 / false for primitive types)
+    as documented and not with any values even if they are constants.
+<li>
+    Improved performance for MetaData calls. The table name is now indexed.
+<li>
+    BatchUpdateException was not helpful, now includes the cause
+<li>
+    Unknown setting in the database URL (which are most likely typos) are now detected and
+    an exception is thrown. Unknown settings in the connection properties however
+    (for example used by OpenOffice and Hibernate) are ignored.
+<li>
+    Now the log size is automatically increased to at least 10% of the data file.
+    This solves a problem with 'Too many open files' for very large databases.
+<li>
+    Backup and Runscript tools now support options (H2 only)
+</ul>
+
+<h3>Version 1.0 / 2006-09-10</h3><ul>
+<li>
+    Updated the performance test so that Firebird can be tested as well.
+<li>
+    Now an exception is thrown when the an overflow occurs for mathematical operations (sum, multiply and so on)
+    for the data type selected.
+<li>
+    Correlated subqueries: It is now possible to use columns of the outer query
+    in the select list of the inner query (not only in the condition).
+<li>
+    The script can now be compressed. Syntax: SCRIPT TO 'file' COMPRESSION {DEFLATE|LZF|ZIP|GZIP}.
+<li>
+    New setting SET COMPRESS_LOB {NO|LZF|DEFLATE} to automatically compress BLOBs and CLOBs.
+    This is helpful when storing highly redundant textual data (XML, HTML).
+<li>
+    ROWNUM didn't always work as expected when using subqueries. This is fixed now.
+    However, there is no standard definition for ROWNUM, for situations where you want to limit
+    the number of rows (specially for offset), the standardized LIMIT [OFFSET] should be used
+<li>
+    Deleting many rows from a table with a self-referencing constraint with 'on delete cascade' did not work.
+    Now referencial constraints are checked after the action is performed.
+<li>
+    The cross references in the SQL grammar docs where broken in the last release.
+<li>
+    There was a bug in the default settings for the Console, the setting
+    ;hsqldb.default_table_type=cached was added to the H2 database instead of the HSQLDB database.
+<li>
+    Workaround for an OpenOffice.org problem: DatabaseMetaData calls with schema name pattern
+    now return the objects for the PUBLIC schema if the schema name pattern was an empty string.
+<li>
+    Until now, unknown connection properties where ignored (for OpenOffice compatibility).
+    This is not a good solution because typos are not detected.
+    This behaviour is still the default but it can be disabled by adding
+    ;IGNORE_UNKNOWN_SETTINGS=FALSE to the database URL.
+    However this is not the final solution.
+<li>
+    Workaround for an OpenOffice problem: OpenOffice Base calls DatabaseMetaData functions with "" as the catalog.
+    As the catalog in H2 is not an empty string, the result should strictly be empty; however to make OpenOffice work,
+    the catalog is not used as a criteria in this case.
+<li>
+    New SQL statement DROP ALL OBJECTS [DELETE FILES] to drop all tables, sequences and so on. If DELETE FILES is added,
+    the database files are deleted as well when the last connection is closed. The DROP DATABASE statement found in other systems
+    means drop another database, while DROP ALL OBJECTS means remove all data from the current database.
+<li>
+    When running a script that contained referential or unique constraints, and if the indexes for those constraints are not created by the user,
+    a internal exception could occur. This is fixed. Also, the script command will no longer write the internal indexes used into the file.
+<li>
+    SET IGNORECASE is now supported for compatiblity with HSQLDB, and because using collations (SET COLLATION) is very slow on JDKs (JDK 1.5)
+<li>
+    ORDER BY an expression didn't work when using GROUP BY at the same time.
+</ul>
+
+<h3>Version 1.0 / 2006-08-31</h3><ul>
+<li>
+    In some situations, wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
+<li>
+    ORDER BY was broken in the last release when using table aliases. Fixed.
+</ul>
+    
+<h3>Version 0.9 / 2006-08-28</h3><ul>
+<li>
+    DATEDIFF on seconds, minutes, hours did return different results in certain timezones (half-hour timezones)
+    in certain situations. Fixed.
+<li>
+    LOB files where not deleted when the table was truncated or dropped. This is now done.
+<li>
+    When large strings or byte arrays where inserted into a LOB (CLOB or BLOB), or if the data was stored
+    using PreparedStatement.setBytes or setString, the data was stored in-place (no separate files where created).
+    This is now implemented (that means distinct files are created in every case), however disabled by default.
+    It is possible to enable this option with Constants.AUTO_CONVERT_LOB_TO_FILES = true
+<li>
+    New setting MAX_LENGTH_INPLACE_LOB
+<li>
+    When reading from a table with many small CLOB columns, in some situations
+    an ArrayIndexOutOfBoundsException was thrown. Fixed.
+<li>
+    Optimization for MIN and MAX (but currently disabled by default until after release 1.0):
+    Queries such as SELECT MIN(ID), MAX(ID)+1, COUNT(*) FROM TEST now use an index if one is available.
+    To enable manually, set Constants.OPTIMIZE_MIN_MAX = true in your application.
+<li>
+    Subqueries: Constant subqueries are now only evaluated once (like this was before).
+<li>
+    Linked tables: Improved compatibility with other databases and improved error messages.
+<li>
+    Linked tables: The table name is no longer quoted when accessing the foreign database.
+    This allows to use schema names, and possibly subqueries as table names (when used in queries).
+<li>
+    Outer join: There where some incompatibilities with PostgreSQL and MySQL with more complex outer joins. Fixed.
+</ul>
+
+<h3>Version 0.9 / 2006-08-23</h3><ul>
+<li>
+    Bugfix for LIKE: If collation was set (SET COLLATION ...), it was ignored when using LIKE. Fixed.
+<li>
+    Optimization for IN(value list) and IN(subquery). The optimization is disabled by default,
+    but can be switched on by setting Constants.OPTIMIZE_IN = true
+    (no compilation required). Currently, the IN(value,...) is converted to BETWEEN min AND max,
+    that means it is not converted to an inner join.
+<li>
+    Arithmetic overflows in can now be detected for sql types TINYINT, SMALLINT, INTEGER, BIGINT.
+    Operations: addition, subtraction, multiplication, negation. By default, this detection is switched off
+    but can be switched on by setting Constants.OVERFLOW_EXCEPTIONS = true
+    (no compilation required).
+<li>
+    Referential integrity: fixed a stack overflow problem when a deleted record caused (directly or indirectly)
+    deleting other rows in the same table via cascade delete.
+<li>
+    Database opening: sometimes opening a database was very slow because indexes were re-created.
+    even when the index was consistent. This lead to long database opening times for some databases. Fixed.
+<li>
+    Local temporary tables where not included in the meta data. Fixed.
+<li>
+    Very large transactions are now supported. The undo log of large transactions is buffered to disk.
+    The maximum size of undo log records to be kept in-memory can be changed with SET MAX_MEMORY_UNDO.
+    Currently, this feature is disabled by default (MAX_MEMORY_UNDO is set to Integer.MAX_VALUE by default) because it needs more testing.
+    It will be enabled after release 1.0.
+    The current implementation has a limitation: changes to tables without a primary key can not be buffered to disk
+<li>
+    Improvements in the autocomplete feature. Thanks a lot to James Devenish for his very valuable feedback and testing!
+<li>
+    Bugfix for an outer join problem (too many rows where returned for a combined inner join / outer join).
+<li>
+    Date and time constants outside the valid range (February 31 and so on) are no longer accepted.
+</ul>
+
+<h3>Version 0.9 / 2006-08-14</h3><ul>
+<li>
+    SET LOG 0 didn't work (except if the log level was set to some other value before). Fixed.
+<li>
+    Outer join optimization. An outer join now evaluates expressions like (ID=1) in the where clause early.
+    However expressions like ID IS NULL or NOT ID IS NOT NULL in the where clause can not be optimized.
+<li>
+    Autocomplete is now improved.
+    Schemas and quoted identifiers are not yet supported.
+    There are some browser incompatibilities,
+    for example Enter doesn't work in Opera (but clicking on the item does),
+    clicking on the item doesn't work in Internet Explorer (but Enter works).
+    However everything should work in Firefox. Please report any incompatibilities.
+<li>
+    Source code to support H2 in Resin is included (see src/tools, package com.caucho.jdbc).
+    For the complete patch, see http://forum.caucho.com/node/61
+<li>
+    Space is better re-used after deleting many records.
+<li>
+    Umlauts and chinese characters are now supported in
+    identifier names (table name, column names and so on).
+<li>
+    Fixed a problem when comparing BIGINT values with constants.
+<li>
+    NULL handling was wrong for: true IN (true, null). Fixed.
+<li>
+    It was not possible to cancel a select statement with a (temporary) view. Fixed.
+</ul>
+
+<h3>Version 0.9 / 2006-07-29</h3><ul>
+<li>
+    ParameterMetaData is now implemented (mainly to support getParameterCount).
+<li>
+    Improved performance for Statement.getGeneratedKeys().
+<li>
+    SCRIPT: The system generated indexes are now not included in the script file because they will be created automatically.
+    Also, the drop statements for generated sequences are not included in the script any longer.
+<li>
+    Bugfix: IN(NULL) didn't return NULL in every case. Fixed.
+<li>
+    Bugfix: DATEDIFF didn't work correctly for hour, minute and second if one of the dates was before 1970. Fixed.
+<li>
+    Shutdown TCP Server: The Server tool didn't throw / print a meaningful exception
+    if the server was not running or if the password was wrong. Fixed.
+<li>
+    Experimental auto-complete functionality in the H2 Console.
+    Does not yet work for all cases. Press [Ctrl]+[Space] to activate, and [Esc] to deactivate it.
+<li>
+    SELECT EXCEPT (or MINUS) did not work for some cases. Fixed.
+<li>
+    DATEDIFF now returns a BIGINT and not an INT
+<li>
+    1.0/3.0 is now 0.33333... and not 0.3 as before. The scale of a DECIMAL division is
+    adjusted automatically (up to current scale + 25).
+<li>
+    'SELECT * FROM TEST' can now be written as 'FROM TEST SELECT *'
+    to enable improved autocomplete (column names can be suggested in the
+    SELECT part of the query because the tables are known if the FROM part comes first).
+    SELECT is now a keyword.
+<li>
+    H2 Console: First version of an autocomplete feature.
+<li>
+    DATEADD didn't work for milliseconds. Fixed.
+<li>
+    New parameter schemaName in Trigger.init.
+<li>
+    New method DatabaseEventListener.init to pass the database URL.
+<li>
+    Opening a database that was not closed previously is now faster
+    (specially if using a database URL of the form jdbc:h2:test;LOG=2)
+    Applying the redo-log is buffered and writing to the file is ordered.
+<li>
+    Could not connect to a database that was closing at the same time.
+<li>
+    C-style block comments /* */ are not parsed correctly when they contain * or /
+</ul>
+
+<h3>Version 0.9 / 2006-07-14</h3><ul>
+<li>
+    The regression tests are no longer included in the jar file. This reduces the size by about 200 KB.
+<li>
+    Fixed some bugs in the CSV tool. This tool should now work for most cases, but is still not fully tested.
+<li>
+    The cache size is now measured in blocks and no longer in rows. Manually setting
+    the cache size is no longer necessary in most cases.
+<li>
+    Objects of unknown type are no longer serialized to a byte array (and deserialized when calling getObject on a byte array data type)
+    by default. This behaviour can be changed with Constants.SERIALIZE_JAVA_OBJECTS = true
+<li>
+    New column IS_GENERATED in the metadata tables SEQUENCES and INDEXES
+<li>
+    Optimization: deterministic subqueries are evaluated only once.
+<li>
+    An exception was thrown if a scalar subquery returned no rows. Now the NULL value is used in this case.
+<li>
+    IF EXISTS / IF NOT EXISTS implemented for the remaning CREATE / DROP statements.
+<li>
+    ResultSetMetaData.isNullable is now implemented.
+<li>
+    LIKE ... ESCAPE: The escape character may now also be an expression.
+<li>
+    Compatibility: TRIM(whitespace FROM string)
+<li>
+    Compatibility: SUBSTRING(string FROM start FOR length)
+<li>
+    CREATE VIEW now supports a column list: CREATE VIEW TESTV(A, B) AS ...
+<li>
+    Compatibility: 'T', 'Y', 'YES', 'F', 'N', 'NO' (case insensitive) can now also be converted to boolean.
+    This is allowed now: WHERE BOOLEAN_FIELD='T'=(ID>1)
+<li>
+    Optimization: data conversion of constants was not optimized. This is done now.
+<li>
+    Compatibility: Implemented a shortcut version to declare single column referential integrity:
+    CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT REFERENCES TEST)
+<li>
+    Issue #126: It is possible to create multiple primary keys for the same table.
+<li>
+    Issue #125: Foreign key constraints of local temporary tables are not dropped when the table is dropped.
+<li>
+    Issue #124: Adding a column didn't work when the table contains a referential integrity check.
+<li>
+    Issue #123: The connection to the server is lost if an abnormal exception occurs.
+    Example SQL statement: select 1=(1,2)
+<li>
+    The H2 Console didn't parse statements containing '-' or '/' correctly. Fixed.
+    Now uses the same facility to split a script into SQL statements for
+    the RunScript tool, for the RUNSCRIPT command and for the H2 Console.
+<li>
+    DatabaseMetaData.getTypeInfo: BIGINT was returning AUTO_INCREMENT=TRUE, which is wrong. Fixed.
+</ul>
+
+<h3>Version 0.9 / 2006-07-01</h3><ul>
+<li>
+    After dropping contraints and altering a table sometimes the database could not be opened. Fixed.
+<li>
+    Outer joins did not always use an index even if this was possible. Fixed.
+<li>
+    Issue #122: Using OFFSET in big result sets (disk buffered result sets) did not work. Fixed.
+<li>
+    Support DatabaseMetaData.getSuperTables (currently returns an empty result set in every case).
+<li>
+    Database names are no longer case sensitive for the Windows operating system,
+    because there the files names are not case sensitive.
+<li>
+    If an index is created for a constraint, this index now belong to the constraint and is removed when removing the constraint.
+<li>
+    Issue #121: Using a quoted table or alias name in front of a column name (SELECT "TEST".ID FROM TEST) didn't work.
+<li>
+    Issue #120: Some ALTER TABLE statements didn't work when the table was in another than the main schema. Fixed.
+<li>
+    Issue #119: If a table with autoincrement column is created in another schema,
+        it was not possible to connect to the database again.
+        Now opening a database first sorts the script by object type.
+<li>
+    Issue #118: ALTER TABLE RENAME COLUMN doesn't work correctly. Workaround: don't use it.
+<li>
+    Cache: implemented a String cache and improved the Value cache. Now uses a weak reference
+    to avoid OutOfMemory due to caching values.
+<li>
+    Server: changed the public API a bit to allow an application to deal easier with start problems.
+    Now instead of Server.startTcpServer(args) use Server.createTcpServer(args).start();
+<li>
+    Issue #117: Server.start...Server sometimes returned before the server was started. Solved.
+<li>
+    Issue #116: Server: reduces memory usage. Reduced number of cached objects per connection.
+<li>
+    Improved trace messages, and trace now starts earlier (when opening the database).
+<li>
+    Simplified translation of the Web Console (a tool to convert the translation files to UTF-8).
+<li>
+    Newsfeed sample application (used to create the newsfeed and newsletter).
+<li>
+    New functions: MEMORY_FREE() and MEMORY_USED().
+</ul>
+
+<h3>Version 0.9 / 2006-06-16</h3><ul>
+<li>
+    Implemented distributing lob files into directories, and only keep up to 255 files in one directory.
+    However this is disabled by default; it will be enabled the next time the file format changes
+    (maybe not before 1.1). It can be enabled by the application by setting
+    Constants.LOB_FILES_IN_DIRECTORIES = true;
+<li>
+    If a connection is closed while there is still an operation running, this operation is stopped (like when calling Statement.cancel).
+<li>
+    Issue #115: If three or more threads / connections are used, sometimes lock timeout exceptions can occur when they should not. Solved.
+<li>
+    Calling Server.start...Server now doesn't return until the server socket is ready to accept connections.
+<li>
+    Issue #112: Two threads could not open the same database at the same time. Solved.
+    This was only a problem when the database was opened in a non-standard was, without using DriverManager.getConnection.
+<li>
+    Implemented DROP TRIGGER.
+<li>
+    Issue #113: Drop is now restricted: can only drop sequences / functions / tables if nothing depends on them.
+<li>
+    Issue #114: Support large index data size. Before, there was a limit of around 1000 bytes per row.
+<li>
+    Blob.getLength() and Clob.getLength() are now fast operations and don't read the whole object any longer.
+<li>
+    Issue #111: The catalog name in the DatabaseMetaData calls and Connection.getCatalog was lowercase;
+    some applications may not work because they expect it to be uppercase.
+<li>
+    Issue #110: PreparedStatement.setCharacterStream(int parameterIndex, Reader reader, int length) and
+    ResultSet.updateCharacterStream(...) didn't work correctly for 'length' larger than 0 and using Unicode characters
+    higher than 127 (or 0). The number of UTF-8 bytes where counted instead of the number of characters.
+<li>
+    The catalog name is now uppercase, to conform the JDBC standard for DatabaseMetaData.storesUpperCaseIdentifiers().
+<li>
+    Creating or opening a small encrypted database is now a lot faster.
+<li>
+    New functions FORMATDATETIME and PARSEDATETIME.
+<li>
+    New XML encoding functions (XMLATTR, XMLNODE, XMLCOMMENT, XMLCDATA, XMLSTARTDOC, XMLTEXT).
+<li>
+    Performance: improved opening of a large databases (about 3 times faster now for 500 MB databases).
+<li>
+    Documented ALTER TABLE DROP COLUMN. The functionality was there already, but the documentation not.
+</ul>
+
+<h3>Version 0.9 / 2006-06-02</h3><ul>
+<li>
+    Removed the GCJ h2-server.exe from download. It was not stable on Windows.
+<li>
+    Issue #109: ALTER TABLE ADD COLUMN can make the database unusable if the original table contained a IDENTITY column.
+<li>
+    New option to disable automatic closing of a database when the virtual machine exits.
+    Database URL: jdbc:h2:test;db_close_on_exit=false
+<li>
+    New event: DatabaseEventListener.closingDatabase() is called before closing the database.
+<li>
+    Connection.getCatalog() now returns the database name (CALL DATABASE()).
+    This name is also used in all system tables and DatabaseMetaData calls where applicable.
+<li>
+    The function DATABASE() now return the short name of the database (without path),
+    and 'Unnamed' for anonymous in-memory databases.
+<li>
+    Issue #108: There is a concurrency problem when multi threads access the same database at the same time,
+    and one is closing the connection and the other is executing CHECKPOINT at the exact the same time. Fixed.
+<li>
+    Statements containing LIKE are now re-compiled when executed. Depending on the data,
+    an index on the column is used or not.
+<li>
+    Issue# 107: When executing scripts that contained inserts with many columns, an OutOfMemory error could occur.
+    The problem was usage of shared Strings (String.substring). Now each String value is copied if required, releasing memory.
+<li>
+    Issue #106: SET commands where not persisted if they where the first DDL commands for a connection. Fixed.
+<li>
+    Issue #105: RUNSCRIPT (the command) didn't commit after each command if autocommit was on, therefore
+    large scripts run out of memory. Now it automatically commits.
+<li>
+    Automatic starting of a web browser for Mac OS X should work now.
+<li>
+    Starting the server is not a bit more intuitive. Just setting the -baseDir option for example will still start all servers.
+    By default, -tcp, -web, -browser and -odbc are started.
+<li>
+    Issue #104: A HAVING condition on a column that was not in the GROUP BY list didn't work correctly in all cases. Fixed.
+<li>
+    ORDER BY now uses an index if possible. Queries with LIMIT with ORDER BY are faster when the index can be used.
+<li>
+    New option '-ifExists' for the TCP and ODBC server to disallow creating new databases remotely.
+<li>
+    Shutdown of a TCP Server: Can now specifiy a password (tcpPassword). Passwords used at startup and
+    shutdown must match to shutdown. Uses a management database now for each server / port.
+    New option tcpShutdownForce (default is false) to kill the server without waiting for other connections to close.
+<li>
+    Issue #103: Shutdown of a TCP Server from command line didn't always work.
+</ul>
+
+<h3>Version 0.9 / 2006-05-14</h3><ul>
+<li>
+    New functions: CSVREAD and CSVWRITE to access CSV (comma separated values) files.
+<li>
+    Locking: the synchronization was too restrictive, locking out the connection holding a lock
+    when another connection tried to lock the same object. Fixed.
+<li>
+    Outer Join: currently, the table order of outer joins is kept, the tables are evaluated left to right
+    (with the exception of right outer join tables). This is a temporary solution only to solve problems
+    with join conditions.
+<li>
+    Bugfix for SCRIPT: the rights where created before the objects. Fixed.
+<li>
+    Implemented function LOCK_TIMEOUT().
+<li>
+    Compatibility with DBPool: Support 'holdability' in the Connection methods (however the value it is currently ignored).
+<li>
+    Connection.setTypeMap does not throw an exception any more if the type map is empty (null or 0 size).
+<li>
+    Issue #102: INSTR('123456','34') should return 2.
+<li>
+    Issue #101: A big result set with order by on a column or value that is not in the result list didn't work. Fixed.
+<li>
+    Referential integrity: cascade didn't work for more than one level when it was self-referencing. Fixed.
+<li>
+    New parameter charsetName in RunScript.execute.
+    New option CHARSET in the RUNSCRIPT command.
+<li>
+    A backslash in the database URL (database name) didn't work, fixed. But a backslash in the settings part of the URL
+    is used as an escape for ';', that means database URLs of the form jdbc:h2:test;SETTING=a\;b\;c
+    are possible (but hopefully this is never required).
+<li>
+    Added an interface SimpleRowSource so that an application / tool can create a dynamic result set
+    that produces rows on demand (for streaming result sets).
+<li>
+    Foreign key constraints with different data types on the references / referencing column did not work. Fixed.
+<li>
+    Fixed a problems that lead to a database (index file) corruption when killing the process.
+    Added a test case.
+<li>
+    If a user has SELECT privileges for a view, he can now retrieve the data even if he does not have
+    privileges for the underlying table(s).
+<li>
+    New system table INFORMATION_SCHEMA.CONSTRAINT that returns information about constraints
+    (mainly for check and unique constraints; for referential constraints see CROSS_REFERENCES).
+<li>
+    Alter table alter column: the data type of a column could not be changed, and columns could not be dropped
+    if there was a constraint on the table. Now the data type can always be changed.
+    Alter table drop column: now the column can be dropped if it is not part of a constraint.
+<li>
+    Views can now be 'invalid', for example if the table does not exist.
+    New synax CREATE FORCE VIEW.
+    New column STATUS (invalid / valid) in INFORMATION_SCHEMA.VIEWS table.
+    New SQL statement ALTER VIEW viewName RECOMPILE.
+<li>
+    Issue #100: Altering a table with a self-referencing constraint didn't work. Fixed.
+<li>
+    Support for IDENTITY(start, increment) as in CREATE TABLE TEST(ID BIGINT NOT NULL IDENTITY(10, 5));
+<li>
+    Recovery did not always work correctly when the log file was switched.
+    Added tests for this use case.
+<li>
+    Bugfix for CREATE ROLE IF NOT EXISTS X.
+<li>
+    Removed support for LZMA. It was slow, and code coverage could not run.
+    If somebody needs this algorithm, it is better to add an open compression API.
+<li>
+    Starting a server took 1 second before, now it takes only about 100 ms.
+<li>
+    Server mode: If a parameter was not set in a prepared statement when using the server mode,
+    the connection to the server broke. Fixed.
+<li>
+    Referential integrity: If there was a unique index with fewer columns than the foreign key on the child table,
+    it did not work. Fixed.
+<li>
+    Javadoc / Doclet: ResultSet.getBytes was documented to return byte instead of byte[]. Fixed.
+<li>
+    New setting RECOVER in the database URL (jdbc:h2:test;RECOVER=1) to open corrupted databases
+    (wrong checksum, corrupted index file or summary).
+<li>
+    Bugfix: In server mode, big scrollable result sets didn't work. Fixed.
+<li>
+    MERGE: instead of delete-insert, now use update-[insert]. This solves problems with foreign key constraints.
+<li>
+    Bugfix for LIKE: A null pointer exception was thrown for WHERE NAME LIKE CAST(? AS VARCHAR).
+<li>
+    Join optimization: expessions are now evaluated as early as possible, avoiding unnecessary lookups.
+<li>
+    ResultSetMetaData.isAutoIncrement is implemented.
+<li>
+    SCRIPT: STRINGENCODE instead of STRINGDECODE was used. The implementation
+    of STRINGDECODE was not correct for Unicode characters > 127. Fixed.
+<li>
+    Documentation: [[NOT] NULL] instead of [NOT [NULL]]
+<li>
+    Because of the REAL support, databases are not compatible with the old version.
+    Backup (with the old version), replace 'STRINGENCODE' in the script with
+    'STRINGDECODE', and restore is required to upgrade to the new version.
+<li>
+    Support for REAL data type (Java 'float'; so far the DOUBLE type was used internallly).
+</ul>
+
+<h3>Version 0.9 / 2006-04-20</h3><ul>
+<li>
+    Performance improvement for AND, OR, IFNULL, CASEWHEN, CASE, COALESCE and ARRAY_GET:
+    only the necessary parameters / operators are evaluated.
+<li>
+    Bugfix for CASEWHEN: data type of return value was not evaluated, and this was a problem
+    when using prepared statements like this: WHERE CASEWHEN(ID<10, A, B)=?
+<li>
+    New function DATABASE_PATH to retrieve the path and file name of a database.
+<li>
+    Made the code more modular. New ant target: jarClient to compile the JDBC driver and the classes used
+    to remotely connect to a H2 server.
+<li>
+    JdbcDataSourceFactory constructor is now public.
+<li>
+    SET THROTTLE allows to throttle down the resource usage of a connection.
+    After each 50ms, the session sleeps for the specified amount of time.
+<li>
+    ALTER TABLE ALTER COLUMN for a table that was referenced by another table didn't work. Fixed.
+<li>
+    If index log is disabled (the default), indexe changes are flushed automatically each second
+    if the index was not changed. Like this index rebuilding is only required
+    (after a unexpected program termination, like power off) for indexes that
+    where recently changed.
+<li>
+    Bugfix: ids of large objects (LOBs) are now correctly reserved when opening the database.
+    This improves the performance when using many LOBs.
+<li>
+    Replaced log_index=1 with log=2. There are 3 log options now: 0 (disabled), 1 (default), and 2 (log index changes as well).
+<li>
+    Got rid of the summary (.sum.db) file. The data is now stored in the log file instead.
+<li>
+    If the application stopped without closing all connections (for example calling System.exit),
+    some committed transactions may have not been written to disk. Fixed.
+<li>
+    Bugfix if index changes where logged (default is off): not all changes where logged, in some situations recovery would not work fast
+    (but no data loss as the indexes can be rebuilt; just slower database opening). Fixed.
+<li>
+    DatabaseMetaData.getTypeInfo: compatibility with HSQLDB improved.
+<li>
+    Parser: quoted keywords where not allowed as table or column names. Fixed.
+<li>
+    An exception was thrown in FileStoreInputStream when reading 0 bytes. But this is allowed according to the specs.
+<li>
+    Performance of LIMIT was slow when the result set was very big and the number of rows was small. Fixed
+<li>
+    The RunScript tool (org.h2.tools.RunScript) now uses the same algorithm to parse scripts.
+<li>
+    Bugfix: it was allowed to use jdbc:h2:test;database_event_listener=Test,
+    but only for the first connection. Now, the class name must be quoted in all cases:
+    jdbc:h2:test;database_event_listener='Test'
+<li>
+    Implemented SET LOG 0 to disable logging for improved performance (about twice as fast).
+<li>
+    Implemented TRUNCATE TABLE.
+<li>
+    SCRIPT: New option 'DROP' to drop tables and views before creating them.
+<li>
+    Chinese translation updates.
+<li>
+    It was not possible to create views on system tables. Fixed.
+<li>
+    If a database can't be opened because there is a bug in the startup information
+    (which is basically the SQL script of CREATE statements), then the database can now be opened
+    by specifying a database event listener.
+<li>
+    Parser / MySQL compatibility: in the last release, for MySQL compatibility, this syntax was supported:
+    CREATE TABLE TEST(ID INT, INDEX(ID), KEY(ID));
+    But that means INDEX and KEY can't be used as column names.
+    Changed the parser so that this syntax is only supported in MySQL mode.
+<li>
+    Optimizer: now chose a plan with index even if there are no or only a few rows in a table.
+    To avoid doing a table scan when no rows are in the table at prepare time, and many rows at execution time.
+    Using a row count offset of 1000.
+<li>
+    MERGE: new SQL command to insert or update a row. Sometimes this is called UPSERT for UPdate or INSERT.
+    The grammar is a lot simpler than what Oracle supports.
+<li>
+    SCRIPT: now the CREATE INDEX statements are after the INSERT statements, to improve performance.
+<li>
+    Console: Bugfix for newline in a view definition.
+<li>
+    Bugfix for CONCAT with more than 2 parameters.
+</ul>
+
+<h3>Version 0.9 / 2006-04-09</h3><ul>
+<li>
+    Bugfix for VARCHAR_IGNORECASE.
+<li>
+    Open database: Improved the performance for opening a database if it was not closed correctly before
+    (due to abnormal program termination or power failure).
+<li>
+    Compact database: Added a sample application and documented how to do this.
+<li>
+    Bugfix: the SCRIPT command created insert statements for views. Removed.
+<li>
+    Implemented a way to shutdown a TCP server.
+    From command line, run: java org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+<li>
+    LOG_INDEX: new option in the database URL to log changes to the index file. This is allows fast recovery
+    from system crash for big databases. Sample URL: jdbc:h2:test;LOG_INDEX=1
+<li>
+    Bugfix: using a low MAX_MEMORY_ROWS didn't work for GROUP BY queries with more groups. Fixed.
+<li>
+    Improved the trigger API (provide a Connection to the Java function) and added a sample application.
+<li>
+    Support setting parameters in the statement:
+    INSERT INTO TEST VALUES(?, ?) {1: 5000, 2: 'This is a test'}.
+    However, this feature is not documented yet as it's not clear if this is the final syntax.
+    Currently, used in the trace feature to create sql script files instead of Java class files
+    (in many cases, the classes just get too big and can't be compiled).
+<li>
+    Support multiline statement in RUNSCRIPT.
+<li>
+    Improved parser performance. Re-parsing of statements is avoided now if the database schema didn't change.
+    This should improve the performance for Hibernate, when many CREATE / DROP statements are executed.
+<li>
+    Performance improvement for LIMIT when using simple queries without ORDER BY.
+<li>
+    Improve compression ratio and performance for LZF.
+<li>
+    Improve performance for Connection.getReadOnly() (Hibernate calls it a lot).
+<li>
+    Server mode: Increased the socket buffer size to 64 KB. This should help performance
+    for medium size and bigger result sets. May thanks to James Devenish again!
+<li>
+    Support for IPv6 addresses in JDBC URLs. RFC 2732 format is '[a:b:c:d:e:f:g:h]' or '[a:b:c:d:e:f:g:h]:port'.
+    May thanks to James Devenish
+<li>
+    Bugfix for Linked Tables: The table definition was not stored correctly (with ''driver'' instead of 'driver' and so on). Fixed.
+    This was found by 'junheng'
+<li>
+    Chinese localization of the H2 Console.
+<li>
+    Bugfix: The connection was automatically closed sometimes when using a function with a connection parameter.
+<li>
+    Bugfix in the Console: Auto-refresh of the object list for DROP / ALTER / CREATE statements, updatable result sets.
+<li>
+    Improved support for MySQL syntax: ` is the same as ", except that the identifiers are converter to upper case.
+    Added support for special cases of MySQL CREATE TABLE syntax.
+<li>
+    Java Functions: functions can now return ResultSet.
+    The SQL statement CALL GET_RESULT_SET(123)
+    then returns the result set created by the function.
+    Implemented a simple result set / result set meta data class that can be used
+    to create result sets in an application from scratch.
+<li>
+    Web Server: the command line options where ignored. Fixed.
+    Renamed the options 'httpAllowOthers', 'httpPort', 'httpSSL' to 'web...'.
+<li>
+    Oracle compatibility: CASE...END [CASE] (the last word is new).
+    Oracle compatibility: Date addition/subtraction: SYSDATE+1, (SYSDATE-1)-SYSDATE and so on.
+    Limited support for old Oracle outer join syntax (single column outer join, (+) must be on the far right).
+    This works:
+    CREATE TABLE Customers(CustomerID int); CREATE TABLE Orders(CustomerID int);
+    INSERT INTO Customers VALUES(1), (2), (3);  INSERT INTO Orders VALUES(1), (3);
+    SELECT * FROM Customers LEFT OUTER JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
+    SELECT * FROM Customers, Orders WHERE Customers.CustomerID = Orders.CustomerID(+);
+</ul>
+
+<h3>Version 0.9 / 2006-04-23</h3><ul>
+<li>
+    Improved Hibernate Dialect for SQuirrel DB Copy.
+<li>
+    Support for UPDATE TEST SET (column [,...])=(select | expr [,...]').
+    For Compiere compatibility.
+<li>
+    Bugfixes for SCRIPT: write sequences before tables; write CLOB and BLOB data.
+<li>
+    Added PolePosition benchmark results.
+<li>
+    Bugfix in the server implementation: free up the memory. The new implementation does not rely on finalizers
+    any more. Removed finalizers, this improves the performance.
+<li>
+    Implemented CROSS JOIN and NATURAL JOIN.
+<li>
+    New keywords for join syntax: CROSS, NATURAL, FULL. However full outer join is not supported yet.
+<li>
+    Improved documentation of the tools (Server port and so on).
+<li>
+    The schema name of constraints is now automatically set to the table.
+<li>
+    Compatibility for Derby style column level constraints.
+<li>
+    New command ANALYZE to update the selectivity statistics.
+    New command ALTER TABLE ALTER COLUMN SELECTIVITY to manually set the selectivity of a column.
+<li>
+    Allow a java.sql.Connection parameter in the Java function (as in HSQLDB).
+<li>
+    Optimizer improvements.
+<li>
+    Implemented SET DB_CLOSE_DELAY numberOfSeconds to be able to delay, or disable
+    (-1) closing the database. Default is still 0 (close database when closing the last connection).
+<li>
+    After finding that HSQLDB was faster in the PolePosition test, and unsuccessful tries to
+    improve the performance of H2 even more, the reason is finally found: H2 always closed
+    the database when closing the last connection, but HSQLDB leaves the database open.
+    This also explains OutOfMemory problems when testing multiple databases with PolePosition.
+    But leaving the database open is a useful feature for some applications.
+<li>
+    New system table CROSS_REFERENCES.
+    Implemented DatabaseMetaData.getImportedKeys, getExportedKeys, getCrossReferences.
+<li>
+    Performance improvements in the binary tree and other places.
+<li>
+    A new aggregate function SELECTIVITY is implemented. It calculates the selectivity of a column
+    by counting the distinct rows, but only up to 10000 values are kept in memory.
+    SELECT SELECTIVITY(ID), SELECTIVITY(NAME) FROM TEST LIMIT 1 SAMPLE_SIZE 10000 scans only 10000 rows.
+<li>
+    A new option SAMPLE_SIZE is added to the LIMIT clause to specify the number of rows to scan for a aggregated
+    query.
+<li>
+    Bugfixes for temporary tables. Implemented ON COMMIT DROP / DELETE ROWS, but
+    not documented because it is only here for compatibility, and I would advise against using it
+    because it is not available in most databases.
+<li>
+    Improved parser performance and memory usage.
+</ul>
+
+<h3>Version 0.9 / 2006-03-08</h3><ul>
+<li>
+    Bugfix for table level locking. Sometimes a Java-level deadlock occured when a connection was not closed.
+<li>
+    Implemented the SHUTDOWN statement to close the database.
+<li>
+    CURRENT_TIMESTAMP now also supports an optional precision argument.
+<li>
+    Web Console: Improved support for MySQL, PostgreSQL, HSQLDB.
+<li>
+    Automatically create the directory if it does not exist when creating a database.
+<li>
+    Optimization for constant temporary views as in
+    SELECT SUM(B.X+A.X) FROM SYSTEM_RANGE(1, 10000) B,
+    (SELECT SUM(X) X FROM SYSTEM_RANGE(1, 10000)) A
+<li>
+    Implemented the aggregate functions STDDEV_POP, STDDEV_SAMP, VAR_POP, VAR_SAMP. Implemented AVG(DISTINCT...).
+<li>
+    Implemented GROUP_CONCAT. Similar to XMLAGG, but can be used for other text data (CSV, JSON) as well.
+<li>
+    Fix for file_lock. The documentation and implementation did not match, and
+    the sleep gap was done even when using socket locking, making file locking with sockets
+    slower than required.
+<li>
+    Security (TCP and ODBC Server): Connections made from other computers are now not allowed by default for security reasons.
+    This feature already existed for the web server.
+    Added two new settings (tcpAllowOthers and odbcAllowOthers)
+<li>
+    Improved performance for queries in the server mode.
+<li>
+    Improved the startup time for large databases using a 'summary' file.
+    The data in this file is redundant, but improves startup time.
+<li>
+    Implemented a benchmark test suite for single connection performance test.
+<li>
+    A primary key is now created automatically for identity / autoincrement columns.
+<li>
+    SET ASSERT, a new setting to switch off assertions.
+<li>
+    Hibernate dialect for Hibernate 3.1.
+<li>
+    A new locking mode (level 2: table level locking with garbage collection).
+</ul>
+
+<h3>Version 0.9 / 2006-02-17</h3><ul>
+<li>
+    The SQL syntax in the docs is now cross-linked
+<li>
+    Written a parser for the BNF in the help file.
+    Written a test to run random statements based on this BNF.
+<li>
+    Support function syntax: POSITION(pattern IN text).
+<li>
+    Support for list syntax: select * from test where (id, name)=(1, 'Hi'). This is experimental only.
+    It should only be used for compatibility, as indexes are not used in this case currently.
+    This is currently undocumented, until indexes are used.
+<li>
+    Function CONCAT now supports a variable number of arguments.
+<li>
+    Support for MySQL syntax: LAST_INSERT_ID() as an alias for IDENTITY()
+<li>
+    Support for Oracle syntax: DUAL table, sequence.NEXTVAL / CURRVAL.
+    Function NVL as alias for COALESCE.
+    Function INSTR as alias for LOCATE. Support for SYSTIMESTAMP and SYSTIME.
+    Function ROWNUM
+<li>
+    Implemented a ROWNUM() function, but only supported for simple queries.
+<li>
+    Implemented local temporary tables.
+<li>
+    Implemented short version of constraints in CREATE TABLE:
+    CREATE TABLE TEST(ID INT UNIQUE, NAME VARCHAR CHECK LENGTH(NAME)>3).
+<li>
+    Implemented function NEXTVAL and CURRVAL for sequences (PostgreSQL compatibility).
+<li>
+    Bugfix for special cases of subqueries containing group by.
+<li>
+    Multi-dimension (spatial index) support: This is done without supporting R-Tree indexes.
+    Instead, a function to map multi-dimensional data to a scalar (using a space filling curve) is implemented.
+<li>
+    Computed Columns: Support for MS SQL Server style computed columns. with computed columns,
+    it is very simple to emulate functional indexes (sometimes called function-based indexes).
+<li>
+    Locking: Added the SQL statement SET LOCK_MODE to disable table level locking.
+    This is to improve compatibility with HSQLDB.
+<li>
+    Schema / Catalog: Improved compatibility with HSQLDB, now use a default schema called 'PUBLIC'.
+</ul>
+
+<h3>Version 0.9 / 2006-02-05</h3><ul>
+<li>
+    Implemented function EXTRACT
+<li>
+    Parser: bugfix for reading numbers like 1e-1
+<li>
+    BLOB/CLOB: implemented Blob and Clob classes with 'read' functionality.
+<li>
+    Function TRIM: other characters than space can be removed now.
+<li>
+    Implemented CASE WHEN, ANY, ALL
+<li>
+    Referential integrity: Deleting rows in the parent table was sometimes not possible, fixed.
+<li>
+    Data compression: Implemented data compressions functions.
+<li>
+    Large database: the database size was limited to 2 GB due to a bug. Fixed.
+    Improved the recovery performance. Added a progress function to the database event listener.
+    Renamed exception listener to database event listener. Added functionality to set
+    the listener at startup (to display the progress of opening / recovering a database).
+<li>
+    Quoted keywords as identifiers: It was not possible to connect to the database again when
+    a (quoted) keyword was used as a table / column name. Fixed.
+<li>
+    Compatibility: DATE, TIME and TIMESTAMP can now be used as identifiers (for example, table and column names).
+    They are only keywords if followed by a string, like in TIME '10:20:40'.
+<li>
+    Compatibility: PostgreSQL and MySQL round 0.5 to 1 when converting to integer, HSQLDB and
+    other Java databases do not. Added this to the compatibility settings. The default is to behave like HSQLDB.
+<li>
+    Synthetic tests: Utils / BitField threw java.lang.ArrayIndexOutOfBoundsException in some situations.
+    Parser: DATE / TIME / TIMESTAMP constants where not parser correctly in some situations.
+    Object ID assignment didn't always work correctly for indexes if other objects where dropped before.
+    Generated constraint names where not in all cases unique. If creating a unique index failed due to
+    primary key violation, some data remained in the database file, leading to problems later.
+<li>
+    Storage: In some situations when creating many tables, the error 'double allocation' appeared. Fixed.
+<li>
+    Auto-Increment column: It was possible to drop a sequence that belongs to a table
+    (auto increment column) after reconnecting. Fixed.
+<li>
+    Auto-Increment column: It was possible to drop a sequence that belongs to a table
+    (auto increment column) after reconnecting. Fixed. ALTER TABLE ADD COLUMN didn't
+    work correctly on a table with auto-increment column,
+<li>
+    Default values: If a subquery was used as a default value (do other database support this?),
+    it was executed in the wrong session context after reconnecting.
+</ul>
+
+<h3>Version 0.9 / 2006-01-26</h3><ul>
+<li>
+    Autoincrement: There was a problem with IDENTITY columns, the inserted value was not stored in the session, and
+    so the IDENTITY() function didn't work after reconnect.
+<li>
+    Storage: Simplified handling of deleted records. This also improves the performance of DROP TABLE.
+<li>
+    Encrypted files: Fixed a bug with file.setLength if the new size is smaller than before.
+<li>
+    Server mode: Fixed a problem with very big strings (larger than 64 KB).
+<li>
+    Identity columns: when a manual value was inserted that was higher than the current
+    sequence value, the sequence was not updated to the higher value. Fixed.
+<li>
+    Added a setting for the maximum number of rows (in a result set) that are kept in-memory
+    (MAX_MEMORY_ROWS). Increased the default from 1000 to 10000.
+<li>
+    Bug: Sometimes log records where not written completely when using the binary storage format. Fixed.
+<li>
+    Performance: now sorting the records by file position before writing.
+    This improves the performance of closing the database in some situations.
+<li>
+    Two-Phase-Commit is implemented. However, the XA API is not yet implemented.
+<li>
+    Bug: Recovery didn't work correctly if the database was not properly closed twice in a row
+    (reason: the checksum for rolled back records was not updated in the log file).
+<li>
+    Bug: Renaming a table and then reconnect didn't work.
+</ul>
+
+<h3>Version 0.9 / 2006-01-17</h3><ul>
+<li>
+    Referential integrity:
+    If the references columns are not specified, the primary key columns are used
+    (compatibility with PostgreSQL).
+<li>
+    Durability:
+    A durability test has been implemented. Unfortunately, it is currently not
+    possible to guarantee transaction durability by default.
+<li>
+    Bug in binary storage format:
+    If a record size was a multiple of 128 bytes, it was not saved correctly.
+<li>
+    Multi-threaded kernel: Refactored the kernel to allow multiple threads running concurrently in the
+    same database. Disabled by default because more tests are required.
+    To enable it, set Constants.MULTI_THREADED_KERNEL to true.
+<li>
+    Temporary tables are support now.
+<li>
+    Exception Listener: Added functionality to deal with low disk space condition,
+    and support a callback feature so the application can notify somebody if a problem occurs.
+<li>
+    Trigger: Added the Javadoc API to the docs.
+<li>
+    DataSource: Implemented DataSource and DataSourceFactory.
+    Not sure in what context this will be used, but it's there now.
+<li>
+    Parser: improved exception message (expected a, b, c,...) for some syntax errors.
+</ul>
+
+<h3>Version 0.9 / 2006-01-08</h3><ul>
+<li>
+    Recovery: The database can now be opened if the index file is corrupt or does not exist.
+<li>
+    Recovery: There was a bug in the power off test. Recovery was not tested correctly.
+    There was a case when recovery didn't work (so a database could not be opened).
+    Fixed.
+    Also fixed a problem with memory tables, they where not correctly persisted when using CHECKPOINT.
+<li>
+    Commit: Implemented delaying the log file writing for performance reasons.
+    Most hard drives do not obey the fsync() function, so calling sync before each commit would not help.
+    See also 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252.
+<li>
+    Tool: Create a new Recover tool.
+<li>
+    Storage: support for URL parameter 'STORAGE' to support both text and binary storage formats.
+    The default is now binary mode storage.
+<li>
+    Read-only database support. Added a function READONLY() and support for Connection.isReadOnly()
+<li>
+    Functions: New functions UTF8TOSTRING, STRINGTOUTF8, HASH, ENCRYPT, DECRYPT, SECURE_RAND.
+<li>
+    Translation: Started with French and Spanish translation of the Console.
+    Simplified the translation in this area (only one file needs to be translated now).
+    It would be great if somebody could help translating
+    (only around 100 words / sentences, file src/main/org/h2/web/_text_en.properties).
+<li>
+    Storage: When a table was dropped, the space was not reused afterwards until all connections to this database
+    where closed. Now the space is reused without reopening the connection.
+<li>
+    Large result set: max rows and offset didn't work with large result sets. Fixed.
+<li>
+    New Settings: MAX_LOG_SIZE (automatic checkpoint) is implemented.
+    For compatibility with HSQLDB, SET LOGSIZE is supported as well.
+<li>
+    Settings: TRACE_MAX_FILE_SIZE is now in MB instead of bytes, where 1 MB is 1024 * 1024 bytes.
+</ul>
+
+<h3>Version 0.9 / 2005-12-26</h3><ul>
+<li>
+    GCJ: There seems to be a problem with synchronization with GCJ that is unproblematic with JDK.
+    If a method is synchronized, and exception occurs in this method, sometimes GCJ does not unlock
+    the object. One case has been fixed: when connecting to a database with the wrong user named locked
+    the object (probably the driver). One problem is still open: after the command
+    'create schema testsch authorization test', where the user test does not exists, locks something.
+<li>
+    BTree: Fixed a critical bug in the btree update (keys where not compared when adding a record).
+<li>
+    Binary data page: The length of a row was not always calculated correctly. Fixed and added a assertion.
+    (Binary data page is still disabled by default)
+<li>
+    Linked tables: Sometimes the connection was not closed. Fixed.
+<li>
+    Rights: Users with little access rights could not call ResultSet.getConcurrency.
+    They did not have rights for the metadata and system_range tables.
+    Now they can query those tables. The error message if there are not enough rights for an object was improved.
+<li>
+    Rights: The table SYSTEM_INFORMATION.RIGHTS did not return the schema name for the granted table. Fixed.
+<li>
+    Performance: a little bit of tuning was done, but currently switched off. In the future, the performance for simple things will be
+    comparable to HSQLDB (and H2 will be faster for complex queries). People who want to compare the performance of HSQLDB with H2
+    should switch DataPage.BINARY = true, Database.CHECK = false and LogSysetm.FLUSH_LOG_FOR_EACH_COMMIT = false
+    and compile the code again. Don't forget the compare the performance of opening and closing a database.
+<li>
+    Memory usage: the index page cache size is now smaller to reduce the memory usage.
+<li>
+    Storage: Truncating (dropping) a large table was very slow due to a bug. O(n^2). Fixed.
+<li>
+    Log: Old (unused) log files where not correctly deleted at shutdown. This is now fixed.
+</ul>
+
+<h3>Version 0.9 / 2005-12-22</h3><ul>
+<li>
+    Documentation: The Table of Contents in the PDF was broken (missing links, wrong page numbers).
+    Added documentation about trace options.
+<li>
+    Version number: Added a build number, listed when calling DatabaseMetaData.getDatabaseProductVersion().
+    The console shows the product name and version.
+<li>
+    Constraints: If adding a constraint created an index (automatically), then the order of operations was not logged correctly
+    (first the constraint and then the index, instead of first the index). Because of that, it was not possible to
+    connect to the database again. Fixed.
+<li>
+    ResultSetMetaData.getColumn: Now return the column label as other databases (HSQLDB and MySQL) do.
+<li>
+    Cache: A caching bug with medium to large databases (more than 16000 records) was fixed.
+    Too bad this was not found before releasing the database!
+    Also, a caching bug in linear hash index was fixed.
+<li>
+    BigDecimal: There was an incompatibility with 'new BigDecimal(int)', which is not available in JDK 1.4.
+    It worked when the source code was compiled with JDK 1.4, but unfortunately it was compiled with JDK 1.5.
+    Now, 'new BigDecimal(String)' is always used to avoid this incompatibility.
+<li>
+    Trace: Fix the output format, use 24 hour format instead of 12 hour format.
+    Enabling the trace option at runtime did not work as expected, this was fixed.
+<li>
+    Tools: Added convenience methods in the tools (Backup, DeleteDbFiles,...) so they can be called
+    from another application more easily. Added Javadoc documentation.
+<li>
+    Console: Stack traces are not thrown on the console window, to avoid blocking the application
+    if the user selects something in the console (in Windows).
+<li>
+    Referential integrity: Supports the syntax where the referenced table is not specified.
+    In this case, the same table is referenced. (Compatibility with HSQLDB).
+<li>
+    API Documentation: The 'throws' clause was not included in the Doclet. Fixed.
+<li>
+    Tools: Added public 'execute' methods to simplify using the tools in other applications.
+<li>
+    Clustering: The CreateCluster application now works even if both databases are on another machine.
+<li>
+    Clustering: If autocommit is enabled on the client side, the commit on the server side is
+    executed after all servers executed the statement. This is slower, but fixed a theoretical
+    problem when using multiple connections (client A executes a statement, client B executes another
+    statement, and for some reason client B is faster and the statements of B are done on both
+    servers while client A is only done on the first server).
+</ul>
+
+<h3>Version 0.9 / 2005-12-13</h3><ul>
+<li>
+    First public release.
+</ul>
+
+<br /><a name="roadmap"></a>
+<h2>Roadmap</h2>
+
+<h3>Highest Priority</h3>
+<ul>
+<li>Improve the documentation
+<li>Add a migration guide (list differences between databases)
+<li>Improve test code coverage
+<li>More fuzz tests
+<li>Test very large databases and LOBs (up to 256 GB)
+<li>Test Multi-Threaded in-memory db access
+</ul>
+
+<h3>In Version 1.1</h3>
+<ul>
+<li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
+<li>Enable and document optimizations, LOB files in directories
+<li>Special methods for DataPage.writeByte / writeShort and so on
+</ul>
+
+<h3>Priority 1</h3>
+<ul>
+<li>More tests with MULTI_THREADED=1
+<li>Test read committed transaction isolation
+<li>Hot backup (incremental backup, online backup)
+<li>Documentation (FAQ) for how to connect to H2
+<li>Improve performance for create table (if this is possible)
+<li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
+<li>Document how to use H2 with PHP
+<li>Optimization: result set caching (like MySQL)
+<li>Server side cursors
+<li>Row level locking
+<li>System table: open sessions and locks of a database
+<li>System table: open connections and databases of a (TCP) server
+<li>System table / function: cache usage
+<li>Fix right outer joins
+<li>Full outer joins
+<li>Index organized tables: CREATE TABLE...(...) ORGANIZATION INDEX
+<li>Long running queries / errors / trace system table.
+<li>Migrate database tool (also from other database engines)
+<li>Shutdown compact
+<li>Optimization of distinct with index: select distinct name from test
+<li>RECOVER=1 automatically if a problem opening
+<li>Performance Test: executed statements must match, why sometimes a little more
+<li>Forum: email notification doesn't work? test or disable or document
+<li>Document server mode, embedded mode, web app mode, dual mode (server+embedded)
+<li>Stop the server: close all open databases first
+<li>Read-only databases inside a jar
+<li>SET variable { TO | = } { value | 'value' | DEFAULT }
+<li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
+<li>Deleted LOB files after transaction is committed. Keep set of 'to be deleted' lobs files to the session (remove from the list on rollback)
+<li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
+<li>Backup of BLOB / CLOB: use a stream for backup, use a block append function to restore.
+</ul>
+
+<h3>Priority 2</h3>
+<ul>
+<li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+<li>Connection pool manager
+<li>Support VALUES(1), (2); SELECT * FROM (VALUES (1), (1), (1), (1), (2)) AS myTable (c1) (Derby)
+<li>Optimization: automatic index creation suggestion using the trace file?
+<li>Compression performance: don't allocate buffers, compress / expand in to out buffer
+<li>Start / stop server with database URL
+<li># is the start of a single line comment (MySQL) but date quote (Access). Mode specific
+<li>Run benchmarks with JDK 1.5, Server
+<li>Rebuild index functionality (other than delete the index file)
+<li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
+<li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
+<li>Test hibernate slow startup? Derby faster? derby faster prepared statements?
+<li>Feature: a setting to delete the the log or not (for backup)
+<li>Test WithSun ASPE1_4; JEE Sun AS PE1.4
+<li>Test performance again with SQL Server, Oracle, DB2
+<li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
+<li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
+<li>Document how to view / scan a big trace file (less)
+<li>Translation to spanish, chinese, japanese
+<li>Set the database in an 'exclusive' mode
+<li>Implement, test, document XAConnection and so on
+<li>Web site: meta keywords, description, get rid of frame set
+<li>Pluggable data type (for compression, validation, conversion, encryption)
+<li>CHECK: find out what makes CHECK=TRUE slow, then: fast, nocheck, slow
+<li>Improve recovery: improve code for log recovery problems (less try/catch)
+<li>Log linear hash index changes, fast open / close
+<li>Index usage for (ID, NAME)=(1, 'Hi'); document
+<li>Faster hash function for strings, byte arrays, bigdecimal
+<li>Suggestion: include jetty as Servlet Container (not AMP but JHJ)
+<li>Trace shipping to server
+<li>Performance / server mode: delay prepare? use UDP?
+<li>Version check: javascript in the docs / web console and maybe in the library
+<li>Aggregates: support MEDIAN
+<li>Web server classloader: override findResource / getResourceFrom
+<li>Cost for embedded temporary view is calculated wrong, if result is constant
+<li>Comparison: pluggable sort order: natural sort
+<li>Eclipse plugin
+<li>iReport to support H2
+<li>Implement CallableStatement
+<li>Compression of the cache
+<li>Run inside servlet
+<li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
+<li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
+<li>Make the jar more modular
+<li>Document obfuscator usage
+<li>Drop with restrict (currently cascade is the default)
+<li>SCRIPT to pretty-print (at least Create Table)
+<li>Document ConvertTraceToJava in javadoc and features
+<li>Document limitation (line length) of find "**" test.trace.db > Trace.java
+<li>Tiny XML parser (ignoring unneeded stuff)
+<li>JSON parser
+<li>Read only databases with log file (fast open with summary)
+<li>Option for Java functions: 'constant' to allow early evaluation when all parameters are constant
+<li>Improve trace option: add calendar, streams, objects,... try/catch
+<li>Automatic collection of statistics (ANALYZE)
+<li>Procedural language
+<li>MVCC (Multi Version Cuncurrency Control)
+<li>Maybe include JTidy. Check license
+<li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
+<li>Column level privileges
+<li>Copy database: Tool with config GUI and batch mode, extendable (example: compare)
+<li>Document shrinking jar file using http://proguard.sourceforge.net/
+<li>Support SET TABLE DUAL READONLY;
+<li>Don't write stack traces for common exceptions like duplicate key to the log by default
+<li>Setting for MAX_QUERY_TIME (default no limit?)
+<li>GCJ: is there a problem with updatable result sets?
+<li>Convert large byte[]/Strings to streams in the JDBC API (asap).
+<li>Use Janino to convert Java to C++
+<li>Reduce disk space usage (Derby uses less disk space?)
+<li>Fast conversion from LOB (stream) to byte array / String
+<li>When converting to BLOB/CLOB (with setBytes / setString, or using SQL statement), use stream
+<li>Support for user defined constants (to avoid using text or number literals; compile time safety)
+<li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see  http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
+<li>Log compression
+<li>Allow editing NULL values in the Console
+<li>RunScript / RUNSCRIPT: progress meter and "suspend/resume" capability
+<li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
+<li>Implement solution for long running transactions using user defined compensation statements
+<li>Functional tables should accept parameters from other tables (see FunctionMultiReturn)
+    SELECT * FROM TEST T, P2C(T.A, T.R)
+<li>Custom class loader to reload functions on demand
+<li>Public CVS access
+<li>Count index range query (count where id between 10 and 20)
+<li>Test http://mysql-je.sourceforge.net/
+<li>Close all files when closing the database (including LOB files that are open on the client side)
+<li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
+<li>Should not print stack traces when killing the tests
+<li>Implement Statement.cancel for server connections
+<li>Should not throw a NullPointerException when closing the connection while an operation is running (TestCases.testDisconnect)
+<li>Profiler option or profiling tool to find long running and often repeated queries
+<li>Function to read/write a file from/to LOB
+<li>Allow custom settings (@PATH for RUNSCRIPT for example)
+<li>RUNSCRIPT: SET SCRIPT_PATH or similar to be used by RUNSCRIPT (and maybe SCRIPT)
+<li>Performance test: read the data (getString) and use column names to get the data
+<li>EXE file: maybe use http://jsmooth.sourceforge.net
+<li>System Tray: http://jroller.com/page/stritti?entry=system_tray_implementations_for_java
+<li>Test with GCJ: http://javacompiler.mtsystems.ch/
+<li>SELECT ... FOR READ WAIT [maxMillisToWait]
+<li>Automatically delete the index file if opening it fails
+<li>Performance: Automatically build in-memory indexes if the whole table is in memory
+<li>H2 Console: The webclient could support more features like phpMyAdmin.
+<li>The HELP information schema can be directly exposed in the Console
+<li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
+<li>KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
+<li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
+<li>Support a property isDeterministic for Java functions
+<li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
+<li>http://www.jpackage.org
+<li>Replace deleteOnExit with a weak reference map, or a simple loop on exit
+<li>Version column (number/sequence and timestamp based)
+<li>Optimize getGeneratedKey: (include last identity after each execute).
+<li>Clustering: recovery needs to becomes fully automatic.
+<li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
+<li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
+<li>Document EXISTS and so on, provide more samples.
+<li>Modular build (multiple independent jars).
+<li>Better space re-use in the files after deleting data (shrink the files)
+<li>Max memory rows / max undo log size: use block count / row size not row count
+<li>Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)
+<li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
+<li>Better support large transactions, large updates / deletes: allow tables without primary key
+<li>Implement point-in-time recovery
+<li>Memory database: add a feature to keep named database open until 'shutdown'
+<li>Harden against 'out of memory attacks' (multi-threading, out of memory in the application)
+<li>Use the directory of the first script as the default directory for any scripts run inside that script
+<li>Include the version name in the jar file name
+<li>Optimize IN(...), IN(select), ID=? OR ID=?: create temp table and use join
+<li>Set Default Schema (SET search_path TO foo, ALTER USER test SET search_path TO bar,foo)
+<li>LIKE: improved version for larger texts (currently using naive search)
+<li>LOBs: support streaming for SCRIPT / RUNSCRIPT
+<li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
+<li>LOBs: support streaming in server mode and cluster mode, and when using PreparedStatement.set with large values
+<li>Backup / Restore of BLOBs needs to be improved
+<li>The Backup tool should work with other databases as well
+<li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
+<li>Automatically convert to the next 'higher' data type whenever there is an overflow.
+<li>Throw an exception is thrown when the application calls getInt on a Long.
+<li>Default date format for input and output (local date constants)
+<li>Cache collation keys for performance
+<li>Convert OR condition to UNION or IN if possible
+<li>ValueInt.convertToString and so on (remove Value.convertTo)
+<li>Support custom Collators
+<li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
+<li>Clustering: Reads should be randomly distributed or to a designated database on RAM
+<li>Clustering: When a database is back alive, automatically synchronize with the master
+<li>Standalone tool to get relevant system properties and add it to the trace output.
+<li>Support mixed clustering mode (one embedded, the other server mode)
+<li>Support 'call rpcname($1=somevalue)' (PostgreSQL, Oracle)
+<li>HSQLDB compatibility: "INSERT INTO TEST(name) VALUES(?); SELECT IDENTITY()"
+<li>Shutdown lock (shutdown can only start if there are no logins pending, and logins are delayed until shutdown ends)
+<li>Automatically delete the index file if opening it fails
+<li>DbAdapters http://incubator.apache.org/cayenne/
+<li>JAMon (proxy jdbc driver)
+<li>Console: Allow setting Null value; Alternative display format two column (for copy and paste as well)
+<li>Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
+<li>Console: Autocomplete Ctrl+Space inserts template
+<li>Console: SQL statement formatter (newline before FROM, join, WHERE, AND, GROUP, ORDER, SELECT)
+<li>Google Code http://code.google.com/p/h2database/issues/list#
+<li>Simplify translation ('Donate a translation')
+<li>Option to encrypt .trace.db file
+<li>Write Behind Cache on SATA leads to data corruption
+    See also http://sr5tech.com/write_back_cache_experiments.htm
+    and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
+<li>Support home directory as ~ in database URL (jdbc:h2:file:~/.mydir/myDB)
+<li>Functions with unknown return or parameter data types: serialize / deserialize
+<li>Test if idle TCP connections are closed, and how to disable that
+<li>Compare with Daffodil One$DB
+<li>Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
+<li>Auto-Update feature
+<li>ResultSet  SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
+<li>RANK() and DENSE_RANK(), Partition using OVER()
+<li>ROW_NUMBER (not the same as ROWNUM)
+<li>Partial indexing (see PostgreSQL)
+<li>BUILD should fail if ant test fails
+<li>http://rubyforge.org/projects/hypersonic/
+<li>DbVisualizer profile for H2
+<li>Add comparator (x === y) : (x = y or (x is null and y is null))
+<li>Try to create trace file even for read only databases
+<li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
+<li>Count on a column that can not be null would be optimized to COUNT(*)
+<li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
+<li>Backup tool should work with other databases as well
+<li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
+<li>Maybe use Fowler Noll Vo hash function
+<li>Improved Full text search (update index real-time or in a lower priority thread) Update now, update every n where n could be never.
+<li>Update in-place
+<li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
+<li>Remove finally() (almost) everywhere
+<li>Java static code analysis: http://pmd.sourceforge.net/
+<li>Java static code analysis: http://www.eclipse.org/tptp/
+<li>Java static code analysis: http://checkstyle.sourceforge.net/
+<li>Compatiblity for CREATE SCHEMA AUTHORIZATION
+<li>Implement Clob / Blob truncate and the remaining functionality
+<li>Maybe close LOBs after closing connection
+<li>Tree join functionality
+<li>Support alter table add column if table has views defined
+<li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
+<li>Support trigger on the tables information_schema.tables and ...columns
+<li>Add H2 to Gem (Ruby install system)
+<li>API for functions / user tables
+<li>Order conditions inside AND / OR to optimize the performance
+<li>Support linked JCR tables
+<li>Make sure H2 is supported by Execute Query: http://executequery.org/
+<li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
+<li>Full text search: min word length; store word positions
+<li>FTP Server: Implement a client to send / receive files to server (dir, get, put)
+<li>FTP Server: Implement SFTP / FTPS
+<li>Add an option to the SCRIPT command to generate only portable / standard SQL
+<li>Test Dezign for Databases (http://www.datanamic.com)
+<li>Fast library for parsing / formatting: http://javolution.org/
+<li>Updatable Views (simple cases first)
+<li>Improve create index performance
+<li>Support ARRAY data type
+<li>Implement more JDBC 4.0 features
+<li>H2 Console: implement a servlet to allow simple web app integration
+<li>Support CHAR data type (internally use VARCHAR, but report CHAR for JPox)
+<li>Option to globally disable / enable referential integrity checks
+<li>Support ISO 8601 timestamp / date / time with timezone
+<li>Support TRANSFORM / PIVOT as in MS Access
+<li>ALTER SEQUENCE ... RENAME TO ... (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
+<li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
+<li>Support updatable views with join on primary keys (to extend a table)
+<li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
+<li>Public interface for functions (not public static)
+</ul>
+
+<h3>Not Planned</h3>
+<ul>
+<li>HSQLDB (did) support this: select id i from test where i>0 (other databases don't)
+<li>String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively
+</ul>
+
+</div></td></tr></table></body></html>

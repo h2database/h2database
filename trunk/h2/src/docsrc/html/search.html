@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>Search</title>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+    <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="search.js"></script>
+    <script type="text/javascript" src="navigation.js"></script>
+</head>
+<body style="margin: 10px 0px 0px 0px;" onload="frameMe('menu');">
+
+<div class="menu">
+<img border="0" src="h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'"/>
+</div>
+
+<form name="searchForm" action="submit" onsubmit="return goFirst();">
+<table width=100% class="search">
+  <tr class="search">
+    <td class="search" colspan="2">
+      <b>Search:</b>
+    </td>
+  </tr>
+  <tr class="search">
+    <td class="search" colspan="2">
+      <input id="search" name="search" type="text" size="21" maxlength="100" onKeyup="listWords(this.value, '')"><br>
+      <input type="reset" id="clear" style="display:none;" value="Clear" onclick="listWords('', '');">
+    </td>
+  </tr>
+  <tr class="search" style="display:none;" >
+    <td width="1%" class="search" style="vertical-align: middle;"><input id="highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)"></td>
+    <td width="99%" class="search" style="padding: 0px; vertical-align: middle;">Highlight keyword(s)</td>
+  </tr>
+  <tr class="search">
+    <td class="search" colspan="2">
+      <table id="result" style="border: 0px;">
+      </table>
+    </td>
+  </tr>
+</table>
+</form>
+
+<div class="menu">
+<b><a href="main.html" target="main">Home</a></b><br>
+<a href="quickstartText.html" target="main">Quickstart</a><br>
+<a href="installation.html" target="main">Installation</a><br>
+<a href="tutorial.html" target="main">Tutorial</a><br>
+<a href="features.html" target="main">Features</a><br>
+<a href="performance.html" target="main">Performance</a><br>
+<a href="advanced.html" target="main">Advanced Topics</a><br>
+<br>
+<b>Reference</b><br>
+<a href="grammar.html" target="main">SQL Grammar</a><br>
+<a href="functions.html" target="main">Functions</a><br>
+<a href="datatypes.html" target="main">Data Types</a><br>
+<a href="../javadoc/index.html" target="main">Javadoc JDBC API</a><br>
+<a href="../h2.pdf" target="_blank">Documentation as PDF</a><br>
+<br>
+<b>Appendix</b><br>
+<a href="build.html" target="main">Build</a><br>
+<a href="history.html" target="main">History and Roadmap</a><br>
+<a href="faq.html" target="main">FAQ and Known Bugs</a><br>
+<a href="license.html" target="main">License</a><br>
+<br>
+</div>
+
+</body>

@@ -90,19 +90,26 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        code coverage
-        
-//max / hibernate        
-//        Sorry, a typo by me. I don't specify any database name and then when
-//        I call getTables I get a catalog name that I pass on to getColumns and
-//        here getColumns does not return anything unless I null out the return
-//        catalog name.
+//        java.lang.Error: query was too quick; result: 0
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:156)
+//        at java.lang.Thread.run(Thread.java:595)
+//java.lang.Error: query was too quick; result: 0
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:156)
+//        at java.lang.Thread.run(Thread.java:595)
+//java.lang.Exception: closing took 1266
+//        at org.h2.test.TestBase.error(TestBase.java:206)
+//        at org.h2.test.db.TestCases.testDisconnect(TestCases.java:173)
+//        at org.h2.test.db.TestCases.test(TestCases.java:25)
+//        at org.h2.test.TestBase.runTest(TestBase.java:55)
+//        at org.h2.test.TestAll.testDatabase(TestAll.java:414)
+//        at org.h2.test.TestAll.testAll(TestAll.java:377)
+//        at org.h2.test.TestAll.testEverything(TestAll.java:273)
+//        at org.h2.test.TestAll.main(TestAll.java:196)
         
         // Check if new Hibernate dialect for H2 is ok
         // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2300
         
         // open JPA test - submit patch
-        // ant mavenUploadLocal
 //        d:\data\h2test\openjpa\openjpa-persistence-jdbc\src\test\resources\META-INF\persistence.xml
 //        <!--            <property name="openjpa.ConnectionProperties"
 //            value="DriverClassName=org.apache.derby.jdbc.EmbeddedDriver,Url=jdbc:derby:target/database/openjpa-test-database;create=true,MaxActive=100,MaxWait=10000,TestOnBorrow=true"/>
@@ -117,11 +124,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 //        Test and document JDK 1.6 QueryObjectFactory 
         
-//        submit hibernate dialect
 //        clean build path (remove hibernate librarires)
         
 //        test with PostgreSQL  Version 8.2
-
         
 //        create table testoe(id int primary key, name varchar(255))
 //        create user oe identified by merlin 

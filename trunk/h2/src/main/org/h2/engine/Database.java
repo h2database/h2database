@@ -596,7 +596,7 @@ public class Database implements DataHandler {
         if(storages.size() > id) {
             storage = (Storage) storages.get(id);
             if(storage != null) {
-                if(Constants.CHECK && storage != null && storage.getDiskFile() != file) {
+                if(Constants.CHECK && storage.getDiskFile() != file) {
                     throw Message.getInternalError();
                 }
             }

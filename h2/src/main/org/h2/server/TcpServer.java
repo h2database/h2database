@@ -1,0 +1,236 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
+package org.h2.server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.h2.engine.Constants;
+import org.h2.message.TraceSystem;
+import org.h2.util.MathUtils;
+import org.h2.util.NetUtils;
+
+public class TcpServer implements Service {
+    
+    // TODO new feature: implement automatic client / server mode if 'socket' file locking is used
+    // TODO make the kernel multi-threaded
+    // TODO better exception message if the port is already in use, maybe automatically use the next free port?
+    
+    public static final int DEFAULT_PORT = 9092;
+    public static final int SHUTDOWN_NORMAL = 0;
+    public static final int SHUTDOWN_FORCE = 1;
+    public static boolean LOG_INTERNAL_ERRORS;
+    
+    private int port;
+    private boolean log;
+    private boolean ssl;
+    private boolean stop;
+    private ServerSocket serverSocket;
+    private HashSet running = new HashSet();
+    private String baseDir;
+    private String url;
+    private boolean allowOthers;
+    private boolean ifExists;
+    private Connection managementDb;
+    private String managementPassword = "";
+    private static HashMap servers = new HashMap();
+    
+    public static String getManagementDbName(int port) {
+        return "mem:" + Constants.MANAGEMENT_DB_PREFIX + port;
+    }
+    
+    private void initManagementDb() throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:h2:" + getManagementDbName(port), "sa", managementPassword);
+        managementDb = conn;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() +".stopServer\"");
+        servers.put(""+port, this);
+    }
+    
+    private void stopManagementDb() {
+        if(managementDb != null) {
+            try {
+                managementDb.close();
+            } catch (SQLException e) {
+                TraceSystem.traceThrowable(e);
+            }
+            managementDb = null;
+        }
+    }
+
+    public static void stopServer(int port, String password, int shutdownMode) {
+        TcpServer server = (TcpServer) servers.get("" + port);
+        if(server == null) {
+            return;
+        }
+        if(!server.managementPassword.equals(password)) {
+            return;
+        }
+        if(shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
+            server.stop = true;
+            try {
+                Socket s = new Socket("localhost", port);
+                s.close();
+            } catch (Exception e) {
+                // try to connect - so that accept returns
+            }
+        } else if(shutdownMode == TcpServer.SHUTDOWN_FORCE) {
+            server.stop();
+        }
+    }
+    
+    public void init(String[] args) throws Exception {
+        port = DEFAULT_PORT;
+        for (int i = 0; i < args.length; i++) {
+            String a = args[i];
+            if (a.equals("-log")) {
+                log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (a.equals("-tcpSSL")) {
+                ssl = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (a.equals("-tcpPort")) {
+                port = MathUtils.decodeInt(args[++i]);
+            } else if (a.equals("-tcpPassword")) {
+                managementPassword= args[++i];
+            } else if (a.equals("-baseDir")) {
+                baseDir = args[++i];
+            } else if (a.equals("-tcpAllowOthers")) {
+                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (a.equals("-ifExists")) {
+                ifExists = Boolean.valueOf(args[++i]).booleanValue();
+            }
+        }
+        org.h2.Driver.load();
+        url = (ssl ? "ssl" : "tcp") + "://localhost:" + port;
+    }
+    
+    public String getURL() {
+        return url;
+    }
+    
+    boolean allow(Socket socket) {
+        if(allowOthers) {
+            return true;
+        }
+        return socket.getInetAddress().isLoopbackAddress();
+    }
+    
+    public void start() throws SQLException {
+        initManagementDb();
+        serverSocket = NetUtils.createServerSocket(port, ssl);
+    }
+    
+    public void listen() {
+        String threadName = Thread.currentThread().getName();
+        try {
+            while (!stop) {
+                Socket s = serverSocket.accept();
+                TcpServerThread c = new TcpServerThread(s, this);
+                running.add(c);
+                Thread thread = new Thread(c);
+                thread.setName(threadName+" thread");
+                c.setThread(thread);
+                thread.start();
+            }
+        } catch (Exception e) {
+            if(!stop) {
+                TraceSystem.traceThrowable(e);
+            }
+        }
+        stopManagementDb();
+    }
+
+    public boolean isRunning() {
+        if(serverSocket == null) {
+            return false;
+        }
+        try {
+            Socket s = NetUtils.createLoopbackSocket(port, ssl);
+            s.close();       
+            return true;
+        } catch(Exception e) {
+            return false;
+        }
+    }
+    
+    public synchronized void stop() {
+        // TODO server: share code between web and tcp servers
+        if(!stop) {
+            stop = true;
+            if(serverSocket != null) {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    TraceSystem.traceThrowable(e);
+                }
+                serverSocket = null;
+            }
+        }
+        // TODO server: using a boolean 'now' argument? a timeout?
+        ArrayList list = new ArrayList(running);
+        for(int i=0; i<list.size(); i++) {
+            TcpServerThread c = (TcpServerThread) list.get(i);
+            c.close();
+            try {
+                c.getThread().join(100);
+            } catch(Exception e) {
+                TraceSystem.traceThrowable(e);
+            }
+        }
+        servers.remove(""+port);
+    }
+
+    synchronized void remove(TcpServerThread t) {
+        running.remove(t);
+    }
+
+    boolean getLog() {
+        return log;
+    }
+    
+    String getBaseDir() {
+        return baseDir;
+    }
+
+    void log(String s) {
+        // TODO log: need concept for server log
+        if (log) {
+            System.out.println(s);
+        }
+    }
+
+    void logError(Exception e) {
+        if (log) {
+            e.printStackTrace();
+        }
+    }
+    
+    public boolean getAllowOthers() {
+        return allowOthers;
+    }
+
+    public String getType() {
+        return "TCP";
+    }
+
+    public void logInternalError(String string) {
+        if(TcpServer.LOG_INTERNAL_ERRORS) {
+            System.out.println(string);
+            new Error(string).printStackTrace();
+        }
+    }
+
+    public boolean getIfExists() {
+        return ifExists;
+    }
+
+}

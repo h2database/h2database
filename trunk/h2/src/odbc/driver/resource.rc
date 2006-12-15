@@ -1,0 +1,24 @@
+#include "resource.h"
+#include <windows.h>
+#include <afxres.h>
+
+IDD_CONFIG DIALOG DISCARDABLE  0, 0, 251, 119
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Database Driver Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_NAME,81,7,163,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_URL,81,34,163,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_USER,81,50,163,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD,81,66,163,14,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,137,98,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,194,98,50,14
+    LTEXT           "Database URL:", IDC_STATIC,7,37,72,8
+    LTEXT           "Data Source Name:",IDC_STATIC,7,10,70,8
+    LTEXT           "User Name:",IDC_STATIC,7,53,71,8
+    LTEXT           "Password:",IDC_STATIC,7,69,71,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ | SS_SUNKEN | 
+                    WS_GROUP,7,87,237,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ | SS_SUNKEN | 
+                    WS_GROUP,7,27,236,1
+END

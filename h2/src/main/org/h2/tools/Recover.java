@@ -375,20 +375,17 @@ public class Recover implements DataHandler {
                     s.reset();
                 }
                 blocks = s.readInt();
-                if(blocks < 0) {
-                    writer.println("// [" + pos+"] blocks: " + blocks);
-                } else if(blocks==0) {
-                    writer.println("// [" + pos+"] blocks: 0 (end)");
+                if(blocks<=0) {
+                    writer.println("// [" + pos+"] blocks: "+blocks+" (end)");
+                    break;
                 } else {
                     char type = (char)s.readByte();
                     int sessionId = s.readInt();
-                    writer.println("//   type: " + type + " session: " + sessionId);
                     if(type == 'P') {
                         String transaction = s.readString();
-                        writer.println("//   transaction: " + transaction);
+                        writer.println("//   prepared session:"+sessionId+" tx: " + transaction);
                     } else if(type == 'C') {
-                        writer.println("//   commit");
-                        break;
+                        writer.println("//   commit session:" + sessionId);
                     } else {
                         int storageId = s.readInt();
                         int recordId = s.readInt();
@@ -404,21 +401,21 @@ public class Recover implements DataHandler {
                             if(sumLength > 0) {
                                 s.read(summary, 0, sumLength);
                             }
-                            writer.println("//   fileType: " + fileType + " sumLength: " + sumLength);
+                            writer.println("//   summary session:"+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
                             dumpSummary(writer, summary);
                             break;
                         }
                         case 'T':
-                            writer.println("//   storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   truncate session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
                             break;
                         case 'I':
-                            writer.println("//   storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   insert session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
                             break;
                         case 'D':
-                            writer.println("//   storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   delete session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
                             break;
                         default:
-                            writer.println("//   storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   type?:"+type+" session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
                             break;
                         }
                     }                    
@@ -434,7 +431,7 @@ public class Recover implements DataHandler {
     
     private void dumpSummary(PrintWriter writer, byte[] summary) throws SQLException {
         if(summary == null || summary.length==0) {
-            writer.println("// summary is empty");
+            writer.println("//     summary is empty");
             return;
         }
         try {
@@ -445,7 +442,10 @@ public class Recover implements DataHandler {
             }
             int len = in.readInt();
             for(int i=0; i<len; i++) {
-                in.readInt();
+                int storageId = in.readInt();
+                if(storageId != -1) {
+                    writer.println("//     pos:"+(i*DiskFile.BLOCKS_PER_PAGE)+" storage:" + storageId);
+                }
             }
             while(true) {
                 int s = in.readInt();
@@ -525,7 +525,7 @@ public class Recover implements DataHandler {
                 } else {
                     pageOwners[page] = storageId;
                 }
-                writer.println("// [" + block + "] p:"+page+" c:"+blockCount+" s:"+storageId);
+                writer.println("// [" + block + "] page:"+page+" blocks:"+blockCount+" storage:"+storageId);
             }
         } catch(Throwable e) {
             writeError(writer, e);

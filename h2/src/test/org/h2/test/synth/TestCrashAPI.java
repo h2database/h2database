@@ -48,7 +48,7 @@ public class TestCrashAPI extends TestBase {
     private long callCount;
     private String DIR = "synth";
     
-    private void deleteDb(int seed) {
+    private void deleteDb() {
         try {
             deleteDb(BASE_DIR + "/" + DIR, null);
         } catch(Exception e) {
@@ -59,13 +59,16 @@ public class TestCrashAPI extends TestBase {
     private Connection getConnection(int seed, boolean delete) throws Exception {
         openCount++;
         if(delete) {
-            deleteDb(seed);
+            deleteDb();
         }
         // can not use FILE_LOCK=NO, otherwise something could be written into the database in the finalizer 
         String add = ""; // ";STORAGE=TEXT";
 
 //        int testing;
-//        if(openCount>=10) {
+//        add = ";STORAGE=TEXT";
+//        if(openCount>=24) {
+//            System.exit(1);
+//        }
 //            add = ";LOG=2";
 //            System.out.println("now open " + openCount);
 //          add += ";TRACE_LEVEL_FILE=3";
@@ -73,6 +76,7 @@ public class TestCrashAPI extends TestBase {
 //        }
         
         String url = getURL(DIR + "/crashapi" + seed, true) +  add;
+        
         Connection conn = null;
         // System.gc();        
         conn = DriverManager.getConnection(url, "sa", "");
@@ -114,7 +118,7 @@ public class TestCrashAPI extends TestBase {
     
     private void testOne(int seed) throws Exception {
         printTime("TestCrashAPI " + seed);
-        
+        callCount = 0;
         openCount=0;
         random = new RandomGen(null);
         random.setSeed(seed);
@@ -371,10 +375,10 @@ public class TestCrashAPI extends TestBase {
     }
     
     public void test() throws Exception {
-        for(int i=0; i<Integer.MAX_VALUE; i++) {
+        while(true) {
             int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
             testCase(seed);
-            deleteDb(seed);
+            deleteDb();
         }
     }    
 

@@ -43,10 +43,10 @@ public class DiskFile implements CacheWriter {
     private Database database;
     private String fileName;
     private FileStore file;
-    private BitField used = new BitField();
-    private BitField deleted = new BitField();
+    private BitField used;
+    private BitField deleted;
     private int fileBlockCount;
-    private IntArray pageOwners = new IntArray();
+    private IntArray pageOwners;
     private Cache cache;
     private LogSystem log;
     private DataPage rowBuff;
@@ -55,11 +55,12 @@ public class DiskFile implements CacheWriter {
     private boolean logChanges;
     private int recordOverhead;
     private boolean init, initAlreadyTried;
-    private ObjectArray redoBuffer = new ObjectArray();
+    private ObjectArray redoBuffer;
     private int redoBufferSize;
     private int readCount, writeCount;
 
     public DiskFile(Database database, String fileName, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
+        reset();
         this.database = database;
         this.log = database.getLog();
         this.fileName = fileName;
@@ -91,6 +92,13 @@ public class DiskFile implements CacheWriter {
             close();
             throw e;
         }
+    }
+    
+    private void reset() {
+        used = new BitField();
+        deleted = new BitField();
+        pageOwners = new IntArray();
+        redoBuffer = new ObjectArray();
     }
 
     private void setBlockCount(int count) {
@@ -183,6 +191,13 @@ public class DiskFile implements CacheWriter {
 
     public synchronized void initFromSummary(byte[] summary) {
         if(summary == null || summary.length==0) {
+            ObjectArray list = database.getAllStorages();
+            for(int i=0; i<list.size(); i++) {
+                Storage s = (Storage)list.get(i);
+                database.removeStorage(s.getId(), this);
+            }
+            reset();
+            initAlreadyTried = false;
             init = false;
             return;
         }

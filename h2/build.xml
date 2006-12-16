@@ -79,6 +79,9 @@
 	<target name="compileResources" depends="clean">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/Resources.java"/>
 		<java fork="true" classname="org.h2.util.Resources" classpath="bin" dir="."/>
+		<delete>
+			<fileset dir="bin" includes="org/h2/util/ResourceData.class"/>
+		</delete>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/util/ResourceData.java"/>
 		<delete>
 			<fileset dir="bin" includes="org/h2/util/ResourceData.java"/>

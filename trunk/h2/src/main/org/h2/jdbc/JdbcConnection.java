@@ -38,6 +38,16 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 
+//#ifdef JDK16
+/*
+import java.sql.Array;
+import java.sql.NClob;
+import java.sql.Struct;
+import java.sql.SQLXML;
+import java.sql.SQLClientInfoException;
+*/
+//#endif
+
 /**
  * Represents a connection (session) to a database.
  */
@@ -943,11 +953,6 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
-    private boolean info() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
     /**
      * INTERNAL
      */
@@ -1244,7 +1249,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         ResultSet rs = new JdbcResultSet(session, this, statement, result, id, false);
         return rs;
      }
-
+    
     /**
      * Create a new empty Clob object.
      *
@@ -1294,7 +1299,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("NClob", TraceObject.CLOB, id);
             debugCodeCall("createNClob");
             checkClosed();
-            ValueLob v = session.createClob(new StringReader(""), 0);
+            ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
             return new JdbcClob(session, this, v, id);
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -1312,6 +1317,30 @@ public class JdbcConnection extends TraceObject implements Connection {
     public SQLXML createSQLXML() throws SQLException {
         throw Message.getUnsupportedException();
     }
+*/
+    //#endif
+    
+    /**
+     * Create a new empty Array object.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+*/
+    //#endif
+    
+    /**
+     * Create a new empty Struct object.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16    
+/*
+    public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+        throw Message.getUnsupportedException();
+    }    
 */
     //#endif
 
@@ -1337,21 +1366,37 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Set a client property.
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
-    public void setClientInfo(String name, String value) throws SQLException {
-        throw Message.getUnsupportedException();
+    //#ifdef JDK16    
+/*
+    public void setClientInfo(String name, String value) throws SQLClientInfoException {
+        throw new SQLClientInfoException();
     }
+*/
+    //#endif
 
     /**
-     * Set a client property.
+     * Set the client properties.
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     //#ifdef JDK16
 /*
-    public void setClientInfo(Properties properties) throws ClientInfoException {
-        throw new ClientInfoException();
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        throw new SQLClientInfoException();
     }
 */
     //#endif
+    
+    /**
+     * Get the client properties.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public Properties getClientInfo() throws SQLClientInfoException {
+        throw new SQLClientInfoException();
+    }
+*/
+    //#endif    
 
     /**
      * Set a client property.
@@ -1362,32 +1407,12 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Get the client information.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
-     */
-    public Properties getClientdebug() throws SQLException {
-        throw Message.getUnsupportedException();
-    }
-
-    /**
-     * Create a query object
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
-     */
-    //#ifdef JDK16
-/*
-    public <T> T createQueryObject(Class<T> ifc) throws SQLException {
-        throw Message.getUnsupportedException();
-    }
-*/
-    //#endif
-
-    /**
      * Return an object of this class if possible.
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     //#ifdef JDK16
 /*
-    public Object unwrap(Class<?> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */

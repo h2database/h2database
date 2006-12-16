@@ -14,6 +14,9 @@ import org.h2.test.TestBase;
 public class TestCache extends TestBase {
     
     public void test() throws Exception {
+        if(config.memory) {
+            return;
+        }
         deleteDb("cache");
         Connection conn = getConnection("cache");
         Statement stat = conn.createStatement();
@@ -32,7 +35,6 @@ public class TestCache extends TestBase {
             prep2.execute();
         }
         conn.close();
-        System.out.println("------------------- read ");        
         conn = getConnection("cache");
         stat = conn.createStatement();
         stat.execute("SET CACHE_SIZE 1024");

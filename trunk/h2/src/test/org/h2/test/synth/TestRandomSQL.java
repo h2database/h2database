@@ -18,7 +18,7 @@ import org.h2.util.RandomUtils;
 public class TestRandomSQL extends TestBase {
     
     private int dbId;
-    private boolean showSQL = true;
+    private boolean showSQL;
     private ArrayList statements;
     private int seed;
     private boolean exitOnError = true;
@@ -141,6 +141,7 @@ public class TestRandomSQL extends TestBase {
     
     public void testCase(int i) throws Exception {
         seed = i;
+        printTime("TestRandomSQL " + seed);
         try {
             deleteDb(getDatabaseName());
         } catch(SQLException e) {
@@ -154,7 +155,6 @@ public class TestRandomSQL extends TestBase {
         showSQL = false;
         for(int a=0; ; a++) {
             int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
-            System.out.println("a:" + a + " seed:" + seed);
             testCase(seed);
         }
     }

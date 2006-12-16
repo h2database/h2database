@@ -189,7 +189,8 @@ implements ParameterMetaData
      */
     //#ifdef JDK16
 /*
-    public Object unwrap(Class<?> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        debugCodeCall("unwrap");
         throw Message.getUnsupportedException();
     }
 */
@@ -202,6 +203,7 @@ implements ParameterMetaData
     //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        debugCodeCall("isWrapperFor");
         throw Message.getUnsupportedException();
     }
 */

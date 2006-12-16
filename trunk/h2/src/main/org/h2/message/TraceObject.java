@@ -58,6 +58,10 @@ public class TraceObject {
     protected boolean debug() {
         return trace.debug();
     }
+    
+    protected boolean info() {
+        return trace.info();
+    }    
 
     protected Trace getTrace() {
         return trace;

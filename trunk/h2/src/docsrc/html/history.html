@@ -34,16 +34,20 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / 2006-12-..</h3><ul>
-<li>String.toUpperCase and toLowerCase can not be to processing SQL, as they depend on the current locale.
-	Now use toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..)
+<h3>Version 1.0 / 2006-12-17</h3><ul>
+<li>Can be compiled with JDK 1.6. However, only very few of the JDBC 4.0 features are implemented so far.
+<li>The unit test of OpenJPA works now.
+<li>Unfortunately, the Hibernate dialect has changed due to a change in the meta data in the last release
+    (INFORMATION_SCHEMA.SCHEMA).
+<li>String.toUpperCase and toLowerCase can not be used to process SQL, as they depend on the current locale.
+    Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..)
 <li>Table aliases are now supported in DELETE and UPDATE. Example: DELETE FROM TEST T0.
 <li>The RunScript tool can now include other files using a new syntax: @INCLUDE fileName.
-	It was already possible to do that using embedded RUNSCRIPT statements, but not remotely.
+    It was already possible to do that using embedded RUNSCRIPT statements, but not remotely.
 <li>When the database URL contains ;RECOVERY=TRUE then the index file is now deleted if it was not closed before.
 <li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
 <li>Deleting old temp files now uses a phantom reference queue. Generally, temp files should now be deleted
-	earlier.
+    earlier.
 <li>Opening a large database is now much faster when even when using the default log mode (LOG=1),
     if the database was closed previously.
 <li>Very large BLOBs and CLOBs can now be used with the server and the cluster mode.

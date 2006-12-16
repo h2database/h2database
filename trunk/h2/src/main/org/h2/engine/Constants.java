@@ -12,6 +12,7 @@ package org.h2.engine;
  *
  * Release checklist
  * - ant jarClient, check jar file size
+ * - try compiling with JDK 1.3, 1.4, 1.5 and 1.6
  * - change FAQ (next release planned, known bugs)
  * - check version, change build number in Constants.java and build.xml
  * - check code coverage
@@ -53,8 +54,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 32;
-    private static final String BUILD = "2006-12-03";
+    public static final int BUILD_ID = 34;
+    private static final String BUILD = "2006-12-17";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

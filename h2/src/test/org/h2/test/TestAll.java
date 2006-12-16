@@ -4,10 +4,6 @@
  */
 package org.h2.test;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -90,21 +86,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        java.lang.Error: query was too quick; result: 0
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:156)
-//        at java.lang.Thread.run(Thread.java:595)
-//java.lang.Error: query was too quick; result: 0
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:156)
-//        at java.lang.Thread.run(Thread.java:595)
-//java.lang.Exception: closing took 1266
-//        at org.h2.test.TestBase.error(TestBase.java:206)
-//        at org.h2.test.db.TestCases.testDisconnect(TestCases.java:173)
-//        at org.h2.test.db.TestCases.test(TestCases.java:25)
-//        at org.h2.test.TestBase.runTest(TestBase.java:55)
-//        at org.h2.test.TestAll.testDatabase(TestAll.java:414)
-//        at org.h2.test.TestAll.testAll(TestAll.java:377)
-//        at org.h2.test.TestAll.testEverything(TestAll.java:273)
-//        at org.h2.test.TestAll.main(TestAll.java:196)
+//        javadoc for runscript is broken (@ problem)
+        
+        // codeswitch_jdk13 doesnt work?
         
         // Check if new Hibernate dialect for H2 is ok
         // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2300
@@ -119,14 +103,10 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //        D:\data\h2test\openjpa\openjpa-persistence-jdbc>mvn test        
 
         // add H2 to maven
+        // OSGi Bundle (see Forum)
+        // Test and document JDK 1.6 QueryObjectFactory 
         
-//      OSGi Bundle (see Forum)
-        
-//        Test and document JDK 1.6 QueryObjectFactory 
-        
-//        clean build path (remove hibernate librarires)
-        
-//        test with PostgreSQL  Version 8.2
+        // test with PostgreSQL  Version 8.2
         
 //        create table testoe(id int primary key, name varchar(255))
 //        create user oe identified by merlin 
@@ -137,12 +117,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //              AS SELECT color, quantity FROM new_product WHERE color = 'RED' 
 //           GRANT select ON new_product_view TO hr; 
 
-//        http://dev.helma.org/Wiki/RhinoLoader
-        
-//        use version numbers 1.0.4 and so on
-        
+        // http://dev.helma.org/Wiki/RhinoLoader
+        // use version numbers 1.0.4 and so on
         // Fulltext search: Use reader for CLOB data, special reader tokenizer
-        
         // Checkstyle to verify HTML docs
         // test multithreading access to blobs (one thread reads from the inputstream, the other deletes the row using the same connection)
         // Dezign for Databases (http://www.datanamic.com
@@ -166,7 +143,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // extend the random join test that compared the result against PostgreSQL
         //  Donate a translation: I am looking for people who would help translating the H2 Console into other languages. Please tell me if you think you can help
         // extend TestJoin
-        // TEST CASE FOR: embedded mode, create blob+clob, then use server mode, read blob+clob / update blob+clob
         // long running test with the same database
         // repeatable test with a very big database (making backups of the database files)
         // check performance monitor Avg. Disk Write Queue Length, disk writes
@@ -413,6 +389,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         new TestBatchUpdates().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
+        new TestCache().runTest(this);
         new TestCases().runTest(this);
         new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);

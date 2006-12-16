@@ -19,13 +19,9 @@ import org.h2.test.TestBase;
 public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     public void test() throws Exception {
-//        testCommitRollback();
-        try {
+        testCommitRollback();
         testConcurrentOpen();
-        } catch(SQLException e) {
-            e.printStackTrace();
-        System.exit(0); }
-//        testThreeThreads();
+        testThreeThreads();
     }
     
     private static int wait;

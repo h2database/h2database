@@ -1656,6 +1656,30 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the result set is closed
      */
     public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
+        updateAsciiStream(columnIndex, x, (long) length);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+        updateAsciiStream(columnIndex, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateAsciiStream("+columnIndex+", x, "+length+");");
@@ -1677,6 +1701,30 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the result set is closed
      */
     public void updateAsciiStream(String columnName, InputStream x, int length) throws SQLException {
+        updateAsciiStream(columnName, x, (long) length);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateAsciiStream(String columnName, InputStream x) throws SQLException {
+        updateAsciiStream(columnName, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateAsciiStream(String columnName, InputStream x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateAsciiStream("+quote(columnName)+", x, "+length+");");
@@ -1698,6 +1746,29 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the result set is closed
      */
     public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
+        updateBinaryStream(columnIndex, x, (long) length);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
+        updateBinaryStream(columnIndex, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateBinaryStream("+columnIndex+", x, "+length+");");
@@ -1715,10 +1786,33 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnName the name of the column label
      * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBinaryStream(String columnName, InputStream x) throws SQLException {
+        updateBinaryStream(columnName, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
      * @param length the number of characters
      * @throws SQLException if the result set is closed
      */
     public void updateBinaryStream(String columnName, InputStream x, int length) throws SQLException {
+        updateBinaryStream(columnName, x, (long) length);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBinaryStream(String columnName, InputStream x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateBinaryStream("+quote(columnName)+", x, "+length+");");
@@ -1739,7 +1833,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param length the number of characters
      * @throws SQLException if the result set is closed
      */
-    public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+    public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateCharacterStream("+columnIndex+", x, "+length+");");
@@ -1755,12 +1849,58 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Updates a column in the current or insert row.
      *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+        updateCharacterStream(columnIndex, x, (long) length);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
+        updateCharacterStream(columnIndex, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
      * @param columnName the name of the column label
      * @param x the value
      * @param length the number of characters
      * @throws SQLException if the result set is closed
      */
     public void updateCharacterStream(String columnName, Reader x, int length) throws SQLException {
+        updateCharacterStream(columnName, x, (long) length);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateCharacterStream(String columnName, Reader x) throws SQLException {
+        updateCharacterStream(columnName, x, -1);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateCharacterStream(String columnName, Reader x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateCharacterStream("+quote(columnName)+", x, "+length+");");
@@ -1880,68 +2020,228 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
+     * Updates a column in the current or insert row.
      *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBlob(int columnIndex, InputStream x) throws SQLException {
+        updateBlob(columnIndex, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBlob(int columnIndex, InputStream x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateBlob("+columnIndex+", x, " + length + ");");
+            }
+            Value v = conn.createBlob(x, length);
+            update(columnIndex, v);
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
      */
     public void updateBlob(int columnIndex, Blob x) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateBlob("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            Value v;
+            if(x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createBlob(x.getBinaryStream(), -1);
+            }
+            update(columnIndex, v);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
+     * Updates a column in the current or insert row.
      *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
      */
     public void updateBlob(String columnName, Blob x) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateBlob("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            Value v;
+            if(x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createBlob(x.getBinaryStream(), -1);
+            }
+            update(columnName, v);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
+     * Updates a column in the current or insert row.
      *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBlob(String columnName, InputStream x) throws SQLException {
+        updateBlob(columnName, x, -1);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed
+     */
+    public void updateBlob(String columnName, InputStream x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateBlob("+quote(columnName)+", x, " + length + ");");
+            }
+            Value v = conn.createBlob(x, -1);
+            update(columnName, v);
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
      */
     public void updateClob(int columnIndex, Clob x) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateClob("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            checkClosed();            
+            Value v;
+            if(x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createClob(x.getCharacterStream(), -1);
+            }
+            update(columnIndex, v);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
+     * Updates a column in the current or insert row.
      *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateClob(int columnIndex, Reader x) throws SQLException {
+        updateClob(columnIndex, x, -1);
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed
+     */
+    public void updateClob(int columnIndex, Reader x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateClob("+columnIndex+", x, " + length + ");");
+            }
+            checkClosed();            
+            Value v = conn.createClob(x, length);
+            update(columnIndex, v);
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
      */
     public void updateClob(String columnName, Clob x) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateClob("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            checkClosed();            
+            Value v;
+            if(x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createClob(x.getCharacterStream(), -1);
+            }
+            update(columnName, v);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
     }
+    
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateClob(String columnName, Reader x) throws SQLException {
+        updateClob(columnName, x, -1);
+    }    
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed
+     */
+    public void updateClob(String columnName, Reader x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateClob("+quote(columnName)+", x);");
+            }
+            checkClosed();            
+            Value v = conn.createClob(x, length);
+            update(columnName, v);
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }    
 
     /**
      * THIS FEATURE IS NOT SUPPORTED.
@@ -2747,7 +3047,87 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     //#ifdef JDK16
 /*
-    public void updateNClob(String columnName, NClob nClob) throws SQLException {
+    public void updateNClob(int columnIndex, Reader x) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateNClob("+columnIndex+", x);");
+            }
+            throw Message.getUnsupportedException();
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+*/
+    //#endif
+    
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     *
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateNClob("+columnIndex+", x, " + length + ");");
+            }
+            throw Message.getUnsupportedException();
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+*/
+    //#endif
+    
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     *
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public void updateNClob(String columnName, Reader x) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateNClob("+quote(columnName)+", x);");
+            }
+            throw Message.getUnsupportedException();
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+*/
+    //#endif
+    
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     *
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public void updateNClob(String columnName, Reader x, long length) throws SQLException {
+        try {
+            if(debug()) {
+                debugCode("updateNClob("+quote(columnName)+", x, " + length+");");
+            }
+            throw Message.getUnsupportedException();
+        } catch(Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+*/
+    //#endif    
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     *
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    //#ifdef JDK16
+/*
+    public void updateNClob(String columnName, NClob x) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateNClob("+quote(columnName)+", x);");
@@ -2928,6 +3308,29 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the result set is closed
      */
     public void updateNCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+        updateNCharacterStream(columnIndex, x, (long) length);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+        updateNCharacterStream(columnIndex, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateNCharacterStream("+columnIndex+", x, "+length+");");
@@ -2948,6 +3351,29 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the result set is closed
      */
     public void updateNCharacterStream(String columnName, Reader x, int length) throws SQLException {
+        updateNCharacterStream(columnName, x, (long) length);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed
+     */
+    public void updateNCharacterStream(String columnName, Reader x) throws SQLException {
+        updateNCharacterStream(columnName, x, -1);
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
+     * @param length the number of characters
+     * @throws SQLException if the result set is closed
+     */
+    public void updateNCharacterStream(String columnName, Reader x, long length) throws SQLException {
         try {
             if(debug()) {
                 debugCode("updateNCharacterStream("+quote(columnName)+", x, "+length+");");
@@ -2965,7 +3391,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     //#ifdef JDK16
 /*
-    public Object unwrap(Class<?> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        debugCode("unwrap");
         throw Message.getUnsupportedException();
     }
 */
@@ -2978,6 +3405,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        debugCode("isWrapperFor");
         throw Message.getUnsupportedException();
     }
 */

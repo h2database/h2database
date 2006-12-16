@@ -252,7 +252,7 @@ public class Transfer {
             InputStream in = v.getInputStream();
             long written = IOUtils.copyAndCloseInput(in, out);
             if(Constants.CHECK && written != length) {
-                Message.getInternalError("length:" + length + " written:" + written);
+                throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
             break;
@@ -267,7 +267,7 @@ public class Transfer {
             Writer writer = new OutputStreamWriter(out, Constants.UTF8);
             long written = IOUtils.copyAndCloseInput(reader, writer);
             if(Constants.CHECK && written != length) {
-                Message.getInternalError("length:" + length + " written:" + written);
+                throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writer.flush();
             writeInt(LOB_MAGIC);

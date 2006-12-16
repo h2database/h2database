@@ -22,6 +22,12 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
 
+//#ifdef JDK16
+/*
+import javax.sql.StatementEventListener;
+*/
+//#endif
+
 public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcConnectionListener, XAResource {
     
     private JdbcDataSourceFactory factory;
@@ -257,5 +263,22 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcC
         }
         getTrace().debug("committed");
     }
+
+    //#ifdef JDK16
+/*
+    public void addStatementEventListener(StatementEventListener listener) {
+        throw new UnsupportedOperationException();
+    }
+*/
+    //#endif
+    
+
+    //#ifdef JDK16
+/*
+    public void removeStatementEventListener(StatementEventListener listener) {
+        throw new UnsupportedOperationException();
+    }
+*/
+    //#endif
 
 }

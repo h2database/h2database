@@ -150,6 +150,8 @@ int count;
         int splitPoint = root.add(row, session);
         if (splitPoint != 0) {
             SearchRow pivot = root.getData(splitPoint);
+            int test;
+            // deletePage(session, root);
             BtreePage page1 = root;
             BtreePage page2 = root.split(session, splitPoint);
             setRoot(new BtreeNode(this, page1, pivot, page2));

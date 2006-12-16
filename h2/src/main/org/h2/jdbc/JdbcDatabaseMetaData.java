@@ -2604,6 +2604,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
+        debugCodeCall("getSchemas");
         throw Message.getUnsupportedException();
     }
 
@@ -2630,16 +2631,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     public ResultSet getClientInfoProperties() throws SQLException {
+        debugCodeCall("getClientInfoProperties");
         throw Message.getUnsupportedException();
-    }
-
-    /**
-     * Returns whether this database provides its own query generator.
-     * @return false
-     */
-    public boolean providesQueryObjectGenerator() throws SQLException {
-        debugCodeCall("providesQueryObjectGenerator");
-        return false;
     }
 
     /**
@@ -2648,7 +2641,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     //#ifdef JDK16
 /*
-    public Object unwrap(Class<?> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        debugCodeCall("unwrap");        
         throw Message.getUnsupportedException();
     }
 */
@@ -2661,10 +2655,29 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        debugCodeCall("isWrapperFor");        
         throw Message.getUnsupportedException();
     }
 */
     //#endif
+
+    /**
+     * Gets the list of function columns.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
+        debugCodeCall("getFunctionColumns");        
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * Gets the list of functions.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */
+    public ResultSet getFunctions(String arg0, String arg1, String arg2) throws SQLException {
+        debugCodeCall("getFunctions");        
+        throw Message.getUnsupportedException();
+    }
 
 }
 

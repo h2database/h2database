@@ -52,7 +52,7 @@ public class RunScript {
      * </ul>
      * To include local files when using remote databases, use the special syntax:
      * <pre>
-     * @INCLUDE fileName
+     * &#64;INCLUDE fileName
      * </pre>
      * This syntax is only supported by this tool. 
      * Embedded RUNSCRIPT SQL statements will be executed by the database.

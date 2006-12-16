@@ -561,7 +561,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
-    public void setAsciiStream(String parameterName, InputStream x, int length) throws SQLException {
+    public void setAsciiStream(String parameterName, InputStream x, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
@@ -954,6 +954,86 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     public void setClob(String parameterName, Clob x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setAsciiStream(String parameterName, InputStream x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setAsciiStream(String parameterName, InputStream x, int length) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setBinaryStream(String parameterName, InputStream x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setBinaryStream(String parameterName, InputStream x, long length) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setBlob(String parameterName, InputStream x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setCharacterStream(String parameterName, Reader x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setCharacterStream(String parameterName, Reader x, long length) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setClob(String parameterName, Reader x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+
+    /**
+     * THIS FEATURE IS NOT SUPPORTED.
+     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     */    
+    public void setNClob(String parameterName, Reader x) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

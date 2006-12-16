@@ -23,6 +23,12 @@ import javax.sql.XADataSource;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 
+//#ifdef JDK16
+/*
+import org.h2.message.Message;
+*/
+//#endif
+
 /**
  * A data source for H2 database connections
  * 
@@ -144,6 +150,22 @@ public class JdbcDataSource extends TraceObject implements XADataSource, DataSou
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
         debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
         return getXAConnection(user, password);
-    }    
+    }
+
+    //#ifdef JDK16
+/*
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+*/
+    //#endif
+
+    //#ifdef JDK16
+/*
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+*/
+    //#endif
 
 }

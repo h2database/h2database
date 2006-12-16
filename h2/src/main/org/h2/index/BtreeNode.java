@@ -176,10 +176,11 @@ public class BtreeNode extends BtreePage {
         IntArray children = new IntArray();
         splitPoint++;
         int max = pageData.size();
-        if(Constants.CHECK && !getDeleted()) {
+        int test;
+        // if(Constants.CHECK  && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
             // page must have been deleted already before calling getSplitPoint()
-            Message.getInternalError();
-        }
+        //    throw Message.getInternalError();
+        // }
         for (int i = splitPoint; i < max; i++) {
             data.add(getData(splitPoint));
             children.add(getChild(splitPoint));

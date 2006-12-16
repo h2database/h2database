@@ -103,7 +103,7 @@ public class TestSynth extends TestBase {
             add(Command.getCreateTable(this, table));
             add(Command.getCreateIndex(this, table.newRandomIndex()));
         }
-        for(int i=0; i<100; i++) {
+        for(int i=0; i<400; i++) {
             addRandomCommands();
         }
 //          for (int i = 0; i < 20; i++) {

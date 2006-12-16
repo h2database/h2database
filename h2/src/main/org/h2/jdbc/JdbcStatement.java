@@ -848,7 +848,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     //#ifdef JDK16
 /*
-    public Object unwrap(Class<?> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
@@ -865,6 +865,27 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 */
     //#endif
+
+    /**
+     * Returns whether this object is poolable.
+     * @return false
+     */
+    public boolean isPoolable() throws SQLException {
+        debugCodeCall("isPoolable");
+        return false;
+    }
+
+    /**
+     * Requests that this object should be pooled or not.
+     * This call is ignored.
+     *
+     * @param poolable the requested value
+     */
+    public void setPoolable(boolean poolable) throws SQLException {
+        if(debug()) {
+            debugCode("setPoolable("+poolable+");");
+        }
+    }
 
 //    public void finalize() {
 //        if(!Database.RUN_FINALIZERS) {

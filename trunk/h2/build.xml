@@ -2,7 +2,7 @@
 
 	<property name="version.name" value="1.0"/>
 
-	<property name="jdk" value="1.3"/>
+	<property name="jdk" value="1.4"/>
 	<property name="javac" value="javac"/>
 
 	<path id="benchmark.drivers.path">

@@ -86,9 +86,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        javadoc for runscript is broken (@ problem)
-        
-        // codeswitch_jdk13 doesnt work?
+        // codeswitch_jdk13 doesnt work? (in FAQ)
         
         // Check if new Hibernate dialect for H2 is ok
         // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2300

@@ -38,7 +38,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Can be compiled with JDK 1.6. However, only very few of the JDBC 4.0 features are implemented so far.
 <li>The unit test of OpenJPA works now.
 <li>Unfortunately, the Hibernate dialect has changed due to a change in the meta data in the last release
-    (INFORMATION_SCHEMA.SCHEMA).
+    (INFORMATION_SCHEMA.SEQUENCES).
 <li>String.toUpperCase and toLowerCase can not be used to process SQL, as they depend on the current locale.
     Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..)
 <li>Table aliases are now supported in DELETE and UPDATE. Example: DELETE FROM TEST T0.

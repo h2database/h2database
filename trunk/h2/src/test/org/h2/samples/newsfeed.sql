@@ -10,6 +10,48 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(18,
+'New version available: 1.0 / 2006-12-17', '2006-12-17 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br/>
+<b>Changes and new functionality:</b>
+<ul>
+<li>Large BLOB and CLOB support for the server and the cluster mode. 
+	Larger objects will temporarily be buffered on the client side.
+<li>Can be compiled with JDK 1.6.
+ 	However, only very few of the JDBC 4.0 features are implemented so far.
+<li>Table aliases are now supported in DELETE and UPDATE. 
+	Example: DELETE FROM TEST T0.
+<li>The RunScript tool can now include other files using a new syntax: 
+	@INCLUDE fileName. This is only required for server and cluster modes.
+	It was already possible to use embedded RUNSCRIPT statements, 
+	but those are always executed locally.
+<li>When the database URL contains ;RECOVERY=TRUE then 
+	the index file is now deleted if it was not closed before.
+<li>Deleting old temp files now uses a phantom reference queue. 
+	Generally, temp files should now be deleted earlier.
+<li>Opening a large database is now much faster 
+	even when using the default log mode (LOG=1), 
+	if the database was previously closed.
+<li>Support for indexed parameters in PreparedStatements: 
+	UPDATE TEST SET NAME = ?2 WHERE ID = ?1
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>Unfortunately, the Hibernate dialect has changed due to a change 
+	in the meta data in the last release (INFORMATION_SCHEMA.SEQUENCES).
+<li>String.toUpperCase and toLowerCase can not be used to parse commands.
+	Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..).
+<li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
+<li>PreparedStatement.setObject(x, y, Types.OTHER) does now 
+	serialize the object in every case (even for Integer).
+<li>EXISTS subqueries with parameters were not re-evaluated 
+	when the prepared statement was reused. This could lead to incorrect results.
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(17,
 'New version available: 1.0 / 2006-12-03', '2006-12-03 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

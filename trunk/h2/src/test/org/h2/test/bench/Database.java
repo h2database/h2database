@@ -89,7 +89,8 @@ class Database {
         }
         if(serverDerby != null) {
             Method m = serverDerby.getClass().getMethod("shutdown", new Class[]{});
-            m.invoke(serverDerby, null);
+            // cast for JDK 1.5
+            m.invoke(serverDerby, (Object[])null);
             // serverDerby.shutdown();
             serverDerby = null;
         } else if(serverHSQLDB) {

@@ -32,7 +32,6 @@ package org.h2.engine;
  *      - front page
  *      - tables (optimal size)
  *      - orphan control, page breaks
- *      - check no javascript
  *      - table of contents
  * - switch off auto-build
  * - ant all

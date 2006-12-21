@@ -44,7 +44,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Table aliases are now supported in DELETE and UPDATE. Example: DELETE FROM TEST T0.
 <li>The RunScript tool can now include other files using a new syntax: @INCLUDE fileName.
     It was already possible to do that using embedded RUNSCRIPT statements, but not remotely.
-<li>When the database URL contains ;RECOVERY=TRUE then the index file is now deleted if it was not closed before.
+<li>When the database URL contains ;RECOVER=1 then the index file is now deleted if it was not closed before.
 <li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
 <li>Deleting old temp files now uses a phantom reference queue. Generally, temp files should now be deleted
     earlier.
@@ -1345,7 +1345,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Documentation (FAQ) for how to connect to H2
 <li>Improve performance for create table (if this is possible)
 <li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
-<li>Document how to use H2 with PHP
+<li>Document how to use H2 with PHP (generic database API)
 <li>Optimization: result set caching (like MySQL)
 <li>Server side cursors
 <li>Row level locking
@@ -1367,7 +1367,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Read-only databases inside a jar
 <li>SET variable { TO | = } { value | 'value' | DEFAULT }
 <li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
-<li>Deleted LOB files after transaction is committed. Keep set of 'to be deleted' lobs files to the session (remove from the list on rollback)
 <li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
 <li>Backup of BLOB / CLOB: use a stream for backup, use a block append function to restore.
 </ul>
@@ -1420,7 +1419,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Make the jar more modular
 <li>Document obfuscator usage
 <li>Drop with restrict (currently cascade is the default)
-<li>SCRIPT to pretty-print (at least Create Table)
 <li>Document ConvertTraceToJava in javadoc and features
 <li>Document limitation (line length) of find "**" test.trace.db > Trace.java
 <li>Tiny XML parser (ignoring unneeded stuff)
@@ -1455,22 +1453,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Functional tables should accept parameters from other tables (see FunctionMultiReturn)
     SELECT * FROM TEST T, P2C(T.A, T.R)
 <li>Custom class loader to reload functions on demand
-<li>Public CVS access
 <li>Count index range query (count where id between 10 and 20)
 <li>Test http://mysql-je.sourceforge.net/
 <li>Close all files when closing the database (including LOB files that are open on the client side)
 <li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
-<li>Should not print stack traces when killing the tests
 <li>Implement Statement.cancel for server connections
 <li>Should not throw a NullPointerException when closing the connection while an operation is running (TestCases.testDisconnect)
 <li>Profiler option or profiling tool to find long running and often repeated queries
 <li>Function to read/write a file from/to LOB
 <li>Allow custom settings (@PATH for RUNSCRIPT for example)
-<li>RUNSCRIPT: SET SCRIPT_PATH or similar to be used by RUNSCRIPT (and maybe SCRIPT)
 <li>Performance test: read the data (getString) and use column names to get the data
 <li>EXE file: maybe use http://jsmooth.sourceforge.net
 <li>System Tray: http://jroller.com/page/stritti?entry=system_tray_implementations_for_java
-<li>Test with GCJ: http://javacompiler.mtsystems.ch/
 <li>SELECT ... FOR READ WAIT [maxMillisToWait]
 <li>Automatically delete the index file if opening it fails
 <li>Performance: Automatically build in-memory indexes if the whole table is in memory
@@ -1482,7 +1476,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Support a property isDeterministic for Java functions
 <li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 <li>http://www.jpackage.org
-<li>Replace deleteOnExit with a weak reference map, or a simple loop on exit
 <li>Version column (number/sequence and timestamp based)
 <li>Optimize getGeneratedKey: (include last identity after each execute).
 <li>Clustering: recovery needs to becomes fully automatic.
@@ -1598,6 +1591,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Support updatable views with join on primary keys (to extend a table)
 <li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
 <li>Public interface for functions (not public static)
+<li>Index usage for IN(...), IN_ARRAY(..), and IN_ARRAY_RANGES(..); support ARRAY in JDBC API (variable size)
 </ul>
 
 <h3>Not Planned</h3>

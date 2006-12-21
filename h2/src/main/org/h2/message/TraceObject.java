@@ -161,7 +161,7 @@ public class TraceObject {
             synchronized(this.getClass()) {
                 // e.printStackTrace();
                 try {
-                    FileWriter writer = new FileWriter("c:\\temp\\h2error.txt",  true);
+                    FileWriter writer = new FileWriter(Constants.LOG_ALL_ERRORS_FILE,  true);
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

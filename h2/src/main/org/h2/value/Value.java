@@ -53,7 +53,7 @@ public abstract class Value {
     private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
 
     static Value cache(Value v) {
-        if (Constants.USE_OBJECT_CACHE) {
+        if (Constants.OBJECT_CACHE) {
             Value[] cache = (Value[]) weakCache.get();
             int hash = v.hashCode();
             if (cache == null) {

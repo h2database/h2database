@@ -17,4 +17,8 @@ public abstract class DefineCommand extends Prepared {
         return false;
     }      
     
+    public boolean isReadOnly() {
+        return false;
+    }
+    
 }

@@ -24,6 +24,7 @@ public class CommandRemote implements CommandInterface {
     private ObjectArray transferList;
     private int id;
     private boolean isQuery;
+    private boolean readonly;
     private ObjectArray parameters;
     private Trace trace;
     private String sql;
@@ -39,6 +40,7 @@ public class CommandRemote implements CommandInterface {
                 transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
                 session.done(transfer);
                 isQuery = transfer.readBoolean();
+                readonly = transfer.readBoolean();
                 paramCount = transfer.readInt();
             } catch(IOException e) {
                 session.removeServer(i);
@@ -77,7 +79,6 @@ public class CommandRemote implements CommandInterface {
             }
             int objectId = session.getNextId();
             ResultRemote result = null;
-            // TODO cluster: test sequences and so on
             for(int i=0; i<transferList.size(); i++) {
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
@@ -99,6 +100,9 @@ public class CommandRemote implements CommandInterface {
                         result = null;
                     }
                     result = new ResultRemote(session, transfer, objectId, columnCount, readRows);
+                    if(readonly) {
+                        break;
+                    }
                 } catch(IOException e) {
                     session.removeServer(i);
                 }

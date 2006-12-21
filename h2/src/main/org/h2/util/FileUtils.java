@@ -329,14 +329,6 @@ public class FileUtils {
         return f.getCanonicalPath();
     }
 
-//    public static void deleteOnExit(String temp) {
-//        if(isInMemory(temp)) {
-//            // nothing to do
-//            return;
-//        }
-//        new File(temp).deleteOnExit();
-//    }
-
     public static String getParent(String fileName) {
         if(isInMemory(fileName)) {
             return MEMORY_PREFIX;

@@ -37,6 +37,10 @@ public abstract class Prepared {
     }
     
     public abstract boolean isTransactional();
+    
+    public boolean isReadOnly() {
+        return false;
+    }
 
     public Prepared(Session session) {
         this.session = session;

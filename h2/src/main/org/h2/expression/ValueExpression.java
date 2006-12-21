@@ -82,6 +82,7 @@ public class ValueExpression extends Expression {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.READONLY:
             return true;
         case ExpressionVisitor.INDEPENDENT:
             return true;

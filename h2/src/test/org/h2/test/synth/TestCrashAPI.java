@@ -66,9 +66,9 @@ public class TestCrashAPI extends TestBase {
 
 //        int testing;
 //        add = ";STORAGE=TEXT";
-//        if(openCount>=24) {
-//            System.exit(1);
-//        }
+        if(openCount>=42 && callCount>1200 && seed == 437623957) {
+            System.exit(1);
+        }
 //            add = ";LOG=2";
 //            System.out.println("now open " + openCount);
 //          add += ";TRACE_LEVEL_FILE=3";

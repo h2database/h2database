@@ -158,6 +158,11 @@ public class DataType {
                 createString(true),
                 new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT", "NCLOB"}
         );
+        add(Value.ARRAY, Types.ARRAY, "Array",
+                createString(false),
+                new String[]{"ARRAY"}
+        );
+        
         // TODO data types: try to support other types as well (longvarchar for odbc/access,...) - maybe map them to regular types?
     }
 

@@ -99,7 +99,7 @@ public class BtreeLeaf extends BtreePage {
             }
             if(comp == 0) {
                 index.deletePage(session, this);
-                if(pageData.size()==1) {
+                if(pageData.size()==1 && !root) {
                     // the last row has been deleted
                     return oldRow;
                 }
@@ -110,7 +110,11 @@ public class BtreeLeaf extends BtreePage {
                     // the first row didn't change
                     return null;
                 } else {
-                    return getData(0);
+                    if(pageData.size() == 0) {
+                        return null;
+                    } else {
+                        return getData(0);
+                    }
                 }
             }
             if(comp > 0) {
@@ -126,10 +130,10 @@ public class BtreeLeaf extends BtreePage {
         ObjectArray data = new ObjectArray();
         int max = pageData.size();
         int test;
-        // if(Constants.CHECK && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
-            // page must have been deleted already before calling getSplitPoint()
-        //    throw Message.getInternalError();
-        // }
+         if(Constants.CHECK && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
+//             page must have been deleted already before calling getSplitPoint()
+            throw Message.getInternalError();
+        }
         for (int i = splitPoint; i < max; i++) {
             data.add(getData(splitPoint));
             pageData.remove(splitPoint);

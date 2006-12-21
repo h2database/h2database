@@ -22,6 +22,9 @@ public class ExpressionVisitor {
     // Request to set the latest modification id
     public static final int SET_MAX_DATA_MODIFICATION_ID = 4;
 
+    // Does the expression have no side effects (change the data)?
+    public static final int READONLY = 5;
+
     int queryLevel;
     public Table table;
     public int type;

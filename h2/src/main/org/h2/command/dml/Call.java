@@ -10,6 +10,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.util.ObjectArray;
@@ -72,6 +73,11 @@ public class Call extends Prepared {
 
     public boolean isTransactional() {
         return true;
+    }
+    
+    public boolean isReadOnly() {
+        return value.isEverything(ExpressionVisitor.READONLY);
+        
     }
     
 }

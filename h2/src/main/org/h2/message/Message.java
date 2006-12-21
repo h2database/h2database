@@ -103,7 +103,14 @@ public class Message {
     }
 
     public static Error getInternalError(String s, Exception e) {
+//#ifdef JDK14
         Error e2 = new Error(s, e);
+//#endif
+//#ifdef JDK13
+/*
+        Error e2 = new Error(s);
+*/
+//#endif
         TraceSystem.traceThrowable(e2);
         return e2;
     }

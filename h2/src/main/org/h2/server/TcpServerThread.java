@@ -157,10 +157,11 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             String sql = transfer.readString();
             Command command = session.prepareLocal(sql);
+            boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
             int paramCount = command.getParameters().size();
-            transfer.writeInt(SessionRemote.STATUS_OK).writeBoolean(isQuery).writeInt(paramCount).flush();
+            transfer.writeInt(SessionRemote.STATUS_OK).writeBoolean(isQuery).writeBoolean(readonly).writeInt(paramCount).flush();
             break;
         }
         case SessionRemote.SESSION_CLOSE: {

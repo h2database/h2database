@@ -207,6 +207,7 @@ public class ExpressionColumn extends Expression {
         switch(visitor.type) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return false;
+        case ExpressionVisitor.READONLY:
         case ExpressionVisitor.DETERMINISTIC:
             return true;
         case ExpressionVisitor.INDEPENDENT:

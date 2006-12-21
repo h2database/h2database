@@ -89,7 +89,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203,
             COALESCE = 204, NULLIF = 205, CASE = 206, NEXTVAL = 207, CURRVAL = 208,
             ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211, MEMORY_FREE = 212,
-            MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216;
+            MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217;
 
     private static final int VARARGS = -1;
 
@@ -277,6 +277,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("LOCK_MODE", LOCK_MODE, 0, Value.INT);
         addFunctionNotConst("SCHEMA", SCHEMA, 0, Value.STRING);
         addFunctionNotConst("SESSION_ID", SESSION_ID, 0, Value.INT);
+        addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
@@ -392,6 +393,13 @@ public class Function extends Expression implements FunctionCall {
                     return ValueNull.INSTANCE;
                 }
                 return list[element-1];
+            }
+            return ValueNull.INSTANCE;
+        }
+        case ARRAY_LENGTH: {
+            if(v0.getType() == Value.ARRAY) {
+                Value[] list = ((ValueArray) v0).getList();
+                return ValueInt.get(list.length);
             }
             return ValueNull.INSTANCE;
         }

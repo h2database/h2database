@@ -713,5 +713,9 @@ public class Select extends Query {
         }
         return result;
     }
+    
+    public boolean isReadOnly() {
+        return isEverything(ExpressionVisitor.READONLY);
+    }
 
 }

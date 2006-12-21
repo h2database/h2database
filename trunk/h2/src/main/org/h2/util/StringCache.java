@@ -46,7 +46,7 @@ public class StringCache {
 
     // 3906
     public static String get(String s) {
-        if (!Constants.USE_OBJECT_CACHE || !ENABLED) {
+        if (!Constants.OBJECT_CACHE || !ENABLED) {
             return s;
         }
         if (s == null) {
@@ -73,7 +73,7 @@ public class StringCache {
     }
     
     public static String getNew(String s) {
-        if (!Constants.USE_OBJECT_CACHE || !ENABLED) {
+        if (!Constants.OBJECT_CACHE || !ENABLED) {
             return s;
         }
         if (s == null) {

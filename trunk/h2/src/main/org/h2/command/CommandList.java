@@ -55,4 +55,8 @@ public class CommandList extends Command {
         return true;
     }
 
+    public boolean isReadOnly() {
+        return false;
+    }
+
 }

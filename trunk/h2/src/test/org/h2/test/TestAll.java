@@ -85,8 +85,42 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
+
+        int todoSendMail;
+//        here's the whole enchilada 
+//        delete the index and log file
         
-        // codeswitch_jdk13 doesnt work? (in FAQ)
+        
+//create table test(id int, data array)        
+//document array_get, array_length
+        
+//        todo: document system properties in advancaed
+        
+        // lobs: rename / delete: need to check if rename works if stop in the middle
+        
+        
+        // options for java functions: readonly, deterministic
+        // document cluster: not allowed operations: update/insert with random data (however in a readonly select it is ok)
+        
+        // test & document cluster: read only selects only go to the first cluster node
+        // test & document settings via -Dh2.check=false
+        
+//        set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
+        
+
+//        There is one thing I forgot: you need to change the in the build script
+//        <property name="jdk" value="1.4"/> to
+//        <property name="jdk" value="1.6"/> 
+
+        new TestCrashAPI().init(test).testCase(1656916106); // Bug 2111148370 seed=1656916106 id=-1834 callCount=1787 openCount=50 General error: java.lang.Error: 0 blocks to read pos=192 [HY000-34]
+        new TestCrashAPI().init(test).testCase(437623957); // Bug -1343599238 seed=437623957 id=-1317 callCount=1289 openCount=42 General error: java.lang.OutOfMemoryError: Java heap space [HY000-34]
+
+        
+        // add to maven
+        // http://jira.codehaus.org/browse/MAVENUPLOAD-1276
+        // http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
+        
+        // java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
         
         // Check if new Hibernate dialect for H2 is ok
         // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2300
@@ -99,10 +133,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //        <property name="openjpa.ConnectionProperties"
 //            value="DriverClassName=org.h2.Driver,Url=jdbc:h2:c:/temp/openjpa,MaxActive=100,MaxWait=10000,TestOnBorrow=true"/>
 //        D:\data\h2test\openjpa\openjpa-persistence-jdbc>mvn test        
-
-        // add H2 to maven
+        
         // OSGi Bundle (see Forum)
-        // Test and document JDK 1.6 QueryObjectFactory 
+        // QueryObjectFactory 
         
         // test with PostgreSQL  Version 8.2
         
@@ -116,9 +149,13 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //           GRANT select ON new_product_view TO hr; 
 
         // http://dev.helma.org/Wiki/RhinoLoader
+        
         // use version numbers 1.0.4 and so on
+        
         // Fulltext search: Use reader for CLOB data, special reader tokenizer
+        
         // Checkstyle to verify HTML docs
+        
         // test multithreading access to blobs (one thread reads from the inputstream, the other deletes the row using the same connection)
         // Dezign for Databases (http://www.datanamic.com
         // SET LOCK_MODE 3 not persistent, document how to set it in the database URL
@@ -132,8 +169,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // by some other transaction when it commits. In this isolation level, read locks are not acquired on selected data.
         // test with garbage at the end of the log file (must be consistently detected as such)
         // describe differences between databases (Migration Guide; HSQLDB most important)
-        // Maven
-        // http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
         // test LIKE: compare against other databases
         // autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
         // autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
@@ -153,7 +188,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // - Connect to an existing database, select JDBC, [Next]
         // - Datasource URL: jdbc:h2:c:/temp/test;TRACE_LEVEL_FILE=3
         // - JDBC driver class: org.h2.Driver [Test class]
-
         
         if(args.length>0) {
             if("crash".equals(args[0])) {

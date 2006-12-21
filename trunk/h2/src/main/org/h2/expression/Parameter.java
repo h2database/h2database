@@ -87,6 +87,7 @@ public class Parameter extends Expression implements ParameterInterface {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.READONLY:
             return true;
         case ExpressionVisitor.INDEPENDENT:
             return value != null;

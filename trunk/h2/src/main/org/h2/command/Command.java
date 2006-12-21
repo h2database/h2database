@@ -27,6 +27,7 @@ public abstract class Command implements CommandInterface {
     public abstract boolean isTransactional();
     public abstract boolean isQuery();
     public abstract ObjectArray getParameters();
+    public abstract boolean isReadOnly();
 
     public Command(Parser parser) {
         this.session = parser.getSession();
@@ -136,5 +137,5 @@ public abstract class Command implements CommandInterface {
     public void cancel() {
         this.cancel = true;
     }
-
+    
 }

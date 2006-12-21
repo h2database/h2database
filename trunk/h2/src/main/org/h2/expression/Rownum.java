@@ -68,6 +68,8 @@ public class Rownum extends Expression {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             // if everything else is the same, the rownum is the same
             return true;
+        case ExpressionVisitor.READONLY:
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }

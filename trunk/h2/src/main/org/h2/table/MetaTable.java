@@ -649,6 +649,27 @@ public class MetaTable extends Table {
                     add(rows, new String[]{"FILE_INDEX_READ", "" + database.getIndexFile().getReadCount()});
                 }
             }
+            add(rows, new String[]{"h2.check", "" + Constants.CHECK});
+            add(rows, new String[]{"h2.check2", "" + Constants.CHECK2});
+            add(rows, new String[]{"h2.lobFilesInDirectories", "" + Constants.LOB_FILES_IN_DIRECTORIES});
+            add(rows, new String[]{"h2.lobFilesPerDirectory", "" + Constants.LOB_FILES_PER_DIRECTORY});
+            add(rows, new String[]{"h2.multiThreadedKernel", "" + Constants.MULTI_THREADED_KERNEL});
+            add(rows, new String[]{"h2.runFinalizers", "" + Constants.RUN_FINALIZERS});
+            add(rows, new String[]{"h2.optimizeMinMax", "" + Constants.OPTIMIZE_MIN_MAX});
+            add(rows, new String[]{"h2.optimizeIn", "" + Constants.OPTIMIZE_IN});
+            add(rows, new String[]{"h2.redoBufferSize", "" + Constants.REDO_BUFFER_SIZE});
+            add(rows, new String[]{"h2.recompileAlways", "" + Constants.RECOMPILE_ALWAYS});
+            add(rows, new String[]{"h2.optimizeSubqueryCache", "" + Constants.OPTIMIZE_SUBQUERY_CACHE});
+            add(rows, new String[]{"h2.overflowExceptions", "" + Constants.OVERFLOW_EXCEPTIONS});
+            add(rows, new String[]{"h2.logAllErrors", "" + Constants.LOG_ALL_ERRORS});
+            add(rows, new String[]{"h2.logAllErrorsFile", "" + Constants.LOG_ALL_ERRORS_FILE});
+            add(rows, new String[]{"h2.serverCachedObjects", "" + Constants.SERVER_CACHED_OBJECTS});
+            add(rows, new String[]{"h2.serverSmallResultSetSize", "" + Constants.SERVER_SMALL_RESULTSET_SIZE});
+            add(rows, new String[]{"h2.emergencySpaceInitial", "" + Constants.EMERGENCY_SPACE_INITIAL});
+            add(rows, new String[]{"h2.emergencySpaceMin", "" + Constants.EMERGENCY_SPACE_MIN});
+            add(rows, new String[]{"h2.objectCache", "" + Constants.OBJECT_CACHE});
+            add(rows, new String[]{"h2.objectCacheSize", "" + Constants.OBJECT_CACHE_SIZE});
+            add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
             break;
         }
         case TYPE_INFO: {

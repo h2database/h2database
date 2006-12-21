@@ -59,4 +59,8 @@ public class ExplainPlan extends Prepared {
     public boolean isTransactional() {
         return true;
     }
+
+    public boolean isReadOnly() {
+        return true;
+    }
 }

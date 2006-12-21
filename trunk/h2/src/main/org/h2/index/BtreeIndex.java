@@ -123,7 +123,8 @@ int count;
         if(storage != null) {
             storage.flushFile();
             deletePage(session, head);
-            int todoCheckAndDocumentThisCondition;
+            // if we log index changes now, then the index is consistent
+            // if we don't log index changes, then the index is only consistent if there are no in doubt transactions
             if(database.getLogIndexChanges() || !database.getLog().containsInDoubtTransactions()) {
                 head.setConsistent(true);
             }
@@ -166,6 +167,7 @@ int count;
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
         if(rowCount == 1) {
+            // TODO performance: maybe improve truncate performance in this case
             truncate(session);
         } else {
             root.remove(session, row, 0);

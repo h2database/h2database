@@ -70,6 +70,7 @@ public class SequenceValue extends Expression {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.READONLY:
             return false;
         case ExpressionVisitor.INDEPENDENT:
             return false;

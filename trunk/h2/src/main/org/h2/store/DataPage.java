@@ -236,7 +236,7 @@ public abstract class DataPage {
         default:
             throw Message.getInternalError("type=" + v.getType());
         }
-        if(Constants.CHECK) {
+        if(Constants.CHECK2) {
             if(pos - start != getValueLen(v)) {
                 throw Message.getInternalError("value size error: got " + (pos-start) + " expected " + getValueLen(v));
             }

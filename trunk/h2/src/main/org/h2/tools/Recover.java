@@ -62,7 +62,7 @@ public class Recover implements DataHandler {
     private boolean log;
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>]");
+        System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
     }
     
     /**
@@ -104,7 +104,7 @@ public class Recover implements DataHandler {
         if(removePassword) {
             removePassword(dir, db);
         } else {
-            execute(dir, db);
+            process(dir, db);
         }
     }
     
@@ -260,7 +260,8 @@ public class Recover implements DataHandler {
             } else if(fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 dumpLog(fileName);
             } else if(fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                dumpLob(fileName);
+                dumpLob(fileName, true);
+                dumpLob(fileName, false);
             }
         }
     }
@@ -283,6 +284,8 @@ public class Recover implements DataHandler {
                 sb.append('?');
             }
         }
+        writer.println("-- dump: " + sb.toString());
+        sb = new StringBuffer();
         for(int i=0; i<dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = (data[i] & 0xff);
             sb.append(' ');
@@ -294,17 +297,17 @@ public class Recover implements DataHandler {
         writer.println("-- dump: " + sb.toString());
     }
     
-    private void dumpLob(String fileName) {
+    private void dumpLob(String fileName, boolean lobCompression) {
         FileOutputStream out = null;
         FileStore store = null;
         try {
-            out = new FileOutputStream(fileName + ".txt");
+            String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
+            out = new FileOutputStream(n);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, magic);
             store.init();
-            boolean compression = true;
-            InputStream in = new BufferedInputStream(new FileStoreInputStream(store, this, compression));
+            InputStream in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while(true) {
                 int l = in.read(buffer);
@@ -583,7 +586,12 @@ public class Recover implements DataHandler {
                     continue;
                 }
                 if(blockCount > 1) {
-                    store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                    if((blockCount * blockSize) < 0) {
+                        writeDataError(writer, "wrong blockCount", s.getBytes(), 1);
+                        blockCount = 1;
+                    } else {
+                        store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                    }
                 }
                 try {
                     s.check(blockCount * blockSize);

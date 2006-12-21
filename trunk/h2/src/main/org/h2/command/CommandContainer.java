@@ -72,5 +72,9 @@ public class CommandContainer extends Command {
         prepared.trace();
         return prepared.query(maxrows);
     }
+
+    public boolean isReadOnly() {
+        return prepared.isReadOnly();
+    }
     
 }

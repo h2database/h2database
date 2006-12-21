@@ -357,15 +357,15 @@ public class TableData extends Table implements RecordReader {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append('(');
+        buff.append("(\n    ");
         for (int i = 0; i < columns.length; i++) {
             Column column = columns[i];
             if (i > 0) {
-                buff.append(", ");
+                buff.append(",\n    ");
             }
             buff.append(column.getCreateSQL());
         }
-        buff.append(")");
+        buff.append("\n)");
         return buff.toString();
     }
 

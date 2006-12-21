@@ -89,7 +89,6 @@ public class Constants {
 
     public static final int DEFAULT_CACHE_SIZE = 1 << 16;
     public static final int CACHE_SIZE_INDEX_SHIFT = 3;
-    public static int CACHE_MIN_RECORDS = 16;
     public static final int DEFAULT_CACHE_SIZE_INDEX = DEFAULT_CACHE_SIZE >> CACHE_SIZE_INDEX_SHIFT;
 
     public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 1 << 8;
@@ -114,10 +113,6 @@ public class Constants {
 
     public static final int DEFAULT_DATA_PAGE_SIZE = 512;
 
-    public static final boolean USE_OBJECT_CACHE = true;
-    public static final int OBJECT_CACHE_SIZE = 1024;
-    public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = 4096;
-
     public static final String PRIMARY_KEY_PREFIX = "PRIMARY_KEY_";
 
     public static final int LOCK_SLEEP = 1000;
@@ -131,8 +126,6 @@ public class Constants {
     public static final boolean DEFAULT_HTTP_SSL = false;
     public static final boolean DEFAULT_HTTP_ALLOW_OTHERS = false;
     public static final int DEFAULT_FTP_PORT = 8021;
-
-    public static boolean MULTI_THREADED_KERNEL;
 
     public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;
 
@@ -162,9 +155,6 @@ public class Constants {
 
     public static final String CLUSTERING_DISABLED = "''";
 
-    public static final int EMERGENCY_SPACE_INITIAL = 1 * 1024 * 1024;
-    public static final int EMERGENCY_SPACE_MIN = 128 * 1024;
-
     public static final int LOCK_MODE_OFF = 0;
     public static final int LOCK_MODE_TABLE = 1;
     public static final int LOCK_MODE_TABLE_GC = 2;
@@ -174,40 +164,16 @@ public class Constants {
     public static final int SELECTIVITY_DEFAULT = 50;
     public static final int SELECTIVITY_ANALYZE_SAMPLE_ROWS = 10000;
 
-    public static final int SERVER_CACHED_OBJECTS = 64;
-    public static final int SERVER_SMALL_RESULTSET_SIZE = 100;
-
-    public static final boolean LOG_ALL_ERRORS = false;
-
     // the cost is calculated on rowcount + this offset, to avoid using the wrong or no index
     // if the table contains no rows _currently_ (when preparing the statement)
     public static final int COST_ROW_OFFSET = 1000;
     public static final long FLUSH_INDEX_DELAY = 0;
     public static final int THROTTLE_DELAY = 50;
-    public static boolean RUN_FINALIZERS = true;
-    // TODO performance: change this values and recompile for higher performance
-    public static boolean CHECK = true;
-    public static boolean CHECK2;
 
     public static final String MANAGEMENT_DB_PREFIX = "management_db_";
     public static final String MANAGEMENT_DB_USER = "sa";
-    public static int REDO_BUFFER_SIZE = 256 * 1024;
 
     public static final boolean SERIALIZE_JAVA_OBJECTS = true;
-    public static boolean RECOMPILE_ALWAYS;
-
-    public static boolean OPTIMIZE_SUBQUERY_CACHE = true;
-    public static boolean OVERFLOW_EXCEPTIONS = true;
-
-    public static boolean LOB_FILES_IN_DIRECTORIES;
-    // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
-    public static int LOB_FILES_PER_DIRECTORY = 256;
-
-    public static boolean OPTIMIZE_MIN_MAX = true;
-    public static boolean OPTIMIZE_IN = true;
-
-    // TODO there is a bug currently, need to refactor & debug the code to fix this (and add more tests!)
-    public static boolean OPTIMIZE_EVALUATABLE_SUBQUERIES;
     public static final long DEFAULT_MAX_LOG_SIZE = 32 * 1024 * 1024;
     public static final long LOG_SIZE_DIVIDER = 10;
 
@@ -217,8 +183,6 @@ public class Constants {
 
     public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
     public static boolean AUTO_CONVERT_LOB_TO_FILES = true;
-    public static int MIN_WRITE_DELAY = 5;
-
     public static final boolean ALLOW_EMTPY_BTREE_PAGES = true;
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
@@ -227,8 +191,70 @@ public class Constants {
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
     
+    // TODO need to refactor & test the code to enable this (add more tests!)
+    public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = false;
+
     // to slow down dictionary attacks
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
+    
     public static final String SCRIPT_SQL = "script.sql";
 
+    // for testing only
+    public static int CACHE_MIN_RECORDS = 16;
+    
+    public static int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
+
+    
+    public static boolean CHECK = getBooleanSetting("h2.check", true);
+    public static boolean CHECK2 = getBooleanSetting("h2.check2", false);
+
+    // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
+    public static boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    public static int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
+    
+    public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
+    public static boolean RUN_FINALIZERS = getBooleanSetting("h2.runFinalizers", true);
+
+    public static boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
+    public static boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
+    public static int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
+    public static boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
+    public static boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
+    public static boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
+    public static boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
+    public static String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
+    public static int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
+    public static final int SERVER_SMALL_RESULTSET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
+    public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 1 * 1024 * 1024);
+    public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 128 * 1024);
+    public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);
+    public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
+    public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
+
+    public static boolean getBooleanSetting(String name, boolean defaultValue) {
+        String s = System.getProperty(name);
+        if(s != null) {
+            try {
+                return Boolean.valueOf(s).booleanValue();
+            } catch(NumberFormatException e) {
+            }
+        }
+        return defaultValue;
+    }
+
+    public static String getStringSetting(String name, String defaultValue) {
+        String s = System.getProperty(name);
+        return s == null ? defaultValue : s;
+    }
+
+    public static int getIntSetting(String name, int defaultValue) {
+        String s = System.getProperty(name);
+        if(s != null) {
+            try {
+                return Integer.decode(s).intValue();
+            } catch(NumberFormatException e) {
+            }
+        }
+        return defaultValue;
+    }
 }

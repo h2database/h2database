@@ -29,4 +29,8 @@ public class NoOperation extends Prepared {
         return false;
     }
     
+    public boolean isReadOnly() {
+        return true;
+    }
+    
 }

@@ -297,5 +297,9 @@ public class SelectUnion extends Query {
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && right.isEverything(visitor);
     }
+    
+    public boolean isReadOnly() {
+        return left.isReadOnly() && right.isReadOnly();
+    }
 
 }

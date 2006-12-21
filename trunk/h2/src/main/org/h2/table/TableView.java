@@ -108,9 +108,9 @@ public class TableView extends Table {
                 }
                 buff.append(columns[i].getSQL());
             }
-            buff.append(')');
+            buff.append(")");
         }
-        buff.append(" AS ");
+        buff.append(" AS\n");
         buff.append(querySQL);
         return buff.toString();
     }

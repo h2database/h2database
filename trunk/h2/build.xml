@@ -1,6 +1,6 @@
 <project name="h2" default="all" basedir=".">
 
-	<property name="version.name" value="1.0"/>
+	<property name="version.name" value="1.0.20061217"/>
 
 	<property name="jdk" value="1.4"/>
 	<property name="javac" value="javac"/>
@@ -60,19 +60,19 @@
 
 	<target name="codeswitch_jdk13" depends="codeswitch_prepare">
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="-JDK14 -JDK16 ../main/org/h2"/>
+			<arg line="+JDK13 -JDK14 -JDK16 ../main/org/h2"/>
 		</java>
 	</target>
 
 	<target name="codeswitch_jdk14" depends="codeswitch_prepare">
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="+JDK14 -JDK16 ../main/org/h2"/>
+			<arg line="-JDK13 +JDK14 -JDK16 ../main/org/h2"/>
 		</java>
 	</target>
 
 	<target name="codeswitch_jdk16" depends="codeswitch_prepare">
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="+JDK16 +JDK14 ../main/org/h2"/>
+			<arg line="-JDK13 +JDK16 +JDK14 ../main/org/h2"/>
 		</java>
 	</target>
 
@@ -216,7 +216,25 @@
 		</copy>
 	</target>
 
+	<target name="mavenBuildCentral">
+		<copy tofile="bin/h2-${version.name}.jar" file="bin/h2.jar" />
+		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
+			<filterset>
+				<filter token="version" value="${version.name}"/>
+		    </filterset>
+		</copy>
+		<zip destfile="bin/h2-maven-${version.name}.jar" basedir="bin">
+			<include name="pom.xml" />
+			<include name="h2-${version.name}.jar" />
+		</zip>
+	</target>	
+
 	<target name="mavenUploadLocal" depends="jar">
+		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
+			<filterset>
+				<filter token="version" value="1.0-SNAPSHOT"/>
+		    </filterset>
+		</copy>
 		<exec executable="mvn.bat">
 			<arg value="install:install-file"/>
 			<arg value="-Dversion=1.0-SNAPSHOT"/>
@@ -224,7 +242,7 @@
 			<arg value="-DgroupId=org.h2database"/>
 			<arg value="-DartifactId=h2"/>
 			<arg value="-Dpackaging=jar"/>
-			<arg value="-DpomFile=src/installer/pom.xml"/>
+			<arg value="-DpomFile=bin/pom.xml"/>
 		</exec>
 	</target>
 

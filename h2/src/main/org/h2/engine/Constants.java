@@ -11,8 +11,10 @@ package org.h2.engine;
  * - System.out > trace messages
  *
  * Release checklist
+ * - Update latest version in docs: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
  * - try compiling with JDK 1.3, 1.4, 1.5 and 1.6
+ *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  * - change FAQ (next release planned, known bugs)
  * - check version, change build number in Constants.java and build.xml
  * - check code coverage
@@ -48,6 +50,7 @@ package org.h2.engine;
  *
  * - Send a mail to Google Groups
  * - newsletter: prepare, send (always send to BCC!!)
+ * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
  *
  * @author Thomas
  */

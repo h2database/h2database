@@ -334,6 +334,10 @@ public class ValueLob extends Value {
         }
         return super.convertTo(t);
     }
+    
+    public boolean isLinked() {
+        return linked;
+    }
 
     public void unlink(DataHandler handler) throws SQLException {
         if (linked && fileName != null) {

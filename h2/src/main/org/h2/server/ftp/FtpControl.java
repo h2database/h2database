@@ -322,7 +322,8 @@ public class FtpControl extends Thread {
         String list = server.getDirectoryListing(directory, directories);
         reply(150, "Starting transfer");
         server.log(list);
-        data.send(list.getBytes("UTF-8"));
+        // need to use the current locale (UTF-8 would be wrong for the Windows Explorer)
+        data.send(list.getBytes());
         reply(226, "Done");
     }
     

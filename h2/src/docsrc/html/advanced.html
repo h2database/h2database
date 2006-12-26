@@ -42,7 +42,7 @@ Advanced Topics
 <a href="#uuid">
     Universally Unique Identifiers (UUID)</a><br />
 <a href="#system_properties">
-    H2 System Properties</a><br />
+    Settings Read from System Properties</a><br />
 <a href="#glossary_links">
     Glossary and Links</a><br />
 
@@ -191,6 +191,15 @@ and therefore the database is still accessible.
 database that failed, then restart the server that was stopped,
 and re-run the CreateCluster tool.
 </ul>
+
+<h3>Clustering Algorithm and Limitations</h3>
+Read-only queries are only executed against the first cluster node, but all other statements are
+executed against all nodes. There is currently no load balancing made to avoid problems with
+transactions. The following functions may yield different results on different cluster nodes and must be
+executed with care: RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(),
+CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should not be used
+directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used
+in read-only statements and the result can then be used for modifying statements.
 
 <br /><a name="two_phase_commit"></a>
 <h2>Two Phase Commit</h2>
@@ -647,7 +656,7 @@ One's annual risk of being hit by a meteorite is estimated to be one chance in 1
 that means the probability is about 0.000'000'000'06.
 
 <br /><a name="system_properties"></a>
-<h2>H2 System Properties</h2>
+<h2>Settings Read from System Properties</h2>
 <p>
 Some settings of the database can be set on the command line using
 -DpropertyName=value. It is usually not required to change those settings manually.
@@ -657,10 +666,10 @@ Example:
 <pre>
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
 </pre>
-<pre>
+<p>
 The current value of the settings can be read in the table
 INFORMATION_SCHEMA.SETTINGS
-</pre>
+</p>
 <table><tr>
 <th>Setting</th>
 <th>Default</th>

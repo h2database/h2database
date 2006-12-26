@@ -58,14 +58,26 @@ The other targets may be used as well.
 
 <br /><a name="maven2"></a>
 <h2>Using Maven 2</h2>
-To build and upload the H2 .jar file to the local Maven 2 repository, execute the following command:
+<h3>Using a Central Repository</h3>
+You can include the database in your Maven 2 project as a dependency. 
+The version is currently 1.0.&lt;year&gt;&lt;month&gt;&lt;day&gt;. Example:
+<pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;1.0.20061217&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+
+<h3>Using Snapshot Version</h3>
+To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
 <pre>
 ant mavenUploadLocal
 </pre>
 Afterwards, you can include the database in your Maven 2 project as a dependency:
 <pre>
 &lt;dependency&gt;
-    &lt;groupId&gt;org.h2database&lt;/groupId&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
     &lt;artifactId&gt;h2&lt;/artifactId&gt;
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;

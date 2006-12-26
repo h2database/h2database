@@ -169,7 +169,7 @@ public class TestCases extends TestBase {
             error("query still running");
         }
         time = System.currentTimeMillis() - time;
-        if(time > 1000) {
+        if(time > 5000) {
             error("closing took " + time);
         }
         deleteDb("cases");

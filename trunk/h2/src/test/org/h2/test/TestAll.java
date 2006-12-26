@@ -4,6 +4,7 @@
  */
 package org.h2.test;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -66,8 +67,9 @@ start cmd /k "java org.h2.test.TestAll all >testAll.txt"
 start cmd /k "java org.h2.test.TestAll random >testRandom.txt"
 start cmd /k "java org.h2.test.TestAll btree >testBtree.txt"
 
+Test for hot spots:
+java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
 java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2:test;TRACE_LEVEL_FILE=3;LOG=2;MAX_LOG_SIZE=1000;DATABASE_EVENT_LISTENER='org.h2.samples.ShowProgress' -user sa -script test.sql
-
  */
 
     public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
@@ -86,44 +88,10 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
 
-        int todoSendMail;
-//        here's the whole enchilada 
-//        delete the index and log file
-        
-        
 //create table test(id int, data array)        
 //document array_get, array_length
         
-//        todo: document system properties in advancaed
-        
-        // lobs: rename / delete: need to check if rename works if stop in the middle
-        
-        
         // options for java functions: readonly, deterministic
-        // document cluster: not allowed operations: update/insert with random data (however in a readonly select it is ok)
-        
-        // test & document cluster: read only selects only go to the first cluster node
-        // test & document settings via -Dh2.check=false
-        
-//        set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
-        
-
-//        There is one thing I forgot: you need to change the in the build script
-//        <property name="jdk" value="1.4"/> to
-//        <property name="jdk" value="1.6"/> 
-
-        new TestCrashAPI().init(test).testCase(1656916106); // Bug 2111148370 seed=1656916106 id=-1834 callCount=1787 openCount=50 General error: java.lang.Error: 0 blocks to read pos=192 [HY000-34]
-        new TestCrashAPI().init(test).testCase(437623957); // Bug -1343599238 seed=437623957 id=-1317 callCount=1289 openCount=42 General error: java.lang.OutOfMemoryError: Java heap space [HY000-34]
-
-        
-        // add to maven
-        // http://jira.codehaus.org/browse/MAVENUPLOAD-1276
-        // http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
-        
-        // java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
-        
-        // Check if new Hibernate dialect for H2 is ok
-        // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2300
         
         // open JPA test - submit patch
 //        d:\data\h2test\openjpa\openjpa-persistence-jdbc\src\test\resources\META-INF\persistence.xml

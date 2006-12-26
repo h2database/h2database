@@ -34,6 +34,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
+<h3>Version 1.0 / 2007-TODO</h3><ul>
+<li>If a CLOB or BLOB was deleted in a transaction and the database crashed before the transaction was committed or rolled back,
+	the object was lost if it was large. Fixed.
+<li>Now using ant-build.properties. The jdk is automatically updated when using ant codeswitch_...
+<li>Cluster: Now the server can detect if a query is read-only, and in this case the result is only read from the first cluster node.
+	However, there is currently no load balancing made to avoid problems with transactions / locking.
+<li>Many settings are now initialized from system properties and can be changed on the command line without having
+	recompile the database. See Advances / Settings Read from System Properties.
+<li>H2 is now available in Maven. The groupId is com.h2database, the artifactId h2 and the version 1.0.20061217.
+	To create the maven artifacts yourself, use 'ant mavenUploadLocal' and 'ant mavenBuildCentral'.
+</ul>
+
 <h3>Version 1.0 / 2006-12-17</h3><ul>
 <li>Can be compiled with JDK 1.6. However, only very few of the JDBC 4.0 features are implemented so far.
 <li>The unit test of OpenJPA works now.
@@ -1551,7 +1563,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Backup tool should work with other databases as well
 <li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 <li>Maybe use Fowler Noll Vo hash function
-<li>Improved Full text search (update index real-time or in a lower priority thread) Update now, update every n where n could be never.
+<li>Improved full text search (supports LOBs, readers / tokenizers / filters).
 <li>Update in-place
 <li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 <li>Remove finally() (almost) everywhere
@@ -1592,6 +1604,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
 <li>Public interface for functions (not public static)
 <li>Index usage for IN(...), IN_ARRAY(..), and IN_ARRAY_RANGES(..); support ARRAY in JDBC API (variable size)
+<li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier)
 </ul>
 
 <h3>Not Planned</h3>

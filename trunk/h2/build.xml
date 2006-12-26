@@ -1,15 +1,18 @@
 <project name="h2" default="all" basedir=".">
 
-	<property name="version.name" value="1.0.20061217"/>
+	<property file="ant-build.properties" />
+	<!--
+	<property name="version.name.maven" value="1.0.20061217"/>
 
 	<property name="jdk" value="1.4"/>
 	<property name="javac" value="javac"/>
+	-->
 
 	<path id="benchmark.drivers.path">
 		<!-- jar files required by the benchmark -->
 		<pathelement location="bin"/>
 		<pathelement path="${java.class.path}/"/>
-		<fileset dir="D:/data/java">
+		<fileset dir="${benchmark.drivers.dir}">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
@@ -62,18 +65,27 @@
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="+JDK13 -JDK14 -JDK16 ../main/org/h2"/>
 		</java>
+		<propertyfile file="build.properties">
+			<entry key="jdk" value="1.3" />
+		</propertyfile>
 	</target>
 
 	<target name="codeswitch_jdk14" depends="codeswitch_prepare">
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="-JDK13 +JDK14 -JDK16 ../main/org/h2"/>
 		</java>
+		<propertyfile file="build.properties">
+			<entry key="jdk" value="1.4" />
+		</propertyfile>
 	</target>
 
 	<target name="codeswitch_jdk16" depends="codeswitch_prepare">
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="-JDK13 +JDK16 +JDK14 ../main/org/h2"/>
 		</java>
+		<propertyfile file="build.properties">
+			<entry key="jdk" value="1.6" />
+		</propertyfile>
 	</target>
 
 	<target name="compileResources" depends="clean">
@@ -217,15 +229,15 @@
 	</target>
 
 	<target name="mavenBuildCentral">
-		<copy tofile="bin/h2-${version.name}.jar" file="bin/h2.jar" />
+		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
 			<filterset>
-				<filter token="version" value="${version.name}"/>
+				<filter token="version" value="${version.name.maven}"/>
 		    </filterset>
 		</copy>
-		<zip destfile="bin/h2-maven-${version.name}.jar" basedir="bin">
+		<zip destfile="bin/h2-maven-${version.name.maven}.jar" basedir="bin">
 			<include name="pom.xml" />
-			<include name="h2-${version.name}.jar" />
+			<include name="h2-${version.name.maven}.jar" />
 		</zip>
 	</target>	
 

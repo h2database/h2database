@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -32,6 +33,8 @@ public class TestLob extends TestBase {
         if(config.memory) {
             return;
         }
+        testLobTransactions();
+        testLobRollbackStop();
         testLobCopy();
         testLobHibernate();
         testLobCopy(false);
@@ -45,6 +48,103 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+    
+    private void testLobTransactions() throws Exception {
+        if(config.logMode == 0) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB, DATA2 VARCHAR)");
+        conn.setAutoCommit(false);
+        Random random = new Random(1);
+        int rows = 0;
+        Savepoint sp = null;
+        int len = getSize(100, 2000);
+        for(int i=0; i<len; i++) {
+            switch(random.nextInt(10)) {
+            case 0:
+//                System.out.println("insert");
+                conn.createStatement().execute("INSERT INTO TEST(DATA, DATA2) VALUES('"+i+"' || SPACE(10000), '"+i+"')");
+                rows++;
+                break;
+            case 1:
+                if(rows > 0) {
+//                    System.out.println("delete");
+                    conn.createStatement().execute("DELETE FROM TEST WHERE ID=" + random.nextInt(rows));
+                }
+                break;
+            case 2:
+                if(rows > 0) {
+//                    System.out.println("update");
+                    conn.createStatement().execute("UPDATE TEST SET DATA='x' || DATA, DATA2='x' || DATA2 WHERE ID=" + random.nextInt(rows));
+                }
+                break;
+            case 3:
+                if(rows > 0) {
+//                    System.out.println("commit");
+                    conn.commit();
+                    sp = null;
+                }
+                break;
+            case 4:
+                if(rows > 0) {
+//                    System.out.println("rollback");
+                    conn.rollback();
+                    sp = null;
+                }
+                break;
+            case 5:
+//                System.out.println("savepoint");
+                sp = conn.setSavepoint();
+                break;
+            case 6:
+                if(sp != null) {
+//                    System.out.println("rollback to savepoint");
+                    conn.rollback(sp);
+                }
+                break;
+            case 7:
+                if(rows > 0) {
+//                    System.out.println("shutdown");
+                    conn.createStatement().execute("CHECKPOINT");
+                    conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
+                    conn = reconnect(null);
+                    conn.setAutoCommit(false);
+                    sp = null;
+                }
+                break;
+            }
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+            while(rs.next()) {
+                String d1 = rs.getString("DATA").trim();
+                String d2 = rs.getString("DATA2").trim();
+                check(d1, d2);
+            }
+            
+        }
+        conn.close();
+    }
+
+    private void testLobRollbackStop() throws Exception {
+        if(config.logMode == 0) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
+        conn.setAutoCommit(false);
+        conn.createStatement().execute("DELETE FROM TEST");
+        conn.createStatement().execute("CHECKPOINT");
+        conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
+        conn = reconnect(null);
+        ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+        check(rs.next());
+        rs.getInt(1);
+        check(rs.getString(2).length(), 10000);
+        conn.close();
     }
     
     private void testLobCopy() throws Exception {

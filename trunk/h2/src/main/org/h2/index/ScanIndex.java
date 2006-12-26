@@ -94,6 +94,7 @@ public class ScanIndex extends Index {
                 for(int i=0; i<row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     Value v2 = v.link(database, getId());
+                    session.unlinkAtCommitStop(v2);
                     if(v != v2) {
                         row.setValue(i, v2);
                     }
@@ -121,7 +122,10 @@ public class ScanIndex extends Index {
             storage.removeRecord(session, row.getPos());
             if(containsLargeObject) {
                 for(int i=0; i<row.getColumnCount(); i++) {
-                    row.getValue(i).unlink(database);
+                    Value v = row.getValue(i);
+                    if(v.isLinked()) {
+                        session.unlinkAtCommit(v);
+                    }
                 }
             }
         } else {

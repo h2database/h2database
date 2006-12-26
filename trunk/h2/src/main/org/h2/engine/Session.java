@@ -6,6 +6,8 @@ package org.h2.engine;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.h2.command.Command;
@@ -26,6 +28,7 @@ import org.h2.store.UndoLogRecord;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
+import org.h2.value.Value;
 
 /**
  * @author Thomas
@@ -55,6 +58,7 @@ public class Session implements SessionInterface {
     private boolean allowLiterals;
     private String currentSchemaName;
     private String traceModuleName;
+    private HashSet unlinkSet;
 
     public Table findLocalTempTable(String name) {
         Table t = null;
@@ -191,6 +195,16 @@ public class Session implements SessionInterface {
         if(undoLog.size() > 0) {
             undoLog.clear();
             cleanTempTables();
+        }
+        if(unlinkSet != null && unlinkSet.size() > 0) {
+            // need to flush the log file, because we can't unlink lobs if the commit record is not written
+            logSystem.flush();
+            Iterator it = unlinkSet.iterator();
+            while(it.hasNext()) {
+                Value v = (Value) it.next();
+                v.unlink(database);
+            }
+            unlinkSet = null;
         }
         unlockAll();
     }
@@ -445,6 +459,19 @@ public class Session implements SessionInterface {
     
     public DataHandler getDataHandler() {
         return database;
+    }
+
+    public void unlinkAtCommit(Value v) {
+        if(unlinkSet == null) {
+            unlinkSet = new HashSet();
+        }
+        unlinkSet.add(v);
+    }
+    
+    public void unlinkAtCommitStop(Value v) {
+        if(unlinkSet != null) {
+            unlinkSet.remove(v);
+        }
     }
 
 }

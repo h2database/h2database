@@ -584,7 +584,11 @@ public abstract class Value {
     public Value link(DataHandler handler, int tableId) throws SQLException {
         return this;
     }
-
+    
+    public boolean isLinked() {
+        return false;
+    }
+    
     public void unlink(DataHandler handler) throws SQLException {
     }
 

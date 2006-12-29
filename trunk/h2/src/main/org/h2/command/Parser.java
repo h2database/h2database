@@ -3364,6 +3364,9 @@ public class Parser {
         } else if(readIf("DB_CLOSE_ON_EXIT")) {
             read();
             return new NoOperation(session);
+        } else if(readIf("RECOVER")) {
+            read();
+            return new NoOperation(session);            
         } else if(readIf("SCHEMA")) {
             Set command = new Set(session, SetTypes.SCHEMA);
             command.setString(readAliasIdentifier());

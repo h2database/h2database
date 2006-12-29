@@ -34,6 +34,7 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.LogFile;
 import org.h2.util.ByteUtils;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
@@ -300,8 +301,9 @@ public class Recover implements DataHandler {
     private void dumpLob(String fileName, boolean lobCompression) {
         FileOutputStream out = null;
         FileStore store = null;
+        int size = 0;
+        String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         try {
-            String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
             out = new FileOutputStream(n);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
@@ -315,12 +317,23 @@ public class Recover implements DataHandler {
                     break;
                 }
                 out.write(buffer, 0, l);
+                size += l;
             }
         } catch(Throwable e) {
-            logError(fileName, e);
+            // this is usually not a problem, because we try both compressed and uncompressed
+            if(log) {
+                logError(fileName, e);
+            }
         } finally {
             IOUtils.closeSilently(out);
             closeSilently(store);
+        }
+        if(size == 0) {
+            try {
+                FileUtils.delete(n);
+            } catch (SQLException e) {
+                logError(n, e);
+            }
         }
     }
     
@@ -371,14 +384,17 @@ public class Recover implements DataHandler {
                     byte[] b2 = new byte[blocks * blockSize];
                     System.arraycopy(buff, 0, b2, 0, blockSize);
                     buff = b2;
-                    store.readFully(buff, blockSize, blocks * blockSize - blockSize);
+                    try {
+                        store.readFully(buff, blockSize, blocks * blockSize - blockSize);
+                    } catch(SQLException e) {
+                        break;
+                    }
                     s = DataPage.create(this, buff);
                     s.check(blocks * blockSize);
-                } else {
-                    s.reset();
                 }
-                blocks = s.readInt();
-                if(blocks<=0) {
+                s.reset();
+                blocks = Math.abs(s.readInt());
+                if(blocks==0) {
                     writer.println("// [" + pos+"] blocks: "+blocks+" (end)");
                     break;
                 } else {
@@ -386,12 +402,12 @@ public class Recover implements DataHandler {
                     int sessionId = s.readInt();
                     if(type == 'P') {
                         String transaction = s.readString();
-                        writer.println("//   prepared session:"+sessionId+" tx: " + transaction);
+                        writer.println("//   prepared session:"+sessionId+" tx:" + transaction);
                     } else if(type == 'C') {
                         writer.println("//   commit session:" + sessionId);
                     } else {
                         int storageId = s.readInt();
-                        int recordId = s.readInt();
+                        int recId = s.readInt();
                         int blockCount = s.readInt();
                         if(type != 'T') {
                             s.readDataPageNoSize();
@@ -404,21 +420,21 @@ public class Recover implements DataHandler {
                             if(sumLength > 0) {
                                 s.read(summary, 0, sumLength);
                             }
-                            writer.println("//   summary session:"+sessionId+" fileType: " + fileType + " sumLength: " + sumLength);
+                            writer.println("//   summary session:"+sessionId+" fileType:" + fileType + " sumLength:" + sumLength);
                             dumpSummary(writer, summary);
                             break;
                         }
                         case 'T':
-                            writer.println("//   truncate session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   truncate session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
                             break;
                         case 'I':
-                            writer.println("//   insert session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   insert session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
                             break;
                         case 'D':
-                            writer.println("//   delete session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   delete session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
                             break;
                         default:
-                            writer.println("//   type?:"+type+" session:"+sessionId+" storage: " + storageId + " recordId: " + recordId + " blockCount: "+blockCount);
+                            writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
                             break;
                         }
                     }                    
@@ -441,8 +457,20 @@ public class Recover implements DataHandler {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
             int b2 = in.readInt();
             for(int i=0; i<b2 / 8; i++) {
-                in.read();
+                int x = in.read();
+                if((i % 8) == 0) {
+                    writer.print("//  ");
+                }
+                writer.print(" " + Long.toString(i * 8) + ":");
+                for(int j=0; j<8; j++) {
+                    writer.print(((x & 1) == 1) ? "1" : "0");
+                    x >>>= 1;
+                }
+                if((i % 8) == 7) {
+                    writer.println("");
+                }
             }
+            writer.println("//");
             int len = in.readInt();
             for(int i=0; i<len; i++) {
                 int storageId = in.readInt();
@@ -542,7 +570,7 @@ public class Recover implements DataHandler {
         PrintWriter writer = null;        
         FileStore store = null;
         try {
-            databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+            databaseName = fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
             writer = getWriter(fileName, ".sql");
             ObjectArray schema = new ObjectArray();
             HashSet objectIdSet = new HashSet();
@@ -578,6 +606,7 @@ public class Recover implements DataHandler {
                     blockCount = 1;
                     continue;
                 }
+                writer.println("-- block " + block + " - " + (block + blockCount-1));
                 try {
                     s.checkCapacity(blockCount * blockSize);
                 } catch(OutOfMemoryError e) {
@@ -643,11 +672,12 @@ public class Recover implements DataHandler {
                 sb.append("INSERT INTO O_" + storageId + " VALUES(");
                 for(valueId=0; valueId<recordLength; valueId++) {
                     try {
-                        data[valueId] = s.readValue();
+                        Value v = s.readValue();
+                        data[valueId] = v;
                         if(valueId>0) {
                             sb.append(", ");
                         }
-                        sb.append(data[valueId].getSQL());
+                        sb.append(v.getSQL());
                     } catch(Exception e) {
                         writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                         continue;

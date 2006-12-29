@@ -117,14 +117,18 @@ public class FileUtils {
         if(oldFile.getName().equals(newFile.getName())) {
             throw Message.getInternalError("rename file old=new");
         }
-        if(oldFile.exists() && !newFile.exists()) {
-            for(int i=0; i<16; i++) {
-                boolean ok = oldFile.renameTo(newFile);
-                if(ok) {
-                    return;
-                }
-                wait(i);
+        if(!oldFile.exists()) {
+            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+        }            
+        if(newFile.exists()) {
+            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+        }
+        for(int i=0; i<16; i++) {
+            boolean ok = oldFile.renameTo(newFile);
+            if(ok) {
+                return;
             }
+            wait(i);
         }
         throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
     }

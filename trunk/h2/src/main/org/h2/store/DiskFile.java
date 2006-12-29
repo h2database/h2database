@@ -194,7 +194,9 @@ public class DiskFile implements CacheWriter {
             ObjectArray list = database.getAllStorages();
             for(int i=0; i<list.size(); i++) {
                 Storage s = (Storage)list.get(i);
-                database.removeStorage(s.getId(), this);
+                if(s.getDiskFile() == this) {
+                    database.removeStorage(s.getId(), this);
+                }
             }
             reset();
             initAlreadyTried = false;
@@ -304,6 +306,7 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized void flush() throws SQLException {
+        database.checkPowerOff();
         ObjectArray list = cache.getAllChanged();
         CacheObject.sort(list);
         for(int i=0; i<list.size(); i++) {

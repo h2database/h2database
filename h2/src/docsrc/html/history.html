@@ -35,6 +35,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
+<li>In some situations the log file got corrupt if the process was terminated while the database was opening.
+<li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 <li>If a CLOB or BLOB was deleted in a transaction and the database crashed before the transaction was committed or rolled back,
 	the object was lost if it was large. Fixed.
 <li>Now using ant-build.properties. The jdk is automatically updated when using ant codeswitch_...

@@ -281,15 +281,6 @@ public class LogFile {
         default:
             throw Message.getInternalError("type="+type);
         }
-        if(undo) {
-            int posNow = getBlock();
-            in.setInt(0, -blocks);
-            in.fill(blocks * BLOCK_SIZE);
-            in.updateChecksum();
-            go(pos);
-            file.write(in.getBytes(), 0, BLOCK_SIZE * blocks);
-            go(posNow);
-        }
         return true;
     }
     
@@ -341,7 +332,7 @@ public class LogFile {
         if(bufferPos > 0) {
             if(file == null) {
                 throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
-            }                
+            }
             file.write(buffer, 0, bufferPos);
             for(int i=0; i<unwritten.size(); i++) {
                 Record r = (Record) unwritten.get(i);

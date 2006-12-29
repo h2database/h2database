@@ -523,7 +523,7 @@ public class Database implements DataHandler {
         removeUnusedStorages();
         systemSession.commit();
         if(!readOnly) {
-            emergencyReserve = openFile(createTempFile(), true);
+            emergencyReserve = openFile(createTempFile(), false);
             emergencyReserve.autoDelete();
             emergencyReserve.setLength(Constants.EMERGENCY_SPACE_INITIAL);
         }

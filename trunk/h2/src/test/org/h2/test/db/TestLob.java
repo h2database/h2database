@@ -33,7 +33,8 @@ public class TestLob extends TestBase {
         if(config.memory) {
             return;
         }
-        testLobTransactions();
+        testLobTransactions(10);
+        testLobTransactions(10000);
         testLobRollbackStop();
         testLobCopy();
         testLobHibernate();
@@ -50,7 +51,7 @@ public class TestLob extends TestBase {
         testJavaObject();
     }
     
-    private void testLobTransactions() throws Exception {
+    private void testLobTransactions(int spaceLen) throws Exception {
         if(config.logMode == 0) {
             return;
         }
@@ -58,58 +59,60 @@ public class TestLob extends TestBase {
         Connection conn = reconnect(null);
         conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB, DATA2 VARCHAR)");
         conn.setAutoCommit(false);
-        Random random = new Random(1);
+        Random random = new Random(0);
         int rows = 0;
         Savepoint sp = null;
-        int len = getSize(100, 2000);
+        int len = getSize(100, 400);
         for(int i=0; i<len; i++) {
             switch(random.nextInt(10)) {
             case 0:
-//                System.out.println("insert");
-                conn.createStatement().execute("INSERT INTO TEST(DATA, DATA2) VALUES('"+i+"' || SPACE(10000), '"+i+"')");
+                trace("insert");
+                conn.createStatement().execute("INSERT INTO TEST(DATA, DATA2) VALUES('"+i+"' || SPACE("+spaceLen+"), '"+i+"')");
                 rows++;
                 break;
             case 1:
                 if(rows > 0) {
-//                    System.out.println("delete");
+                    trace("delete");
                     conn.createStatement().execute("DELETE FROM TEST WHERE ID=" + random.nextInt(rows));
                 }
                 break;
             case 2:
                 if(rows > 0) {
-//                    System.out.println("update");
+                    trace("update");
                     conn.createStatement().execute("UPDATE TEST SET DATA='x' || DATA, DATA2='x' || DATA2 WHERE ID=" + random.nextInt(rows));
                 }
                 break;
             case 3:
                 if(rows > 0) {
-//                    System.out.println("commit");
+                    trace("commit");
                     conn.commit();
                     sp = null;
                 }
                 break;
             case 4:
                 if(rows > 0) {
-//                    System.out.println("rollback");
+                    trace("rollback");
                     conn.rollback();
                     sp = null;
                 }
                 break;
             case 5:
-//                System.out.println("savepoint");
+                trace("savepoint");
                 sp = conn.setSavepoint();
                 break;
             case 6:
                 if(sp != null) {
-//                    System.out.println("rollback to savepoint");
+                    trace("rollback to savepoint");
                     conn.rollback(sp);
                 }
                 break;
             case 7:
                 if(rows > 0) {
-//                    System.out.println("shutdown");
+                    trace("checkpoint");
                     conn.createStatement().execute("CHECKPOINT");
+                    trace("shutdown immediately");
                     conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
+                    trace("shutdown done");
                     conn = reconnect(null);
                     conn.setAutoCommit(false);
                     sp = null;
@@ -337,7 +340,7 @@ public class TestLob extends TestBase {
             }
         }
         time = System.currentTimeMillis() - time;
-        // System.out.println("time: " + time +" compress: " + compress);
+        trace("time: " + time +" compress: " + compress);
         conn.close();
     }
     

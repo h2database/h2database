@@ -164,7 +164,7 @@ public class TestCases extends TestBase {
         Thread.sleep(500);
         long time = System.currentTimeMillis();
         conn.close();
-        Thread.sleep(500);
+        t.join(5000);
         if(!stopped[0]) {
             error("query still running");
         }

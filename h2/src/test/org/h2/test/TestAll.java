@@ -87,7 +87,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-
+        
+//        int todoWriteTestThatCallsSystemHaltExtendTestLob;
+//        READ_CLOB, READ_BLOB
 //create table test(id int, data array)        
 //document array_get, array_length
         
@@ -103,7 +105,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //        D:\data\h2test\openjpa\openjpa-persistence-jdbc>mvn test        
         
         // OSGi Bundle (see Forum)
-        // QueryObjectFactory 
         
         // test with PostgreSQL  Version 8.2
         

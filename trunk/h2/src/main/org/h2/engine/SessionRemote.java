@@ -124,8 +124,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
-    private String getTraceFilePrefix(String dbName) {
+    private String getTraceFilePrefix(String dbName) throws SQLException {
+        String dir = Constants.CLIENT_TRACE_DIRECTORY;
         StringBuffer buff = new StringBuffer();
+        buff.append(dir);
         for(int i=0; i<dbName.length(); i++) {
             char ch = dbName.charAt(i);
             if(Character.isLetterOrDigit(ch)) {

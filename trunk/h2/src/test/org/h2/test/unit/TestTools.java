@@ -66,12 +66,12 @@ public class TestTools extends TestBase {
         
     private void testServer() throws Exception {
         Connection conn;
-        Server server = Server.createTcpServer(new String[]{"-ifExists", "false"}).start();
+        Server server = Server.createTcpServer(new String[]{"-ifExists", "false", "-baseDir", BASE_DIR}).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
         conn.close();
         server.stop();
         
-        server = Server.createTcpServer(new String[]{"-ifExists", "true", "-tcpPassword", "abc"}).start();
+        server = Server.createTcpServer(new String[]{"-ifExists", "true", "-tcpPassword", "abc", "-baseDir", BASE_DIR}).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test2", "sa", "");
             error("should not be able to create new db");

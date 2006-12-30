@@ -4,6 +4,7 @@
  */
 package org.h2.test.db;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,8 +71,11 @@ public class TestScript extends TestBase {
         errors = new StringBuffer();
         testFile(infile);
         conn.close();
+        out.close();
         if(errors.length()>0) {
             throw new Exception("errors:\n" + errors.toString());
+        } else {
+            new File(outfile).delete();
         }
     }
 

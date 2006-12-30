@@ -74,7 +74,7 @@ public class FileObjectNative implements FileObject {
     }
 
     public boolean renameTo(FileObject newFile) {
-        return file.renameTo(get(newFile.getName()).file);
+        return file.renameTo(((FileObjectNative)newFile).file);
     }
 
     public void write(InputStream in) throws IOException {

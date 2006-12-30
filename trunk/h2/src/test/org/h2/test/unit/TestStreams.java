@@ -35,7 +35,8 @@ public class TestStreams extends TestBase {
     
     private void testLZFStreams() throws Exception {
         Random random = new Random(1);
-        for(int i=0; i<1000; i+=3) {
+        int max = getSize(100, 1000);
+        for(int i=0; i<max; i+=3) {
             byte[] buffer = getRandomBytes(random);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             LZFOutputStream comp = new LZFOutputStream(out);

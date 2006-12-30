@@ -18,7 +18,7 @@ public class SecurePassword {
     public static void main(String[] argv) throws Exception {
         
         Class.forName("org.h2.Driver");
-        String url = "jdbc:h2:simple";
+        String url = "jdbc:h2:data/simple";
         String user = "sam";
         char[] password = {'t', 'i', 'a', 'E', 'T', 'r', 'p'};
         

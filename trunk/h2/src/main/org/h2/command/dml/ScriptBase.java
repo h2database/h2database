@@ -60,7 +60,10 @@ public class ScriptBase extends Prepared implements DataHandler {
     }
 
     public void setFileName(String fileName) {
-        this.fileName = fileName;
+        if(fileName == null || fileName.trim().length() == 0) {
+            fileName = "script.sql";
+        }
+        this.fileName = Constants.SCRIPT_DIRECTORY + fileName;
     }    
 
     public boolean isTransactional() {

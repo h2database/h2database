@@ -24,11 +24,11 @@ public class CsvSample {
         rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
         rs.addRow(new String[] { "Bob Meier", "bob.meier@abcde.fgh", "+41123456789" });
         rs.addRow(new String[] { "John Jones", "johnjones@abcde.fgh", "+41976543210" });
-        Csv.getInstance().write("test.csv", rs, null);
+        Csv.getInstance().write("data/test.csv", rs, null);
     }
 
     static void read() throws Exception {
-        ResultSet rs = Csv.getInstance().read("test.csv", null, null);
+        ResultSet rs = Csv.getInstance().read("data/test.csv", null, null);
         ResultSetMetaData meta = rs.getMetaData();
         while (rs.next()) {
             for (int i = 0; i < meta.getColumnCount(); i++) {

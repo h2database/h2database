@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import org.h2.bnf.Bnf;
 import org.h2.bnf.RuleHead;
+import org.h2.engine.Constants;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.RandomUtils;
@@ -140,6 +141,8 @@ public class TestRandomSQL extends TestBase {
     }
     
     public void testCase(int i) throws Exception {
+        String old = Constants.SCRIPT_DIRECTORY;
+        Constants.SCRIPT_DIRECTORY = "dataScript/";
         seed = i;
         printTime("TestRandomSQL " + seed);
         try {
@@ -148,6 +151,7 @@ public class TestRandomSQL extends TestBase {
             processException("deleteDb", e);
         }
         testWithSeed(bnf);
+        Constants.SCRIPT_DIRECTORY = old;
     }
 
     public void test() throws Exception {

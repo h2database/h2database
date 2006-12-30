@@ -233,6 +233,8 @@ public class Constants {
     public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
+    public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
+    public static String SCRIPT_DIRECTORY = getStringSetting("h2.scriptDirectory", "");
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

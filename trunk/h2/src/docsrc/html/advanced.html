@@ -628,7 +628,7 @@ custom certificates are supported as well.
 
 <br /><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
-This database supports the UUIDs, and function to create new value using 
+This database supports UUIDs. Also upported is a function to create new UUIDs using 
 a cryptographically strong pseudo random number generator.
 With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.
@@ -695,6 +695,8 @@ INFORMATION_SCHEMA.SETTINGS
 <tr><td>h2.objectCache</td><td>true</td><td>Cache commonly used objects (integers, strings)</td></tr>
 <tr><td>h2.objectCacheSize</td><td>1024</td><td>Size of object cache</td></tr>
 <tr><td>h2.objectCacheMaxPerElementSize</td><td>4096</td><td>Maximum size of an object in the cache</td></tr>
+<tr><td>h2.clientTraceDirectory</td><td>trace.db/</td><td>Directory where the trace files of the JDBC client are stored (only for client / server)</td></tr>
+<tr><td>h2.scriptDirectory</td><td></td><td>Relative or absolute directory where the script files are stored to or read from</td></tr>
 </table>
 
 <br /><a name="glossary_links"></a>

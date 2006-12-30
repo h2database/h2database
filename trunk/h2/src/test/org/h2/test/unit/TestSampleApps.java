@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 
 import org.h2.test.TestBase;
+import org.h2.tools.DeleteDbFiles;
 import org.h2.util.StringUtils;
 
 public class TestSampleApps extends TestBase {
@@ -38,6 +39,7 @@ public class TestSampleApps extends TestBase {
     }
 
     private void testApp(Class clazz, String[] args, String expected) throws Exception {
+        DeleteDbFiles.execute("data", "test", true);
         Method m = clazz.getMethod("main", new Class[]{String[].class});
         PrintStream oldOut = System.out, oldErr = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();

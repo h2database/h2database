@@ -31,7 +31,7 @@ public class FtpControl extends Thread {
     private String renameFrom;
     private boolean replied;
     private long restart;
-
+    
     public FtpControl(Socket control, FtpServer server, boolean stop) {
         this.server = server;
         this.control = control;
@@ -151,6 +151,9 @@ public class FtpControl extends Thread {
             if("DELE".equals(command)) {
                 FileObject file = server.getFile(getFileName(param));
                 if(!readonly && file.exists() && file.isFile() && file.delete()) {
+                    if(server.getAllowTask() && param.endsWith(FtpServer.TASK_SUFFIX)) {
+                        server.stopTask(file);
+                    }
                     reply(250, "Ok");
                 } else {
                     reply(500, "Delete failed");                
@@ -276,6 +279,9 @@ public class FtpControl extends Thread {
                     reply(150, "Starting transfer");
                     try {
                         data.receive(file);
+                        if(server.getAllowTask() && param.endsWith(FtpServer.TASK_SUFFIX)) {
+                            server.startTask(file);
+                        }
                         reply(226, "Ok");
                     } catch(IOException e) {
                         reply(426, "Failed");

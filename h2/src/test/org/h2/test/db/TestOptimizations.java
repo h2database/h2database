@@ -21,12 +21,28 @@ public class TestOptimizations extends TestBase {
         if(config.networked) {
             return;
         }
+        testQueryCacheTimestamp();
         testQueryCacheSpeed();
         testQueryCache(true);
         testQueryCache(false);
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+    }
+    
+    private void testQueryCacheTimestamp() throws Exception {
+        deleteDb("optimizations");
+        Connection conn=getConnection("optimizations");
+        PreparedStatement prep = conn.prepareStatement("SELECT CURRENT_TIMESTAMP()");
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        String a = rs.getString(1);
+        Thread.sleep(50);
+        rs = prep.executeQuery();
+        rs.next();
+        String b = rs.getString(1);
+        checkFalse(a.equals(b));
+        conn.close();        
     }
     
     private void testQueryCacheSpeed() throws Exception {

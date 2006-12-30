@@ -77,7 +77,7 @@ public class TestPowerOff extends TestBase {
                 conn.close();
             } catch(SQLException e) {
                 if(!e.getSQLState().equals("90098")) {
-                    e.printStackTrace();
+                    TestBase.logError("power", e);
                 }
             }
         }
@@ -228,8 +228,6 @@ public class TestPowerOff extends TestBase {
             } else {
                 throw e;
             }
-            //log("error="+e);
-           // e.printStackTrace();
         }
         return state;
     }

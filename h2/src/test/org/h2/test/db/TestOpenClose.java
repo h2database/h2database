@@ -76,8 +76,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
                         prep.execute();
                         conn.close();
                     } catch(Throwable e) {
-//                        e.printStackTrace();
-                        System.out.println("FAIL: " + e.toString());
+                        TestBase.logError("insert", e);
                     }
                 }
             };

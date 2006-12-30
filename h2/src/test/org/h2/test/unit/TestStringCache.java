@@ -68,7 +68,7 @@ public class TestStringCache extends TestBase {
             try {
                 check(a, b);
             } catch (Exception e) {
-                e.printStackTrace();
+                TestBase.logError("error", e);
             }
             if(a != null && a == b && a.length()>0) {
                 throw new Error("a=" + System.identityHashCode(a) + " b=" + System.identityHashCode(b));
@@ -83,7 +83,7 @@ public class TestStringCache extends TestBase {
             try {
                 check(a, b);
             } catch (Exception e) {
-                e.printStackTrace();
+                TestBase.logError("error", e);
             }
         }
     }

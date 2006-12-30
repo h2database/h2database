@@ -103,7 +103,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         try {
             getClosedFile().createNewFile();
         } catch(IOException e) {
-            e.printStackTrace();
+            TestBase.logError("error", e);
         }
     }
     

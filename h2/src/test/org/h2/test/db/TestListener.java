@@ -47,7 +47,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void exceptionThrown(SQLException e) {
-        e.printStackTrace();
+        TestBase.logError("exceptionThrown", e);
     }
 
     public void setProgress(int state, String name, int current, int max) {
@@ -68,7 +68,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             stateName = "Recover";
             break;
         default:
-            new Error("unknownn state: " + state).printStackTrace();
+            TestBase.logError("unknownn state: " + state, null);
             stateName = "? " + name;
         }
         try {

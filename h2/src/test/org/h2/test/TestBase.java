@@ -5,6 +5,8 @@
 package org.h2.test;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,6 +19,8 @@ import java.text.SimpleDateFormat;
 import java.util.Properties;
 
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.TraceSystem;
+import org.h2.store.FileLock;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -55,8 +59,7 @@ public abstract class TestBase {
             test();
             println("done ");
         } catch(Exception e) {
-            println("FAIL " + e.toString());
-            e.printStackTrace();
+            fail("FAIL " + e.toString(), e);
             if(config.stopOnError) {
                 throw new Error("ERROR");
             }
@@ -205,6 +208,32 @@ public abstract class TestBase {
         println(string);
         throw new Exception(string);
     }    
+    
+    protected void fail(String s, Throwable e) {
+        println(s);
+        logError(s, e);
+    }
+    
+    public static void logError(String s, Throwable e) {
+        if(e==null) {
+            e = new Exception(s);
+        }
+        System.out.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
+        e.printStackTrace();
+        try {
+            TraceSystem ts = new TraceSystem(null);
+            FileLock lock = new FileLock(ts, 1000);
+            lock.lock("error.lock", false);
+            FileWriter fw = new FileWriter("ERROR.txt", true);
+            PrintWriter pw = new PrintWriter(fw);
+            e.printStackTrace(pw);
+            pw.close();
+            fw.close();
+            lock.unlock();
+        } catch(Throwable t) {
+            t.printStackTrace();
+        }
+    }
     
     protected void println(String s) {
         printlnWithTime(s);
@@ -520,8 +549,7 @@ public abstract class TestBase {
     
     protected void checkNotGeneralException(SQLException e) throws Exception {
         if(e!=null && e.getSQLState().startsWith("HY000")) {
-            e.printStackTrace();
-            error("Unexpected General error: " + e.toString());
+            TestBase.logError("Unexpected General error", e);
         }
     }
     

@@ -229,7 +229,7 @@ public class TestFunctions extends TestBase {
 
     public static int root(int value) {
         if (value < 0) {
-            new Exception("function called but should not").printStackTrace();
+            TestBase.logError("function called but should not", null);
         }
         return (int) Math.sqrt(value);
     }

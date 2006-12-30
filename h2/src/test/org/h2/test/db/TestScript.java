@@ -325,11 +325,11 @@ public class TestScript extends TestBase {
                 errors.append("\ngot: ");
                 errors.append(s);
                 errors.append("\n");
-                if(e!=null) {
-                    e.printStackTrace();
+                if(e != null) {
+                    TestBase.logError("script", e);
                 }
                 if(failFast) {
-                    new Exception(errors.toString()).printStackTrace();
+                    TestBase.logError(errors.toString(), null);
                     conn.close();
                     System.exit(1);
                 }

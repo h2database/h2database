@@ -208,7 +208,7 @@ public class Column {
         }
     }
 
-    public void convertAutoIncrementToSequence(Session session, Schema schema, int id) throws SQLException {
+    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary) throws SQLException {
         if(!getAutoIncrement()) {
             throw Message.getInternalError();
         }
@@ -225,7 +225,9 @@ public class Column {
         Sequence sequence = new Sequence(schema, id, sequenceName, true);
         sequence.setStartValue(start);
         sequence.setIncrement(increment);
-        session.getDatabase().addSchemaObject(session, sequence);
+        if(!temporary) {
+            session.getDatabase().addSchemaObject(session, sequence);
+        }
         setAutoIncrement(false, 0, 0);
         SequenceValue seq = new SequenceValue(sequence);
         setDefaultExpression(session, seq);

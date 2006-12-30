@@ -144,7 +144,9 @@ public abstract class Table extends SchemaObject {
         while(sequences != null && sequences.size() > 0) {
             Sequence sequence = (Sequence)sequences.get(0);
             sequences.remove(0);
-            database.removeSchemaObject(session, sequence);            
+            if(!getTemporary()) {
+                database.removeSchemaObject(session, sequence);
+            }
         }
         ObjectArray rights = database.getAllRights();
         for(int i=0; i<rights.size(); i++) {

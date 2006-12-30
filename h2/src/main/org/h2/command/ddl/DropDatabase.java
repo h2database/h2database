@@ -66,6 +66,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeSchemaObject(session, t);
             }
         }
+        session.findLocalTempTable(null);
         list = db.getAllSchemaObjects(DbObject.SEQUENCE);
         // maybe constraints and triggers on system tables will be allowed in the future
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));

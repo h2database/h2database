@@ -7,6 +7,8 @@ package org.h2.test.synth;
 import java.sql.SQLException;
 import java.util.Random;
 
+import org.h2.test.TestBase;
+
 abstract class TestMultiThread extends Thread {
     
     TestMulti base;
@@ -29,8 +31,7 @@ abstract class TestMultiThread extends Thread {
             }
             end();
         } catch(Throwable e) {
-             e.printStackTrace();
-            System.out.println("FAIL: " + e.toString());
+            TestBase.logError("error", e);
         }
     }    
 

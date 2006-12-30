@@ -96,7 +96,6 @@ public class TestFileLock extends TestBase implements Runnable {
                 }
             } catch (Exception e) {
                 // log(id+" cannot lock: " + e);
-                // e.printStackTrace();
             }
             try {
                 Thread.sleep(wait + (int) (Math.random() * wait));

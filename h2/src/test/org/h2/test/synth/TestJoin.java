@@ -246,7 +246,6 @@ public class TestJoin extends TestBase {
                     s = "updateCount: " + stat.getUpdateCount();
                 }
             } catch(SQLException e) {
-                // e.printStackTrace();
                 s = "exception";
             }
             if(i==0) {

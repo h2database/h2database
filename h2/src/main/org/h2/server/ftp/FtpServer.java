@@ -4,7 +4,13 @@
  */
 package org.h2.server.ftp;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
@@ -12,7 +18,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Properties;
 
 import org.h2.engine.Constants;
 import org.h2.server.Service;
@@ -42,10 +50,13 @@ public class FtpServer implements Service {
     private String root = DEFAULT_ROOT;
     private String writeUserName = DEFAULT_WRITE, writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
+    private HashMap tasks = new HashMap();
     
     private FileSystemDatabase db;
     private boolean log;
-    
+    private boolean allowTask;
+    static final String TASK_SUFFIX = ".task";
+
     public void listen() {
         try {
             while (serverSocket != null) {
@@ -152,6 +163,8 @@ public class FtpServer implements Service {
                 writePassword = args[++i];
             } else if("-log".equals(args[i])) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if("-ftpTask".equals(args[i])) {
+                allowTask = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
         if(root.startsWith("jdbc:")) {
@@ -211,6 +224,101 @@ public class FtpServer implements Service {
         if (log) {
             e.printStackTrace();
         }
+    }
+
+    public boolean getAllowTask() {
+        return allowTask;
+    }
+
+    void startTask(FileObject file) throws IOException {
+        stopTask(file);
+        String processName = file.getName();
+        if(file.getName().endsWith(".zip.task")) {
+            log("expand: " + file.getName());
+            Process p = Runtime.getRuntime().exec("jar -xf " + file.getName(), null, new File(root));
+            String processFile = root + "/" + processName;
+            new StreamRedirect(processFile, p.getInputStream(), null).start();            
+            return;
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        file.read(0, out);
+        byte[] data = out.toByteArray();
+        Properties prop = new Properties();
+        prop.load(new ByteArrayInputStream(data));
+        String command = prop.getProperty("command");
+        String outFile = processName.substring(0, processName.length() - TASK_SUFFIX.length());
+        String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");
+        String outputFile= root + "/" + prop.getProperty("output", outFile + ".out.txt");
+        String processFile = root + "/" + processName;
+        log("start process: " + processName + " / " + command);
+        Process p = Runtime.getRuntime().exec(command, null, new File(root));
+        new StreamRedirect(processFile, p.getErrorStream(), errorFile).start();
+        new StreamRedirect(processFile, p.getInputStream(), outputFile).start();
+        tasks.put(processName, p);
+    }
+    
+    private static class StreamRedirect extends Thread {
+        private InputStream in;
+        private OutputStream out;
+        private String outFile;
+        private String processFile;
+        
+        StreamRedirect(String processFile, InputStream in, String outFile) {
+            this.processFile = processFile;
+            this.in = in;
+            this.outFile = outFile;
+        }
+        
+        private void openOutput() {
+            if(outFile != null) {
+                try {
+                    this.out = new FileOutputStream(outFile);
+                } catch(IOException e) {
+                    // ignore
+                }
+                outFile = null;
+            }
+        }
+        
+        public void run() {
+            while(true) {
+                try {
+                    int x = in.read();
+                    if(x < 0) {
+                        break;
+                    }
+                    openOutput();
+                    if(out != null) {
+                        out.write(x);
+                    }
+                } catch(IOException e) {
+                    // ignore
+                }
+            }
+            if(out != null) {
+                try {
+                    out.close();
+                } catch(IOException e) {
+                    // ignore
+                }
+            }
+            try {
+                in.close();
+            } catch(IOException e) {
+                // ignore
+            }
+            new File(processFile).delete();
+        }
+    }
+
+    void stopTask(FileObject file) {
+        String processName = file.getName();
+        log("kill process: " + processName);
+        Process p = (Process) tasks.remove(processName);
+        if(p == null) {
+            return;
+        }
+        p.destroy();
     }    
 
 }

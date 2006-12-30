@@ -77,10 +77,10 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         String url = "";
         switch(action) {
         case OPEN_WITH_CLOSE_ON_EXIT:
-            url = "jdbc:h2:exit;database_event_listener='" + getClass().getName() + "';db_close_on_exit=true";
+            url = "jdbc:h2:"+BASE_DIR+"/exit;database_event_listener='" + getClass().getName() + "';db_close_on_exit=true";
             break;
         case OPEN_WITHOUT_CLOSE_ON_EXIT:
-            url = "jdbc:h2:exit;database_event_listener='" + getClass().getName() + "';db_close_on_exit=false";
+            url = "jdbc:h2:"+BASE_DIR+"/exit;database_event_listener='" + getClass().getName() + "';db_close_on_exit=false";
             break;
         }
         conn = open(url);

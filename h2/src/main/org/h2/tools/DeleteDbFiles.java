@@ -16,6 +16,8 @@ import org.h2.util.FileUtils;
  */
 
 public class DeleteDbFiles extends FileBase {
+    
+    private boolean quiet;
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-quiet]");
@@ -68,11 +70,12 @@ public class DeleteDbFiles extends FileBase {
      */
     public static void execute(String dir, String db, boolean quiet) throws SQLException {
         DeleteDbFiles delete = new DeleteDbFiles();
+        delete.quiet = quiet;
         delete.processFiles(dir, db, !quiet);
     }
 
     protected void process(String fileName) throws SQLException {
-        if(fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
+        if(quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
             FileUtils.tryDelete(fileName);
         } else {
             FileUtils.delete(fileName);

@@ -26,17 +26,17 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('test.csv', 'select 1 id, ''Hello'' name')");
-        ResultSet rs = stat.executeQuery("select name from csvread('test.csv')");
+        stat.execute("call csvwrite('"+BASE_DIR+"/test.csv', 'select 1 id, ''Hello'' name')");
+        ResultSet rs = stat.executeQuery("select name from csvread('"+BASE_DIR+"/test.csv')");
         check(rs.next());
         check(rs.getString(1), "Hello");
         checkFalse(rs.next());
-        rs = stat.executeQuery("call csvread('test.csv')");
+        rs = stat.executeQuery("call csvread('"+BASE_DIR+"/test.csv')");
         check(rs.next());
         check(rs.getInt(1), 1);
         check(rs.getString(2), "Hello");
         checkFalse(rs.next());
-        new File("test.csv").delete();
+        new File(BASE_DIR+"/test.csv").delete();
         conn.close();
         
     }

@@ -4,7 +4,6 @@
  */
 package org.h2.test;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -88,75 +87,48 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        int todoWriteTestThatCallsSystemHaltExtendTestLob;
-//        READ_CLOB, READ_BLOB
-//create table test(id int, data array)        
-//document array_get, array_length
+//        here is a difference in behavior between the 9-24-2006 H2.jar and the later jars.
+//        Or it simply could be I didn't see a feature change in the docs.
+//        In my code, this statement in 9-24 works:
+//        SELECT ID FROM EVE_ALARMS WHERE TIME_ESCALATE = true AND ACTIVE = true AND current_timestamp() > NEXT_TIME_ESCALATION
+//        in latest versions, the query returns zero rows.
+//        Most of my queries are preparedStatements that are prepared once at process startup.
+//        Things I have tested:
+//        1. Run the query in the H2 console. SUCCESS
+//        2. Generate a preparedStatement each time it is needed. SUCCESS
+//        3. Generate a preparedStatement, save the statement to a instance variable for reuse. FAIL
+//        There are several queries that use current_timestamp, but I think the cache is saving the original time value, ie not recalculating. This may be because there are no parameters set in the statement. The other queries that use current_timestamp have parameters that must be set, which I thinking causes the time value to be recalculated.
+//        I will try and put together a simple test case this week. Unless this a configuration issue and I need to RTFM. :)
         
-        // options for java functions: readonly, deterministic
+        // append errors from all programs atomically to errors.txt (use nio file lock mechanism)
+        // ftp client
+        // task to download new version from another FTP server
+        // multi-task
+
+        // https://issues.apache.org/jira/browse/OPENJPA-92
         
-        // open JPA test - submit patch
-//        d:\data\h2test\openjpa\openjpa-persistence-jdbc\src\test\resources\META-INF\persistence.xml
-//        <!--            <property name="openjpa.ConnectionProperties"
-//            value="DriverClassName=org.apache.derby.jdbc.EmbeddedDriver,Url=jdbc:derby:target/database/openjpa-test-database;create=true,MaxActive=100,MaxWait=10000,TestOnBorrow=true"/>
-//-->                
-//        <property name="openjpa.ConnectionProperties"
-//            value="DriverClassName=org.h2.Driver,Url=jdbc:h2:c:/temp/openjpa,MaxActive=100,MaxWait=10000,TestOnBorrow=true"/>
-//        D:\data\h2test\openjpa\openjpa-persistence-jdbc>mvn test        
+        // write a test that calls Runtime.halt at more or less random places (extend TestLob)
         
         // OSGi Bundle (see Forum)
         
         // test with PostgreSQL  Version 8.2
-        
-//        create table testoe(id int primary key, name varchar(255))
-//        create user oe identified by merlin 
-//        CREATE SCHEMA AUTHORIZATION oe
-//           CREATE TABLE new_product 
-//              (color VARCHAR2(10)  PRIMARY KEY, quantity NUMBER) 
-//           CREATE VIEW new_product_view 
-//              AS SELECT color, quantity FROM new_product WHERE color = 'RED' 
-//           GRANT select ON new_product_view TO hr; 
 
         // http://dev.helma.org/Wiki/RhinoLoader
         
-        // use version numbers 1.0.4 and so on
-        
-        // Fulltext search: Use reader for CLOB data, special reader tokenizer
-        
-        // Checkstyle to verify HTML docs
-        
-        // test multithreading access to blobs (one thread reads from the inputstream, the other deletes the row using the same connection)
-        // Dezign for Databases (http://www.datanamic.com
-        // SET LOCK_MODE 3 not persistent, document how to set it in the database URL
-        // http://eclipse-cs.sourceforge.net/
-        //  http://andrei.gmxhome.de/anyedit/links.html
-        // Constants.ALLOW_EMTPY_BTREE_PAGES = true
-
         // Test Hibernate / read committed transaction isolation:
         // Data records retrieved by a query are not prevented from modification by some other transaction.
         // Non-repeatable reads may occur, meaning data retrieved in a SELECT statement may be modified
         // by some other transaction when it commits. In this isolation level, read locks are not acquired on selected data.
+        
         // test with garbage at the end of the log file (must be consistently detected as such)
-        // describe differences between databases (Migration Guide; HSQLDB most important)
         // test LIKE: compare against other databases
-        // autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
-        // autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
         // TestRandomSQL is too random; most statements fails
         // extend the random join test that compared the result against PostgreSQL
-        //  Donate a translation: I am looking for people who would help translating the H2 Console into other languages. Please tell me if you think you can help
-        // extend TestJoin
+        // Donate a translation: I am looking for people who would help translating the H2 Console into other languages. Please tell me if you think you can help
         // long running test with the same database
         // repeatable test with a very big database (making backups of the database files)
-        // check performance monitor Avg. Disk Write Queue Length, disk writes
-        // test case where the GCJ problem can be repeated
-
-        // OpenOffice docs:
-        // - Stop OpenOffice, including the autostart
-        // - Copy h2.jar into the directory <OpenOffice>\program\classes
-        // - Start OpenOffice Base
-        // - Connect to an existing database, select JDBC, [Next]
-        // - Datasource URL: jdbc:h2:c:/temp/test;TRACE_LEVEL_FILE=3
-        // - JDBC driver class: org.h2.Driver [Test class]
+        
+        // the conversion is done automatically when the new engine connects.  
         
         if(args.length>0) {
             if("crash".equals(args[0])) {

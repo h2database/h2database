@@ -27,6 +27,8 @@ Tutorial
     CSV (Comma Separated Values) Support</a><br />
 <a href="#upgrade_backup_restore">
     Upgrade, Backup, and Restore</a><br />
+<a href="#openoffice">
+    Using OpenOffice Base</a><br />
 
 <br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
@@ -425,5 +427,19 @@ SQL script files may contain references to other script files, in the form of
 RUNSCRIPT commands. However, when using the server mode, the references script files
 need to be available on the server side.
 
+<br /><a name="openoffice"></a>
+<h2>Using OpenOffice Base</h2>
+OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database 
+using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.
+The steps to connect to a H2 database are:
+<ul>
+<li>Stop OpenOffice, including the autostart
+<li>Copy h2.jar into the directory &lt;OpenOffice&gt;\program\classes
+<li>Start OpenOffice Base
+<li>Connect to an existing database, select JDBC, [Next]
+<li>Example datasource URL: jdbc:h2:c:/temp/test
+<li>JDBC driver class: org.h2.Driver
+</ul>
+Now you can access the database stored in the directory C:/temp.
 
 </div></td></tr></table></body></html>

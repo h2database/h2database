@@ -83,8 +83,9 @@ public class FileUtils {
         return fileName.startsWith(prefix);
     }
 
-    public static FileOutputStream openFileOutputStream(File file) throws IOException {
+    public static FileOutputStream openFileOutputStream(File file) throws IOException, SQLException {
         try {
+            FileUtils.createDirs(file.getAbsolutePath());
             return new FileOutputStream(file);
         } catch(IOException e) {
             freeMemoryAndFinalize();
@@ -312,7 +313,7 @@ public class FileUtils {
         return fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_2);
     }
 
-    public static String createTempFile(String name, String suffix, boolean deleteOnExit) throws IOException {
+    public static String createTempFile(String name, String suffix, boolean deleteOnExit) throws IOException, SQLException {
         name += ".";
         if(isInMemory(name)) {
             for(int i=0;; i++) {
@@ -326,6 +327,7 @@ public class FileUtils {
         }
         String prefix = new File(name).getName();
         File dir = new File(name).getAbsoluteFile().getParentFile();
+        dir.mkdirs();
         File f = File.createTempFile(prefix, suffix, dir);
         if(deleteOnExit) {
             f.deleteOnExit();

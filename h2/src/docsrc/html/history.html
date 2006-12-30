@@ -35,6 +35,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
+<li>
+<li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
+<li>Client trace files now created in the directory 'trace.db' and no longer the application directory. 
+	This can be changed using the system property h2.clientTraceDirectory.
 <li>In some situations the log file got corrupt if the process was terminated while the database was opening.
 <li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 <li>If a CLOB or BLOB was deleted in a transaction and the database crashed before the transaction was committed or rolled back,
@@ -1336,8 +1340,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Highest Priority</h3>
 <ul>
-<li>Improve the documentation
-<li>Add a migration guide (list differences between databases)
 <li>Improve test code coverage
 <li>More fuzz tests
 <li>Test very large databases and LOBs (up to 256 GB)
@@ -1369,7 +1371,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Fix right outer joins
 <li>Full outer joins
 <li>Index organized tables: CREATE TABLE...(...) ORGANIZATION INDEX
-<li>Long running queries / errors / trace system table.
+<li>Long running queries / errors / trace system table
 <li>Migrate database tool (also from other database engines)
 <li>Shutdown compact
 <li>Optimization of distinct with index: select distinct name from test
@@ -1389,6 +1391,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 <li>Connection pool manager
+<li>Add a migration guide (list differences between databases)
 <li>Support VALUES(1), (2); SELECT * FROM (VALUES (1), (1), (1), (1), (2)) AS myTable (c1) (Derby)
 <li>Optimization: automatic index creation suggestion using the trace file?
 <li>Compression performance: don't allocate buffers, compress / expand in to out buffer
@@ -1423,6 +1426,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Web server classloader: override findResource / getResourceFrom
 <li>Cost for embedded temporary view is calculated wrong, if result is constant
 <li>Comparison: pluggable sort order: natural sort
+<li>Count index range query (count(*) where id between 10 and 20)
 <li>Eclipse plugin
 <li>iReport to support H2
 <li>Implement CallableStatement
@@ -1467,7 +1471,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Functional tables should accept parameters from other tables (see FunctionMultiReturn)
     SELECT * FROM TEST T, P2C(T.A, T.R)
 <li>Custom class loader to reload functions on demand
-<li>Count index range query (count where id between 10 and 20)
 <li>Test http://mysql-je.sourceforge.net/
 <li>Close all files when closing the database (including LOB files that are open on the client side)
 <li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
@@ -1607,6 +1610,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Public interface for functions (not public static)
 <li>Index usage for IN(...), IN_ARRAY(..), and IN_ARRAY_RANGES(..); support ARRAY in JDBC API (variable size)
 <li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier)
+<li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
+<li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
+<li>Functions: options readonly, deterministic
+<li>Document FTP server, including -ftpTask option to execute / kill remote processes
 </ul>
 
 <h3>Not Planned</h3>

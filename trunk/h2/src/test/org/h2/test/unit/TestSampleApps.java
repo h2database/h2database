@@ -49,8 +49,7 @@ public class TestSampleApps extends TestBase {
         try {
             m.invoke(null, new Object[]{args});
         } catch(Throwable e) {
-            System.out.print("EXCEPTION");
-            e.printStackTrace();
+            TestBase.logError("error", e);
         }
         out.flush();
         System.setOut(oldOut);

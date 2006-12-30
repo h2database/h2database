@@ -92,7 +92,7 @@ public class TestBigDb extends TestBase {
                 }
             }
         } catch(OutOfMemoryError e) {
-            e.printStackTrace();
+            TestBase.logError("memory", e);
             conn.close();
             throw e;
         }

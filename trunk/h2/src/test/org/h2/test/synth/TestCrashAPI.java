@@ -202,8 +202,7 @@ public class TestCrashAPI extends TestBase {
         StringWriter writer = new StringWriter();
         t.printStackTrace(new PrintWriter(writer));
         String s = writer.toString();
-        System.out.println("new TestCrashAPI().init(test).testCase("+seed+"); // Bug " + s.hashCode()+" seed="+seed+" id=" + id + " callCount=" + callCount+" openCount="+openCount + " " + t.getMessage());
-        t.printStackTrace();
+        TestBase.logError("new TestCrashAPI().init(test).testCase("+seed+"); // Bug " + s.hashCode()+" seed="+seed+" id=" + id + " callCount=" + callCount+" openCount="+openCount + " " + t.getMessage(), t);
     }
     
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) throws Exception {
@@ -217,9 +216,9 @@ public class TestCrashAPI extends TestBase {
             callCount++;      
             result = m.invoke(o, params);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            TestBase.logError("error", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            TestBase.logError("error", e);
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
             printIfBad(seed, id, objectId, t);

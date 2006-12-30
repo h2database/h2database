@@ -253,7 +253,7 @@ class Database {
         ResultSet rs = prep.executeQuery();
 //        time = System.currentTimeMillis() - time;
 //        if(time > 100) {
-//            new Error("time="+time).printStackTrace();
+//            System.out.println("time="+time);
 //        }
         executedStatements++;
         return rs;

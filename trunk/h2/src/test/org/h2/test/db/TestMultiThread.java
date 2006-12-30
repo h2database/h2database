@@ -78,8 +78,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             }
             conn.close();
         } catch(Exception e) {
-            e.printStackTrace();
-            System.exit(0);
+            logError("multi", e);
         }
     }
 

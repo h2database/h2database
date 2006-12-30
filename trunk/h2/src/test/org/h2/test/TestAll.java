@@ -87,18 +87,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        here is a difference in behavior between the 9-24-2006 H2.jar and the later jars.
-//        Or it simply could be I didn't see a feature change in the docs.
-//        In my code, this statement in 9-24 works:
-//        SELECT ID FROM EVE_ALARMS WHERE TIME_ESCALATE = true AND ACTIVE = true AND current_timestamp() > NEXT_TIME_ESCALATION
-//        in latest versions, the query returns zero rows.
-//        Most of my queries are preparedStatements that are prepared once at process startup.
-//        Things I have tested:
-//        1. Run the query in the H2 console. SUCCESS
-//        2. Generate a preparedStatement each time it is needed. SUCCESS
-//        3. Generate a preparedStatement, save the statement to a instance variable for reuse. FAIL
-//        There are several queries that use current_timestamp, but I think the cache is saving the original time value, ie not recalculating. This may be because there are no parameters set in the statement. The other queries that use current_timestamp have parameters that must be set, which I thinking causes the time value to be recalculated.
-//        I will try and put together a simple test case this week. Unless this a configuration issue and I need to RTFM. :)
+//        Expression.isConstant is not really needed?
+        
+        // test: use fixed amount of disk space
         
         // append errors from all programs atomically to errors.txt (use nio file lock mechanism)
         // ftp client

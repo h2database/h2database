@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.test.TestBase;
 import org.h2.tools.FileBase;
 
 public class TestKillProcess {
@@ -58,7 +59,7 @@ public class TestKillProcess {
                 }
             }
         } catch(Throwable e) {
-            e.printStackTrace();
+            TestBase.logError("error", e);
         }
     }
     

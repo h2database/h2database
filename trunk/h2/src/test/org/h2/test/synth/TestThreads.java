@@ -145,7 +145,7 @@ public class TestThreads extends TestBase implements Runnable {
             }
             conn.close();
         } catch(Exception e) {
-            e.printStackTrace();
+            TestBase.logError("error", e);
         }
     }
 

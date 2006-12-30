@@ -9,6 +9,8 @@ import java.io.StringWriter;
 import java.sql.*;
 import java.util.*;
 
+import org.h2.test.TestBase;
+
 class Result implements Comparable {
     static final int SUCCESS=0, BOOLEAN=1, INT=2, EXCEPTION=3, RESULTSET=4;
     private int type;
@@ -62,8 +64,7 @@ class Result implements Comparable {
         } catch(SQLException e) {
 //            type = EXCEPTION;
 //            exception = e;
-            e.printStackTrace();
-            throw new Error("error reading result set");
+            TestBase.logError("error reading result set", e);
         }
     }
 

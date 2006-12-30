@@ -70,7 +70,7 @@ public class TestBtreeIndex extends TestBase {
                 if(e.getSQLState().equals("23001")) {
                     // ignore
                 } else {
-                    e.printStackTrace();
+                    TestBase.logError("error", e);
                     break;
                 }
             }
@@ -85,7 +85,7 @@ public class TestBtreeIndex extends TestBase {
                         }
                         count -= deleted;
                     } catch(SQLException e) {
-                        e.printStackTrace();
+                        TestBase.logError("error", e);
                         break;
                     }
                 } else {
@@ -98,7 +98,7 @@ public class TestBtreeIndex extends TestBase {
                         }
                         count -= deleted;
                     } catch(SQLException e) {
-                        e.printStackTrace();
+                        TestBase.logError("error", e);
                         break;
                     }
                 }

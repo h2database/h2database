@@ -74,7 +74,7 @@ public class Sequence extends SchemaObject {
         value += increment;
         return v;
     }
-
+    
     public void flush() throws SQLException {
         // can not use the session, because it must be committed immediately 
         // otherwise other threads can not access the sys table.

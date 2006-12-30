@@ -103,7 +103,7 @@ public class TestSynth extends TestBase {
             add(Command.getCreateTable(this, table));
             add(Command.getCreateIndex(this, table.newRandomIndex()));
         }
-        for(int i=0; i<400; i++) {
+        for(int i=0; i<2000; i++) {
             addRandomCommands();
         }
 //          for (int i = 0; i < 20; i++) {
@@ -165,7 +165,7 @@ public class TestSynth extends TestBase {
         
         } catch(Error e) {
             if(showError) {
-                e.printStackTrace();
+                TestBase.logError("synth", e);
             }
             System.out.println("new TestSynth().init(test).testCase(" + seed+"); // id="+id +" " + e.toString());
             if(stopImmediately) {
@@ -262,8 +262,7 @@ public class TestSynth extends TestBase {
             printTime("TestSynth " + i);
             testRun(i);
         } catch (Error e) {
-            System.out.println(e.toString());
-            e.printStackTrace();
+            TestBase.logError("error", e);
             System.exit(0);
         }
         BASE_DIR = "data";

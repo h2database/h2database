@@ -29,7 +29,7 @@ public class TestCancel extends TestBase {
             } catch (SQLException e) {
                 // ignore errors on closed statements
             } catch(Exception e) {
-                e.printStackTrace();
+                TestBase.logError("sleep", e);
             }
         }
     }

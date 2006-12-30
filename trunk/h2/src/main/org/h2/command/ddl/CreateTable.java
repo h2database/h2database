@@ -111,7 +111,7 @@ public class CreateTable extends SchemaCommand {
             Column c = (Column) columns.get(i);
             if(c.getAutoIncrement()) {
                 int objId = getObjectId(true, true);
-                c.convertAutoIncrementToSequence(session, getSchema(), objId);
+                c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
             }
             Sequence seq = c.getSequence();
             if(seq != null) {

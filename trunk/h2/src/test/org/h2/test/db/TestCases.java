@@ -153,7 +153,7 @@ public class TestCases extends TestBase {
                 try {
                     ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) FROM TEST T, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST");
                     rs.next();
-                    new Error("query was too quick; result: " + rs.getInt(1)).printStackTrace();
+                    TestBase.logError("query was too quick; result: " + rs.getInt(1), null);
                 } catch(SQLException e) {
                     // ok
                 }

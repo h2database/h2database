@@ -96,8 +96,8 @@ public class TestCsv extends TestBase {
         for(int i=0; i<len; i++) {
             stat.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         }
-        Csv.getInstance().write(conn, BASE_DIR + "/test.csv", "SELECT * FROM TEST", "UTF8");
-        ResultSet rs = Csv.getInstance().read(BASE_DIR + "/test.csv", null, "UTF8");
+        Csv.getInstance().write(conn, BASE_DIR + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
+        ResultSet rs = Csv.getInstance().read(BASE_DIR + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
         check(2, meta.getColumnCount());
@@ -107,6 +107,7 @@ public class TestCsv extends TestBase {
             check(rs.getString("NAME"), "Ruebezahl");
         }
         checkFalse(rs.next());
+        rs.close();
         conn.close();
         
     }

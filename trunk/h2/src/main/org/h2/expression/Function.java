@@ -1398,6 +1398,9 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
+        if(visitor.type == ExpressionVisitor.DETERMINISTIC && !info.isDeterministic) {
+            return false;
+        }
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i];
             if (e != null && !e.isEverything(visitor)) {

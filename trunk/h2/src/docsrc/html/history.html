@@ -35,7 +35,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>
+<li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
+<li>Prepard statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
 <li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
 <li>Client trace files now created in the directory 'trace.db' and no longer the application directory. 
 	This can be changed using the system property h2.clientTraceDirectory.

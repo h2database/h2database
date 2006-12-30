@@ -52,7 +52,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                     s3.execute("INSERT INTO TEST2 VALUES(4)");
                     conn3.commit();
                 } catch(SQLException e) {
-                    e.printStackTrace();
+                    TestBase.logError("insert", e);
                 }
             }
         });
@@ -64,7 +64,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                     s2.execute("INSERT INTO TEST1 VALUES(5)");
                     conn2.commit();
                 } catch(SQLException e) {
-                    e.printStackTrace();
+                    TestBase.logError("insert", e);
                 }
             }
         });
@@ -101,7 +101,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                     Connection c1 = getConnection("multiConn;DATABASE_EVENT_LISTENER='"+listener+"';file_lock=socket");
                     c1.close();
                 } catch(Exception e) {
-                    e.printStackTrace();
+                    TestBase.logError("connect", e);
                 }
             }
         };
@@ -126,7 +126,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                 Thread.sleep(wait);
                 wait = 0;
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                TestBase.logError("sleep", e);
             }
         }
     }

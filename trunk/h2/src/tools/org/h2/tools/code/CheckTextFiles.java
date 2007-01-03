@@ -16,7 +16,7 @@ public class CheckTextFiles {
     }
 
     String[] suffixCheck = new String[]{"html", "jsp", "js", "css", "bat", "nsi", "java", "txt", "properties", "cpp", "def", "h", "rc", "dev", "sql", "xml", "csv", "Driver"};
-    String[] suffixIgnore = new String[]{"gif", "png", "odg", "ico", "sxd", "layout", "res", "win", "dll", "jar"};
+    String[] suffixIgnore = new String[]{"gif", "png", "odg", "ico", "sxd", "layout", "res", "win", "dll", "jar", "task"};
     boolean failOnError;
     boolean allowTab, allowCR = true, allowTrailingSpaces = true;
     int spacesPerTab = 4;
@@ -24,7 +24,7 @@ public class CheckTextFiles {
     boolean useCRLF = true;
     // must contain "+" otherwise this here counts as well
     String copyrightLicense = "Copyright 2004-2006 H2 Group. "+"Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).";
-    String[] suffixIgnoreLicense = new String[]{"bat", "nsi", "txt", "properties", "def", "rc", "dev", "xml", "_private.h", "java.sql.Driver"};
+    String[] suffixIgnoreLicense = new String[]{"bat", "nsi", "txt", "properties", "def", "rc", "dev", "xml", "_private.h", "java.sql.Driver", "task"};
     boolean hasError;
 
     void run() throws Exception {

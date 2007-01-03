@@ -252,11 +252,11 @@ public abstract class TestBase {
     }
     
     protected void deleteDb(String name) throws Exception {
-        new DeleteDbFiles().processFiles(BASE_DIR, name, false);
+        DeleteDbFiles.execute(BASE_DIR, name, true);
     }
     
     protected void deleteDb(String dir, String name) throws Exception {
-        new DeleteDbFiles().processFiles(dir, name, false);
+        DeleteDbFiles.execute(dir, name, true);
     }    
     
     public abstract void test() throws Exception;

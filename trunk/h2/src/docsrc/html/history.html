@@ -34,23 +34,23 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / 2007-TODO</h3><ul>
+<h3>Version 1.0 / 2007-01-02</h3><ul>
 <li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
 <li>Prepard statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
 <li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
 <li>Client trace files now created in the directory 'trace.db' and no longer the application directory. 
-	This can be changed using the system property h2.clientTraceDirectory.
+    This can be changed using the system property h2.clientTraceDirectory.
 <li>In some situations the log file got corrupt if the process was terminated while the database was opening.
 <li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 <li>If a CLOB or BLOB was deleted in a transaction and the database crashed before the transaction was committed or rolled back,
-	the object was lost if it was large. Fixed.
+    the object was lost if it was large. Fixed.
 <li>Now using ant-build.properties. The jdk is automatically updated when using ant codeswitch_...
 <li>Cluster: Now the server can detect if a query is read-only, and in this case the result is only read from the first cluster node.
-	However, there is currently no load balancing made to avoid problems with transactions / locking.
+    However, there is currently no load balancing made to avoid problems with transactions / locking.
 <li>Many settings are now initialized from system properties and can be changed on the command line without having
-	recompile the database. See Advances / Settings Read from System Properties.
+    recompile the database. See Advances / Settings Read from System Properties.
 <li>H2 is now available in Maven. The groupId is com.h2database, the artifactId h2 and the version 1.0.20061217.
-	To create the maven artifacts yourself, use 'ant mavenUploadLocal' and 'ant mavenBuildCentral'.
+    To create the maven artifacts yourself, use 'ant mavenUploadLocal' and 'ant mavenBuildCentral'.
 </ul>
 
 <h3>Version 1.0 / 2006-12-17</h3><ul>
@@ -1364,6 +1364,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 <li>Document how to use H2 with PHP (generic database API)
 <li>Optimization: result set caching (like MySQL)
+<li>MVCC (Multi Version Cuncurrency Control)
 <li>Server side cursors
 <li>Row level locking
 <li>System table: open sessions and locks of a database
@@ -1447,7 +1448,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Improve trace option: add calendar, streams, objects,... try/catch
 <li>Automatic collection of statistics (ANALYZE)
 <li>Procedural language
-<li>MVCC (Multi Version Cuncurrency Control)
 <li>Maybe include JTidy. Check license
 <li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 <li>Column level privileges

@@ -73,10 +73,7 @@ public abstract class FileBase {
         return files;
     }
 
-    /**
-     * INTERNAL
-     */
-    public void processFiles(String dir, String db, boolean log) throws SQLException {
+    protected void processFiles(String dir, String db, boolean log) throws SQLException {
         ArrayList files = getDatabaseFiles(dir, db, allFiles());
         for(int i=0; i<files.size(); i++) {
             String fileName = (String) files.get(i);

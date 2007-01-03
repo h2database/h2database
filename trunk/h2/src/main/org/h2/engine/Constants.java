@@ -11,7 +11,7 @@ package org.h2.engine;
  * - System.out > trace messages
  *
  * Release checklist
- * - Update latest version in docs: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
+ * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
  * - try compiling with JDK 1.3, 1.4, 1.5 and 1.6
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
@@ -56,8 +56,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 34;
-    private static final String BUILD = "2006-12-17";
+    public static final int BUILD_ID = 36;
+    private static final String BUILD = "2007-01-02";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

@@ -86,7 +86,7 @@ public class TestJoin extends TestBase {
             buff = new StringBuffer();
             long time = System.currentTimeMillis();
             if(time - start > 5000) {
-                System.out.println("i:"+i);
+                printTime("i:"+i);
                 start = time;
             }
             buff.append("SELECT ");
@@ -129,9 +129,8 @@ public class TestJoin extends TestBase {
             try {
                 execute(sql, params);    
             } catch(Exception e) {
-                // System.out.println("/*FAIL*/ " + sql+" " +e);
                 if(shortestFailed == null || shortestFailed.length() > sql.length()) {
-                    System.out.println("/*SHORT*/ " + sql);
+                    TestBase.logError("/*SHORT*/ " + sql, null);
                     shortestFailed = sql;
                 }
             }
@@ -252,10 +251,7 @@ public class TestJoin extends TestBase {
                 first = s;
             } else {
                 if(!ignoreDifference && !s.equals(first)) {
-//                    System.out.println("FAIL " + sql);
-//                    System.out.println("first="+first);
-//                    System.out.println("now="+s);
-                    throw new Exception("FAIL");
+                    throw new Exception("FAIL s:" + s + " first:" + first + " sql:"+sql);
                 }
             }
         }

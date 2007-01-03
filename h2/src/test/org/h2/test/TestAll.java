@@ -87,17 +87,21 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        Expression.isConstant is not really needed?
+        // auto-upgrade application:
+        // check if new version is available 
+        // (option: digital signature)
+        // (option: RSS / atom newsfeed)
+        // (option: small XML parser)
+        // if yes download new version
+        // (option: http, https, ftp, network)
+        // backup database to SQL script
+        // (option: list of databases, use recovery mechanism)
+        // install new version
         
-        // test: use fixed amount of disk space
-        
-        // append errors from all programs atomically to errors.txt (use nio file lock mechanism)
         // ftp client
-        // task to download new version from another FTP server
+        // task to download new version from another HTTP / HTTPS / FTP server
         // multi-task
 
-        // https://issues.apache.org/jira/browse/OPENJPA-92
-        
         // write a test that calls Runtime.halt at more or less random places (extend TestLob)
         
         // OSGi Bundle (see Forum)

@@ -10,6 +10,49 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(19,
+'New version available: 1.0 / 2007-01-02', '2007-01-02 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br/>
+<b>Changes and new functionality:</b>
+<ul>
+<li>H2 is now available in Maven. The groupId is com.h2database, 	the 
+	artifactId is h2 and the version 1.0.20061217 (the new version will be 
+	available in a few days). To create the maven artifacts yourself, use 
+	''ant mavenUploadLocal'' and ''ant mavenBuildCentral''.
+<li>Many settings are now initialized from system properties and can be 
+	changed on the command line without having recompile the database. 
+	See Advances / Settings Read from System Properties.
+<li>The (relative or absolute) directory where the script files are stored 
+	or read can now be changed using the system property h2.scriptDirectory
+<li>Client trace files now created in the directory ''trace.db'' and no 
+	longer the application directory. This can be changed using the system 
+	property h2.clientTraceDirectory.
+<li>Build: Now using ant-build.properties. The JDK is automatically updated 
+	when using ant codeswitch_...
+<li>Cluster: Now the server can detect if a query is read-only, and in this 
+	case the result is only read from the first cluster node. However, there 
+	is currently no load balancing made to avoid problems with transactions 
+	/ locking.
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>If a CLOB or BLOB was deleted in a transaction and the database crashed 
+	before the transaction was committed or rolled back, the object was lost if 
+	it was large. Fixed.
+<li>Prepared statements with non-constant functions such as 
+	CURRENT_TIMESTAMP() did not get re-evaluated if the result of the 
+	function changed. Fixed.
+<li>In some situations the log file got corrupt if the process was terminated 
+	while the database was opening.
+<li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
+<li>It was possible to drop the sequence of a temporary tables with DROP 
+	ALL OBJECTS, resulting in a null pointer exception afterwards.
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(18,
 'New version available: 1.0 / 2006-12-17', '2006-12-17 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -17,36 +60,36 @@ INSERT INTO ITEM VALUES(18,
 <b>Changes and new functionality:</b>
 <ul>
 <li>Large BLOB and CLOB support for the server and the cluster mode. 
-	Larger objects will temporarily be buffered on the client side.
+    Larger objects will temporarily be buffered on the client side.
 <li>Can be compiled with JDK 1.6.
- 	However, only very few of the JDBC 4.0 features are implemented so far.
+     However, only very few of the JDBC 4.0 features are implemented so far.
 <li>Table aliases are now supported in DELETE and UPDATE. 
-	Example: DELETE FROM TEST T0.
+    Example: DELETE FROM TEST T0.
 <li>The RunScript tool can now include other files using a new syntax: 
-	@INCLUDE fileName. This is only required for server and cluster modes.
-	It was already possible to use embedded RUNSCRIPT statements, 
-	but those are always executed locally.
+    @INCLUDE fileName. This is only required for server and cluster modes.
+    It was already possible to use embedded RUNSCRIPT statements, 
+    but those are always executed locally.
 <li>When the database URL contains ;RECOVERY=TRUE then 
-	the index file is now deleted if it was not closed before.
+    the index file is now deleted if it was not closed before.
 <li>Deleting old temp files now uses a phantom reference queue. 
-	Generally, temp files should now be deleted earlier.
+    Generally, temp files should now be deleted earlier.
 <li>Opening a large database is now much faster 
-	even when using the default log mode (LOG=1), 
-	if the database was previously closed.
+    even when using the default log mode (LOG=1), 
+    if the database was previously closed.
 <li>Support for indexed parameters in PreparedStatements: 
-	UPDATE TEST SET NAME = ?2 WHERE ID = ?1
+    UPDATE TEST SET NAME = ?2 WHERE ID = ?1
 </ul>
 <b>Bugfixes:</b>
 <ul>
 <li>Unfortunately, the Hibernate dialect has changed due to a change 
-	in the meta data in the last release (INFORMATION_SCHEMA.SEQUENCES).
+    in the meta data in the last release (INFORMATION_SCHEMA.SEQUENCES).
 <li>String.toUpperCase and toLowerCase can not be used to parse commands.
-	Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..).
+    Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..).
 <li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
 <li>PreparedStatement.setObject(x, y, Types.OTHER) does now 
-	serialize the object in every case (even for Integer).
+    serialize the object in every case (even for Integer).
 <li>EXISTS subqueries with parameters were not re-evaluated 
-	when the prepared statement was reused. This could lead to incorrect results.
+    when the prepared statement was reused. This could lead to incorrect results.
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 </ul>
@@ -548,58 +591,6 @@ INSERT INTO ITEM VALUES(2,
 For details see also the history. The plans for the next release are:
 <ul>
 <li>Bugfixes, write more tests, more bugfixes, more tests
-<li>Proposal for changed license (still pending...)
-<li>For other plans, see the new ''Roadmap'' part on the web site
-</ul>
-');
-
-INSERT INTO ITEM VALUES(1,
-'New version available: 0.9 Alpha / 2006-06-02', '2006-06-02 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
-<b>Changes and new functionality:</b>
-<ul>
-<li>The GCJ version for Windows is no longer included in the download.
-  It was not stable in this release.
-<li>ORDER BY now uses an index if possible.
-  Queries with LIMIT with ORDER BY
-  are faster when the index can be used.
-<li>Statements containing LIKE are now re-compiled when executed.
-  Depending on the data, an index on the column is used or not.
-<li>New option to disable automatic closing of a database
-  when the virtual machine exists.
-  Database URL: jdbc:h2:test;db_close_on_exit=false
-<li>New event: DatabaseEventListener.closingDatabase()
-<li>Connection.getCatalog() now returns the database name
-<li>The function DATABASE() now return the short name
-<li>Automatic starting of a web browser for Mac OS X should work now.
-</ul>
-<b>Security:</b>
-<ul>
-<li>TCP Server: Can now specifiy a password (tcpPassword).
-<li>New option -ifExists for the TCP and ODBC server
-  to disallow creating new databases.
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Issue #103: Shutdown of a TCP Server from command line
-  didn''t always work.
-<li>Issue #104: A HAVING condition on a column
-  that was not in the GROUP BY list didn''t work.
-<li>Issue #105: RUNSCRIPT (the command) didn''t commit
-  after each command if autocommit was on.
-<li>Issue #106: SET commands where not persisted
-<li>Issue# 107: When executing scripts that contained inserts
-  with many columns, an OutOfMemory error could occur.
-<li>Issue #108: There is a concurrency problem when multi threads
-  access the same database.
-<li>Issue #109: ALTER TABLE ADD COLUMN can make
-  the database unusable.
-</ul>
-For details see also the history. The plans for the next release are:
-<ul>
-<li>Bugfixes, write more tests, more bugfixes, more tests
-<li>Define which modules are alpha, beta and production quality
 <li>Proposal for changed license (still pending...)
 <li>For other plans, see the new ''Roadmap'' part on the web site
 </ul>

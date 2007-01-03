@@ -65,7 +65,7 @@
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="+JDK13 -JDK14 -JDK16 ../main/org/h2"/>
 		</java>
-		<propertyfile file="build.properties">
+		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
 		</propertyfile>
 	</target>
@@ -74,7 +74,7 @@
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="-JDK13 +JDK14 -JDK16 ../main/org/h2"/>
 		</java>
-		<propertyfile file="build.properties">
+		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.4" />
 		</propertyfile>
 	</target>
@@ -83,7 +83,7 @@
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
 			<arg line="-JDK13 +JDK16 +JDK14 ../main/org/h2"/>
 		</java>
-		<propertyfile file="build.properties">
+		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.6" />
 		</propertyfile>
 	</target>
@@ -285,6 +285,7 @@
 	<target name="zip">
 		<zip destfile="../h2.zip">
 			<fileset dir=".." includes="h2/build.xml"/>
+			<fileset dir=".." includes="h2/ant-build.properties"/>
 			<fileset dir=".." includes="h2/bin/**/*"/>
 			<fileset dir=".." includes="h2/docs/**/*"/>
 			<fileset dir=".." includes="h2/odbc/**/*"/>

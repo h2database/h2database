@@ -151,9 +151,11 @@ public class TestCases extends TestBase {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
+                    long time = System.currentTimeMillis();
                     ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) FROM TEST T, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST, TEST");
                     rs.next();
-                    TestBase.logError("query was too quick; result: " + rs.getInt(1), null);
+                    time = System.currentTimeMillis() - time;
+                    TestBase.logError("query was too quick; result: " + rs.getInt(1) + " time:" + time, null);
                 } catch(SQLException e) {
                     // ok
                 }

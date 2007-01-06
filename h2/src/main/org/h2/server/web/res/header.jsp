@@ -11,7 +11,7 @@ Initial Developer: H2 Group
 </head>
 <body  bgcolor="#FF00FF"  class="toolbar">
     <form name="header" method="post" action="/header.jsp?jsessionid=${sessionId}">
-    <table class="toolbar" cellspacing=0 cellpadding=0><tr class="toolbar"><td class="toolbar"
+    <table class="toolbar" cellspacing="0" cellpadding="0"><tr class="toolbar"><td class="toolbar"
     ><a href="logout.do?jsessionid=${sessionId}" target="_top"
     ><img src="icon_disconnect.gif"
         onmouseover = "this.className ='icon_hover'"
@@ -24,7 +24,7 @@ Initial Developer: H2 Group
         onmouseout = "this.className ='icon'"
         class="icon" alt="${text.toolbar.refresh}" title="${text.toolbar.refresh}" border="1"/></a
     ><img src="icon_line.gif" class="iconLine" alt=""
-    /></td><td class="toolbar"><input type="checkbox" name="autocommit" value="autocommit" ${autocommit}
+    /></td><td class="toolbar"><input type="checkbox" name="autocommit" value="autocommit"
       onclick="javascript:if(document.header.autocommit.checked)
       top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@AUTOCOMMIT+TRUE';
       else
@@ -45,8 +45,12 @@ Initial Developer: H2 Group
     /></td><td class="toolbar">&nbsp;${text.toolbar.maxRows}:&nbsp;</td><td class="toolbar"
     ><select name="rowcount" size="1"
       onchange="javascript:top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@SET+MAXROWS+'+header.rowcount.value;"
-    ><option value="0">${text.toolbar.all}</option><option value="10000">10000</option><option selected value="1000">1000</option><option value="100"
-    >100</option><option value="10">10</option></select
+    ><option value="0">${text.toolbar.all}</option>
+    	<option value="10000">10000</option>
+    	<option selected="selected" value="1000">1000</option>
+    	<option value="100">100</option>
+    	<option value="10">10</option>
+    </select
     >&nbsp;</td><td class="toolbar"><a href="javascript:top.frames['h2query'].document.forms['h2query'].submit();"
     ><img src="icon_run.gif"
         onmouseover = "this.className ='icon_hover'"
@@ -67,17 +71,22 @@ Initial Developer: H2 Group
     /></td><td class="toolbar">${text.toolbar.autocomplete}&nbsp;<select name="autocomplete" size="1"
       onchange="javascript:top.frames['h2query'].setAutocomplete(this.value)"
     ><option value="0">${text.toolbar.autocomplete.off}</option>
-    <option selected value="1">${text.toolbar.autocomplete.normal}</option>
+    <option selected="selected" value="1">${text.toolbar.autocomplete.normal}</option>
     <option value="2">${text.toolbar.autocomplete.full}</option>
     </select
     ></td
     ><td class="toolbar"
-    ><a href="resultHelp.jsp?jsessionid=${sessionId}" target="h2result"
+    ><a href="help.jsp?jsessionid=${sessionId}" target="h2result"
     ><img src="icon_help.gif"
         onmouseover = "this.className ='icon_hover'"
         onmouseout = "this.className ='icon'"
         class="icon" alt="${text.a.help}" title="${text.a.help}" border="1"/></a
     ></td></tr></table>
     </form>
+<script type="text/javascript">
+<!--
+	document.header.autocommit.checked = '${autocommit}' != '';
+//-->
+</script>    
 </body>
 </html>

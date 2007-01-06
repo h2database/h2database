@@ -5,6 +5,7 @@
 package org.h2.value;
 
 import org.h2.engine.Constants;
+import org.h2.util.ByteUtils;
 
 /**
  * @author Thomas
@@ -16,8 +17,13 @@ public class ValueBytes extends ValueBytesBase {
     protected ValueBytes(byte[] v) {
         super(v);
     }
-
+    
     public static ValueBytes get(byte[] b) {
+        b = ByteUtils.cloneByteArray(b);
+        return getNoCopy(b);
+    }
+    
+    public static ValueBytes getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
         }

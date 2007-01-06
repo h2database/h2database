@@ -9,8 +9,8 @@ import java.io.InputStream;
 import java.io.Reader;
 
 /**
- * The InputStreamReader may read some more bytes than required.
- * If this is a problem, use this class
+ * The regular InputStreamReader may read some more bytes than required.
+ * If this is a problem, use this class.
  */
 public class ExactUTF8InputStreamReader extends Reader {
     

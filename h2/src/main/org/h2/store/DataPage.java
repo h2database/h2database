@@ -173,20 +173,20 @@ public abstract class DataPage {
             writeString(s);
             break;
         case Value.TIME:
-            writeLong(v.getTime().getTime());
+            writeLong(v.getTimeNoCopy().getTime());
             break;
         case Value.DATE:
-            writeLong(v.getDate().getTime());
+            writeLong(v.getDateNoCopy().getTime());
             break;
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestamp();
+            Timestamp ts = v.getTimestampNoCopy();
             writeLong(ts.getTime());
             writeInt(ts.getNanos());
             break;
         }
         case Value.JAVA_OBJECT:
         case Value.BYTES: {
-            byte[] b = v.getBytes();
+            byte[] b = v.getBytesNoCopy();
             writeInt(b.length);
             write(b, 0, b.length);
             break;
@@ -265,7 +265,7 @@ public abstract class DataPage {
             return 1 + getStringLen(v.getString());
         case Value.JAVA_OBJECT:
         case Value.BYTES: {
-            int len = v.getBytes().length;
+            int len = v.getBytesNoCopy().length;
             return 1 + getIntLen() + len;
         }
         case Value.UUID: {
@@ -273,11 +273,11 @@ public abstract class DataPage {
             return 1 + getLongLen(uuid.getHigh()) + getLongLen(uuid.getLow());
         }
         case Value.TIME:
-            return 1 + getLongLen(v.getTime().getTime());
+            return 1 + getLongLen(v.getTimeNoCopy().getTime());
         case Value.DATE:
-            return 1 + getLongLen(v.getDate().getTime());
+            return 1 + getLongLen(v.getDateNoCopy().getTime());
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestamp();
+            Timestamp ts = v.getTimestampNoCopy();
             return 1 + getLongLen(ts.getTime()) + getIntLen();
         }
         case Value.BLOB: 
@@ -326,25 +326,26 @@ public abstract class DataPage {
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));
         case Value.DATE:
-            return ValueDate.get(new Date(readLong()));
+            return ValueDate.getNoCopy(new Date(readLong()));
         case Value.TIME:
+            // need to normalize the year, month and day
             return ValueTime.get(new Time(readLong()));
         case Value.TIMESTAMP: {
             Timestamp ts = new Timestamp(readLong());
             ts.setNanos(readInt());
-            return ValueTimestamp.get(ts);
+            return ValueTimestamp.getNoCopy(ts);
         }
         case Value.JAVA_OBJECT: {
             int len = readInt();
             byte[] b = new byte[len];
             read(b, 0, len);
-            return ValueJavaObject.get(b);
+            return ValueJavaObject.getNoCopy(b);
         }
         case Value.BYTES: {
             int len = readInt();
             byte[] b = new byte[len];
             read(b, 0, len);
-            return ValueBytes.get(b);
+            return ValueBytes.getNoCopy(b);
         }
         case Value.UUID:
             return ValueUuid.get(readLong(), readLong());

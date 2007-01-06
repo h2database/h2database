@@ -23,12 +23,12 @@ Initial Developer: H2 Group
      &nbsp;&nbsp; <a href="admin.do?jsessionid=${sessionId}">${text.login.goAdmin}</a> 
      &nbsp;&nbsp; <a href="help.jsp?jsessionid=${sessionId}">${text.a.help}</a>
      </p>    
-        <table class="login" cellspacing=0 cellpadding=0>
+        <table class="login" cellspacing="0" cellpadding="0">
             <tr class="login">
                 <th class="login">${text.login.login}</th>
                 <th class="login"></th>
             </tr>
-            <tr><td  class="login" colspan=2></td></tr>
+            <tr><td  class="login" colspan="2"></td></tr>
             <tr class="login">
                 <td class="login">${text.login.savedSetting}:</td>
                 <td class="login">
@@ -49,7 +49,7 @@ Initial Developer: H2 Group
                 </td>
             </tr>
             <tr class="login">
-                <td class="login" colspan=2>
+                <td class="login" colspan="2">
                     <hr>
                 </td>
             </tr>

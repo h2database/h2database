@@ -98,6 +98,8 @@ public class DiskFile implements CacheWriter {
         used = new BitField();
         deleted = new BitField();
         pageOwners = new IntArray();
+        // init pageOwners
+        setBlockCount(fileBlockCount);
         redoBuffer = new ObjectArray();
     }
 

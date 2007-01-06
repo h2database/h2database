@@ -488,22 +488,22 @@ public class Function extends Expression implements FunctionCall {
             return ValueDouble.get(((d < 0) ? Math.ceil(g) : Math.floor(g)) / f);
         }
         case SECURE_RAND:
-            return ValueBytes.get(RandomUtils.getSecureBytes(v0.getInt()));
+            return ValueBytes.getNoCopy(RandomUtils.getSecureBytes(v0.getInt()));
         case HASH:
-            return ValueBytes.get(getHash(v0.getString(), v1.getBytes(), v2.getInt()));
+            return ValueBytes.getNoCopy(getHash(v0.getString(), v1.getBytesNoCopy(), v2.getInt()));
         case ENCRYPT:
-            return ValueBytes.get(encrypt(v0.getString(), v1.getBytes(), v2.getBytes()));
+            return ValueBytes.getNoCopy(encrypt(v0.getString(), v1.getBytesNoCopy(), v2.getBytesNoCopy()));
         case DECRYPT:
-            return ValueBytes.get(decrypt(v0.getString(), v1.getBytes(), v2.getBytes()));
+            return ValueBytes.getNoCopy(decrypt(v0.getString(), v1.getBytesNoCopy(), v2.getBytesNoCopy()));
         case COMPRESS: {
             String algorithm = null;
             if(v1 != null) {
                 algorithm = v1.getString();
             }
-            return ValueBytes.get(CompressTool.getInstance().compress(v0.getBytes(), algorithm));
+            return ValueBytes.getNoCopy(CompressTool.getInstance().compress(v0.getBytesNoCopy(), algorithm));
         }
         case EXPAND:
-            return ValueBytes.get(CompressTool.getInstance().expand(v0.getBytes()));
+            return ValueBytes.getNoCopy(CompressTool.getInstance().expand(v0.getBytesNoCopy()));
         case ZERO:
             return ValueInt.get(0);
         case RANDOM_UUID:
@@ -614,9 +614,9 @@ public class Function extends Expression implements FunctionCall {
         case STRINGDECODE:
             return ValueString.get(StringUtils.javaDecode(v0.getString()));
         case STRINGTOUTF8:
-            return ValueBytes.get(StringUtils.utf8Encode(v0.getString()));
+            return ValueBytes.getNoCopy(StringUtils.utf8Encode(v0.getString()));
         case UTF8TOSTRING:
-            return ValueString.get(StringUtils.utf8Decode(v0.getBytes()));
+            return ValueString.get(StringUtils.utf8Decode(v0.getBytesNoCopy()));
         case XMLATTR:
             return ValueString.get(StringUtils.xmlAttr(v0.getString(), v1.getString()));
         case XMLNODE: {
@@ -634,25 +634,25 @@ public class Function extends Expression implements FunctionCall {
             return ValueString.get(StringUtils.xmlText(v0.getString()));
         // date
         case DATEADD:
-            return ValueTimestamp.get(dateadd(v0.getString(), v1.getInt(), v2.getTimestamp()));
+            return ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));
         case DATEDIFF:
-            return ValueLong.get(datediff(v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
+            return ValueLong.get(datediff(v0.getString(), v1.getTimestampNoCopy(), v2.getTimestampNoCopy()));
         case DAYNAME:
-            return ValueString.get(FORMAT_DAYNAME.format(v0.getDate()));
+            return ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
         case DAYOFMONTH:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.DAY_OF_MONTH));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
         case DAYOFWEEK:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.DAY_OF_WEEK));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_WEEK));
         case DAYOFYEAR:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.DAY_OF_YEAR));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_YEAR));
         case HOUR:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.HOUR_OF_DAY));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.HOUR_OF_DAY));
         case MINUTE:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.MINUTE));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
         case MONTH:
-            return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.MONTH));
+            return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
         case MONTHNAME:
-            return ValueString.get(FORMAT_MONTHNAME.format(v0.getDate()));
+            return ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
         case QUARTER:
             return ValueInt.get((getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
         case SECOND:
@@ -663,13 +663,15 @@ public class Function extends Expression implements FunctionCall {
             return ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.YEAR));
         case CURDATE:
         case CURRENT_DATE:
+            // need to normalize
             return ValueDate.get(new Date(System.currentTimeMillis()));
         case CURTIME:
         case CURRENT_TIME:
+            // need to normalize
             return ValueTime.get(new Time(System.currentTimeMillis()));
         case NOW:
         case CURRENT_TIMESTAMP: {
-            ValueTimestamp vt = ValueTimestamp.get(new Timestamp(System.currentTimeMillis()));
+            ValueTimestamp vt = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis()));
             if(v0 != null) {
                 vt = (ValueTimestamp)vt.convertScale(Mode.getCurrentMode().convertOnlyToSmallerScale, v0.getInt());
             }
@@ -696,7 +698,7 @@ public class Function extends Expression implements FunctionCall {
             Value v3 = args.length <= 3 ? null : args[3].getValue(session);
             String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
             java.util.Date d = StringUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
-            return ValueTimestamp.get(new Timestamp(d.getTime()));
+            return ValueTimestamp.getNoCopy(new Timestamp(d.getTime()));
         }
         // system
         case DATABASE:

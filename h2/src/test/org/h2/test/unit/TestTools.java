@@ -18,10 +18,21 @@ public class TestTools extends TestBase {
 
     public void test() throws Exception {
         deleteDb("utils");
+        testManagementDb();
         testResourceGenerator();
         testChangePassword();
         testServer();
         testBackupRunscript();
+    }
+    
+    private void testManagementDb() throws Exception {
+        int count = getSize(2, 10);
+        for(int i=0; i<count; i++) {
+            Server server = Server.createTcpServer(new String[]{}).start();
+            server.stop();
+            server = Server.createTcpServer(new String[]{"-tcpPassword", "abc"}).start();
+            server.stop();
+        }
     }
     
     private void testBackupRunscript() throws Exception {

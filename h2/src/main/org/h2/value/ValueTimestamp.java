@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import org.h2.message.Message;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 
 public class ValueTimestamp extends Value {
@@ -18,22 +19,23 @@ public class ValueTimestamp extends Value {
     private Timestamp value;
 
     private ValueTimestamp(Timestamp value) {
-        // this class is mutable - must copy the object
-        this.value = (Timestamp)value.clone();
+        this.value = value;
     }
 
     public Timestamp getTimestamp() {
-        // TODO performance: clone not always required
-        // this class is mutable - must copy the object
         return (Timestamp)value.clone();
     }
+    
+    public Timestamp getTimestampNoCopy() {
+        return value;
+    }    
 
     public String getSQL() {
         return "TIMESTAMP '" + getString() + "'";
     }
 
     public static Timestamp parseTimestamp(String s) throws SQLException {
-        return (Timestamp) DataType.parseDateTime(s, Value.TIMESTAMP, Message.TIMESTAMP_CONSTANT_1);
+        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, Message.TIMESTAMP_CONSTANT_1);
     }
 
     public int getType() {
@@ -71,8 +73,13 @@ public class ValueTimestamp extends Value {
         prep.setTimestamp(parameterIndex, value);
     }
 
-    public static ValueTimestamp get(Timestamp date) {
-        return (ValueTimestamp) Value.cache(new ValueTimestamp(date));
+    public static ValueTimestamp get(Timestamp timestamp) {
+        timestamp = (Timestamp) timestamp.clone();
+        return getNoCopy(timestamp);
+    }
+
+    public static ValueTimestamp getNoCopy(Timestamp timestamp) {
+        return (ValueTimestamp) Value.cache(new ValueTimestamp(timestamp));
     }
 
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
@@ -96,7 +103,7 @@ public class ValueTimestamp extends Value {
         }
         Timestamp t2 = new Timestamp(t);
         t2.setNanos(n2);
-        return ValueTimestamp.get(t2);
+        return ValueTimestamp.getNoCopy(t2);
     }
 
 //    public String getJavaString() {

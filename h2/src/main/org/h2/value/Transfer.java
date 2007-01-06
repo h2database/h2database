@@ -195,7 +195,7 @@ public class Transfer {
             break;
         case Value.BYTES:
         case Value.JAVA_OBJECT:
-            writeBytes(v.getBytes());
+            writeBytes(v.getBytesNoCopy());
             break;
         case Value.UUID: {
             ValueUuid uuid = (ValueUuid) v;
@@ -210,13 +210,13 @@ public class Transfer {
             writeByte(v.getByte());
             break;
         case Value.TIME:
-            writeLong(v.getTime().getTime());
+            writeLong(v.getTimeNoCopy().getTime());
             break;
         case Value.DATE:
-            writeLong(v.getDate().getTime());
+            writeLong(v.getDateNoCopy().getTime());
             break;
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestamp();
+            Timestamp ts = v.getTimestampNoCopy();
             writeLong(ts.getTime());
             writeInt(ts.getNanos());
             break;
@@ -316,23 +316,23 @@ public class Transfer {
         case Value.NULL:
             return ValueNull.INSTANCE;
         case Value.BYTES:
-            return ValueBytes.get(readBytes());
+            return ValueBytes.getNoCopy(readBytes());
         case Value.UUID:
             return ValueUuid.get(readLong(), readLong());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.get(readBytes());
+            return ValueJavaObject.getNoCopy(readBytes());
         case Value.BOOLEAN:
             return ValueBoolean.get(readBoolean());
         case Value.BYTE:
             return ValueByte.get(readByte());
         case Value.DATE:
-            return ValueDate.get(new Date(readLong()));
+            return ValueDate.getNoCopy(new Date(readLong()));
         case Value.TIME:
-            return ValueTime.get(new Time(readLong()));
+            return ValueTime.getNoCopy(new Time(readLong()));
         case Value.TIMESTAMP: {
             Timestamp ts = new Timestamp(readLong());
             ts.setNanos(readInt());
-            return ValueTimestamp.get(ts);
+            return ValueTimestamp.getNoCopy(ts);
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

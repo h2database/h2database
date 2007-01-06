@@ -4,6 +4,10 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
@@ -146,6 +150,38 @@ public class ByteUtils {
         }
         System.arraycopy(source, 0, target, 0, len);
         return target;
+    }
+
+    public static byte[] cloneByteArray(byte[] b) {
+        int len = b.length;
+        if(len == 0) {
+            return b;
+        }
+        byte[] copy = new byte[len];
+        System.arraycopy(b, 0, copy, 0, len);
+        return copy;
+    }
+
+    public static byte[] serialize(Object obj) throws SQLException {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream(out);
+            os.writeObject(obj);
+            return out.toByteArray();
+        } catch(Throwable e) {
+            throw Message.getSQLException(Message.SERIALIZATION_FAILED, null, e);
+        }
+    }
+
+    public static Object deserialize(byte[] data) throws SQLException {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(data);
+            ObjectInputStream is = new ObjectInputStream(in);
+            Object obj = is.readObject();
+            return obj;
+        } catch(Throwable e) {
+            throw Message.getSQLException(Message.DESERIALIZATION_FAILED, null, e);
+        }
     }
 
 }

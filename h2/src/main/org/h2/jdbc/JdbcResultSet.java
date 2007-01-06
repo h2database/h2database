@@ -16,10 +16,12 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.*;
 import org.h2.result.ResultInterface;
+import org.h2.result.UpdatableRow;
+import org.h2.util.ByteUtils;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.TypeConverter;
-import org.h2.util.UpdatableRow;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -401,7 +403,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             Value v = get(columnIndex);
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
                 if (v.getType() == Value.JAVA_OBJECT) {
-                    return TypeConverter.deserialize(v.getBytes());
+                    return ByteUtils.deserialize(v.getBytesNoCopy());
                 }
             }
             return v.getObject();
@@ -423,7 +425,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             Value v = get(columnName);
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
                 if (v.getType() == Value.JAVA_OBJECT) {
-                    return TypeConverter.deserialize(v.getBytes());
+                    return ByteUtils.deserialize(v.getBytesNoCopy());
                 }
             }
             return v.getObject();
@@ -776,7 +778,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getDate(" + columnIndex + ", calendar)");
             }
             Date x = get(columnIndex).getDate();
-            return TypeConverter.convertDateToCalendar(x, calendar);
+            return DateTimeUtils.convertDateToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -796,7 +798,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getDate(" + StringUtils.quoteJavaString(columnName) + ", calendar)");
             }
             Date x = get(columnName).getDate();
-            return TypeConverter.convertDateToCalendar(x, calendar);
+            return DateTimeUtils.convertDateToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -816,7 +818,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getTime(" + columnIndex + ", calendar)");
             }
             Time x = get(columnIndex).getTime();
-            return TypeConverter.convertTimeToCalendar(x, calendar);
+            return DateTimeUtils.convertTimeToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -836,7 +838,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getTime(" + StringUtils.quoteJavaString(columnName) + ", calendar)");
             }
             Time x = get(columnName).getTime();
-            return TypeConverter.convertTimeToCalendar(x, calendar);
+            return DateTimeUtils.convertTimeToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -856,7 +858,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getTimestamp(" + columnIndex + ", calendar)");
             }
             Timestamp x = get(columnIndex).getTimestamp();
-            return TypeConverter.convertTimestampToCalendar(x, calendar);
+            return DateTimeUtils.convertTimestampToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -876,7 +878,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("getTimestamp(" + StringUtils.quoteJavaString(columnName) + ", calendar)");
             }
             Timestamp x = get(columnName).getTimestamp();
-            return TypeConverter.convertTimestampToCalendar(x, calendar);
+            return DateTimeUtils.convertTimestampToCalendar(x, calendar);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -1063,7 +1065,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("getAsciiStream", columnIndex);
             String s = get(columnIndex).getString();
             // TODO ascii stream: convert the reader to a ascii stream
-            return s == null ? null : TypeConverter.getInputStream(s);
+            return s == null ? null : IOUtils.getInputStream(s);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -1081,7 +1083,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("getAsciiStream", columnName);
             String s = get(columnName).getString();
             // TODO ascii stream: convert the reader to a ascii stream
-            return s == null ? null : TypeConverter.getInputStream(s);
+            return IOUtils.getInputStream(s);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -1685,7 +1687,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("updateAsciiStream("+columnIndex+", x, "+length+");");
             }
             checkClosed();            
-            Value v = conn.createClob(TypeConverter.getAsciiReader(x), length);
+            Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             update(columnIndex, v);
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -1730,7 +1732,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCode("updateAsciiStream("+quote(columnName)+", x, "+length+");");
             }
             checkClosed();            
-            Value v = conn.createClob(TypeConverter.getAsciiReader(x), length);
+            Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             update(columnName, v);
         } catch(Throwable e) {
             throw logAndConvert(e);

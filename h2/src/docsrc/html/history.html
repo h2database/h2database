@@ -34,6 +34,19 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
+<h3>Version 1.0 / TODO</h3><ul>
+<li>Can now parse timestamps with timezone information (Z or +/-hh:mm) and dates before year 1.
+	However dates before year 1 are not formatted correctly (this is a Java problem).
+<li>When stopping the TCP server from an application and immediately afterwards staring it again
+	using a different TCP password, an exception was thrown sometimes.
+<li>Now PreparedStatement.setBigDecimal(..) can only be called with an object
+	of type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to
+	Maciej Wegorkiewicz for finding this problem.
+<li>It was possible to manipulate values in the byte array after calling PreparedStatement.setBytes, and this
+	could lead to problems if the same byte array was used again. Now the byte array is copied if required.
+<li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed.
+</ul>
+
 <h3>Version 1.0 / 2007-01-02</h3><ul>
 <li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
 <li>Prepard statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
@@ -802,7 +815,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     only the necessary parameters / operators are evaluated.
 <li>
     Bugfix for CASEWHEN: data type of return value was not evaluated, and this was a problem
-    when using prepared statements like this: WHERE CASEWHEN(ID<10, A, B)=?
+    when using prepared statements like this: WHERE CASEWHEN(ID &lt; 10, A, B)=?
 <li>
     New function DATABASE_PATH to retrieve the path and file name of a database.
 <li>

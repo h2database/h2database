@@ -338,6 +338,7 @@ public class Message {
     public static final int OPERATION_NOT_SUPPORTED_WITH_VIEWS_2 = 90122;
     public static final int CANT_MIX_INDEXED_AND_UNINDEXED_PARAMS = 90123;
     public static final int FILE_NOT_FOUND_1 = 90124;
+    public static final int INVALID_CLASS_2 = 90125;
 
     public static SQLException addSQL(SQLException e, String sql) {
         if(e.getMessage().indexOf("SQL")>=0) {

@@ -8,7 +8,7 @@ Initial Developer: H2 Group
     <title>${text.a.title}</title>
     <link rel="stylesheet" type="text/css" href="stylesheet.css">
 </head>
-<body margin=10>
+<body margin="10">
     <p class="error">
         ${error}
     </p>

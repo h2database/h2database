@@ -16,6 +16,6 @@ Initial Developer: H2 Group
  ${result}
  </div>
 
-<table id="h2auto" name="h2auto" class="autocomp"><tbody></tbody></table>
+<table id="h2auto" class="autocomp"><tbody></tbody></table>
 
 </body></html>

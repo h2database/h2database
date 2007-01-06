@@ -9,6 +9,7 @@ Initial Developer: H2 Group
         <title>${text.a.title}</title>
         <link rel="stylesheet" type="text/css" href="stylesheet.css" />
         <script type="text/javascript">
+//<!--
 
 var agent=navigator.userAgent.toLowerCase();
 var is_opera = agent.indexOf("opera") >= 0;
@@ -74,7 +75,7 @@ function help() {
     if(pos > 0) {
         var s = input.value.substring(0, pos).toUpperCase();
         var e = pos-1;
-        for(; e>=0; e--) {
+        for(; e>=0; e-=1) {
             var ch = s.charAt(e);
             if(ch != '_' && (ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z')) {
                 break;
@@ -179,7 +180,7 @@ function showAutocomplete() {
         showAutocompleteWait=5;
         setTimeout('showAutocompleteNow()', 100);
     } else {
-        showAutocompleteWait--;
+        showAutocompleteWait-=1;
     }
 }
 
@@ -418,6 +419,7 @@ function processAsyncResponse() {
     }
 }
 
+//-->
 </script>
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">

@@ -8,14 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
-import org.h2.util.TypeConverter;
 import org.h2.value.Value;
 
 /**
@@ -93,7 +93,7 @@ public class JdbcClob extends TraceObject implements Clob
             debugCodeCall("getAsciiStream");
             checkClosed();
             String s = value.getString();
-            return s == null ? null : TypeConverter.getInputStream(s);
+            return IOUtils.getInputStream(s);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }

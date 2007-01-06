@@ -22,9 +22,9 @@ import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.TypeConverter;
 
 /**
  * @author Thomas
@@ -94,18 +94,34 @@ public abstract class Value {
     public Date getDate() throws SQLException {
         return ((ValueDate) convertTo(Value.DATE)).getDate();
     }
+    
+    public Date getDateNoCopy() throws SQLException {
+        return ((ValueDate) convertTo(Value.DATE)).getDateNoCopy();
+    }    
 
     public Time getTime() throws SQLException {
         return ((ValueTime) convertTo(Value.TIME)).getTime();
+    }
+
+    public Time getTimeNoCopy() throws SQLException {
+        return ((ValueTime) convertTo(Value.TIME)).getTimeNoCopy();
     }
 
     public Timestamp getTimestamp() throws SQLException {
         return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp();
     }
 
+    public Timestamp getTimestampNoCopy() throws SQLException {
+        return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestampNoCopy();
+    }
+
     public byte[] getBytes() throws SQLException {
         return ((ValueBytes) convertTo(Value.BYTES)).getBytes();
     }
+    
+    public byte[] getBytesNoCopy() throws SQLException {
+        return ((ValueBytes) convertTo(Value.BYTES)).getBytesNoCopy();
+    }    
 
     public byte getByte() throws SQLException {
         return ((ValueByte) convertTo(Value.BYTE)).getByte();
@@ -136,11 +152,11 @@ public abstract class Value {
     }
 
     public InputStream getInputStream() throws SQLException {
-        return new ByteArrayInputStream(getBytes());
+        return new ByteArrayInputStream(getBytesNoCopy());
     }
 
     public Reader getReader() throws SQLException {
-        return TypeConverter.getReader(getString());
+        return IOUtils.getReader(getString());
     }
     
     public Value add(Value v) throws SQLException {
@@ -369,27 +385,29 @@ public abstract class Value {
         case DATE: {
             switch (getType()) {
             case TIME:
-                return ValueDate.get(new Date(getTime().getTime()));
+                return ValueDate.get(new Date(getTimeNoCopy().getTime()));
             case TIMESTAMP:
-                return ValueDate.get(new Date(getTimestamp().getTime()));
+                return ValueDate.get(new Date(getTimestampNoCopy().getTime()));
             }
             break;
         }
         case TIME: {
             switch (getType()) {
             case DATE:
-                return ValueTime.get(new Time(getDate().getTime()));
+                // need to normalize the year, month and day
+                return ValueTime.get(new Time(getDateNoCopy().getTime()));
             case TIMESTAMP:
-                return ValueTime.get(new Time(getTimestamp().getTime()));
+                // need to normalize the year, month and day
+                return ValueTime.get(new Time(getTimestampNoCopy().getTime()));
             }
             break;
         }
         case TIMESTAMP: {
             switch (getType()) {
             case TIME:
-                return ValueTimestamp.get(new Timestamp(getTime().getTime()));
+                return ValueTimestamp.getNoCopy(new Timestamp(getTimeNoCopy().getTime()));
             case DATE:
-                return ValueTimestamp.get(new Timestamp(getDate().getTime()));
+                return ValueTimestamp.getNoCopy(new Timestamp(getDateNoCopy().getTime()));
             }
             break;
         }
@@ -398,7 +416,7 @@ public abstract class Value {
             case JAVA_OBJECT:
             case BLOB:
             case UUID:
-                return ValueBytes.get(getBytes());
+                return ValueBytes.getNoCopy(getBytesNoCopy());
             }
             break;
         }
@@ -406,21 +424,21 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
             case BLOB:
-                return ValueBytes.get(getBytes());
+                return ValueBytes.getNoCopy(getBytesNoCopy());
             }
             break;
         }
         case BLOB: {
             switch(getType()) {
             case BYTES:
-                return ValueLob.createSmallLob(Value.BLOB, getBytes());
+                return ValueLob.createSmallLob(Value.BLOB, getBytesNoCopy());
             }           
             break;
         }
         case UUID: {
             switch(getType()) {
             case BYTES:
-                return ValueUuid.get(getBytes());    
+                return ValueUuid.get(getBytesNoCopy());    
             }
         }
         }
@@ -457,9 +475,9 @@ public abstract class Value {
             case TIMESTAMP:
                 return ValueTimestamp.get(ValueTimestamp.parseTimestamp(s.trim()));
             case BYTES:
-                return ValueBytes.get(ByteUtils.convertStringToBytes(s.trim()));
+                return ValueBytes.getNoCopy(ByteUtils.convertStringToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.get(ByteUtils.convertStringToBytes(s.trim()));
+                return ValueJavaObject.getNoCopy(ByteUtils.convertStringToBytes(s.trim()));
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:

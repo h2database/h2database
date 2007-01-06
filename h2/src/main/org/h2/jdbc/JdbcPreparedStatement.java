@@ -26,8 +26,9 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.TypeConverter;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -585,7 +586,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, TypeConverter.convertDateToUniversal(x, calendar));
+                setParameter(parameterIndex, DateTimeUtils.convertDateToUniversal(x, calendar));
             }
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -608,7 +609,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, TypeConverter.convertTimeToUniversal(x, calendar));
+                setParameter(parameterIndex, DateTimeUtils.convertTimeToUniversal(x, calendar));
             }
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -631,7 +632,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, TypeConverter.convertTimestampToUniversal(x, calendar));
+                setParameter(parameterIndex, DateTimeUtils.convertTimestampToUniversal(x, calendar));
             }
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -877,7 +878,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 debugCode("setAsciiStream("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
-            Value v = conn.createClob(TypeConverter.getAsciiReader(x), length);
+            Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             setParameter(parameterIndex, v);
         } catch(Throwable e) {
             throw logAndConvert(e);

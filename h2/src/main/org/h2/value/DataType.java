@@ -7,21 +7,25 @@ package org.h2.value;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Calendar;
 import java.util.HashMap;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
+import org.h2.jdbc.JdbcBlob;
+import org.h2.jdbc.JdbcClob;
+import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
+import org.h2.util.ByteUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
-import org.h2.util.TypeConverter;
 
 public class DataType {
     private static ObjectArray types = new ObjectArray();
@@ -256,7 +260,7 @@ public class DataType {
         }
         case Value.BYTES: {
             byte[] buff = rs.getBytes(columnIndex);
-            v = buff==null ? (Value)ValueNull.INSTANCE : ValueBytes.get(buff);
+            v = buff==null ? (Value)ValueNull.INSTANCE : ValueBytes.getNoCopy(buff);
             break;
         }
         case Value.UUID: {
@@ -345,7 +349,7 @@ public class DataType {
         }
         case Value.JAVA_OBJECT: {
             byte[] buff = rs.getBytes(columnIndex);
-            v = buff==null ? (Value)ValueNull.INSTANCE : ValueJavaObject.get(buff);
+            v = buff==null ? (Value)ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
             break;
         }
         default:
@@ -519,7 +523,7 @@ public class DataType {
         if(type == Value.JAVA_OBJECT) {
             // serialize JAVA_OBJECTs, even if the type is known
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.get(TypeConverter.serialize(x));
+                return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             }
         }
         if(x instanceof String) {
@@ -572,7 +576,7 @@ public class DataType {
             return ValueArray.get(v);
         } else {
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.get(TypeConverter.serialize(x));
+                return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             } else {
                 throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
             }
@@ -604,79 +608,35 @@ public class DataType {
         return false;
     }
 
-    public static java.util.Date parseDateTime(String s, int type, int errorCode) throws SQLException {
-        if (s == null) {
-            return null;
+    public static Object getDefaultForPrimitiveType(Class clazz) {
+        if(clazz == Boolean.TYPE) {
+            return Boolean.FALSE;
+        } else if(clazz == Byte.TYPE) {
+            return new Byte((byte)0);
+        } else if(clazz == Character.TYPE) {
+            return new Character((char)0);
+        } else if(clazz == Short.TYPE) {
+            return new Short((short)0);
+        } else if(clazz == Integer.TYPE) {
+            return new Integer(0);
+        } else if(clazz == Long.TYPE) {
+            return new Long(0);
+        } else if(clazz == Float.TYPE) {
+            return new Float(0);
+        } else if(clazz == Double.TYPE) {
+            return new Double(0);
+        } else {
+            throw Message.getInternalError("primitive="+ clazz.toString());
         }
-        try {
-            int timeStart;
-            if(type == Value.TIME) {
-                timeStart = 0;
-            } else {
-                timeStart = s.indexOf(' ') + 1;
-                if(timeStart <= 0) {
-                    // PostgreSQL compatibility
-                    timeStart = s.indexOf('T') + 1;
-                }
-            }
-            int year = 1970, month = 1, day = 1;
-            if (type != Value.TIME) {
-                int s1 = s.indexOf('-');
-                int s2 = s.indexOf('-', s1 + 1);
-                if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s);
-                }
-                year = Integer.parseInt(s.substring(0, s1));
-                month = Integer.parseInt(s.substring(s1 + 1, s2));
-                int end = timeStart == 0 ? s.length() : timeStart - 1;
-                day = Integer.parseInt(s.substring(s2 + 1, end));
-            }
-            int hour = 0, minute = 0, second = 0, nano = 0;
-            if (type != Value.DATE) {
-                int s1 = s.indexOf(':', timeStart);
-                int s2 = s.indexOf(':', s1 + 1);
-                int s3 = s.indexOf('.', s2 + 1);
-                if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s);
-                }
-                hour = Integer.parseInt(s.substring(timeStart, s1));
-                minute = Integer.parseInt(s.substring(s1 + 1, s2));
-                if (s3 < 0) {
-                    second = Integer.parseInt(s.substring(s2 + 1));
-                } else {
-                    second = Integer.parseInt(s.substring(s2 + 1, s3));
-                    String n = (s + "000000000").substring(s3 + 1, s3 + 10);
-                    nano = Integer.parseInt(n);
-                }
-            }
-            Calendar c = Calendar.getInstance();
-            c.setLenient(false);
-            long time;
-            c.set(Calendar.YEAR, year);
-            c.set(Calendar.MONTH, month - 1); // january is 0
-            c.set(Calendar.DAY_OF_MONTH, day);
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, second);
-            if(type != Value.TIMESTAMP) {
-                c.set(Calendar.MILLISECOND, nano / 1000000);
-            }
-            time = c.getTime().getTime();
-            switch(type) {
-            case Value.DATE:
-                return new java.sql.Date(time);
-            case Value.TIME:
-                return new java.sql.Time(time);
-            case Value.TIMESTAMP: {
-                Timestamp ts = new Timestamp(time);
-                ts.setNanos(nano);
-                return ts;
-            }
-            default:
-                throw Message.getInternalError("type:"+type);
-            }
-        } catch(IllegalArgumentException e) {
-            throw Message.getSQLException(errorCode, s);
+    }
+
+    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass) throws JdbcSQLException {
+        if(paramClass == java.sql.Blob.class) {
+            return new JdbcBlob(session, conn, v, 0);
+        } else if(paramClass == Clob.class) {
+            return new JdbcClob(session, conn, v, 0);
+        } else {
+            throw Message.getUnsupportedException();
         }
     }
 

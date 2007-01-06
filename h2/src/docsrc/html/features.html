@@ -137,14 +137,19 @@ Features
 <table><tr>
 <th>Feature</th>
 <th>H2</th>
-<th>HSQLDB</th>
 <th>Derby</th>
-<th>Daffodil</th>
+<th>HSQLDB</th>
 <th>MySQL</th>
 <th>PostgreSQL</th>
 </tr><tr>
 <td>Embedded Mode (Java)</td>
 <td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
+</tr><tr>
+<td>Pure Java</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -153,33 +158,22 @@ Features
 </tr><tr>
 <td>Performance (Embedded)</td>
 <td class="compareY">Fast</td>
+<td class="compareN">Slow</td>
 <td class="compareY">Fast</td>
-<td class="compareN">Slow</td>
-<td class="compareN">Slow</td>
 <td class="compareN">N/A</td>
 <td class="compareN">N/A</td>
-</tr><tr>
-<td>Performance (Server)</td>
-<td class="compareY">Fast</td>
-<td class="compareY">Fast</td>
-<td class="compareN">Slow</td>
-<td class="compareN">Slow</td>
-<td class="compareN">Slow</td>
-<td class="compareN">Slow</td>
 </tr><tr>
 <td>Transaction Isolation</td>
 <td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
 <td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>Cost Based Optimizer</td>
 <td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
 <td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
@@ -187,13 +181,11 @@ Features
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareN">No</td>
-<td class="compareN">No</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>Encrypted Database</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareN">No</td>
@@ -201,21 +193,25 @@ Features
 </tr><tr>
 <td>Files per Database</td>
 <td class="compareY">Few</td>
-<td class="compareY">Few</td>
 <td class="compareN">Many</td>
 <td class="compareY">Few</td>
 <td class="compareN">Many</td>
 <td class="compareN">Many</td>
 </tr><tr>
 <td>Footprint (jar/dll size)</td>
-<td class="compareY">~ 1 MB</td>
-<td class="compareY">~ 600 KB</td>
-<td class="compareY">~ 2 MB</td>
-<td class="compareY">~ 3 MB</td>
-<td class="compareN">~ 4 MB</td>
-<td class="compareN">~ 6 MB</td>
+<td>~ 1 MB</td>
+<td>~ 2 MB</td>
+<td>~ 600 KB</td>
+<td>~ 4 MB</td>
+<td>~ 6 MB</td>
 </tr>
 </table>
+
+<h3>DaffodilDb and One$Db</h3>
+It looks like the development of this database has stopped. The last release was February 2006.
+
+<h3>McKoi</h3>
+It looks like the development of this database has stopped. The last release was August 2004
 
 <br /><a name="products_work_with"></a>
 <h2>Products that Work with H2</h2>
@@ -1125,8 +1121,8 @@ public static ResultSet getMatrix(Integer id) throws SQLException {
     if(id == null) {
         return rs;
     }
-    for(int x = 0; x < id.intValue(); x++) {
-        for(int y = 0; y < id.intValue(); y++) {
+    for(int x = 0; x &lt; id.intValue(); x++) {
+        for(int y = 0; y &lt; id.intValue(); y++) {
             rs.addRow(new Object[] { new Integer(x), new Integer(y) });
         }
       }

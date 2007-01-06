@@ -1772,7 +1772,7 @@ public class Parser {
             if("X".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                 read();
                 byte[] buffer = ByteUtils.convertStringToBytes(currentValue.getString());
-                r = ValueExpression.get(ValueBytes.get(buffer));
+                r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
             } else if(readIf(".")) {
                 return readTermObjectDot(name);
             } else if (readIf("(")) {
@@ -1803,7 +1803,7 @@ public class Parser {
             } else if("TIMESTAMP".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                 String timestamp = currentValue.getString();
                 read();
-                return ValueExpression.get(ValueTimestamp.get(ValueTimestamp.parseTimestamp(timestamp)));
+                return ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
             } else if("CASE".equals(name)) {
                 if(isToken("WHEN")) {
                     return readWhen(null);

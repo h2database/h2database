@@ -24,7 +24,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.TypeConverter;
 
 /**
  * @author Thomas
@@ -431,6 +430,11 @@ public class ValueLob extends Value {
     }
 
     public byte[] getBytes() throws SQLException {
+        byte[] data = getBytesNoCopy();
+        return ByteUtils.cloneByteArray(data);
+    }
+
+    public byte[] getBytesNoCopy() throws SQLException {
         if (small != null) {
             return small;
         }
@@ -457,7 +461,7 @@ public class ValueLob extends Value {
             int c = getString().compareTo(v.getString());
             return c == 0 ? 0 : (c < 0 ? -1 : 1);
         } else {
-            byte[] v2 = v.getBytes();
+            byte[] v2 = v.getBytesNoCopy();
             return ByteUtils.compareNotNull(getBytes(), v2);
         }
     }
@@ -471,7 +475,7 @@ public class ValueLob extends Value {
     }
 
     public Reader getReader() throws SQLException {
-        return TypeConverter.getReader(getInputStream());
+        return IOUtils.getReader(getInputStream());
     }
 
     public InputStream getInputStream() throws SQLException {

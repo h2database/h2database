@@ -30,15 +30,41 @@ Initial Developer: H2 Group
         ${text.adminAllow}
     </h3>
     <p>
-        <input type="radio" name="allowOthers" value="false" <c:if test="allowOthers=='false'">checked</c:if>> ${text.adminLocal}<br>
-        <input type="radio" name="allowOthers" value="true" <c:if test="allowOthers=='true'">checked</c:if>> ${text.adminOthers}<br>
+    	<c:if test="allowOthers=='false'">
+    		<input type="radio" name="allowOthers" value="false" checked="checked">
+    	</c:if>
+    	<c:if test="allowOthers=='true'">
+    		<input type="radio" name="allowOthers" value="false">
+    	</c:if>
+    	${text.adminLocal}<br>
+    	
+    	<c:if test="allowOthers=='true'">
+    		<input type="radio" name="allowOthers" value="true" checked="checked">
+    	</c:if>
+    	<c:if test="allowOthers=='false'">
+    		<input type="radio" name="allowOthers" value="true">
+    	</c:if>
+        ${text.adminOthers}<br>
     </p>
     <h3>
         ${text.adminConnection}
     </h3>
     <p>
-        <input type="radio" name="ssl" value="false" <c:if test="ssl=='false'">checked</c:if>> ${text.adminHttp}<br>
-        <input type="radio" name="ssl" value="true" <c:if test="ssl=='true'">checked</c:if>> ${text.adminHttps}<br>
+    	<c:if test="ssl=='false'">
+    		<input type="radio" name="ssl" value="false" checked="checked">
+    	</c:if>
+    	<c:if test="ssl=='true'">
+    		<input type="radio" name="ssl" value="false">
+    	</c:if>
+    	${text.adminHttp}<br>
+
+    	<c:if test="ssl=='true'">
+    		<input type="radio" name="ssl" value="true" checked="checked">
+    	</c:if>
+    	<c:if test="ssl=='false'">
+    		<input type="radio" name="ssl" value="true">
+    	</c:if>
+		${text.adminHttps}<br>
     </p>
     <h3>
         Port number

@@ -14,7 +14,7 @@ public class ValueJavaObject extends ValueBytesBase {
         super(v);
     }
     
-    public static ValueJavaObject get(byte[] b) {
+    public static ValueJavaObject getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
         }

@@ -160,11 +160,12 @@ public class Column {
                     if(dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if(dt.type==Value.TIMESTAMP) {
-                        value = ValueTimestamp.get(new Timestamp(System.currentTimeMillis()));
+                        value = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis()));
                     } else if(dt.type==Value.TIME) {
+                        // need to normalize
                         value = ValueTime.get(Time.valueOf("0:0:0"));
                     } else if(dt.type==Value.DATE) {
-                        value = ValueTimestamp.get(new Timestamp(System.currentTimeMillis())).convertTo(dt.type);
+                        value = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis())).convertTo(dt.type);
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

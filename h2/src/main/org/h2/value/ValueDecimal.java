@@ -32,6 +32,9 @@ public class ValueDecimal extends Value {
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
             throw new NullPointerException();
+        } else if(!value.getClass().equals(BigDecimal.class)) {
+            SQLException e = Message.getSQLException(Message.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()}, null);
+            throw Message.convertToInternal(e);
         }
         this.value = value;
     }
@@ -158,7 +161,7 @@ public class ValueDecimal extends Value {
         } else if (DEC_ONE.equals(dec)) {
             return ONE;
         }
-        // TODO value optimization: find a way to find out size of bigdecimal,
+        // TODO value optimization: find a way to read size of bigdecimal,
         // check max cache size
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }

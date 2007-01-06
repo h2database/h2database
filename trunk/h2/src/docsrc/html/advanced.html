@@ -94,12 +94,12 @@ This database supports the transaction isolation level 'serializable', in which 
 reads and phantom reads are prohibited.
 
 <ul>
-<li><b>Dirty Reads</b><br>
+<li><b>Dirty Reads</b><br />
     Means a connection can read uncommitted changes made by another connection.
-<li><b>Non-Repeatable Reads</b><br>
+<li><b>Non-Repeatable Reads</b><br />
     A connection reads a row, another connection changes a row and commits,
     and the first connection re-reads the same row and gets the new result.
-<li><b>Phantom Reads</b><br>
+<li><b>Phantom Reads</b><br />
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
     re-reads using the same condition and gets the new row.
@@ -129,6 +129,7 @@ for each connection.
 
 <br /><a name="clustering"></a>
 <h2>Clustering / High Availability</h2>
+<p>
 This database supports a simple clustering / high availability mechanism. The architecture is:
 two database servers run on two different computers, and on both computers is a copy of the
 same database. If both servers run, each database operation is executed on both computers.
@@ -139,8 +140,9 @@ Clustering can only be used in the server mode (the embedded mode does not suppo
 It is possible to restore the cluster without stopping the server, however it is critical that no other
 application is changing the data in the first database while the second database is restored, so
 restoring the cluster is currently a manual process.
-<p>
+</p><p>
 To initialize the cluster, use the following steps:
+</p>
 <ul>
 <li>Create a database
 <li>Use the CreateCluster tool to copy the database to another location and initialize the clustering.
@@ -289,7 +291,7 @@ where you can create new or modify existing data sources.
 When you create a new H2 ODBC data source, a dialog window will appear
 and ask for the database settings:
 <p>
-<img src="odbcDataSource.png" alt="ODBC Configuration">
+<img src="odbcDataSource.png" alt="ODBC Configuration"/>
 
 <h3>Log Option</h3>
 The driver is able to log operations to a file.
@@ -639,7 +641,7 @@ Here is a small program to estimate the proability of having two identical UUIDs
 after generating a number of values:
 <pre>
 double x = Math.pow(2, 122);
-for(int i=35; i<62; i++) {
+for(int i=35; i&lt;62; i++) {
     double n = Math.pow(2, i);
     double p = 1 - Math.exp(-(n*n)/(2*x));
     String ps = String.valueOf(1+p).substring(1); 

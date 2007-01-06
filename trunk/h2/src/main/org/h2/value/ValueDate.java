@@ -7,9 +7,9 @@ package org.h2.value;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Calendar;
 
 import org.h2.message.Message;
+import org.h2.util.DateTimeUtils;
 
 /**
  * @author Thomas
@@ -20,26 +20,21 @@ public class ValueDate extends Value {
     private Date value;
 
     private ValueDate(Date value) {
-        // this class is mutable - must copy the object
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(value);
-        // TODO gcj: required so that the millis are calculated?
-        cal.get(Calendar.YEAR);        
-        cal.set(Calendar.MILLISECOND, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        this.value = new Date(cal.getTime().getTime());
+        this.value = value;
     }
 
     public static Date parseDate(String s) throws SQLException {
-        return (Date) DataType.parseDateTime(s, Value.DATE, Message.DATE_CONSTANT_1);
+        return (Date) DateTimeUtils.parseDateTime(s, Value.DATE, Message.DATE_CONSTANT_1);
     }
 
     public Date getDate() {
         // this class is mutable - must copy the object
         return (Date)value.clone();
     }
+    
+    public Date getDateNoCopy() {
+        return value;
+    }    
 
     public String getSQL() {
         return "DATE '" + getString() + "'";
@@ -77,8 +72,13 @@ public class ValueDate extends Value {
     }
 
     public static ValueDate get(Date date) {
-        return (ValueDate) Value.cache(new ValueDate(date));
+        date = DateTimeUtils.cloneAndNormalizeDate(date);
+        return getNoCopy(date);
     }
+    
+    public static ValueDate getNoCopy(Date date) {
+        return (ValueDate) Value.cache(new ValueDate(date));
+    }    
 
 //    public String getJavaString() {
 //        return "Date.valueOf(\"" + toString() + "\")";

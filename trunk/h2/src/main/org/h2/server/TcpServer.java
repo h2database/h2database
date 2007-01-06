@@ -68,7 +68,7 @@ public class TcpServer implements Service {
         }
     }
 
-    public static void stopServer(int port, String password, int shutdownMode) {
+    public static synchronized void stopServer(int port, String password, int shutdownMode) {
         TcpServer server = (TcpServer) servers.get("" + port);
         if(server == null) {
             return;
@@ -125,8 +125,10 @@ public class TcpServer implements Service {
     }
     
     public void start() throws SQLException {
-        initManagementDb();
-        serverSocket = NetUtils.createServerSocket(port, ssl);
+        synchronized(TcpServer.class) {
+            initManagementDb();
+            serverSocket = NetUtils.createServerSocket(port, ssl);
+        }
     }
     
     public void listen() {
@@ -146,7 +148,9 @@ public class TcpServer implements Service {
                 TraceSystem.traceThrowable(e);
             }
         }
-        stopManagementDb();
+        synchronized(TcpServer.class) {
+            stopManagementDb();
+        }
     }
 
     public boolean isRunning() {

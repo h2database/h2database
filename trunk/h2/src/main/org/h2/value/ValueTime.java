@@ -7,31 +7,29 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
-import java.util.Calendar;
 
 import org.h2.message.Message;
+import org.h2.util.DateTimeUtils;
 
 public class ValueTime extends Value {
     public static final int PRECISION = 6;
     private Time value;
 
     private ValueTime(Time value) {
-        // this class is mutable - must copy the object
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(value);
-        // TODO gcj: required so that the millis are calculated?
-        cal.get(Calendar.HOUR_OF_DAY);
-        cal.set(1970, 0, 1);
-        this.value = new Time(cal.getTime().getTime());        
+        this.value = value;
     }
 
     public static Time parseTime(String s) throws SQLException {
-        return (Time) DataType.parseDateTime(s, Value.TIME, Message.TIME_CONSTANT_1);
+        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, Message.TIME_CONSTANT_1);
     }
 
     public Time getTime() {
         // this class is mutable - must copy the object
         return (Time)value.clone();
+    }
+    
+    public Time getTimeNoCopy() {
+        return value;
     }
 
     public String getSQL() {
@@ -68,9 +66,14 @@ public class ValueTime extends Value {
         prep.setTime(parameterIndex, value);
     }
 
-    public static ValueTime get(Time date) {
-        return (ValueTime) Value.cache(new ValueTime(date));
+    public static ValueTime get(Time time) {
+        time = DateTimeUtils.cloneAndNormalizeTime(time);
+        return getNoCopy(time);
     }
+    
+    public static ValueTime getNoCopy(Time time) {
+        return (ValueTime) Value.cache(new ValueTime(time));
+    }    
 
 //    public String getJavaString() {
 //        return "Time.valueOf(\"" + toString() + "\")";

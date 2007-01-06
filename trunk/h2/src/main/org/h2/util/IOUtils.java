@@ -4,13 +4,21 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.sql.SQLException;
+
+import org.h2.engine.Constants;
+import org.h2.message.Message;
 
 public class IOUtils {
     
@@ -193,4 +201,37 @@ public class IOUtils {
         }
         return off < 0 ? -1 : off;
     }
+    
+    public static Reader getReader(InputStream in) throws SQLException {
+        try {
+            // InputStreamReader may read some more bytes
+            return in == null ? null : new InputStreamReader(in, Constants.UTF8);
+        } catch (UnsupportedEncodingException e) {
+            throw Message.convert(e);
+        }
+    }
+
+    public static InputStream getInputStream(String s) throws SQLException {
+        if(s == null) {
+            return null;
+        }
+        return new ByteArrayInputStream(StringUtils.utf8Encode(s));
+    }
+
+    public static InputStream getInputStream(Reader x) throws SQLException {
+        return x == null ? null : new ReaderInputStream(x);
+    }
+
+    public static Reader getReader(String s) {
+        return s == null ? null : new StringReader(s);
+    }
+
+    public static Reader getAsciiReader(InputStream x) throws SQLException {
+        try {
+            return x == null ? null : new InputStreamReader(x, "US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            throw Message.convert(e);
+        }
+    }
+
 }

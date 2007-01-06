@@ -14,7 +14,6 @@ import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.TypeConverter;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -152,7 +151,7 @@ public class FunctionAlias extends DbObject {
                         if(columnList) {
                             // if the column list is requested, the parameters may be null
                             // need to set to default value otherwise the function can't be called at all
-                            o = TypeConverter.getDefaultForPrimitiveType(paramClass);
+                            o = DataType.getDefaultForPrimitiveType(paramClass);
                         } else {
                             // NULL value for a java primitive: return NULL
                             return ValueNull.INSTANCE;
@@ -160,7 +159,7 @@ public class FunctionAlias extends DbObject {
                     }
                 } else {
                     if(!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
-                        o = TypeConverter.convertTo(session, session.createConnection(false), v, paramClass);
+                        o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
                     }
                 }
                 params[p] = o;

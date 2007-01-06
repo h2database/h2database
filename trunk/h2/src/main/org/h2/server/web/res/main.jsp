@@ -17,7 +17,7 @@ Initial Developer: H2 Group
     </script>
 
 </head>
-<body margin=10>
+<body margin="10">
     <h1>Welcome to H2</h1>
     <h2><a href="index.jsp">Connect</a></h2>
     Login to a database.

@@ -19,12 +19,12 @@ Initial Developer: H2 Group
 </head>
 <body style="margin: 20px">
     <form name="adminLogin" method="post" action="/admin.do?jsessionid=${sessionId}">
-        <table class="login" cellspacing=0 cellpadding=0>
+        <table class="login" cellspacing="0" cellpadding="0">
             <tr class="login">
                 <th class="login">${text.adminLogin}</th>
                 <th class="login"></th>
             </tr>
-            <tr><td  class="login" colspan=2></td></tr>
+            <tr><td  class="login" colspan="2"></td></tr>
             <tr class="login">
                 <td class="login">${text.a.password}:</td>
                 <td class="login"><input type="password" name="password" value="" style="width:200px;"></td>

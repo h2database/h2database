@@ -87,6 +87,14 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
+        // TODO check that xml is well formed, and html is more or less.
+        
+        // PayPal donate - aaa.html/main.html
+        
+        // maybe use system property for base directory (h2.baseDir)
+        
+        // feature request: user defined aggregate functions
+        
         // auto-upgrade application:
         // check if new version is available 
         // (option: digital signature)
@@ -351,8 +359,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         beforeTest();
 
         // db
-        new TestScript().runTest(this);
         new TestScriptSimple().runTest(this);
+        new TestScript().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBatchUpdates().runTest(this);
         new TestBigDb().runTest(this);
@@ -402,6 +410,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         new TestStatement().runTest(this);
         new TestTransactionIsolation().runTest(this);
         new TestUpdatableResultSet().runTest(this);
+        new TestZloty().runTest(this);
 
         afterTest();
     }

@@ -22,10 +22,14 @@ abstract class ValueBytesBase extends Value {
         return "X'" + getString() + "'";
     }
 
-    public byte[] getBytes() {
+    public byte[] getBytesNoCopy() {
         return value;
     }
-    
+
+    public byte[] getBytes() {
+        return ByteUtils.cloneByteArray(value);
+    }
+
     protected int compareSecure(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytesBase) v).value;
         return ByteUtils.compareNotNull(value, v2);

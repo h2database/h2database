@@ -11,17 +11,16 @@ import java.io.StringReader;
 
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
-import org.h2.util.TypeConverter;
 
 public class TestReader extends TestBase {
 
     public void test() throws Exception {
         String s = "\u00ef\u00f6\u00fc";
         StringReader r = new StringReader(s);
-        InputStream in = TypeConverter.getInputStream(r);
+        InputStream in = IOUtils.getInputStream(r);
         byte[] buff = IOUtils.readBytesAndClose(in, 0);
         InputStream in2 = new ByteArrayInputStream(buff);
-        Reader r2 = TypeConverter.getReader(in2);
+        Reader r2 = IOUtils.getReader(in2);
         String s2 = IOUtils.readStringAndClose(r2, Integer.MAX_VALUE);
         check(s2, "\u00ef\u00f6\u00fc");
     }

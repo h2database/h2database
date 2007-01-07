@@ -72,9 +72,11 @@ function set(s) {
 </td></tr>
 </table>
 <h3>${text.helpAddDrivers}</h3>
-${text.helpAddDriversText}
 <p>
+${text.helpAddDriversText}
+</p><p>
 ${text.helpAddDriversOnlyJava}
+</p>
 
 </div>
 

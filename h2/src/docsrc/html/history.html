@@ -12,13 +12,13 @@ History
 
 <h1>History and Roadmap</h1>
 <a href="#history">
-    History of this Database Engine</a><br />
+    History of this Database Engine</a><br>
 <a href="#changelog">
-    Change Log</a><br />
+    Change Log</a><br>
 <a href="#roadmap">
-    Roadmap</a><br />
+    Roadmap</a><br>
 
-<br /><a name="history"></a>
+<br><a name="history"></a>
 <h2>History of this Database Engine</h2>
 The development of H2 was started in May 2004,
 but it was first published on December 14th 2005.
@@ -29,21 +29,21 @@ to continued to work on the Hypersonic SQL codebase.
 The name H2 stands for Hypersonic 2; however H2 does not share any code with
 Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
-<br /><a name="changelog"></a>
+<br><a name="changelog"></a>
 <h2>Change Log</h2>
 
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO</h3><ul>
 <li>Can now parse timestamps with timezone information (Z or +/-hh:mm) and dates before year 1.
-	However dates before year 1 are not formatted correctly (this is a Java problem).
+    However dates before year 1 are not formatted correctly (this is a Java problem).
 <li>When stopping the TCP server from an application and immediately afterwards staring it again
-	using a different TCP password, an exception was thrown sometimes.
+    using a different TCP password, an exception was thrown sometimes.
 <li>Now PreparedStatement.setBigDecimal(..) can only be called with an object
-	of type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to
-	Maciej Wegorkiewicz for finding this problem.
+    of type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to
+    Maciej Wegorkiewicz for finding this problem.
 <li>It was possible to manipulate values in the byte array after calling PreparedStatement.setBytes, and this
-	could lead to problems if the same byte array was used again. Now the byte array is copied if required.
+    could lead to problems if the same byte array was used again. Now the byte array is copied if required.
 <li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed.
 </ul>
 
@@ -1349,7 +1349,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     First public release.
 </ul>
 
-<br /><a name="roadmap"></a>
+<br><a name="roadmap"></a>
 <h2>Roadmap</h2>
 
 <h3>Highest Priority</h3>

@@ -16,38 +16,38 @@ INSERT INTO ITEM VALUES(19,
 <br/>
 <b>Changes and new functionality:</b>
 <ul>
-<li>H2 is now available in Maven. The groupId is com.h2database, 	the 
-	artifactId is h2 and the version 1.0.20061217 (the new version will be 
-	available in a few days). To create the maven artifacts yourself, use 
-	''ant mavenUploadLocal'' and ''ant mavenBuildCentral''.
+<li>H2 is now available in Maven. The groupId is com.h2database,     the 
+    artifactId is h2 and the version 1.0.20061217 (the new version will be 
+    available in a few days). To create the maven artifacts yourself, use 
+    ''ant mavenUploadLocal'' and ''ant mavenBuildCentral''.
 <li>Many settings are now initialized from system properties and can be 
-	changed on the command line without having recompile the database. 
-	See Advances / Settings Read from System Properties.
+    changed on the command line without having recompile the database. 
+    See Advances / Settings Read from System Properties.
 <li>The (relative or absolute) directory where the script files are stored 
-	or read can now be changed using the system property h2.scriptDirectory
+    or read can now be changed using the system property h2.scriptDirectory
 <li>Client trace files now created in the directory ''trace.db'' and no 
-	longer the application directory. This can be changed using the system 
-	property h2.clientTraceDirectory.
+    longer the application directory. This can be changed using the system 
+    property h2.clientTraceDirectory.
 <li>Build: Now using ant-build.properties. The JDK is automatically updated 
-	when using ant codeswitch_...
+    when using ant codeswitch_...
 <li>Cluster: Now the server can detect if a query is read-only, and in this 
-	case the result is only read from the first cluster node. However, there 
-	is currently no load balancing made to avoid problems with transactions 
-	/ locking.
+    case the result is only read from the first cluster node. However, there 
+    is currently no load balancing made to avoid problems with transactions 
+    / locking.
 </ul>
 <b>Bugfixes:</b>
 <ul>
 <li>If a CLOB or BLOB was deleted in a transaction and the database crashed 
-	before the transaction was committed or rolled back, the object was lost if 
-	it was large. Fixed.
+    before the transaction was committed or rolled back, the object was lost if 
+    it was large. Fixed.
 <li>Prepared statements with non-constant functions such as 
-	CURRENT_TIMESTAMP() did not get re-evaluated if the result of the 
-	function changed. Fixed.
+    CURRENT_TIMESTAMP() did not get re-evaluated if the result of the 
+    function changed. Fixed.
 <li>In some situations the log file got corrupt if the process was terminated 
-	while the database was opening.
+    while the database was opening.
 <li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 <li>It was possible to drop the sequence of a temporary tables with DROP 
-	ALL OBJECTS, resulting in a null pointer exception afterwards.
+    ALL OBJECTS, resulting in a null pointer exception afterwards.
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 </ul>

@@ -43,8 +43,9 @@ Functions
 <pre>
 ${item.syntax}
 </pre>
-${item.text}
 <p>
+${item.text}
+</p>
 <b>Example:</b><br>
 ${item.example}
 <br>

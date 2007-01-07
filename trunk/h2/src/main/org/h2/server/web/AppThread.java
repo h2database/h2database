@@ -564,10 +564,10 @@ public class AppThread extends WebServerThread {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
                 }
-                result = "Transaction Isolation: " + conn.getTransactionIsolation() + "<br />";
-                result += Connection.TRANSACTION_READ_UNCOMMITTED + ": READ_UNCOMMITTED<br />";
-                result += Connection.TRANSACTION_READ_COMMITTED + ": READ_COMMITTED<br />";
-                result += Connection.TRANSACTION_REPEATABLE_READ + ": REPEATABLE_READ<br />";
+                result = "Transaction Isolation: " + conn.getTransactionIsolation() + "<br>";
+                result += Connection.TRANSACTION_READ_UNCOMMITTED + ": READ_UNCOMMITTED<br>";
+                result += Connection.TRANSACTION_READ_COMMITTED + ": READ_COMMITTED<br>";
+                result += Connection.TRANSACTION_REPEATABLE_READ + ": REPEATABLE_READ<br>";
                 result += Connection.TRANSACTION_SERIALIZABLE + ": SERIALIZABLE";
             } else if(sql.startsWith("@SET MAXROWS ")) {
                 int maxrows = Integer.parseInt(sql.substring("@SET MAXROWS ".length()));
@@ -588,10 +588,10 @@ public class AppThread extends WebServerThread {
                     String s = (String) list.get(i);
                     if(!s.startsWith("@")) {
                         buff.append(PageParser.escapeHtml(s+";"));
-                        buff.append("<br />");
+                        buff.append("<br>");
                     }
                     buff.append(getResult(conn, i+1, s, list.size()==1));
-                    buff.append("<br />");
+                    buff.append("<br>");
                 }
                 result = buff.toString();
             }

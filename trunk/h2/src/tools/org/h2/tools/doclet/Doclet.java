@@ -61,7 +61,7 @@ public class Doclet {
         writer.println("<table class=\"content\"><tr class=\"content\"><td class=\"content\"><div class=\"contentDiv\">");
 
         writer.println("<h1>"+className+"</h1>");
-        writer.println(clazz.commentText()+"<br /><br />");
+        writer.println(clazz.commentText()+"<br><br>");
 
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator() {
@@ -117,7 +117,7 @@ public class Doclet {
                 continue;
             }
             if(fieldId==0) {
-                writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
+                writer.println("<br><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
             String name = field.name();
             String type = getTypeName(true, field.type());
@@ -174,7 +174,7 @@ public class Doclet {
             boolean space = false;
             for(int j=0; j<paramTags.length; j++) {
                 if(!space) {
-                    writer.println("<br /><br >");
+                    writer.println("<br><br >");
                     space = true;
                 }
                 String p = paramTags[j].parameterName() + " - " + paramTags[j].parameterComment();
@@ -186,7 +186,7 @@ public class Doclet {
             Tag[] returnTags = method.tags("return");
             if(returnTags != null && returnTags.length>0) {
                 if(!space) {
-                    writer.println("<br /><br >");
+                    writer.println("<br><br >");
                     space = true;
                 }
                 writer.println("<div class=\"itemTitle\">Returns:</div>");
@@ -195,7 +195,7 @@ public class Doclet {
             ThrowsTag[] throwsTags =  method.throwsTags();
             if(throwsTags != null && throwsTags.length > 0) {
                 if(!space) {
-                    writer.println("<br /><br >");
+                    writer.println("<br><br >");
                     space = true;
                 }
                 writer.println("<div class=\"itemTitle\">Throws:</div>");

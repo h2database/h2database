@@ -85,7 +85,7 @@ public class LinkChecker {
     }
     
     void process(String path) throws Exception {
-        if(path.endsWith("/CVS")) {
+        if(path.endsWith("/CVS") || path.endsWith("/.svn")) {
             return;
         }
         File file = new File(path);

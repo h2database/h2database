@@ -12,41 +12,41 @@ Advanced Topics
 
 <h1>Advanced Topics</h1>
 <a href="#resultsets">
-    Result Sets</a><br />
+    Result Sets</a><br>
 <a href="#large_objects">
-    Large Objects</a><br />
+    Large Objects</a><br>
 <a href="#linked_tables">
-    Linked Tables</a><br />
+    Linked Tables</a><br>
 <a href="#transaction_isolation">
-    Transaction Isolation</a><br />
+    Transaction Isolation</a><br>
 <a href="#clustering">
-    Clustering / High Availability</a><br />
+    Clustering / High Availability</a><br>
 <a href="#two_phase_commit">
-    Two Phase Commit</a><br />
+    Two Phase Commit</a><br>
 <a href="#compatibility">
-    Compatibility</a><br />
+    Compatibility</a><br>
 <a href="#windows_service">
-    Run as Windows Service</a><br />
+    Run as Windows Service</a><br>
 <a href="#odbc_driver">
-    ODBC Driver</a><br />
+    ODBC Driver</a><br>
 <a href="#acid">
-    ACID</a><br />
+    ACID</a><br>
 <a href="#using_recover_tool">
-    Using the Recover Tool</a><br />
+    Using the Recover Tool</a><br>
 <a href="#file_locking_protocols">
-    File Locking Protocols</a><br />
+    File Locking Protocols</a><br>
 <a href="#sql_injection">
-    Protection against SQL Injection</a><br />
+    Protection against SQL Injection</a><br>
 <a href="#security_protocols">
-    Security Protocols</a><br />
+    Security Protocols</a><br>
 <a href="#uuid">
-    Universally Unique Identifiers (UUID)</a><br />
+    Universally Unique Identifiers (UUID)</a><br>
 <a href="#system_properties">
-    Settings Read from System Properties</a><br />
+    Settings Read from System Properties</a><br>
 <a href="#glossary_links">
-    Glossary and Links</a><br />
+    Glossary and Links</a><br>
 
-<br /><a name="resultsets"></a>
+<br><a name="resultsets"></a>
 <h2>Result Sets</h2>
 
 <h3>Limiting the Number of Rows</h3>
@@ -62,7 +62,7 @@ For result set larger than 1000 rows, the result is buffered to disk. If ORDER B
 the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
 quick sort, then written to disk; when reading the data, the blocks are merged together.
 
-<br /><a name="large_objects"></a>
+<br><a name="large_objects"></a>
 <h2>Large Objects</h2>
 
 <h3>Storing and Reading Large Objects</h3>
@@ -75,7 +75,7 @@ and to read a CLOB, use ResultSet.getCharacterStream.
 If the client/server mode is used, the BLOB and CLOB data is fully read into memory when
 accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
 
-<br /><a name="linked_tables"></a>
+<br><a name="linked_tables"></a>
 <h2>Linked Tables</h2>
 
 This database supports linked tables, which means tables that don't exist in the current database but
@@ -88,18 +88,18 @@ There is a restriction when inserting data to this table: When inserting or upda
 NULL values and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
 
-<br /><a name="transaction_isolation"></a>
+<br><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>
 This database supports the transaction isolation level 'serializable', in which dirty reads, non-repeatable
 reads and phantom reads are prohibited.
 
 <ul>
-<li><b>Dirty Reads</b><br />
+<li><b>Dirty Reads</b><br>
     Means a connection can read uncommitted changes made by another connection.
-<li><b>Non-Repeatable Reads</b><br />
+<li><b>Non-Repeatable Reads</b><br>
     A connection reads a row, another connection changes a row and commits,
     and the first connection re-reads the same row and gets the new result.
-<li><b>Phantom Reads</b><br />
+<li><b>Phantom Reads</b><br>
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
     re-reads using the same condition and gets the new row.
@@ -127,7 +127,7 @@ the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
 
-<br /><a name="clustering"></a>
+<br><a name="clustering"></a>
 <h2>Clustering / High Availability</h2>
 <p>
 This database supports a simple clustering / high availability mechanism. The architecture is:
@@ -203,7 +203,7 @@ CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should no
 directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
 
-<br /><a name="two_phase_commit"></a>
+<br><a name="two_phase_commit"></a>
 <h2>Two Phase Commit</h2>
 The two phase commit protocol is supported. 2-phase-commit works as follows:
 <ul>
@@ -222,7 +222,7 @@ The two phase commit protocol is supported. 2-phase-commit works as follows:
 <li>The database needs to be closed and re-opened to apply the changes
 </ul>
 
-<br /><a name="compatibility"></a>
+<br><a name="compatibility"></a>
 <h2>Compatibility</h2>
 
 This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL.
@@ -234,17 +234,19 @@ For a query, this means the transaction is committed even before the application
 Other database engines may commit the transaction in this case when the result set is closed.
 
 <h3>Keywords / Reserved Words</h3>
+<p>
 There is a list of keywords that can't be used as identifiers (table names, column names and so on),
 unless they are quoted (surrounded with double quotes). The list is currently:
-<p>
+</p><p>
 CURRENT_TIMESTAMP, CURRENT_TIME, CURRENT_DATE, CROSS, DISTINCT, EXCEPT, EXISTS, FROM,
 FOR, FALSE, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, MINUS, NATURAL, NOT, NULL,
 ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
-<p>
+</p><p>
 Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
 for example CURRENT_TIMESTAMP.
+</p>
 
-<br /><a name="windows_service"></a>
+<br><a name="windows_service"></a>
 <h2>Run as Windows Service</h2>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service. 
 There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
@@ -276,7 +278,7 @@ Please note that the batch file does not print an error message if the service i
 To uninstall the service, double click on 5_uninstall_service.bat.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 
-<br /><a name="odbc_driver"></a>
+<br><a name="odbc_driver"></a>
 <h2>ODBC Driver</h2>
 The ODBC driver of this database is currently not very stable and only tested superficially
 with a few applications (OpenOffice 2.0, Microsoft Excel and Microsoft Access) and
@@ -284,14 +286,15 @@ data types (INT and VARCHAR), and should not be used for production applications
 Only a Windows version of the driver is available at this time.
 
 <h3>ODBC Installation</h3>
+<p>
 Before the ODBC driver can be used, it needs to be installed. To do this,
 double click on h2odbcSetup.exe. If you do this the first time, it will ask you to locate the
 driver dll (h2odbc.dll). If you already installed it, the ODBC administration dialog will open
 where you can create new or modify existing data sources.
 When you create a new H2 ODBC data source, a dialog window will appear
 and ask for the database settings:
-<p>
-<img src="odbcDataSource.png" alt="ODBC Configuration"/>
+</p>
+<img src="odbcDataSource.png" alt="ODBC Configuration">
 
 <h3>Log Option</h3>
 The driver is able to log operations to a file.
@@ -319,7 +322,7 @@ Therefore the ODBC driver should not be used where security is important.
 <h3>Uninstalling</h3>
 To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uninstall the driver.
 
-<br /><a name="acid"></a>
+<br><a name="acid"></a>
 <h2>ACID</h2>
 In the DBMS world, ACID stands for Atomicity, Consistency, Isolation, and Durability.
 <ul>
@@ -344,13 +347,15 @@ In many database, this rule is often relaxed to provide better performance,
 by supporting other transaction isolation levels.
 
 <h3>Durability</h3>
+<p>
 This database does not guarantee that all committed transactions survive a power failure.
 If durability is required even in case of power failure, some sort of uninterruptible power supply (UPS) is required
 (like using a laptop, or a battery pack). If durability is required even in case of hardware failure,
 the clustering mode of this database should be used.
-<p>
+</p><p>
 To achieve durability, it would be required to flush all file buffers (including system buffers) to hard disk for each commit.
 In Java, there are two ways how this can be achieved:
+</p>
 <ul>
 <li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
 Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDesecriptor
@@ -363,6 +368,7 @@ There is one related option, but it does not force changes to disk: RandomAccess
 <li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
 <li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
 </ul>
+<p>
 A simple power-off test using two computers (they communicate over the network, and one the power
 is switched off on one computer) shows that the data is not always persisted to the hard drive,
 even when calling FileDescriptor.sync() or FileChannel.force().
@@ -370,7 +376,7 @@ The reason for this is that most hard drives do not obey the fsync() function.
 For more information, see 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252&amp;tid=198&amp;tid=128).
 The test was made with this database, as well as with PostgreSQL, Derby, and HSQLDB.
 None of those databases was able to guarantee complete transaction durability.
-<p>
+</p><p>
 The test also shows that when calling FileDescriptor.sync() or FileChannel.force() after each file operation,
 only around 30 file operations per second can be made. That means, the fastest possible Java database
 that calls one of those functions can reach a maximum of around 30 committed
@@ -378,13 +384,13 @@ transactions per second.
 Without calling these functions, around 400000 file operations per second are possible
 when using RandomAccessFile(..,"rw"), and around 2700 when using
 RandomAccessFile(.., "rws"/"rwd").
-<p>
+</p><p>
 That means that when using one of those functions, the performance goes down to at most
 30 committed transactions per second, and even then there is no guarantee that transactions are durable.
 These are the reasons that this database does not guarantee durability of transaction by default.
 The database calls FileDescriptor.sync() when executing the SQL statement CHECKPOINT SYNC.
 But by default, this database uses an asynchronous commit.
-
+</p>
 <h3>Running the Durability Test</h3>
 To test the durability / non-durability of this and other databases, you can use the test application
 in the package org.h2.test.poweroff. Two computers with network connection are required to run this test.
@@ -399,7 +405,7 @@ run the application again. You will find out that in most cases, none of the dat
 records that the listener computer knows about. For details, please consult the source code of the
 listener and test application.
 
-<br /><a name="using_recover_tool"></a>
+<br><a name="using_recover_tool"></a>
 <h2>Using the Recover Tool</h2>
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
 At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
@@ -412,12 +418,13 @@ This file contains raw insert statement (for the data) and data definition (DDL)
 the schema of the database. This file cannot be executed directly, as the raw insert statements
 don't have the correct table names, so the file needs to be pre-processed manually before executing.
 
-<br /><a name="file_locking_protocols"></a>
+<br><a name="file_locking_protocols"></a>
 <h2>File Locking Protocols</h2>
+<p>
 Whenever a database is opened, a lock file is created to signal other processes
 that the database is in use. If database is closed, or if the process that opened
 the database terminates, this lock file is deleted.
-<p>
+</p><p>
 In special cases (if the process did not terminate normally, for example because
 there was a blackout), the lock file is not deleted by the process that created it.
 That means the existence of the lock file is not a safe protocol for file locking.
@@ -426,6 +433,7 @@ files. There are two methods (algorithms) implemented to provide both security
 (that is, the same database files cannot be opened by two processes at the same time)
 and simplicity (that is, the lock file does not need to be deleted manually by the user).
 The two methods are 'file method' and 'socket methods'.
+</p>
 
 <h3>File Locking Method 'File'</h3>
 The default method for database file locking is the 'File Method'. The algorithm is:
@@ -462,6 +470,7 @@ the file cannot be locked by any of them) for some time. However, the file never
 locked by two threads at the same time. However using that many concurrent threads
 / processes is not the common use case. Generally, an application should throw an error
 to the user if it cannot open a database, and not try again in a (fast) loop.
+</p>
 
 <h3>File Locking Method 'Socket'</h3>
 There is a second locking mechanism implemented, but disabled by default.
@@ -484,7 +493,7 @@ file every second. The problem with this method is, if the file is stored on a n
 share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
 
-<br /><a name="sql_injection"></a>
+<br><a name="sql_injection"></a>
 <h2>Protection against SQL Injection</h2>
 <h3>What is SQL Injection</h3>
 This database engine provides a solution for the security vulnerability known as 'SQL Injection'. 
@@ -547,13 +556,14 @@ It is not required to create a constant for the number 0 as there is already a b
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
 
-<br /><a name="security_protocols"></a>
+<br><a name="security_protocols"></a>
 <h2>Security Protocols</h2>
 The following paragraphs document the security protocols used in this database.
 These descriptions are very technical and only intended for security experts that already know
 the underlying security primitives.
 
 <h3>User Password Encryption</h3>
+<p>
 When a user tries to connect to a database, the combination of
 user name, @, and password hashed using SHA-256, and this hash value
 is transmitted to the database.
@@ -565,12 +575,12 @@ That means if a user reuses the same password for different things,
 this password is still protected up to some point. See also
 'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication'
 for more information.
-<p>
+</p><p>
 When a new database or user is created, a new cryptographically secure
 random salt value is generated. The size of the salt is 64 bit.
 Using the random salt reduces the risk of an attacker pre-calculating hash values
 for many different (commonly used) passwords.
-<p>
+</p><p>
 The combination of user-password hash value (see above) and salt is hashed
 using SHA-256. The resulting value is stored in the database.
 When a user tries to connect to the database, the database combines
@@ -582,41 +592,44 @@ spends a lot of time calculating the hash value for each password).
 The reasoning is: if the attacker has access to the hashed passwords, he also has
 access to the data in plain text, and therefore does not need the password any more.
 If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
+</p>
 
 <h3>File Encryption</h3>
+<p>
 The database files can be encrypted using two different algorithms: AES-128 and
 XTEA (using 32 rounds). The reasons for supporting XTEA is performance
 (XTEA is about twice as fast as AES) and to have an alternative algorithm if
 AES is suddenly broken.
-<p>
+</p><p>
 When a user tries to connect to an encrypted database, the combination of the word
 'file', @, and the file password is hashed using SHA-256. This hash value is
 transmitted to the server.
-<p>
+</p><p>
 When a new database file is created, a new cryptographically secure
 random salt value is generated. The size of the salt is 64 bit.
 The combination of the file password hash and the salt value is hashed 1024 times
 using SHA-256. The reason for the iteration is to make it harder for an attacker to
 calculate hash values for common passwords.
-<p>
+</p><p>
 The resulting hash value is used as the key for the block cipher algorithm
 (AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key
 is calculated by hashing the key again using SHA-256.
 This is to make sure the IV is unknown to the attacker.
 The reason for using a secret IV is to protect against watermark attacks.
-<p>
+</p><p>
 Before saving a block of data (each block is 8 bytes long), the following operations are executed:
 First, the IV is calculated by encrypting the block number with the IV key (using the same
 block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is
 encrypted using the AES-128 or XTEA algorithm.
-<p>
+</p><p>
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key,
 and then the IV is calculated combined with the decrypted text using XOR.
-<p>
+</p><p>
 Therefore, the block cipher modes of operation is CBC (Cipher-block chaining), but each chain
 is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns
 in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits
 are not propagated to flipped plaintext bits in the next block.
+</p>
 
 <h3>SSL/TLS Connections</h3>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
@@ -628,7 +641,7 @@ The web server supports HTTP and HTTPS connections using SSLServerSocket.
 There is a default self-certified certificate to support an easy starting point, but
 custom certificates are supported as well.
 
-<br /><a name="uuid"></a>
+<br><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
 This database supports UUIDs. Also upported is a function to create new UUIDs using 
 a cryptographically strong pseudo random number generator.
@@ -657,7 +670,7 @@ Some values are:
 One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, 
 that means the probability is about 0.000'000'000'06.
 
-<br /><a name="system_properties"></a>
+<br><a name="system_properties"></a>
 <h2>Settings Read from System Properties</h2>
 <p>
 Some settings of the database can be set on the command line using
@@ -701,7 +714,7 @@ INFORMATION_SCHEMA.SETTINGS
 <tr><td>h2.scriptDirectory</td><td></td><td>Relative or absolute directory where the script files are stored to or read from</td></tr>
 </table>
 
-<br /><a name="glossary_links"></a>
+<br><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>
 <table><tr><th>Term</th><th>Description</th></tr>
 <tr>

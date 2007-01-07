@@ -139,6 +139,8 @@
 		<java classname="org.h2.tools.doc.LinkChecker" classpath="bin">
 			<arg line="-dir docs"/>
 		</java>
+		<java classname="org.h2.tools.doc.XMLChecker" classpath="bin">
+		</java>
 	</target>
 
 	<target name="gcj" depends="compileResources">

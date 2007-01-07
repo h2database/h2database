@@ -12,43 +12,44 @@ Tutorial
 
 <h1>Tutorial</h1>
 <a href="#tutorial_starting_h2_console">
-    Starting and Using the H2 Console</a><br />
+    Starting and Using the H2 Console</a><br>
 <a href="#connecting_using_jdbc">
-    Connecting to a Database using JDBC</a><br />
+    Connecting to a Database using JDBC</a><br>
 <a href="#creating_new_databases">
-    Creating New Databases</a><br />
+    Creating New Databases</a><br>
 <a href="#using_server">
-    Using the Server</a><br />    
+    Using the Server</a><br>    
 <a href="#using_hibernate">
-    Using Hibernate</a><br />
+    Using Hibernate</a><br>
 <a href="#web_applications">
-    Using Databases in Web Applications</a><br />
+    Using Databases in Web Applications</a><br>
 <a href="#csv">
-    CSV (Comma Separated Values) Support</a><br />
+    CSV (Comma Separated Values) Support</a><br>
 <a href="#upgrade_backup_restore">
-    Upgrade, Backup, and Restore</a><br />
+    Upgrade, Backup, and Restore</a><br>
 <a href="#openoffice">
-    Using OpenOffice Base</a><br />
+    Using OpenOffice Base</a><br>
 
-<br /><a name="tutorial_starting_h2_console"></a>
+<br><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
-
+<p>
 This application lets you access a SQL database using a browser interface.
 This can be a H2 database, or another database that supports the JDBC API.
-<br>
+</p>
 <img src="console.png" alt="Web Browser - H2 Console Server - H2 Database">
-<br>
-This is a client / server application, so both a server and a client are required to run it.
 <p>
+This is a client / server application, so both a server and a client are required to run it.
+</p><p>
 Depending on your platform and environment, there are multiple ways to start the application:
-<table><tr><th>OS</th><th>Java</th><th>Start</th>
+</p>
+<table><tr><th>OS</th><th>Java</th><th>Start</th></tr>
 <tr>
   <td>Windows</td>
   <td>1.4 or 1.5</td>
   <td>
       Click [Start], [All Programs], [H2], and [H2 Console]<br>
       If this worked correctly, an icon will be added to the system tray:
-    <img src="h2.png" alt="[H2 icon]"/><br>
+    <img src="h2.png" alt="[H2 icon]"><br>
     If you don't get the system tray icon, then maybe Java is not installed correctly (in this case, try another way to start the application).
     A browser window should open
     and point to the Login page (URL: <a href="http://localhost:8082" target="_blank">http://localhost:8082</a>).
@@ -78,15 +79,17 @@ java -cp h2.jar org.h2.tools.Server
 </table>
 
 <h3>Firewall</h3>
+<p>
 If you start the server, you may get a security warning from the firewall (if you have installed one).
 If you don't want other computers in the network to access the database on your machine, you can
 let the firewall block those connections. The connection from the local machine will still work.
 Only if you want other computers to access the database on this computer, you need allow remote connections
 in the firewall.
-<p>
+</p><p>
 Please not that a small firewall is already built into the server. This mechanism by default does not
 allow other computer to connect to the server. This can be changed in the Preferences
 (Allow connections from other computers).
+</p>
 
 <h3>Native Version</h3>
 The native version does not require Java, because it is compiled using GCJ.
@@ -139,26 +142,31 @@ For Windows installations, this file will be in the directory <code>C:\Documents
 This file contains the settings of the application.
 
 <h3>Login</h3>
+<p>
 At the login page, you need to provide connection information to connect to a database.
 Set the JDBC driver class of your database, the JDBC URL, user name and password.
 If you are done, click [Connect].
-<p>
+</p><p>
 You can save and reuse previously saved settings. The settings are stored in the 
 Application Properties file.
+</p>
 
 <h3>Error Messages</h3>
 Error messages in are shown in red. You can show/hide the stack trace of the exception
 by clicking on the message.
 
 <h3>Adding Database Drivers</h3>
+<p>
 Additional database drivers can be registered by adding the Jar file location of the driver to the environment
 variables H2DRIVERS or CLASSPATH. Example (Windows): To add the database driver library 
 C:\Programs\hsqldb\lib\hsqldb.jar, set the environment variable H2DRIVERS to 
-C:\Programs\hsqldb\lib\hsqldb.jar.<p>
+C:\Programs\hsqldb\lib\hsqldb.jar.
+</p><p>
 Multiple drivers can be set; each entry needs to be separated with a ';' (Windows) or ':' (other operating systems).
 Spaces in the path names are supported. The settings must not be quoted.
-<p>
+</p><p>
 Only the Java version supports additional drivers (this feature is not supported by the Native version).
+</p>
 
 <h3>Using the Application</h3>
 The application has three main panels, the toolbar on top, the tree on the left and the query / result panel on the right.
@@ -172,14 +180,17 @@ While typing a query, the table that was used is automatically expanded in the t
 For, example if you type 'SELECT * FROM TEST T WHERE T.' then the table TEST is automatically expanded in the tree.
 
 <h3>Disconnecting and Stopping the Application</h3>
+<p>
 On the browser, click 'Disconnect' on the toolbar panel. You will be logged out of the database.
-However, the server is still running and ready to accept new sessions.<p>
+However, the server is still running and ready to accept new sessions.
+</p><p>
 To stop the server, right click on the system tray icon and select [Exit]. 
 If you don't have the icon (because you started it in another way), 
 press [Ctrl]+[C] on the console where the server was started (Windows),
 or close the console window.
+</p>
 
-<br /><a name="connecting_using_jdbc"></a>
+<br><a name="connecting_using_jdbc"></a>
 <h2>Connecting to a Database using JDBC</h2>
 To connect to a database, a Java application first needs to load the database driver, 
 and then get a connection. A simple way to do that is using the following code:
@@ -203,12 +214,12 @@ to be recognized by this database. The second parameter in the <code>getConnecti
 is the user name ('sa' for System Administrator in this example). The third parameter is the password.
 Please note that in this database, user names are not case sensitive, but passwords are case sensitive.
 
-<br /><a name="creating_new_databases"></a>
+<br><a name="creating_new_databases"></a>
 <h2>Creating New Databases</h2>
 By default, if the database specified in the URL does not yet exist, a new (empty) 
 database is created automatically.
 
-<br /><a name="using_server"></a>
+<br><a name="using_server"></a>
 <h2>Using the Server</h2>
 H2 currently supports three servers: a Web Server, a TCP Server and an ODBC Server.
 The servers can be started in different ways.
@@ -267,14 +278,14 @@ This function should be called after all connection to the databases are closed
 to avoid recovery when the databases are opened the next time.
 To stop remote server, remote connections must be enabled on the server.
 
-<br /><a name="using_hibernate"></a>
+<br><a name="using_hibernate"></a>
 <h2>Using Hibernate</h2>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect, 
 or the native H2 Dialect that is available in the file src/tools/org/h2/tools/hibernate/H2Dialect.txt.
 This dialect will be integrated into Hibernate, but until this is done you need to copy the file
 into the folder src\org\hibernate\dialect (Hibernate 3.1), rename it to H2Dialect.java and re-compile hibernate.
 
-<br /><a name="web_applications"></a>
+<br><a name="web_applications"></a>
 <h2>Using Databases in Web Applications</h2>
 There are multiple ways to access a database from within web
 applications. Here are some examples if you use Tomcat or JBoss.
@@ -345,7 +356,7 @@ public class DbStarter implements ServletContextListener {
 }
 </pre>
 
-<br /><a name="csv"></a>
+<br><a name="csv"></a>
 <h2>CSV (Comma Separated Values) Support</h2>
 The CSV file support can be used inside the database using the functions CSVREAD and CSVWRITE, 
 and the CSV library can be used outside the database as a standalone tool.
@@ -393,7 +404,7 @@ while(rs.next()) {
 rs.close();
 </pre>
 
-<br /><a name="upgrade_backup_restore"></a>
+<br><a name="upgrade_backup_restore"></a>
 <h2>Upgrade, Backup, and Restore</h2>
 
 <h3>Database Upgrade</h3>
@@ -427,7 +438,7 @@ SQL script files may contain references to other script files, in the form of
 RUNSCRIPT commands. However, when using the server mode, the references script files
 need to be available on the server side.
 
-<br /><a name="openoffice"></a>
+<br><a name="openoffice"></a>
 <h2>Using OpenOffice Base</h2>
 OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database 
 using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.

@@ -16,4 +16,8 @@ public class SessionState {
         }
         return lastCommitPos >= pos;
     }
+    
+    public String toString() {
+        return "sessionId:" + sessionId + " log:" + lastCommitLog + " pos:" + lastCommitPos + " inDoubt:" + inDoubtTransaction;
+    }
 }

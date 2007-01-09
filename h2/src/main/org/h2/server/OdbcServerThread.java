@@ -25,6 +25,7 @@ import java.util.HashMap;
 
 import org.h2.engine.ConnectionInfo;
 import org.h2.message.Message;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -206,8 +207,9 @@ public class OdbcServerThread implements Runnable {
             if(columnNamePattern ==null || columnNamePattern.length()==0) {
                 columnNamePattern = "%";
             }
+            PreparedStatement prep = null;
             try {
-                PreparedStatement prep = conn.prepareStatement("SELECT "
+                prep = conn.prepareStatement("SELECT "
                         + "TABLE_CATALOG TABLE_CAT, "
                         + "TABLE_SCHEMA TABLE_SCHEM, "
                         + "TABLE_NAME, "
@@ -239,6 +241,8 @@ public class OdbcServerThread implements Runnable {
                 processResultSet(rs);
             } catch(SQLException e) {
                 sendError(e);
+            } finally {
+                JdbcUtils.closeSilently(prep);
             }
             break;
         }
@@ -250,8 +254,10 @@ public class OdbcServerThread implements Runnable {
                 int type = transfer.readInt();
                 where = " WHERE TYPE="+type+" ";
             }
+            Statement stat = null;
             try {
-                ResultSet rs = conn.createStatement().executeQuery("SELECT "
+                stat = conn.createStatement();
+                ResultSet rs = stat.executeQuery("SELECT "
                     + "TYPE_NAME, "
                     + "DATA_TYPE, "
                     + "PRECISION COLUMN_SIZE, "
@@ -277,6 +283,8 @@ public class OdbcServerThread implements Runnable {
                 processResultSet(rs);
             } catch(SQLException e) {
                 sendError(e);
+            } finally {
+                JdbcUtils.closeSilently(stat);
             }
             break;
         }
@@ -289,10 +297,11 @@ public class OdbcServerThread implements Runnable {
             }
 //            boolean unique = transfer.readBoolean();
 //            boolean approximate = transfer.readBoolean();
+            PreparedStatement prep = null;
             try {
                 //ResultSet rs = meta.getIndexInfo(catalog, schemaPattern, tableNamePattern, unique, approximate);
 
-                PreparedStatement prep = conn.prepareStatement("SELECT "
+                prep = conn.prepareStatement("SELECT "
                         + "TABLE_CATALOG TABLE_CAT, "
                         + "TABLE_SCHEMA TABLE_SCHEM, "
                         + "TABLE_NAME, "
@@ -316,6 +325,8 @@ public class OdbcServerThread implements Runnable {
                 processResultSet(rs);
             } catch(SQLException e) {
                 sendError(e);
+            } finally {
+                JdbcUtils.closeSilently(prep);
             }
             break;
         }
@@ -337,10 +348,11 @@ public class OdbcServerThread implements Runnable {
             server.log(" catalog="+catalog+" schema="+schema+" table="+table+" tableTypes="+tableTypes);
             ResultSet rs;
             String[] types = null;
+            PreparedStatement prep = null;
             try {
                 if(catalog.equals("%") && schema.length()==0 && table.length()==0) {
                     server.log(" allCatalogs");
-                    PreparedStatement prep = conn.prepareStatement("SELECT "
+                    prep = conn.prepareStatement("SELECT "
                             + "CATALOG_NAME TABLE_CAT, "
                             + "NULL TABLE_SCHEM, "
                             + "NULL TABLE_NAME, "
@@ -350,7 +362,7 @@ public class OdbcServerThread implements Runnable {
                     rs = prep.executeQuery();
                 } else if(catalog.length()==0 && schema.equals("%") && table.length()==0) {
                     server.log(" allSchemas");
-                    PreparedStatement prep = conn.prepareStatement("SELECT "
+                    prep = conn.prepareStatement("SELECT "
                             + "CATALOG_NAME TABLE_CAT, "
                             + "SCHEMA_NAME TABLE_SCHEM, "
                             + "NULL TABLE_NAME, "
@@ -360,7 +372,7 @@ public class OdbcServerThread implements Runnable {
                     rs = prep.executeQuery();
                 } else if(catalog.length()==0 && schema.length()==0 && table.length()==0 && tableTypes.equals("%")) {
                     server.log(" allTableTypes");
-                    PreparedStatement prep = conn.prepareStatement("SELECT "
+                    prep = conn.prepareStatement("SELECT "
                             + "NULL TABLE_CAT, "
                             + "NULL TABLE_SCHEM, "
                             + "NULL TABLE_NAME, "
@@ -391,6 +403,8 @@ public class OdbcServerThread implements Runnable {
                 processResultSet(rs);
             } catch(SQLException e) {
                 sendError(e);
+            } finally {
+                JdbcUtils.closeSilently(prep);
             }
             break;
         }
@@ -501,15 +515,20 @@ public class OdbcServerThread implements Runnable {
                     transfer.writeInt(id);
                     transfer.writeInt(params);
                 } else {
-                    Statement stat = conn.createStatement();
-                    boolean isResultSet = stat.execute(sql);
-                    if(isResultSet) {
-                        transfer.writeByte((byte)'R');
-                        ResultSet rs = stat.getResultSet();
-                        processResultSet(rs);
-                    } else {
-                        transfer.writeByte((byte)'U');
-                        transfer.writeInt(stat.getUpdateCount());
+                    Statement stat = null;
+                    try {
+                        stat = conn.createStatement();
+                        boolean isResultSet = stat.execute(sql);
+                        if(isResultSet) {
+                            transfer.writeByte((byte)'R');
+                            ResultSet rs = stat.getResultSet();
+                            processResultSet(rs);
+                        } else {
+                            transfer.writeByte((byte)'U');
+                            transfer.writeInt(stat.getUpdateCount());
+                        }
+                    } finally {
+                        JdbcUtils.closeSilently(stat);
                     }
                 }
             } catch(SQLException e) {

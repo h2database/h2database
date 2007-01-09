@@ -101,6 +101,9 @@ public class IntArray {
     }
     
     public boolean equals(Object obj) {
+        if(!(obj instanceof IntArray)) {
+            return false;
+        }
         IntArray other = (IntArray) obj;
         if(hashCode() != other.hashCode() || size != other.size) {
             return false;

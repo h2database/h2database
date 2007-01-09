@@ -277,7 +277,7 @@ public class TreeIndex extends Index {
                 }
                 x = n;
             }
-            return new TreeCursor(this, x, first, last);
+            return new TreeCursor(this, x, null, last);
         } else {
             TreeNode x = findFirstNode(first, false);
             return new TreeCursor(this, x, first, last);

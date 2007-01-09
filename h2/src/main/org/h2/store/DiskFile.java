@@ -389,39 +389,35 @@ public class DiskFile implements CacheWriter {
                 return record;
             }
             readCount++;
-            try {
-                go(pos);
-                rowBuff.reset();
-                byte[] buff = rowBuff.getBytes();
-                file.readFully(buff, 0, BLOCK_SIZE);
-                DataPage s = DataPage.create(database, buff);
-                int blockCount = s.readInt();
-                int id = s.readInt();
-                if(Constants.CHECK && storageId != id) {
-                    throw Message.getInternalError("File ID mismatch got="+id+" expected="+storageId+" pos="+pos+" "+logChanges+" "+this +" blockCount:"+blockCount);
-                }
-                if(Constants.CHECK && blockCount == 0) {
-                    throw Message.getInternalError("0 blocks to read pos="+pos);
-                }
-                if(blockCount > 1) {
-                    byte[] b2 = new byte[blockCount * BLOCK_SIZE];
-                    System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
-                    buff = b2;
-                    file.readFully(buff, BLOCK_SIZE, blockCount * BLOCK_SIZE - BLOCK_SIZE);
-                    s = DataPage.create(database, buff);
-                    s.readInt();
-                    s.readInt();
-                }
-                s.check(blockCount*BLOCK_SIZE);
-                Record r = reader.read(s);
-                r.setStorageId(storageId);
-                r.setPos(pos);
-                r.setBlockCount(blockCount);
-                cache.put(r);
-                return r;
-            } catch (Exception e) {
-                throw Message.convert(e);
+            go(pos);
+            rowBuff.reset();
+            byte[] buff = rowBuff.getBytes();
+            file.readFully(buff, 0, BLOCK_SIZE);
+            DataPage s = DataPage.create(database, buff);
+            int blockCount = s.readInt();
+            int id = s.readInt();
+            if(Constants.CHECK && storageId != id) {
+                throw Message.getInternalError("File ID mismatch got="+id+" expected="+storageId+" pos="+pos+" "+logChanges+" "+this +" blockCount:"+blockCount);
             }
+            if(Constants.CHECK && blockCount == 0) {
+                throw Message.getInternalError("0 blocks to read pos="+pos);
+            }
+            if(blockCount > 1) {
+                byte[] b2 = new byte[blockCount * BLOCK_SIZE];
+                System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
+                buff = b2;
+                file.readFully(buff, BLOCK_SIZE, blockCount * BLOCK_SIZE - BLOCK_SIZE);
+                s = DataPage.create(database, buff);
+                s.readInt();
+                s.readInt();
+            }
+            s.check(blockCount*BLOCK_SIZE);
+            Record r = reader.read(s);
+            r.setStorageId(storageId);
+            r.setPos(pos);
+            r.setBlockCount(blockCount);
+            cache.put(r);
+            return r;
         }
     }
 
@@ -511,7 +507,7 @@ public class DiskFile implements CacheWriter {
         return pageOwners.get(page);
     }
 
-    synchronized void setPageOwner(int page, int storageId) throws SQLException {
+    void setPageOwner(int page, int storageId) throws SQLException {
         int old = pageOwners.get(page);
         if(old == storageId) {
             return;
@@ -737,7 +733,7 @@ public class DiskFile implements CacheWriter {
         return dataFile;
     }
 
-    public void setLogChanges(boolean b) {
+    public synchronized void setLogChanges(boolean b) {
         this.logChanges = b;
     }
 

@@ -461,7 +461,7 @@ public class MetaTable extends Table {
 
     private String identifier(String s) {
         if(Mode.getCurrentMode().lowerCaseIdentifiers) {
-            s = (s==null ? s : StringUtils.toLowerEnglish(s));
+            s = (s==null ? null : StringUtils.toLowerEnglish(s));
         }
         return s;
     }
@@ -478,7 +478,7 @@ public class MetaTable extends Table {
             return true;
         }
         Database db = session.getDatabase();
-        Value v = value == null ? (Value)ValueNull.INSTANCE : ValueString.get(value);
+        Value v = ValueString.get(value);
         if(indexFrom != null && db.compare(v, indexFrom) < 0) {
             return false;
         }

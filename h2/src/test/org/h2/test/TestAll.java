@@ -87,9 +87,82 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-        // TODO check that xml is well formed, and html is more or less.
+//    java.lang.Exception: query was too quick; result: 0 time:1192
+//        at org.h2.test.TestBase.logError(TestBase.java:219)
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
+//        at java.lang.Thread.run(Unknown Source)
+//    java.lang.Exception: query was too quick; result: 0 time:2203
+//        at org.h2.test.TestBase.logError(TestBase.java:219)
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
+//        at java.lang.Thread.run(Unknown Source)
+//    java.lang.Error: Results don't match: original (0): 
+//    success
+//    other:
+//    exception: 90020: Database may be already open: Concurrent update [90020-36]
+//    org.h2.jdbc.JdbcSQLException: Database may be already open: Concurrent update [90020-36]
+//        at org.h2.message.Message.getSQLException(Message.java:67)
+//        at org.h2.message.Message.getSQLException(Message.java:49)
+//        at org.h2.store.FileLock.error(FileLock.java:310)
+//        at org.h2.store.FileLock.lockFile(FileLock.java:182)
+//        at org.h2.store.FileLock.lock(FileLock.java:65)
+//        at org.h2.engine.Database.open(Database.java:424)
+//        at org.h2.engine.Database.<init>(Database.java:382)
+//        at org.h2.engine.Engine.openSession(Engine.java:44)
+//        at org.h2.engine.Engine.getSession(Engine.java:85)
+//        at org.h2.engine.Session.createSession(Session.java:140)
+//        at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:944)
+//        at org.h2.Driver.connect(Driver.java:52)
+//        at java.sql.DriverManager.getConnection(Unknown Source)
+//        at java.sql.DriverManager.getConnection(Unknown Source)
+//        at org.h2.test.synth.DbConnection.getConnection(DbConnection.java:83)
+//        at org.h2.test.synth.DbConnection.connect(DbConnection.java:74)
+//        at org.h2.test.synth.Command.run(Command.java:229)
+//        at org.h2.test.synth.TestSynth.process(TestSynth.java:158)
+//        at org.h2.test.synth.TestSynth.testRun(TestSynth.java:145)
+//        at org.h2.test.synth.TestSynth.testCase(TestSynth.java:263)
+//        at org.h2.test.synth.TestSynth.test(TestSynth.java:274)
+//        at org.h2.test.TestBase.runTest(TestBase.java:59)
+//        at org.h2.test.TestAll.main(TestAll.java:159)
+//
+//        at org.h2.test.synth.TestSynth.compareResults(TestSynth.java:185)
+//        at org.h2.test.synth.TestSynth.process(TestSynth.java:164)
+//        at org.h2.test.synth.TestSynth.testRun(TestSynth.java:145)
+//        at org.h2.test.synth.TestSynth.testCase(TestSynth.java:263)
+//        at org.h2.test.synth.TestSynth.test(TestSynth.java:274)
+//        at org.h2.test.TestBase.runTest(TestBase.java:59)
+//        at org.h2.test.TestAll.main(TestAll.java:159)
+//    java.lang.Exception: query was too quick; result: 0 time:1512
+//        at org.h2.test.TestBase.logError(TestBase.java:219)
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
+//        at java.lang.Thread.run(Unknown Source)
+
+
         
-        // PayPal donate - aaa.html/main.html
+//        Add FindBugs to Release Checklist
+        
+//      Hot backup (incremental backup, online backup): backup data, log, index? files
+
+        //        analyze hibernate read committed tests that fail
+        
+//        Hibernate: when?
+        
+        // when? server only? special test with TestAll (only this)
+//    java.lang.Exception: query was too quick; result: 0 time:1002
+//        at org.h2.test.TestBase.logError(TestBase.java:219)
+//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
+//        at java.lang.Thread.run(Unknown Source)
+        
+//        DROP TABLE TEST;
+//        CREATE TABLE TEST(C CHAR(10));
+//        INSERT INTO TEST VALUES('1');
+//        SELECT COUNT(*) FROM TEST WHERE C='1 ';
+//        -- PostgreSQL, HSQLDB, MySQL, Derby, MS SQL Server, Oracle: 1
+//        -- H2: 0
+//        SELECT LENGTH(C), LENGTH(C || 'x') FROM TEST;
+//        -- MySQL: 1, 1 (??)
+//        -- MS SQL Server: 1, 11 (SELECT LEN(C), LEN(C + 'x') FROM TEST)
+//        -- Oracle, Derby: 10, 11
+//        -- PostgreSQL, H2, HSQLDB: 1, 2
         
         // maybe use system property for base directory (h2.baseDir)
         
@@ -98,8 +171,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // auto-upgrade application:
         // check if new version is available 
         // (option: digital signature)
-        // (option: RSS / atom newsfeed)
-        // (option: small XML parser)
         // if yes download new version
         // (option: http, https, ftp, network)
         // backup database to SQL script
@@ -127,7 +198,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // test LIKE: compare against other databases
         // TestRandomSQL is too random; most statements fails
         // extend the random join test that compared the result against PostgreSQL
-        // Donate a translation: I am looking for people who would help translating the H2 Console into other languages. Please tell me if you think you can help
         // long running test with the same database
         // repeatable test with a very big database (making backups of the database files)
         

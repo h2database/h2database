@@ -5,11 +5,14 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.store.DiskFile;
 
 
 /**
@@ -29,6 +32,7 @@ public class TransactionCommand extends Prepared {
     public static final int ROLLBACK_TRANSACTION = 11;
     public static final int SHUTDOWN = 12;
     public static final int SHUTDOWN_IMMEDIATELY = 13;
+    public static final int BACKUP = 14;
 
     private int type;
     private String savepointName;
@@ -111,10 +115,26 @@ public class TransactionCommand extends Prepared {
             session.close();
             break;
         }
+        case BACKUP: {
+            session.getUser().checkAdmin();
+            session.commit();
+            backupTo("backup.zip");
+            break;
+        }
         default:
             throw Message.getInternalError("type=" + type);
         }
         return 0;
+    }
+
+    private void backupTo(String fileName) {
+//        ZipOutputStream out = new ZipOutputStream("test.zip");
+//        out.putNextEntry(arg0)
+//        DiskFile file = session.getDatabase().getDataFile();
+////        session.getDatabase().getLog().incStopDeleteFiles(true);
+//        // TODO Auto-generated method stub
+////      session.getDatabase().getLog().setStopDeleteFiles(false);
+//        
     }
 
     public boolean isTransactional() {

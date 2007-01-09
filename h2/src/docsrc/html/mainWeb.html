@@ -6,6 +6,11 @@ H2 Database Engine
 <link rel="alternate" type="application/atom+xml" title="H2 Newsfeed" href="http://www.h2database.com/html/newsfeed-atom.xml">
 <link rel="alternate" type="application/rss+xml" title="H2 Newsfeed" href="http://www.h2database.com/html/newsfeed-rss.xml">
 <script type="text/javascript" src="navigation.js"></script>
+<style type="text/css">
+<!--
+h3 { margin-top: 0px; margin-bottom: 10px; }
+-->
+</style>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
@@ -21,146 +26,148 @@ Welcome to H2, the free SQL database. The main feature of H2 are:
 </ul>
 
 <table style="border: 0px;">
-
-<tr><td style="background-color: #eee;">
-  <table style="border: 0px; margin: 5px; background-color: #eee;">
-  <tr><td style="border: 0px; background-color: #eee;" colspan="2">
-    <h3>Download</h3>
-    Version 1.0 / 2007-01-02:
-  </td></tr>
-  <tr><td style="border: 0px; background-color: #eee;">
-    <a href="http://www.h2database.com/h2-setup-2007-01-02.exe"><img border="1" src="images/download.png" alt="download"></a>
-  </td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
-    <a href="http://www.h2database.com/h2-setup-2007-01-02.exe">Windows Installer (2.7 MB)</a>
-  </td></tr>
-  <tr><td style="border: 0px; background-color: #eee;">
-    <a href="http://www.h2database.com/h2-2007-01-02.zip"><img border="1" src="images/download.png" alt="download"></a>
-  </td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
-    <a href="http://www.h2database.com/h2-2007-01-02.zip">Platform-Independent Zip (3.6 MB)</a>
-  </td></tr>
-  <tr><td style="border: 0px; background-color: #eee;" colspan="2">
-    <a href="download.html">All Downloads</a>
-  </td></tr>
-  </table>
-</td><td style="border: 0px;">&nbsp;&nbsp;&nbsp;</td>
-<td style="background-color: #eee;">
-  <table style="border: 0px; margin: 5px;">
-  <tr><td style="border: 0px; background-color: #eee;">
-    <h3>Support</h3>
-    <p>
-    <a href="http://www.h2database.com/ipowerb" target="_top">Forums: Help and Open Discussion</a><br><br>
-    Or send an e-mail to: <br>
-<script type="text/javascript">
-<!--    
-  var a = '-support.png';
-  var b = 'mail';
-  var c = 'support ';
-  var d = 'db';
-  var e = 'at ';
-  var f = '.com';
-  var g = 'h2database';
-  var alt = 'mail address: ' + d + c + e + g + f + '(without spaces)';
-  document.write('<' + ' a h'+'ref="em' + 'ail:' + d + c + e + g + f +'">' + d + c + e + g + f);
-//-->
-</script>
-
-<!--    
-The forum doesn't work at the moment, sorry. <br>
-But you can send an e-mail to: <p>
-<script type="text/javascript">
-  var a = '-support.png';
-  var b = 'mail';
-  var c = 'support ';
-  var d = 'db';
-  var e = 'at ';
-  var f = '.com';
-  var g = 'h2database';
-  var alt = 'mail address: ' + d + c + e + g + f + '(without spaces)';
-  document.write('<'+'a h' + 'ref="em' + 'ail:' + d + c + e + g + f +'">' + d + c + e + g + f);
-</script>
-    -->
-    </p>
-  </td></tr>
-  </table>
+	<tr><td style="background-color: #eee;">
+		<table style="border: 0px; margin: 5px; background-color: #eee;">
+  			<tr><td style="border: 0px; background-color: #eee;" colspan="2">
+			    <h3>Download</h3>
+			    Version 1.0 / 2007-01-02:
+			</td></tr>
+			<tr><td style="border: 0px; background-color: #eee;">
+		    	<a href="http://www.h2database.com/h2-setup-2007-01-02.exe"><img border="1" src="images/download.png" alt="download"></a>
+			</td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
+				<a href="http://www.h2database.com/h2-setup-2007-01-02.exe">Windows Installer (2.7 MB)</a>
+			</td></tr>
+			<tr><td style="border: 0px; background-color: #eee;">
+				<a href="http://www.h2database.com/h2-2007-01-02.zip"><img border="1" src="images/download.png" alt="download"></a>
+			</td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
+				<a href="http://www.h2database.com/h2-2007-01-02.zip">Platform-Independent Zip (3.6 MB)</a>
+			</td></tr>
+			<tr><td style="border: 0px; background-color: #eee;" colspan="2">
+				<a href="download.html">All Downloads</a>
+			</td></tr>
+		</table>
+	</td><td style="border: 0px;">&nbsp;&nbsp;&nbsp;</td>
+	<td style="background-color: #eee;">
+		<table style="border: 0px; margin: 5px;">
+			<tr><td style="border: 0px; background-color: #eee;">
+			    <h3>Support</h3>
+			    <p>
+			    <a href="http://www.h2database.com/ipowerb" target="_top">Forums: Help and Open Discussion</a><br><br>
+			    Or send an e-mail to: <br>
+			<script type="text/javascript">
+			<!--    
+			  var a = '-support.png';
+			  var b = 'mail';
+			  var c = 'support ';
+			  var d = 'db';
+			  var e = 'at ';
+			  var f = '.com';
+			  var g = 'h2database';
+			  var alt = 'mail address: ' + d + c + e + g + f + '(without spaces)';
+			  document.write('<' + 'a h'+'ref="em' + 'ail:' + d + c + e + g + f +'">' + d + c + e + g + f);
+			//-->
+			</script>
+			<!--    
+			The forum doesn't work at the moment, sorry. <br>
+			But you can send an e-mail to: <p>
+			<script type="text/javascript">
+			  var a = '-support.png';
+			  var b = 'mail';
+			  var c = 'support ';
+			  var d = 'db';
+			  var e = 'at ';
+			  var f = '.com';
+			  var g = 'h2database';
+			  var alt = 'mail address: ' + d + c + e + g + f + '(without spaces)';
+			  document.write('<'+'a h' + 'ref="em' + 'ail:' + d + c + e + g + f +'">' + d + c + e + g + f);
+			</script>
+			-->
+		</p>
+	</td></tr>
+</table>
 </td></tr>
 
 <tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
+
 <tr><td colspan="3" style="border: 0px">
-  <table style="border: 0px; margin: 5px; width: 100%;">
-  <tr><td style="border: 0px;" >
-    <h3>Performance</h3>
-    <img border="0" src="images/performance.png" alt="Performance comparison"><br>
-    Operations/second (higher is better) - <a href="performance.html">More information about this test</a>
-  </td></tr>
-  </table>
+	<table style="border: 0px; margin: 5px; width: 100%;">
+		<tr><td style="border: 0px;" >
+			<h3>Performance</h3>
+			<img border="0" src="images/performance.png" alt="Performance comparison"><br>
+			Operations/second (higher is better) - <a href="performance.html">More information about this test</a>
+		</td></tr>
+	</table>
 </td></tr>
 
 <tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
 
 <tr><td colspan="3" style="background-color: #eee;">
-  <table style="border: 0px; margin: 5px; background-color: #eee;">
-  <tr><td style="border: 0px; background-color: #eee;">
-    <h3>News</h3>
-    <p>
-    <b>Email Subscription</b>: If you like to get informed by email about new releases, <br>
-    subscribe here. The email addresses of members are only used in this context.<br>
-    Usually, only one mail every few weeks will be sent.
-    </p>
-    <form name="newsletter" method="post" action="php/newsletter.php">
-    Email: <input type="email" name="email" size="30" onKeyDown="newsletter.spam.value='false';">
-    <input type="hidden" name="spam" value="true" size="30">
-    <input type="hidden" name="text" value="subscribe">
-    <input type="submit" value="Submit">
-    <br><br>
-    <b>Newsfeeds:</b> Two are available: 
-    <a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">Full text (Atom)</a>
-    and <a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">Header only (RSS)</a>.<br>
-    If you need a newsreader: <a href="http://rssowl.sf.net">RSSOwl</a>.
-    </form>
-  </td></tr>
-  </table>
+	<table style="border: 0px; margin: 5px; background-color: #eee;">
+		<tr><td style="border: 0px; background-color: #eee;">
+			<h3>News</h3>
+			<p>
+			<b>Email Subscription</b>: If you like to get informed by email about new releases, <br>
+			subscribe here. The email addresses of members are only used in this context.<br>
+			Usually, only one mail every few weeks will be sent.
+			</p>
+			<form name="newsletter" method="post" action="php/newsletter.php">
+			Email: <input type="email" name="email" size="30" onKeyDown="newsletter.spam.value='false';">
+			<input type="hidden" name="spam" value="true" size="30">
+			<input type="hidden" name="text" value="subscribe">
+			<input type="submit" value="Submit">
+			<br><br>
+			<b>Newsfeeds:</b> Two are available: 
+			<a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">Full text (Atom)</a>
+			and <a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">Header only (RSS)</a>.<br>
+			If you need a newsreader: <a href="http://rssowl.sf.net">RSSOwl</a>.
+			</form>
+		</td></tr>
+	</table>
 </td></tr>
 
 <tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
 
 <tr><td colspan="3" style="background-color: #eee;">
-  <table style="border: 0px; margin: 5px;">
-  <tr><td style="border: 0px; background-color: #eee;">
-    <h3>Feedback</h3>
-    You may also send questions, feature requests, or feedback of any kind here:
-    <form method="post" action="php/sendMail.php">
-    <p>
-    Email (optional):<br>
-    <input name="email" size="73" type="email">
-    </p><p>
-    Message:<br>
-    <textarea name="text" cols="70" rows="5"></textarea>
-    <br>
-    <input value="Submit" type="submit">
-    </p>
-    </form>
-  </td></tr>
-  </table>
+	<table style="border: 0px; margin: 5px;">
+	  	<tr><td style="border: 0px; background-color: #eee;">
+		    <h3>Contribute</h3>
+		    <p>
+		    You can contribute to the development of H2 by sending feedback and bug<br>
+		    reports, or translate the H2 Console application (files h2/src/main/org/h2/<br>
+		    server/web/res/_text_*.properties). Or click on the PayPal button below to<br>
+		    donate money. You will be listed as a supporter: 			
+		    </p>
+			<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+			<input type="hidden" name="cmd" value="_s-xclick">
+			<input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" border="0" name="submit" alt="Zahlen Sie mit PayPal - schnell, kostenlos und sicher!">
+			<img alt="" border="0" src="https://www.paypal.com/de_DE/i/scr/pixel.gif" width="1" height="1">
+			<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----">
+			</form>   
+		</td></tr>
+	</table>
 </td></tr>
-
+  
 <tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
 
 <tr><td colspan="3" style="background-color: #eee;">
-  <table style="border: 0px; margin: 5px;">
-  <tr><td style="border: 0px; background-color: #eee;">
-    <h3>Donations</h3>
-    Click on one of the PayPal buttons below to donate money to H2.
-    You will be listed as a supporter. 
-    Other ways to contribute to the development of H2 is sending feedback
-    and bug reports, or translate the H2 Console application
-    (files h2/src/main/org/h2/server/web/res/_text_*.properties).
-    
-  </td></tr>
-  </table>
+	<table style="border: 0px; margin: 5px;">
+  		<tr><td style="border: 0px; background-color: #eee;">
+		    <h3>Feedback</h3>
+		    You may also send questions, feature requests, or feedback of any kind here:
+		    <form method="post" action="php/sendMail.php">
+		    <p>
+		    Email (optional):<br>
+		    <input name="email" size="73" type="email">
+		    </p>
+		    Message:<br>
+		    <textarea name="text" cols="70" rows="5"></textarea>
+		    <br>
+		    <input value="Submit" type="submit">
+		    </form>
+		</td></tr>
+	</table>
 </td></tr>
 
 </table>
-
-
 
 </div></td></tr></table></body></html>

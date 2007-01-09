@@ -6,7 +6,6 @@ package org.h2.command.dml;
 
 import java.sql.SQLException;
 import java.util.BitSet;
-import java.util.Enumeration;
 import java.util.Random;
 
 import org.h2.engine.Session;
@@ -92,14 +91,9 @@ public class Optimizer {
     }
     
     private void calculateBruteForceAll() throws SQLException {
-        Enumeration en = new Permutations(filters);
-        for(int x=0; en.hasMoreElements(); x++) {
-            if(canStop(x)) {
-                break;
-            }
-            Object[] f = (Object[]) en.nextElement();
-            TableFilter[] ftry = new TableFilter[filters.length];
-            System.arraycopy(f, 0, ftry, 0, filters.length);
+        TableFilter[] ftry = new TableFilter[filters.length];
+        Permutations perm = new Permutations(filters, ftry);
+        for(int x=0; !canStop(x) && perm.next(); x++) {
             testPlan(ftry);
         }
     }
@@ -107,18 +101,13 @@ public class Optimizer {
     private void calculateBruteForceSome() throws SQLException {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] ftry = new TableFilter[filters.length];
-        Enumeration en = new Permutations(filters, bruteForce);
-        for(int x=0; en.hasMoreElements(); x++) {
-            if(canStop(x)) {
-                break;
-            }
-            Object[] f = (Object[]) en.nextElement();
-            System.arraycopy(f, 0, ftry, 0, bruteForce);
+        Permutations perm = new Permutations(filters, ftry, bruteForce);
+        for(int x=0; !canStop(x) && perm.next(); x++) {
             // find out what filters are not used yet
             for(int i=0; i<filters.length; i++) {
                 filters[i].setUsed(false);
             }
-            for(int i=0; i<f.length; i++) {
+            for(int i=0; i<bruteForce; i++) {
                 ftry[i].setUsed(true);
             }
             // fill the remaining elements with the unused elements (greedy)

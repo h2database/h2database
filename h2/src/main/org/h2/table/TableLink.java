@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 
 import org.h2.engine.Session;
@@ -20,6 +21,7 @@ import org.h2.index.LinkedIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -71,8 +73,10 @@ public class TableLink extends Table {
             columnMap.put(n, col);
         }
         if(columnList.size()==0) {
+            Statement stat = null;
             try {
-                rs = conn.createStatement().executeQuery("SELECT * FROM " + originalTable + " T WHERE 1=0");
+                stat = conn.createStatement();
+                rs = stat.executeQuery("SELECT * FROM " + originalTable + " T WHERE 1=0");
                 ResultSetMetaData rsm = rs.getMetaData();
                 for(i=0; i<rsm.getColumnCount();) {
                     String n = rsm.getColumnName(i+1);
@@ -91,6 +95,8 @@ public class TableLink extends Table {
                 }
             } catch(SQLException e) {
                 throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, new String[]{originalTable}, e);
+            } finally {
+                JdbcUtils.closeSilently(stat);
             }
         }
         Column[] cols = new Column[columnList.size()];

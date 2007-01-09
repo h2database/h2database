@@ -48,7 +48,7 @@ public class Transfer {
         this.session = session;
     }
 
-    public void finalize() {
+    protected void finalize() {
         if (!Constants.RUN_FINALIZERS) {
             return;
         }

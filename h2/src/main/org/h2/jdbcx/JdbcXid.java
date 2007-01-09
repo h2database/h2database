@@ -32,7 +32,7 @@ public class JdbcXid extends TraceObject implements Xid {
             formatId = Integer.parseInt(tokenizer.nextToken());
             branchQualifier = ByteUtils.convertStringToBytes(tokenizer.nextToken());
             globalTransactionId = ByteUtils.convertStringToBytes(tokenizer.nextToken());
-        } catch(Exception e) {
+        } catch(Throwable e) {
             throw Message.getSQLException(Message.WRONG_XID_FORMAT_1, tid);
         }
     }

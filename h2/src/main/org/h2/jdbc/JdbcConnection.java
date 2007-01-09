@@ -296,9 +296,13 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @throws SQLException
      *             if the connection is closed
      */
-    public boolean getAutoCommit() throws SQLException {
+    public synchronized boolean getAutoCommit() throws SQLException {
+        debugCodeCall("getAutoCommit");
+        return getInternalAutoCommit();
+    }
+    
+    private boolean getInternalAutoCommit() throws SQLException {
         try {
-            debugCodeCall("getAutoCommit");
             checkClosed();
             getAutoCommit = prepareCommand("CALL AUTOCOMMIT()", getAutoCommit);
             ResultInterface result = getAutoCommit.executeQuery(0, false);
@@ -663,11 +667,12 @@ public class JdbcConnection extends TraceObject implements Connection {
         StringBuffer buff = new StringBuffer("new Map() /* ");
         try {
             // Map<String, Class>
-            for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
-                String key = (String)it.next();
+            for(Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String key = (String) entry.getKey();
                 buff.append(key);
                 buff.append(':');
-                Class clazz = (Class)map.get(key);
+                Class clazz = (Class) entry.getValue();
                 buff.append(clazz.getName());
             }
         } catch(Exception e) {
@@ -971,7 +976,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 //#ifdef JDK14
             // check for existence of this class (avoiding Class . forName)
             Class clazz = java.sql.Savepoint.class;
-            clazz = clazz == null ? null : clazz;
+            clazz.getClass();
 //#endif
         } catch(Throwable e) {
             throw Message.getSQLException(Message.UNSUPPORTED_JAVA_VERSION);
@@ -1192,7 +1197,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         return user;
     }
 
-    public void finalize() {
+    protected void finalize() {
         if(!Constants.RUN_FINALIZERS) {
             return;
         }
@@ -1349,11 +1354,11 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return true if the connection is valid.
      */
-    public boolean isValid(int timeout) {
+    public synchronized boolean isValid(int timeout) {
         try {
             debugCodeCall("isValid", timeout);
             checkClosed();
-            getAutoCommit();
+            getInternalAutoCommit();
             return true;
         } catch(Throwable e) {
             // this method doesn't throw an exception, but it logs it

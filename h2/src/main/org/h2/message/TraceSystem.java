@@ -217,7 +217,7 @@ public class TraceSystem {
         closed = true;
     }
     
-    public void finalize() {
+    protected void finalize() {
         if(!Constants.RUN_FINALIZERS) {
             return;
         }        

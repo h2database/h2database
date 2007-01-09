@@ -131,7 +131,7 @@ public class FileStoreInputStream extends InputStream {
         }
     }
     
-    public void finalize() {
+    protected void finalize() {
         if (!Constants.RUN_FINALIZERS) {
             return;
         }        

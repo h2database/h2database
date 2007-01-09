@@ -25,7 +25,7 @@ public class DbContents {
             isH2 = url.startsWith("jdbc:h2:");
             isOracle = url.startsWith("jdbc:oracle:");
             isPostgreSQL = url.startsWith("jdbc:postgresql:");
-            isHSQLDB = url.startsWith("jdbc:hsqldb:");
+            // isHSQLDB = url.startsWith("jdbc:hsqldb:");
             isMySQL = url.startsWith("jdbc:mysql:");
             isDerby = url.startsWith("jdbc:derby:");
             isFirebird = url.startsWith("jdbc:firebirdsql:");
@@ -45,8 +45,8 @@ public class DbContents {
             schema.readTables(meta, tableTypes);
         }
         if(defaultSchema == null) {
+            String best = null;
             for(int i=0; i<schemas.length; i++) {
-                String best = null;
                 if("dbo".equals(schemas[i].name)) {
                     // MS SQL Server
                     defaultSchema = schemas[i];

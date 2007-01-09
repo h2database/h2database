@@ -21,6 +21,7 @@ import javax.transaction.xa.Xid;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
+import org.h2.util.JdbcUtils;
 
 //#ifdef JDK16
 /*
@@ -115,8 +116,9 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcC
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
+        Statement stat = null;
         try {
-            Statement stat = conn.createStatement();
+            stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY ID");
             ArrayList list = new ArrayList();
             while(rs.next()) {
@@ -125,12 +127,15 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcC
                 Xid xid = new JdbcXid(factory, id, tid);
                 list.add(xid);
             }
+            rs.close();
             Xid[] result = new Xid[list.size()];
             list.toArray(result);
             return result;
         } catch(SQLException e) {
             getTrace().debug("throw XAException.XAER_OUTSIDE", e);
            throw new XAException(XAException.XAER_OUTSIDE);
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
     }
     
@@ -148,10 +153,14 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcC
             getTrace().debug("throw XAException.XAER_INVAL");
             throw new XAException(XAException.XAER_INVAL);
         }
+        Statement stat = null;
         try {
-            conn.createStatement().execute("PREPARE COMMIT");
+            stat = conn.createStatement();
+            stat.execute("PREPARE COMMIT");
         } catch(SQLException e) {
             throw convertException(e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
         getTrace().debug("return TMSUCCESS");        
         return TMSUCCESS;

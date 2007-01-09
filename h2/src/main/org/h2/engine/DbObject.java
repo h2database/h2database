@@ -71,7 +71,7 @@ public abstract class DbObject {
         this.trace = database.getTrace(traceModule);
         this.id = id;
         this.objectName = name;
-        this.modificationId = database == null ? -1 : database.getModificationMetaId();
+        this.modificationId = database.getModificationMetaId();
     }
 
     public void setModified() {

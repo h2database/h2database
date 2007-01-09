@@ -103,7 +103,7 @@ public class Session implements SessionInterface {
         table.removeChildrenAndResources(this);
     }
 
-    public void finalize() {
+    protected void finalize() {
         if(!Constants.RUN_FINALIZERS) {
             return;
         }
@@ -450,7 +450,7 @@ public class Session implements SessionInterface {
     public JdbcConnection createConnection(boolean columnList) throws SQLException {
         String url;
         if(columnList) {
-            url = Constants.CONN_URL_INTERNAL;
+            url = Constants.CONN_URL_COLUMNLIST;
         } else {
             url = Constants.CONN_URL_INTERNAL;
         }

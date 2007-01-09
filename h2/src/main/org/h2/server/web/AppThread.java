@@ -21,10 +21,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
+import java.util.Map.Entry;
 
 import org.h2.bnf.Bnf;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
@@ -136,11 +139,12 @@ public class AppThread extends WebServerThread {
                     }
                 }
                 ArrayList list = new ArrayList(map.size());
-                Iterator it = map.keySet().iterator();
+                Iterator it = map.entrySet().iterator();
                 while(it.hasNext()) {
-                    String key = (String)it.next();
+                    Map.Entry entry = (Entry) it.next();
+                    String key = (String) entry.getKey();
                     String type = "" + key.charAt(0);
-                    String value = (String) map.get(key);
+                    String value = (String) entry.getValue();
                     key = key.substring(2);
                     if(Character.isLetter(key.charAt(0)) && lowercase) {
                         key = StringUtils.toLowerEnglish(key);
@@ -192,7 +196,7 @@ public class AppThread extends WebServerThread {
             app.setSSL(Boolean.valueOf((String)attributes.get("ssl")).booleanValue());
             app.saveSettings();
         } catch(Exception e) {
-            // TODO ignore error?
+            server.trace(e.toString());
         }
         return admin();
     }
@@ -368,13 +372,18 @@ public class AppThread extends WebServerThread {
                 StringBuffer columnsBuffer = new StringBuffer();
                 treeIndex = addColumns(view, buff, treeIndex, showColumnTypes, columnsBuffer);
                 if(schema.contents.isH2) {
-                    PreparedStatement prep = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
-                    prep.setString(1, view.name);
-                    ResultSet rs = prep.executeQuery();
-                    if(rs.next()) {
-                        String sql = rs.getString("SQL");
-                        buff.append("setNode("+treeIndex+ identNode + " 'type', '" + PageParser.escapeJavaScript(sql)+ "', null);\n");
-                        treeIndex++;
+                    PreparedStatement prep = null;
+                    try {
+                        prep = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
+                        prep.setString(1, view.name);
+                        ResultSet rs = prep.executeQuery();
+                        if(rs.next()) {
+                            String sql = rs.getString("SQL");
+                            buff.append("setNode("+treeIndex+ identNode + " 'type', '" + PageParser.escapeJavaScript(sql)+ "', null);\n");
+                            treeIndex++;
+                        }
+                    } finally {
+                        JdbcUtils.closeSilently(prep);
                     }
                 }
                 buff.append("addTable('"+PageParser.escapeJavaScript(view.name)+"', '"+PageParser.escapeJavaScript(columnsBuffer.toString())+"', "+tableId+");\n");
@@ -414,38 +423,44 @@ public class AppThread extends WebServerThread {
                 treeIndex = addTablesAndViews(schema, false, buff, treeIndex);
             }
             if(isH2) {
-                ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
-                for(int i=0; rs.next(); i++) {
-                    if(i==0) {
-                        buff.append("setNode("+treeIndex+", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
+                Statement stat = null;
+                try {
+                    stat = conn.createStatement();
+                    ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
+                    for(int i=0; rs.next(); i++) {
+                        if(i==0) {
+                            buff.append("setNode("+treeIndex+", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
+                            treeIndex++;
+                        }
+                        String name = rs.getString("SEQUENCE_NAME");
+                        String current = rs.getString("CURRENT_VALUE");
+                        String increment = rs.getString("INCREMENT");
+                        buff.append("setNode("+treeIndex+", 1, 1, 'sequence', '" + PageParser.escapeJavaScript(name)+ "', null);\n");
                         treeIndex++;
-                    }
-                    String name = rs.getString("SEQUENCE_NAME");
-                    String current = rs.getString("CURRENT_VALUE");
-                    String increment = rs.getString("INCREMENT");
-                    buff.append("setNode("+treeIndex+", 1, 1, 'sequence', '" + PageParser.escapeJavaScript(name)+ "', null);\n");
-                    treeIndex++;
-                    buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.current}: " + PageParser.escapeJavaScript(current)+ "', null);\n");
-                    treeIndex++;
-                    if(!increment.equals("1")) {
-                        buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.increment}: " + PageParser.escapeJavaScript(increment)+ "', null);\n");
+                        buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.current}: " + PageParser.escapeJavaScript(current)+ "', null);\n");
                         treeIndex++;
+                        if(!increment.equals("1")) {
+                            buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.increment}: " + PageParser.escapeJavaScript(increment)+ "', null);\n");
+                            treeIndex++;
+                        }
                     }
-                }
-                rs = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
-                for(int i=0; rs.next(); i++) {
-                    if(i==0) {
-                        buff.append("setNode("+treeIndex+", 0, 1, 'users', '${text.tree.users}', null);\n");
+                    rs = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    for(int i=0; rs.next(); i++) {
+                        if(i==0) {
+                            buff.append("setNode("+treeIndex+", 0, 1, 'users', '${text.tree.users}', null);\n");
+                            treeIndex++;
+                        }
+                        String name = rs.getString("NAME");
+                        String admin = rs.getString("ADMIN");
+                        buff.append("setNode("+treeIndex+", 1, 1, 'user', '" + PageParser.escapeJavaScript(name)+ "', null);\n");
                         treeIndex++;
+                        if(admin.equalsIgnoreCase("TRUE")) {
+                            buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.admin}', null);\n");
+                            treeIndex++;
+                        }
                     }
-                    String name = rs.getString("NAME");
-                    String admin = rs.getString("ADMIN");
-                    buff.append("setNode("+treeIndex+", 1, 1, 'user', '" + PageParser.escapeJavaScript(name)+ "', null);\n");
-                    treeIndex++;
-                    if(admin.equalsIgnoreCase("TRUE")) {
-                        buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.admin}', null);\n");
-                        treeIndex++;
-                    }
+                } finally {
+                    JdbcUtils.closeSilently(stat);
                 }
             }
             String version = meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion();
@@ -542,7 +557,7 @@ public class AppThread extends WebServerThread {
                 conn.close();
             }
         } catch(Exception e) {
-            // TODO log error
+            server.trace(e.toString());
         }
         return "index.do";
     }
@@ -1016,12 +1031,14 @@ public class AppThread extends WebServerThread {
             result += "(Statement) ";
         }
         result+="(";
+        StringBuffer buff = new StringBuffer();
         for(int i=0; i<params.size(); i++) {
             if(i>0) {
-                result+=", ";
+                buff.append(", ");
             }
-            result += ((Integer)params.get(i)).intValue() == 0 ? "i" : "rnd";
+            buff.append(((Integer)params.get(i)).intValue() == 0 ? "i" : "rnd");
         }
+        result += buff.toString();
         result+=") " + sql;
         return result;
     }

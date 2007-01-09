@@ -7,6 +7,8 @@ package org.h2.server.web;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.h2.bnf.Bnf;
 import org.h2.bnf.Rule;
@@ -68,9 +70,10 @@ public class DbContextRule implements Rule {
         HashMap map = sentence.getAliases();
         HashSet set = new HashSet();
         if(map != null) {
-            for(Iterator it = map.keySet().iterator(); it.hasNext();) {
-                String alias = (String)it.next();
-                DbTableOrView table = (DbTableOrView)map.get(alias);
+            for(Iterator it = map.entrySet().iterator(); it.hasNext();) {
+                Map.Entry entry = (Entry) it.next();
+                String alias = (String) entry.getKey();
+                DbTableOrView table = (DbTableOrView) entry.getValue();
                 set.add(StringUtils.toUpperEnglish(table.name));
                 if(q.length()==0 || alias.startsWith(q)) {
                     if(q.length() < alias.length()) {
@@ -112,12 +115,14 @@ public class DbContextRule implements Rule {
             HashMap map = sentence.getAliases();
             String shortName = lastTableName.substring(0, 1);
             if (map != null && map.containsKey(shortName)) {
+                int result = 0;
                 for (int i = 1;; i++) {
                     if (!map.containsKey(shortName + i)) {
-                        shortName += i;
+                        result = i;
                         break;
                     }
                 }
+                shortName += result;
             }
             String q = StringUtils.toUpperEnglish(query.trim());
             if (q.length() == 0 || StringUtils.toUpperEnglish(shortName).startsWith(q)) {

@@ -35,15 +35,16 @@ public class MergeDocs {
                 "faq.html",
                 "license.html"
         };
-        String finalText="";
+        StringBuffer buff = new StringBuffer();
         for(int i=0; i<pages.length; i++) {
             String text = getContent(pages[i]);
             for(int j=0; j<pages.length; j++) {
                 text = StringUtils.replaceAll(text, pages[j] + "#", "#");
             }
             text = removeHeaderFooter(text);
-            finalText += text;
+            buff.append(text);
         }
+        String finalText= buff.toString();
         File output = new File(baseDir, "onePage.html");
         PrintWriter writer = new PrintWriter(new FileWriter(output));
         writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"><title>");

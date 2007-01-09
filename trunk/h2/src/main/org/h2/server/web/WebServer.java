@@ -153,7 +153,7 @@ public class WebServer implements Service {
                 c.start();
             }
         } catch (Exception e) {
-            // TODO log exception
+            trace(e.toString());
         }
     }
 
@@ -192,7 +192,7 @@ public class WebServer implements Service {
         try {
             trace("translation: "+language);
             byte[] trans = getFile("_text_"+language+".properties");
-            trace("  "+trans);
+            trace("  "+new String(trans));
             text.load(new ByteArrayInputStream(trans));
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);

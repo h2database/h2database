@@ -280,7 +280,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     public void setColumnNames(String[] columnNames) {
         this.columnNames = columnNames;
-
     }
 
     public void setRefTableName(Schema refSchema, String ref) {

@@ -322,8 +322,8 @@ public class BtreeNode extends BtreePage {
         int size = 2 + dummy.getIntLen() + dummy.getIntLen() * len;
         len = pageData.size();
         size += dummy.getIntLen();
-        size += pageData.size() * dummy.getIntLen();
-        for (int i = 0; i < pageData.size(); i++) {
+        size += len * dummy.getIntLen();
+        for (int i = 0; i < len; i++) {
             SearchRow row = getData(i);
             size += getRowSize(dummy, row);
         }

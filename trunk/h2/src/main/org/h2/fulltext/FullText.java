@@ -582,8 +582,13 @@ public class FullText implements Trigger {
                String key = rs.getString(1);
                long indexId = rs.getLong(2);
                IndexInfo index = setting.getIndexInfo(indexId);
-               String query = StringUtils.quoteIdentifier(index.schemaName)+"."+StringUtils.quoteIdentifier(index.tableName);
-               query +=" WHERE " + key;
+               StringBuffer buff = new StringBuffer();
+               buff.append(StringUtils.quoteIdentifier(index.schemaName));
+               buff.append('.');
+               buff.append(StringUtils.quoteIdentifier(index.tableName));
+               buff.append(" WHERE ");
+               buff.append(key);
+               String query = buff.toString();
                result.addRow(new String[]{query});
                rowCount++;
                if(limit > 0 && rowCount >= limit) {

@@ -3134,7 +3134,6 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
-        command.setForce(force);
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         String select = StringCache.getNew(sqlCommand.substring(parseIndex));

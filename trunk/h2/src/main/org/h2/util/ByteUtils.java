@@ -48,7 +48,7 @@ public class ByteUtils {
     
     public static byte[] convertStringToBytes(String s) throws SQLException {
         int len = s.length();
-        if (len % 2 == 1) {
+        if (len < 0 || len % 2 == 1) {
             throw Message.getSQLException(Message.HEX_STRING_ODD_1, s);
         }
         len /= 2;

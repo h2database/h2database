@@ -17,7 +17,7 @@ import org.h2.message.Message;
  */
 public class CacheLRU implements Cache {
     
-    public static String TYPE_NAME = "LRU";
+    public static final String TYPE_NAME = "LRU";
 
     private int len;
     private int maxSize;

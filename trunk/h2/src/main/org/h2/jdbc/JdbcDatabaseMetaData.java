@@ -113,14 +113,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             checkClosed();
             String tableType;
             if (types != null && types.length>0) {
-                tableType = "TABLE_TYPE IN(";
+                StringBuffer buff = new StringBuffer("TABLE_TYPE IN(");
                 for (int i = 0; i < types.length; i++) {
                     if (i>0) {
-                        tableType += ", ";
+                        buff.append(", ");
                     }
-                    tableType += "?";
+                    buff.append("?");
                 }
-                tableType += ")";
+                buff.append(")");
+                tableType = buff.toString();
             } else {
                 tableType = "TRUE";
             }
@@ -1172,7 +1173,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         try {
             debugCodeCall("getTypeInfo");
             checkClosed();
-            return conn.createStatement().executeQuery("SELECT "
+            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
                     + "TYPE_NAME, "
                     + "DATA_TYPE, "
                     + "PRECISION, "
@@ -1193,6 +1194,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "RADIX NUM_PREC_RADIX "
                     + "FROM INFORMATION_SCHEMA.TYPE_INFO "
                     + "ORDER BY DATA_TYPE, POS");
+            ResultSet rs = prep.executeQuery();
+            return rs;
         } catch(Throwable e) {
             throw logAndConvert(e);
         }

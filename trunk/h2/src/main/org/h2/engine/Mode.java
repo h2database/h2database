@@ -11,7 +11,7 @@ import org.h2.util.StringUtils;
 public class Mode {
     
     // TODO isolation: this setting should not be global
-    public static Mode currentMode;
+    private static Mode currentMode;
     public static final String REGULAR_NAME = "REGULAR";
     
     public boolean nullConcatIsNull;

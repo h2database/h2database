@@ -7,11 +7,8 @@ package org.h2.server.web;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +18,6 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 
 public class AppServer {
 
@@ -40,7 +36,7 @@ public class AppServer {
         "Generic H2|org.h2.Driver|jdbc:h2:test|sa",
     };
 
-    private URLClassLoader urlClassLoader;
+    // private URLClassLoader urlClassLoader;
     private String driverList;
     private static int ticker;
     private int port;
@@ -64,20 +60,20 @@ public class AppServer {
             }
         }
         // TODO gcj: don't load drivers in case of GCJ
-        if(false) {
-            if(driverList != null) {
-                try {
-                    String[] drivers = StringUtils.arraySplit(driverList, ',', false);
-                    URL[] urls = new URL[drivers.length];
-                    for(int i=0; i<drivers.length; i++) {
-                        urls[i] = new URL(drivers[i]);
-                    }
-                    urlClassLoader = URLClassLoader.newInstance(urls);
-                } catch (MalformedURLException e) {
-                    TraceSystem.traceThrowable(e);
-                }
-            }
-        }
+//        if(false) {
+//            if(driverList != null) {
+//                try {
+//                    String[] drivers = StringUtils.arraySplit(driverList, ',', false);
+//                    URL[] urls = new URL[drivers.length];
+//                    for(int i=0; i<drivers.length; i++) {
+//                        urls[i] = new URL(drivers[i]);
+//                    }
+//                    urlClassLoader = URLClassLoader.newInstance(urls);
+//                } catch (MalformedURLException e) {
+//                    TraceSystem.traceThrowable(e);
+//                }
+//            }
+//        }
     }
 
     void setAllowOthers(boolean b) {
@@ -212,22 +208,16 @@ public class AppServer {
         user = user.trim();
         password = password.trim();
         org.h2.Driver.load();
-        try {
-            Class.forName(driver);
-        } catch(ClassNotFoundException e) {
-            if(urlClassLoader == null) {
-                throw e;
-            }
-            try {
-                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
-                Properties p = new Properties();
-                p.setProperty("user", user);
-                p.setProperty("password", password);
-                return dr.connect(url, p);
-            } catch(ClassNotFoundException e2) {
-                throw e2;
-            }
-        }
+        Class.forName(driver);
+//            try {
+//                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
+//                Properties p = new Properties();
+//                p.setProperty("user", user);
+//                p.setProperty("password", password);
+//                return dr.connect(url, p);
+//            } catch(ClassNotFoundException e2) {
+//                throw e2;
+//            }
         return DriverManager.getConnection(url, user, password);
     }
 

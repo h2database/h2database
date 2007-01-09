@@ -292,13 +292,13 @@ public class TableFilter implements ColumnResolver {
     }
 
     public void addJoin(TableFilter filter, boolean outer, Expression on) throws SQLException {
-        if(on!=null) {
+        if(on != null) {
             on.mapColumns(this, 0);
         }
-        if(join==null) {
+        if(join == null) {
             this.join = filter;
             filter.outerJoin = outer;
-            if(on!=null) {
+            if(on != null) {
                 TableFilter f = filter;
                 do {
                     on.mapColumns(f, 0);
@@ -311,7 +311,7 @@ public class TableFilter implements ColumnResolver {
             join.addJoin(filter, outer, on);
         }
         if(on != null) {
-            on = on.optimize(session);
+            on.optimize(session);
         }
     }
 

@@ -199,7 +199,7 @@ public class TableView extends Table {
     }
 
     public void recompile(Session session) throws SQLException {
-        for(int i=0; tables != null && i<tables.size(); i++) {
+        for(int i=0; i<tables.size(); i++) {
             Table t = (Table)tables.get(i);
             t.removeView(this);
         }

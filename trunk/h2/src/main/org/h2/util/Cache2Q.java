@@ -15,7 +15,7 @@ import org.h2.message.Message;
  */
 public class Cache2Q implements Cache {
     
-    public static String TYPE_NAME = "TQ";
+    public static final String TYPE_NAME = "TQ";
     
     private static final int MAIN = 1, IN = 2, OUT = 3;
     private int maxSize;

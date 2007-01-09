@@ -284,9 +284,8 @@ public class Bnf {
 
     public void linkStatements() {
         HashMap ruleMap = getRuleMap();
-        for(Iterator it = ruleMap.keySet().iterator(); it.hasNext(); ) {
-            String key = (String)it.next();
-            RuleHead r = (RuleHead) ruleMap.get(key);
+        for(Iterator it = ruleMap.values().iterator(); it.hasNext(); ) {
+            RuleHead r = (RuleHead) it.next();
             r.getRule().setLinks(ruleMap);
         }
     }

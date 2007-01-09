@@ -809,9 +809,7 @@ public class Database implements DataHandler {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }
         traceSystem.getTrace(Trace.DATABASE).info("closed");
-        if(traceSystem != null) {
-            traceSystem.close();
-        }
+        traceSystem.close();
         Engine.getInstance().close(databaseName);
         if(deleteFilesOnDisconnect && persistent) {
             deleteFilesOnDisconnect = false;

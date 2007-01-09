@@ -89,7 +89,7 @@ public class TcpServerThread implements Runnable {
                 }
             }
             server.log("Disconnect");
-        } catch(Exception e) {
+        } catch(Throwable e) {
             server.logError(e);
         } finally {
             close();

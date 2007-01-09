@@ -17,6 +17,7 @@ import java.util.HashSet;
 
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
@@ -52,43 +53,29 @@ public class TcpServer implements Service {
     private void initManagementDb() throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:h2:" + getManagementDbName(port), "sa", managementPassword);
         managementDb = conn;
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() +".stopServer\"");
+        Statement stat = null;
+        try {
+            stat = conn.createStatement();
+            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() +".stopServer\"");
+        } finally {
+            JdbcUtils.closeSilently(stat);
+        }
         servers.put(""+port, this);
     }
     
     private void stopManagementDb() {
-        if(managementDb != null) {
-            try {
-                managementDb.close();
-            } catch (SQLException e) {
-                TraceSystem.traceThrowable(e);
+        synchronized(TcpServer.class) {
+            if(managementDb != null) {
+                try {
+                    managementDb.close();
+                } catch (SQLException e) {
+                    TraceSystem.traceThrowable(e);
+                }
+                managementDb = null;
             }
-            managementDb = null;
         }
     }
 
-    public static synchronized void stopServer(int port, String password, int shutdownMode) {
-        TcpServer server = (TcpServer) servers.get("" + port);
-        if(server == null) {
-            return;
-        }
-        if(!server.managementPassword.equals(password)) {
-            return;
-        }
-        if(shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
-            server.stop = true;
-            try {
-                Socket s = new Socket("localhost", port);
-                s.close();
-            } catch (Exception e) {
-                // try to connect - so that accept returns
-            }
-        } else if(shutdownMode == TcpServer.SHUTDOWN_FORCE) {
-            server.stop();
-        }
-    }
-    
     public void init(String[] args) throws Exception {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
@@ -126,8 +113,8 @@ public class TcpServer implements Service {
     
     public void start() throws SQLException {
         synchronized(TcpServer.class) {
-            initManagementDb();
             serverSocket = NetUtils.createServerSocket(port, ssl);
+            initManagementDb();
         }
     }
     
@@ -148,9 +135,7 @@ public class TcpServer implements Service {
                 TraceSystem.traceThrowable(e);
             }
         }
-        synchronized(TcpServer.class) {
-            stopManagementDb();
-        }
+        stopManagementDb();
     }
 
     public boolean isRunning() {
@@ -169,6 +154,7 @@ public class TcpServer implements Service {
     public synchronized void stop() {
         // TODO server: share code between web and tcp servers
         if(!stop) {
+            stopManagementDb();
             stop = true;
             if(serverSocket != null) {
                 try {
@@ -193,6 +179,28 @@ public class TcpServer implements Service {
         servers.remove(""+port);
     }
 
+    public static synchronized void stopServer(int port, String password, int shutdownMode) {
+        TcpServer server = (TcpServer) servers.get("" + port);
+        if(server == null) {
+            return;
+        }
+        if(!server.managementPassword.equals(password)) {
+            return;
+        }
+        if(shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
+            server.stopManagementDb();
+            server.stop = true;
+            try {
+                Socket s = new Socket("localhost", port);
+                s.close();
+            } catch (Exception e) {
+                // try to connect - so that accept returns
+            }
+        } else if(shutdownMode == TcpServer.SHUTDOWN_FORCE) {
+            server.stop();
+        }
+    }
+
     synchronized void remove(TcpServerThread t) {
         running.remove(t);
     }
@@ -212,7 +220,7 @@ public class TcpServer implements Service {
         }
     }
 
-    void logError(Exception e) {
+    void logError(Throwable e) {
         if (log) {
             e.printStackTrace();
         }

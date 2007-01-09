@@ -35,7 +35,7 @@ public class CommandContainer extends Command {
     }
     
     private void recompileIfRequired() throws SQLException {
-        if(prepared == null || prepared.needRecompile()) {
+        if(prepared.needRecompile()) {
             // TODO test with 'always recompile'
             prepared.setModificationId(0);
             String sql = prepared.getSQL();

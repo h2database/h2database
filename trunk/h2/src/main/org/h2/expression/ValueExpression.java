@@ -18,7 +18,7 @@ import org.h2.value.ValueNull;
 public class ValueExpression extends Expression {
     private Value value;
     
-    public static ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
+    public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
     
     public static ValueExpression get(Value v) {
         if(v == ValueNull.INSTANCE) {

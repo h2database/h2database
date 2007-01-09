@@ -25,7 +25,7 @@ import org.h2.message.TraceSystem;
 
 public class FileUtils {
 
-    public static HashMap memoryFiles = new HashMap();
+    public static final HashMap memoryFiles = new HashMap();
     private static final String MEMORY_PREFIX = "inmemory:";
     private static final String MEMORY_PREFIX_2 = "mem:";
     // TODO detection of 'case in sensitive filesystem' could maybe implemented using some other means

@@ -99,11 +99,11 @@ public class DateTimeUtils {
     }
 
     public static Date convertDateToCalendar(Date x, Calendar calendar) throws SQLException {
-        return x == null ? x : new Date(getLocalTime(x, calendar));
+        return x == null ? null : new Date(getLocalTime(x, calendar));
     }
 
     public static Time convertTimeToCalendar(Time x, Calendar calendar) throws SQLException {
-        return x == null ? x : new Time(getLocalTime(x, calendar));
+        return x == null ? null : new Time(getLocalTime(x, calendar));
     }
     
     public static java.util.Date parseDateTime(String s, int type, int errorCode) throws SQLException {

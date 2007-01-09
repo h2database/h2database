@@ -18,7 +18,6 @@ public class CreateView extends SchemaCommand {
     private Query select;
     private String viewName;
     private boolean ifNotExists;
-    private boolean force;
     private String selectSQL;
     private String[] columnNames;
     private String comment;
@@ -48,7 +47,7 @@ public class CreateView extends SchemaCommand {
         }
         int id = getObjectId(true, true);
         String querySQL;
-        if(select == null && force) {
+        if(select == null) {
             querySQL = selectSQL;
         } else {
             querySQL = select.getSQL();
@@ -61,10 +60,6 @@ public class CreateView extends SchemaCommand {
 
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
-    }
-
-    public void setForce(boolean force) {
-        this.force = force;
     }
 
     public void setSelectSQL(String selectSQL) {

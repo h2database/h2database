@@ -102,8 +102,6 @@ public class BtreeIndex extends Index implements RecordReader {
         }
     }
 
-int count;
-
     void deletePage(Session session, Record p) throws SQLException {
         if(database.getLogIndexChanges()) {
             storage.removeRecord(session, p.getPos());

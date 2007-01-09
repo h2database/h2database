@@ -14,6 +14,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.message.Message;
+import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -101,18 +103,19 @@ public class Backup {
      * INTERNAL
      */
     public static void executeScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
+        Connection conn = null;
+        Statement stat = null;
         try {
             org.h2.Driver.load();
-            Connection conn = DriverManager.getConnection(url, user, password);
-            Statement stat = conn.createStatement();
+            conn = DriverManager.getConnection(url, user, password);
+            stat = conn.createStatement();
             String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
-            try {
-                stat.execute(sql);
-            } finally {
-                conn.close();
-            }
+            stat.execute(sql);
         } catch(Exception e) {
             throw Message.convert(e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(conn);
         }
     }
     
@@ -126,11 +129,14 @@ public class Backup {
      * @throws SQLException
      */
     public static void execute(String url, String user, String password, String script) throws SQLException {
+        Connection conn = null;
+        Statement stat = null;        
+        FileWriter fileWriter = null;
         try {
             org.h2.Driver.load();
-            Connection conn = DriverManager.getConnection(url, user, password);
-            Statement stat = conn.createStatement();
-            FileWriter fileWriter = new FileWriter(script);
+            conn = DriverManager.getConnection(url, user, password);
+            stat = conn.createStatement();
+            fileWriter = new FileWriter(script);
             PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while(rs.next()) {
@@ -138,10 +144,12 @@ public class Backup {
                 writer.println(s + ";");
             }
             writer.close();
-            fileWriter.close();
-            conn.close();
         } catch(Exception e) {
             throw Message.convert(e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(conn);
+            IOUtils.closeSilently(fileWriter);
         }
     }
 

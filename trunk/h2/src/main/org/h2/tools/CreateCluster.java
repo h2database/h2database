@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.message.Message;
+import org.h2.util.JdbcUtils;
 
 /**
  * Tool to create a database cluster.
@@ -82,9 +83,11 @@ public class CreateCluster {
      * @throws SQLException
      */
     public static void execute(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
+        Connection conn = null;
+        Statement stat = null;
         try {
             org.h2.Driver.load();
-            Connection conn;
+            
             
             // use cluster='' so connecting is possible even if the cluster is enabled
             conn = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
@@ -107,16 +110,17 @@ public class CreateCluster {
             
             // set the cluster to the serverlist on both databases
             conn = DriverManager.getConnection(urlSource, user, password);
-            Statement stat;
             stat = conn.createStatement();
             stat.executeUpdate("SET CLUSTER '" + serverlist + "'");
             conn.close();
             conn = DriverManager.getConnection(urlTarget, user, password);
             stat = conn.createStatement();
             stat.executeUpdate("SET CLUSTER '" + serverlist + "'");
-            conn.close();
         } catch(Exception e) {
             throw Message.convert(e);
+        } finally {
+            JdbcUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(stat);
         }
     }
     

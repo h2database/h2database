@@ -25,7 +25,7 @@ public class Sequence extends SchemaObject {
         this.belongsToTable = belongsToTable;
     }
 
-    public void setStartValue(long value) {
+    public synchronized void setStartValue(long value) {
         this.value = value;
         this.valueWithMargin = value;
     }

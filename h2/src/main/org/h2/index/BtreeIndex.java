@@ -84,9 +84,10 @@ public class BtreeIndex extends Index implements RecordReader {
 
     private void setChanged(Session session) throws SQLException {
         if(head != null && !database.getLogIndexChanges()) {
+            // maybe there was a checkpoint, need to invalidate the summary in this case too
+            database.invalidateIndexSummary();
             if(head.getConsistent()) {
                 deletePage(session, head);
-                database.invalidateIndexSummary();
                 head.setConsistent(false);
                 flushHead(session);
             }

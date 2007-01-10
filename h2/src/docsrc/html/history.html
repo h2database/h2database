@@ -35,6 +35,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO</h3><ul>
+<li>Fixed a problem where data that was in the log file did not end up in the database (recovery failure) a crash, if an index was deleted previously.
+<li>SCRIPT NODATA now writes the row count for each table (this simplifies comparing databases).
 <li>Selecting a column using the syntax schemaName.tableName.columName did not work in all cases.
 <li>Can now parse timestamps with timezone information (Z or +/-hh:mm) and dates before year 1.
     However dates before year 1 are not formatted correctly (this is a Java problem).

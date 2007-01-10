@@ -194,44 +194,50 @@ public class Script extends ScriptBase {
                 }
                 String tableType = table.getTableType();
                 add(sql, false);
-                if(data && Table.TABLE.equals(tableType)) {
-                    PlanItem plan = table.getBestPlanItem(session, null);
-                    Index index = plan.getIndex();
-                    Cursor cursor = index.find(session, null, null);
-                    Column[] columns = table.getColumns();
-                    String ins = "INSERT INTO " + table.getSQL() + "(";
-                    for(int j=0; j<columns.length; j++) {
-                        if(j>0) {
-                            ins += ", ";
-                        }
-                        ins += Parser.quoteIdentifier(columns[j].getName());
+                if(Table.TABLE.equals(tableType)) {
+                    if(table.canGetRowCount()) {
+                        String rowcount = "-- " + table.getRowCount() + " = SELECT COUNT(*) FROM " + table.getSQL();
+                        add(rowcount, false);
                     }
-                    ins += ") VALUES(";
-                    while(cursor.next()) {
-                        Row row = cursor.get();
-                        String s = ins;
-                        for(int j=0; j<row.getColumnCount(); j++) {
+                    if(data) {
+                        PlanItem plan = table.getBestPlanItem(session, null);
+                        Index index = plan.getIndex();
+                        Cursor cursor = index.find(session, null, null);
+                        Column[] columns = table.getColumns();
+                        String ins = "INSERT INTO " + table.getSQL() + "(";
+                        for(int j=0; j<columns.length; j++) {
                             if(j>0) {
-                                s += ", ";
+                                ins += ", ";
                             }
-                            Value v = row.getValue(j);
-                            if(v.getPrecision() > lobBlockSize) {
-                                int id;
-                                if(v.getType() == Value.CLOB) {
-                                    id = writeLobStream((ValueLob)v);
-                                    s += "SYSTEM_COMBINE_CLOB("+id+")";
-                                } else if(v.getType() == Value.BLOB) {
-                                    id = writeLobStream((ValueLob)v);
-                                    s += "SYSTEM_COMBINE_BLOB("+id+")";
+                            ins += Parser.quoteIdentifier(columns[j].getName());
+                        }
+                        ins += ") VALUES(";
+                        while(cursor.next()) {
+                            Row row = cursor.get();
+                            String s = ins;
+                            for(int j=0; j<row.getColumnCount(); j++) {
+                                if(j>0) {
+                                    s += ", ";
+                                }
+                                Value v = row.getValue(j);
+                                if(v.getPrecision() > lobBlockSize) {
+                                    int id;
+                                    if(v.getType() == Value.CLOB) {
+                                        id = writeLobStream((ValueLob)v);
+                                        s += "SYSTEM_COMBINE_CLOB("+id+")";
+                                    } else if(v.getType() == Value.BLOB) {
+                                        id = writeLobStream((ValueLob)v);
+                                        s += "SYSTEM_COMBINE_BLOB("+id+")";
+                                    } else {
+                                        s += v.getSQL();
+                                    }
                                 } else {
                                     s += v.getSQL();
                                 }
-                            } else {
-                                s += v.getSQL();
                             }
+                            s += ")";
+                            add(s, true);
                         }
-                        s += ")";
-                        add(s, true);
                     }
                 }
                 ObjectArray indexes = table.getIndexes();

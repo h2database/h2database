@@ -147,7 +147,7 @@ public class TestCases extends TestBase {
         for(int i=0; i<1000; i++) {
             stat.execute("INSERT INTO TEST() VALUES()");
         }
-        final boolean[] stopped = new boolean[1];
+        final SQLException[] stopped = new SQLException[1];
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -157,9 +157,9 @@ public class TestCases extends TestBase {
                     time = System.currentTimeMillis() - time;
                     TestBase.logError("query was too quick; result: " + rs.getInt(1) + " time:" + time, null);
                 } catch(SQLException e) {
+                    stopped[0] = e;
                     // ok
                 }
-                stopped[0] = true;
             }
         });
         t.start();
@@ -167,8 +167,10 @@ public class TestCases extends TestBase {
         long time = System.currentTimeMillis();
         conn.close();
         t.join(5000);
-        if(!stopped[0]) {
+        if(stopped[0] == null) {
             error("query still running");
+        } else {
+            checkNotGeneralException(stopped[0]);
         }
         time = System.currentTimeMillis() - time;
         if(time > 5000) {

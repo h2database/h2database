@@ -48,17 +48,15 @@ package org.h2.engine;
  * - TestSystemExit
  * - Test with hibernate
  * - Scan for viruses
- *
- * - Send a mail to Google Groups
  * - newsletter: prepare, send (always send to BCC!!)
  * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
- *
+ * 
  * @author Thomas
  */
 public class Constants {
 
-    public static final int BUILD_ID = 36;
-    private static final String BUILD = "2007-01-02";
+    public static final int BUILD_ID = 38;
+    private static final String BUILD = "2007-01-10";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -204,7 +202,7 @@ public class Constants {
     public static final String SCRIPT_SQL = "script.sql";
 
     // for testing only
-    public static int CACHE_MIN_RECORDS = 16;
+    public static final int CACHE_MIN_RECORDS = 16;
     
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
 

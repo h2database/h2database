@@ -717,7 +717,7 @@ public class Recover implements DataHandler {
                 MetaRecord m = (MetaRecord) schema.get(i);
                 writer.println(m.getSQL() + ";");
             }
-            for(Iterator it = tableMap.keySet().iterator(); it.hasNext(); ) {
+            for(Iterator it = tableMap.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry entry = (Entry) it.next();
                 Integer objectId = (Integer) entry.getKey();
                 String name = (String) entry.getValue();

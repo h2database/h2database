@@ -9,7 +9,6 @@ import java.util.HashMap;
 
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -20,7 +19,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-
 
 /**
  * @author Thomas
@@ -60,8 +58,7 @@ public class ExpressionColumn extends Expression {
         if(tableAlias != null) {
             sql = Parser.quoteIdentifier(tableAlias) + "." + sql;
         }
-        if(schemaName != null && !schemaName.equals(Constants.SCHEMA_MAIN)) {
-            int todoTempSolution;
+        if(schemaName != null) {
             sql = Parser.quoteIdentifier(schemaName) + "." + sql;
         }
         return sql;

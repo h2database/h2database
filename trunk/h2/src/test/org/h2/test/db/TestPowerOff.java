@@ -18,6 +18,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.tools.FileBase;
 import org.h2.util.FileUtils;
+import org.h2.util.JdbcUtils;
 
 public class TestPowerOff extends TestBase {
     
@@ -36,11 +37,56 @@ public class TestPowerOff extends TestBase {
             dir = "inmemory:";
         }
         url = dir + "/" + dbName + ";file_lock=no";
+        testSummaryCrash();
         testCrash();
         testShutdown();
         testNoIndexFile();
         testMemoryTables();
         testPersistentTables();
+    }
+    
+    private void testSummaryCrash() throws Exception {
+        if(config.networked) {
+            return;
+        }
+        deleteDb(dir, dbName);  
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        for(int i=0; i<10; i++) {
+            stat.execute("CREATE TABLE TEST" + i + "(ID INT PRIMARY KEY, NAME VARCHAR)");
+            for(int j=0; j<10; j++) {
+                stat.execute("INSERT INTO TEST" + i + " VALUES("+j+", 'Hello')");
+            }
+        }
+        for(int i=0; i<10; i+=2) {
+            stat.execute("DROP TABLE TEST" + i);
+        }
+        stat.execute("SET WRITE_DELAY 0");
+        stat.execute("CHECKPOINT");
+        for(int j=0; j<10; j++) {
+            stat.execute("INSERT INTO TEST1 VALUES("+(10+j)+", 'World')");
+        }
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        JdbcUtils.closeSilently(conn);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        for(int i=1; i<10; i+=2) {
+            ResultSet rs = stat.executeQuery("SELECT * FROM TEST" + i + " ORDER BY ID");
+            for(int j=0; j<10; j++) {
+                rs.next();
+                check(rs.getInt(1), j);
+                check(rs.getString(2), "Hello");
+            }
+            if(i == 1) {
+                for(int j=0; j<10; j++) {
+                    rs.next();
+                    check(rs.getInt(1), j + 10);
+                    check(rs.getString(2), "World");
+                }
+            }
+            checkFalse(rs.next());
+        }
+        conn.close();
     }
     
     private void testCrash() throws Exception {

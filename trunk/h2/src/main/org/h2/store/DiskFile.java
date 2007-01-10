@@ -196,7 +196,7 @@ public class DiskFile implements CacheWriter {
             ObjectArray list = database.getAllStorages();
             for(int i=0; i<list.size(); i++) {
                 Storage s = (Storage)list.get(i);
-                if(s.getDiskFile() == this) {
+                if(s != null && s.getDiskFile() == this) {
                     database.removeStorage(s.getId(), this);
                 }
             }

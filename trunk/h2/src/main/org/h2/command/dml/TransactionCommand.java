@@ -4,7 +4,10 @@
  */
 package org.h2.command.dml;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.sql.SQLException;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
@@ -127,13 +130,15 @@ public class TransactionCommand extends Prepared {
         return 0;
     }
 
-    private void backupTo(String fileName) {
-//        ZipOutputStream out = new ZipOutputStream("test.zip");
-//        out.putNextEntry(arg0)
+    private void backupTo(String fileName) throws SQLException {
+//        int todoAddSpecialSQLStatement;
+//        FileOutputStream fileout = new FileOutputStream("test.zip");
+//        ZipOutputStream out = new ZipOutputStream(fileout);
+//        out.putNextEntry(new ZipEntry("test.data.db"));
 //        DiskFile file = session.getDatabase().getDataFile();
-////        session.getDatabase().getLog().incStopDeleteFiles(true);
-//        // TODO Auto-generated method stub
-////      session.getDatabase().getLog().setStopDeleteFiles(false);
+//        session.getDatabase().getLog().incStopDeleteFiles(true);
+        // TODO Auto-generated method stub
+//      session.getDatabase().getLog().setStopDeleteFiles(false);
 //        
     }
 

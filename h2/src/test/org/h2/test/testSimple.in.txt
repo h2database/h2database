@@ -1,3 +1,14 @@
+create schema a;
+create table a.test(id int);
+insert into a.test values(1);
+create schema b;
+create table b.test(id int);
+insert into b.test values(2);
+select a.test.id + b.test.id from a.test, b.test;
+> 3;
+drop schema a;
+drop schema b;
+
 select date '+0011-01-01';
 > 0011-01-01;
 select date'-0010-01-01';

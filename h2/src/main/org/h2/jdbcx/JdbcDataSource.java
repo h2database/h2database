@@ -38,7 +38,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource, DataSou
     
     private static final long serialVersionUID = 1288136338451857771L;
     
-    private transient JdbcDataSourceFactory factory;
+    private transient JdbcDataSourceFactory factory = new JdbcDataSourceFactory();
     private transient PrintWriter logWriter;
     private int timeout;
     private String user;
@@ -46,7 +46,6 @@ public class JdbcDataSource extends TraceObject implements XADataSource, DataSou
     private String url;
     
     public JdbcDataSource() {
-        this.factory = new JdbcDataSourceFactory();
         int id = getNextId(TraceObject.DATASOURCE);
         setTrace(factory.getTrace(), TraceObject.DATASOURCE, id);
     }

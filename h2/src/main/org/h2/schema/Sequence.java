@@ -109,7 +109,7 @@ public class Sequence extends SchemaObject {
         // nothing to do
     }
 
-    public long getCurrentValue() {
+    public synchronized long getCurrentValue() {
         return value - increment;
     }
 

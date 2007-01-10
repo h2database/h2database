@@ -16,8 +16,8 @@ public class BenchA implements Bench {
     private Database db;
 
     private int branches;
-    private int tellers = branches * 20;
-    private int accounts = branches * 100;
+    private int tellers;
+    private int accounts;
     private int size;
     
     private static final String FILLER = "abcdefghijklmnopqrstuvwxyz";

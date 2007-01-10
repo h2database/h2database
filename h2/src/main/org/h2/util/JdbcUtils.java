@@ -1,6 +1,7 @@
 package org.h2.util;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -20,6 +21,16 @@ public class JdbcUtils {
         if(conn != null) {
             try {
                 conn.close();
+            } catch(SQLException e) {
+                // ignore
+            }
+        }
+    }
+
+    public static void closeSilently(ResultSet rs) {
+        if(rs != null) {
+            try {
+                rs.close();
             } catch(SQLException e) {
                 // ignore
             }

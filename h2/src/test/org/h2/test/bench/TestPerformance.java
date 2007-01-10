@@ -10,10 +10,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
 
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 
 public class TestPerformance {
     
@@ -29,13 +32,20 @@ public class TestPerformance {
     }
     
     private void openResults(boolean init) throws Exception {
-        Connection conn = getResultConnection();
-        if(init) {
-            conn.createStatement().execute("DROP TABLE IF EXISTS RESULTS");
+        Connection conn = null;
+        Statement stat = null;
+        try {
+            conn = getResultConnection();
+            stat = conn.createStatement();
+            if(init) {
+                stat.execute("DROP TABLE IF EXISTS RESULTS");
+            }
+            stat.execute("CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, TEST VARCHAR, "
+                    + "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
+        } finally {
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(conn);
         }
-        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, TEST VARCHAR, "
-                + "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
-        conn.close();
     }
 
     private void test(String[] args) throws Exception {
@@ -84,41 +94,52 @@ public class TestPerformance {
             return;
         }
         ArrayList results = ((Database)dbs.get(0)).getResults();
-        Connection conn = getResultConnection();
-        PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
-        for(int i=0; i<results.size(); i++) {
-            Object[] res = (Object[])results.get(i);
-            prep.setInt(1, i);
-            prep.setString(2, res[0].toString());
-            prep.setString(3, res[1].toString());
-            for(int j=0; j<dbs.size(); j++) {
-                Database db  = (Database)dbs.get(j);
-                prep.setInt(4, db.getId());
-                prep.setString(5, db.getName());
-                ArrayList r = db.getResults();
-                Object[] v = (Object[])r.get(i);
-                prep.setString(6, v[2].toString());
-                prep.execute();
+        Connection conn = null;
+        PreparedStatement prep = null;
+        Statement stat = null;
+        PrintWriter writer = null;
+        try {
+            conn = getResultConnection();
+            stat = conn.createStatement();
+            prep = conn.prepareStatement(
+                    "INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
+            for(int i=0; i<results.size(); i++) {
+                Object[] res = (Object[])results.get(i);
+                prep.setInt(1, i);
+                prep.setString(2, res[0].toString());
+                prep.setString(3, res[1].toString());
+                for(int j=0; j<dbs.size(); j++) {
+                    Database db  = (Database)dbs.get(j);
+                    prep.setInt(4, db.getId());
+                    prep.setString(5, db.getName());
+                    ArrayList r = db.getResults();
+                    Object[] v = (Object[])r.get(i);
+                    prep.setString(6, v[2].toString());
+                    prep.execute();
+                }
             }
+            
+            writer = new PrintWriter(new FileWriter(out));
+            ResultSet rs = stat.executeQuery(
+                    "CALL '<table><tr><th>Test Case</th><th>Unit</th>' "
+                    +"|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' ORDER BY DBID SEPARATOR '') FROM "
+                    +"(SELECT DISTINCT DBID, DB FROM RESULTS)"
+                    +"|| '</tr>' || CHAR(10) "
+                    +"|| SELECT GROUP_CONCAT('<tr><td>' || TEST || '</td><td>' || UNIT || '</td>' || ( "
+                    +"SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE "
+                    +"R2.TESTID = R1.TESTID) || '</tr>' ORDER BY TESTID SEPARATOR CHAR(10)) FROM "
+                    +"(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1"
+                    +"|| '</table>'"
+            );
+            rs.next();
+            String result = rs.getString(1);
+            writer.println(result);
+        } finally {
+            JdbcUtils.closeSilently(prep);
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(conn);
+            IOUtils.closeSilently(writer);
         }
-        
-        PrintWriter writer = new PrintWriter(new FileWriter(out));
-        ResultSet rs = conn.createStatement().executeQuery(
-                "CALL '<table><tr><th>Test Case</th><th>Unit</th>' "
-                +"|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' ORDER BY DBID SEPARATOR '') FROM "
-                +"(SELECT DISTINCT DBID, DB FROM RESULTS)"
-                +"|| '</tr>' || CHAR(10) "
-                +"|| SELECT GROUP_CONCAT('<tr><td>' || TEST || '</td><td>' || UNIT || '</td>' || ( "
-                +"SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE "
-                +"R2.TESTID = R1.TESTID) || '</tr>' ORDER BY TESTID SEPARATOR CHAR(10)) FROM "
-                +"(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1"
-                +"|| '</table>'"
-        );
-        rs.next();
-        String result = rs.getString(1);
-        writer.println(result);
-        conn.close();
         
 //        ResultSet rsDbs = conn.createStatement().executeQuery("SELECT DB RESULTS GROUP BY DBID, DB ORDER BY DBID");
 //        while(rsDbs.next()) {
@@ -154,7 +175,6 @@ public class TestPerformance {
 //        }
 //        writer.println("</table>");
 
-        writer.close();
         System.out.println("Test finished");
         System.exit(0);
     }

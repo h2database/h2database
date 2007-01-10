@@ -371,7 +371,7 @@ public class BenchCThread {
             rs.next();
             rs.getString(1); // c_first
             rs.getString(2); // c_middle
-            c_last = rs.getString(3);
+            rs.getString(3); // c_last
             rs.getString(4); // c_street_1
             rs.getString(5); // c_street_2
             rs.getString(6); // c_city
@@ -499,7 +499,7 @@ public class BenchCThread {
             rs.getBigDecimal(1); // c_balance
             rs.getString(2); // c_first
             rs.getString(3); // c_middle
-            c_last = rs.getString(4);
+            rs.getString(4); // c_last
             rs.close();
         }
         prep = prepare("SELECT MAX(O_ID) "

@@ -18,6 +18,7 @@ import org.h2.bnf.Bnf;
 import org.h2.server.web.PageParser;
 import org.h2.tools.indexer.Indexer;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 public class GenerateDoc {
@@ -80,22 +81,27 @@ public class GenerateDoc {
     }
     
     void map(String key, String sql) throws Exception {
-        ResultSet rs = conn.createStatement().executeQuery(sql);
-        ArrayList list = new ArrayList();
-        while(rs.next()) {
-            HashMap map = new HashMap();
-            ResultSetMetaData meta = rs.getMetaData();
-            for(int i=0; i<meta.getColumnCount(); i++) {
-                String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i+1));
-                String value = rs.getString(i+1);
-                map.put(k, PageParser.escapeHtml(value));
+        ResultSet rs = null;
+        try {
+            rs = conn.createStatement().executeQuery(sql);
+            ArrayList list = new ArrayList();
+            while(rs.next()) {
+                HashMap map = new HashMap();
+                ResultSetMetaData meta = rs.getMetaData();
+                for(int i=0; i<meta.getColumnCount(); i++) {
+                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i+1));
+                    String value = rs.getString(i+1);
+                    map.put(k, PageParser.escapeHtml(value));
+                }
+                String topic = rs.getString("TOPIC");
+                String syntax =  rs.getString("SYNTAX");
+                syntax = bnf.getSyntax(topic, syntax);
+                map.put("syntax", PageParser.escapeHtml(syntax));
+                list.add(map);
             }
-            String topic = rs.getString("TOPIC");
-            String syntax =  rs.getString("SYNTAX");
-            syntax = bnf.getSyntax(topic, syntax);
-            map.put("syntax", PageParser.escapeHtml(syntax));
-            list.add(map);
+            session.put(key, list);
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
-        session.put(key, list);
     }
 }

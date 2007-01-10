@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -44,6 +45,7 @@ public class ExpressionColumn extends Expression {
     public ExpressionColumn(Database database, Select select, String schemaName, String tableAlias, String columnName) {
         this.database = database;
         this.select = select;
+        this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
     }
@@ -58,7 +60,8 @@ public class ExpressionColumn extends Expression {
         if(tableAlias != null) {
             sql = Parser.quoteIdentifier(tableAlias) + "." + sql;
         }
-        if(schemaName != null) {
+        if(schemaName != null && !schemaName.equals(Constants.SCHEMA_MAIN)) {
+            int todoTempSolution;
             sql = Parser.quoteIdentifier(schemaName) + "." + sql;
         }
         return sql;

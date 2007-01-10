@@ -11,23 +11,24 @@ package org.h2.engine;
  * - System.out > trace messages
  *
  * Release checklist
+ * - Run FindBugs 
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
- * - try compiling with JDK 1.3, 1.4, 1.5 and 1.6
+ * - Compiling with JDK 1.3, 1.4, 1.5 and 1.6
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
- * - change FAQ (next release planned, known bugs)
- * - check version, change build number in Constants.java and build.xml
- * - check code coverage
+ * - Change FAQ (next release planned, known bugs)
+ * - Check version, change build number in Constants.java and build.xml
+ * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
  * - No TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
- * - copy the benchmark results and update the performance page and diagram
+ * - Copy the benchmark results and update the performance page and diagram
  *   (remove rows 2*open/close, 2*executed statement)
  *
- * - documentation: if there are new files, add them to MergeDocs
- * - documentation: check if all javadoc files are in the index
+ * - Documentation: if there are new files, add them to MergeDocs
+ * - Documentation: check if all javadoc files are in the index
  * - ant docs
  * - PDF (15 min)
  *      - footer
@@ -35,18 +36,18 @@ package org.h2.engine;
  *      - tables (optimal size)
  *      - orphan control, page breaks
  *      - table of contents
- * - switch off auto-build
+ * - Switch off auto-build
  * - ant all
- * - make sure odbc files are the
- * - make sure the pdf file is there
- * - make sure the build files are removed
+ * - Make sure odbc files are the
+ * - Make sure the pdf file is there
+ * - Make sure the build files are removed
  * - ant zip
- * - windows installer (nsis)
- * - test
- * - test the windows service
+ * - Windows installer (nsis)
+ * - Test
+ * - Test the windows service
  * - TestSystemExit
- * - test with hibernate
- * - scan for viruses
+ * - Test with hibernate
+ * - Scan for viruses
  *
  * - Send a mail to Google Groups
  * - newsletter: prepare, send (always send to BCC!!)
@@ -185,7 +186,7 @@ public class Constants {
     public static final int ALLOW_LITERALS_ALL = 2;
 
     public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
-    public static boolean AUTO_CONVERT_LOB_TO_FILES = true;
+    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
     public static final boolean ALLOW_EMTPY_BTREE_PAGES = true;
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
@@ -205,28 +206,28 @@ public class Constants {
     // for testing only
     public static int CACHE_MIN_RECORDS = 16;
     
-    public static int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
+    public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
 
     
     public static boolean CHECK = getBooleanSetting("h2.check", true);
-    public static boolean CHECK2 = getBooleanSetting("h2.check2", false);
+    public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
 
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
-    public static boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
-    public static int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
+    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
     public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
     public static boolean RUN_FINALIZERS = getBooleanSetting("h2.runFinalizers", true);
 
-    public static boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
-    public static boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
-    public static int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
-    public static boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
-    public static boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
-    public static boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
-    public static boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
-    public static String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
-    public static int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
+    public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
+    public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
+    public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
+    public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
+    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
+    public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
+    public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
+    public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
+    public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
     public static final int SERVER_SMALL_RESULTSET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
     public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 1 * 1024 * 1024);
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 128 * 1024);

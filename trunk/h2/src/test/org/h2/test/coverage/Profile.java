@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.LineNumberReader;
 
+import org.h2.util.IOUtils;
+
 /**
  * The class used at runtime to measure the code usage and performance.
  */
@@ -16,8 +18,8 @@ public class Profile extends Thread {
     public static final boolean LIST_UNVISITED = true;
     public static final boolean FAST = false;
     public static final boolean TRACE = false;
+    public static final Profile main = new Profile();
     public static int current;
-    public static Profile main = new Profile();
     private BufferedWriter trace;
     public int[] count;
     public int[] time;
@@ -74,11 +76,12 @@ public class Profile extends Thread {
     }
 
     Profile() {
+        FileReader reader = null;
         try {
-            LineNumberReader r = new LineNumberReader(new FileReader(
-                    "profile.txt"));
+            reader = new FileReader("profile.txt");
+            LineNumberReader r = new LineNumberReader(reader);
             while (r.readLine() != null) {
-                // nothing
+                // nothing - just count lines
             }
             maxIndex = r.getLineNumber();
             count = new int[maxIndex];
@@ -88,6 +91,8 @@ public class Profile extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
+        } finally {
+            IOUtils.closeSilently(reader);
         }
     }
 
@@ -115,28 +120,36 @@ public class Profile extends Thread {
         printLine('=');
         print("NOT COVERED");
         printLine('-');
-        LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"));
-        BufferedWriter writer = new BufferedWriter(new FileWriter("notcovered.txt"));
-        int unvisited = 0;
-        int unvisitedthrow = 0;
-        for (int i = 0; i < maxIndex; i++) {
-            String line = r.readLine();
-            if (count[i] == 0) {
-                if (!line.endsWith("throw")) {
-                    writer.write(line + "\r\n");
-                    if(LIST_UNVISITED) {
-                        print(line+"\r\n");
+        FileReader reader = null;
+        FileWriter fwriter = null;
+        try {
+            reader = new FileReader("profile.txt");
+            LineNumberReader r = new LineNumberReader(reader);
+            fwriter = new FileWriter("notcovered.txt");
+            BufferedWriter writer = new BufferedWriter(fwriter);
+            int unvisited = 0;
+            int unvisitedthrow = 0;
+            for (int i = 0; i < maxIndex; i++) {
+                String line = r.readLine();
+                if (count[i] == 0) {
+                    if (!line.endsWith("throw")) {
+                        writer.write(line + "\r\n");
+                        if(LIST_UNVISITED) {
+                            print(line+"\r\n");
+                        }
+                        unvisited++;
+                    } else {
+                        unvisitedthrow++;
                     }
-                    unvisited++;
-                } else {
-                    unvisitedthrow++;
                 }
             }
+            int percent = (100 * unvisited / maxIndex);
+            print("Not covered: " + percent + " % " + " (" + unvisited + " of "
+                    + maxIndex + "; throw=" + unvisitedthrow + ")");
+        } finally {
+            IOUtils.closeSilently(fwriter);
+            IOUtils.closeSilently(reader);
         }
-        writer.close();
-        int percent = (100 * unvisited / maxIndex);
-        print("Not covered: " + percent + " % " + " (" + unvisited + " of "
-                + maxIndex + "; throw=" + unvisitedthrow + ")");
     }
 
     void listTop(String title, int[] list, int max) throws Exception {
@@ -171,23 +184,29 @@ public class Profile extends Thread {
             list[bigIndex] = -(big + 1);
             index[i] = bigIndex;
         }
-        LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"));
-        for (int i = 0; i < maxIndex; i++) {
-            String line = r.readLine();
-            int k = list[i];
-            if (k < 0) {
-                k = -(k + 1);
-                list[i] = k;
-                for (int j = 0; j < max; j++) {
-                    if (index[j] == i) {
-                        int percent = (100 * k / total);
-                        text[j] = k + " " + percent + "%: " + line;
+        FileReader reader = null;
+        try {
+            reader = new FileReader("profile.txt");
+            LineNumberReader r = new LineNumberReader(reader);
+            for (int i = 0; i < maxIndex; i++) {
+                String line = r.readLine();
+                int k = list[i];
+                if (k < 0) {
+                    k = -(k + 1);
+                    list[i] = k;
+                    for (int j = 0; j < max; j++) {
+                        if (index[j] == i) {
+                            int percent = (100 * k / total);
+                            text[j] = k + " " + percent + "%: " + line;
+                        }
                     }
                 }
             }
-        }
-        for (int i = 0; i < max; i++) {
-            print(text[i]);
+            for (int i = 0; i < max; i++) {
+                print(text[i]);
+            }
+        } finally {
+            IOUtils.closeSilently(reader);
         }
     }
 

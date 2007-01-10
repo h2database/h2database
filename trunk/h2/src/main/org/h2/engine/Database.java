@@ -1314,7 +1314,7 @@ public class Database implements DataHandler {
         return lockMode;
     }
 
-    public void setCloseDelay(int value) {
+    public synchronized void setCloseDelay(int value) {
         this.closeDelay = value;
     }
 
@@ -1416,7 +1416,7 @@ public class Database implements DataHandler {
         return ignoreCase;
     }
 
-    public void setDeleteFilesOnDisconnect(boolean b) {
+    public synchronized void setDeleteFilesOnDisconnect(boolean b) {
         this.deleteFilesOnDisconnect = b;
     }
 

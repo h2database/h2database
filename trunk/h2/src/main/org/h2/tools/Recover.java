@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -303,13 +305,14 @@ public class Recover implements DataHandler {
         FileStore store = null;
         int size = 0;
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
+        InputStream in = null;
         try {
             out = new FileOutputStream(n);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, magic);
             store.init();
-            InputStream in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression));
+            in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while(true) {
                 int l = in.read(buffer);
@@ -326,6 +329,7 @@ public class Recover implements DataHandler {
             }
         } finally {
             IOUtils.closeSilently(out);
+            IOUtils.closeSilently(in);
             closeSilently(store);
         }
         if(size == 0) {
@@ -714,8 +718,9 @@ public class Recover implements DataHandler {
                 writer.println(m.getSQL() + ";");
             }
             for(Iterator it = tableMap.keySet().iterator(); it.hasNext(); ) {
-                Integer objectId = (Integer) it.next();
-                String name = (String) tableMap.get(objectId);
+                Map.Entry entry = (Entry) it.next();
+                Integer objectId = (Integer) entry.getKey();
+                String name = (String) entry.getValue();
                 writer.println("INSERT INTO " + name +" SELECT * FROM O_" + objectId + ";");
             }
             for(Iterator it = objectIdSet.iterator(); it.hasNext(); ) {

@@ -87,6 +87,7 @@ public class Coverage {
             c.processAll();
             c.data.close();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     
@@ -154,8 +155,6 @@ public class Coverage {
         }
         File f = new File(name);
         File fnew = new File(name + ".new");
-        String key = name;
-        key = key.replace('\\', '.');
         try {
             writer = new BufferedWriter(new FileWriter(fnew));
             Reader r = new BufferedReader(new FileReader(f));

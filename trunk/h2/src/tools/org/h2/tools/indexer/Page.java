@@ -8,16 +8,14 @@ package org.h2.tools.indexer;
 public class Page {
     int id;
     String fileName;
-    String name;
     String title;
     // TODO page.totalWeight is currently not used
     int totalWeight;
     int relations;
     
-    Page(int id, String fileName, String name) {
+    Page(int id, String fileName) {
         this.id = id;
         this.fileName = fileName;
-        this.name = name;
     }
 
 }

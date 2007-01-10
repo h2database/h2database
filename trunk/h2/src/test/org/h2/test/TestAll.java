@@ -87,64 +87,100 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//    java.lang.Exception: query was too quick; result: 0 time:1192
-//        at org.h2.test.TestBase.logError(TestBase.java:219)
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
-//        at java.lang.Thread.run(Unknown Source)
-//    java.lang.Exception: query was too quick; result: 0 time:2203
-//        at org.h2.test.TestBase.logError(TestBase.java:219)
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
-//        at java.lang.Thread.run(Unknown Source)
-//    java.lang.Error: Results don't match: original (0): 
-//    success
-//    other:
-//    exception: 90020: Database may be already open: Concurrent update [90020-36]
-//    org.h2.jdbc.JdbcSQLException: Database may be already open: Concurrent update [90020-36]
-//        at org.h2.message.Message.getSQLException(Message.java:67)
-//        at org.h2.message.Message.getSQLException(Message.java:49)
-//        at org.h2.store.FileLock.error(FileLock.java:310)
-//        at org.h2.store.FileLock.lockFile(FileLock.java:182)
-//        at org.h2.store.FileLock.lock(FileLock.java:65)
-//        at org.h2.engine.Database.open(Database.java:424)
-//        at org.h2.engine.Database.<init>(Database.java:382)
-//        at org.h2.engine.Engine.openSession(Engine.java:44)
-//        at org.h2.engine.Engine.getSession(Engine.java:85)
-//        at org.h2.engine.Session.createSession(Session.java:140)
-//        at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:944)
-//        at org.h2.Driver.connect(Driver.java:52)
-//        at java.sql.DriverManager.getConnection(Unknown Source)
-//        at java.sql.DriverManager.getConnection(Unknown Source)
-//        at org.h2.test.synth.DbConnection.getConnection(DbConnection.java:83)
-//        at org.h2.test.synth.DbConnection.connect(DbConnection.java:74)
-//        at org.h2.test.synth.Command.run(Command.java:229)
-//        at org.h2.test.synth.TestSynth.process(TestSynth.java:158)
-//        at org.h2.test.synth.TestSynth.testRun(TestSynth.java:145)
-//        at org.h2.test.synth.TestSynth.testCase(TestSynth.java:263)
-//        at org.h2.test.synth.TestSynth.test(TestSynth.java:274)
-//        at org.h2.test.TestBase.runTest(TestBase.java:59)
-//        at org.h2.test.TestAll.main(TestAll.java:159)
+//        > Of course performance is relative. There are situations where a tractor is faster than a car.
+//        > It would be good to have a test case where Derby is faster, tell me if you have one.
+//        >
 //
-//        at org.h2.test.synth.TestSynth.compareResults(TestSynth.java:185)
-//        at org.h2.test.synth.TestSynth.process(TestSynth.java:164)
-//        at org.h2.test.synth.TestSynth.testRun(TestSynth.java:145)
-//        at org.h2.test.synth.TestSynth.testCase(TestSynth.java:263)
-//        at org.h2.test.synth.TestSynth.test(TestSynth.java:274)
-//        at org.h2.test.TestBase.runTest(TestBase.java:59)
-//        at org.h2.test.TestAll.main(TestAll.java:159)
-//    java.lang.Exception: query was too quick; result: 0 time:1512
-//        at org.h2.test.TestBase.logError(TestBase.java:219)
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
-//        at java.lang.Thread.run(Unknown Source)
-
-
+//        I gave a specific database server stress test scenario case when I mentioned TPC-B (this is just 1 particular case) - A tractor does not compete in some F1 race and that is where your analogy is flawed because Derby actually performs more than decently in that context - Like I said, embedded applications is one particular facet of today's applications but that does not represent all of the applications out there - Everything is relevant to the particular tests one is defining and running (yours in that case) but that does not represent how a database performs in some other contexts (embedded or not).
+//        > Currently H2 doesn't support row locks. But I don't think that most embedded applications need it.
+//        > Anyway, the trend is towards multi version concurrency control (MVCC), and that's the next big
+//        > thing that will be implemented in H2 (however this will take some time).
+//        >
+//
+//        Good to hear this - Row-lock in Derby has been implemented since the first incarnation of Cloudscape in 96' - MVCC is good but not for applications which are doing intense updates and writes - The reason is pretty obvious versus a lock concurrency scheme and that is why "some" database(s) are supporting both approaches.
+//
+//        > Durability: The default isolation level of Derby is read committed, right?
+//        > As far as I understand it, for fully-ACID compliant the isolation level should
+//        > be serialized (see Isolation in Wikipedia). I'm not sure if supporting 'full ACID'
+//        > compliance by default would make sense. I have implemented and run a durability test
+//        > with various databases and the file system (a simple power-off test using two computers),
+//        > and things don't look good. The problem is, even if the database tries to flush to disk
+//        > for each commit, the operating system and/or hard disk does not always do that.
+//        > For details see ACID. If you really want to enforce flushing to disk, you need to wait
+//        > at least 0.1 seconds per transaction, and even Derby doesn't do that by default.
+//        > That means, even Derby does *not* guarantee that all committed transactions will survive
+//        > a power failure or an application crash. If you have other results using common
+//        > hardware / default settings and this test, or if you find a way that is faster,
+//        > please tell me! Hopefully the next generation hard drives (with integrated flash memory)
+//        > will be better... But if you need 'no single point of failure' then you anyway need
+//        > clustering / mirroring. H2 support clustering, Derby does not.
+//        >
+//
+//        The golden rule is that you should not rely on the file system for write operations unless you have some means to force-flush & check I/O completions - that is why Unix Raw Devices were made available almost 20 years ago so that one could bypass the FS and use Async I/O's at the kernel level to retrieve status on a particular I/O (completion) and made sure it made it to disk(s) - there are technics such as write through-case where you don't rely on I/O write operations to be handled at all by the FS buffer (as it is bypassed) but rather expect a write I/O to be written to disks everytime you request it - it is a binary operation, either it works or not and you'd get an I/O error if an I/O has not complete to disk. Relying on the FS and some UPS hardware device is ok _but_ that is NOT what you usually find in every embedded devices or client desktop - You can't expect everyone to have a UPS to alleviate some issues due to a database system loosing committed rtansaction and therefore not handling ACID durability as it should and it is expected. I've worked at many database companies and dealing with critical-level type of applications and if I had told the customers that could loose committed transactions due to an application or system crash, then I don't think these database companies would have been as successful as they have been. Some things such as not loosing committed transactions have to be handled at the database level and that is what durability is all about. Today, Derby will not loose transactions that have been committed whether you have some UPS or not.
+//
+//        > Download size: I think David was talking about size of product download (16 MB for
+//        > Derby versus 3 MB for H2) not about the jar file size (2.2 MB for Derby versus 1 MB
+//        > for H2). By the way, the H2 jar also contains the Console web application and web server,
+//        > and other tools. And debugging info (line numbers) is switched on in H2, and switched off
+//        > in Derby. But I agree the jar file size is not the most important factor.
+//        >
+//
+//        Download size is irrelevant in today's world except for web applications and in this case, one does NOT have to download the whole product - for embedded applications, it is only 1 JAR file basically and whether it is H2 or Derby, the size is not really an issue (as I mentioned in some earlier thread)
+//
+//        > Community: Yes, Derby has more developers (4, according to Ohloh, not sure if
+//        > this is correct), but that doesn't necessarily mean a better product.
+//        > Development of Derby started in 1996 or earlier, while H2 started in 2004
+//        > (it is now one year online). H2 is a very young product, and currently doesn't
+//        > have professional support from a bigger company. This will be available in the
+//        > future when there is demand. You could also say Derby has a liability (big, old,
+//        > slow code base). Anyway, H2 also has quite a big community, given how young it is.
+//        > But of course Derby has the advantage the Apache name ('branding'), but this doesn't
+//        > mean it's better (there are many failed Apache projects).
+//        >
+//
+//        Derby has more than 30+ contributors - what you saw in Ohloh are the top committers for 2007 (new year eh) and this is why it is 4 - last year 23 committers checked-in code, so I'll let you do the stats as far as how many contributors there could be - not every contributor is a committer to the project - that's how Apache works and a lot of other open source projects. Derby has developers from Sun (Java DB), IBM (Cloudscape) as well as other independent contributors or companies. Derby is _not_ big - The footprint is not big (2MB) for the engine compared to some other databases out there and is more than adequate for a lot of today's embedded applications. Apache is not just about branding - it has and continue to be a set of communities for many successful projects with defined rules and guidelines. At the end of the day, it is all about Open Source projects and quite a few of them have made lots of noise in the past many years and still continue to do so.
+//
+//        > But only time can tell which database is more successful.
+//        >
+//
+//
+//        Again, I was not bashing H2 if this is the way you felt - I clearly mentioned that one has to know what type of database(s) one is dealing with before claiming it is faster for *all* use case scenarios out there.
+//        
         
-//        Add FindBugs to Release Checklist
-        
+//        test big:false net:false cipher:null memory:false log:0 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1532 java.lang.Exception: query was too quick; result: 0 time:1532 ------------------------------
+//        test big:false net:false cipher:null memory:false log:1 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1853 java.lang.Exception: query was too quick; result: 0 time:1853 ------------------------------
+//        test big:false net:false cipher:null memory:false log:2 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1152 java.lang.Exception: query was too quick; result: 0 time:1152 ------------------------------
+//        test big:false net:false cipher:null memory:false log:0 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1462 java.lang.Exception: query was too quick; result: 0 time:1462 ------------------------------
+//        test big:false net:false cipher:null memory:false log:2 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1692 java.lang.Exception: query was too quick; result: 0 time:1692 ------------------------------
+//        test big:true net:false cipher:null memory:false log:0 diskResult:false
+//        ERROR: query was too quick; result: 0 time:952 java.lang.Exception: query was too quick; result: 0 time:952 ------------------------------
+//        test big:true net:false cipher:null memory:false log:1 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1171 java.lang.Exception: query was too quick; result: 0 time:1171 ------------------------------
+//        test big:true net:false cipher:null memory:false log:2 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1502 java.lang.Exception: query was too quick; result: 0 time:1502 ------------------------------
+//        test big:true net:false cipher:null memory:false log:0 diskResult:false
+//        ERROR: query was too quick; result: 0 time:1372 java.lang.Exception: query was too quick; result: 0 time:1372 ------------------------------
+
 //      Hot backup (incremental backup, online backup): backup data, log, index? files
 
-        //        analyze hibernate read committed tests that fail
+        // delay reading the row if data is not required
+        // document compensations
+        // eliminate undo log records if stored on disk (just one pointer per block, not per record)
+
+//        release checklist:
+//            add to freshmeat
+//            add to http://code.google.com/p/h2database/downloads/list
+
+//        SELECT ... FROM TA, TB, TC WHERE TC.COL3 = TA.COL1 AND TC.COL3=TB.COL2 AND TC.COL4 = 1
+//        ...
+//        The query implies TA.COL1 = TB.COL2 but does not explicitly set this condition.
         
-//        Hibernate: when?
+        //        analyze hibernate read committed tests that fail
         
         // when? server only? special test with TestAll (only this)
 //    java.lang.Exception: query was too quick; result: 0 time:1002

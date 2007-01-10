@@ -233,7 +233,8 @@ public class FileUtils {
         }
         try {
             // sleep at most 256 ms
-            Thread.sleep(i * i);
+            long sleep = (long)i * (long)i;
+            Thread.sleep(sleep);
         } catch (InterruptedException e) {
             // ignore
         }

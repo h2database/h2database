@@ -286,7 +286,7 @@ public abstract class TestBase {
             for(int i=0; i<a.length(); i++) {
                 String s = a.substring(0, i);
                 if(!b.startsWith(s)) {
-                    s = s.substring(0, i) + "<*>" + s.substring(i);
+                    a = a.substring(0, i) + "<*>" + a.substring(i);
                     break;
                 }
             }

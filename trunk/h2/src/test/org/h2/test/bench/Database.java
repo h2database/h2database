@@ -20,6 +20,7 @@ import java.util.StringTokenizer;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 class Database {
@@ -129,7 +130,13 @@ class Database {
         Connection conn = DriverManager.getConnection(url, user, password);
         if(url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            conn.createStatement().execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192')");
+            Statement stat = null;
+            try {
+                stat = conn.createStatement();
+                stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192')");
+            } finally {
+                JdbcUtils.closeSilently(stat);
+            }
         }
         return conn;
     }

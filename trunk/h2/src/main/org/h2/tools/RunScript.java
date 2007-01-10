@@ -21,6 +21,7 @@ import java.util.Iterator;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
@@ -215,18 +216,19 @@ public class RunScript {
     }
 
     private static void executeRunscript(String url, String user, String password, String fileName, String options) throws SQLException {
+        Connection conn = null;
+        Statement stat = null;
         try {
             org.h2.Driver.load();
-            Connection conn = DriverManager.getConnection(url, user, password);
-            Statement stat = conn.createStatement();
+            conn = DriverManager.getConnection(url, user, password);
+            stat = conn.createStatement();
             String sql = "RUNSCRIPT FROM '" + fileName + "' " + options;
-            try {
-                stat.execute(sql);
-            } finally {
-                conn.close();
-            }
+            stat.execute(sql);
         } catch (Exception e) {
             throw Message.convert(e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(conn);
         }
     }
 

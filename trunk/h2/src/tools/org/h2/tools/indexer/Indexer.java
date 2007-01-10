@@ -168,7 +168,7 @@ public class Indexer {
             return;
         }
         if(!noIndex.contains(fileName)) {
-            page = new Page(pages.size(), fileName, name);
+            page = new Page(pages.size(), fileName);
             pages.add(page);
             readPage(file);
         }

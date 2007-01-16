@@ -5,7 +5,9 @@
 package org.h2.jdbc;
 
 import java.sql.SQLException;
+//#ifdef JDK14
 import java.sql.Savepoint;
+//#endif
 
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -16,7 +18,11 @@ import org.h2.util.StringUtils;
  * A savepoint is a point inside a transaction to where a transaction can be rolled back. 
  * The tasks that where done before the savepoint are not rolled back in this case.
  */
-public class JdbcSavepoint extends TraceObject implements Savepoint {
+public class JdbcSavepoint extends TraceObject 
+//#ifdef JDK14
+implements Savepoint
+//#endif
+{
 
     static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
 

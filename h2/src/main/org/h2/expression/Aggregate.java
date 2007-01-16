@@ -182,7 +182,7 @@ public class Aggregate extends Expression {
                                 Value[] a2 = ((ValueArray)o2).getList();
                                 return sort.compare(a1, a2);
                             } catch(SQLException e) {
-                                throw new Error(e);
+                                throw Message.getInternalError("sort", e);
                             }
                         }
                     });

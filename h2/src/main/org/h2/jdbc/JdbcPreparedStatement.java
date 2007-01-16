@@ -11,13 +11,15 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+//#ifdef JDK14
 import java.sql.ParameterMetaData;
+import java.sql.Statement;
+//#endif
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Calendar;
 
 import org.h2.command.CommandInterface;
@@ -1037,7 +1039,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                         next = e;
                     }
                     logAndConvert(e);
+//#ifdef JDK14
                     result[i] = Statement.EXECUTE_FAILED;
+//#endif
                     error = true;
                 }
             }
@@ -1052,7 +1056,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-
 
     /**
      * Adds the current settings to the batch.
@@ -1179,7 +1182,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @return the meta data
      */
-// #ifdef JDK14
+//#ifdef JDK14
     public ParameterMetaData getParameterMetaData() throws SQLException {
         try {
             int id = getNextId(TraceObject.PARAMETER_META_DATA);
@@ -1194,7 +1197,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-// #endif
+//#endif
 
     // =============================================================
 

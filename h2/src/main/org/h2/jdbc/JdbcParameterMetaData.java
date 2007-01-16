@@ -15,9 +15,9 @@ import org.h2.message.TraceObject;
  * Information about the parameters of a prepared statement.
  */
 public class JdbcParameterMetaData extends TraceObject
-// #ifdef JDK14
+//#ifdef JDK14
 implements ParameterMetaData
-// #endif
+//#endif
 {
 
     private JdbcPreparedStatement prep;
@@ -44,6 +44,7 @@ implements ParameterMetaData
      *
      * @return parameterModeIn
      */
+//#ifdef JDK14
     public int getParameterMode(int param) throws SQLException {
         try {
             debugCodeCall("getParameterMode", param);
@@ -53,6 +54,7 @@ implements ParameterMetaData
             throw logAndConvert(e);
         }
     }
+//#endif
 
     /**
      * Returns the parameter type.

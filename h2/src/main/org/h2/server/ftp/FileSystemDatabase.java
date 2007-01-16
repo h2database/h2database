@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 public class FileSystemDatabase {
@@ -107,7 +108,7 @@ public class FileSystemDatabase {
             prep.setString(2, getName(fullName));
             prep.setLong(3, System.currentTimeMillis());
             prep.execute();
-            ResultSet rs = prep.getGeneratedKeys();
+            ResultSet rs = JdbcUtils.getGeneratedKeys(prep);
             rs.next();
             id = rs.getLong(1);
             prep = prepare("INSERT INTO FILEDATA(ID, DATA) VALUES(?, ?)");
@@ -237,7 +238,7 @@ public class FileSystemDatabase {
                     prep.setLong(2, parentId);
                     prep.setLong(3, System.currentTimeMillis());
                     prep.execute();
-                    rs = prep.getGeneratedKeys();
+                    rs = JdbcUtils.getGeneratedKeys(prep);
                     rs.next();
                     parentId = rs.getLong(1);
                 } else {

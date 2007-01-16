@@ -13,6 +13,7 @@ import org.h2.test.db.*;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
+import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestMulti;
@@ -85,34 +86,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-        // synth.TestHaltReconnect
+        // NULL || 'X' should probably return null by default
+        // change default to read committed transaction isolation
+        // Hot backup (incremental backup, online backup): backup data, log, index? files
+        // Cluster: hot deploy (adding a node on runtime)
+        // system property for base directory (h2.baseDir)
         
-        // reclaim empty space without closing the database
-        
-//      Hot backup (incremental backup, online backup): backup data, log, index? files
-//        Cluster: hot deploy (adding a node on runtime)
-
-//        add TPC-B style benchmark: download/tpcb_current.pdf
-        
-        // delay reading the row if data is not required
-        // document compensations
-        // eliminate undo log records if stored on disk (just one pointer per block, not per record)
-
-//        release checklist:
-//            add to freshmeat
-//            add to http://code.google.com/p/h2database/downloads/list
-
-//        SELECT ... FROM TA, TB, TC WHERE TC.COL3 = TA.COL1 AND TC.COL3=TB.COL2 AND TC.COL4 = 1
-//        ...
-//        The query implies TA.COL1 = TB.COL2 but does not explicitly set this condition.
-        
-        //        analyze hibernate read committed tests that fail
-        
-        // when? server only? special test with TestAll (only this)
-//    java.lang.Exception: query was too quick; result: 0 time:1002
-//        at org.h2.test.TestBase.logError(TestBase.java:219)
-//        at org.h2.test.db.TestCases$1.run(TestCases.java:158)
-//        at java.lang.Thread.run(Unknown Source)
+        // SELECT ... FROM TA, TB, TC WHERE TC.COL3 = TA.COL1 AND TC.COL3=TB.COL2 AND TC.COL4 = 1
+        // The query implies TA.COL1 = TB.COL2 but does not explicitly set this condition.
+        // "trace.db" is created in the current directory
+        // dataSource.setLogWriter() seems to have no effect?
         
 //        DROP TABLE TEST;
 //        CREATE TABLE TEST(C CHAR(10));
@@ -125,10 +108,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //        -- MS SQL Server: 1, 11 (SELECT LEN(C), LEN(C + 'x') FROM TEST)
 //        -- Oracle, Derby: 10, 11
 //        -- PostgreSQL, H2, HSQLDB: 1, 2
-        
-        // maybe use system property for base directory (h2.baseDir)
-        
-        // feature request: user defined aggregate functions
         
         // auto-upgrade application:
         // check if new version is available 
@@ -143,18 +122,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // task to download new version from another HTTP / HTTPS / FTP server
         // multi-task
 
-        // write a test that calls Runtime.halt at more or less random places (extend TestLob)
-        
-        // OSGi Bundle (see Forum)
-        
         // test with PostgreSQL  Version 8.2
 
         // http://dev.helma.org/Wiki/RhinoLoader
-        
-        // Test Hibernate / read committed transaction isolation:
-        // Data records retrieved by a query are not prevented from modification by some other transaction.
-        // Non-repeatable reads may occur, meaning data retrieved in a SELECT statement may be modified
-        // by some other transaction when it commits. In this isolation level, read locks are not acquired on selected data.
         
         // test with garbage at the end of the log file (must be consistently detected as such)
         // test LIKE: compare against other databases
@@ -184,6 +154,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
                 test.testCodeCoverage();
             } else if("multiThread".equals(args[0])) {
                 new TestMulti().runTest(test);
+            } else if("halt".equals(args[0])) {
+                new TestHaltApp().runTest(test);
             }
         } else {
             test.runTests();

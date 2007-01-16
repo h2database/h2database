@@ -4,10 +4,26 @@
  */
 package org.h2.util;
 
+//#ifdef JDK14
 import java.util.LinkedHashMap;
+//#endif
+//#ifdef JDK13
+/*
+import java.util.HashMap;
+*/
+//#endif
 import java.util.Map;
 
-public class SmallLRUCache extends LinkedHashMap {
+public class SmallLRUCache 
+//#ifdef JDK14
+extends LinkedHashMap
+//#endif
+//#ifdef JDK13
+/*
+extends HashMap
+*/
+//#endif
+{
     
     private static final long serialVersionUID = 3643268440910181829L;
     private int size;
@@ -16,7 +32,9 @@ public class SmallLRUCache extends LinkedHashMap {
         this.size = size;
     }
     
+//#ifdef JDK14
     protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > size;
      }
+//#endif
 }

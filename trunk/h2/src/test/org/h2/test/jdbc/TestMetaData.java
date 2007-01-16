@@ -8,6 +8,7 @@ import java.sql.*;
 
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
+import org.h2.value.DataType;
 
 public class TestMetaData extends TestBase {
 
@@ -590,7 +591,7 @@ public class TestMetaData extends TestBase {
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
                 "CARDINALITY", "PAGES", "FILTER_CONDITION"}, new int[] {
-                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BOOLEAN,
+                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, DataType.TYPE_BOOLEAN,
                 Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT,
                 Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.VARCHAR}, null, null);
@@ -614,7 +615,7 @@ public class TestMetaData extends TestBase {
                 "TABLE_NAME", "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME",
                 "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
                 "CARDINALITY", "PAGES", "FILTER_CONDITION"}, new int[] {
-                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BOOLEAN,
+                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, DataType.TYPE_BOOLEAN,
                 Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT,
                 Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.VARCHAR}, null, null);
@@ -772,7 +773,8 @@ public class TestMetaData extends TestBase {
 
 
         rs = meta.getSchemas();
-        testResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM", "TABLE_CATALOG", "IS_DEFAULT"}, new int[] { Types.VARCHAR, Types.VARCHAR, Types.BOOLEAN}, null, null);
+        testResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM", "TABLE_CATALOG", "IS_DEFAULT"}, 
+                new int[] { Types.VARCHAR, Types.VARCHAR, DataType.TYPE_BOOLEAN}, null, null);
         check(rs.next());
         check(rs.getString(1), "INFORMATION_SCHEMA");
         check(rs.next());
@@ -798,8 +800,8 @@ public class TestMetaData extends TestBase {
                 },
                 new int[]{
                     Types.VARCHAR,Types.SMALLINT,Types.INTEGER,Types.VARCHAR,
-                    Types.VARCHAR,Types.VARCHAR,Types.SMALLINT,Types.BOOLEAN,
-                    Types.SMALLINT,Types.BOOLEAN,Types.BOOLEAN,Types.BOOLEAN,
+                    Types.VARCHAR,Types.VARCHAR,Types.SMALLINT,DataType.TYPE_BOOLEAN,
+                    Types.SMALLINT,DataType.TYPE_BOOLEAN,DataType.TYPE_BOOLEAN,DataType.TYPE_BOOLEAN,
                     Types.VARCHAR,Types.SMALLINT,Types.SMALLINT,Types.SMALLINT,
                     Types.INTEGER,Types.INTEGER
                 }   ,null, null

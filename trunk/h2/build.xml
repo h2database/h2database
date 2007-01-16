@@ -1,12 +1,6 @@
 <project name="h2" default="all" basedir=".">
 
 	<property file="ant-build.properties" />
-	<!--
-	<property name="version.name.maven" value="1.0.20061217"/>
-
-	<property name="jdk" value="1.4"/>
-	<property name="javac" value="javac"/>
-	-->
 
 	<path id="benchmark.drivers.path">
 		<!-- jar files required by the benchmark -->

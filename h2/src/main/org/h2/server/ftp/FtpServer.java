@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import org.h2.engine.Constants;
 import org.h2.server.Service;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
@@ -295,18 +296,8 @@ public class FtpServer implements Service {
                     // ignore
                 }
             }
-            if(out != null) {
-                try {
-                    out.close();
-                } catch(IOException e) {
-                    // ignore
-                }
-            }
-            try {
-                in.close();
-            } catch(IOException e) {
-                // ignore
-            }
+            IOUtils.closeSilently(out);
+            IOUtils.closeSilently(in);
             new File(processFile).delete();
         }
     }

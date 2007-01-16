@@ -6,6 +6,8 @@ package org.h2.test.synth;
 
 import java.sql.*;
 
+import org.h2.value.DataType;
+
 class Column {
     private TestSynth config;
     private String name;
@@ -23,7 +25,7 @@ class Column {
         Types.DATE,
         Types.TIME,
         Types.TIMESTAMP,
-        Types.BOOLEAN,
+        DataType.TYPE_BOOLEAN,
         Types.BINARY,
         Types.VARBINARY,
         Types.CLOB,
@@ -32,7 +34,6 @@ class Column {
         Types.BIGINT,
         Types.TIMESTAMP,
         Types.BIT,
-        Types.BOOLEAN,
     };
     
     Column(TestSynth config) {
@@ -66,7 +67,7 @@ class Column {
         case Types.REAL:
         case Types.OTHER:
         case Types.BIT:
-        case Types.BOOLEAN:
+        case DataType.TYPE_BOOLEAN:
             break;
         default:
             throw new Error("type="+type);
@@ -90,7 +91,7 @@ class Column {
             case Types.TIMESTAMP:
             case Types.DOUBLE:
             case Types.BIGINT:
-            case Types.BOOLEAN:
+            case DataType.TYPE_BOOLEAN:
             case Types.BIT:
                 return true;
             case Types.BINARY:
@@ -149,7 +150,7 @@ class Column {
             return "DOUBLE";
         case Types.BIGINT:
             return "BIGINT";
-        case Types.BOOLEAN:
+        case DataType.TYPE_BOOLEAN:
         case Types.BIT:
             return "BOOLEAN";
         default:

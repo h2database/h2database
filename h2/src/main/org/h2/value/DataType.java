@@ -50,13 +50,26 @@ public class DataType {
     public long defaultPrecision;
     public int defaultScale;
     public boolean hidden;
+    
+    // JDK 1.3 compatibility: Types.BOOLEAN
+    public static final int TYPE_BOOLEAN = 16;
+    // JDK 1.3 compatibility: Types.DATALINK
+    public static final int TYPE_DATALINK = 70;
 
     static {
+//#ifdef JDK14
+        if(TYPE_BOOLEAN != Types.BOOLEAN) {
+            new Exception("Types.BOOLEAN: " + Types.BOOLEAN).printStackTrace();
+        }
+        if(TYPE_DATALINK != Types.DATALINK) {
+            new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
+        }
+//#endif
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
                 new String[]{"NULL"}
         );
-        add(Value.BOOLEAN, Types.BOOLEAN, "Boolean",
+        add(Value.BOOLEAN, DataType.TYPE_BOOLEAN, "Boolean",
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION, 0, false, false),
                 new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
@@ -423,7 +436,7 @@ public class DataType {
         case Types.DECIMAL:
             return Value.DECIMAL;
         case Types.BIT:
-        case Types.BOOLEAN:
+        case DataType.TYPE_BOOLEAN:
             return Value.BOOLEAN;
         case Types.INTEGER:
             return Value.INT;

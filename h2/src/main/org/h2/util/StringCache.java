@@ -95,6 +95,7 @@ public class StringCache {
                 return cached;
             }
         }
+        // create a new object that is not shared (to avoid out of memory if it is a substring of a big String)
         s = new String(s);
         cache[index] = s;
         return s;

@@ -43,16 +43,40 @@ public class CompareMode {
         name = StringUtils.toUpperEnglish(name.trim().replace(' ', '_'));
         return name;
     }
+    
+    private static boolean compareLocaleNames(Locale locale, String name) {
+        return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale));
+    }
 
     public static Collator getCollator(String name) {
-        Locale[] locales = Collator.getAvailableLocales();
-        for(int i=0; i<locales.length; i++) {
-            Locale locale = locales[i];
-            if(name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale))) {
-                return Collator.getInstance(locale);
+        Collator result = null;
+        if(name.length() == 2) {
+            Locale locale = new Locale(name.toLowerCase());
+            if(compareLocaleNames(locale, name)) {
+                result = Collator.getInstance(locale);
+            }
+        } else if(name.length() == 5) {
+            int idx = name.indexOf('_');
+            if(idx >= 0) {
+                String language = name.substring(0, idx).toLowerCase();
+                String country = name.substring(idx + 1);
+                Locale locale = new Locale(language, country);
+                if(compareLocaleNames(locale, name)) {
+                    result = Collator.getInstance(locale);
+                }
             }
         }
-        return null;
+        if(result == null) {
+            Locale[] locales = Collator.getAvailableLocales();
+            for(int i=0; i<locales.length; i++) {
+                Locale locale = locales[i];
+                if(compareLocaleNames(locale, name)) {
+                    result = Collator.getInstance(locale);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     public String getName() {

@@ -56,4 +56,12 @@ public class NetUtils {
         }
     }
 
+    public static boolean isLoopbackAddress(Socket socket) {
+        boolean result = true;
+//#ifdef JDK14
+        result = socket.getInetAddress().isLoopbackAddress();
+//#endif
+        return result;
+    }
+
 }

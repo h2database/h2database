@@ -40,5 +40,13 @@ public class JdbcUtils {
             }
         }
     }
+    
+    public static ResultSet getGeneratedKeys(Statement stat) throws SQLException {
+        ResultSet rs = null;
+//#ifdef JDK14
+        rs = stat.getGeneratedKeys();
+//#endif
+        return rs;
+    }
 
 }

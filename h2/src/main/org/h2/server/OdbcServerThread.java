@@ -27,6 +27,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.message.Message;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 
 /**
  * @author Thomas
@@ -645,7 +646,7 @@ public class OdbcServerThread implements Runnable {
             return sqlType;
         case Types.TINYINT:
         case Types.BIT:
-        case Types.BOOLEAN:
+        case DataType.TYPE_BOOLEAN:
             return Types.INTEGER;
         case Types.BIGINT:
         case Types.BINARY:

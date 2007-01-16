@@ -80,7 +80,7 @@ public class OdbcServer implements Service {
         if(allowOthers) {
             return true;
         }
-        return socket.getInetAddress().isLoopbackAddress();
+        return NetUtils.isLoopbackAddress(socket);
     }
 
     public void start() throws SQLException {

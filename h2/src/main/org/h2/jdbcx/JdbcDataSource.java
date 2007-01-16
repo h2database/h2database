@@ -14,11 +14,13 @@ import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
+//#ifdef JDK14
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
+//#endif
 
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
@@ -34,16 +36,20 @@ import org.h2.message.Message;
  * 
  * @author Tom
  */
-public class JdbcDataSource extends TraceObject implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Referenceable  {
+public class JdbcDataSource extends TraceObject implements 
+//#ifdef JDK14
+XADataSource, DataSource, ConnectionPoolDataSource, 
+//#endif
+Serializable, Referenceable  {
     
     private static final long serialVersionUID = 1288136338451857771L;
     
     private transient JdbcDataSourceFactory factory = new JdbcDataSourceFactory();
     private transient PrintWriter logWriter;
     private int timeout;
-    private String user;
-    private String password;
-    private String url;
+    private String user = "";
+    private String password = "";
+    private String url = "";
     
     public JdbcDataSource() {
         int id = getNextId(TraceObject.DATASOURCE);
@@ -129,6 +135,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource, DataSou
         return ref;
     }
 
+//#ifdef JDK14
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATASOURCE);
@@ -150,21 +157,22 @@ public class JdbcDataSource extends TraceObject implements XADataSource, DataSou
         debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
         return getXAConnection(user, password);
     }
+//#endif
 
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
 }

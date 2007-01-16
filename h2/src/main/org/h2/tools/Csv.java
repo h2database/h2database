@@ -448,7 +448,9 @@ public class Csv implements SimpleRowSource {
     
     private SQLException convertException(String message, Exception e) {
         SQLException s = new SQLException(message, "CSV");
+//#ifdef JDK14
         s.initCause(e);
+//#endif
         return s;
     }
 

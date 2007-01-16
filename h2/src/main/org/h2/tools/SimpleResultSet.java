@@ -1254,22 +1254,24 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     //#endif
 
     /** INTERNAL */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateRowId(String columnName, RowId x) throws SQLException {
         throw getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
      * Returns the current result set holdability.
      *
      * @return the holdability
      */
+//#ifdef JDK14
     public int getHoldability() {
         return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
+//#endif
 
     /**
      * Returns whether this result set has been closed.

@@ -30,6 +30,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
+import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
@@ -212,7 +213,7 @@ public class AppThread extends WebServerThread {
         Locale locale = session.locale;
         if(language != null) {
             if(locale == null || !StringUtils.toLowerEnglish(locale.getLanguage()).equals(language)) {
-                locale = new Locale(language);
+                locale = new Locale(language, "");
                 server.readTranslations(session, locale.getLanguage());
                 session.put("language", language);
                 session.locale = locale;
@@ -699,7 +700,6 @@ public class AppThread extends WebServerThread {
             rs.addColumn("VALUE", Types.VARCHAR, 0, 0);
             rs.addRow(new String[]{"conn.getCatalog", conn.getCatalog()});
             rs.addRow(new String[]{"conn.getAutoCommit", ""+conn.getAutoCommit()});
-            rs.addRow(new String[]{"conn.getHoldability", ""+conn.getHoldability()});
             rs.addRow(new String[]{"conn.getTransactionIsolation", ""+conn.getTransactionIsolation()});
             rs.addRow(new String[]{"conn.getWarnings", ""+conn.getWarnings()});
             String map;
@@ -712,8 +712,6 @@ public class AppThread extends WebServerThread {
             rs.addRow(new String[]{"conn.isReadOnly", ""+conn.isReadOnly()});
             rs.addRow(new String[]{"meta.getCatalogSeparator", ""+meta.getCatalogSeparator()});
             rs.addRow(new String[]{"meta.getCatalogTerm", ""+meta.getCatalogTerm()});
-            rs.addRow(new String[]{"meta.getDatabaseMajorVersion", ""+meta.getDatabaseMajorVersion()});
-            rs.addRow(new String[]{"meta.getDatabaseMinorVersion", ""+meta.getDatabaseMinorVersion()});
             rs.addRow(new String[]{"meta.getDatabaseProductName", ""+meta.getDatabaseProductName()});
             rs.addRow(new String[]{"meta.getDatabaseProductVersion", ""+meta.getDatabaseProductVersion()});
             rs.addRow(new String[]{"meta.getDefaultTransactionIsolation", ""+meta.getDefaultTransactionIsolation()});
@@ -723,8 +721,6 @@ public class AppThread extends WebServerThread {
             rs.addRow(new String[]{"meta.getDriverVersion", ""+meta.getDriverVersion()});
             rs.addRow(new String[]{"meta.getExtraNameCharacters", ""+meta.getExtraNameCharacters()});
             rs.addRow(new String[]{"meta.getIdentifierQuoteString", ""+meta.getIdentifierQuoteString()});
-            rs.addRow(new String[]{"meta.getJDBCMajorVersion", ""+meta.getJDBCMajorVersion()});
-            rs.addRow(new String[]{"meta.getJDBCMinorVersion", ""+meta.getJDBCMinorVersion()});
             rs.addRow(new String[]{"meta.getMaxBinaryLiteralLength", ""+meta.getMaxBinaryLiteralLength()});
             rs.addRow(new String[]{"meta.getMaxCatalogNameLength", ""+meta.getMaxCatalogNameLength()});
             rs.addRow(new String[]{"meta.getMaxCharLiteralLength", ""+meta.getMaxCharLiteralLength()});
@@ -747,11 +743,9 @@ public class AppThread extends WebServerThread {
             rs.addRow(new String[]{"meta.getMaxUserNameLength", ""+meta.getMaxUserNameLength()});
             rs.addRow(new String[]{"meta.getNumericFunctions", ""+meta.getNumericFunctions()});
             rs.addRow(new String[]{"meta.getProcedureTerm", ""+meta.getProcedureTerm()});
-            rs.addRow(new String[]{"meta.getResultSetHoldability", ""+meta.getResultSetHoldability()});
             rs.addRow(new String[]{"meta.getSchemaTerm", ""+meta.getSchemaTerm()});
             rs.addRow(new String[]{"meta.getSearchStringEscape", ""+meta.getSearchStringEscape()});
             rs.addRow(new String[]{"meta.getSQLKeywords", ""+meta.getSQLKeywords()});
-            rs.addRow(new String[]{"meta.getSQLStateType", ""+meta.getSQLStateType()});
             rs.addRow(new String[]{"meta.getStringFunctions", ""+meta.getStringFunctions()});
             rs.addRow(new String[]{"meta.getSystemFunctions", ""+meta.getSystemFunctions()});
             rs.addRow(new String[]{"meta.getTimeDateFunctions", ""+meta.getTimeDateFunctions()});
@@ -764,7 +758,6 @@ public class AppThread extends WebServerThread {
             rs.addRow(new String[]{"meta.dataDefinitionCausesTransactionCommit", ""+meta.dataDefinitionCausesTransactionCommit()});
             rs.addRow(new String[]{"meta.dataDefinitionIgnoredInTransactions", ""+meta.dataDefinitionIgnoredInTransactions()});
             rs.addRow(new String[]{"meta.doesMaxRowSizeIncludeBlobs", ""+meta.doesMaxRowSizeIncludeBlobs()});
-            rs.addRow(new String[]{"meta.locatorsUpdateCopy", ""+meta.locatorsUpdateCopy()});
             rs.addRow(new String[]{"meta.nullPlusNonNullIsNull", ""+meta.nullPlusNonNullIsNull()});
             rs.addRow(new String[]{"meta.nullsAreSortedAtEnd", ""+meta.nullsAreSortedAtEnd()});
             rs.addRow(new String[]{"meta.nullsAreSortedAtStart", ""+meta.nullsAreSortedAtStart()});
@@ -797,11 +790,21 @@ public class AppThread extends WebServerThread {
             rs.addRow(new String[]{"meta.supportsExpressionsInOrderBy", ""+meta.supportsExpressionsInOrderBy()});
             rs.addRow(new String[]{"meta.supportsExtendedSQLGrammar", ""+meta.supportsExtendedSQLGrammar()});
             rs.addRow(new String[]{"meta.supportsFullOuterJoins", ""+meta.supportsFullOuterJoins()});
-            rs.addRow(new String[]{"meta.supportsGetGeneratedKeys", ""+meta.supportsGetGeneratedKeys()});
             rs.addRow(new String[]{"meta.supportsGroupBy", ""+meta.supportsGroupBy()});
             // TODO meta data: more supports methods (I'm tired now)
             rs.addRow(new String[]{"meta.usesLocalFilePerTable", ""+meta.usesLocalFilePerTable()});
             rs.addRow(new String[]{"meta.usesLocalFiles", ""+meta.usesLocalFiles()});
+//#ifdef JDK14
+            rs.addRow(new String[]{"conn.getHoldability", ""+conn.getHoldability()});
+            rs.addRow(new String[]{"meta.getDatabaseMajorVersion", ""+meta.getDatabaseMajorVersion()});
+            rs.addRow(new String[]{"meta.getDatabaseMinorVersion", ""+meta.getDatabaseMinorVersion()});
+            rs.addRow(new String[]{"meta.getJDBCMajorVersion", ""+meta.getJDBCMajorVersion()});
+            rs.addRow(new String[]{"meta.getJDBCMinorVersion", ""+meta.getJDBCMinorVersion()});
+            rs.addRow(new String[]{"meta.getResultSetHoldability", ""+meta.getResultSetHoldability()});
+            rs.addRow(new String[]{"meta.getSQLStateType", ""+meta.getSQLStateType()});
+            rs.addRow(new String[]{"meta.supportsGetGeneratedKeys", ""+meta.supportsGetGeneratedKeys()});
+            rs.addRow(new String[]{"meta.locatorsUpdateCopy", ""+meta.locatorsUpdateCopy()});
+//#endif            
             return rs;
         } else if(sql.startsWith("@CATALOGS")) {
             return meta.getCatalogs();
@@ -845,6 +848,7 @@ public class AppThread extends WebServerThread {
             return meta.getUDTs(p[1], p[2], p[3], types);
         } else if(sql.startsWith("@TYPE_INFO")) {
             return meta.getTypeInfo();
+//#ifdef JDK14
         } else if(sql.startsWith("@SUPER_TYPES")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
@@ -854,6 +858,7 @@ public class AppThread extends WebServerThread {
         } else if(sql.startsWith("@ATTRIBUTES")) {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
+//#endif
         }
         return null;
     }
@@ -1219,7 +1224,7 @@ public class AppThread extends WebServerThread {
         if(server.getAppServer().getAllowOthers()) {
             return true;
         }
-        return socket.getInetAddress().isLoopbackAddress();
+        return NetUtils.isLoopbackAddress(socket);
     }
 
 }

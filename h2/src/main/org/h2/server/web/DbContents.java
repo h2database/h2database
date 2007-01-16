@@ -15,7 +15,7 @@ import org.h2.util.StringUtils;
 public class DbContents {
     DbSchema[] schemas;
     DbSchema defaultSchema;
-    boolean isOracle, isH2, isPostgreSQL, isHSQLDB, isMySQL, isDerby, isFirebird, isSQLite;
+    boolean isOracle, isH2, isPostgreSQL, isMySQL, isDerby, isFirebird, isSQLite;
     
     void readContents(DatabaseMetaData meta) throws SQLException {
         String prod = StringUtils.toLowerEnglish(meta.getDatabaseProductName());

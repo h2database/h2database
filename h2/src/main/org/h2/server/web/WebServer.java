@@ -36,6 +36,7 @@ public class WebServer implements Service {
         { "fr", "Fran\u00e7ais" },
         { "es", "Espa\u00f1ol" },
         { "zh_CN", "\u4E2D\u6587"},
+        { "ja", "\u65e5\u672c\u8a9e"},
     };
 
 //    String lang = 

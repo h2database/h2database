@@ -7,13 +7,19 @@ package org.h2.jdbcx;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
+//#ifdef JDK14
 import javax.transaction.xa.Xid;
+//#endif
 
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
 
-public class JdbcXid extends TraceObject implements Xid {
+public class JdbcXid extends TraceObject 
+//#ifdef JDK14
+implements Xid 
+//#endif
+{
     
     private static final String PREFIX = "XID";
 

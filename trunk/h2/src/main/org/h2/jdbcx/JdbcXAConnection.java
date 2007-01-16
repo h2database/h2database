@@ -4,24 +4,25 @@
  */
 package org.h2.jdbcx;
 
+//#ifdef JDK14
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-
-import org.h2.jdbc.JdbcConnection;
-import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.jdbc.JdbcConnection;
+//#endif
+
+import org.h2.message.TraceObject;
 
 //#ifdef JDK16
 /*
@@ -29,8 +30,13 @@ import javax.sql.StatementEventListener;
 */
 //#endif
 
-public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcConnectionListener, XAResource {
+public class JdbcXAConnection extends TraceObject 
+//#ifdef JDK14
+implements XAConnection, XAResource, JdbcConnectionListener
+//#endif
+{
     
+//#ifdef JDK14
     private JdbcDataSourceFactory factory;
     private String url, user, password;
     private JdbcConnection conn;
@@ -272,22 +278,22 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, JdbcC
         }
         getTrace().debug("committed");
     }
+//#endif
 
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void addStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
 */
-    //#endif
-    
+//#endif
 
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void removeStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
 */
-    //#endif
+//#endif
 
 }

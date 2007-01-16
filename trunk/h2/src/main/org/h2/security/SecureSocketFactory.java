@@ -4,15 +4,18 @@
  */
 package org.h2.security;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.SQLException;
+
+//#ifdef JDK14
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -24,20 +27,18 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Properties;
-
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-
 import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+//#endif
 
 /**
  * 
@@ -70,6 +71,39 @@ public class SecureSocketFactory {
         return factory;
     }
     
+    public Socket createSocket(InetAddress address, int port) throws SQLException, IOException {
+        Socket socket = null;
+//#ifdef JDK14
+        setKeystore();
+        SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        SSLSocket secureSocket = (SSLSocket) f.createSocket(address, port);
+        if (ENABLE_ANONYMOUS_SSL) {
+            String[] list = secureSocket.getEnabledCipherSuites();
+            list = addAnonymous(list);
+            secureSocket.setEnabledCipherSuites(list);
+        }
+        socket = secureSocket;
+//#endif
+        return socket;
+    }
+
+    public ServerSocket createServerSocket(int port) throws IOException, SQLException {
+        ServerSocket socket = null;
+//#ifdef JDK14
+        setKeystore();
+        ServerSocketFactory f = SSLServerSocketFactory.getDefault();
+        SSLServerSocket secureSocket = (SSLServerSocket) f.createServerSocket(port);
+        if (ENABLE_ANONYMOUS_SSL) {
+            String[] list = secureSocket.getEnabledCipherSuites();
+            list = addAnonymous(list);
+            secureSocket.setEnabledCipherSuites(list);
+        }
+        socket = secureSocket;
+//#endif
+        return socket;
+    }
+
+//#ifdef JDK14
     private static byte[] getBytes(String hex) throws SQLException {
         return ByteUtils.convertStringToBytes(hex);
     }
@@ -178,35 +212,11 @@ public class SecureSocketFactory {
         }
     }
 
-    public ServerSocket createServerSocket(int port) throws IOException, SQLException {
-        setKeystore();
-        ServerSocketFactory f = SSLServerSocketFactory.getDefault();
-        SSLServerSocket socket = (SSLServerSocket) f.createServerSocket(port);
-        if (ENABLE_ANONYMOUS_SSL) {
-            String[] list = socket.getEnabledCipherSuites();
-            list = addAnonymous(list);
-            socket.setEnabledCipherSuites(list);
-        }
-        return socket;
-    }
-
     private String[] addAnonymous(String[] list) {
         String[] newList = new String[list.length + 1];
         System.arraycopy(list, 0, newList, 1, list.length);
         newList[0] = ANONYMOUS_CIPHER_SUITE;
         return newList;
-    }
-
-    public Socket createSocket(InetAddress address, int port) throws SQLException, IOException {
-        setKeystore();
-        SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
-        SSLSocket socket = (SSLSocket) f.createSocket(address, port);
-        if (ENABLE_ANONYMOUS_SSL) {
-            String[] list = socket.getEnabledCipherSuites();
-            list = addAnonymous(list);
-            socket.setEnabledCipherSuites(list);
-        }
-        return socket;
     }
 
     // private void listCipherSuites(SSLServerSocketFactory f) {
@@ -219,5 +229,6 @@ public class SecureSocketFactory {
     // System.out.println("supported = " + sup[i]);
     // }
     // }
+//#endif
 
 }

@@ -207,6 +207,12 @@ Features
 </tr>
 </table>
 
+<h3>Derby and HSQLDB</h3>
+After an unexpected process termination (for example power failure), H2 can recover safely and 
+automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required 
+('Another instance of Derby may have already booted the database' / 
+'The database is already in use by another process').
+
 <h3>DaffodilDb and One$Db</h3>
 It looks like the development of this database has stopped. The last release was February 2006.
 
@@ -846,7 +852,7 @@ where executed. This database offers the following trace features:
 The simplest way to enable the trace option is setting it in the database URL.
 There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, 
 and one for file tracing (TRACE_LEVEL_FILE). 
-The trace levels are 0 for OFF, 1 for ERROR, 2 for INFO and 3 for DEBUG.
+The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG.
 A database URL with both levels set to DEBUG is:
 <pre>
 jdbc:h2:test;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3

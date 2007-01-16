@@ -11,15 +11,18 @@ package org.h2.engine;
  * - System.out > trace messages
  *
  * Release checklist
- * - Run FindBugs 
+ * - Run FindBugs
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
  * - Compiling with JDK 1.3, 1.4, 1.5 and 1.6
+ *   set path=C:\jdk1.3.1_19\bin;%PATH%
+ *   set JAVA_HOME=C:\jdk1.3.1_19\bin
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  * - Change FAQ (next release planned, known bugs)
  * - Check version, change build number in Constants.java and build.xml
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
+ * - '  #ifdef', '  #endif'
  * - No TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
  * - Change version(s) in performance.html; use latest versions of other databases
@@ -50,13 +53,14 @@ package org.h2.engine;
  * - Scan for viruses
  * - newsletter: prepare, send (always send to BCC!!)
  * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
+ * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
  * 
  * @author Thomas
  */
 public class Constants {
 
-    public static final int BUILD_ID = 38;
-    private static final String BUILD = "2007-01-10";
+    public static final int BUILD_ID = 39;
+    private static final String BUILD = "2007-01-16";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

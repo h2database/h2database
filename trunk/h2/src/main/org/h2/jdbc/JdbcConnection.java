@@ -15,7 +15,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+//#ifdef JDK14
 import java.sql.Savepoint;
+//#endif
 import java.sql.Statement;
 import java.util.Iterator;
 import java.util.Map;
@@ -57,14 +59,22 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private String url;
     private String user;
-    private int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
+    
+    private int holdability
+//#ifdef JDK14
+     = ResultSet.HOLD_CURSORS_OVER_COMMIT
+//#endif
+    ;
+    
     private SessionInterface session;
     private CommandInterface commit, rollback;
     private CommandInterface setAutoCommitTrue, setAutoCommitFalse, getAutoCommit;
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setLockMode, getLockMode;
     private Exception openStackTrace;
+//#ifdef JDK14
     private int savepointId;
+//#endif
     private Trace trace;
     private JdbcConnectionListener listener;
     private boolean isInternal;
@@ -1172,10 +1182,12 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private void checkHoldability(int resultSetHoldability) throws SQLException {
         // TODO compatibility / correctness: DBPool uses ResultSet.HOLD_CURSORS_OVER_COMMIT
+//#ifdef JDK14
         if(resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT &&
                 resultSetHoldability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
             throw Message.getInvalidValueException("" + resultSetHoldability, "resultSetHoldability");
         }
+//#endif
     }
 
     void checkClosed() throws SQLException {

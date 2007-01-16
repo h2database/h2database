@@ -21,7 +21,9 @@ import java.util.StringTokenizer;
 import org.h2.api.Trigger;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 
 public class FullText implements Trigger {
 
@@ -366,7 +368,7 @@ public class FullText implements Trigger {
        }
        switch(type) {
        case Types.BIT:
-       case Types.BOOLEAN:
+       case DataType.TYPE_BOOLEAN:
        case Types.INTEGER:
        case Types.BIGINT:
        case Types.DECIMAL:
@@ -394,7 +396,7 @@ public class FullText implements Trigger {
        case Types.REF:
        case Types.NULL:
        case Types.ARRAY:
-       case Types.DATALINK:
+       case DataType.TYPE_DATALINK:
        case Types.DISTINCT:
            throw new SQLException("FULLTEXT", "Unsupported column data type: " + type);
        }
@@ -407,7 +409,7 @@ public class FullText implements Trigger {
        }
        switch(type) {
        case Types.BIT:
-       case Types.BOOLEAN:
+       case DataType.TYPE_BOOLEAN:
        case Types.INTEGER:
        case Types.BIGINT:
        case Types.DECIMAL:
@@ -437,7 +439,7 @@ public class FullText implements Trigger {
        case Types.REF:
        case Types.NULL:
        case Types.ARRAY:
-       case Types.DATALINK:
+       case DataType.TYPE_DATALINK:
        case Types.DISTINCT:
            throw new SQLException("FULLTEXT", "Unsupported key data type: " + type);
        }
@@ -472,7 +474,7 @@ public class FullText implements Trigger {
             if(wId == null) {
                 prepInsertWord.setString(1, word);
                 prepInsertWord.execute();
-                ResultSet rs = prepInsertWord.getGeneratedKeys();
+                ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
                 rs.next();
                 wordId = rs.getInt(1);
                 allWords.put(word, new Integer(wordId));
@@ -492,7 +494,7 @@ public class FullText implements Trigger {
        prepInsertRow.setLong(2, index.id);
        prepInsertRow.setString(3, key);
        prepInsertRow.execute();
-       ResultSet rs = prepInsertRow.getGeneratedKeys();
+       ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertRow);
        rs.next();
        long rowId = rs.getLong(1);
        prepInsertMap.setLong(1, rowId);

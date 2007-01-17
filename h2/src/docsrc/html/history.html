@@ -34,11 +34,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / 2007-01-16</h3><ul>
+<h3>Version 1.0 / 2007-01-17</h3><ul>
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds). 
-	Thanks a lot to Martina Nissler for finding this problem!
+    Thanks a lot to Martina Nissler for finding this problem!
 <li>The Console is now translated to Japanese thanks to IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp)
-<li>The database engine can not be compiled with JDK 1.3 using ant codeswitch_jdk13. 
+<li>The database engine can now be compiled with JDK 1.3 using ant codeswitch_jdk13. 
     There are still some limitations, and the ant script to build the jar does not work yet.
 <li>Fixed a problem where data in the log file was not written to the data file (recovery failure) after a crash, 
     if an index was deleted previously.
@@ -58,7 +58,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 / 2007-01-02</h3><ul>
 <li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
-<li>Prepard statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
+<li>Prepardd statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
 <li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
 <li>Client trace files now created in the directory 'trace.db' and no longer the application directory. 
     This can be changed using the system property h2.clientTraceDirectory.
@@ -103,7 +103,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 / 2006-12-03</h3><ul>
 <li>The SQL statement COMMENT did not work as expected. Many bugs have been fixed in this area.
-    If you already have comments in the database, it is recommented to backup and restore the database,
+    If you already have comments in the database, it is recommended to backup and restore the database,
     using the Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
 <li>Mixing certain data types in an operation, for example VARCHAR and TIMESTAMP, now converts both expressions to TIMESTAMP.
     This was a problem when comparing a string against a date.
@@ -111,22 +111,22 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Server: If an object was already closed on the server side because it was too 'old' (not used for a long time),
     even calling close() threw an exception. This is not done any more as it is not a problem.
 <li>Optimization: The left and right side of a AND and OR conditions are now ordered by the expected cost.
-<li>There was a bug in the database encryption algorithm. The initalization vector was not correctly calculated, and 
+<li>There was a bug in the database encryption algorithm. The initialization vector was not correctly calculated, and 
     pattern of repeated encrypted bytes where generated for empty blocks in the file. This has been is fixed. 
-    The security of the data itself was not compromised, but this was not the intended behaviour.
+    The security of the data itself was not compromised, but this was not the intended behavior.
     If you have an encrypted database, you will need to decrypt the database using the org.h2.tools.ChangePassword
     (using the old database engine), and encrypt the database using the new engine. Alternatively, you can 
     use the Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
 <li>New connection time setting CACHE_TYPE=TQ to use the 2Q page replacement algorithm.
     The overall performance seems to be a bit better when using 2Q. Also, 2Q should be more resistant to table scan.
-<li>Change behaviour: If both sides of a comparison are parameters with unknown data type, then an exception is thrown now.
+<li>Change behavior: If both sides of a comparison are parameters with unknown data type, then an exception is thrown now.
     The same happens for UNION SELECT if both columns are parameters.
 <li>New system function SESSION_ID().
 <li>Deeply nested views where slow to execute, because the query was parsed many times. Fixed.
 <li>The service wrapper is now included in the default installation and documented.
 <li>Java functions returning a result set (such as CSVREAD) now can be used in a SELECT statement like a table.
     The function is still called twice (first to get the column list at parse time, and then at execute time). 
-    The behaviour has been changed: Now first call contains the values if set, but the connection URL is different
+    The behavior has been changed: Now first call contains the values if set, but the connection URL is different
     (jdbc:columnlist:connection instead of jdbc:default:connection).
 </ul>
 
@@ -191,7 +191,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     Sequences: When the database is not closed normally, the value was not set correctly. Fixed.
 <li>
-    The optimization for IN(SELECT...) was too agressive; changes in the inner query where not accounted for.
+    The optimization for IN(SELECT...) was too aggressive; changes in the inner query where not accounted for.
 <li>
     Index names of referential constraints are now prefixed with the constraint name.
 <li>
@@ -343,7 +343,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     the number of rows (specially for offset), the standardized LIMIT [OFFSET] should be used
 <li>
     Deleting many rows from a table with a self-referencing constraint with 'on delete cascade' did not work.
-    Now referencial constraints are checked after the action is performed.
+    Now referential constraints are checked after the action is performed.
 <li>
     The cross references in the SQL grammar docs where broken in the last release.
 <li>
@@ -355,7 +355,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     Until now, unknown connection properties where ignored (for OpenOffice compatibility).
     This is not a good solution because typos are not detected.
-    This behaviour is still the default but it can be disabled by adding
+    This behavior is still the default but it can be disabled by adding
     ;IGNORE_UNKNOWN_SETTINGS=FALSE to the database URL.
     However this is not the final solution.
 <li>
@@ -370,7 +370,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     When running a script that contained referential or unique constraints, and if the indexes for those constraints are not created by the user,
     a internal exception could occur. This is fixed. Also, the script command will no longer write the internal indexes used into the file.
 <li>
-    SET IGNORECASE is now supported for compatiblity with HSQLDB, and because using collations (SET COLLATION) is very slow on JDKs (JDK 1.5)
+    SET IGNORECASE is now supported for compatibility with HSQLDB, and because using collations (SET COLLATION) is very slow on JDKs (JDK 1.5)
 <li>
     ORDER BY an expression didn't work when using GROUP BY at the same time.
 </ul>
@@ -467,7 +467,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     Space is better re-used after deleting many records.
 <li>
-    Umlauts and chinese characters are now supported in
+    Umlauts and Chinese characters are now supported in
     identifier names (table name, column names and so on).
 <li>
     Fixed a problem when comparing BIGINT values with constants.
@@ -535,7 +535,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     the cache size is no longer necessary in most cases.
 <li>
     Objects of unknown type are no longer serialized to a byte array (and deserialized when calling getObject on a byte array data type)
-    by default. This behaviour can be changed with Constants.SERIALIZE_JAVA_OBJECTS = true
+    by default. This behavior can be changed with Constants.SERIALIZE_JAVA_OBJECTS = true
 <li>
     New column IS_GENERATED in the metadata tables SEQUENCES and INDEXES
 <li>
@@ -543,7 +543,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     An exception was thrown if a scalar subquery returned no rows. Now the NULL value is used in this case.
 <li>
-    IF EXISTS / IF NOT EXISTS implemented for the remaning CREATE / DROP statements.
+    IF EXISTS / IF NOT EXISTS implemented for the remaining CREATE / DROP statements.
 <li>
     ResultSetMetaData.isNullable is now implemented.
 <li>
@@ -581,7 +581,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 0.9 / 2006-07-01</h3><ul>
 <li>
-    After dropping contraints and altering a table sometimes the database could not be opened. Fixed.
+    After dropping constraints and altering a table sometimes the database could not be opened. Fixed.
 <li>
     Outer joins did not always use an index even if this was possible. Fixed.
 <li>
@@ -709,7 +709,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     New option '-ifExists' for the TCP and ODBC server to disallow creating new databases remotely.
 <li>
-    Shutdown of a TCP Server: Can now specifiy a password (tcpPassword). Passwords used at startup and
+    Shutdown of a TCP Server: Can now specify a password (tcpPassword). Passwords used at startup and
     shutdown must match to shutdown. Uses a management database now for each server / port.
     New option tcpShutdownForce (default is false) to kill the server without waiting for other connections to close.
 <li>
@@ -767,7 +767,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Alter table drop column: now the column can be dropped if it is not part of a constraint.
 <li>
     Views can now be 'invalid', for example if the table does not exist.
-    New synax CREATE FORCE VIEW.
+    New syntax CREATE FORCE VIEW.
     New column STATUS (invalid / valid) in INFORMATION_SCHEMA.VIEWS table.
     New SQL statement ALTER VIEW viewName RECOMPILE.
 <li>
@@ -802,7 +802,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     Bugfix for LIKE: A null pointer exception was thrown for WHERE NAME LIKE CAST(? AS VARCHAR).
 <li>
-    Join optimization: expessions are now evaluated as early as possible, avoiding unnecessary lookups.
+    Join optimization: expressions are now evaluated as early as possible, avoiding unnecessary lookups.
 <li>
     ResultSetMetaData.isAutoIncrement is implemented.
 <li>
@@ -815,7 +815,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Backup (with the old version), replace 'STRINGENCODE' in the script with
     'STRINGDECODE', and restore is required to upgrade to the new version.
 <li>
-    Support for REAL data type (Java 'float'; so far the DOUBLE type was used internallly).
+    Support for REAL data type (Java 'float'; so far the DOUBLE type was used internally).
 </ul>
 
 <h3>Version 0.9 / 2006-04-20</h3><ul>
@@ -838,7 +838,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     ALTER TABLE ALTER COLUMN for a table that was referenced by another table didn't work. Fixed.
 <li>
-    If index log is disabled (the default), indexe changes are flushed automatically each second
+    If index log is disabled (the default), index changes are flushed automatically each second
     if the index was not changed. Like this index rebuilding is only required
     (after a unexpected program termination, like power off) for indexes that
     where recently changed.
@@ -1039,7 +1039,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 0.9 / 2006-03-08</h3><ul>
 <li>
-    Bugfix for table level locking. Sometimes a Java-level deadlock occured when a connection was not closed.
+    Bugfix for table level locking. Sometimes a Java-level deadlock occurred when a connection was not closed.
 <li>
     Implemented the SHUTDOWN statement to close the database.
 <li>
@@ -1205,154 +1205,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Bug: Renaming a table and then reconnect didn't work.
 </ul>
 
-<h3>Version 0.9 / 2006-01-17</h3><ul>
-<li>
-    Referential integrity:
-    If the references columns are not specified, the primary key columns are used
-    (compatibility with PostgreSQL).
-<li>
-    Durability:
-    A durability test has been implemented. Unfortunately, it is currently not
-    possible to guarantee transaction durability by default.
-<li>
-    Bug in binary storage format:
-    If a record size was a multiple of 128 bytes, it was not saved correctly.
-<li>
-    Multi-threaded kernel: Refactored the kernel to allow multiple threads running concurrently in the
-    same database. Disabled by default because more tests are required.
-    To enable it, set Constants.MULTI_THREADED_KERNEL to true.
-<li>
-    Temporary tables are support now.
-<li>
-    Exception Listener: Added functionality to deal with low disk space condition,
-    and support a callback feature so the application can notify somebody if a problem occurs.
-<li>
-    Trigger: Added the Javadoc API to the docs.
-<li>
-    DataSource: Implemented DataSource and DataSourceFactory.
-    Not sure in what context this will be used, but it's there now.
-<li>
-    Parser: improved exception message (expected a, b, c,...) for some syntax errors.
-</ul>
-
-<h3>Version 0.9 / 2006-01-08</h3><ul>
-<li>
-    Recovery: The database can now be opened if the index file is corrupt or does not exist.
-<li>
-    Recovery: There was a bug in the power off test. Recovery was not tested correctly.
-    There was a case when recovery didn't work (so a database could not be opened).
-    Fixed.
-    Also fixed a problem with memory tables, they where not correctly persisted when using CHECKPOINT.
-<li>
-    Commit: Implemented delaying the log file writing for performance reasons.
-    Most hard drives do not obey the fsync() function, so calling sync before each commit would not help.
-    See also 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252.
-<li>
-    Tool: Create a new Recover tool.
-<li>
-    Storage: support for URL parameter 'STORAGE' to support both text and binary storage formats.
-    The default is now binary mode storage.
-<li>
-    Read-only database support. Added a function READONLY() and support for Connection.isReadOnly()
-<li>
-    Functions: New functions UTF8TOSTRING, STRINGTOUTF8, HASH, ENCRYPT, DECRYPT, SECURE_RAND.
-<li>
-    Translation: Started with French and Spanish translation of the Console.
-    Simplified the translation in this area (only one file needs to be translated now).
-    It would be great if somebody could help translating
-    (only around 100 words / sentences, file src/main/org/h2/web/_text_en.properties).
-<li>
-    Storage: When a table was dropped, the space was not reused afterwards until all connections to this database
-    where closed. Now the space is reused without reopening the connection.
-<li>
-    Large result set: max rows and offset didn't work with large result sets. Fixed.
-<li>
-    New Settings: MAX_LOG_SIZE (automatic checkpoint) is implemented.
-    For compatibility with HSQLDB, SET LOGSIZE is supported as well.
-<li>
-    Settings: TRACE_MAX_FILE_SIZE is now in MB instead of bytes, where 1 MB is 1024 * 1024 bytes.
-</ul>
-
-<h3>Version 0.9 / 2005-12-26</h3><ul>
-<li>
-    GCJ: There seems to be a problem with synchronization with GCJ that is unproblematic with JDK.
-    If a method is synchronized, and exception occurs in this method, sometimes GCJ does not unlock
-    the object. One case has been fixed: when connecting to a database with the wrong user named locked
-    the object (probably the driver). One problem is still open: after the command
-    'create schema testsch authorization test', where the user test does not exists, locks something.
-<li>
-    BTree: Fixed a critical bug in the btree update (keys where not compared when adding a record).
-<li>
-    Binary data page: The length of a row was not always calculated correctly. Fixed and added a assertion.
-    (Binary data page is still disabled by default)
-<li>
-    Linked tables: Sometimes the connection was not closed. Fixed.
-<li>
-    Rights: Users with little access rights could not call ResultSet.getConcurrency.
-    They did not have rights for the metadata and system_range tables.
-    Now they can query those tables. The error message if there are not enough rights for an object was improved.
-<li>
-    Rights: The table SYSTEM_INFORMATION.RIGHTS did not return the schema name for the granted table. Fixed.
-<li>
-    Performance: a little bit of tuning was done, but currently switched off. In the future, the performance for simple things will be
-    comparable to HSQLDB (and H2 will be faster for complex queries). People who want to compare the performance of HSQLDB with H2
-    should switch DataPage.BINARY = true, Database.CHECK = false and LogSysetm.FLUSH_LOG_FOR_EACH_COMMIT = false
-    and compile the code again. Don't forget the compare the performance of opening and closing a database.
-<li>
-    Memory usage: the index page cache size is now smaller to reduce the memory usage.
-<li>
-    Storage: Truncating (dropping) a large table was very slow due to a bug. O(n^2). Fixed.
-<li>
-    Log: Old (unused) log files where not correctly deleted at shutdown. This is now fixed.
-</ul>
-
-<h3>Version 0.9 / 2005-12-22</h3><ul>
-<li>
-    Documentation: The Table of Contents in the PDF was broken (missing links, wrong page numbers).
-    Added documentation about trace options.
-<li>
-    Version number: Added a build number, listed when calling DatabaseMetaData.getDatabaseProductVersion().
-    The console shows the product name and version.
-<li>
-    Constraints: If adding a constraint created an index (automatically), then the order of operations was not logged correctly
-    (first the constraint and then the index, instead of first the index). Because of that, it was not possible to
-    connect to the database again. Fixed.
-<li>
-    ResultSetMetaData.getColumn: Now return the column label as other databases (HSQLDB and MySQL) do.
-<li>
-    Cache: A caching bug with medium to large databases (more than 16000 records) was fixed.
-    Too bad this was not found before releasing the database!
-    Also, a caching bug in linear hash index was fixed.
-<li>
-    BigDecimal: There was an incompatibility with 'new BigDecimal(int)', which is not available in JDK 1.4.
-    It worked when the source code was compiled with JDK 1.4, but unfortunately it was compiled with JDK 1.5.
-    Now, 'new BigDecimal(String)' is always used to avoid this incompatibility.
-<li>
-    Trace: Fix the output format, use 24 hour format instead of 12 hour format.
-    Enabling the trace option at runtime did not work as expected, this was fixed.
-<li>
-    Tools: Added convenience methods in the tools (Backup, DeleteDbFiles,...) so they can be called
-    from another application more easily. Added Javadoc documentation.
-<li>
-    Console: Stack traces are not thrown on the console window, to avoid blocking the application
-    if the user selects something in the console (in Windows).
-<li>
-    Referential integrity: Supports the syntax where the referenced table is not specified.
-    In this case, the same table is referenced. (Compatibility with HSQLDB).
-<li>
-    API Documentation: The 'throws' clause was not included in the Doclet. Fixed.
-<li>
-    Tools: Added public 'execute' methods to simplify using the tools in other applications.
-<li>
-    Clustering: The CreateCluster application now works even if both databases are on another machine.
-<li>
-    Clustering: If autocommit is enabled on the client side, the commit on the server side is
-    executed after all servers executed the statement. This is slower, but fixed a theoretical
-    problem when using multiple connections (client A executes a statement, client B executes another
-    statement, and for some reason client B is faster and the statements of B are done on both
-    servers while client A is only done on the first server).
-</ul>
-
 <h3>Version 0.9 / 2005-12-13</h3><ul>
 <li>
     First public release.
@@ -1432,7 +1284,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 <li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 <li>Document how to view / scan a big trace file (less)
-<li>Translation to spanish, chinese, japanese
 <li>Set the database in an 'exclusive' mode
 <li>Implement, test, document XAConnection and so on
 <li>Web site: meta keywords, description, get rid of frame set

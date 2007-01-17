@@ -122,7 +122,7 @@ Section "All"
   SetOutPath "$INSTDIR\odbc"
   File /r /x CVS /x .cvsignore ..\..\odbc\*.*
   SetOutPath "$INSTDIR\service"
-  File /r /x CVS /x .cvsignore ..\..\service\*.*
+  File /r /x CVS /x .cvsignore /x .svn ..\..\service\*.*
   SetOutPath "$INSTDIR"
   File /r /x CVS /x .cvsignore ..\..\build.xml  
   File /r /x CVS /x .cvsignore ..\..\ant-build.properties

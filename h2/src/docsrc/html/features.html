@@ -1230,7 +1230,7 @@ SET CACHE_SIZE size.
 This database supports two cache page replacement algorithms: LRU (the default) and
 2Q. For LRU, the pages that were least frequently used are removed from the
 cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two 
-queues are used. The 2Q algorithm is more resistent to table scans, however the overhead
+queues are used. The 2Q algorithm is more resistant to table scans, however the overhead
 is a bit higher compared to the LRU. To use the cache algorithm 2Q, use a database URL
 of the form jdbc:h2:test;CACHE_TYPE=TQ. The cache algorithm can not be changed
 once the database is open.

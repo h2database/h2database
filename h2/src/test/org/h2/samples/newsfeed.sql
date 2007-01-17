@@ -10,10 +10,44 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(20,
+'New version available: 1.0 / 2007-01-17', '2007-01-17 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br>
+<b>Changes and new functionality:</b>
+<ul>
+<li>The Console is now translated to Japanese thanks to 
+	IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp).
+<li>The database engine can now be compiled with JDK 1.3 using ant codeswitch_jdk13. 
+	There are still some limitations, and the ant script to build the jar does not work yet.
+<li>SCRIPT NODATA now writes the row count for each table.
+<li>Timestamps with timezone information (Z or +/-hh:mm) and dates before year 1 
+	can now be parsed. However dates before year 1 are not formatted correctly.
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>Fixed a problem where data in the log file was not written to the data file 
+	(recovery failure) after a crash, if an index was deleted previously.
+<li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds).
+<li>Selecting a column using the syntax schemaName.tableName.columName did not work in all cases.
+<li>When stopping the TCP server from an application and immediately afterwards starting 
+	it again using a different TCP password, an exception was thrown sometimes.
+<li>Now PreparedStatement.setBigDecimal(..) can only be called with an object of 
+	type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to 
+	Maciej Wegorkiewicz for finding this problem.
+<li>It was possible to manipulate values in the byte array after calling PreparedStatement.setBytes, 
+	and this could lead to problems if the same byte array was used again. Now the byte array 
+	is copied if required.
+<li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed. 
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(19,
 'New version available: 1.0 / 2007-01-02', '2007-01-02 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>H2 is now available in Maven. The groupId is com.h2database,     the 
@@ -56,7 +90,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(18,
 'New version available: 1.0 / 2006-12-17', '2006-12-17 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Large BLOB and CLOB support for the server and the cluster mode. 
@@ -98,7 +132,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(17,
 'New version available: 1.0 / 2006-12-03', '2006-12-03 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>New connection time setting CACHE_TYPE=TQ to use the 2Q page replacement 
@@ -142,7 +176,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(16,
 'New version available: 1.0 / 2006-11-20', '2006-11-20 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>New SQL statement SET SCHEMA to change the current schema of this session.
@@ -178,7 +212,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(15,
 'New version available: 1.0 / 2006-11-03', '2006-11-03 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>New SQL statement COMMENT ON ... IS ...
@@ -223,7 +257,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(14,
 'New version available: 1.0 / 2006-10-10', '2006-10-10 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Support for DOMAIN (user defined data types).
@@ -249,7 +283,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(13,
 'New version available: 1.0 / 2006-09-24', '2006-09-24 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Protection against SQL injection: New command SET ALLOW_LITERALS {NONE|ALL|NUMBERS}.
@@ -291,7 +325,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(12,
 'New version available: 1.0 / 2006-09-10', '2006-09-10 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>SET IGNORECASE is now supported for compatibility with HSQLDB.
@@ -327,7 +361,7 @@ See <a href="http://www.infoq.com/news/h2-released">http://www.infoq.com/news/h2
 INSERT INTO ITEM VALUES(10,
 'New version available: 1.0 / 2006-08-31', '2006-08-31 12:00:00',
 'H2 version 1.0 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Bugfixes:</b>
 <ul>
 <li>In some situations, wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
@@ -340,7 +374,7 @@ For future plans, see the new ''Roadmap'' page on the web site.
 INSERT INTO ITEM VALUES(9,
 'New version available: 1.0 RC 2 / 2006-08-28', '2006-08-28 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Linked tables: The table name is no longer quoted when accessing the foreign database.
@@ -381,7 +415,7 @@ This is still open for discussion at the <a href="http://www.h2database.com/ipow
 INSERT INTO ITEM VALUES(7,
 'New version available: 0.9 RC 1 / 2006-08-23', '2006-08-23 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Date and time constants outside the valid range (February 31 and so on) are no longer accepted.
@@ -415,7 +449,7 @@ The plans for the next release (RC 2) are:
 INSERT INTO ITEM VALUES(6,
 'New version available: 0.9 Beta / 2006-08-14', '2006-08-14 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Autocomplete support in the H2 Console.
@@ -449,7 +483,7 @@ The plans for the next release are:
 INSERT INTO ITEM VALUES(5,
 'New version available: 0.9 Beta / 2006-07-29', '2006-07-30 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>ParameterMetaData is now implemented
@@ -488,7 +522,7 @@ For details see also the history. The plans for the next release are:
 INSERT INTO ITEM VALUES(4,
 'New version available: 0.9 Beta / 2006-07-14', '2006-07-14 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>The cache size is now measured in blocks and no longer in rows.
@@ -526,7 +560,7 @@ For details see also the history. The plans for the next release are:
 INSERT INTO ITEM VALUES(3,
 'New version available: 0.9 Beta / 2006-07-01', '2006-07-01 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
+<br>
 <b>Changes and new functionality:</b>
 <ul>
 <li>Reduced memory usage: implemented a String cache and improved the Value cache.
@@ -549,44 +583,6 @@ INSERT INTO ITEM VALUES(3,
     because there the files names are not case sensitive.
 <li>Issue #122: Using OFFSET in big result sets (disk buffered result sets) did not work. Fixed.
 <li>Outer joins did not always use an index even if this was possible.
-</ul>
-For details see also the history. The plans for the next release are:
-<ul>
-<li>Bugfixes, write more tests, more bugfixes, more tests
-<li>Proposal for changed license (still pending...)
-<li>For other plans, see the new ''Roadmap'' part on the web site
-</ul>
-');
-
-INSERT INTO ITEM VALUES(2,
-'New version available: 0.9 Beta / 2006-06-16', '2006-06-16 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br/>
-<b>Changes and new functionality:</b>
-<ul>
-<li>It''s now Beta version; don''t expect much added functionality until 1.0
-<li>New XML encoding functions (XMLTEXT, XMLATTR, XMLNODE,...).
-<li>New functions FORMATDATETIME and PARSEDATETIME
-<li>Performance: improved opening of a large databases
-<li>Performance: improved creating and opening encrypted databases
-<li>Blob.getLength() and Clob.getLength() are now fast operations
-<li>Documented ALTER TABLE DROP COLUMN
-<li>Implemented DROP TRIGGER
-<li>Calling Server.start...Server now waits until the server is ready
-<li>If a connection is closed while there is still an operation running, this operation is stopped
-    Implemented distributing lob files into directories, and only keep up to 255 files in one directory.
-    However this is disabled by default; it will be enabled the next time the file format changes
-    (maybe not before 1.1). It can be enabled by the application by setting
-    Constants.LOB_FILES_IN_DIRECTORIES = true
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Issue #110: PreparedStatement.setCharacterStream
-<li>Issue #111: The catalog name was not uppercase
-<li>Issue #112: Two threads could not open the same database at the same time
-<li>Issue #113: Drop is now restricted
-<li>Issue #114: Support large index data size
-<li>Issue #115: Lock timeout for three or more threads
 </ul>
 For details see also the history. The plans for the next release are:
 <ul>

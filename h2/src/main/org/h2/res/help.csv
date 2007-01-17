@@ -332,7 +332,7 @@ CREATE DOMAIN [IF NOT EXISTS] newDomainName AS dataType
 ","
  Creates a new data type (domain).
  The check condition must evaluate to true or to NULL (to prevent NULL values, use NOT NULL).
- In the condition, the term VALUE refers to the value beeing tested.
+ In the condition, the term VALUE refers to the value being tested.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
@@ -2508,7 +2508,7 @@ CALL SCHEMA()
 "Functions (System)","SESSION_ID","
 SESSION_ID(): int
 ","
-Returns the unique session id numberfor the current database connection.
+Returns the unique session id number for the current database connection.
 This id stays the same while the connection is open.
 The database engine may re-use a session id after the connection is closed.
 ","

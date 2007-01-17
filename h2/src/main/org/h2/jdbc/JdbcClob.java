@@ -18,6 +18,12 @@ import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
+//#ifdef JDK16
+/*
+import java.sql.NClob;
+*/
+//#endif
+
 /**
  * Represents a CLOB value.
  */

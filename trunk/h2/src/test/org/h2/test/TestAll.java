@@ -86,6 +86,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
+//        Hi i found one small nasty bug with h2 database. When i use prepared statement on tables that have primary key UUID DEFAULT random_UUID(), and when i call getGeneratedKeys() method I only get (long) 0 as result, instead of random_uuid.
+//        And if I use IDENTITY type for primary ket i get corect value from methord PreparedStatement.getGeneratedKeys(). Problem is with UUID and random_uuid() combination.
+        
         // NULL || 'X' should probably return null by default
         // change default to read committed transaction isolation
         // Hot backup (incremental backup, online backup): backup data, log, index? files

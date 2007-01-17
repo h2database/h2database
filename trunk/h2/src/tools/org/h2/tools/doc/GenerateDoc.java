@@ -95,8 +95,10 @@ public class GenerateDoc {
                 }
                 String topic = rs.getString("TOPIC");
                 String syntax =  rs.getString("SYNTAX");
+                syntax = PageParser.escapeHtml(syntax);
+                syntax = StringUtils.replaceAll(syntax, "<br>", "");
                 syntax = bnf.getSyntax(topic, syntax);
-                map.put("syntax", PageParser.escapeHtml(syntax));
+                map.put("syntax", syntax);
                 list.add(map);
             }
             session.put(key, list);

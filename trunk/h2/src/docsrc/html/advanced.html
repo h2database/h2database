@@ -647,10 +647,10 @@ This database supports UUIDs. Also upported is a function to create new UUIDs us
 a cryptographically strong pseudo random number generator.
 With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.
-Standarized randomly generated UUIDs have 122 random bits.
+Standardized randomly generated UUIDs have 122 random bits.
 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
 This database supports generating such UUIDs using the built-in function RANDOM_UUID().
-Here is a small program to estimate the proability of having two identical UUIDs
+Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
 <pre>
 double x = Math.pow(2, 122);

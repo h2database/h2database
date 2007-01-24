@@ -25,14 +25,14 @@ public class Plan {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
         ObjectArray allCond = new ObjectArray();
-        ObjectArray allFilt= new ObjectArray();
+        ObjectArray all = new ObjectArray();
         if(condition != null) {
             allCond.add(condition);
         }
         for(int i=0; i<count; i++) {
             TableFilter f = filters[i];
             do {
-                allFilt.add(f);
+                all.add(f);
                 if(f.getJoinCondition() != null) {
                     allCond.add(f.getJoinCondition());
                 }
@@ -41,8 +41,8 @@ public class Plan {
         }
         allConditions = new Expression[allCond.size()];
         allCond.toArray(allConditions);
-        allFilters = new TableFilter[allFilt.size()];
-        allFilt.toArray(allFilters);
+        allFilters = new TableFilter[all.size()];
+        all.toArray(allFilters);
     }
 
     public PlanItem getItem(TableFilter filter) {

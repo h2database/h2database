@@ -277,7 +277,7 @@ public class Recover implements DataHandler {
     }
     
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {
-        writer.println("-- ERROR:" + error + " block:"+block+" blockCount:"+blockCount+" storageId:" + storageId+" recordLength: " + recordLength+" valudId:" + valueId);
+        writer.println("-- ERROR:" + error + " block:"+block+" blockCount:"+blockCount+" storageId:" + storageId+" recordLength: " + recordLength+" valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
         for(int i=0; i<dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = (data[i] & 0xff);

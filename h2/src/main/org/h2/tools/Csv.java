@@ -193,7 +193,7 @@ public class Csv implements SimpleRowSource {
     private void writeHeader() {
         for(int i=0; i<columnNames.length; i++) {
             if(i>0) {
-                writer.print(fieldSeparatorRead);
+                writer.print(fieldSeparatorWrite);
             }
             writer.print(columnNames[i]);
         }
@@ -475,6 +475,14 @@ public class Csv implements SimpleRowSource {
     public void setFieldSeparatorWrite(String fieldSeparatorWrite) {
         this.fieldSeparatorWrite = fieldSeparatorWrite;
     }
+    
+    /**
+     * Override the field separator for reading. The default is ','.
+     * @param fieldSeparatorRead
+     */
+    public void setFieldSeparatorRead(char fieldSeparatorRead) {
+        this.fieldSeparatorRead = fieldSeparatorRead;
+    }
 
     /**
      * Override the end-of-row marker for writing. The default is null.
@@ -489,7 +497,7 @@ public class Csv implements SimpleRowSource {
      * This is not supported at this time, and this methods throws a SQLException
      */
     public void reset() throws SQLException {
-        throw new SQLException("Method is notsupported", "CSV");
+        throw new SQLException("Method is not supported", "CSV");
     }
 
 }

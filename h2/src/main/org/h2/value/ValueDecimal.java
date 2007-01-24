@@ -161,7 +161,7 @@ public class ValueDecimal extends Value {
         } else if (DEC_ONE.equals(dec)) {
             return ONE;
         }
-        // TODO value optimization: find a way to read size of bigdecimal,
+        // TODO value optimization: find a way to read size of BigDecimal,
         // check max cache size
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }

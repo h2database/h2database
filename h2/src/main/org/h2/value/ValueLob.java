@@ -534,7 +534,7 @@ public class ValueLob extends Value {
 //    }
 
     public int getDisplaySize() {
-        // TODO displaysize of lob?
+        // TODO display size of lob?
         return 40;
     }
 

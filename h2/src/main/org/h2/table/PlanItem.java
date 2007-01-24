@@ -11,11 +11,26 @@ import org.h2.index.Index;
  */
 public class PlanItem {
     public double cost;
-    public Index index;
-    public PlanItem joinPlan;
+    
+    private Index index;
+    
+    private int todoObjectArray;
+    private PlanItem joinPlan;
+    
+    public void setIndex(Index index) {
+        this.index = index;
+    }
 
     public Index getIndex() {
         return index;
+    }
+    
+    public PlanItem getJoinPlan() {
+        return joinPlan;
+    }
+    
+    public void setJoinPlan(PlanItem joinPlan) {
+        this.joinPlan = joinPlan;
     }
 
 }

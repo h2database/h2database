@@ -534,7 +534,7 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if(type == Value.JAVA_OBJECT) {
-            // serialize JAVA_OBJECTs, even if the type is known
+            // serialize JAVA_OBJECT, even if the type is known
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
                 return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             }

@@ -38,6 +38,9 @@ public class JdbcClob extends TraceObject implements Clob
     private Value value;
     private JdbcConnection conn;
 
+    /**
+     * INTERNAL
+     */
     public JdbcClob(SessionInterface session, JdbcConnection conn, Value value, int id) {
         setTrace(session.getTrace(), TraceObject.CLOB, id);
         this.conn = conn;
@@ -80,9 +83,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Truncates the object.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Truncates the object.
      */
     public void truncate(long len) throws SQLException {
         debugCodeCall("truncate", len);
@@ -106,9 +107,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Returns an output  stream.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns an output  stream.
      */
     public OutputStream setAsciiStream(long pos) throws SQLException {
         debugCodeCall("setAsciiStream", pos);
@@ -131,9 +130,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Returns a writer.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns a writer starting from a given position.
      */
     public Writer setCharacterStream(long pos) throws SQLException {
         debugCodeCall("setCharacterStream", pos);
@@ -178,9 +175,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Sets a substring.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Sets a substring.
      */
     public int setString(long pos, String str) throws SQLException {
         debugCode("setString("+pos+", "+quote(str)+");");
@@ -188,9 +183,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Sets a substring.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Sets a substring.
      */
     public int setString(long pos, String str, int offset, int len) throws SQLException {
         debugCode("setString("+pos+", "+quote(str)+", "+offset+", "+len+");");
@@ -198,9 +191,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Searches a pattern and return the position.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Searches a pattern and return the position.
      */
     public long position(String pattern, long start) throws SQLException {
         debugCode("position("+quote(pattern)+", "+start+");");
@@ -208,9 +199,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Searches a pattern and return the position.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Searches a pattern and return the position.
      */
     public long position(Clob clobPattern, long start) throws SQLException {
         debugCode("position(clobPattern, "+start+");");
@@ -226,9 +215,7 @@ public class JdbcClob extends TraceObject implements Clob
     }
 
     /**
-     * Returns the reader, starting from an offset.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the reader, starting from an offset.
      */
     public Reader getCharacterStream(long pos, long length) throws SQLException {
         debugCode("getCharacterStream("+pos+", "+length+");");

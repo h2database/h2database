@@ -533,6 +533,7 @@ Removes all rows from a table.
 Other than DELETE FROM without where clause, this command can not be rolled back.
 This command is faster than DELETE without where clause.
 Only regular data tables without foreign key constraints can be truncated.
+This command commits an open transaction.
 ","
 TRUNCATE TABLE TEST
 "
@@ -2371,22 +2372,24 @@ CURRVAL('TESTSEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString]]): resultSet
+CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparator]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 If the column names are specified (a comma separated list of column names),
 those are used they are read from the file, otherwise (or if they are set to NULL) the first line
 of the file is interpreted as the column names.
+The default charset is the default value for this system, and the default field separator is a comma.
 Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv')
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString]): null
+CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparator]]): null
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.
+The default charset is the default value for this system, and the default field separator is a comma.
 Admin rights are required to execute this command.
 ","
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST')

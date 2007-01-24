@@ -40,8 +40,10 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 /**
- * Represents a result set. Column names are case-insensitive, quotes are not supported. The first column has the column
- * index 1.
+ * Represents a result set. Column names are case-insensitive, quotes are not supported. 
+ * The first column has the column index 1.
+ * Result sets are updatable when the result only contains columns from one table,
+ * and if it contains all columns of a unique index (primary key or other) of this table.
  */
 public class JdbcResultSet extends TraceObject implements ResultSet {
     private SessionInterface session;
@@ -675,10 +677,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * This feature is deprecated.
+     * [Not supported]
      * @deprecated
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         try {
@@ -690,10 +690,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * This feature is deprecated.
+     * [Not supported]
      * @deprecated
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
      */
     public InputStream getUnicodeStream(String columnName) throws SQLException {
         try {
@@ -705,9 +703,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Gets a column as a object using the specified type mapping.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets a column as a object using the specified type mapping.
      */
     public Object getObject(int columnIndex, Map map) throws SQLException {
         try {
@@ -721,9 +717,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Gets a column as a object using the specified type mapping.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets a column as a object using the specified type mapping.
      */
     public Object getObject(String columnName, Map map) throws SQLException {
         try {
@@ -737,9 +731,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Gets a column as a reference.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets a column as a reference.
      */
     public Ref getRef(int columnIndex) throws SQLException {
         try {
@@ -751,9 +743,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Gets a column as a reference.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets a column as a reference.
      */
     public Ref getRef(String columnName) throws SQLException {
         try {
@@ -1026,9 +1016,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a Array.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a Array.
      */
     public Array getArray(int columnIndex) throws SQLException {
         try {
@@ -1040,9 +1028,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a Array.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a Array.
      */
     public Array getArray(String columnName) throws SQLException {
         try {
@@ -1122,9 +1108,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
     public URL getURL(int columnIndex) throws SQLException {
         try {
@@ -1136,9 +1120,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
     public URL getURL(String columnName) throws SQLException {
         try {
@@ -1990,9 +1972,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] 
      */
     public void updateRef(int columnIndex, Ref x) throws SQLException {
         try {
@@ -2006,9 +1986,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] 
      */
     public void updateRef(String columnName, Ref x) throws SQLException {
         try {
@@ -2246,9 +2224,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }    
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] 
      */
     public void updateArray(int columnIndex, Array x) throws SQLException {
         try {
@@ -2262,9 +2238,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] 
      */
     public void updateArray(String columnName, Array x) throws SQLException {
         try {
@@ -2278,11 +2252,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Gets the cursor name if it was defined. Not all databases support cursor names, and this feature is superseded by
-     * updateXXX methods. This method throws a SQLException because cursor names are not supported. This is as defined
-     * in the in the JDBC specs.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets the cursor name if it was defined. This feature is superseded by
+     * updateXXX methods. This method throws a SQLException because cursor names are not supported. 
      */
     public String getCursorName() throws SQLException {
         try {
@@ -2391,7 +2362,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * result sets, otherwise it will throw an exception (no matter what direction is used).
      *
      * @param direction the new fetch direction
-     * @throws SQLException Unsupported Feature (SQL State 0A000) if the method is called for a forward-only result set
+     * @throws SQLException Unsupported Feature if the method is called for a forward-only result set
      */
         public void setFetchDirection(int direction) throws SQLException {
             try {
@@ -2910,52 +2881,48 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns the value of the specified column as a row id.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a row id.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public RowId getRowId(int columnIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Returns the value of the specified column as a row id.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a row id.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public RowId getRowId(String columnName) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Updates a column in the current or insert row.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Updates a column in the current or insert row.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Updates a column in the current or insert row.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Updates a column in the current or insert row.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateRowId(String columnName, RowId x) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
      * Returns the current result set holdability.
@@ -3023,11 +2990,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(int columnIndex, NClob x) throws SQLException {
         try {
@@ -3040,14 +3005,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(int columnIndex, Reader x) throws SQLException {
         try {
@@ -3060,14 +3023,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
     
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
         try {
@@ -3080,14 +3041,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
     
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(String columnName, Reader x) throws SQLException {
         try {
@@ -3100,14 +3059,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
     
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(String columnName, Reader x, long length) throws SQLException {
         try {
@@ -3120,14 +3077,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif    
+//#endif    
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateNClob(String columnName, NClob x) throws SQLException {
         try {
@@ -3140,7 +3095,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
 
 
     /**
@@ -3150,7 +3105,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public NClob getNClob(int columnIndex) throws SQLException {
         try {
@@ -3164,7 +3119,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
 
     /**
      * Returns the value of the specified column as a Clob.
@@ -3173,7 +3128,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public NClob getNClob(String columnName) throws SQLException {
         try {
@@ -3187,55 +3142,51 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Returns the value of the specified column as a SQLXML object.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Returns the value of the specified column as a SQLXML object.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public SQLXML getSQLXML(String columnName) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Updates a column in the current or insert row.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Updates a column in the current or insert row.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Updates a column in the current or insert row.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Updates a column in the current or insert row.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void updateSQLXML(String columnName, SQLXML xmlObject) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
      * Returns the value of the specified column as a String.
@@ -3388,29 +3339,27 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Return an object of this class if possible.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Return an object of this class if possible.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCode("unwrap");
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Checks if unwrap can return an object of this class.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Checks if unwrap can return an object of this class.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         debugCode("isWrapperFor");
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
 }

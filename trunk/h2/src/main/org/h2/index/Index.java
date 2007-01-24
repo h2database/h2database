@@ -129,7 +129,7 @@ public abstract class Index extends SchemaObject {
             int index = columnIndex[i];
             Value v = compare.getValue(index);
             if(v==null) {
-                // can't compare futher
+                // can't compare further
                 return 0;
             }
             int c = compareValues(rowData.getValue(index), v);

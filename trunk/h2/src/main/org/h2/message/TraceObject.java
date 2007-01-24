@@ -13,17 +13,12 @@ import java.sql.SQLException;
 import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
 
-/**
- * 
- * @author tgdmuth6
- *
- */
 public class TraceObject {
     public static final int CALLABLE_STATEMENT = 0, CONNECTION = 1, DATABASE_META_DATA = 2,
         PREPARED_STATEMENT = 3, RESULT_SET = 4, RESULT_SET_META_DATA = 5,
         SAVEPOINT = 6, SQL_EXCEPTION = 7, STATEMENT = 8, BLOB = 9, CLOB = 10,
         PARAMETER_META_DATA = 11;
-    public static final int DATASOURCE = 12, XA_DATASOURCE = 13, XID = 14;
+    public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14;
     
     private static int LAST = XID + 1;  
     private Trace trace;

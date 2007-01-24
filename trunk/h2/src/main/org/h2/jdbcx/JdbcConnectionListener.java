@@ -10,8 +10,8 @@ import org.h2.jdbc.JdbcConnection;
 
 public interface JdbcConnectionListener {
     
-    // TODO pooled connection: make sure fatalErrorOccured is called in the right situations
-    void fatalErrorOccured(JdbcConnection conn, SQLException e) throws SQLException;
+    // TODO pooled connection: make sure fatalErrorOccurred is called in the right situations
+    void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException;
     
     void closed(JdbcConnection conn);
 }

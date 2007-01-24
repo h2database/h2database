@@ -194,7 +194,7 @@ public class CodeSwitch {
                 if (lineTrim.startsWith("//#")) {
                     if (lineTrim.startsWith("//#ifdef ")) {
                         if (state != 0) {
-                            printError("//#ifdef not allowed inside //#ifdef");
+                            printError("//#ifdef not allowed inside " + "//#ifdef");
                             return false;
                         }
                         state = 1;
@@ -244,7 +244,7 @@ public class CodeSwitch {
                         }
                     } else if (lineTrim.startsWith("//#else")) {
                         if (state != 1) {
-                            printError("//#else without //#ifdef");
+                            printError("//#else without " + "//#ifdef");
                             return false;
                         }
                         state = 2;
@@ -259,7 +259,7 @@ public class CodeSwitch {
                         }
                     } else if (lineTrim.startsWith("//#endif")) {
                         if (state == 0) {
-                            printError("//#endif without //#ifdef");
+                            printError("//#endif without " + "//#ifdef");
                             return false;
                         }
                         state = 0;

@@ -37,6 +37,7 @@ public class LogSystem {
     private boolean flushOnEachCommit;
     private ObjectArray inDoubtTransactions;
     private boolean disabled;
+    private int keepFiles;
 
     public LogSystem(Database database, String fileNamePrefix, boolean readOnly) throws SQLException {
         this.database = database;
@@ -101,7 +102,7 @@ public class LogSystem {
         for (int i = 0; i < activeLogs.size(); i++) {
             LogFile l = (LogFile) activeLogs.get(i);
             if (l.getFirstUncommittedPos() == LOG_WRITTEN) {
-                l.close(deleteOldLogFilesAutomatically);
+                closeOldFile(l);
                 activeLogs.remove(i);
                 i--;
             }
@@ -128,7 +129,7 @@ public class LogSystem {
                 try {
                     // if there are any in-doubt transactions (even if they are resolved), can't delete the log files
                     if (l.getFirstUncommittedPos() == LOG_WRITTEN && !containsInDoubtTransactions()) {
-                        l.close(deleteOldLogFilesAutomatically);
+                        closeOldFile(l);
                     } else {
                         l.close(false);
                     }
@@ -196,6 +197,10 @@ public class LogSystem {
             return fileChanged;
         }
     }
+    
+    private void closeOldFile(LogFile l) throws SQLException {
+        l.close(deleteOldLogFilesAutomatically && keepFiles == 0);
+    }
 
     private void loadActiveLogFiles() throws SQLException {
         String path = FileUtils.getParent(fileNamePrefix);
@@ -206,7 +211,7 @@ public class LogSystem {
             LogFile l = LogFile.openIfLogFile(this, fileNamePrefix, s);
             if (l != null) {
                 if (l.getPos() == LOG_WRITTEN) {
-                    l.close(deleteOldLogFilesAutomatically);
+                    closeOldFile(l);
                 } else {
                     activeLogs.add(l);
                 }
@@ -361,6 +366,14 @@ public class LogSystem {
             currentLog.flush();
         }
     }
+    
+    public ObjectArray getActiveLogFiles() {
+        synchronized(database) {
+            ObjectArray list = new ObjectArray();
+            list.addAll(activeLogs);
+            return list;
+        }
+    }
 
     private void writeSummary() throws SQLException {
         if (database == null || readOnly || disabled) {
@@ -421,6 +434,10 @@ public class LogSystem {
 
     public void invalidateIndexSummary() throws SQLException {
         currentLog.addSummary(false, null);
+    }
+
+    public synchronized void updateKeepFiles(int incrementDecrement) {
+        keepFiles += incrementDecrement;
     }
 
 }

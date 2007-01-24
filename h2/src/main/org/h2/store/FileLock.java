@@ -33,7 +33,7 @@ public class FileLock {
     public static final int LOCK_NO = 0, LOCK_FILE = 1, LOCK_SOCKET = 2;
 
     // TODO lock: maybe not so secure! what if tread does not have chance to run?
-    // TODO lock: implement locking method using java 1.4 filelock
+    // TODO lock: implement locking method using java 1.4 FileLock
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket";
     private static final int RANDOM_BYTES = 16;
@@ -68,7 +68,7 @@ public class FileLock {
     }
 
     protected void finalize() {
-        if (!Constants.RUN_FINALIZERS) {
+        if (!Constants.RUN_FINALIZE) {
             return;
         }
         if(locked) {

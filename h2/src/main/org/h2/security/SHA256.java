@@ -53,22 +53,22 @@ public class SHA256 {
 
 
     public byte[] getHash(byte[] data) {
-        int bytelen = data.length;
-        int intlen = ((bytelen + 9 + 63) / 64) * 16;
-        byte[] bytes = new byte[intlen * 4];
-        System.arraycopy(data, 0, bytes, 0, bytelen);
-        bytes[bytelen] = (byte) 0x80;
-        int[] buff = new int[intlen];
-        for (int i = 0, j = 0; j < intlen; i += 4, j++) {
+        int byteLen = data.length;
+        int intLen = ((byteLen + 9 + 63) / 64) * 16;
+        byte[] bytes = new byte[intLen * 4];
+        System.arraycopy(data, 0, bytes, 0, byteLen);
+        bytes[byteLen] = (byte) 0x80;
+        int[] buff = new int[intLen];
+        for (int i = 0, j = 0; j < intLen; i += 4, j++) {
             buff[j] = readInt(bytes, i);
         }
-        buff[intlen - 2] = bytelen >>> 29;
-        buff[intlen - 1] = (bytelen << 3) & 0xffffffff;
+        buff[intLen - 2] = byteLen >>> 29;
+        buff[intLen - 1] = (byteLen << 3) & 0xffffffff;
         int[] w = new int[64];
         int[] hh = new int[] { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
                 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
 
-        for (int block = 0; block < intlen; block += 16) {
+        for (int block = 0; block < intLen; block += 16) {
             for (int i = 0; i < 16; i++) {
                 w[i] = buff[block + i];
             }

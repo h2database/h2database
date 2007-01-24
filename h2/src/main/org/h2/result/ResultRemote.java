@@ -161,7 +161,7 @@ public class ResultRemote implements ResultInterface {
         if (session == null) {
             return;
         }
-        // TODO result sets: no reset possible for larger remote resultsets
+        // TODO result sets: no reset possible for larger remote result sets
         synchronized (session) {
             try {
                 session.traceOperation("RESULT_CLOSE", id);
@@ -181,7 +181,7 @@ public class ResultRemote implements ResultInterface {
     }
 
 //    public void finalize() {
-//        if(!Database.RUN_FINALIZERS) {
+//        if(!Constants.RUN_FINALIZE) {
 //            return;
 //        }        
 //        close();

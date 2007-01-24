@@ -19,7 +19,7 @@ import java.util.zip.ZipOutputStream;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.CompressNo;
-import org.h2.compress.Compresser;
+import org.h2.compress.Compressor;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.message.Message;
@@ -69,7 +69,7 @@ public class CompressTool {
         if(in.length < 5) {
             algorithm = "NO";
         }
-        Compresser compress = getCompresser(algorithm);
+        Compressor compress = getCompressor(algorithm);
         byte[] buff = getBuffer((len < 100 ? len + 100 : len) * 2);
         int newLen = compress(in, in.length, compress, buff);
         byte[] out = new byte[newLen];
@@ -80,13 +80,13 @@ public class CompressTool {
     /**
      * INTERNAL
      */    
-    public synchronized int compress(byte[] in, int len, Compresser compress, byte[] out) {
+    public synchronized int compress(byte[] in, int len, Compressor compress, byte[] out) {
         int newLen = 0;
         out[0] = (byte)compress.getAlgorithm();
         int start = 1 + writeInt(out, 1, len);
         newLen = compress.compress(in, len, out, start);
         if(newLen > len + start || newLen <= 0) {
-            out[0] = Compresser.NO;
+            out[0] = Compressor.NO;
             System.arraycopy(in, 0, out, start, len);
             newLen = len + start;
         }
@@ -102,7 +102,7 @@ public class CompressTool {
      */    
     public byte[] expand(byte[] in) throws SQLException {
         int algorithm = in[0];
-        Compresser compress = getCompresser(algorithm);
+        Compressor compress = getCompressor(algorithm);
         try {
             int len = readInt(in, 1);
             int start = 1 + getLength(len);
@@ -119,7 +119,7 @@ public class CompressTool {
      */    
     public void expand(byte[] in, byte[] out, int outPos) throws SQLException {
         int algorithm = in[0];
-        Compresser compress = getCompresser(algorithm);
+        Compressor compress = getCompressor(algorithm);
         try {
             int len = readInt(in, 1);
             int start = 1 + getLength(len);
@@ -198,7 +198,7 @@ public class CompressTool {
         }
     }
     
-    private Compresser getCompresser(String algorithm) throws SQLException {
+    private Compressor getCompressor(String algorithm) throws SQLException {
         if(algorithm == null) {
             algorithm = "LZF"; 
         }
@@ -209,7 +209,7 @@ public class CompressTool {
             algorithm = algorithm.substring(0, idx);
         }
         int a = getCompressAlgorithm(algorithm);
-        Compresser compress = getCompresser(a);
+        Compressor compress = getCompressor(a);
         compress.setOptions(options);
         return compress;
     }
@@ -220,23 +220,23 @@ public class CompressTool {
     public int getCompressAlgorithm(String algorithm) throws SQLException {
         algorithm = StringUtils.toUpperEnglish(algorithm);
         if("NO".equals(algorithm)) {
-            return Compresser.NO;
+            return Compressor.NO;
         } else if("LZF".equals(algorithm)) {
-            return Compresser.LZF;
+            return Compressor.LZF;
         } else if("DEFLATE".equals(algorithm)) {
-            return Compresser.DEFLATE;
+            return Compressor.DEFLATE;
         } else {
             throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
         }
     }
     
-    private Compresser getCompresser(int algorithm) throws SQLException {
+    private Compressor getCompressor(int algorithm) throws SQLException {
         switch(algorithm) {
-        case Compresser.NO:
+        case Compressor.NO:
             return new CompressNo();
-        case Compresser.LZF:
+        case Compressor.LZF:
             return new CompressLZF();
-        case Compresser.DEFLATE:
+        case Compressor.DEFLATE:
             return new CompressDeflate();
         default:
             throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, ""+algorithm);

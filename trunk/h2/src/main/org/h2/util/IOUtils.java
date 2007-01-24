@@ -55,7 +55,7 @@ public class IOUtils {
     }
 
     public static long copyAndCloseInput(InputStream in, OutputStream out) throws IOException {
-        int written = 0;
+        long written = 0;
         try {
             byte[] buffer = new byte[4 * 1024];
             while(true) {
@@ -145,23 +145,26 @@ public class IOUtils {
     }
     
     public static String readStringAndClose(Reader in, int length) throws IOException {
-        if(length <= 0) {
-            length = Integer.MAX_VALUE;
-        }
-        int block = Math.min(BUFFER_BLOCK_SIZE, length);
-        StringWriter out=new StringWriter(length == Integer.MAX_VALUE ? block : length);
-        char[] buff=new char[block];
-        while(length > 0) {
-            int len = Math.min(block, length);
-            len = in.read(buff, 0, len);
-            if(len < 0) {
-                break;
+        try {
+            if(length <= 0) {
+                length = Integer.MAX_VALUE;
             }
-            out.write(buff, 0, len);
-            length -= len;
+            int block = Math.min(BUFFER_BLOCK_SIZE, length);
+            StringWriter out=new StringWriter(length == Integer.MAX_VALUE ? block : length);
+            char[] buff=new char[block];
+            while(length > 0) {
+                int len = Math.min(block, length);
+                len = in.read(buff, 0, len);
+                if(len < 0) {
+                    break;
+                }
+                out.write(buff, 0, len);
+                length -= len;
+            }
+            return out.toString();
+        } finally {
+            in.close();
         }
-        in.close();
-        return out.toString();
     }
 
     public static int readFully(InputStream in, byte[] buffer, int max) throws IOException {

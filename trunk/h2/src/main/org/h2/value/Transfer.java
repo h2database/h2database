@@ -49,7 +49,7 @@ public class Transfer {
     }
 
     protected void finalize() {
-        if (!Constants.RUN_FINALIZERS) {
+        if (!Constants.RUN_FINALIZE) {
             return;
         }
         if(socket != null) {

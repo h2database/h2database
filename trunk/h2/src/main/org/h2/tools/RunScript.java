@@ -107,7 +107,7 @@ public class RunScript {
             showUsage();
             return;
         }
-        // long time = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
         // for(int i=0; i<10; i++) {
         // int test;
         if (options != null) {
@@ -116,8 +116,8 @@ public class RunScript {
             execute(url, user, password, script, null, continueOnError);
         }
         // }
-        // time = System.currentTimeMillis() - time;
-        // System.out.println("Done in " + time + " ms");
+        time = System.currentTimeMillis() - time;
+        System.out.println("Done in " + time + " ms");
     }
 
     /**
@@ -136,8 +136,8 @@ public class RunScript {
             if (sql == null) {
                 break;
             }
-            boolean resultset = stat.execute(sql);
-            if (resultset) {
+            boolean resultSet = stat.execute(sql);
+            if (resultSet) {
                 if (rs != null) {
                     rs.close();
                     rs = null;

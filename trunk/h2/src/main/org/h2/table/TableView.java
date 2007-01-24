@@ -88,7 +88,7 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
-        item.index = index;
+        item.setIndex(index);
         return item;
     }
 
@@ -187,7 +187,7 @@ public class TableView extends Table {
             throw Message.getSQLException(Message.VIEW_IS_INVALID_1, getSQL());
         }
         PlanItem item = getBestPlanItem(session, null);
-        return item.index;
+        return item.getIndex();
     }
     
     public ObjectArray getIndexes() {

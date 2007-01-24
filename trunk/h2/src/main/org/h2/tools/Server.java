@@ -318,7 +318,7 @@ public class Server implements Runnable {
     
     /**
      * Tries to start the server.
-     * @return the server if successfull
+     * @return the server if successful
      * @throws SQLException if the server could not be started
      */
     public Server start() throws SQLException {

@@ -24,6 +24,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
@@ -54,6 +55,7 @@ public class Column {
     private int selectivity;
     private SingleColumnResolver resolver;
     private String comment;
+    private boolean primaryKey;
 
     // must be equal to ResultSetMetaData columnNoNulls, columnNullable, columnNullableUnknown
     public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
@@ -148,6 +150,9 @@ public class Column {
                 value = ValueNull.INSTANCE;
             } else {
                 value = defaultExpression.getValue(session).convertTo(type);
+                if(primaryKey) {
+                    session.setLastIdentity(value);
+                }
             }
         }
         if (value == ValueNull.INSTANCE) {
@@ -203,7 +208,7 @@ public class Column {
             }
             if(update) {
                 sequence.setStartValue(now + increment);
-                session.setLastIdentity(now);
+                session.setLastIdentity(ValueLong.get(now));
                 sequence.flush();
             }
         }
@@ -423,6 +428,10 @@ public class Column {
 
     public String getComment() {
         return comment;
+    }
+    
+    public void setPrimaryKey(boolean primaryKey) {
+        this.primaryKey = primaryKey;
     }
 
 }

@@ -35,7 +35,7 @@ public class MathUtils {
     }
     
     public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {
-        if(scale > Constants.BIGDECIMAL_SCALE_MAX) {
+        if(scale > Constants.BIG_DECIMAL_SCALE_MAX) {
             throw Message.getInvalidValueException(""+scale, "scale");
         } else if(scale < 0) {
             throw Message.getInvalidValueException(""+scale, "scale");

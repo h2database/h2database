@@ -96,7 +96,7 @@ public class TableData extends Table implements RecordReader {
                     }
                 }
             } catch(SQLException e2) {
-                // this could happend, for example on failure in the storage
+                // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong with the database
                 // TODO log this problem
                 throw e2;
@@ -132,6 +132,7 @@ public class TableData extends Table implements RecordReader {
                 if(column.getNullable()) {
                     throw Message.getSQLException(Message.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
+                column.setPrimaryKey(true);
             }
         }
         Index index;
@@ -175,7 +176,7 @@ public class TableData extends Table implements RecordReader {
                 try {
                     index.remove(session);
                 } catch(SQLException e2) {
-                    // this could happend, for example on failure in the storage
+                    // this could happen, for example on failure in the storage
                     // but if that is not the case it means there is something wrong with the database
                     // TODO log this problem
                     throw e2;

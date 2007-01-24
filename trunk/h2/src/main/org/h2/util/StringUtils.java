@@ -24,19 +24,19 @@ import org.h2.message.Message;
 public class StringUtils {
 
     // TODO hack for gcj
-    //#GCJHACK private static final Class[] gcjClasses =  {
-    //#GCJHACK gnu.gcj.convert.Input_ASCII.class,
-    //#GCJHACK gnu.gcj.convert.Input_UTF8.class,
-    //#GCJHACK gnu.gcj.convert.Input_8859_1.class,
-    //#GCJHACK gnu.gcj.convert.Output_ASCII.class,
-    //#GCJHACK gnu.gcj.convert.Output_UTF8.class,
-    //#GCJHACK gnu.gcj.convert.UnicodeToBytes.class,
-    //#GCJHACK gnu.gcj.convert.BytesToUnicode.class,
-    //#GCJHACK gnu.java.locale.Calendar.class,
-    //#GCJHACK gnu.java.locale.LocaleInformation.class,
-    //#GCJHACK gnu.java.locale.LocaleInformation_de.class,
-    //#GCJHACK java.util.GregorianCalendar.class,
-    //#GCJHACK };
+//#GCJHACK private static final Class[] gcjClasses =  {
+//#GCJHACK gnu.gcj.convert.Input_ASCII.class,
+//#GCJHACK gnu.gcj.convert.Input_UTF8.class,
+//#GCJHACK gnu.gcj.convert.Input_8859_1.class,
+//#GCJHACK gnu.gcj.convert.Output_ASCII.class,
+//#GCJHACK gnu.gcj.convert.Output_UTF8.class,
+//#GCJHACK gnu.gcj.convert.UnicodeToBytes.class,
+//#GCJHACK gnu.gcj.convert.BytesToUnicode.class,
+//#GCJHACK gnu.java.locale.Calendar.class,
+//#GCJHACK gnu.java.locale.LocaleInformation.class,
+//#GCJHACK gnu.java.locale.LocaleInformation_de.class,
+//#GCJHACK java.util.GregorianCalendar.class,
+//#GCJHACK };
 
     public static boolean equals(String a, String b) {
         if(a==null) {
@@ -127,7 +127,7 @@ public class StringUtils {
         return buff.toString();
     }
 
-    public static String addAsterix(String s, int index) {
+    public static String addAsterisk(String s, int index) {
         if (s != null && index < s.length()) {
             s = s.substring(0, index) + "[*]" + s.substring(index);
         }
@@ -135,7 +135,7 @@ public class StringUtils {
     }
 
     private static SQLException getFormatException(String s, int i) {
-        return Message.getSQLException(Message.STRING_FORMAT_ERROR_1, addAsterix(s, i));
+        return Message.getSQLException(Message.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
     }
 
     public static String javaDecode(String s) throws SQLException {
@@ -378,8 +378,8 @@ public class StringUtils {
      * Formats a date using a format string
      */
     public static String formatDateTime(Date date, String format, String locale, String timezone) throws SQLException {
-        SimpleDateFormat sdf = getDateFormat(format, locale, timezone);
-        return sdf.format(date);
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
+        return dateFormat.format(date);
     }
 
     /**

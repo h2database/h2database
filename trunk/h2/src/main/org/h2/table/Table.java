@@ -225,15 +225,15 @@ public abstract class Table extends SchemaObject {
      */
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
-        item.index = getScanIndex(session);
-        item.cost = item.index.getCost(null);
+        item.setIndex(getScanIndex(session));
+        item.cost = item.getIndex().getCost(null);
         ObjectArray indexes = getIndexes();               
         for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
             int cost = index.getCost(masks);
             if (cost < item.cost) {
                 item.cost = cost;
-                item.index = index;
+                item.setIndex(index);
             }
         }
         return item;
@@ -289,6 +289,12 @@ public abstract class Table extends SchemaObject {
         ObjectArray indexes = getIndexes();  
         if(indexes != null) {
             remove(indexes, index);
+            if(index.indexType.isPrimaryKey()) {
+                Column[] cols = index.getColumns();
+                for(int i=0; i<cols.length; i++) {
+                    cols[i].setPrimaryKey(false);
+                }
+            }
         }
     }
     
@@ -334,7 +340,7 @@ public abstract class Table extends SchemaObject {
         if(list == null) {
             list = new ObjectArray();
         }
-        // self contraints are two entries in the list
+        // self constraints are two entries in the list
 //        if(Database.CHECK) {
 //            if(list.indexOf(obj) >= 0) {
 //                throw Message.internal("object already in list: " + obj.getName());

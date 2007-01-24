@@ -32,7 +32,7 @@
                     
                     Security:
                     
-                    - TCP Server: Can now specifiy a password (tcpPassword).
+                    - TCP Server: Can now specify a password (tcpPassword).
                     - New option -ifExists for the TCP and ODBC server
                       to disallow creating new databases.
                       

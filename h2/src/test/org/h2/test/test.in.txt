@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table Foo (A varchar(20), B integer);
+> ok
+
+insert into Foo (A, B) values ('abcd', 1), ('abcd', 2);
+> update count: 2
+
+select * from Foo where A like 'abc%' escape '\' AND B=1;
+> A    B
+> ---- -
+> abcd 1
+> rows: 1
+
+drop table Foo;
+> ok
+
 create memory table orders ( orderid varchar(10), name varchar(20),  custid varchar(10), completed numeric(1) not null, verified numeric(1) );
 > ok
 

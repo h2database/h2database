@@ -86,20 +86,36 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-//        Hi i found one small nasty bug with h2 database. When i use prepared statement on tables that have primary key UUID DEFAULT random_UUID(), and when i call getGeneratedKeys() method I only get (long) 0 as result, instead of random_uuid.
-//        And if I use IDENTITY type for primary ket i get corect value from methord PreparedStatement.getGeneratedKeys(). Problem is with UUID and random_uuid() combination.
+//        It would be nice if the donation link opened a new window. I could not see where I was at in the address bar while filling out the form.        
         
-        // NULL || 'X' should probably return null by default
-        // change default to read committed transaction isolation
+        // support % operator (modulo)
+//        java -cp .;%H2DRIVERS% org.h2.tools.RunScript -continueOnError -driver org.h2.Driver -url jdbc:h2:test -user sa -password sa -script c:/temp/test.sql
+//        java -cp .;%H2DRIVERS% org.h2.tools.RunScript -continueOnError -driver com.mysql.jdbc.Driver -url jdbc:mysql://localhost/test -user sa -password sa -script c:/temp/test.sql
+//        java -cp .;%H2DRIVERS% org.h2.tools.RunScript -continueOnError -driver org.apache.derby.jdbc.EmbeddedDriver -url jdbc:derby:test3;create=true -user sa -password sa -script c:/temp/test.sql
+//        java -cp .;%H2DRIVERS% org.h2.tools.RunScript -continueOnError -driver org.postgresql.Driver -url jdbc:postgresql:jpox2 -user sa -password sa -script c:/temp/test.sql
+        // http://monetdb.cwi.nl/Assets/DBtapestry100K.sql
+        
+//        (delete all objects doesn't work for linux)
+//        Hi,
+//        Thanks for your feedback! Yes, this is a bug, it will be fixed in the next release.
+//        Thomas
+        
+        // test backup
+        // backup: lobs, index
+        
+        // improve TestHalt
+        
+        // BACKUP: compare sql syntax with other databases
         // Hot backup (incremental backup, online backup): backup data, log, index? files
-        // Cluster: hot deploy (adding a node on runtime)
-        // system property for base directory (h2.baseDir)
         
-        // SELECT ... FROM TA, TB, TC WHERE TC.COL3 = TA.COL1 AND TC.COL3=TB.COL2 AND TC.COL4 = 1
-        // The query implies TA.COL1 = TB.COL2 but does not explicitly set this condition.
-        // "trace.db" is created in the current directory
+// ESC/Java (http://secure.ucd.ie/products/opensource/ESCJava2/)
+// GroovyServlet
+
+        // Cluster: hot deploy (adding a node on runtime)
+        
         // dataSource.setLogWriter() seems to have no effect?
         
+        // CHAR data type
 //        DROP TABLE TEST;
 //        CREATE TABLE TEST(C CHAR(10));
 //        INSERT INTO TEST VALUES('1');

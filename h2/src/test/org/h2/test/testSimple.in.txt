@@ -1,3 +1,18 @@
+create table A ( ID integer,  a1 varchar(20) );
+create table B ( ID integer,  AID integer,  b1 varchar(20));
+create table C ( ID integer,  BId integer,  c1 varchar(20));
+insert into A (ID, a1) values (1, 'a1');
+insert into A (ID, a1) values (2, 'a2');
+select count(*) from A left outer join (B  inner join C on C.BID=B.ID )  on B.AID=A.ID where A.id=1;
+> 1;
+select count(*) from A left outer join (B  left join C on C.BID=B.ID )  on B.AID=A.ID where A.id=1;
+> 1;
+select count(*) from A left outer join B on B.AID=A.ID inner join C on C.BID=B.ID where A.id=1;
+> 0;
+select count(*) from (A left outer join B on B.AID=A.ID) inner join C on C.BID=B.ID where A.id=1;
+> 0;
+drop table a, b, c;
+
 create schema a;
 create table a.test(id int);
 insert into a.test values(1);

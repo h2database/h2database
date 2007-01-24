@@ -120,7 +120,7 @@ public class BenchC implements Bench {
                     + " TERMINAL INT,\n" + " OPERATION INT,\n"
                     + " RESPONSE_TIME INT,\n" + " PROCESSING_TIME INT,\n"
                     + " KEYING_TIME INT,\n" + " THINK_TIME INT,\n"
-                    + " SUCCESSFULL INT,\n" + " NOW TIMESTAMP)" };
+                    + " SUCCESSFUL INT,\n" + " NOW TIMESTAMP)" };
 
     public void init(Database db, int size) throws Exception {
         this.db = db;

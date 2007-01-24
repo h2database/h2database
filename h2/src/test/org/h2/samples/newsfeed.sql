@@ -17,27 +17,27 @@ INSERT INTO ITEM VALUES(20,
 <b>Changes and new functionality:</b>
 <ul>
 <li>The Console is now translated to Japanese thanks to 
-	IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp).
+    IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp).
 <li>The database engine can now be compiled with JDK 1.3 using ant codeswitch_jdk13. 
-	There are still some limitations, and the ant script to build the jar does not work yet.
+    There are still some limitations, and the ant script to build the jar does not work yet.
 <li>SCRIPT NODATA now writes the row count for each table.
 <li>Timestamps with timezone information (Z or +/-hh:mm) and dates before year 1 
-	can now be parsed. However dates before year 1 are not formatted correctly.
+    can now be parsed. However dates before year 1 are not formatted correctly.
 </ul>
 <b>Bugfixes:</b>
 <ul>
 <li>Fixed a problem where data in the log file was not written to the data file 
-	(recovery failure) after a crash, if an index was deleted previously.
+    (recovery failure) after a crash, if an index was deleted previously.
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds).
 <li>Selecting a column using the syntax schemaName.tableName.columName did not work in all cases.
 <li>When stopping the TCP server from an application and immediately afterwards starting 
-	it again using a different TCP password, an exception was thrown sometimes.
+    it again using a different TCP password, an exception was thrown sometimes.
 <li>Now PreparedStatement.setBigDecimal(..) can only be called with an object of 
-	type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to 
-	Maciej Wegorkiewicz for finding this problem.
+    type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to 
+    Maciej Wegorkiewicz for finding this problem.
 <li>It was possible to manipulate values in the byte array after calling PreparedStatement.setBytes, 
-	and this could lead to problems if the same byte array was used again. Now the byte array 
-	is copied if required.
+    and this could lead to problems if the same byte array was used again. Now the byte array 
+    is copied if required.
 <li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed. 
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.

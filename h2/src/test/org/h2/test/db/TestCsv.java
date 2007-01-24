@@ -20,6 +20,21 @@ public class TestCsv extends TestBase {
         testAsTable();
         testWriteRead();
         testRead();
+        testPipe();
+    }
+    
+    private void testPipe() throws Exception {
+        deleteDb("csv");
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("call csvwrite('"+BASE_DIR+"/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
+        ResultSet rs = stat.executeQuery("select * from csvread('"+BASE_DIR+"/test.csv', null, 'utf-8', '|')");
+        check(rs.next());
+        check(rs.getInt(1), 1);
+        check(rs.getString(2), "Hello");
+        checkFalse(rs.next());
+        new File(BASE_DIR+"/test.csv").delete();
+        conn.close();
     }
     
     private void testAsTable() throws Exception {
@@ -38,7 +53,6 @@ public class TestCsv extends TestBase {
         checkFalse(rs.next());
         new File(BASE_DIR+"/test.csv").delete();
         conn.close();
-        
     }
     
     public void testRead() throws Exception {

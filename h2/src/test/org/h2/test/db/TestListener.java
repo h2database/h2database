@@ -68,7 +68,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             stateName = "Recover";
             break;
         default:
-            TestBase.logError("unknownn state: " + state, null);
+            TestBase.logError("unknown state: " + state, null);
             stateName = "? " + name;
         }
         try {

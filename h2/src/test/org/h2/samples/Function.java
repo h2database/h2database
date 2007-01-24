@@ -20,9 +20,9 @@ public class Function {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS ISPRIME FOR \"org.h2.samples.Function.isPrime\" ");
+        stat.execute("CREATE ALIAS IS_PRIME FOR \"org.h2.samples.Function.isPrime\" ");
         ResultSet rs;
-        rs = stat.executeQuery("SELECT ISPRIME(X), X FROM SYSTEM_RANGE(1, 20) ORDER BY X");
+        rs = stat.executeQuery("SELECT IS_PRIME(X), X FROM SYSTEM_RANGE(1, 20) ORDER BY X");
         while(rs.next()) {
             boolean isPrime = rs.getBoolean(1);
             if(isPrime) {

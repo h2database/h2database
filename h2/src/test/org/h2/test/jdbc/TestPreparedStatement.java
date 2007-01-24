@@ -27,6 +27,7 @@ public class TestPreparedStatement extends TestBase {
         
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testUUIDGeneratedKeys(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
         testLikeIndex(conn);
@@ -41,6 +42,17 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testUUIDGeneratedKeys(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TESTUUID(id UUID DEFAULT random_UUID() PRIMARY KEY)");
+        stat.execute("INSERT INTO TESTUUID() VALUES()");
+        ResultSet rs = stat.getGeneratedKeys();
+        rs.next();
+        byte[] data = rs.getBytes(1);
+        check(data.length, 16);
+        stat.execute("DROP TABLE TESTUUID");
     }
     
     private void testSetObject(Connection conn) throws Exception {

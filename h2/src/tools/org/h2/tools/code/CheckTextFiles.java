@@ -15,7 +15,7 @@ public class CheckTextFiles {
         new CheckTextFiles().run();
     }
 
-    String[] suffixCheck = new String[]{"html", "jsp", "js", "css", "bat", "nsi", "java", "txt", "properties", "cpp", "def", "h", "rc", "dev", "sql", "xml", "csv", "Driver"};
+    String[] suffixCheck = new String[]{"html", "jsp", "js", "css", "bat", "nsi", "java", "txt", "properties", "cpp", "def", "h", "rc", "dev", "sql", "xml", "csv", "Driver", "php"};
     String[] suffixIgnore = new String[]{"gif", "png", "odg", "ico", "sxd", "layout", "res", "win", "dll", "jar", "task"};
     boolean failOnError;
     boolean allowTab, allowCR = true, allowTrailingSpaces = true;
@@ -92,6 +92,15 @@ public class CheckTextFiles {
                 if(text.indexOf(copyrightLicense) < 0) {
                     fail(file, "license is missing", 0);
                 }
+                if(text.indexOf(" " + "//#") > 0) {
+                    fail(file, "unexpected space,//#", 0);
+                }
+                if(text.indexOf(" " + "#ifdef") > 0) {
+                    fail(file, "unexpected space,#if", 0);
+                }
+                if(text.indexOf(" " + "#endif") > 0) {
+                    fail(file, "unexpected space,#endif", 0);
+                }
             }
         }
         int line = 1;
@@ -167,7 +176,20 @@ public class CheckTextFiles {
     }
 
     private void fail(File file, String error, int line) {
-        System.out.println("FAIL: File " + file.getAbsolutePath() + " " + error + " at line " + line);
+        if(line <= 0) {
+            line = 1;
+        }
+        String name = file.getAbsolutePath();
+        int idx = name.lastIndexOf(File.separatorChar);
+        if(idx >= 0) {
+            name = name.replace(File.separatorChar, '.');
+            name = name + "(" + name.substring(idx + 1) + ":" + line + ")";
+            idx = name.indexOf("org.");
+            if(idx > 0) {
+                name = name.substring(idx);
+            }
+        }
+        System.out.println("FAIL at " + name + " " + error + " " + file.getAbsolutePath());
         hasError = true;
         if(failOnError) {
             throw new Error("FAIL");

@@ -37,7 +37,7 @@ public class ConditionNot extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO optimization: some cases are maybe possible to optimize futher: (NOT ID >= 5)
+        // TODO optimization: some cases are maybe possible to optimize further: (NOT ID >= 5)
         Expression expr = condition.optimize(session);
         if(expr.isConstant()) {
             Value v = expr.getValue(session);

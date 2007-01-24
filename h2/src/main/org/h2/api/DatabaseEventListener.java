@@ -15,7 +15,7 @@ import java.util.EventListener;
 
 public interface DatabaseEventListener extends EventListener {
 
-    int STATE_SCAN_FILE = 0, STATE_CREATE_INDEX = 1, STATE_RECOVER = 2;
+    int STATE_SCAN_FILE = 0, STATE_CREATE_INDEX = 1, STATE_RECOVER = 2, STATE_BACKUP_FILE = 3;
 
     /**
      * This method is called just after creating the object.
@@ -35,7 +35,7 @@ public interface DatabaseEventListener extends EventListener {
     void diskSpaceIsLow(long stillAvailable) throws SQLException;
 
     /**
-     * This method is called if an exception occured.
+     * This method is called if an exception occurred.
      *
      * @param e the exception
      */

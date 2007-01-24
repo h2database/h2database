@@ -89,7 +89,7 @@ public class CommandRemote implements CommandInterface {
                     if(session.isClustered() || scrollable) {
                         readRows = Integer.MAX_VALUE;
                     } else {
-                        readRows = Constants.SERVER_SMALL_RESULTSET_SIZE;
+                        readRows = Constants.SERVER_SMALL_RESULT_SET_SIZE;
                     }
                     transfer.writeInt(readRows);
                     sendParameters(transfer);
@@ -173,7 +173,7 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_CLOSE", id);
                     transfer.writeInt(SessionRemote.COMMAND_CLOSE).writeInt(id);
                 } catch (IOException e) {
-                    // TODO cluster: do we need to to handle ioexception on close?
+                    // TODO cluster: do we need to to handle io exception on close?
                     trace.error("close", e);
                 }
             }
@@ -182,7 +182,7 @@ public class CommandRemote implements CommandInterface {
     }
 
 //    public void finalize() {
-//        if(!Database.RUN_FINALIZERS) {
+//        if(!Constants.RUN_FINALIZE) {
 //            return;
 //        }        
 //        close();

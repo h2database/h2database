@@ -39,7 +39,7 @@ public class DropUser extends DefineCommand {
             }
         } else {
             if(user == session.getUser()) {
-                throw Message.getSQLException(Message.CANT_DROP_CURRENT_USER);
+                throw Message.getSQLException(Message.CANNOT_DROP_CURRENT_USER);
             }
             db.removeDatabaseObject(session, user);
         }

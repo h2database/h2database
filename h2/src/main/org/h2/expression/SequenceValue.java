@@ -25,7 +25,7 @@ public class SequenceValue extends Expression {
 
     public Value getValue(Session session) throws SQLException {
         long value = sequence.getNext();
-        session.setLastIdentity(value);
+        session.setLastIdentity(ValueLong.get(value));
         return ValueLong.get(value);
     }
 

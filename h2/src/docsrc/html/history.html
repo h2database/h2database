@@ -17,6 +17,8 @@ History
     Change Log</a><br>
 <a href="#roadmap">
     Roadmap</a><br>
+<a href="#supporters">
+    Supporters</a><br>
 
 <br><a name="history"></a>
 <h2>History of this Database Engine</h2>
@@ -33,6 +35,16 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h2>Change Log</h2>
 
 <h3>Version 1.0 (Current)</h3>
+
+<h3>Version 1.0 / TODO</h3><ul>
+<li>The command "drop all objects delete files" did not work on linux if the database name was lower case.
+<li>When setting the URL to an empty string the DataSource now throws an better exception.
+<li>Parsing of LIKE .. ESCAPE did not stop at the expected point. Fixed.
+<li>Can now use UUID columns as generated key values. However, the UUID column must be the primary key.
+<li>Improved the Javadoc documentation. Now unsupported features are marked with [Not supported], 
+    and partially supported features are [Partially supported].
+<li>The forum subscriptions (the emails sent from the forum) now works.
+</ul>
 
 <h3>Version 1.0 / 2007-01-17</h3><ul>
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds). 
@@ -1227,6 +1239,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Enable and document optimizations, LOB files in directories
 <li>Special methods for DataPage.writeByte / writeShort and so on
 <li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
+<li>Change the default for NULL || 'x' to NULL
+<li>Change the default isolation level to read committed 
 </ul>
 
 <h3>Priority 1</h3>
@@ -1491,12 +1505,28 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Delay reading the row if data is not required
 <li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 <li>User defined aggregate functions
+<li>System property for base directory (h2.baseDir) in embedded mode
+<li>Feature matrix like here: http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp.
+<li>Updatable resultset on table without primary key or unique index
+<li>Use LinkedList instead of ArrayList where applicable
+<li>Optimization: (A=B AND B=C) > (A=B AND B=C AND A=C)
 </ul>
 
 <h3>Not Planned</h3>
 <ul>
 <li>HSQLDB (did) support this: select id i from test where i>0 (other databases don't)
 <li>String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively
+</ul>
+
+<br><a name="supporters"></a>
+<h2>Supporters</h2>
+Many thanks for those who helped by finding and reporting bugs, gave valuable feedback,
+spread the word and have translated this project. Also many thanks to the donors who contributed
+via PayPal:
+<ul>
+<li>Florent Ramiere, France
+<li>Pete Haidinyak, USA
+<li>Jun Iyama, USA
 </ul>
 
 </div></td></tr></table></body></html>

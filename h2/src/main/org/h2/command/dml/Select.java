@@ -316,7 +316,7 @@ public class Select extends Query {
         }
         topTableFilter.startQuery();
         topTableFilter.reset();
-        // TODO lock tables of subqueries
+        // TODO lock tables of sub queries
         topTableFilter.lock(session, isForUpdate);
         if(isQuickQuery) {
             queryQuick(columnCount, result);
@@ -557,10 +557,10 @@ public class Select extends Query {
         int id=0;
         do {
             if(id > 0) {
-                buff.append('\n');
+                buff.append("\n");
             }
-            id++;
             buff.append(filter.getPlanSQL(join));
+            id++;
             join = true;
             filter = filter.getJoin();
         } while(filter != null);
@@ -570,16 +570,16 @@ public class Select extends Query {
         if(groupIndex != null) {
             buff.append("\nGROUP BY ");
             for(int i=0; i<groupIndex.length; i++) {
-                Expression gro = exprList[groupIndex[i]];
+                Expression g = exprList[groupIndex[i]];
                 if(i>0) {
                     buff.append(", ");
                 }
-                buff.append(StringUtils.unEnclose(gro.getSQL()));
+                buff.append(StringUtils.unEnclose(g.getSQL()));
             }
         }
         if(havingIndex >= 0) {
-            Expression hav = exprList[havingIndex];
-            buff.append("\nHAVING " + StringUtils.unEnclose(hav.getSQL()));
+            Expression h = exprList[havingIndex];
+            buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
         }
         if(sort != null) {
             buff.append("\nORDER BY ");

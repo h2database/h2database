@@ -498,7 +498,7 @@ public class Database implements DataHandler {
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because
-        // they might be used in create table / view / constrants and so on
+        // they might be used in create table / view / constraints and so on
         ObjectArray records = new ObjectArray();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
@@ -813,9 +813,10 @@ public class Database implements DataHandler {
         Engine.getInstance().close(databaseName);
         if(deleteFilesOnDisconnect && persistent) {
             deleteFilesOnDisconnect = false;
-            String directory = FileUtils.getParent(databaseName);
             try {
-                DeleteDbFiles.execute(directory, databaseShortName, true);
+                String directory = FileUtils.getParent(databaseName);
+                String name = FileUtils.getFileName(databaseName);
+                DeleteDbFiles.execute(directory, name, true);
             } catch(Exception e) {
                 // ignore (the trace is closed already)
             }
@@ -1123,7 +1124,7 @@ public class Database implements DataHandler {
         String invalid = getFirstInvalidTable();
         if(invalid != null) {
             obj.getSchema().add(obj);
-            throw Message.getSQLException(Message.CANT_DROP_2, new String[]{obj.getSQL(), invalid}, null);
+            throw Message.getSQLException(Message.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid}, null);
         }
         int id = obj.getId();
         obj.removeChildrenAndResources(session);

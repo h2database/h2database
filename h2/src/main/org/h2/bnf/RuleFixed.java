@@ -16,7 +16,7 @@ public class RuleFixed implements Rule {
     public static final int ANY_UNTIL_EOL = 5;
     public static final int ANY_UNTIL_END = 6;
     public static final int ANY_WORD = 7;
-    public static final int HEXSTART = 10, CONCAT = 11, AZ_ = 12, AF = 13, DIGIT = 14;
+    public static final int HEX_START = 10, CONCAT = 11, AZ_ = 12, AF = 13, DIGIT = 14;
     
     private int type;
     
@@ -45,7 +45,7 @@ public class RuleFixed implements Rule {
             }
             return buff.toString();
         }
-        case HEXSTART: 
+        case HEX_START: 
             return "0x";
         case CONCAT:
             return "||";
@@ -134,7 +134,7 @@ public class RuleFixed implements Rule {
                 }
             }
             break;
-        case HEXSTART: 
+        case HEX_START: 
             if(StringUtils.toUpperEnglish(s).startsWith("0X")) {
                 s = s.substring(2);
             } else if(StringUtils.toUpperEnglish(s).startsWith("0")) {
@@ -209,7 +209,7 @@ public class RuleFixed implements Rule {
             break;
         case ANY_WORD:
             break;
-        case HEXSTART: 
+        case HEX_START: 
             if(query.length() == 0) {
                 sentence.add("0x", "0x", Sentence.KEYWORD);
             } else if(query.equals("0")) {

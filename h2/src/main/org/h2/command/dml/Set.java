@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.text.Collator;
 
 import org.h2.command.Prepared;
-import org.h2.compress.Compresser;
+import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -220,7 +220,7 @@ public class Set extends Prepared {
         case SetTypes.COMPRESS_LOB: {
             session.getUser().checkAdmin();
             int algo = CompressTool.getInstance().getCompressAlgorithm(stringValue);
-            database.setLobCompressionAlgorithm(algo == Compresser.NO ? null : stringValue);
+            database.setLobCompressionAlgorithm(algo == Compressor.NO ? null : stringValue);
             addOrUpdateSetting(name, stringValue, 0);
             break;
         }

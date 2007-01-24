@@ -29,6 +29,7 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * @author Thomas
@@ -46,7 +47,7 @@ public class Session implements SessionInterface {
     private Random random;
     private LogSystem logSystem;
     private int lockTimeout;
-    private long lastIdentity;
+    private Value lastIdentity = ValueLong.get(0);
     private int firstUncommittedLog = LogSystem.LOG_WRITTEN;
     private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
     private HashMap savepoints;
@@ -104,7 +105,7 @@ public class Session implements SessionInterface {
     }
 
     protected void finalize() {
-        if(!Constants.RUN_FINALIZERS) {
+        if(!Constants.RUN_FINALIZE) {
             return;
         }
         if(database != null) {
@@ -328,11 +329,11 @@ public class Session implements SessionInterface {
         return database.getTrace(traceModuleName);
     }
 
-    public void setLastIdentity(long last) {
+    public void setLastIdentity(Value last) {
         this.lastIdentity = last;
     }
 
-    public long getLastIdentity() {
+    public Value getLastIdentity() {
         return lastIdentity;
     }
 

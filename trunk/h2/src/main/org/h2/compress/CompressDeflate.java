@@ -9,7 +9,7 @@ import java.util.zip.*;
 
 import org.h2.message.Message;
 
-public class CompressDeflate implements Compresser {
+public class CompressDeflate implements Compressor {
     
     private int level = Deflater.BEST_SPEED;
     private int strategy = Deflater.DEFAULT_STRATEGY;
@@ -43,7 +43,7 @@ public class CompressDeflate implements Compresser {
     }
 
     public int getAlgorithm() {
-        return Compresser.DEFLATE;
+        return Compressor.DEFLATE;
     }
 
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) throws DataFormatException {

@@ -32,7 +32,7 @@ package org.h2.engine;
  * - Check version, change build number in Constants.java and build.xml
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
- * - '  #ifdef', '  #endif'
+ * - space#ifdef', space#endif
  * - No TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
  * - Change version(s) in performance.html; use latest versions of other databases
@@ -160,7 +160,7 @@ public class Constants {
     public static final String TEMP_TABLE_PREFIX = "TEMP_TABLE_";
     public static final String TEMP_TABLE_TRANSACTION_PREFIX = "TEMP_TRANS_TABLE_";
 
-    public static final int BIGDECIMAL_SCALE_MAX = 100000;
+    public static final int BIG_DECIMAL_SCALE_MAX = 100000;
 
     public static final String SCHEMA_MAIN = "PUBLIC";
     public static final String SCHEMA_INFORMATION = "INFORMATION_SCHEMA";
@@ -199,7 +199,7 @@ public class Constants {
 
     public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
     public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
-    public static final boolean ALLOW_EMTPY_BTREE_PAGES = true;
+    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
     
@@ -229,7 +229,7 @@ public class Constants {
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
     public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
-    public static boolean RUN_FINALIZERS = getBooleanSetting("h2.runFinalizers", true);
+    public static boolean RUN_FINALIZE = getBooleanSetting("h2.runFinalize", true);
 
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
@@ -240,7 +240,7 @@ public class Constants {
     public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
     public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
-    public static final int SERVER_SMALL_RESULTSET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
+    public static final int SERVER_SMALL_RESULT_SET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
     public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 1 * 1024 * 1024);
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 128 * 1024);
     public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);

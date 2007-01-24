@@ -124,7 +124,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             checkNoViews();
             if(table.getColumns().length == 1) {
                 // TODO test each sql exception
-                throw Message.getSQLException(Message.CANT_DROP_LAST_COLUMN, oldColumn.getSQL());
+                throw Message.getSQLException(Message.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
             table.checkColumnIsNotReferenced(oldColumn);
             dropSingleColumnIndexes();

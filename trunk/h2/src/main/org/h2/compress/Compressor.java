@@ -6,7 +6,7 @@ package org.h2.compress;
 
 import java.sql.SQLException;
 
-public interface Compresser {
+public interface Compressor {
 
     int NO = 0, LZF = 1, DEFLATE = 2;
 

@@ -113,8 +113,8 @@ public class ConstraintUnique extends Constraint {
         // unique index check is enough
     }    
     
-    public boolean usesIndex(Index ind) {
-        return ind == index;
+    public boolean usesIndex(Index idx) {
+        return idx == index;
     }            
     
     public boolean containsColumn(Column col) {

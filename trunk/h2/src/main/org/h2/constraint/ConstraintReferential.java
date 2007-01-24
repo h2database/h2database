@@ -499,8 +499,8 @@ public class ConstraintReferential extends Constraint {
         return refTable;
     }
 
-    public boolean usesIndex(Index ind) {
-        return ind == index || ind == refIndex;
+    public boolean usesIndex(Index idx) {
+        return idx == index || idx == refIndex;
     }
 
     public boolean containsColumn(Column col) {

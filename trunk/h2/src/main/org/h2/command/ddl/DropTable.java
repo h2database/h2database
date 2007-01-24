@@ -56,7 +56,7 @@ public class DropTable extends SchemaCommand {
         } else {
             session.getUser().checkRight(table, Right.ALL);
             if(!table.canDrop()) {
-                throw Message.getSQLException(Message.CANT_DROP_TABLE_1, tableName);
+                throw Message.getSQLException(Message.CANNOT_DROP_TABLE_1, tableName);
             }
             table.lock(session, true);
         }

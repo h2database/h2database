@@ -59,6 +59,9 @@ public class ConnectionInfo {
 
     public ConnectionInfo(String u, Properties info) throws SQLException {
         this.originalURL = u;
+        if(!u.startsWith(Constants.START_URL)) {
+            throw Message.getInvalidValueException(u, "url");
+        }
         this.url = u;
         readProperties(info);
         readSettings();

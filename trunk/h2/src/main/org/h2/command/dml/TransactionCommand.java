@@ -6,6 +6,7 @@ package org.h2.command.dml;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -117,12 +118,6 @@ public class TransactionCommand extends Prepared {
             session.close();
             break;
         }
-//        case BACKUP: {
-//            session.getUser().checkAdmin();
-//            session.commit();
-//            backupTo("backup.zip");
-//            break;
-//        }
         default:
             throw Message.getInternalError("type=" + type);
         }
@@ -130,15 +125,29 @@ public class TransactionCommand extends Prepared {
     }
 
     private void backupTo(String fileName) throws SQLException {
-//        int todoAddSpecialSQLStatement;
-//        FileOutputStream fileout = new FileOutputStream("test.zip");
-//        ZipOutputStream out = new ZipOutputStream(fileout);
-//        out.putNextEntry(new ZipEntry("test.data.db"));
-//        DiskFile file = session.getDatabase().getDataFile();
-//        session.getDatabase().getLog().incStopDeleteFiles(true);
-        // TODO Auto-generated method stub
-//      session.getDatabase().getLog().setStopDeleteFiles(false);
-//        
+        int todoMoveToOwnCommand;
+        try {
+            FileOutputStream fileOut = new FileOutputStream("test.zip");
+            ZipOutputStream out = new ZipOutputStream(fileOut);
+            out.putNextEntry(new ZipEntry("test.data.db"));
+            DiskFile file = session.getDatabase().getDataFile();
+            try {
+                session.getDatabase().getLog().updateKeepFiles(1);
+                int pos = -1;
+                while(true) {
+                    pos = file.readDirect(pos, out);
+                    if(pos < 0) {
+                        break;
+                    }
+                }
+                out.close();
+                fileOut.close();
+            } finally {
+                session.getDatabase().getLog().updateKeepFiles(-1);
+            }
+        } catch(IOException e) {
+            throw Message.convert(e);
+        }
     }
 
     public boolean isTransactional() {

@@ -109,9 +109,9 @@ public abstract class Query extends Prepared {
                 boolean isAlias = false;
                 idx = expressions.size();
                 if(e instanceof ExpressionColumn) {
-                    ExpressionColumn ecol = (ExpressionColumn)e;
-                    String alias = ecol.getOriginalAliasName();
-                    String col = ecol.getOriginalColumnName();
+                    ExpressionColumn exprCol = (ExpressionColumn)e;
+                    String alias = exprCol.getOriginalAliasName();
+                    String col = exprCol.getOriginalColumnName();
                     for(int j=0; j<visible; j++) {
                         boolean found = false;
                         Expression ec = (Expression) expressions.get(j);

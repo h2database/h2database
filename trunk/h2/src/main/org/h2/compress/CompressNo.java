@@ -4,10 +4,10 @@
  */
 package org.h2.compress;
 
-public class CompressNo implements Compresser {
+public class CompressNo implements Compressor {
 
     public int getAlgorithm() {
-        return Compresser.NO;
+        return Compressor.NO;
     }
 
     public void setOptions(String options) {

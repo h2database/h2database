@@ -46,6 +46,7 @@ import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
+import org.h2.command.dml.Backup;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExplainPlan;
@@ -135,7 +136,7 @@ public class Parser {
     private static final int EQUAL = 6, BIGGER_EQUAL = 7, BIGGER = 8;
     private static final int SMALLER = 9, SMALLER_EQUAL = 10, NOT_EQUAL = 11;
     private static final int MINUS = 17, PLUS = 18;
-    private static final int STRINGCONCAT = 22;
+    private static final int STRING_CONCAT = 22;
     private static final int OPEN = 31, CLOSE = 32, NULL = 34, TRUE = 40, FALSE = 41;
 
     private static final int CURRENT_TIMESTAMP = 42, CURRENT_DATE = 43, CURRENT_TIME = 44, ROWNUM = 45;
@@ -257,7 +258,12 @@ public class Parser {
                 if(readIf("ALTER")) {
                     c = parseAlter();
                 } else if(readIf("ANALYZE")) {
-                    c = parseAnalyse();
+                    c = parseAnalyze();
+                }
+                break;
+            case 'B':
+                if(readIf("BACKUP")) {
+                    c = parseBackup();
                 }
                 break;
             case 'C':
@@ -414,8 +420,15 @@ public class Parser {
             return Message.getSyntaxError(sqlCommand, parseIndex, buff.toString());
         }
     }
+    
+    private Prepared parseBackup() throws SQLException {
+        Backup command = new Backup(session);
+        read("TO");
+        command.setFileName(readString());
+        return command;
+    }
 
-    private Prepared parseAnalyse() throws SQLException {
+    private Prepared parseAnalyze() throws SQLException {
         Analyze command = new Analyze(session);
         if(readIf("SAMPLE_SIZE")) {
             command.setTop(getPositiveInt());
@@ -706,7 +719,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readTableFilter() throws SQLException {
+    private TableFilter readTableFilter(boolean fromOuter) throws SQLException {
         Table table;
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         if(readIf("(")) {
@@ -716,8 +729,8 @@ public class Parser {
                 table = new TableView(mainSchema, 0, "TEMP_VIEW", querySQL, query.getParameters(), null, session);
                 read(")");
             } else {
-                TableFilter top = readTableFilter();
-                top = readJoin(top, currentSelect);
+                TableFilter top = readTableFilter(fromOuter);
+                top = readJoin(top, currentSelect, fromOuter);
                 read(")");
                 return top;
             }
@@ -943,13 +956,14 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, Select command) throws SQLException {
+    private TableFilter readJoin(TableFilter top, Select command, boolean fromOuter) throws SQLException {
         TableFilter last = top;
         while (true) {
             if (readIf("RIGHT")) {
                 readIf("OUTER");
                 read("JOIN");
-                TableFilter newTop = readTableFilter();
+                // the right hand side is the 'inner' table usually
+                TableFilter newTop = readTableFilter(fromOuter);
                 Expression on = null;
                 if(readIf("ON")) {
                     on = readExpression();
@@ -960,7 +974,7 @@ public class Parser {
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
                 read("JOIN");
-                TableFilter join = readTableFilter();
+                TableFilter join = readTableFilter(true);
                 Expression on = null;
                 if(readIf("ON")) {
                     on = readExpression();
@@ -969,84 +983,57 @@ public class Parser {
                 last = join;
             } else if (readIf("INNER")) {
                 read("JOIN");
-
-                TableFilter join = readTableFilter();
+                TableFilter join = readTableFilter(fromOuter);
                 Expression on = null;
                 if(readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, on);
+                top.addJoin(join, fromOuter, on);
                 last = join;
             } else if(readIf("JOIN")) {
-                TableFilter join = readTableFilter();
+                TableFilter join = readTableFilter(fromOuter);
                 Expression on = null;
                 if(readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, on);
+                top.addJoin(join, fromOuter, on);
                 last = join;
             } else if(readIf("CROSS")) {
                 read("JOIN");
-                TableFilter join = readTableFilter();
-                top.addJoin(join, false, null);
+                TableFilter join = readTableFilter(fromOuter);
+                top.addJoin(join, fromOuter, null);
                 last = join;
             } else if(readIf("NATURAL")) {
                 read("JOIN");
-                TableFilter join = readTableFilter();
-                Column[] tc = last.getTable().getColumns();
-                Column[] jc = join.getTable().getColumns();
-                String ts = last.getTable().getSchema().getName();
-                String js = join.getTable().getSchema().getName();
+                TableFilter join = readTableFilter(fromOuter);
+                Column[] tableCols = last.getTable().getColumns();
+                Column[] joinCols = join.getTable().getColumns();
+                String tableSchema = last.getTable().getSchema().getName();
+                String joinSchema = join.getTable().getSchema().getName();
                 Expression on = null;
-                for(int t=0; t<tc.length; t++) {
-                    String tcn = tc[t].getName();
-                    for(int j=0; j<jc.length; j++) {
-                        String jcn = jc[j].getName();
-                        if(tcn.equals(jcn)) {
-                            Expression te = new ExpressionColumn(database, currentSelect, ts, last.getTableAlias(), tcn);
-                            Expression je = new ExpressionColumn(database, currentSelect, js, join.getTableAlias(), jcn);
-                            Expression eq = new Comparison(session, Comparison.EQUAL, te, je);
+                for(int t=0; t<tableCols.length; t++) {
+                    String tableColumnName = tableCols[t].getName();
+                    for(int j=0; j<joinCols.length; j++) {
+                        String joinColumnName = joinCols[j].getName();
+                        if(tableColumnName.equals(joinColumnName)) {
+                            Expression tableExpr = new ExpressionColumn(database, currentSelect, tableSchema, last.getTableAlias(), tableColumnName);
+                            Expression joinExpr = new ExpressionColumn(database, currentSelect, joinSchema, join.getTableAlias(), joinColumnName);
+                            Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
                             if(on == null) {
-                                on = eq;
+                                on = equal;
                             } else {
-                                on = new ConditionAndOr(ConditionAndOr.AND, on, eq);
+                                on = new ConditionAndOr(ConditionAndOr.AND, on, equal);
                             }
                         }
                     }
                 }
-                top.addJoin(join, false, on);
+                top.addJoin(join, fromOuter, on);
                 last = join;
             } else {
                 break;
             }
         }
         return top;
-    }
-
-    private void parseJoinTableFilter(TableFilter top, Select command) throws SQLException {
-        top = readJoin(top, command);
-        command.addTableFilter(top, true);
-        boolean isOuter = false;
-        while(true) {
-            TableFilter join = top.getJoin();
-            if(join == null) {
-                break;
-            }
-            isOuter = isOuter | join.isJoinOuter();
-            if(isOuter) {
-                command.addTableFilter(join, false);
-            } else {
-                // make flat so the optimizer can work better
-                Expression on = join.getJoinCondition();
-                if(on != null) {
-                    command.addCondition(on);
-                }
-                join.removeJoinCondition();
-                top.removeJoin();
-                command.addTableFilter(join, true);
-            }
-            top = join;
-        }
     }
 
     private ExplainPlan parseExplain() throws SQLException {
@@ -1210,9 +1197,35 @@ public class Parser {
 
     private void parseSelectSimpleFromPart(Select command) throws SQLException {
         do {
-            TableFilter filter = readTableFilter();
+            TableFilter filter = readTableFilter(false);
             parseJoinTableFilter(filter, command);
         } while(readIf(","));
+    }
+    
+    private void parseJoinTableFilter(TableFilter top, Select command) throws SQLException {
+        top = readJoin(top, command, top.isJoinOuter());
+        command.addTableFilter(top, true);
+        boolean isOuter = false;
+        while(true) {
+            TableFilter join = top.getJoin();
+            if(join == null) {
+                break;
+            }
+            isOuter = isOuter | join.isJoinOuter();
+            if(isOuter) {
+                command.addTableFilter(join, false);
+            } else {
+                // make flat so the optimizer can work better
+                Expression on = join.getJoinCondition();
+                if(on != null) {
+                    command.addCondition(on);
+                }
+                join.removeJoinCondition();
+                top.removeJoin();
+                command.addTableFilter(join, true);
+            }
+            top = join;
+        }
     }
 
     private void parseSelectSimpleSelectPart(Select command) throws SQLException {
@@ -1362,7 +1375,7 @@ public class Parser {
                 Expression b = readConcat();
                 Expression esc = null;
                 if (readIf("ESCAPE")) {
-                    esc = readExpression();
+                    esc = readConcat();
                 }
                 recompileAlways = true;
                 r = new CompareLike(database.getCompareMode(), r, b, esc);
@@ -1433,20 +1446,20 @@ public class Parser {
                     if(readIf("(") && readIf("+") && readIf(")")) {
                         // support for a subset of old-fashioned Oracle outer join with (+)
                         if(r instanceof ExpressionColumn && right instanceof ExpressionColumn) {
-                            ExpressionColumn lcol = (ExpressionColumn) r;
-                            ExpressionColumn rcol = (ExpressionColumn) right;
+                            ExpressionColumn leftCol = (ExpressionColumn) r;
+                            ExpressionColumn rightCol = (ExpressionColumn) right;
                             ObjectArray filters = currentSelect.getTopFilters();
                             for(int i=0; filters != null && i<filters.size(); i++) {
                                 TableFilter f = (TableFilter) filters.get(i);
-                                lcol.mapColumns(f, 0);
-                                rcol.mapColumns(f, 0);
+                                leftCol.mapColumns(f, 0);
+                                rightCol.mapColumns(f, 0);
                             }
-                            TableFilter lfilter = lcol.getTableFilter();
-                            TableFilter rfilter = rcol.getTableFilter();
+                            TableFilter leftFilter = leftCol.getTableFilter();
+                            TableFilter rightFilter = rightCol.getTableFilter();
                             r = new Comparison(session, compareType, r, right);
-                            if(lfilter != null && rfilter != null) {
-                                filters.remove(filters.indexOf(rfilter));
-                                lfilter.addJoin(rfilter, true, r);
+                            if(leftFilter != null && rightFilter != null) {
+                                filters.remove(filters.indexOf(rightFilter));
+                                leftFilter.addJoin(rightFilter, true, r);
                                 r = ValueExpression.get(ValueBoolean.get(true));
                             }
                         }
@@ -1548,7 +1561,7 @@ public class Parser {
     private JavaFunction readJavaFunction(String name) throws SQLException {
         FunctionAlias functionAlias = database.findFunctionAlias(name);
         if(functionAlias == null) {
-            // TODO compatiblity: maybe support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
+            // TODO compatibility: maybe support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
             throw Message.getSQLException(Message.FUNCTION_NOT_FOUND_1, name);
         }
         int paramCount = functionAlias.getParameterCount();
@@ -1611,7 +1624,7 @@ public class Parser {
             break;
         }
         case Function.POSITION: {
-            // can't read expession because IN would be read too early
+            // can't read expression because IN would be read too early
             function.setParameter(0, readConcat());
             if(!readIf(",")) {
                 read("IN");
@@ -1728,7 +1741,7 @@ public class Parser {
             if(indexed && currentTokenType == VALUE && currentValue.getType() == Value.INT) {
                 if(indexedParameterList == null) {
                     if(parameters.size()>0) {
-                        throw Message.getSQLException(Message.CANT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                        throw Message.getSQLException(Message.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                     }
                     indexedParameterList = new ObjectArray();
                 }
@@ -1747,7 +1760,7 @@ public class Parser {
                 read();
             } else {
                 if(indexedParameterList != null) {
-                    throw Message.getSQLException(Message.CANT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                    throw Message.getSQLException(Message.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                 }
                 r = new Parameter(parameters.size());
             }
@@ -2332,7 +2345,7 @@ public class Parser {
                     }
                     break;
                 }
-                // fallthrough
+                // fall through
             case '-':
                 if (command[i + 1] == '-') {
                     // single line comment
@@ -2348,7 +2361,7 @@ public class Parser {
                     }
                     break;
                 }
-                // fallthrough
+                // fall through
             case '(':
             case ')':
             case '{':
@@ -2507,7 +2520,7 @@ public class Parser {
                 break;
             case '|':
                 if(s.equals("||")) {
-                    return STRINGCONCAT;
+                    return STRING_CONCAT;
                 }
             }
         }
@@ -2703,8 +2716,8 @@ public class Parser {
             column.setSequence(sequence);
         }
         if(readIf("SELECTIVITY")) {
-            int sel = getPositiveInt();
-            column.setSelectivity(sel);
+            int value = getPositiveInt();
+            column.setSelectivity(value);
         }
         column.setComment(readCommentIf());
         return column;

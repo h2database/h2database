@@ -124,7 +124,7 @@ public class Bnf {
         addFixedRule("anythingUntilEndOfLine", RuleFixed.ANY_UNTIL_EOL);
         addFixedRule("anythingUntilEndComment", RuleFixed.ANY_UNTIL_END);
         addFixedRule("anything", RuleFixed.ANY_WORD);
-        addFixedRule("@hexStart@", RuleFixed.HEXSTART);
+        addFixedRule("@hexStart@", RuleFixed.HEX_START);
         addFixedRule("@concat@", RuleFixed.CONCAT);
         addFixedRule("@az_@", RuleFixed.AZ_);
         addFixedRule("@af@", RuleFixed.AF);
@@ -215,7 +215,7 @@ public class Bnf {
             if(firstChar != '}') {
                 throw new Error("expected }, got " + currentToken+ " syntax:" + syntax);
             }
-        } else if("@commadots@".equals(currentToken)) {
+        } else if("@commaDots@".equals(currentToken)) {
             r = new RuleList(new RuleElement(",", currentTopic), lastRepeat, false);
             r = new RuleRepeat(r);
         } else if("@dots@".equals(currentToken)) {
@@ -245,7 +245,7 @@ public class Bnf {
         syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
         syntax = StringUtils.replaceAll(syntax, "function", "@func@");
         syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@");
-        syntax = StringUtils.replaceAll(syntax, ",...", "@commadots@");
+        syntax = StringUtils.replaceAll(syntax, ",...", "@commaDots@");
         syntax = StringUtils.replaceAll(syntax, "...", "@dots@");
         syntax = StringUtils.replaceAll(syntax, "||", "@concat@");
         syntax = StringUtils.replaceAll(syntax, "a-z|_", "@az_@");

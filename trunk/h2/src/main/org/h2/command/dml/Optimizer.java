@@ -91,24 +91,24 @@ public class Optimizer {
     }
     
     private void calculateBruteForceAll() throws SQLException {
-        TableFilter[] ftry = new TableFilter[filters.length];
-        Permutations perm = new Permutations(filters, ftry);
-        for(int x=0; !canStop(x) && perm.next(); x++) {
-            testPlan(ftry);
+        TableFilter[] list = new TableFilter[filters.length];
+        Permutations p = new Permutations(filters, list);
+        for(int x=0; !canStop(x) && p.next(); x++) {
+            testPlan(list);
         }
     }
     
     private void calculateBruteForceSome() throws SQLException {
         int bruteForce = getMaxBruteForceFilters(filters.length);
-        TableFilter[] ftry = new TableFilter[filters.length];
-        Permutations perm = new Permutations(filters, ftry, bruteForce);
-        for(int x=0; !canStop(x) && perm.next(); x++) {
+        TableFilter[] list = new TableFilter[filters.length];
+        Permutations p = new Permutations(filters, list, bruteForce);
+        for(int x=0; !canStop(x) && p.next(); x++) {
             // find out what filters are not used yet
             for(int i=0; i<filters.length; i++) {
                 filters[i].setUsed(false);
             }
             for(int i=0; i<bruteForce; i++) {
-                ftry[i].setUsed(true);
+                list[i].setUsed(true);
             }
             // fill the remaining elements with the unused elements (greedy)
             for(int i=bruteForce; i<filters.length; i++) {
@@ -120,8 +120,8 @@ public class Optimizer {
                             bestPart = j;
                             break;
                         }                        
-                        ftry[i] = filters[j];
-                        Plan part = new Plan(ftry, i+1, condition);
+                        list[i] = filters[j];
+                        Plan part = new Plan(list, i+1, condition);
                         double costNow = part.calculateCost(session);
                         if (costPart < 0 || costNow < costPart) {
                             costPart = costNow;
@@ -130,41 +130,41 @@ public class Optimizer {
                     }
                 }
                 filters[bestPart].setUsed(true);
-                ftry[i] = filters[bestPart];
+                list[i] = filters[bestPart];
             }
-            testPlan(ftry);
+            testPlan(list);
         }
     }
     
     private void calculateGenetic() throws SQLException {
-        TableFilter[] fbest = new TableFilter[filters.length];        
-        TableFilter[] ftry = new TableFilter[filters.length];        
+        TableFilter[] best = new TableFilter[filters.length];        
+        TableFilter[] list = new TableFilter[filters.length];        
         for(int x=0; x<MAX_GENETIC; x++) {
             if(canStop(x)) {
                 break;
             }
             boolean generateRandom = (x & 127) == 0;
             if(!generateRandom) {
-                System.arraycopy(fbest, 0, ftry, 0, filters.length);
-                if(!shuffleTwo(ftry)) {
+                System.arraycopy(best, 0, list, 0, filters.length);
+                if(!shuffleTwo(list)) {
                     generateRandom = true;
                 }
             }
             if(generateRandom) {
                 switched = new BitSet();
-                System.arraycopy(filters, 0, fbest, 0, filters.length);
-                shuffleAll(fbest);
-                System.arraycopy(fbest, 0, ftry, 0, filters.length);
+                System.arraycopy(filters, 0, best, 0, filters.length);
+                shuffleAll(best);
+                System.arraycopy(best, 0, list, 0, filters.length);
             }
-            if(testPlan(ftry)) {
+            if(testPlan(list)) {
                 switched = new BitSet();
-                System.arraycopy(ftry, 0, fbest, 0, filters.length);
+                System.arraycopy(list, 0, best, 0, filters.length);
             }
         }
     }    
     
-    private boolean testPlan(TableFilter[] ftry) throws SQLException {
-        Plan p = new Plan(ftry, ftry.length, condition);
+    private boolean testPlan(TableFilter[] list) throws SQLException {
+        Plan p = new Plan(list, list.length, condition);
         double costNow = p.calculateCost(session);
         if (cost < 0 || costNow < cost) {
             cost = costNow;

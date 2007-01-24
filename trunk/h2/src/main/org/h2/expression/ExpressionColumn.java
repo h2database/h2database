@@ -213,7 +213,7 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.INDEPENDENT:
             return this.queryLevel < visitor.queryLevel;
         case ExpressionVisitor.EVALUATABLE:
-            // if the current value is known (evalutable set)
+            // if the current value is known (evaluatable set)
             // or if this columns belongs to a 'higher level' query and is therefore just a parameter
             return evaluatable || visitor.queryLevel < this.queryLevel;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:

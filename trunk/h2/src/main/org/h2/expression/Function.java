@@ -271,7 +271,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("CURRVAL", CURRVAL, VARARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.NULL);
         addFunction("CSVREAD", CSVREAD, VARARGS, Value.RESULT_SET, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VARARGS, Value.RESULT_SET, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VARARGS, Value.NULL, false, false);
         addFunctionNotConst("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
         addFunctionNotConst("MEMORY_USED", MEMORY_USED, 0, Value.INT);
         addFunctionNotConst("LOCK_MODE", LOCK_MODE, 0, Value.INT);
@@ -408,6 +408,7 @@ public class Function extends Expression implements FunctionCall {
         }
         Value v1 = args.length < 2 || args[1] == null ? null : args[1].getValue(session);
         Value v2 = args.length < 3 || args[2] == null ? null : args[2].getValue(session);
+        Value v3 = args.length < 4 || args[3] == null ? null : args[3].getValue(session);
         switch (info.type) {
         case ABS:
             return v0.getSignum() > 0 ? v0 : v0.negate();
@@ -548,7 +549,6 @@ public class Function extends Expression implements FunctionCall {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 return v1;
             }
-            Value v3 = args[3].getValue(session);
             return ValueString.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()));
         }
         case LOWER:
@@ -686,7 +686,6 @@ public class Function extends Expression implements FunctionCall {
                 return ValueNull.INSTANCE;
             }
             String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-            Value v3 = args.length <= 3 ? null : args[3].getValue(session);
             String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
             return ValueString.get(StringUtils.formatDateTime(v0.getTimestamp(), v1.getString(), locale, tz));
         }
@@ -695,7 +694,6 @@ public class Function extends Expression implements FunctionCall {
                 return ValueNull.INSTANCE;
             }
             String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-            Value v3 = args.length <= 3 ? null : args[3].getValue(session);
             String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
             java.util.Date d = StringUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
             return ValueTimestamp.getNoCopy(new Timestamp(d.getTime()));
@@ -707,7 +705,7 @@ public class Function extends Expression implements FunctionCall {
         case CURRENT_USER:
             return ValueString.get(session.getUser().getName());
         case IDENTITY:
-            return ValueLong.get(session.getLastIdentity());
+            return session.getLastIdentity();
         case AUTOCOMMIT:
             return ValueBoolean.get(session.getAutoCommit());
         case READONLY:
@@ -740,15 +738,27 @@ public class Function extends Expression implements FunctionCall {
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
-            String[] columns = StringUtils.arraySplit(columnList, ',', true);
             String charset = v2 == null ? null : v2.getString();
-            ValueResultSet vr = ValueResultSet.get(Csv.getInstance().read(fileName, columns, charset));
+            String fieldSeparatorRead = v3 == null ? null : v3.getString();
+            Csv csv = Csv.getInstance();
+            char fieldSeparator = ',';
+            if(fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
+                fieldSeparator = fieldSeparatorRead.charAt(0);
+                csv.setFieldSeparatorRead(fieldSeparator);
+            }
+            String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
+            ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
             return vr;
         }
         case CSVWRITE: {
             Connection conn = session.createConnection(false);
             String charset = v2 == null ? null : v2.getString();
-            Csv.getInstance().write(conn, v0.getString(), v1.getString(), charset);
+            String fieldSeparatorWrite = v3 == null ? null : v3.getString();
+            Csv csv = Csv.getInstance();
+            if(fieldSeparatorWrite != null) {
+                csv.setFieldSeparatorWrite(fieldSeparatorWrite);
+            }
+            csv.write(conn, v0.getString(), v1.getString(), charset);
             return ValueNull.INSTANCE;
         }
         case MEMORY_FREE:
@@ -1386,9 +1396,16 @@ public class Function extends Expression implements FunctionCall {
                 throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, "fileName");
             }
             String columnList = args.length < 2 ? null : args[1].getValue(session).getString();
-            String[] columns = StringUtils.arraySplit(columnList, ',', true);
             String charset = args.length < 3 ? null : args[2].getValue(session).getString();
-            ResultSet rs = Csv.getInstance().read(fileName, columns, charset);
+            String fieldSeparatorRead = args.length < 4 ? null : args[3].getValue(session).getString();
+            Csv csv = Csv.getInstance();
+            char fieldSeparator = ',';
+            if(fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
+                fieldSeparator = fieldSeparatorRead.charAt(0);
+                csv.setFieldSeparatorRead(fieldSeparator);
+            }
+            String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
+            ResultSet rs = csv.read(fileName, columns, charset);
             ValueResultSet vr = ValueResultSet.getCopy(rs, 0);
             return vr;
         }

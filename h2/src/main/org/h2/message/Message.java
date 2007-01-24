@@ -68,12 +68,12 @@ public class Message {
     }
 
     public static SQLException getSyntaxError(String sql, int index) {
-        sql = StringUtils.addAsterix(sql, index);
+        sql = StringUtils.addAsterisk(sql, index);
         return Message.getSQLException(Message.SYNTAX_ERROR_1, sql);
     }
 
     public static SQLException getSyntaxError(String sql, int index, String expected) {
-        sql = StringUtils.addAsterix(sql, index);
+        sql = StringUtils.addAsterisk(sql, index);
         return Message.getSQLException(Message.SYNTAX_ERROR_2, new String[]{sql, expected}, null);
     }
 
@@ -232,7 +232,7 @@ public class Message {
     public static final int MUST_GROUP_BY_COLUMN_1 = 90016;
     public static final int SECOND_PRIMARY_KEY = 90017;
     public static final int TRACE_CONNECTION_NOT_CLOSED = 90018;
-    public static final int CANT_DROP_CURRENT_USER = 90019;
+    public static final int CANNOT_DROP_CURRENT_USER = 90019;
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
     public static final int DATA_CONVERSION_ERROR_1 = 90021;
     public static final int FUNCTION_NOT_FOUND_1 = 90022;
@@ -297,7 +297,7 @@ public class Message {
     public static final int COLUMN_CONTAINS_NULL_VALUES_1 = 90081;
     public static final int SEQUENCE_BELONGS_TO_A_TABLE_1 = 90082;
     public static final int COLUMN_MAY_BE_REFERENCED_1 = 90083;
-    public static final int CANT_DROP_LAST_COLUMN = 90084;
+    public static final int CANNOT_DROP_LAST_COLUMN = 90084;
     public static final int INDEX_BELONGS_TO_CONSTRAINT_1 = 90085;
     public static final int CLASS_NOT_FOUND_1 = 90086;
     public static final int METHOD_NOT_FOUND_1 = 90087;
@@ -319,8 +319,8 @@ public class Message {
     public static final int UNSUPPORTED_COMPRESSION_ALGORITHM_1 = 90103;
     public static final int COMPRESSION_ERROR = 90104;
     private static final int EXCEPTION_IN_FUNCTION = 90105;
-    public static final int CANT_TRUNCATE_1 = 90106;
-    public static final int CANT_DROP_2 = 90107;
+    public static final int CANNOT_TRUNCATE_1 = 90106;
+    public static final int CANNOT_DROP_2 = 90107;
     public static final int STACK_OVERFLOW = 90108;
     public static final int VIEW_IS_INVALID_1 = 90109;
     public static final int OVERFLOW_FOR_TYPE_1 = 90110;
@@ -331,14 +331,15 @@ public class Message {
     public static final int CONSTANT_NOT_FOUND_1 = 90115;
     public static final int LITERALS_ARE_NOT_ALLOWED = 90116;
     public static final int REMOTE_CONNECTION_NOT_ALLOWED = 90117;
-    public static final int CANT_DROP_TABLE_1  = 90118;
+    public static final int CANNOT_DROP_TABLE_1  = 90118;
     public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = 90119;
     public static final int USER_DATA_TYPE_NOT_FOUND_1 = 90120;
     public static final int DATABASE_CALLED_AT_SHUTDOWN = 90121;
     public static final int OPERATION_NOT_SUPPORTED_WITH_VIEWS_2 = 90122;
-    public static final int CANT_MIX_INDEXED_AND_UNINDEXED_PARAMS = 90123;
+    public static final int CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS = 90123;
     public static final int FILE_NOT_FOUND_1 = 90124;
     public static final int INVALID_CLASS_2 = 90125;
+    public static final int DATABASE_IS_NOT_PERSISTENT = 90126;
 
     public static SQLException addSQL(SQLException e, String sql) {
         if(e.getMessage().indexOf("SQL")>=0) {

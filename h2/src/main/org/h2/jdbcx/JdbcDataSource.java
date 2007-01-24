@@ -52,8 +52,8 @@ Serializable, Referenceable  {
     private String url = "";
     
     public JdbcDataSource() {
-        int id = getNextId(TraceObject.DATASOURCE);
-        setTrace(factory.getTrace(), TraceObject.DATASOURCE, id);
+        int id = getNextId(TraceObject.DATA_SOURCE);
+        setTrace(factory.getTrace(), TraceObject.DATA_SOURCE, id);
     }
 
     public int getLoginTimeout() throws SQLException {
@@ -138,13 +138,13 @@ Serializable, Referenceable  {
 //#ifdef JDK14
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
-        int id = getNextId(XA_DATASOURCE);
+        int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
 
     public XAConnection getXAConnection(String user, String password) throws SQLException {
         debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
-        int id = getNextId(XA_DATASOURCE);
+        int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
 

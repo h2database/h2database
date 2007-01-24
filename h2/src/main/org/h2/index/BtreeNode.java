@@ -68,7 +68,7 @@ public class BtreeNode extends BtreePage {
 
     public int add(Row newRow, Session session) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMTPY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
         }
         while (l < r) {
@@ -110,7 +110,7 @@ public class BtreeNode extends BtreePage {
 
     public SearchRow remove(Session session, Row oldRow, int level) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMTPY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
         }
         int comp = 0;
@@ -201,7 +201,7 @@ public class BtreeNode extends BtreePage {
 
     public boolean findFirst(BtreeCursor cursor, SearchRow compare) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMTPY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
         }
         while (l < r) {
@@ -331,7 +331,7 @@ public class BtreeNode extends BtreePage {
     }
 
     SearchRow getLast() throws SQLException {
-        if (!Constants.ALLOW_EMTPY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
         }
         for(int i=pageChildren.size()-1; i>=0; i--) {

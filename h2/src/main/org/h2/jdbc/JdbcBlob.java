@@ -70,9 +70,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Truncates the object.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Truncates the object.
      */
     public void truncate(long len) throws SQLException {
         debugCodeCall("truncate", len);
@@ -112,9 +110,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Sets some bytes of the object.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Sets some bytes of the object.
      */
     public int setBytes(long pos, byte[] bytes) throws SQLException {
         debugCode("setBytes("+pos+", bytes);");
@@ -122,9 +118,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Sets some bytes of the object.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Sets some bytes of the object.
      */
     public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
         debugCode("setBytes("+pos+", bytes, "+offset+", "+len+");");
@@ -142,9 +136,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Returns an output stream.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns an output stream.
      */
     public OutputStream setBinaryStream(long pos) throws SQLException {
         debugCodeCall("setBinaryStream", pos);
@@ -152,9 +144,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Searches a pattern and return the position.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Searches a pattern and return the position.
      */
     public long position(byte[] pattern, long start) throws SQLException {
         debugCode("position(pattern, "+start+");");
@@ -205,9 +195,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Searches a pattern and return the position.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Searches a pattern and return the position.
      */
     public long position(Blob blobPattern, long start) throws SQLException {
       debugCode("position(blobPattern, "+start+");");
@@ -246,9 +234,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Returns the input stream, starting from an offset.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the input stream, starting from an offset.
      */
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
         debugCode("getBinaryStream("+pos+", "+length+");");

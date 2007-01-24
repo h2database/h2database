@@ -85,8 +85,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Creates a new statement.
      *
      * @return the new statement
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public Statement createStatement() throws SQLException {
         try {
@@ -307,22 +306,22 @@ public class JdbcConnection extends TraceObject implements Connection {
      *             if the connection is closed
      */
     public synchronized boolean getAutoCommit() throws SQLException {
-        debugCodeCall("getAutoCommit");
-        return getInternalAutoCommit();
-    }
-    
-    private boolean getInternalAutoCommit() throws SQLException {
         try {
             checkClosed();
-            getAutoCommit = prepareCommand("CALL AUTOCOMMIT()", getAutoCommit);
-            ResultInterface result = getAutoCommit.executeQuery(0, false);
-            result.next();
-            boolean autocommit = result.currentRow()[0].getBoolean().booleanValue();
-            result.close();
-            return autocommit;
+            debugCodeCall("getAutoCommit");
+            return getInternalAutoCommit();
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
+    }
+    
+    private boolean getInternalAutoCommit() throws SQLException {
+        getAutoCommit = prepareCommand("CALL AUTOCOMMIT()", getAutoCommit);
+        ResultInterface result = getAutoCommit.executeQuery(0, false);
+        result.next();
+        boolean autocommit = result.currentRow()[0].getBoolean().booleanValue();
+        result.close();
+        return autocommit;
     }
 
     /**
@@ -373,7 +372,6 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-
 
     /**
      * Translates a SQL statement into the database grammar.
@@ -652,9 +650,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Sets the type map.
-     *
-     * @throws SQLException Unsupported Feature (SQL State 0A000) if the map is not empty
+     * [Partially supported] Sets the type map. This is only supported if the map is empty or null.
      */
     public void setTypeMap(Map map) throws SQLException {
         try {
@@ -771,7 +767,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return the new savepoint
      */
-    //#ifdef JDK14
+//#ifdef JDK14
     public Savepoint setSavepoint() throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -789,14 +785,14 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-    //#endif
+//#endif
 
     /**
      * Creates a new named savepoint.
      *
      * @return the new savepoint
      */
-    //#ifdef JDK14
+//#ifdef JDK14
     public Savepoint setSavepoint(String name) throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -813,12 +809,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-    //#endif
+//#endif
 
     /**
      * Rolls back to a savepoint.
      */
-    //#ifdef JDK14
+//#ifdef JDK14
     public void rollback(Savepoint savepoint) throws SQLException {
         try {
             JdbcSavepoint sp = convertSavepoint(savepoint);
@@ -829,12 +825,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-    //#endif
+//#endif
 
     /**
      * Releases a savepoint.
      */
-    //#ifdef JDK14
+//#ifdef JDK14
     public void releaseSavepoint(Savepoint savepoint) throws SQLException {
         try {
             debugCode("releaseSavepoint(savepoint);");
@@ -851,7 +847,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         return (JdbcSavepoint) savepoint;
     }
-    //#endif
+//#endif
 
     /**
      * Creates a prepared statement with the specified result set type, concurrency, and holdability.
@@ -1210,7 +1206,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     protected void finalize() {
-        if(!Constants.RUN_FINALIZERS) {
+        if(!Constants.RUN_FINALIZE) {
             return;
         }
         if(isInternal) {
@@ -1308,7 +1304,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return the object
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public NClob createNClob() throws SQLException {
         try {
@@ -1323,43 +1319,40 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Create a new empty SQLXML object.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Create a new empty SQLXML object.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public SQLXML createSQLXML() throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
     
     /**
-     * Create a new empty Array object.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Create a new empty Array object.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
     
     /**
-     * Create a new empty Struct object.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Create a new empty Struct object.
      */
-    //#ifdef JDK16    
+//#ifdef JDK16    
 /*
     public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
         throw Message.getUnsupportedException();
     }    
 */
-    //#endif
+//#endif
 
     /**
      * Returns true if this connection is still valid.
@@ -1380,72 +1373,66 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Set a client property.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Set a client property.
      */
-    //#ifdef JDK16    
+//#ifdef JDK16    
 /*
     public void setClientInfo(String name, String value) throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Set the client properties.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Set the client properties.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
 */
-    //#endif
+//#endif
     
     /**
-     * Get the client properties.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Get the client properties.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public Properties getClientInfo() throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
 */
-    //#endif    
+//#endif    
 
     /**
-     * Set a client property.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Set a client property.
      */
     public String getClientInfo(String name) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
     /**
-     * Return an object of this class if possible.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Return an object of this class if possible.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Checks if unwrap can return an object of this class.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Checks if unwrap can return an object of this class.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
     
     Value createClob(Reader x, long length) throws SQLException {
         if(x == null) {

@@ -83,7 +83,7 @@ public class BtreeLeaf extends BtreePage {
     public SearchRow remove(Session session, Row oldRow, int level) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0) {
-            if(!Constants.ALLOW_EMTPY_BTREE_PAGES && !root) {
+            if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
             }
         }
@@ -91,7 +91,7 @@ public class BtreeLeaf extends BtreePage {
             int i = (l + r) >>> 1;
             SearchRow row = (SearchRow) pageData.get(i);
             if(Constants.CHECK && row == null) {
-                throw Message.getInternalError("btree currupted");
+                throw Message.getInternalError("btree corrupt");
             }
             int comp = index.compareRows(row, oldRow);
             if (comp == 0) {
@@ -142,7 +142,7 @@ public class BtreeLeaf extends BtreePage {
 
     public boolean findFirst(BtreeCursor cursor, SearchRow compare) throws SQLException {
         int l = 0, r = pageData.size();
-        if (r == 0 && !Constants.ALLOW_EMTPY_BTREE_PAGES && !root) {
+        if (r == 0 && !Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
             throw Message.getInternalError("Empty btree page");
         }
         while (l < r) {
@@ -178,7 +178,7 @@ public class BtreeLeaf extends BtreePage {
 
     public void first(BtreeCursor cursor) throws SQLException {
         if (pageData.size() == 0) {
-            if (!Constants.ALLOW_EMTPY_BTREE_PAGES && !root) {
+            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
             }
             nextUpper(cursor);
@@ -258,7 +258,7 @@ public class BtreeLeaf extends BtreePage {
 
     SearchRow getLast() throws SQLException {
         if(pageData.size()==0) {
-            if(!Constants.ALLOW_EMTPY_BTREE_PAGES && !root) {
+            if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
             }
             return null;
@@ -268,7 +268,7 @@ public class BtreeLeaf extends BtreePage {
 
     SearchRow getFirst() throws SQLException {
         if(pageData.size()==0) {
-            if(!Constants.ALLOW_EMTPY_BTREE_PAGES && !root) {
+            if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
             }
             return null;

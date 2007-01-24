@@ -45,7 +45,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     
     JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, String password) {
         this.factory = factory;
-        setTrace(factory.getTrace(), TraceObject.XA_DATASOURCE, id);
+        setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.url = url;
         this.user = user;
         this.password = password;
@@ -85,8 +85,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
         listeners.remove(listener);
     }
 
-    public void fatalErrorOccured(JdbcConnection conn, SQLException e) throws SQLException {
-        debugCode("fatalErrorOccured(conn, e)");
+    public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
+        debugCode("fatalErrorOccurred(conn, e)");
         for(int i=0; i<listeners.size(); i++) {
             ConnectionEventListener listener = (ConnectionEventListener)listeners.get(i);
             ConnectionEvent event = new ConnectionEvent(this, e);

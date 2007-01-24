@@ -2403,10 +2403,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException
-     *                    Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
     public ResultSet getSuperTypes(String catalog, String schemaPattern,
             String typeNamePattern) throws SQLException {
@@ -2460,10 +2457,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * THIS FEATURE IS NOT SUPPORTED.
-     *
-     * @throws SQLException
-     *                    Unsupported Feature (SQL State 0A000)
+     * [Not supported]
      */
     public ResultSet getAttributes(String catalog, String schemaPattern,
             String typeNamePattern, String attributeNamePattern)
@@ -2599,18 +2593,17 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Get the lifetime of a rowid.
      * @return ROWID_UNSUPPORTED
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public RowIdLifetime getRowIdLifetime() {
         debugCodeCall("getRowIdLifetime");
         return RowIdLifetime.ROWID_UNSUPPORTED;
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Gets the list of schemas.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets the list of schemas.
      */
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
         debugCodeCall("getSchemas");
@@ -2636,8 +2629,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns the client info properties.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Returns the client info properties.
      */
     public ResultSet getClientInfoProperties() throws SQLException {
         debugCodeCall("getClientInfoProperties");
@@ -2645,34 +2637,31 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Return an object of this class if possible.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Return an object of this class if possible.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");        
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Checks if unwrap can return an object of this class.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Checks if unwrap can return an object of this class.
      */
-    //#ifdef JDK16
+//#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         debugCodeCall("isWrapperFor");        
         throw Message.getUnsupportedException();
     }
 */
-    //#endif
+//#endif
 
     /**
-     * Gets the list of function columns.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets the list of function columns.
      */
     public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
         debugCodeCall("getFunctionColumns");        
@@ -2680,8 +2669,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Gets the list of functions.
-     * @throws SQLException Unsupported Feature (SQL State 0A000)
+     * [Not supported] Gets the list of functions.
      */
     public ResultSet getFunctions(String arg0, String arg1, String arg2) throws SQLException {
         debugCodeCall("getFunctions");        

@@ -42,7 +42,7 @@ public class AppServer {
     private int port;
     private boolean allowOthers;
     private boolean ssl;
-    private HashMap connectionInfos = new HashMap();
+    private HashMap connInfoMap = new HashMap();
 
     AppServer(String[] args) {
         Properties prop = loadProperties();
@@ -101,16 +101,16 @@ public class AppServer {
     }
 
     ConnectionInfo getSetting(String name) {
-        return (ConnectionInfo)connectionInfos.get(name);
+        return (ConnectionInfo)connInfoMap.get(name);
     }
 
     void updateSetting(ConnectionInfo info) {
-        connectionInfos.put(info.name, info);
+        connInfoMap.put(info.name, info);
         info.lastAccess = ticker++;
     }
 
     void removeSetting(String name) {
-        connectionInfos.remove(name);
+        connInfoMap.remove(name);
     }
 
     private File getPropertiesFile() {
@@ -139,7 +139,7 @@ public class AppServer {
 
     synchronized ArrayList getSettings() {
         ArrayList settings = new ArrayList();
-        if(connectionInfos.size() == 0) {
+        if(connInfoMap.size() == 0) {
             Properties prop = loadProperties();
             if(prop.size() == 0) {
                 for(int i=0; i<AppServer.GENERIC.length; i++) {
@@ -159,7 +159,7 @@ public class AppServer {
                 }
             }
         } else {
-            settings.addAll(connectionInfos.values());
+            settings.addAll(connInfoMap.values());
         }
         sortConnectionInfo(settings);
         return settings;

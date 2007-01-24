@@ -22,7 +22,7 @@ public interface DataHandler {
     
     String getLobCompressionAlgorithm(int type);
     
-    // only tempoarily, until LOB_FILES_IN_DIRECTORIES is enabled
+    // only temporarily, until LOB_FILES_IN_DIRECTORIES is enabled
     int allocateObjectId(boolean needFresh, boolean dataFile);
     String createTempFile() throws SQLException;
 

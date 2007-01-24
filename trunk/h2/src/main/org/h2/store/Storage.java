@@ -16,8 +16,8 @@ import org.h2.util.MathUtils;
 
 /**
  * File format:
- * intfixed block size
- * intfixed storage id
+ * intFixed block size
+ * intFixed storage id
  * record data
  * byte checksum
  * [bytes * fillerLength]

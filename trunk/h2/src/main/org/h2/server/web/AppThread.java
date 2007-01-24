@@ -331,6 +331,9 @@ public class AppThread extends WebServerThread {
         String ident = ", "+level+", "+(level+1)+", ";
         String identNode = ", "+(level+1)+", "+(level+1)+", ";
         DbTableOrView[] tables = schema.tables;
+        if(tables == null) {
+            return treeIndex;
+        }
         boolean isOracle = schema.contents.isOracle;
         boolean showColumnTypes = tables.length < 100;
         for(int i=0; i<tables.length; i++) {
@@ -894,6 +897,7 @@ public class AppThread extends WebServerThread {
             ResultSet rs;
             long time = System.currentTimeMillis();
             boolean metadata = false;
+            boolean generatedKeys = false;
             boolean edit = false;
             if(sql.equals("@CANCEL")) {
                 stat = getAppSession().executingStatement;
@@ -907,6 +911,9 @@ public class AppThread extends WebServerThread {
             } else if(sql.startsWith("@META")) {
                 metadata = true;
                 sql = sql.substring("@META".length()).trim();
+            } else if(sql.startsWith("@GENERATED")) {
+                generatedKeys = true;
+                sql = sql.substring("@GENERATED".length()).trim();
             } else if(sql.startsWith("@LOOP")) {
                 metadata = true;
                 sql = sql.substring("@LOOP".length()).trim();
@@ -934,16 +941,20 @@ public class AppThread extends WebServerThread {
                 getAppSession().executingStatement = stat;
                 boolean isResultSet = stat.execute(sql);
                 getAppSession().addCommand(sql);
-                if(!isResultSet) {
-                    buff.append("${text.result.updateCount}: "+stat.getUpdateCount());
-                    time = System.currentTimeMillis() - time;
-                    buff.append("<br>(");
-                    buff.append(time);
-                    buff.append(" ms)");
-                    stat.close();
-                    return buff.toString();
+                if(generatedKeys) {
+                    rs = stat.getGeneratedKeys();
+                } else {
+                    if(!isResultSet) {
+                        buff.append("${text.result.updateCount}: "+stat.getUpdateCount());
+                        time = System.currentTimeMillis() - time;
+                        buff.append("<br>(");
+                        buff.append(time);
+                        buff.append(" ms)");
+                        stat.close();
+                        return buff.toString();
+                    }
+                    rs = stat.getResultSet();
                 }
-                rs = stat.getResultSet();
             }
             time = System.currentTimeMillis() - time;
             buff.append(getResultSet(sql, rs, metadata, edit, time, allowEdit));

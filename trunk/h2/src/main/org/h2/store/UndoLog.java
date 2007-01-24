@@ -15,7 +15,7 @@ import org.h2.util.ObjectArray;
 public class UndoLog {
     private Session session;
     private Database database;
-    // TODO undolog entry: a chain would probably be faster & use less memory than an array
+    // TODO undo log entry: a chain would probably be faster & use less memory than an array
     private ObjectArray records = new ObjectArray();
     private FileStore file;
     private DataPage rowBuff;

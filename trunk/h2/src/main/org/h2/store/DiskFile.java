@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Comparator;
 
@@ -177,7 +178,7 @@ public class DiskFile implements CacheWriter {
             byte[] b2 = buff.toByteArray();
             return b2;
         } catch(IOException e) {
-            // will probably never happend, because only in-memory strutures are used
+            // will probably never happen, because only in-memory strutures are used
             return null;
         }
     }
@@ -541,7 +542,7 @@ public class DiskFile implements CacheWriter {
     }
 
 //    public void finalize() {
-//        if (!Database.RUN_FINALIZERS) {
+//        if (!Constants.RUN_FINALIZE) {
 //            return;
 //        }
 //        if (file != null) {
@@ -652,15 +653,55 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized void writeDirect(Storage storage, int pos, byte[] data, int offset) throws SQLException {
-        synchronized(this) {
-            try {
-                go(pos);
-                file.write(data, offset, BLOCK_SIZE);
-                setBlockOwner(storage, pos, 1, true);
-            } catch (Exception e) {
-                throw Message.convert(e);
-            }
+        try {
+            go(pos);
+            file.write(data, offset, BLOCK_SIZE);
+            setBlockOwner(storage, pos, 1, true);
+        } catch (Exception e) {
+            throw Message.convert(e);
         }
+    }
+    
+    public synchronized int readDirect(int pos, OutputStream out) throws SQLException {
+        try {
+            if(pos < 0) {
+                // read the header
+                byte[] buffer = new byte[OFFSET];
+                file.seek(0);
+                file.readFully(buffer, 0, OFFSET);
+                out.write(buffer);
+                return 0;
+            }
+            if(pos >= fileBlockCount) {
+                return -1;
+            }
+            int blockSize = DiskFile.BLOCK_SIZE;
+            byte[] buff = new byte[blockSize];
+            DataPage s = DataPage.create(database, buff);
+            database.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, this.fileName, pos, fileBlockCount);
+            go(pos);
+            file.readFully(buff, 0, blockSize);
+            s.reset();
+            int blockCount = s.readInt();
+            if(Constants.CHECK && blockCount < 0) {
+                throw Message.getInternalError();
+            }
+            if(blockCount == 0) {
+                blockCount = 1;
+            }
+            int id = s.readInt();
+            if(Constants.CHECK && id < 0) {
+                throw Message.getInternalError();
+            }
+            s.checkCapacity(blockCount * blockSize);
+            if(blockCount > 1) {
+                file.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+            }
+            out.write(s.getBytes(), 0, blockCount * blockSize);
+            return pos + blockCount;
+        } catch (Exception e) {
+            throw Message.convert(e);
+        } 
     }
 
     synchronized void removeRecord(Session session, int pos, Record record, int blockCount) throws SQLException {

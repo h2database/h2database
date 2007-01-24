@@ -157,7 +157,7 @@ class ResultDiskBuffer {
     }
 
     protected void finalize() {
-        if(!Constants.RUN_FINALIZERS) {
+        if(!Constants.RUN_FINALIZE) {
             return;
         }        
         close();

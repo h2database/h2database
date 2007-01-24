@@ -19,9 +19,9 @@ import org.h2.util.ObjectArray;
 
 /*
  * Header format:
- * intfixed logId (<0 means ignore: rolled back already)
- * intfixed firstUncommittedLogRecordId (-1 if none)
- * intfixed firstUnwrittenLogRecordId (-1 if none)
+ * intFixed logId (<0 means ignore: rolled back already)
+ * intFixed firstUncommittedLogRecordId (-1 if none)
+ * intFixed firstUnwrittenLogRecordId (-1 if none)
  * 
  * Record format:
  * int block size
@@ -58,7 +58,7 @@ public class LogFile {
         this.database = log.getDatabase();
         this.id = id;
         this.fileNamePrefix = fileNamePrefix;
-        fileName = getFileName(id);
+        fileName = getFileName();
         file = log.getDatabase().openFile(fileName, false);
         rowBuff = log.getRowBuffer();
         buffer = new byte[BUFFER_SIZE];
@@ -86,7 +86,7 @@ public class LogFile {
         return new LogFile(log, id, fileNamePrefix);
     }
     
-    private String getFileName(int id) {
+    public String getFileName() {
         return fileNamePrefix + "." + id + Constants.SUFFIX_LOG_FILE;
     }
 

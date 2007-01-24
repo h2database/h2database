@@ -2372,7 +2372,7 @@ CURRVAL('TESTSEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparator]]]): resultSet
+CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 If the column names are specified (a comma separated list of column names),
@@ -2385,7 +2385,7 @@ CALL CSVREAD('test.csv')
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparator]]): null
+CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString]]): null
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.

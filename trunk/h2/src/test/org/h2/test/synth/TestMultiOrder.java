@@ -27,7 +27,7 @@ public class TestMultiOrder extends TestMultiThread {
     }
     
     void begin() throws SQLException {
-        insertLine = conn.prepareStatement("insert into orderline(orderid, lineid, text, amount) values(?, ?, ?, ?)");
+        insertLine = conn.prepareStatement("insert into orderLine(orderid, lineid, text, amount) values(?, ?, ?, ?)");
         insertCustomer();
     }
     
@@ -114,10 +114,10 @@ public class TestMultiOrder extends TestMultiThread {
         Connection conn = base.getConnection();
         conn.createStatement().execute("drop table customer if exists");
         conn.createStatement().execute("drop table orders if exists");
-        conn.createStatement().execute("drop table orderline if exists");
+        conn.createStatement().execute("drop table orderLine if exists");
         conn.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
         conn.createStatement().execute("create table orders(id int identity primary key, customer_id int, total decimal)");
-        conn.createStatement().execute("create table orderline(orderid int, lineid int, text varchar, amount decimal, primary key(orderid, lineid))");
+        conn.createStatement().execute("create table orderLine(orderid int, lineid int, text varchar, amount decimal, primary key(orderid, lineid))");
         conn.close();
     }
 
@@ -133,10 +133,10 @@ public class TestMultiOrder extends TestMultiThread {
         base.check(rs.getInt(1), orderCount);
         // System.out.println("orders: " + rs.getInt(1));
 
-        rs = conn.createStatement().executeQuery("select count(*) from orderline");
+        rs = conn.createStatement().executeQuery("select count(*) from orderLine");
         rs.next();
         base.check(rs.getInt(1), orderLineCount);
-        // System.out.println("orderlines: " + rs.getInt(1));
+        // System.out.println("orderLines: " + rs.getInt(1));
 
         conn.close();
     }

@@ -61,7 +61,7 @@ public class TestCrashAPI extends TestBase {
         if(delete) {
             deleteDb();
         }
-        // can not use FILE_LOCK=NO, otherwise something could be written into the database in the finalizer 
+        // can not use FILE_LOCK=NO, otherwise something could be written into the database in the finalize method
         String add = ""; // ";STORAGE=TEXT";
 
 //        int testing;
@@ -75,7 +75,7 @@ public class TestCrashAPI extends TestBase {
 //            config.logMode = 2;
 //        }
         
-        String url = getURL(DIR + "/crashapi" + seed, true) +  add;
+        String url = getURL(DIR + "/crashApi" + seed, true) +  add;
         
         Connection conn = null;
         // System.gc();        

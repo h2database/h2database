@@ -35,10 +35,10 @@ public class TestMultiNews extends TestMultiThread {
                 PreparedStatement prep;
                 if(random.nextBoolean()) {
                     prep = conn.prepareStatement(
-                        "SELECT * FROM NEWS WHERE FLINK = ?");
+                        "SELECT * FROM NEWS WHERE LINK = ?");
                 } else {
                     prep = conn.prepareStatement(
-                        "SELECT * FROM NEWS WHERE FVALUE = ?");
+                        "SELECT * FROM NEWS WHERE VALUE = ?");
                 }
                 prep.setString(1, PREFIX_URL + random.nextInt(len));
                 ResultSet rs = prep.executeQuery();
@@ -50,7 +50,7 @@ public class TestMultiNews extends TestMultiThread {
                 }
             } else {
                 PreparedStatement prep = conn.prepareStatement(
-                        "UPDATE NEWS SET FSTATE = ? WHERE FID = ?");
+                        "UPDATE NEWS SET STATE = ? WHERE FID = ?");
                 prep.setInt(1, random.nextInt(100));
                 prep.setInt(2, random.nextInt(len));
                 int count = prep.executeUpdate();
@@ -77,16 +77,16 @@ public class TestMultiNews extends TestMultiThread {
         stat.execute(
                 "CREATE TABLE TEST (ID IDENTITY, NAME VARCHAR)");
         stat.execute(
-                "CREATE TABLE NEWS (FID NUMERIC(19) PRIMARY KEY, FCOMMENTS LONGVARCHAR, " +
-                "FLINK VARCHAR(255), FSTATE INTEGER, FVALUE VARCHAR(255))");
+                "CREATE TABLE NEWS (FID NUMERIC(19) PRIMARY KEY, COMMENTS LONGVARCHAR, " +
+                "LINK VARCHAR(255), STATE INTEGER, VALUE VARCHAR(255))");
         stat.execute(
-        "CREATE INDEX IF NOT EXISTS NEWS_GUID_VALUE_INDEX ON NEWS(FVALUE)");
+        "CREATE INDEX IF NOT EXISTS NEWS_GUID_VALUE_INDEX ON NEWS(VALUE)");
         stat.execute(
-                "CREATE INDEX IF NOT EXISTS NEWS_LINK_INDEX ON NEWS(FLINK)");
+                "CREATE INDEX IF NOT EXISTS NEWS_LINK_INDEX ON NEWS(LINK)");
         stat.execute(
-                "CREATE INDEX IF NOT EXISTS NEWS_STATE_INDEX ON NEWS(FSTATE)");
+                "CREATE INDEX IF NOT EXISTS NEWS_STATE_INDEX ON NEWS(STATE)");
         PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO NEWS (FID, FCOMMENTS, FLINK, FSTATE, FVALUE) VALUES " +
+                "INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) VALUES " +
                 "(?, ?, ?, ?, ?) ");
         PreparedStatement prep2 = conn.prepareStatement(
                 "INSERT INTO TEST (NAME) VALUES (?)");
@@ -100,10 +100,10 @@ public class TestMultiNews extends TestMultiThread {
             }
             String comment = buff.toString();
             prep.setInt(1, i); // FID
-            prep.setString(2, comment); // FCOMMENTS
-            prep.setString(3, PREFIX_URL + i); // FLINK
-            prep.setInt(4, 0); // FSTATE
-            prep.setString(5, PREFIX_URL + i); // FVALUE
+            prep.setString(2, comment); // COMMENTS
+            prep.setString(3, PREFIX_URL + i); // LINK
+            prep.setInt(4, 0); // STATE
+            prep.setString(5, PREFIX_URL + i); // VALUE
             prep.execute();
             prep2.setString(1, comment);
             prep2.execute();

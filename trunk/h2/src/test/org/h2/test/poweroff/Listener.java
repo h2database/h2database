@@ -61,8 +61,8 @@ public class Listener implements Runnable {
                 System.out.println("Closed with Exception: " + e);
             }
             time = System.currentTimeMillis() - time;
-            int ops = (int) (1000 * maxValue / time);
-            System.out.println("Max=" + maxValue + " operations/sec=" + ops);
+            int operationsPerSecond = (int) (1000 * maxValue / time);
+            System.out.println("Max=" + maxValue + " operations/sec=" + operationsPerSecond);
         }
     }
 

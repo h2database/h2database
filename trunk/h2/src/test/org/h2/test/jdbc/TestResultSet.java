@@ -29,8 +29,8 @@ public class TestResultSet extends TestBase {
     Statement stat;
 
     public void test() throws Exception {
-        deleteDb("resultset");
-        conn = getConnection("resultset");
+        deleteDb("resultSet");
+        conn = getConnection("resultSet");
 
         stat=conn.createStatement();
 
@@ -134,7 +134,7 @@ public class TestResultSet extends TestBase {
 
         ResultSetMetaData meta = rs.getMetaData();
         check(meta.getColumnCount(), 3);
-        check(meta.getCatalogName(1), "RESULTSET");
+        check(meta.getCatalogName(1), "resultSet".toUpperCase());
         check("PUBLIC".equals(meta.getSchemaName(2)));
         check("TEST".equals(meta.getTableName(1)));
         check("ID".equals(meta.getColumnName(1)));
@@ -670,7 +670,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1,X'01010101')");
         stat.execute("INSERT INTO TEST VALUES(2,X'02020202')");
         stat.execute("INSERT INTO TEST VALUES(3,X'00')");
-        stat.execute("INSERT INTO TEST VALUES(4,X'ffFFff')");
+        stat.execute("INSERT INTO TEST VALUES(4,X'ffffff')");
         stat.execute("INSERT INTO TEST VALUES(5,X'0bcec1')");
         stat.execute("INSERT INTO TEST VALUES(6,NULL)");
         rs=stat.executeQuery("SELECT * FROM TEST ORDER BY ID");

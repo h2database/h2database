@@ -499,11 +499,11 @@ public class TestMetaData extends TestBase {
         int minor = meta.getDriverMinorVersion();
         trace("meta.getDriverMinorVersion:" + minor);
 
-        String drivername = meta.getDriverName();
-        trace("meta.getDriverName:" + drivername);
+        String driverName = meta.getDriverName();
+        trace("meta.getDriverName:" + driverName);
 
-        String driverversion = meta.getDriverVersion();
-        trace("meta.getDriverVersion:" + driverversion);
+        String driverVersion = meta.getDriverVersion();
+        trace("meta.getDriverVersion:" + driverVersion);
 
         meta.getSearchStringEscape();
 

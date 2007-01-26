@@ -45,7 +45,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         }
         proc.waitFor();
         if(!getClosedFile().exists()) {
-            error("didnt close database");
+            error("did not close database");
         }
         procDef = new String[]{
                 "java", "-cp", classPath,

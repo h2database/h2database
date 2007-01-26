@@ -56,10 +56,10 @@ public class TestSecurity extends TestBase {
 
     public void testXTEA() throws Exception {
         byte[] test = new byte[4096];
-        XTEA tea = new XTEA();
-        tea.setKey("abcdefghijklmnop".getBytes());
+        XTEA xtea = new XTEA();
+        xtea.setKey("abcdefghijklmnop".getBytes());
         for (int i = 0; i < 10; i++) {
-            tea.decryptBlock(test, test, 0);
+            xtea.decryptBlock(test, test, 0);
         }
     }    
     

@@ -35,8 +35,8 @@ public class TestRandomSQL extends TestBase {
     }
     
     private String getDatabaseName() {
-//        return "dataSynth/randomsql" + dbId+";TRACE_LEVEL_FILE=3";
-        return "dataSynth/randomsql" + dbId;
+//        return "dataSynth/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
+        return "dataSynth/randomSql" + dbId;
     }
     
     private Connection connect() throws Exception {

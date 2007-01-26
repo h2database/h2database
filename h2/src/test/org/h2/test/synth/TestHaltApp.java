@@ -53,7 +53,7 @@ public class TestHaltApp extends TestHalt {
     
     protected void appStart() throws SQLException {
         Statement stat = conn.createStatement();
-        if((flags & FLAG_NODELAY) != 0) {
+        if((flags & FLAG_NO_DELAY) != 0) {
             stat.execute("SET WRITE_DELAY 0");
             stat.execute("SET MAX_LOG_SIZE 1");
         }
@@ -97,7 +97,7 @@ public class TestHaltApp extends TestHalt {
                 conn.commit();
                 log("committed: " + rowCount, null);
             }
-            if((flags & FLAG_NODELAY) != 0) {
+            if((flags & FLAG_NO_DELAY) != 0) {
                 if(random.nextInt(100) == 0) {
                     stat.execute("CHECKPOINT");
                 }

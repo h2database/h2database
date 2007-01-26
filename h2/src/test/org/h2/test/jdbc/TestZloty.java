@@ -82,11 +82,11 @@ public class TestZloty extends TestBase {
 
         prep.setInt(1, 3);
         try {
-            BigDecimal crappyVal=new BigDecimal("12.100000") {
+            BigDecimal value=new BigDecimal("12.100000") {
                 private static final long serialVersionUID = -7909023971521750844L;
                 public String toString() { return "12,100000 EURO"; }
             };        
-            prep.setBigDecimal(2, crappyVal);
+            prep.setBigDecimal(2, value);
             prep.execute();
             error("unexpected success");
         } catch(SQLException e) {

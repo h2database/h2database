@@ -58,20 +58,20 @@ public class TestStreams extends TestBase {
             comp.close();
             byte[] compressed = out.toByteArray();
             ByteArrayInputStream in = new ByteArrayInputStream(compressed);
-            LZFInputStream decomp = new LZFInputStream(in);
+            LZFInputStream decompress = new LZFInputStream(in);
             byte[] test = new byte[buffer.length];
             for(int j=0; j<buffer.length;) {
                 int[] sizes = new int[]{0, 1, random.nextInt(100), random.nextInt(100000)};
                 int size = sizes[random.nextInt(sizes.length)];
                 if(size == 1) {
-                    int x = decomp.read();
+                    int x = decompress.read();
                     if(x < 0) {
                         break;
                     }
                     test[j++] = (byte)x;
                 } else {
                     size = Math.min(size, test.length-j);
-                    int l = decomp.read(test, j, size);
+                    int l = decompress.read(test, j, size);
                     if(l < 0) {
                         break;
                     } else {

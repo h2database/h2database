@@ -56,7 +56,7 @@ class DbConnection implements DbInterface {
                     tables.remove(i);
                     i--;
                 } catch (SQLException e) {
-                    // maybe a referencial integrity
+                    // maybe a referential integrity
                 }
             }
             // could not drop any table and still tables to drop

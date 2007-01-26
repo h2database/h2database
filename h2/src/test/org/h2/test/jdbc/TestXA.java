@@ -15,8 +15,8 @@ public class TestXA {
         Class.forName("org.h2.Driver");
 
 
-//        InitialContext ictx = new InitialContext();
-//        ictx.rebind(USER_TRANSACTION_JNDI_NAME, jotm.getUserTransaction());
+//        InitialContext context = new InitialContext();
+//        context.rebind(USER_TRANSACTION_JNDI_NAME, j.getUserTransaction());
 
         JdbcDataSource ds1 = new JdbcDataSource();
         ds1.setPassword("");
@@ -28,7 +28,7 @@ public class TestXA {
         ds2.setUser("sa");
         ds2.setURL("jdbc:h2:db2H2");
 
-//        UserTransaction ut = (UserTransaction) ictx.lookup("UserTransaction");
+//        UserTransaction ut = (UserTransaction) context.lookup("UserTransaction");
 //        ut.begin();
 
         Connection c1 = ds1.getXAConnection().getConnection();
@@ -36,15 +36,15 @@ public class TestXA {
         Connection c2 = ds2.getXAConnection().getConnection();
         c2.setAutoCommit(false);
 
-        c1.createStatement().executeUpdate("create table test(id int, teste varchar(255))");
-        c2.createStatement().executeUpdate("create table test(id int, teste varchar(255))");
+        c1.createStatement().executeUpdate("create table test(id int, test varchar(255))");
+        c2.createStatement().executeUpdate("create table test(id int, test varchar(255))");
 
 
 //        ut.rollback();
         c1.close();
         c2.close();
 
-//        jotm.stop();
+//        j.stop();
 //        System.exit(0);
         
     }

@@ -25,12 +25,12 @@ public class TestMultiNewsSimple extends TestMultiThread {
     
     void first() throws SQLException {
         Connection conn = base.getConnection();
-        conn.createStatement().execute("create table news(fid identity, fstate int default 0, text varchar default '')");
+        conn.createStatement().execute("create table news(id identity, state int default 0, text varchar default '')");
         PreparedStatement prep = conn.prepareStatement("insert into news() values()");
         for(int i=0; i<newsCount; i++) {
             prep.executeUpdate();
         }
-        conn.createStatement().execute("update news set text = 'Text' || fid");
+        conn.createStatement().execute("update news set text = 'Text' || id");
         conn.close();
     }
 
@@ -52,12 +52,12 @@ public class TestMultiNewsSimple extends TestMultiThread {
             }
         } else {
             if(random.nextBoolean()) {
-                PreparedStatement prep = conn.prepareStatement("update news set fstate = ? where fid = ?");
+                PreparedStatement prep = conn.prepareStatement("update news set state = ? where id = ?");
                 prep.setInt(1, random.nextInt(getNewsCount()));
                 prep.setInt(2, random.nextInt(10));
                 prep.execute();
             } else {
-                PreparedStatement prep = conn.prepareStatement("select * from news where fid = ?");
+                PreparedStatement prep = conn.prepareStatement("select * from news where id = ?");
                 prep.setInt(1, random.nextInt(getNewsCount()));
                 ResultSet rs = prep.executeQuery();
                 if(!rs.next()) {

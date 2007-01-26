@@ -29,7 +29,7 @@ public class TestNativeSQL extends TestBase {
         conn.nativeSQL("TEST-TEST/TEST/*TEST*/TEST--\rTEST--{fn }");
         conn.nativeSQL("TEST-TEST//TEST");
         conn.nativeSQL("'{}' '' \"1\" \"\"\"\"");
-        conn.nativeSQL("{?= call HEELO{t '10'}}");
+        conn.nativeSQL("{?= call HELLO{t '10'}}");
         conn.nativeSQL("TEST 'test'{OJ OUTER JOIN}'test'{oj OUTER JOIN}");
         conn.nativeSQL("{call {ts '2001-01-10'}}");
         conn.nativeSQL("call ? { 1: '}' };");

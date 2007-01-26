@@ -25,7 +25,7 @@ public abstract class TestHalt extends TestBase {
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
     protected static final int OP_INSERT = 1, OP_DELETE = 2, OP_UPDATE = 4, OP_SELECT = 8;
-    protected static final int FLAG_NODELAY = 1, FLAG_LOBS = 2;
+    protected static final int FLAG_NO_DELAY = 1, FLAG_LOBS = 2;
     protected int operations, flags, value;
     protected Connection conn;
     protected Random random = new Random();
@@ -120,7 +120,7 @@ public abstract class TestHalt extends TestBase {
             // int operations = OP_INSERT;
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
             // int flags = FLAG_NODELAY;
-            // FLAG_NODELAY = 1, FLAG_AUTOCOMMIT = 2, FLAG_SMALLCACHE = 4;
+            // FLAG_NO_DELAY = 1, FLAG_AUTO_COMMIT = 2, FLAG_SMALL_CACHE = 4;
             int value = random.nextInt(1000);
             // for Derby and HSQLDB
             // String classPath = "-cp .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";

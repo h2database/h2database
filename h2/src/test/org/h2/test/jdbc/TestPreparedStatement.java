@@ -46,13 +46,13 @@ public class TestPreparedStatement extends TestBase {
     
     private void testUUIDGeneratedKeys(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TESTUUID(id UUID DEFAULT random_UUID() PRIMARY KEY)");
-        stat.execute("INSERT INTO TESTUUID() VALUES()");
+        stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT random_UUID() PRIMARY KEY)");
+        stat.execute("INSERT INTO TEST_UUID() VALUES()");
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
         byte[] data = rs.getBytes(1);
         check(data.length, 16);
-        stat.execute("DROP TABLE TESTUUID");
+        stat.execute("DROP TABLE TEST_UUID");
     }
     
     private void testSetObject(Connection conn) throws Exception {
@@ -592,12 +592,12 @@ public class TestPreparedStatement extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
         stat.execute("CREATE TABLE T_CLOB(ID INT PRIMARY KEY,V1 CLOB,V2 CLOB)");
-        StringBuffer asciibuffer=new StringBuffer();
+        StringBuffer asciiBuffer=new StringBuffer();
         int len = getLength();
         for(int i=0;i<len;i++) {
-            asciibuffer.append((char)('a'+(i%20)));
+            asciiBuffer.append((char)('a'+(i%20)));
         }
-        String ascii1=asciibuffer.toString();
+        String ascii1=asciiBuffer.toString();
         String ascii2="Number2 "+ascii1;
         prep=conn.prepareStatement("INSERT INTO T_CLOB VALUES(?,?,?)");
         

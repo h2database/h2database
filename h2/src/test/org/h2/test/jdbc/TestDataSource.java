@@ -7,6 +7,10 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import javax.sql.ConnectionEvent;
+import javax.sql.ConnectionEventListener;
+import javax.sql.XAConnection;
+
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
 
@@ -36,12 +40,33 @@ public class TestDataSource extends TestBase {
 //    } 
     
     public void test() throws Exception {
-        deleteDb("datasource");
-
+        testDataSource();
+        testXAConnection();
+    }
+    
+    private void testXAConnection() throws Exception {
+        deleteDb(BASE_DIR, "dataSource");
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setURL("jdbc:h2:"+BASE_DIR+"/datasource");
+        ds.setURL("jdbc:h2:"+BASE_DIR+"/dataSource");
+        XAConnection xaConn = ds.getXAConnection();
+        xaConn.addConnectionEventListener(new ConnectionEventListener() {
+            public void connectionClosed(ConnectionEvent event) {
+            }
+            public void connectionErrorOccurred(ConnectionEvent event) {
+            }
+        });
+        Connection conn = xaConn.getConnection();
+        Statement stat = conn.createStatement();
+        stat.execute("SELECT * FROM DUAL");
+        conn.close();
+        xaConn.close();
+    }
+    
+    private void testDataSource() throws Exception {
+        deleteDb(BASE_DIR, "dataSource");
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:"+BASE_DIR+"/dataSource");
         ds.setUser("sa");
-        ds.setPassword("");
         Connection conn = ds.getConnection();
         Statement stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");

@@ -12,7 +12,7 @@ import java.util.*;
 import org.h2.test.TestBase;
 
 class Result implements Comparable {
-    static final int SUCCESS=0, BOOLEAN=1, INT=2, EXCEPTION=3, RESULTSET=4;
+    static final int SUCCESS=0, BOOLEAN=1, INT=2, EXCEPTION=3, RESULT_SET=4;
     private int type;
     private boolean bool;
     private int intValue;
@@ -46,7 +46,7 @@ class Result implements Comparable {
     
     Result(TestSynth config, String sql, ResultSet rs) {
         this.sql = sql;
-        type = RESULTSET;
+        type = RESULT_SET;
         try {
             rows = new ArrayList();
             header = new ArrayList();
@@ -81,7 +81,7 @@ class Result implements Comparable {
             exception.printStackTrace(new PrintWriter(w));
             return "exception: "+exception.getSQLState()+": "+exception.getMessage() + "\r\n"+w.toString();
         }
-        case RESULTSET:
+        case RESULT_SET:
             String result = "ResultSet { // size=" + rows.size() + "\r\n  ";
             for(int i=0; i<header.size(); i++) {
                 Column column = (Column)header.get(i);
@@ -110,7 +110,7 @@ class Result implements Comparable {
         case BOOLEAN:
         case INT:
         case SUCCESS:
-        case RESULTSET:
+        case RESULT_SET:
             return toString().compareTo(r.toString());
         default:
             throw new Error("internal");
@@ -132,7 +132,7 @@ class Result implements Comparable {
                 System.out.println("> update count: "+intValue);                
             }
             break;
-        case RESULTSET:
+        case RESULT_SET:
             System.out.println("> rs "+rows.size());    
             break;
         }

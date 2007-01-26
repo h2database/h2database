@@ -14,10 +14,10 @@ import org.h2.test.TestBase;
 
 public class TestCancel extends TestBase {
     
-    class Canceller extends Thread {
+    class CancelThread extends Thread {
         private Statement cancel;
         private int wait;
-        Canceller(Statement cancel, int wait) {
+        CancelThread(Statement cancel, int wait) {
             this.cancel = cancel;
             this.wait = wait;
         }
@@ -53,8 +53,8 @@ public class TestCancel extends TestBase {
         // TODO test insert.. select
         for (int i = 1;;) {
             Statement query = conn.createStatement();
-            Canceller canceller = new Canceller(query, i);
-            canceller.start();
+            CancelThread cancel = new CancelThread(query, i);
+            cancel.start();
             Thread.yield();
             int j=0;
             try {

@@ -106,12 +106,12 @@ public class H2Dictionary extends DBDictionary {
                 buf.append(", ").append(pkStr);
         }
 
-        Unique[] unqs = table.getUniques();
-        String unqStr;
-        for (int i = 0; i < unqs.length; i++) {
-            unqStr = getUniqueConstraintSQL(unqs[i]);
-            if (unqStr != null)
-                buf.append(", ").append(unqStr);
+        Unique[] uniques = table.getUniques();
+        String uniqueStr;
+        for (int i = 0; i < uniques.length; i++) {
+            uniqueStr = getUniqueConstraintSQL(uniques[i]);
+            if (uniqueStr != null)
+                buf.append(", ").append(uniqueStr);
         }
 
         buf.append(")");
@@ -154,12 +154,12 @@ public class H2Dictionary extends DBDictionary {
         return cols;
     }
 
-    public void setDouble(PreparedStatement stmnt, int idx, double val, Column col) throws SQLException {
-        super.setDouble(stmnt, idx, val, col);
+    public void setDouble(PreparedStatement stat, int idx, double val, Column col) throws SQLException {
+        super.setDouble(stat, idx, val, col);
     }
 
-    public void setBigDecimal(PreparedStatement stmnt, int idx, BigDecimal val, Column col) throws SQLException {
-        super.setBigDecimal(stmnt, idx, val, col);
+    public void setBigDecimal(PreparedStatement stat, int idx, BigDecimal val, Column col) throws SQLException {
+        super.setBigDecimal(stat, idx, val, col);
     }
 
     protected void appendSelectRange(SQLBuffer buf, long start, long end) {

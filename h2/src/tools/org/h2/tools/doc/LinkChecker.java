@@ -163,7 +163,7 @@ public class LinkChecker {
             } else if(type.equals("name")) {
                 targets.put(path + "#" + ref, "name");
             } else {
-                error(fileName, "unsupported <a xxx: " + html.substring(idx, idx + 100));
+                error(fileName, "unsupported <a ?: " + html.substring(idx, idx + 100));
             }
         }
     }

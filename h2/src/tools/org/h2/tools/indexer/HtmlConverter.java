@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 public class HtmlConverter {
     private static HashMap charMap = new HashMap();
+    private static HashMap codeMap = new HashMap();
     
     private static final String[] CHARS = {
     "quot:34", "amp:38", "lt:60", "gt:62", "nbsp:160", "iexcl:161", "cent:162",
@@ -58,11 +59,43 @@ public class HtmlConverter {
             int idx = token.indexOf(':');
             String key = token.substring(0, idx);
             int ch = Integer.parseInt(token.substring(idx+1));
-            charMap.put(key, new Character((char)ch));
+            Character character = new Character((char)ch);
+            charMap.put(key, character);
+            codeMap.put(character, key);
         }
     }
     
-    public static String convertHtml(String html) {
+    public static String convertStringToHtml(String s) {
+        if(s == null) {
+            return null;
+        }
+        if(s.length() == 0) {
+            return s;
+        }
+        StringBuffer buff = new StringBuffer();
+        for(int i=0; i<s.length(); i++) {
+            char ch = s.charAt(i);
+            Character c = new Character(ch);
+            String token = (String) codeMap.get(c);
+            if(token == null) {
+                if(ch < 128) {
+                    buff.append(ch);
+                } else {
+                    buff.append('&');
+                    buff.append('#');
+                    buff.append((int)ch);
+                    buff.append(';');
+                }
+            } else {
+                buff.append('&');
+                buff.append(token);
+                buff.append(';');
+            }
+        }
+        return buff.toString();
+    }
+    
+    public static String convertHtmlToString(String html) {
         if(html == null) {
             return null;
         }
@@ -110,6 +143,5 @@ public class HtmlConverter {
         }
         return buff.toString();
     }
-    
 
 }

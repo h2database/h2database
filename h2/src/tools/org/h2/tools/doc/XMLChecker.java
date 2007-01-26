@@ -89,7 +89,7 @@ public class XMLChecker {
 
     private static void checkXML(String xml, boolean html) throws Exception {
         String lastElement = null;
-        String[] noclose = new String[]{
+        String[] noClose = new String[]{
                 "li", "link", "meta", "br", "img", "input", "hr", "frame"
         };
         XMLParser parser = new XMLParser(xml);
@@ -110,8 +110,8 @@ public class XMLChecker {
                 if(html && name.equals("table") && lastElement.trim().length() > 0) {
                     throw new Exception("Test before table: " + lastElement);
                 }
-                for(int i=0; html && i<noclose.length; i++) {
-                    if(name.equals(noclose[i])) {
+                for(int i=0; html && i<noClose.length; i++) {
+                    if(name.equals(noClose[i])) {
                         name = null;
                         break;
                     }
@@ -121,8 +121,8 @@ public class XMLChecker {
                 }
             } else if(event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
-                for(int i=0; html && i<noclose.length; i++) {
-                    if(name.equals(noclose[i])) {
+                for(int i=0; html && i<noClose.length; i++) {
+                    if(name.equals(noClose[i])) {
                         throw new Exception("Unnecessary closing element " + name + " at " + parser.getRemaining());
                     }
                 }

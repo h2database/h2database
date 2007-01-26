@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ public class SpellChecker {
     private HashSet used = new HashSet();
     private HashMap unknown = new HashMap();
     private boolean debug;
+    private boolean printDictionary;
     private boolean addToDictionary;
     private static final String[] SUFFIX = new String[]{"java", "sql", "cpp", "txt", "html", "xml", "jsp", "css", "bat", "nsi", "csv", "xml", "js", "def", "dev", "h", "Driver", "properties", "win", "task", "php", "" };
     private static final String[] IGNORE = new String[]{"gif", "png", "odg", "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar"};
@@ -30,22 +32,37 @@ public class SpellChecker {
     private void run(String dictionary, String dir) throws IOException {
         process(new File(dir + "/" + dictionary));
         process(new File(dir));
-        System.out.println("used words");        
-        for(Iterator it = used.iterator(); it.hasNext();) {
-            String s = (String) it.next();
-            System.out.print(s + " ");
-        }
-        System.out.println();        
-        System.out.println("ALL UNKNOWN ----------------------------");        
-        for(Iterator it = unknown.keySet().iterator(); it.hasNext();) {
-            String s = (String) it.next();
-            int count = ((Integer) unknown.get(s)).intValue();
-            if(count > 5) {
-                System.out.print(s + " ");
+        if(printDictionary) {
+            System.out.println("USED WORDS");
+            String[] list = new String[used.size()];
+            used.toArray(list);
+            Arrays.sort(list);
+            StringBuffer buff = new StringBuffer();
+            for(int i=0; i<list.length; i++) {
+                String s = list[i];
+                if(buff.length() > 0) {
+                    if(buff.length() + s.length() > 80) {
+                        System.out.println(buff.toString());
+                        buff.setLength(0);
+                    } else {
+                        buff.append(' ');
+                    }
+                }
+                buff.append(s);
             }
+            System.out.println(buff.toString());
         }
-        System.out.println();        
         if(unknown.size() > 0) {
+            System.out.println();        
+            System.out.println("UNKNOWN WORDS");        
+            for(Iterator it = unknown.keySet().iterator(); it.hasNext();) {
+                String s = (String) it.next();
+                int count = ((Integer) unknown.get(s)).intValue();
+                if(count > 5) {
+                    System.out.print(s + " ");
+                }
+            }
+            System.out.println();        
             throw new IOException("spell check failed");
         }
     }
@@ -57,9 +74,9 @@ public class SpellChecker {
         }
         
         int removeThisLater;
-        if(name.indexOf("\\test\\") >= 0) {
-            return;
-        }
+//        if(name.indexOf("\\test\\") >= 0) {
+//            return;
+//        }
         
         if(file.isDirectory()) {
             File[] list = file.listFiles();
@@ -115,7 +132,7 @@ public class SpellChecker {
     }
     
     private void scan(String fileName, String text) {
-        HashSet notfound = new HashSet();
+        HashSet notFound = new HashSet();
         StringTokenizer tokenizer = new StringTokenizer(text, "\r\n \t+\"*%&/()='[]{},.-;:_<>\\!?$@#|~^`");
         while(tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
@@ -126,17 +143,17 @@ public class SpellChecker {
             if(!addToDictionary && debug) {
                 System.out.print(token + " ");
             }
-            scanCombinedToken(notfound, token);
+            scanCombinedToken(notFound, token);
             if(!addToDictionary && debug) {
                 System.out.println();
             }
         }
-        if(notfound.isEmpty()) {
+        if(notFound.isEmpty()) {
             return;
         }
-        if(notfound.size() > 0) {
+        if(notFound.size() > 0) {
             System.out.println("file: " + fileName);
-            for(Iterator it = notfound.iterator(); it.hasNext();) {
+            for(Iterator it = notFound.iterator(); it.hasNext();) {
                 String s = (String) it.next();
                 System.out.print(s + " ");
             }
@@ -144,24 +161,24 @@ public class SpellChecker {
         }
     }
     
-    private void scanCombinedToken(HashSet notfound, String token) {
+    private void scanCombinedToken(HashSet notFound, String token) {
         for(int i=1; i<token.length(); i++) {
-            char cleft = token.charAt(i-1);
-            char cright = token.charAt(i);
-            if(Character.isLowerCase(cleft) && Character.isUpperCase(cright)) {
-                scanToken(notfound, token.substring(0, i));
+            char charLeft = token.charAt(i-1);
+            char charRight = token.charAt(i);
+            if(Character.isLowerCase(charLeft) && Character.isUpperCase(charRight)) {
+                scanToken(notFound, token.substring(0, i));
                 token = token.substring(i);
                 i = 1;
-            } else if(Character.isUpperCase(cleft) && Character.isLowerCase(cright)) {
-                scanToken(notfound, token.substring(0, i - 1));
+            } else if(Character.isUpperCase(charLeft) && Character.isLowerCase(charRight)) {
+                scanToken(notFound, token.substring(0, i - 1));
                 token = token.substring(i - 1);
                 i = 1;
             }
         }     
-        scanToken(notfound, token);
+        scanToken(notFound, token);
     }
     
-    private void scanToken(HashSet notfound, String token) {
+    private void scanToken(HashSet notFound, String token) {
         if(token.length() < 3) {
             return;
         }
@@ -188,7 +205,7 @@ public class SpellChecker {
             dictionary.add(token);
         } else {
             if(!dictionary.contains(token)) {
-                notfound.add(token);
+                notFound.add(token);
                 increment(unknown, token);
             } else {
                 used.add(token);

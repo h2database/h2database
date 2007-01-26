@@ -31,7 +31,7 @@ public class Indexer {
     boolean title;
     boolean heading;
     
-    private static final int MIN_WORDSIZE = 3;
+    private static final int MIN_WORD_SIZE = 3;
     private static final int MAX_RELATIONS = 20;
 
     public static void main(String[] args) throws Exception {
@@ -222,7 +222,7 @@ public class Indexer {
 //                buff.append(weight.value);
             }
         }
-        // TODO optimization: could support "a name=" and go to _first_ occurance, or scan page and mark
+        // TODO optimization: could support "a name=" and go to _first_ occurrence, or scan page and mark
         output.println("ref['"+convertUTF(first)+"']='"+buff.toString()+"';");
         output.println("// totalRelations: "+totalRelations);
     }
@@ -290,7 +290,7 @@ public class Indexer {
     }
     
     void process(String text) {
-        text = HtmlConverter.convertHtml(text);
+        text = HtmlConverter.convertHtmlToString(text);
         if(title) {
             if(page.title == null) {
                 page.title = text;
@@ -312,7 +312,7 @@ public class Indexer {
                 false);
         while (t.hasMoreTokens()) {
             String token = t.nextToken();
-            if(token.length()<MIN_WORDSIZE) {
+            if(token.length()<MIN_WORD_SIZE) {
                 continue;
             }
             if(Character.isDigit(token.charAt(0))) {

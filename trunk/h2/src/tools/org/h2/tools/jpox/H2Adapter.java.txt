@@ -47,7 +47,7 @@ class H2Adapter extends DatabaseAdapter
     private String schemaName;
     
     /**
-     * Constructs a H2 adapter based on the given JDBCmetadata.
+     * Constructs a H2 adapter based on the given JDBC metadata.
      * @param dictionary The Dictionary to use
      * @param metadata the database metadata.
      */
@@ -75,7 +75,7 @@ class H2Adapter extends DatabaseAdapter
     }
 
     /**
-     * Accessor for the vendor ID for this adapter.
+     * Getter for the vendor ID for this adapter.
      * @return The vendor ID
      */
     public String getVendorID()
@@ -85,7 +85,7 @@ class H2Adapter extends DatabaseAdapter
 
     /**
      * Accessor for a Connection to the datastore.
-     * @param ds The data source. Possible to have more than one datasource for failover
+     * @param ds The data source. Possible to have more than one data source for fail over
      * @param userName The username for the datastore
      * @param password The password for the datastore
      * @param isolationLevel The level of transaction isolation
@@ -149,7 +149,7 @@ class H2Adapter extends DatabaseAdapter
 
     /**
      * Method to return the SQL to append to the SELECT clause of a SELECT statement to handle
-     * restriction of ranges using the LIMUT keyword.
+     * restriction of ranges using the LIMIT keyword.
      * @param offset The offset to return from
      * @param count The number of items to return
      * @return The SQL to append to allow for ranges using LIMIT.
@@ -244,8 +244,8 @@ class H2Adapter extends DatabaseAdapter
     }
 
     /**
-     * Whether we support autoincrementing fields.
-     * @return whether we support autoincrementing fields.
+     * Whether we support auto incrementing fields.
+     * @return whether we support auto incrementing fields.
      **/
     public boolean supportsAutoIncrementFields()
     {
@@ -264,7 +264,7 @@ class H2Adapter extends DatabaseAdapter
     }
 
     /**
-     * Accessor for the auto-increment keyword for generating DDLs (CREATE TABLEs...).
+     * Accessor for the auto-increment keyword for generating DDLs (CREATE TABLE...).
      * @return The keyword for a column using auto-increment
      **/
     public String getAutoIncrementKeyword()
@@ -273,7 +273,7 @@ class H2Adapter extends DatabaseAdapter
     }
 
     /**
-     * Method to retutn the INSERT statement to use when inserting into a table that has no
+     * Method to return the INSERT statement to use when inserting into a table that has no
      * columns specified. This is the case when we have a single column in the table and that column
      * is autoincrement/identity (and so is assigned automatically in the datastore).
      * @param table The table
@@ -298,7 +298,7 @@ class H2Adapter extends DatabaseAdapter
      * Whether this datastore supports the use of CHECK after the column
      * definitions in CREATE TABLE statements (DDL).
      * e.g.
-     * CREATE TABLE XXX
+     * CREATE TABLE XYZ
      * (
      *   COL_A int,
      *   COL_B char(1),

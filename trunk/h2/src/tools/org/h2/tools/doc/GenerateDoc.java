@@ -71,13 +71,13 @@ public class GenerateDoc {
     }
     
     void process(String fileName) throws Exception {
-        FileOutputStream fout = new FileOutputStream(outDir + "/"+fileName+".html");
-        FileInputStream fin = new FileInputStream(inDir + "/"+fileName+".jsp");
-        byte[] bytes = IOUtils.readBytesAndClose(fin, 0);
+        FileOutputStream out = new FileOutputStream(outDir + "/"+fileName+".html");
+        FileInputStream in = new FileInputStream(inDir + "/"+fileName+".jsp");
+        byte[] bytes = IOUtils.readBytesAndClose(in, 0);
         String page = new String(bytes);
         page = PageParser.parse(null, page, session);
-        fout.write(page.getBytes());
-        fout.close();
+        out.write(page.getBytes());
+        out.close();
     }
     
     void map(String key, String sql) throws Exception {

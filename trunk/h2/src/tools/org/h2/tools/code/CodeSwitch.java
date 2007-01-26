@@ -68,8 +68,8 @@ public class CodeSwitch {
         System.out.println("labels in the source code are shown.");
         System.out.println("-r+ recurse subdirectories (default)");
         System.out.println("-r- do not recurse subdirectories");
-        System.out.println("Use +MODE to switch on the things labeld MODE");
-        System.out.println("Use -MODE to switch off the things labeld MODE");
+        System.out.println("Use +MODE to switch on code labeled MODE");
+        System.out.println("Use -MODE to switch off code labeled MODE");
         System.out
                 .println("Path: Any number of path or files may be specified.");
         System.out
@@ -164,7 +164,7 @@ public class CodeSwitch {
 
     private boolean processFile(String name) {
         File f = new File(name);
-        boolean switchoff = false;
+        boolean off = false;
         boolean working = false;
         int state = 0;
         try {
@@ -233,11 +233,11 @@ public class CodeSwitch {
                         }
                         if (switchedOn) {
                             working = true;
-                            switchoff = false;
+                            off = false;
                         } else if (switchedOff) {
                             working = true;
                             insertLine(++i, "/*" + endOfLine);
-                            switchoff = true;
+                            off = true;
                         }
                         if (switches.indexOf(s) == -1) {
                             switches.add(s);
@@ -249,12 +249,12 @@ public class CodeSwitch {
                         }
                         state = 2;
                         if (working) {
-                            if (switchoff) {
+                            if (off) {
                                 insertLine(++i, "*/" + endOfLine);
-                                switchoff = false;
+                                off = false;
                             } else {
                                 insertLine(++i, "/*" + endOfLine);
-                                switchoff = true;
+                                off = true;
                             }
                         }
                     } else if (lineTrim.startsWith("//#endif")) {
@@ -263,7 +263,7 @@ public class CodeSwitch {
                             return false;
                         }
                         state = 0;
-                        if (working && switchoff) {
+                        if (working && off) {
                             insertLine(i++, "*/" + endOfLine);
                         }
                         working = false;
@@ -275,18 +275,18 @@ public class CodeSwitch {
                 return false;
             }
             if (changed) {
-                File fnew = new File(name + ".new");
-                FileWriter write = new FileWriter(fnew);
+                File fileNew = new File(name + ".new");
+                FileWriter write = new FileWriter(fileNew);
                 for (int i = 0; i < lines.size(); i++) {
                     write.write(getLine(i));
                 }
                 write.close();
-                File fbak = new File(name + ".bak");
-                fbak.delete();
-                f.renameTo(fbak);
-                File fcopy = new File(name);
-                fnew.renameTo(fcopy);
-                fbak.delete();
+                File fileBack = new File(name + ".bak");
+                fileBack.delete();
+                f.renameTo(fileBack);
+                File fileCopy = new File(name);
+                fileNew.renameTo(fileCopy);
+                fileBack.delete();
                 System.out.println(name);
             }
             return true;

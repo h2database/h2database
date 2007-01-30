@@ -62,31 +62,6 @@ In most cases H2 is a lot faster than all other
 <tr><td>Statement per Second</td><td>#</td><td>9761</td><td>4546</td><td>1975</td><td>5259</td><td>7823</td></tr>
 </table>
 
-<h3>PolePosition Benchmark</h3>
-<table border="1" class="bar">
-<tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>MySQL</th></tr>
-<tr><td>Melbourne write</td><td>ms</td><td>369</td><td>249</td><td>2022</td></tr>
-<tr><td>Melbourne read</td><td>ms</td><td>47</td><td>49</td><td>93</td></tr>
-<tr><td>Melbourne read_hot</td><td>ms</td><td>24</td><td>43</td><td>95</td></tr>
-<tr><td>Melbourne delete</td><td>ms</td><td>147</td><td>133</td><td>176</td></tr>
-<tr><td>Sepang write</td><td>ms</td><td>965</td><td>1201</td><td>3213</td></tr>
-<tr><td>Sepang read</td><td>ms</td><td>765</td><td>948</td><td>3455</td></tr>
-<tr><td>Sepang read_hot</td><td>ms</td><td>789</td><td>859</td><td>3563</td></tr>
-<tr><td>Sepang delete</td><td>ms</td><td>1384</td><td>1596</td><td>6214</td></tr>
-<tr><td>Bahrain write</td><td>ms</td><td>1186</td><td>1387</td><td>6904</td></tr>
-<tr><td>Bahrain query_indexed_string</td><td>ms</td><td>336</td><td>170</td><td>693</td></tr>
-<tr><td>Bahrain query_string</td><td>ms</td><td>18064</td><td>39703</td><td>41243</td></tr>
-<tr><td>Bahrain query_indexed_int</td><td>ms</td><td>104</td><td>134</td><td>678</td></tr>
-<tr><td>Bahrain update</td><td>ms</td><td>191</td><td>87</td><td>159</td></tr>
-<tr><td>Bahrain delete</td><td>ms</td><td>1215</td><td>729</td><td>6812</td></tr>
-<tr><td>Imola retrieve</td><td>ms</td><td>198</td><td>194</td><td>4036</td></tr>
-<tr><td>Barcelona write</td><td>ms</td><td>413</td><td>832</td><td>3191</td></tr>
-<tr><td>Barcelona read</td><td>ms</td><td>119</td><td>160</td><td>1177</td></tr>
-<tr><td>Barcelona query</td><td>ms</td><td>20</td><td>5169</td><td>101</td></tr>
-<tr><td>Barcelona delete</td><td>ms</td><td>388</td><td>319</td><td>3287</td></tr>
-<tr><td>Total</td><td>ms</td><td>26724</td><td>53962</td><td>87112</td></tr>
-</table>
-
 <h3>Benchmark Results and Comments</h3>
 
 <h4>H2</h4>
@@ -217,6 +192,35 @@ Here, one (wrapper) connection is opened at the start,
 and for each step a new connection is opened and then closed.
 That means the Open/Close time listed is for opening a connection
 if the database is already in use.
+
+<h3>PolePosition Benchmark</h3>
+<p>
+The PolePosition is an open source benchmark. The algorithms are all quite simple.
+It was developed / sponsored by db4o.
+</p>
+<table border="1" class="bar">
+<tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>MySQL</th></tr>
+<tr><td>Melbourne write</td><td>ms</td><td>369</td><td>249</td><td>2022</td></tr>
+<tr><td>Melbourne read</td><td>ms</td><td>47</td><td>49</td><td>93</td></tr>
+<tr><td>Melbourne read_hot</td><td>ms</td><td>24</td><td>43</td><td>95</td></tr>
+<tr><td>Melbourne delete</td><td>ms</td><td>147</td><td>133</td><td>176</td></tr>
+<tr><td>Sepang write</td><td>ms</td><td>965</td><td>1201</td><td>3213</td></tr>
+<tr><td>Sepang read</td><td>ms</td><td>765</td><td>948</td><td>3455</td></tr>
+<tr><td>Sepang read_hot</td><td>ms</td><td>789</td><td>859</td><td>3563</td></tr>
+<tr><td>Sepang delete</td><td>ms</td><td>1384</td><td>1596</td><td>6214</td></tr>
+<tr><td>Bahrain write</td><td>ms</td><td>1186</td><td>1387</td><td>6904</td></tr>
+<tr><td>Bahrain query_indexed_string</td><td>ms</td><td>336</td><td>170</td><td>693</td></tr>
+<tr><td>Bahrain query_string</td><td>ms</td><td>18064</td><td>39703</td><td>41243</td></tr>
+<tr><td>Bahrain query_indexed_int</td><td>ms</td><td>104</td><td>134</td><td>678</td></tr>
+<tr><td>Bahrain update</td><td>ms</td><td>191</td><td>87</td><td>159</td></tr>
+<tr><td>Bahrain delete</td><td>ms</td><td>1215</td><td>729</td><td>6812</td></tr>
+<tr><td>Imola retrieve</td><td>ms</td><td>198</td><td>194</td><td>4036</td></tr>
+<tr><td>Barcelona write</td><td>ms</td><td>413</td><td>832</td><td>3191</td></tr>
+<tr><td>Barcelona read</td><td>ms</td><td>119</td><td>160</td><td>1177</td></tr>
+<tr><td>Barcelona query</td><td>ms</td><td>20</td><td>5169</td><td>101</td></tr>
+<tr><td>Barcelona delete</td><td>ms</td><td>388</td><td>319</td><td>3287</td></tr>
+<tr><td>Total</td><td>ms</td><td>26724</td><td>53962</td><td>87112</td></tr>
+</table>
 
 <br><a name="application_profiling"></a>
 <h2>Application Profiling</h2>

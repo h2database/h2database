@@ -1705,7 +1705,9 @@ public class Parser {
             Sequence sequence = database.getSchema(schemaName).findSequence(objectName);
             if(sequence != null) {
                 Function function = Function.getFunction(database, "CURRVAL");
-                function.setParameter(0, ValueExpression.get(ValueString.get(objectName)));
+                function.setParameter(0, ValueExpression.get(ValueString.get(schemaName)));
+                function.setParameter(1, ValueExpression.get(ValueString.get(objectName)));
+                function.doneWithParameters();
                 return function;
             }
         }
@@ -1931,6 +1933,7 @@ public class Parser {
         function.setParameter(0, when);
         function.setParameter(1, then);
         function.setParameter(2, elsePart);
+        function.doneWithParameters();
         return function;
     }
 
@@ -3587,12 +3590,12 @@ public class Parser {
                 command.setStartWith(start);
                 return command;
             } else if(readIf("SELECTIVITY")) {
-                int sel = getPositiveInt();
+                int selectivity = getPositiveInt();
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.SELECTIVITY);
                 command.setOldColumn(column);
-                command.setStartWith(sel);
+                command.setStartWith(selectivity);
                 return command;
             } else {
                 Column newColumn = parseColumnForTable(columnName);

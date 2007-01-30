@@ -62,21 +62,21 @@ function listWords(value, open) {
       word = wordRef.split("=")[0];
       var tr = table.insertRow(x++);
       var td = document.createElement('td');
-      var tdc = document.createAttribute('class');
-      tdc.nodeValue = 'searchKeyword';
-      td.setAttributeNode(tdc);
+      var tdClass = document.createAttribute('class');
+      tdClass.nodeValue = 'searchKeyword';
+      td.setAttributeNode(tdClass);
 
       var ah = document.createElement('a');
-      var hre = document.createAttribute('href');
-      hre.nodeValue = 'javascript:set("' + word + '");';
+      var href = document.createAttribute('href');
+      href.nodeValue = 'javascript:set("' + word + '");';
       var link = document.createTextNode(word);
-      ah.setAttributeNode(hre);
+      ah.setAttributeNode(href);
       ah.appendChild(link);
       td.appendChild(ah);
       tr.appendChild(td);
-      pis = wordRef.split("=")[1].split(",");
+      piList = wordRef.split("=")[1].split(",");
       if(count<20 || open==word) {
-        x = addReferences(x, pis, word);
+        x = addReferences(x, piList, word);
       }
     }
   }
@@ -129,10 +129,10 @@ function listAnd(keywords) {
     for(var j=0; j<words.length; j++) {
       var wordRef = words[j];
       if(wordRef.toLowerCase().indexOf(value)==0) {
-        pis = wordRef.split("=")[1].split(",");
+        piList = wordRef.split("=")[1].split(",");
         var w=1;
-        for(var k=0; k<pis.length; k++) {
-          var pi = pis[k];
+        for(var k=0; k<piList.length; k++) {
+          var pi = piList[k];
           if(pi.charAt(0) == 't') {
             pi = pi.substring(1);
             w=10000;
@@ -155,36 +155,36 @@ function listAnd(keywords) {
   }
   var x = 0;
   var table = document.getElementById('result');
-  var pis = new Array();
-  var piw = new Array();
+  var piList = new Array();
+  var piWeight = new Array();
   for(var i=0; i<pages.length; i++) {
     if(count[i] >= keywords.length) {
-      pis[x] = '' + i;
-      piw[x] = weight[i];
+      piList[x] = '' + i;
+      piWeight[x] = weight[i];
       x++;
     }
   }
   // sort
   for (var i = 1, j; i < x; i++) {
-    var tw = piw[i];
-    var ti = pis[i];
-    for (j = i - 1; j >= 0 && (piw[j] < tw); j--) {
-      piw[j + 1] = piw[j];
-      pis[j + 1] = pis[j];
+    var tw = piWeight[i];
+    var ti = piList[i];
+    for (j = i - 1; j >= 0 && (piWeight[j] < tw); j--) {
+      piWeight[j + 1] = piWeight[j];
+      piList[j + 1] = piList[j];
     }
-    piw[j + 1] = tw;
-    pis[j + 1] = ti;
+    piWeight[j + 1] = tw;
+    piList[j + 1] = ti;
   }
-  addReferences(0, pis, keywords);
-  if(pis.length == 0) {
+  addReferences(0, piList, keywords);
+  if(piList.length == 0) {
     noResults(table);
   }
 }
 
-function addReferences(x, pis, word) {
+function addReferences(x, piList, word) {
   var table = document.getElementById('result');
-  for(var j=0; j<pis.length; j++) {
-    var pi = pis[j];
+  for(var j=0; j<piList.length; j++) {
+    var pi = piList[j];
     if(pi.charAt(0) == 't') {
       pi = pi.substring(1);
     } else if(pi.charAt(0) == 'h') {
@@ -194,18 +194,18 @@ function addReferences(x, pis, word) {
     }
     var tr = table.insertRow(x++);
     var td = document.createElement('td');
-    var tdc = document.createAttribute('class');
-    tdc.nodeValue = 'searchLink';
-    td.setAttributeNode(tdc);
+    var tdClass = document.createAttribute('class');
+    tdClass.nodeValue = 'searchLink';
+    td.setAttributeNode(tdClass);
     var ah = document.createElement('a');
-    var hre = document.createAttribute('href');
+    var href = document.createAttribute('href');
     var thisLink = 'javascript:go(' + pi + ', "' + word + '")';
     if(firstLink==null) {
       firstLink = pi;
       firstLinkWord = word;
     }
-    hre.nodeValue = thisLink;
-    ah.setAttributeNode(hre);
+    href.nodeValue = thisLink;
+    ah.setAttributeNode(href);
     var page = pages[pi];
     var link = document.createTextNode(page.title);
     ah.appendChild(link);
@@ -240,9 +240,9 @@ function replaceOtherChars(s) {
 function noResults(table) {
   var tr = table.insertRow(0);
   var td = document.createElement('td');
-  var tdc = document.createAttribute('class');
-  tdc.nodeValue = 'searchKeyword';
-  td.setAttributeNode(tdc);
+  var tdClass = document.createAttribute('class');
+  tdClass.nodeValue = 'searchKeyword';
+  td.setAttributeNode(tdClass);
   var text = document.createTextNode('No results found');
   td.appendChild(text);
   tr.appendChild(td);

@@ -11,7 +11,7 @@ Advanced Topics
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Advanced Topics</h1>
-<a href="#resultsets">
+<a href="#result_sets">
     Result Sets</a><br>
 <a href="#large_objects">
     Large Objects</a><br>
@@ -46,7 +46,7 @@ Advanced Topics
 <a href="#glossary_links">
     Glossary and Links</a><br>
 
-<br><a name="resultsets"></a>
+<br><a name="result_sets"></a>
 <h2>Result Sets</h2>
 
 <h3>Limiting the Number of Rows</h3>
@@ -85,7 +85,7 @@ CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 
 </pre>
 It is then possible to access the table in the usual way. 
 There is a restriction when inserting data to this table: When inserting or updating rows into the table,
-NULL values and values that are not set in the insert statement are both inserted as NULL.
+NULL and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
 
 <br><a name="transaction_isolation"></a>
@@ -358,7 +358,7 @@ In Java, there are two ways how this can be achieved:
 </p>
 <ul>
 <li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
-Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDesecriptor
+Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor
 have been written to the physical medium.
 <li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
 to be written to the storage device that contains it.
@@ -643,7 +643,7 @@ custom certificates are supported as well.
 
 <br><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
-This database supports UUIDs. Also upported is a function to create new UUIDs using 
+This database supports the UUIDs. Also supported is a function to create new UUIDs using 
 a cryptographically strong pseudo random number generator.
 With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.

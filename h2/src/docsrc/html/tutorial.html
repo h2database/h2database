@@ -27,7 +27,7 @@ Tutorial
     CSV (Comma Separated Values) Support</a><br>
 <a href="#upgrade_backup_restore">
     Upgrade, Backup, and Restore</a><br>
-<a href="#openoffice">
+<a href="#open_office">
     Using OpenOffice Base</a><br>
 
 <br><a name="tutorial_starting_h2_console"></a>
@@ -384,8 +384,8 @@ SimpleResultSet rs = new SimpleResultSet();
 rs.addColumn("NAME", Types.VARCHAR, 255, 0);
 rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
 rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
-rs.addRow(new String[]{"Bob Meier", "bob.meier@abcde.fgh", "+41123456789"});
-rs.addRow(new String[]{"John Jones", "johnjones@abcde.fgh", "+41976543210"});
+rs.addRow(new String[]{"Bob Meier", "bob.meier@abcde.abc", "+41123456789"});
+rs.addRow(new String[]{"John Jones", "john.jones@abcde.abc", "+41976543210"});
 Csv.write("test.csv", rs, null);
 </pre>
 
@@ -438,7 +438,7 @@ SQL script files may contain references to other script files, in the form of
 RUNSCRIPT commands. However, when using the server mode, the references script files
 need to be available on the server side.
 
-<br><a name="openoffice"></a>
+<br><a name="open_office"></a>
 <h2>Using OpenOffice Base</h2>
 OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database 
 using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.

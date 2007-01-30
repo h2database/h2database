@@ -17,7 +17,11 @@ package org.h2.engine;
  * - Compiling with JDK 1.3, 1.4, 1.5 and 1.6
  * 
  *   set path=C:\jdk1.3.1_19\bin;%PATH%
- *   set JAVA_HOME=C:\jdk1.3.1_19\bin
+ *   set JAVA_HOME=C:\jdk1.3.1_19
+ *   ant codeswitch_jdk13
+ *   ant compile
+ *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
+ *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   ant codeswitch_jdk16
  *   ant compile
  *
@@ -38,7 +42,7 @@ package org.h2.engine;
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
- *   (remove rows 2*open/close, 2*executed statement)
+ *   (remove 2*executed statement)
  *
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all javadoc files are in the index
@@ -69,8 +73,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 40;
-    private static final String BUILD = "2007-01-17";
+    public static final int BUILD_ID = 41;
+    private static final String BUILD = "2007-01-30";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -118,7 +122,6 @@ public class Constants {
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
     public static final String SUFFIX_LOB_FILE = ".lob.db";
     public static final String SUFFIX_TRACE_START_FILE = ".start";
-    public static final String SUFFIX_SUMMARY_FILE = ".sum.db";
     public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
 
     public static final String UTF8 = "UTF8";

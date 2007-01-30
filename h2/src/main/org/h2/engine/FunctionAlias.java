@@ -153,7 +153,7 @@ public class FunctionAlias extends DbObject {
                             // need to set to default value otherwise the function can't be called at all
                             o = DataType.getDefaultForPrimitiveType(paramClass);
                         } else {
-                            // NULL value for a java primitive: return NULL
+                            // NULL for a java primitive: return NULL
                             return ValueNull.INSTANCE;
                         }
                     }

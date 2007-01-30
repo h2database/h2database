@@ -349,7 +349,7 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>In-Memory (named)</td>
   <td>
     jdbc:h2:mem:&lt;databaseName&gt;<br>
-    jdbc:h2:mem:imdb1
+    jdbc:h2:mem:test_mem
   </td>
 </tr>
 <tr>
@@ -816,14 +816,14 @@ Here is the list of currently supported modes and the difference to the regular 
 <tr><td>
   PostgreSQL
 </td><td>
-  Concatenation of a NULL value with another value results in NULL.
+  Concatenation of a NULL with another value results in NULL.
   Usually, the NULL is treated as an empty string if only one of the operators is NULL,
   and NULL is only returned if both values are NULL.
 </td></tr>
 <tr><td>
   MySQL
 </td><td>
-  When inserting data, if a column is defined to be NOT NULL and a null value is inserted,
+  When inserting data, if a column is defined to be NOT NULL and NULL is inserted,
   then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
   Usually, this operation is not allowed and an exception is thrown.
 </td></tr>
@@ -1024,7 +1024,7 @@ secure. A way to create good passwords that can be remembered is, take the first
 letters of a sentence, use upper and lower case characters, and creatively include special characters. 
 Example:
 </p><p>
-i'sE2rTpiUKtt (it's easy to remember this password if you know the trick)
+i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
 </p>
 
 <h3>Passwords: Using Char Arrays instead of Strings</h3>
@@ -1096,7 +1096,7 @@ public class Function {
 </pre>
 The Java function must be registered in the database by calling CREATE ALIAS:
 <pre>
-CREATE ALIAS ISPRIME FOR "org.h2.samples.Function.isPrime"
+CREATE ALIAS IS_PRIME FOR "org.h2.samples.Function.isPrime"
 </pre>
 For a complete sample application, see src/test/org/h2/samples/Function.java.
 

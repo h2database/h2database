@@ -91,13 +91,13 @@ public class Function extends Expression implements FunctionCall {
             ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211, MEMORY_FREE = 212,
             MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217;
 
-    private static final int VARARGS = -1;
+    private static final int VAR_ARGS = -1;
 
     private static HashMap functions;
 
     private FunctionInfo info;
     private Expression[] args;
-    private ObjectArray varargs;
+    private ObjectArray varArgs;
     private int dataType, scale;
     private long precision;
     private Database database;
@@ -163,7 +163,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("PI", PI, 0, Value.DOUBLE);
         addFunction("POWER", POWER, 2, Value.DOUBLE);
         addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
-        addFunctionNotConst("RAND", RAND, VARARGS, Value.DOUBLE); // no args: regular rand; with one arg: seed random generator
+        addFunctionNotConst("RAND", RAND, VAR_ARGS, Value.DOUBLE); // no args: regular rand; with one arg: seed random generator
         addFunction("ROUND", ROUND, 2, Value.DOUBLE);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("SIGN", SIGN, 1, Value.INT);
@@ -175,7 +175,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);
         addFunctionNotConst("SECURE_RAND", SECURE_RAND, 1, Value.BYTES);
-        addFunction("COMPRESS", COMPRESS, VARARGS, Value.BYTES);
+        addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.BYTES);
         addFunction("EXPAND", EXPAND, 1, Value.BYTES);
         addFunction("ZERO", ZERO, 0, Value.INT);
         addFunctionNotConst("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
@@ -186,38 +186,38 @@ public class Function extends Expression implements FunctionCall {
         addFunction("CHAR", CHAR, 1, Value.STRING);
         addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
         addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT); // same as CHAR_LENGTH
-        addFunctionWithNull("CONCAT", CONCAT, VARARGS, Value.STRING);
+        addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
         addFunctionWithNull("INSERT", INSERT, 4, Value.STRING);
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
         addFunction("LENGTH", LENGTH, 1, Value.INT);
-        addFunction("LOCATE", LOCATE, VARARGS, Value.INT); // 2 or 3 arguments
+        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT); // 2 or 3 arguments
         addFunction("POSITION", LOCATE, 2, Value.INT); // same as LOCATE with 2 arguments
-        addFunction("INSTR", INSTR, VARARGS, Value.INT);
-        addFunction("LTRIM", LTRIM, VARARGS, Value.STRING);
+        addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
+        addFunction("LTRIM", LTRIM, VAR_ARGS, Value.STRING);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.INT);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
-        addFunctionWithNull("REPLACE", REPLACE, VARARGS, Value.STRING);
+        addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
         addFunction("RIGHT", RIGHT, 2, Value.STRING);
-        addFunction("RTRIM", RTRIM, VARARGS, Value.STRING);
+        addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
         addFunction("SPACE", SPACE, 1, Value.STRING);
-        addFunction("SUBSTR", SUBSTR, VARARGS, Value.STRING);
-        addFunction("SUBSTRING", SUBSTRING, VARARGS, Value.STRING);
+        addFunction("SUBSTR", SUBSTR, VAR_ARGS, Value.STRING);
+        addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.STRING);
         addFunction("UCASE", UCASE, 1, Value.STRING);
         addFunction("LOWER", LOWER, 1, Value.STRING);
         addFunction("UPPER", UPPER, 1, Value.STRING);
         addFunction("POSITION", POSITION, 2, Value.INT);
-        addFunction("TRIM", TRIM, VARARGS, Value.STRING);
+        addFunction("TRIM", TRIM, VAR_ARGS, Value.STRING);
         addFunction("STRINGENCODE", STRINGENCODE, 1, Value.STRING);
         addFunction("STRINGDECODE", STRINGDECODE, 1, Value.STRING);
         addFunction("STRINGTOUTF8", STRINGTOUTF8, 1, Value.BYTES);
         addFunction("UTF8TOSTRING", UTF8TOSTRING, 1, Value.STRING);
         addFunction("XMLATTR", XMLATTR, 2, Value.STRING);
-        addFunctionWithNull("XMLNODE", XMLNODE, VARARGS, Value.STRING);
+        addFunctionWithNull("XMLNODE", XMLNODE, VAR_ARGS, Value.STRING);
         addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.STRING);
         addFunction("XMLCDATA", XMLCDATA, 1, Value.STRING);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
@@ -228,8 +228,8 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("CURDATE", CURDATE, 0, Value.DATE);
         addFunctionNotConst("CURRENT_TIME", CURRENT_TIME, 0, Value.TIME);
         addFunctionNotConst("CURTIME", CURTIME, 0, Value.TIME);
-        addFunctionNotConst("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VARARGS, Value.TIMESTAMP);
-        addFunctionNotConst("NOW", NOW, VARARGS, Value.TIMESTAMP);
+        addFunctionNotConst("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotConst("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATEDIFF, 3, Value.LONG);
         addFunction("DAYNAME", DAYNAME, 1, Value.STRING);
@@ -246,8 +246,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("WEEK", WEEK, 1, Value.INT);
         addFunction("YEAR", YEAR, 1, Value.INT);
         addFunction("EXTRACT", EXTRACT, 2, Value.INT);
-        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VARARGS, Value.STRING);
-        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VARARGS, Value.TIMESTAMP);
+        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VAR_ARGS, Value.STRING);
+        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
         // system
         addFunctionNotConst("DATABASE", DATABASE, 0, Value.STRING);
         addFunctionNotConst("USER", USER, 0, Value.STRING);
@@ -263,15 +263,15 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("CASEWHEN", CASEWHEN, 3, Value.NULL);
         addFunctionWithNull("CONVERT", CONVERT, 1, Value.NULL);
         addFunctionWithNull("CAST", CAST, 1, Value.NULL);
-        addFunctionWithNull("COALESCE", COALESCE, VARARGS, Value.NULL);
-        addFunctionWithNull("NVL", COALESCE, VARARGS, Value.NULL);
+        addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
+        addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF, 2, Value.NULL);
-        addFunctionWithNull("CASE", CASE, VARARGS, Value.NULL);
-        addFunctionNotConst("NEXTVAL", NEXTVAL, VARARGS, Value.LONG);
-        addFunctionNotConst("CURRVAL", CURRVAL, VARARGS, Value.LONG);
+        addFunctionWithNull("CASE", CASE, VAR_ARGS, Value.NULL);
+        addFunctionNotConst("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
+        addFunctionNotConst("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.NULL);
-        addFunction("CSVREAD", CSVREAD, VARARGS, Value.RESULT_SET, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VARARGS, Value.NULL, false, false);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.NULL, false, false);
         addFunctionNotConst("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
         addFunctionNotConst("MEMORY_USED", MEMORY_USED, 0, Value.INT);
         addFunctionNotConst("LOCK_MODE", LOCK_MODE, 0, Value.INT);
@@ -318,16 +318,16 @@ public class Function extends Expression implements FunctionCall {
     private Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
-        if(info.parameterCount == VARARGS) {
-            varargs = new ObjectArray();
+        if(info.parameterCount == VAR_ARGS) {
+            varArgs = new ObjectArray();
         } else {
             args = new Expression[info.parameterCount];
         }
     }
 
     public void setParameter(int index, Expression param) throws SQLException {
-        if(varargs != null) {
-            varargs.add(param);
+        if(varArgs != null) {
+            varArgs.add(param);
         } else {
             if(index >= args.length) {
                 throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, ""+args.length);
@@ -914,7 +914,7 @@ public class Function extends Expression implements FunctionCall {
         int field = getDatePart(part);
         Calendar calendar = Calendar.getInstance();
         long t1 = d1.getTime(), t2 = d2.getTime();
-        // need to convert to UTC, otherwise we get inconsistent results with certain timezones (those that are 30 minites off)
+        // need to convert to UTC, otherwise we get inconsistent results with certain timezones (those that are 30 minutes off)
         TimeZone zone = calendar.getTimeZone();
         calendar.setTime(d1);
         t1 += zone.getOffset(calendar.get(Calendar.ERA), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
@@ -987,12 +987,12 @@ public class Function extends Expression implements FunctionCall {
             s = (i == 0) ? s : s.substring(i);
         }
         if(trailing) {
-            int endindex = s.length() - 1;
-            int i = endindex;
+            int endIndex = s.length() - 1;
+            int i = endIndex;
             while (i >= 0 && s.charAt(i) == space) {
                 i--;
             }
-            s = i == endindex ? s : s.substring(0, i + 1);
+            s = i == endIndex ? s : s.substring(0, i + 1);
         }
         return s;
     }
@@ -1149,21 +1149,21 @@ public class Function extends Expression implements FunctionCall {
     private static String getSoundex(String s) {
         int  len = s.length();
         char[] chars = new char[] { '0', '0', '0', '0' };
-        char lastdigit = '0';
+        char lastDigit = '0';
         for (int i = 0, j = 0; i < len && j < 4; i++) {
             char c = s.charAt(i);
-            char newdigit = c > SOUNDEX_INDEX.length ? 0 : SOUNDEX_INDEX[c];
-            if(newdigit != 0) {
+            char newDigit = c > SOUNDEX_INDEX.length ? 0 : SOUNDEX_INDEX[c];
+            if(newDigit != 0) {
                 if (j == 0) {
                     chars[j++] = c;
-                    lastdigit = newdigit;
-                } else if (newdigit <= '6') {
-                    if (newdigit != lastdigit) {
-                        chars[j++]    = newdigit;
-                        lastdigit = newdigit;
+                    lastDigit = newDigit;
+                } else if (newDigit <= '6') {
+                    if (newDigit != lastDigit) {
+                        chars[j++]    = newDigit;
+                        lastDigit = newDigit;
                     }
-                } else if (newdigit == '7') {
-                    lastdigit = newdigit;
+                } else if (newDigit == '7') {
+                    lastDigit = newDigit;
                 }
             }
         }
@@ -1181,8 +1181,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public void doneWithParameters() throws SQLException {
-        if(info.parameterCount == VARARGS) {
-            int len = varargs.size();
+        if(info.parameterCount == VAR_ARGS) {
+            int len = varArgs.size();
             int min=0, max=Integer.MAX_VALUE;
             switch (info.type) {
             case COALESCE:
@@ -1239,8 +1239,8 @@ public class Function extends Expression implements FunctionCall {
                 throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, min + ".." + max);
             }
             args = new Expression[len];
-            varargs.toArray(args);
-            varargs = null;
+            varArgs.toArray(args);
+            varArgs = null;
         } else {
             int len = args.length;
             if(len>0 && args[len-1] == null) {

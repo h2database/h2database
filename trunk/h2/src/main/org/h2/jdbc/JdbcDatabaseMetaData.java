@@ -1572,7 +1572,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether refererential integrity is supported.
+     * Returns whether referential integrity is supported.
      *
      * @return true
      */
@@ -1872,7 +1872,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether open result sets accross commits are supported.
+     * Returns whether open result sets across commits are supported.
      *
      * @return false
      */
@@ -1882,7 +1882,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether open result sets accross rollback are supported.
+     * Returns whether open result sets across rollback are supported.
      *
      * @return false
      */
@@ -1892,7 +1892,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether open statements accross commit are supported.
+     * Returns whether open statements across commit are supported.
      *
      * @return true
      */
@@ -1902,7 +1902,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether open statements accross rollback are supported.
+     * Returns whether open statements across rollback are supported.
      *
      * @return true
      */
@@ -1974,7 +1974,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether a specific result set type is supported.
-     * ResultSet.TYPE_SCROLL_SENSITIVE is notsupported.
+     * ResultSet.TYPE_SCROLL_SENSITIVE is not supported.
      *
      * @return true for all types except ResultSet.TYPE_FORWARD_ONLY
      */
@@ -1985,7 +1985,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether a specific result set concurrency is supported.
-     * ResultSet.TYPE_SCROLL_SENSITIVE is notsupported.
+     * ResultSet.TYPE_SCROLL_SENSITIVE is not supported.
      *
      * @return true if the type is not ResultSet.TYPE_SCROLL_SENSITIVE
      */
@@ -2053,7 +2053,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether updates are dectected.
+     * Returns whether updates are detected.
      * @return false
      */
     public boolean updatesAreDetected(int type) {
@@ -2620,7 +2620,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Returns whether an exception while autocommit is on closes all result sets.
+     * Returns whether an exception while auto commit is on closes all result sets.
      * @return false
      */
     public boolean autoCommitFailureClosesAllResultSets() throws SQLException {

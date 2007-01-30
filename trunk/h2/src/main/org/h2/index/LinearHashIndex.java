@@ -262,7 +262,7 @@ public class LinearHashIndex extends Index implements RecordReader {
                 // (and it would be an error to set next to -1)
                 moveOut(session, foreign, storeIn);
                 if(Constants.CHECK && getBucket(foreign).getNextBucket() != -1) {
-                    throw Message.getInternalError("moveout "+foreign);
+                    throw Message.getInternalError("moveOut "+foreign);
                 }
                 return;
             }

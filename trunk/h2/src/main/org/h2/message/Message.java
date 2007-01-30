@@ -23,7 +23,7 @@ public class Message {
     private static final Properties MESSAGES = new Properties();
 
     static {
-        // TODO multilanguage messages
+        // TODO multi language messages
         // String language = Locale.getDefault().getLanguage();
         try {
             byte[] messages = Resources.get("/org/h2/res/messages.properties");
@@ -37,16 +37,14 @@ public class Message {
 
     /**
      * Gets the SQL Exception object for a specific SQLState. Supported
-     * sqlstates are:
+     * SQL states are:
      *
-     * @param sqlstate -
-     *            the SQL State
-     * @param param -
-     *            the parameter of the message
+     * @param sqlState - the SQL State
+     * @param param - the parameter of the message
      * @return the SQLException object
      */
-    public static JdbcSQLException getSQLException(int sqlstate, String p1) {
-        return getSQLException(sqlstate, new String[] { p1 }, null);
+    public static JdbcSQLException getSQLException(int sqlState, String p1) {
+        return getSQLException(sqlState, new String[] { p1 }, null);
     }
 
     public static String translate(String key, String[] param) {
@@ -360,8 +358,8 @@ public class Message {
         if(e instanceof SQLException) {
             return (SQLException)e;
         } else if(e instanceof InvocationTargetException) {
-            InvocationTargetException ite = (InvocationTargetException)e;
-            Throwable t = ite.getTargetException();
+            InvocationTargetException te = (InvocationTargetException)e;
+            Throwable t = te.getTargetException();
             if(t instanceof SQLException) {
                 return (SQLException)t;
             }

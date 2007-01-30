@@ -54,7 +54,7 @@ import java.sql.SQLClientInfoException;
  * Represents a connection (session) to a database.
  */
 public class JdbcConnection extends TraceObject implements Connection {
-    // TODO test: check if enough sychronization on jdbc objects
+    // TODO test: check if enough synchronization on jdbc objects
     // TODO feature auto-reconnect on lost connection!
 
     private String url;
@@ -272,11 +272,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Switches autocommit on or off. Calling this function does not commit the
+     * Switches auto commit on or off. Calling this function does not commit the
      * current transaction.
      *
      * @param autoCommit
-     *            true for autocommit on, false for off
+     *            true for auto commit on, false for off
      * @throws SQLException
      *             if the connection is closed
      */
@@ -299,7 +299,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Gets the current setting for autocommit.
+     * Gets the current setting for auto commit.
      *
      * @return true for on, false for off
      * @throws SQLException
@@ -319,14 +319,14 @@ public class JdbcConnection extends TraceObject implements Connection {
         getAutoCommit = prepareCommand("CALL AUTOCOMMIT()", getAutoCommit);
         ResultInterface result = getAutoCommit.executeQuery(0, false);
         result.next();
-        boolean autocommit = result.currentRow()[0].getBoolean().booleanValue();
+        boolean autoCommit = result.currentRow()[0].getBoolean().booleanValue();
         result.close();
-        return autocommit;
+        return autoCommit;
     }
 
     /**
      * Commits the current transaction. This call has only an effect if
-     * autocommit is switched off.
+     * auto commit is switched off.
      *
      * @throws SQLException
      *             if the connection is closed
@@ -344,7 +344,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Rolls back the current transaction. This call has only an effect if
-     * autocommit is switched off.
+     * auto commit is switched off.
      *
      * @throws SQLException
      *             if the connection is closed
@@ -1117,25 +1117,25 @@ public class JdbcConnection extends TraceObject implements Connection {
                     i++;
                     checkRunOver(i, len, sql);
                 }
-                int repl = 0;
+                int remove = 0;
                 if (found(sql, start, "fn")) {
-                    repl = 2;
+                    remove = 2;
                 } else if (found(sql, start, "escape")) {
                     break;
                 } else if (found(sql, start, "call")) {
                     break;
                 } else if (found(sql, start, "oj")) {
-                    repl = 2;
+                    remove = 2;
                 } else if (found(sql, start, "ts")) {
-                    repl = 2;
+                    remove = 2;
                 } else if (found(sql, start, "t")) {
-                    repl = 1;
+                    remove = 1;
                 } else if (found(sql, start, "d")) {
-                    repl = 1;
+                    remove = 1;
                 } else if (found(sql, start, "params")) {
-                    repl = 1;
+                    remove = "params".length();
                 }
-                for (i = start; repl > 0; i++, repl--) {
+                for (i = start; remove > 0; i++, remove--) {
                     chars[i] = ' ';
                 }
                 break;

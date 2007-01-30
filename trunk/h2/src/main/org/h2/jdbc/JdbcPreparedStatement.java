@@ -103,7 +103,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * another result set exists for this statement, this will be closed (even if this statement fails).
      *
      * If the statement is a create or drop and does not throw an exception, the current transaction (if any) is
-     * committed after executing the statement. If autocommit is on, this statement will be committed.
+     * committed after executing the statement. If auto commit is on, this statement will be committed.
      *
      * @return the update count (number of row affected by an insert, update or delete, or 0 if no rows or the statement
      *         was a create, drop, commit or rollback)
@@ -134,7 +134,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Executes an arbitrary statement. If another result set exists for this statement, this will be closed (even if
-     * this statement fails). If autocommit is on, and the statement is not a select, this statement will be committed.
+     * this statement fails). If auto commit is on, and the statement is not a select, this statement will be committed.
      *
      * @return true if a result set is available, false if not
      * @throws SQLException if this object is closed or invalid
@@ -251,7 +251,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * Sets a parameter to null.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param sqlType the data type (Types.xxx)
+     * @param sqlType the data type (Types.x)
      * @throws SQLException if this object is closed
      */
     public void setNull(int parameterIndex, int sqlType) throws SQLException {
@@ -658,7 +658,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * Sets a parameter to null.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param sqlType the data type (Types.xxx)
+     * @param sqlType the data type (Types.x)
      * @param typeName this parameter is ignored
      * @throws SQLException if this object is closed
      */
@@ -998,7 +998,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Executes the batch.
      *
-     * @return the array of updatecounts
+     * @return the array of update counts
      */
     public int[] executeBatch() throws SQLException {
         try {
@@ -1037,9 +1037,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             batchParameters = null;
             if (error) {
-                JdbcBatchUpdateException bue = new JdbcBatchUpdateException(next, result);
-                bue.setNextException(next);
-                throw bue;
+                JdbcBatchUpdateException e = new JdbcBatchUpdateException(next, result);
+                e.setNextException(next);
+                throw e;
             }
             return result;
         } catch(Throwable e) {

@@ -149,8 +149,10 @@ public class ViewIndex extends Index {
             if(lastResult != null && canReuse) {
                 if(query.sameResultAsLast(session, params, lastParameters, lastEvaluated)) {
                     lastResult = lastResult.createShallowCopy(session);
-                    lastResult.reset();
-                    return new ViewCursor(table, lastResult);
+                    if(lastResult != null) {
+                        lastResult.reset();
+                        return new ViewCursor(table, lastResult);
+                    }
                 }
             }
         }

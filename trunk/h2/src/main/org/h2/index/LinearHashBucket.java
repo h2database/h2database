@@ -104,19 +104,19 @@ public class LinearHashBucket extends Record {
     
     public int getRealByteCount(DataPage dummy) throws SQLException {
         int size = 2 + dummy.getIntLen() + dummy.getIntLen();
-        int datasize = 0;
+        int dataSize = 0;
         for(int i=0; i<records.size(); i++) {
             LinearHashEntry record = (LinearHashEntry) records.get(i);
             // TODO index: just add the hash if the key is too large
-            datasize += dummy.getValueLen(record.key);
+            dataSize += dummy.getValueLen(record.key);
             size += 2 * dummy.getIntLen();
         }
-        if(size + datasize >= index.getBucketSize()) {
+        if(size + dataSize >= index.getBucketSize()) {
             writePos = true;
             return size;
         } else {
             writePos = false;
-            return size + datasize;
+            return size + dataSize;
         }
     }    
 

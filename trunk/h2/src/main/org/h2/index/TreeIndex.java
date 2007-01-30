@@ -34,7 +34,7 @@ public class TreeIndex extends Index {
     public void add(Session session, Row row) throws SQLException {
         TreeNode i = new TreeNode(row);
         TreeNode n = root, x = n;
-        boolean  isleft = true;
+        boolean  isLeft = true;
         while (true) {
             if (n == null) {
                 if (x == null) {
@@ -42,7 +42,7 @@ public class TreeIndex extends Index {
                     rowCount++;
                     return;
                 }
-                set(x, isleft, i);
+                set(x, isLeft, i);
                 break;
             }
             Row r = n.row;
@@ -55,17 +55,17 @@ public class TreeIndex extends Index {
                 }
                 compare = compareKeys(row, r);
             }
-            isleft = compare < 0;
+            isLeft = compare < 0;
             x = n;
-            n = child(x, isleft);
+            n = child(x, isLeft);
         }
-        balance(x, isleft);
+        balance(x, isLeft);
         rowCount++;
     }
 
-    private void balance(TreeNode x, boolean isleft) {
+    private void balance(TreeNode x, boolean isLeft) {
         while (true) {
-            int sign = isleft ? 1 : -1;
+            int sign = isLeft ? 1 : -1;
             switch (x.balance * sign) {
             case 1 :
                 x.balance = 0;
@@ -74,20 +74,20 @@ public class TreeIndex extends Index {
                 x.balance = -sign;
                 break;
             case -1 :
-                TreeNode l = child(x, isleft);
+                TreeNode l = child(x, isLeft);
                 if (l.balance == -sign) {
                     replace(x, l);
-                    set(x, isleft, child(l, !isleft));
-                    set(l, !isleft, x);
+                    set(x, isLeft, child(l, !isLeft));
+                    set(l, !isLeft, x);
                     x.balance = 0;
                     l.balance = 0;
                 } else {
-                    TreeNode r = child(l, !isleft);
+                    TreeNode r = child(l, !isLeft);
                     replace(x, r);
-                    set(l, !isleft, child(r, isleft));
-                    set(r, isleft, l);
-                    set(x, isleft, child(r, !isleft));
-                    set(r, !isleft, x);
+                    set(l, !isLeft, child(r, isLeft));
+                    set(r, isLeft, l);
+                    set(x, isLeft, child(r, !isLeft));
+                    set(r, !isLeft, x);
                     int rb = r.balance;
                     x.balance = (rb == -sign) ? sign : 0;
                     l.balance = (rb == sign) ? -sign : 0;
@@ -98,13 +98,13 @@ public class TreeIndex extends Index {
             if (x == root) {
                 return;
             }
-            isleft = x.isFromLeft();
+            isLeft = x.isFromLeft();
             x = x.parent;
         }
     }
 
-    private TreeNode child(TreeNode x, boolean isleft) {
-        return isleft ? x.left : x.right;
+    private TreeNode child(TreeNode x, boolean isLeft) {
+        return isLeft ? x.left : x.right;
     }
 
     private void replace(TreeNode x, TreeNode n) {
@@ -198,12 +198,12 @@ public class TreeIndex extends Index {
         }
         rowCount--;
         
-        boolean isleft = x.isFromLeft();
+        boolean isLeft = x.isFromLeft();
         replace(x, n);
         n = x.parent;
         while (n != null) {
             x = n;
-            int sign = isleft ? 1 : -1;
+            int sign = isLeft ? 1 : -1;
             switch (x.balance * sign) {
             case -1 :
                 x.balance = 0;
@@ -212,12 +212,12 @@ public class TreeIndex extends Index {
                 x.balance = sign;
                 return;
             case 1 :
-                TreeNode r = child(x, !isleft);
+                TreeNode r = child(x, !isLeft);
                 int  b = r.balance;
                 if (b * sign >= 0) {
                     replace(x, r);
-                    set(x, !isleft, child(r, isleft));
-                    set(r, isleft, x);
+                    set(x, !isLeft, child(r, isLeft));
+                    set(r, isLeft, x);
                     if (b == 0) {
                         x.balance = sign;
                         r.balance = -sign;
@@ -227,20 +227,20 @@ public class TreeIndex extends Index {
                     r.balance = 0;
                     x = r;
                 } else {
-                    TreeNode l = child(r, isleft);
+                    TreeNode l = child(r, isLeft);
                     replace(x, l);
                     b = l.balance;
-                    set(r, isleft, child(l, !isleft));
-                    set(l, !isleft, r);
-                    set(x, !isleft, child(l, isleft));
-                    set(l, isleft, x);
+                    set(r, isLeft, child(l, !isLeft));
+                    set(l, !isLeft, r);
+                    set(x, !isLeft, child(l, isLeft));
+                    set(l, isLeft, x);
                     x.balance = (b == sign) ? -sign : 0;
                     r.balance = (b == -sign) ? sign : 0;
                     l.balance = 0;
                     x = l;
                 }
             }
-            isleft = x.isFromLeft();
+            isLeft = x.isFromLeft();
             n = x.parent;
         }
     }

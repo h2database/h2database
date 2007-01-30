@@ -59,7 +59,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Moves the cursor to the next row of the result set.
      *
-     * @return true if successfull, false if there are no more rows
+     * @return true if successful, false if there are no more rows
      */
     public boolean next() throws SQLException {
         try {
@@ -393,7 +393,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. For BINARY data, the data is deserialized into a Java Object.
+     * Returns a column value as a Java object. For BINARY data, the data is de-serialized into a Java Object.
      *
      * @param columnIndex (1,2,...)
      * @return the value or null
@@ -415,7 +415,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Returns a column value as a Java object. For BINARY data, the data is deserialized into a Java Object.
+     * Returns a column value as a Java object. For BINARY data, the data is de-serialized into a Java Object.
      *
      * @param columnName the name of the column label
      * @return the value or null
@@ -2253,7 +2253,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Gets the cursor name if it was defined. This feature is superseded by
-     * updateXXX methods. This method throws a SQLException because cursor names are not supported. 
+     * updateX methods. This method throws a SQLException because cursor names are not supported. 
      */
     public String getCursorName() throws SQLException {
         try {
@@ -2294,8 +2294,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getConcurrency");
             checkClosed();
-            UpdatableRow upd = new UpdatableRow(conn, result, session);
-            return upd.isUpdatable() ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
+            UpdatableRow row = new UpdatableRow(conn, result, session);
+            return row.isUpdatable() ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -2783,11 +2783,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     private UpdatableRow getUpdatableRow() throws SQLException {
-        UpdatableRow upd = new UpdatableRow(conn, result, session);
-        if(!upd.isUpdatable()) {
+        UpdatableRow row = new UpdatableRow(conn, result, session);
+        if(!row.isUpdatable()) {
             throw Message.getSQLException(Message.NOT_ON_UPDATABLE_ROW);
         }
-        return upd;
+        return row;
     }
 
     int getColumnIndex(String columnName) throws SQLException {

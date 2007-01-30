@@ -80,6 +80,6 @@ ${text.helpAddDriversOnlyJava}
 
 </div>
 
-<table id="h2auto" class="autocomp"><tbody></tbody></table>
+<table id="h2auto" class="autoComp"><tbody></tbody></table>
  
 </body></html>

@@ -14,7 +14,6 @@ public class PlanItem {
     
     private Index index;
     
-    private int todoObjectArray;
     private PlanItem joinPlan;
     
     public void setIndex(Index index) {

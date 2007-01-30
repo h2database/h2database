@@ -24,13 +24,13 @@ Initial Developer: H2 Group
         onmouseout = "this.className ='icon'"
         class="icon" alt="${text.toolbar.refresh}" title="${text.toolbar.refresh}" border="1"></a
     ><img src="icon_line.gif" class="iconLine" alt=""
-    ></td><td class="toolbar"><input type="checkbox" name="autocommit" value="autocommit"
-      onclick="javascript:if(document.header.autocommit.checked)
+    ></td><td class="toolbar"><input type="checkbox" name="autoCommit" value="autoCommit"
+      onclick="javascript:if(document.header.autoCommit.checked)
       top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@AUTOCOMMIT+TRUE';
       else
       top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@AUTOCOMMIT+FALSE';
       "
-    ></td><td class="toolbar">${text.toolbar.autocommit}&nbsp;</td><td class="toolbar"
+    ></td><td class="toolbar">${text.toolbar.autoCommit}&nbsp;</td><td class="toolbar"
     ><a href="query.do?jsessionid=${sessionId}&amp;sql=ROLLBACK" target="h2result"
     ><img src="icon_rollback.gif"
         onmouseover = "this.className ='icon_hover'"
@@ -68,11 +68,11 @@ Initial Developer: H2 Group
         onmouseout = "this.className ='icon'"
         class="icon" alt="${text.toolbar.history}" title="${text.toolbar.history}" border="1"></a
     ><img src="icon_line.gif" class="iconLine" alt=""
-    ></td><td class="toolbar">${text.toolbar.autocomplete}&nbsp;<select name="autocomplete" size="1"
-      onchange="javascript:top.frames['h2query'].setAutocomplete(this.value)"
-    ><option value="0">${text.toolbar.autocomplete.off}</option>
-    <option selected="selected" value="1">${text.toolbar.autocomplete.normal}</option>
-    <option value="2">${text.toolbar.autocomplete.full}</option>
+    ></td><td class="toolbar">${text.toolbar.autoComplete}&nbsp;<select name="autoComplete" size="1"
+      onchange="javascript:top.frames['h2query'].setAutoComplete(this.value)"
+    ><option value="0">${text.toolbar.autoComplete.off}</option>
+    <option selected="selected" value="1">${text.toolbar.autoComplete.normal}</option>
+    <option value="2">${text.toolbar.autoComplete.full}</option>
     </select
     ></td
     ><td class="toolbar"
@@ -85,7 +85,7 @@ Initial Developer: H2 Group
     </form>
 <script type="text/javascript">
 <!--
-    document.header.autocommit.checked = '${autocommit}' != '';
+    document.header.autoCommit.checked = '${autoCommit}' != '';
 //-->
 </script>    
 </body>

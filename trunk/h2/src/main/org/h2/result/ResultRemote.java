@@ -23,6 +23,7 @@ public class ResultRemote implements ResultInterface {
     private Value[] currentRow;
     private int rowId, rowCount;
     private ObjectArray result;
+    private ObjectArray lobValues;
     
     private boolean isUpdateCount;
     private int updateCount;    
@@ -178,6 +179,17 @@ public class ResultRemote implements ResultInterface {
     public void close() {
         result = null;
         sendClose();
+        if(lobValues != null) {
+            for(int i=0; i<lobValues.size(); i++) {
+                Value v = (Value) lobValues.get(i);
+                try {
+                    v.close();
+                } catch(SQLException e) {
+                    session.getTrace().error("delete lob " + v.getSQL(), e);
+                }
+            }
+            lobValues = null;
+        }
     }
 
 //    public void finalize() {
@@ -209,7 +221,14 @@ public class ResultRemote implements ResultInterface {
                     int len = columns.length;
                     Value[] values = new Value[len]; 
                     for (int i = 0; i < len; i++) {
-                        values[i] = transfer.readValue();
+                        Value v = transfer.readValue();
+                        values[i] = v;
+                        if(v.isFileBased()) {
+                            if(lobValues == null) {
+                                lobValues = new ObjectArray();
+                            }
+                            lobValues.add(v);
+                        }
                     }
                     return values;
                 } else {

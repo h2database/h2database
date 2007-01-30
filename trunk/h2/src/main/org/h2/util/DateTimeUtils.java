@@ -152,17 +152,17 @@ public class DateTimeUtils {
                 if(s.endsWith("Z")) {
                     s = s.substring(0, s.length()-1);
                 } else {
-                    int tzstart = s.indexOf('+', s2 + 1);
-                    if(tzstart < 0) {
-                        tzstart = s.indexOf('-', s2 + 1);
+                    int timezoneStart = s.indexOf('+', s2 + 1);
+                    if(timezoneStart < 0) {
+                        timezoneStart = s.indexOf('-', s2 + 1);
                     }
-                    if(tzstart >= 0) {
-                        String tzName = "GMT" + s.substring(tzstart);
+                    if(timezoneStart >= 0) {
+                        String tzName = "GMT" + s.substring(timezoneStart);
                         tz = TimeZone.getTimeZone(tzName);
                         if(!tz.getID().equals(tzName)) {
                             throw Message.getSQLException(errorCode, s + " " + tz.getID() + "/" + tzName);
                         }
-                        s = s.substring(0, tzstart);
+                        s = s.substring(0, timezoneStart);
                     }
                 }
                 

@@ -25,5 +25,6 @@ public interface DataHandler {
     // only temporarily, until LOB_FILES_IN_DIRECTORIES is enabled
     int allocateObjectId(boolean needFresh, boolean dataFile);
     String createTempFile() throws SQLException;
+    Object getLobSyncObject();
 
 }

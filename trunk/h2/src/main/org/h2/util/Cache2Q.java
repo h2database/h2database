@@ -46,20 +46,20 @@ public class Cache2Q implements Cache {
         values = new CacheObject[len];
         sizeIn = sizeOut = sizeMain = 0;
         sizeRecords = 0;
-        recalcMax();
+        recalculateMax();
     }
     
     void setPercentIn(int percent) {
         percentIn = percent;
-        recalcMax();
+        recalculateMax();
     }
 
     void setPercentOut(int percent) {
         percentOut = percent;
-        recalcMax();
+        recalculateMax();
     }
 
-    private void recalcMax() {
+    private void recalculateMax() {
         maxMain = maxSize;
         maxIn = maxSize * percentIn / 100;
         maxOut = maxSize * percentOut / 100;
@@ -305,7 +305,7 @@ public class Cache2Q implements Cache {
     
     public void setMaxSize(int newSize) throws SQLException {
         maxSize = newSize < 0 ? 0 : newSize;
-        recalcMax();
+        recalculateMax();
         removeOld();
     }
     

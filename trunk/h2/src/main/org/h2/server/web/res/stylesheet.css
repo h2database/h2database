@@ -271,7 +271,7 @@ td.contentResult {
     margin:10px;
 }
 
-table.autocomp {
+table.autoComp {
     background-color: #e0ecff; 
     border: 1px solid #7f9db9; 
     cursor: pointer; 
@@ -284,28 +284,28 @@ table.autocomp {
     border-spacing:2px;
 }
 
-td.autocomp0 {
+td.autoComp0 {
     border-spacing: 0px;
     padding: 1px 8px;
     background-color: #cce0ff; 
     border: 0px; 
 }
 
-td.autocomp1 {
+td.autoComp1 {
     border-spacing: 0px;
     padding: 1px 8px;
     background-color: #e7f0ff; 
     border: 0px; 
 }
 
-td.autocomp2 {
+td.autoComp2 {
     border-spacing: 0px;
     padding: 1px 8px;
     background-color: #ffffff; 
     border: 0px; 
 }
 
-td.autocompHide {
+td.autoCompHide {
     padding: 2px;
     display: none;
 }

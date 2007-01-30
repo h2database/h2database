@@ -51,7 +51,7 @@ public class CompareMode {
     public static Collator getCollator(String name) {
         Collator result = null;
         if(name.length() == 2) {
-            Locale locale = new Locale(name.toLowerCase());
+            Locale locale = new Locale(name.toLowerCase(), "");
             if(compareLocaleNames(locale, name)) {
                 result = Collator.getInstance(locale);
             }

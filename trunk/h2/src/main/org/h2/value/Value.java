@@ -607,7 +607,14 @@ public abstract class Value {
         return false;
     }
     
-    public void unlink(DataHandler handler) throws SQLException {
+    public void unlink() throws SQLException {
     }
+    
+    public boolean isFileBased() {
+        return false;
+    }
+    
+    public void close() throws SQLException {
+    }    
 
 }

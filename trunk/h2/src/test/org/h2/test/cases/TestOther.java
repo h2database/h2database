@@ -12,7 +12,7 @@ import java.sql.Types;
 
 public class TestOther {
     public static void main(String[] args) {
-        Object[] tos = {
+        Object[] list = {
 //            new int[] {1, 2, 3, 4, 5},
 //          new Integer(122), // Uncomment to see a "Hexadecimal string with odd number of characters"
           new String[] {"hello", "world"}, // Uncomment to see a "Deserialization failed"
@@ -21,22 +21,22 @@ public class TestOther {
 
         try {
             Class.forName("org.h2.Driver");
-            Connection con = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
-            con.setAutoCommit(true);
+            Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
+            conn.setAutoCommit(true);
 
-            con.createStatement().executeUpdate("CREATE TABLE TestOtherJDBC (tstData OTHER)");
+            conn.createStatement().executeUpdate("CREATE TABLE TestOtherJDBC (testData OTHER)");
             System.out.println("table created");
 
-            PreparedStatement stmt = con.prepareStatement("INSERT INTO TestOtherJDBC (tstData) VALUES (?)");
+            PreparedStatement stmt = conn.prepareStatement("INSERT INTO TestOtherJDBC (testData) VALUES (?)");
 
-            for (int i = 0; i < tos.length; i++) {
-                System.out.println(tos[i].getClass().getName() + "\t" + tos[i]);
-                stmt.setObject(1, tos[i], Types.OTHER);
+            for (int i = 0; i < list.length; i++) {
+                System.out.println(list[i].getClass().getName() + "\t" + list[i]);
+                stmt.setObject(1, list[i], Types.OTHER);
                 stmt.executeUpdate();
             }
             System.out.println("inserted");
 
-            ResultSet rs = con.createStatement().executeQuery("SELECT tstData FROM TestOtherJDBC");
+            ResultSet rs = conn.createStatement().executeQuery("SELECT testData FROM TestOtherJDBC");
 
             while(rs.next()) {
                 Object obj = rs.getObject(1);

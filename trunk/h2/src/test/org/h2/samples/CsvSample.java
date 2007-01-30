@@ -22,8 +22,8 @@ public class CsvSample {
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
         rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
-        rs.addRow(new String[] { "Bob Meier", "bob.meier@abcde.fgh", "+41123456789" });
-        rs.addRow(new String[] { "John Jones", "johnjones@abcde.fgh", "+41976543210" });
+        rs.addRow(new String[] { "Bob Meier", "bob.meier@abcde.abc", "+41123456789" });
+        rs.addRow(new String[] { "John Jones", "john.jones@abcde.abc", "+41976543210" });
         Csv.getInstance().write("data/test.csv", rs, null);
     }
 

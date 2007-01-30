@@ -29,7 +29,7 @@ INSERT INTO ITEM VALUES(20,
 <li>Fixed a problem where data in the log file was not written to the data file 
     (recovery failure) after a crash, if an index was deleted previously.
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds).
-<li>Selecting a column using the syntax schemaName.tableName.columName did not work in all cases.
+<li>Selecting a column using the syntax schemaName.tableName.columnName did not work in all cases.
 <li>When stopping the TCP server from an application and immediately afterwards starting 
     it again using a different TCP password, an exception was thrown sometimes.
 <li>Now PreparedStatement.setBigDecimal(..) can only be called with an object of 
@@ -181,7 +181,7 @@ INSERT INTO ITEM VALUES(16,
 <ul>
 <li>New SQL statement SET SCHEMA to change the current schema of this session.
 <li>New system function SCHEMA() to get the current schema.
-<li>SCRIPT: New option BLOCKSIZE to split BLOBs and CLOBs into separate blocks, to avoid OutOfMemory problems.
+<li>SCRIPT: New option BLOCKSIZE to split BLOB and CLOB data into separate blocks, to avoid OutOfMemory problems.
 <li>CURRVAL and NEXTVAL functions: New optional sequence name parameter.
 <li>The default cache size is now 65536 pages instead of 32768.
 <li>New optimization to reuse subquery results. Can be disabled with SET OPTIMIZE_REUSE_RESULTS 0.
@@ -194,7 +194,7 @@ INSERT INTO ITEM VALUES(16,
 <b>Bugfixes:</b>
 <ul>
 <li>When using the READ_COMMITTED isolation level, a transaction now waits until there are no write locks.
-<li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOBs and/or BLOBs did not work.
+<li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOB and/or BLOB data did not work.
 <li>CSV tool: the methods setFieldSeparatorWrite and setRowSeparatorWrite where not accessible.
 <li>ALTER TABLE ADD did throw a strange message if the table contained views. Now the message is better, 
     but it is still not possible to do that if views on this table exist.
@@ -245,7 +245,7 @@ INSERT INTO ITEM VALUES(15,
 <li>Subqueries with order by outside the column list didn''t work correctly.
 <li>Linked Tables: Only the first column was linked when linking to PostgreSQL.
 <li>Sequences: When the database is not closed normally, the value was not set correctly.
-<li>The optimization for IN(SELECT...) was too agressive.
+<li>The optimization for IN(SELECT...) was too aggressive.
 <li>Blob.getBytes skipped the wrong number of bytes.
 <li>Group by a function didn''t work if a column alias was specified in the select list.
 <li>LOCK_MODE 0 (READ_UNCOMMITTED) did not work when using multiple connections.
@@ -331,7 +331,7 @@ INSERT INTO ITEM VALUES(12,
 <li>SET IGNORECASE is now supported for compatibility with HSQLDB.
 <li>New SQL statement DROP ALL OBJECTS [DELETE FILES] to drop all tables, sequences and so on.
 <li>Improved OpenOffice compatibility.
-<li>New setting SET COMPRESS_LOB {NO|LZF|DEFLATE} to automatically compress BLOBs and CLOBs.
+<li>New setting SET COMPRESS_LOB {NO|LZF|DEFLATE} to automatically compress BLOB and CLOB data.
 <li>The script can now be compressed. Syntax: SCRIPT TO ''file'' COMPRESSION {DEFLATE|LZF|ZIP|GZIP}.
 <li>Now an exception is thrown when the an overflow occurs for mathematical operations (sum, multiply and so on) for the data type selected.
     This was implemented in the previous version but is now enabled by default.
@@ -527,7 +527,7 @@ INSERT INTO ITEM VALUES(4,
 <ul>
 <li>The cache size is now measured in blocks and no longer in rows.
     Manually setting the cache size is no longer necessary in most cases.
-<li>CREATE VIEW now supports a column list: CREATE VIEW TESTV(A, B) AS ...
+<li>CREATE VIEW now supports a column list: CREATE VIEW TEST_V(A, B) AS ...
 <li>New column IS_GENERATED in the metadata tables SEQUENCES and INDEXES.
 <li>ResultSetMetaData.isNullable is now implemented.
 <li>Optimization: data conversion of constants was not optimized.

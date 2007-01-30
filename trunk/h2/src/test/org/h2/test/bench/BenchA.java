@@ -37,7 +37,6 @@ public class BenchA implements Bench {
         db.openConnection();
 
         db.dropTable("BRANCHES");
-        db.dropTable("BRANCHES");
         db.dropTable("TELLERS");
         db.dropTable("ACCOUNTS");
         db.dropTable("HISTORY");
@@ -87,13 +86,13 @@ public class BenchA implements Bench {
         db.closeConnection();
         db.end();
         
-        db.start(this, "Open/Close");
-        db.openConnection();
-        db.closeConnection();
-        db.end();        
+//        db.start(this, "Open/Close");
+//        db.openConnection();
+//        db.closeConnection();
+//        db.end();        
     }
 
-    public void run() throws Exception {
+    public void runTest() throws Exception {
 
         db.start(this, "Transactions");
         db.openConnection();

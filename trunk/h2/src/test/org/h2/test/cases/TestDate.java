@@ -21,18 +21,18 @@ public class TestDate {
         try {
             stat.execute("DROP TABLE ts_trial");
         } catch (SQLException e) { }
-        stat.execute("CREATE TABLE ts_trial(myts TIMESTAMP)");
+        stat.execute("CREATE TABLE ts_trial(TS TIMESTAMP)");
         PreparedStatement prep = conn.prepareStatement(
-                    "INSERT INTO ts_trial(myts) VALUES (?)");
+                    "INSERT INTO ts_trial(TS) VALUES (?)");
         prep.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
         prep.execute();
         prep.setDate(1, new java.sql.Date(System.currentTimeMillis()));
         prep.execute();
-        ResultSet rs = stat.executeQuery("SELECT myts FROM ts_trial");
+        ResultSet rs = stat.executeQuery("SELECT TS FROM ts_trial");
         rs.next();
-        System.out.println("Timestamp: " + rs.getTimestamp("myts"));
+        System.out.println("Timestamp: " + rs.getTimestamp("TS"));
         rs.next();
-        System.out.println("Date: " + rs.getTimestamp("myts"));
+        System.out.println("Date: " + rs.getTimestamp("TS"));
         System.out.println();
     }
 }

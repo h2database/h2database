@@ -22,6 +22,7 @@ public class TestCases extends TestBase {
 
     
     public void test() throws Exception {
+        testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
         if(config.memory || config.logMode == 0) {
@@ -47,6 +48,17 @@ public class TestCases extends TestBase {
         testDoubleRecovery();
         testConstraintReconnect();
         testCollation();
+    }
+
+    private void testDeleteGroup() throws Exception {
+        deleteDb("cases");
+        Connection conn=getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("set max_memory_rows 2");
+        stat.execute("create table test(id int primary key, x int)");
+        stat.execute("insert into test values(0, 0), (1, 1), (2, 2)");
+        stat.execute("delete from test where id not in (select min(x) from test group by id)");
+        conn.close();
     }
 
     private void testSpecialSQL() throws Exception {
@@ -305,13 +317,13 @@ public class TestCases extends TestBase {
         ps.setTimestamp(2, orderDate);
         ps.setInt(3, 2222);
         ps.setString(4, "test desc");
-        ps.setString(5, "teststate");
+        ps.setString(5, "test_state");
         ps.setString(6, "testid");
         ps.setInt(7, 5556);
         ps.setTimestamp(8, orderDate);
         ps.setInt(9, 2222);
         ps.setString(10, "test desc");
-        ps.setString(11, "teststate");
+        ps.setString(11, "test_state");
         ps.setString(12, "testid");
         check(ps.executeUpdate(), 2);
         ps.close();
@@ -582,7 +594,7 @@ public class TestCases extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute(
                 "create table employee(id int, "
-                +"firstname VARCHAR(50), "
+                +"firstName VARCHAR(50), "
                 +"salary decimal(10, 2), "
                 +"superior_id int, "
                 +"CONSTRAINT PK_employee PRIMARY KEY (id), "
@@ -600,13 +612,13 @@ public class TestCases extends TestBase {
         
         Connection c0=getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
-        c0.createStatement().executeUpdate("create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), FirstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
+        c0.createStatement().executeUpdate("create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), firstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
         c0.createStatement().executeUpdate("COMMIT");
         c0.close();
         
         c0=getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
-        PreparedStatement p15=c0.prepareStatement("insert into australia (id,Name,FirstName,Points,LicenseID) values (?,?,?,?,?)");
+        PreparedStatement p15=c0.prepareStatement("insert into australia (id,Name,firstName,Points,LicenseID) values (?,?,?,?,?)");
         int len = getSize(1, 1000);
         for(int i=0; i<len; i++) {
             p15.setInt(1, i); p15.setString(2, "Pilot_"+i); p15.setString(3, "Herkules"); p15.setInt(4, i); p15.setInt(5, i); p15.executeUpdate();
@@ -630,7 +642,7 @@ public class TestCases extends TestBase {
         c0=getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
         c0.createStatement().executeUpdate("drop table australia");
-        c0.createStatement().executeUpdate("create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), FirstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
+        c0.createStatement().executeUpdate("create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), firstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
         c0.createStatement().executeUpdate("COMMIT");
         c0.close();
         

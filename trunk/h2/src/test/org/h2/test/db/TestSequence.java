@@ -16,7 +16,7 @@ public class TestSequence extends TestBase {
         deleteDb("sequence");
         Connection conn=getConnection("sequence");
         Statement stat = conn.createStatement();
-        stat.execute("create sequence testseq");
+        stat.execute("create sequence testSequence");
         conn.setAutoCommit(false);
 
         Connection conn2=getConnection("sequence");
@@ -40,7 +40,7 @@ public class TestSequence extends TestBase {
     }
 
     private long getNext(Statement stat) throws Exception {
-        ResultSet rs = stat.executeQuery("call next value for testseq");
+        ResultSet rs = stat.executeQuery("call next value for testSequence");
         rs.next();
         long value = rs.getLong(1);
         return value;

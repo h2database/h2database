@@ -124,8 +124,8 @@ public class TestUpdatableResultSet extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), " +
                 "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN BINARY(100), "+
-                "D DATE, T TIME, TS TIMESTAMP, DOU DOUBLE, REA REAL, LON BIGINT, "+
-                "OBI INT, SHO SMALLINT, CLO CLOB, BLO BLOB)");
+                "D DATE, T TIME, TS TIMESTAMP, DB DOUBLE, R REAL, L BIGINT, "+
+                "O_I INT, SH SMALLINT, CL CLOB, BL BLOB)");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         ResultSetMetaData meta = rs.getMetaData();
         check(meta.getColumnClassName(1), "java.lang.Integer");
@@ -181,13 +181,13 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateDate("D", Date.valueOf("2005-09-21"));
         rs.updateTime("T", Time.valueOf("21:46:28"));
         rs.updateTimestamp("TS", Timestamp.valueOf("2005-09-21 21:47:09.567890123"));
-        rs.updateDouble("DOU", 1.725);
-        rs.updateFloat("REA", (float)2.5);
-        rs.updateLong("LON", Long.MAX_VALUE);
-        rs.updateObject("OBI", new Integer(10));
-        rs.updateShort("SHO", Short.MIN_VALUE);
-        rs.updateCharacterStream("CLO", new StringReader("\u00ef\u00f6\u00fc"), 0); // auml ouml uuml
-        rs.updateBinaryStream("BLO", new ByteArrayInputStream(new byte[]{(byte)0xab, 0x12}), 0);
+        rs.updateDouble("DB", 1.725);
+        rs.updateFloat("R", (float)2.5);
+        rs.updateLong("L", Long.MAX_VALUE);
+        rs.updateObject("O_I", new Integer(10));
+        rs.updateShort("SH", Short.MIN_VALUE);
+        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0); // auml ouml uuml
+        rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[]{(byte)0xab, 0x12}), 0);
         rs.insertRow();
         
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID NULLS FIRST");

@@ -30,9 +30,9 @@ public class TestFunctions extends TestBase {
         test("abs(1)", "1");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        stat.execute("CREATE ALIAS ADDROW FOR \"" + getClass().getName() + ".addRow\"");
+        stat.execute("CREATE ALIAS ADD_ROW FOR \"" + getClass().getName() + ".addRow\"");
         ResultSet rs;
-        rs = stat.executeQuery("CALL ADDROW(1, 'Hello')");
+        rs = stat.executeQuery("CALL ADD_ROW(1, 'Hello')");
         rs.next();
         check(rs.getInt(1), 1);
         rs = stat.executeQuery("SELECT * FROM TEST");
@@ -41,10 +41,10 @@ public class TestFunctions extends TestBase {
         check(rs.getString(2), "Hello");
         checkFalse(rs.next());
 
-        rs = stat.executeQuery("CALL ADDROW(2, 'World')");
+        rs = stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
-        stat.execute("CREATE ALIAS SEL FOR \"" + getClass().getName() + ".select\"");
-        rs = stat.executeQuery("CALL SEL('SELECT * FROM TEST ORDER BY ID')");
+        stat.execute("CREATE ALIAS SELECT_F FOR \"" + getClass().getName() + ".select\"");
+        rs = stat.executeQuery("CALL SELECT_F('SELECT * FROM TEST ORDER BY ID')");
         check(rs.getMetaData().getColumnCount(), 2);
         rs.next();
         check(rs.getInt(1), 1);
@@ -54,7 +54,7 @@ public class TestFunctions extends TestBase {
         check(rs.getString(2), "World");
         checkFalse(rs.next());
         
-        rs = stat.executeQuery("SELECT NAME FROM SEL('SELECT * FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
+        rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
         check(rs.getMetaData().getColumnCount(), 1);
         rs.next();
         check(rs.getString(1), "World");
@@ -62,7 +62,7 @@ public class TestFunctions extends TestBase {
         check(rs.getString(1), "Hello");
         checkFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT SEL('SELECT * FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
+        rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
         check(rs.getMetaData().getColumnCount(), 1);
         rs.next();
         check("((1, Hello))", rs.getString(1));
@@ -70,14 +70,14 @@ public class TestFunctions extends TestBase {
         check("((2, World))", rs.getString(1));
         checkFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT SEL('SELECT * FROM TEST ORDER BY ID') FROM DUAL");
+        rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST ORDER BY ID') FROM DUAL");
         check(rs.getMetaData().getColumnCount(), 1);
         rs.next();
         check("((1, Hello), (2, World))", rs.getString(1));
         checkFalse(rs.next());
 
         try {
-            rs = stat.executeQuery("CALL SEL('ERROR')");
+            rs = stat.executeQuery("CALL SELECT_F('ERROR')");
             error("expected error");
         } catch (SQLException e) {
             check("42001", e.getSQLState());
@@ -115,13 +115,13 @@ public class TestFunctions extends TestBase {
         check(rs.getInt(1), 3);
         checkFalse(rs.next());
 
-        stat.execute("CREATE ALIAS MAXID FOR \"" + getClass().getName() + ".selectMaxId\"");
-        rs = stat.executeQuery("CALL MAXID()");
+        stat.execute("CREATE ALIAS MAX_ID FOR \"" + getClass().getName() + ".selectMaxId\"");
+        rs = stat.executeQuery("CALL MAX_ID()");
         rs.next();
         check(rs.getInt(1), 2);
         checkFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT * FROM MAXID()");
+        rs = stat.executeQuery("SELECT * FROM MAX_ID()");
         rs.next();
         check(rs.getInt(1), 2);
         checkFalse(rs.next());
@@ -145,8 +145,8 @@ public class TestFunctions extends TestBase {
             // ignore
         }
         
-        stat.execute("CREATE ALIAS NULLRESULT FOR \"" + getClass().getName() + ".nullResultSet\"");
-        rs = stat.executeQuery("CALL NULLRESULT()");
+        stat.execute("CREATE ALIAS NULL_RESULT FOR \"" + getClass().getName() + ".nullResultSet\"");
+        rs = stat.executeQuery("CALL NULL_RESULT()");
         check(rs.getMetaData().getColumnCount(), 1);
         rs.next();
         check(rs.getString(1), null);
@@ -204,17 +204,17 @@ public class TestFunctions extends TestBase {
         return statement.executeQuery();
     }
 
-    public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp, byte byp, short sp) throws SQLException {
+    public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp, byte byParam, short sp) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         if (count == null) {
-            if (ip != 0 || bp || fp != 0.0 || dp != 0.0 || sp != 0 || lp != 0 || byp != 0) {
+            if (ip != 0 || bp || fp != 0.0 || dp != 0.0 || sp != 0 || lp != 0 || byParam != 0) {
                 throw new Error("params not 0/false");
             }
         }
         if (count != null) {
-            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || sp != 1 || lp != 1 || byp != 1) {
+            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || sp != 1 || lp != 1 || byParam != 1) {
                 throw new Error("params not 1/true");
             }
             if (count.intValue() >= 1) {

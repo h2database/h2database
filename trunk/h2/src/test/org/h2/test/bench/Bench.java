@@ -7,7 +7,7 @@ package org.h2.test.bench;
 public interface Bench {
     
     void init(Database db, int size) throws Exception;
-    void run() throws Exception;
+    void runTest() throws Exception;
     String getName();
 
 }

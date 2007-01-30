@@ -5,7 +5,7 @@
 package org.h2.test.cases;
 import java.sql.*;
 
-public class TestCompatibiliyMySQL {
+public class TestCompatibilityMySQL {
 
     public static void main(String[] args) throws Exception {
         testWith("org.postgresql.Driver", "jdbc:postgresql:jpox2", "sa", "sa");

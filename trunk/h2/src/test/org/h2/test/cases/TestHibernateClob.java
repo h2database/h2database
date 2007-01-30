@@ -56,7 +56,7 @@ public class TestHibernateClob {
         conn.createStatement();
         stat0.executeUpdate("drop table CLOB_ENTITY if exists");
         stat0.getWarnings();
-        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, SER_DATA clob, CLOB_DATA clob, primary key (ID))");
+        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, DATA clob, CLOB_DATA clob, primary key (ID))");
         stat0.getWarnings();
         stat0.close();
         conn.getWarnings();
@@ -75,7 +75,7 @@ public class TestHibernateClob {
         prep0.close();
         conn.getAutoCommit();
         PreparedStatement prep1 = 
-        conn.prepareStatement("insert into CLOB_ENTITY (SER_DATA, CLOB_DATA, ID) values (?, ?, ?)");
+        conn.prepareStatement("insert into CLOB_ENTITY (DATA, CLOB_DATA, ID) values (?, ?, ?)");
         prep1.setNull(1, 2005);
         StringBuffer buff = new StringBuffer(20000);
         for(int i=0; i<10000; i++) {
@@ -96,12 +96,12 @@ public class TestHibernateClob {
         conn.getAutoCommit();
         conn.getAutoCommit();
         PreparedStatement prep2 = 
-        conn.prepareStatement("select clobholdin0_.ID as ID0_0_, clobholdin0_.SER_DATA as SER2_0_0_, clobholdin0_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY clobholdin0_ where clobholdin0_.ID=?");
+        conn.prepareStatement("select c_.ID as ID0_0_, c_.DATA as S2, c_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY c_ where c_.ID=?");
         prep2.setLong(1, 1);
         ResultSet rs1 = 
         prep2.executeQuery();
         rs1.next();
-        System.out.println("ser: " + rs1.getCharacterStream("SER2_0_0_"));
+        System.out.println("s2: " + rs1.getCharacterStream("S2"));
         Clob clob0 = 
         rs1.getClob("CLOB3_0_0_");
         System.out.println("wasNull: " + rs1.wasNull());

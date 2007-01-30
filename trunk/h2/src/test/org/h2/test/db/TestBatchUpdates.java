@@ -12,14 +12,14 @@ public class TestBatchUpdates extends TestBase {
 
     static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
     static final String COFFEE_SELECT = "SELECT PRICE FROM TEST WHERE KEY_ID=?";
-    static final String COFFEE_QUERY = "SELECT COF_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
+    static final String COFFEE_QUERY = "SELECT C_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
     static final String COFFEE_DELETE = "DELETE FROM TEST WHERE KEY_ID=?";
     static final String COFFEE_INSERT1 = "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
     static final String COFFEE_DELETE1 = "DELETE FROM TEST WHERE KEY_ID=9";
     static final String COFFEE_UPDATE1 = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=1";
     static final String COFFEE_SELECT1 = "SELECT PRICE FROM TEST WHERE KEY_ID>4";
-    static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, COF_NAME=? WHERE COF_NAME=?";
-    static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE COF_NAME='Continue-1'";
+    static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
+    static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
 
     int coffeeSize = 10;
     int coffeeType = 11;
@@ -36,7 +36,7 @@ public class TestBatchUpdates extends TestBase {
             error("does not support BatchUpdates");
         }
         stat.executeUpdate("CREATE TABLE TEST(KEY_ID INT PRIMARY KEY,"
-                + "COF_NAME VARCHAR(255),PRICE DECIMAL(20,2),TYPE_ID INT)");
+                + "C_NAME VARCHAR(255),PRICE DECIMAL(20,2),TYPE_ID INT)");
         String newName = null;
         float newPrice = 0;
         int newType = 0;
@@ -86,7 +86,7 @@ public class TestBatchUpdates extends TestBase {
         prep.setInt(1, 4);
         prep.addBatch();
         int[] updateCount = prep.executeBatch();
-        int updateCountlen = updateCount.length;
+        int updateCountLen = updateCount.length;
         
 //        PreparedStatement p;
 //        p = conn.prepareStatement(COFFEE_UPDATE);
@@ -98,8 +98,8 @@ public class TestBatchUpdates extends TestBase {
 //        System.out.println("upc="+p.executeUpdate());
         
         
-        trace("updateCount length:" + updateCountlen);
-        if (updateCountlen != 3) {
+        trace("updateCount length:" + updateCountLen);
+        if (updateCountLen != 3) {
             error("addBatch");
         } else {
             trace("addBatch add the SQL statements to Batch ");
@@ -239,10 +239,10 @@ public class TestBatchUpdates extends TestBase {
         rs = stat.executeQuery(query3);
         rs.next();
         retValue[i++] = rs.getInt(1);
-        trace("retvalue length : " + retValue.length);
+        trace("retValue length : " + retValue.length);
         for (int j = 0; j < updateCount.length; j++) {
             trace("UpdateCount Value:" + updateCount[j]);
-            trace("Retvalue : " + retValue[j]);
+            trace("RetValue : " + retValue[j]);
             if (updateCount[j] != retValue[j]) {
                 error("j=" + j + " right:" + retValue[j]);
             }
@@ -269,7 +269,7 @@ public class TestBatchUpdates extends TestBase {
 
     public void testExecuteBatch03() throws Exception {
         trace("testExecuteBatch03");
-        boolean bexpflag = false;
+        boolean batchExceptionFlag = false;
         String sPrepStmt = COFFEE_SELECT;
         trace("Prepared Statement String :" + sPrepStmt);
         prep = conn.prepareStatement(sPrepStmt);
@@ -279,9 +279,9 @@ public class TestBatchUpdates extends TestBase {
             int[] updateCount = prep.executeBatch();
             trace("Update Count" + updateCount.length);
         } catch (BatchUpdateException b) {
-            bexpflag = true;
+            batchExceptionFlag = true;
         }
-        if (bexpflag) {
+        if (batchExceptionFlag) {
             trace("select not allowed; correct");
         } else {
             error("executeBatch select");
@@ -339,7 +339,7 @@ public class TestBatchUpdates extends TestBase {
 
     public void testExecuteBatch06() throws Exception {
         trace("testExecuteBatch06");
-        boolean bexpflag = false;
+        boolean batchExceptionFlag = false;
         //Insert a row which is already Present
         String sInsCoffee = COFFEE_INSERT1;
         String sDelCoffee = COFFEE_DELETE1;
@@ -349,13 +349,13 @@ public class TestBatchUpdates extends TestBase {
         try {
             stat.executeBatch();
         } catch (BatchUpdateException b) {
-            bexpflag = true;
+            batchExceptionFlag = true;
             int[] updCounts = b.getUpdateCounts();
             for (int i = 0; i < updCounts.length; i++) {
                 trace("Update counts:" + updCounts[i]);
             }
         }
-        if (bexpflag) {
+        if (batchExceptionFlag) {
             trace("executeBatch insert duplicate; correct");
         } else {
             error("executeBatch");
@@ -364,18 +364,18 @@ public class TestBatchUpdates extends TestBase {
 
     public void testExecuteBatch07() throws Exception {
         trace("testExecuteBatch07");
-        boolean bexpflag = false;
-        String sSelCoffee = COFFEE_SELECT1;
-        trace("sSelCoffee = " + sSelCoffee);
+        boolean batchExceptionFlag = false;
+        String selectCoffee = COFFEE_SELECT1;
+        trace("selectCoffee = " + selectCoffee);
         Statement stmt = conn.createStatement();
-        stmt.addBatch(sSelCoffee);
+        stmt.addBatch(selectCoffee);
         try {
             int[] updateCount = stmt.executeBatch();
             trace("updateCount Length : " + updateCount.length);
         } catch (BatchUpdateException be) {
-            bexpflag = true;
+            batchExceptionFlag = true;
         }
-        if (bexpflag) {
+        if (batchExceptionFlag) {
             trace("executeBatch select");
         } else {
             error("executeBatch");
@@ -385,7 +385,7 @@ public class TestBatchUpdates extends TestBase {
     public void testContinueBatch01() throws Exception {
         trace("testContinueBatch01");
         int[] batchUpdates = { 0, 0, 0};
-        int buCountlen = 0;
+        int buCountLen = 0;
         try {
             String sPrepStmt = COFFEE_UPDATE_SET;
             trace("Prepared Statement String:" + sPrepStmt);
@@ -416,12 +416,12 @@ public class TestBatchUpdates extends TestBase {
         } catch (BatchUpdateException b) {
             trace("expected BatchUpdateException");
             batchUpdates = b.getUpdateCounts();
-            buCountlen = batchUpdates.length;
+            buCountLen = batchUpdates.length;
         }
-        if (buCountlen == 1) {
+        if (buCountLen == 1) {
             trace("no continued updates - OK");
             return;
-        } else if (buCountlen == 3) {
+        } else if (buCountLen == 3) {
             trace("Driver supports continued updates.");
             // Check to see if the third row from the batch was added
             String query = COFFEE_SELECT_CONTINUED;

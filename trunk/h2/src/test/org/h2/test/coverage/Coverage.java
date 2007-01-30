@@ -40,12 +40,12 @@ public class Coverage {
         System.out
                 .println("Usage:\n"
                         + "- copy all your source files to another directory\n"
-                        + "  (be carefull, they will be modified - don't take originals!)\n"
+                        + "  (be careful, they will be modified - don't take originals!)\n"
                         + "- java " + getClass().getName() + " <directory>\n"
                         + "  this will modified the source code and create 'profile.txt'\n"
                         + "- compile the modified source files\n"
                         + "- run your main application\n"
-                        + "- after the application exits, a file 'notcovered.txt' is created,\n"
+                        + "- after the application exits, a file 'notCovered.txt' is created,\n"
                         + "  which contains the class names, function names and line numbers\n"
                         + "  of code that has not been covered\n\n"
                         + "Options:\n" 
@@ -154,9 +154,9 @@ public class Coverage {
             return;
         }
         File f = new File(name);
-        File fnew = new File(name + ".new");
+        File fileNew = new File(name + ".new");
         try {
-            writer = new BufferedWriter(new FileWriter(fnew));
+            writer = new BufferedWriter(new FileWriter(fileNew));
             Reader r = new BufferedReader(new FileReader(f));
             tokenizer = new Tokenizer(r);
             indent = 0;
@@ -171,11 +171,11 @@ public class Coverage {
             }
             r.close();
             writer.close();
-            File fbak = new File(name + ".bak");
-            fbak.delete();
-            f.renameTo(fbak);
-            File fcopy = new File(name);
-            fnew.renameTo(fcopy);
+            File backup = new File(name + ".bak");
+            backup.delete();
+            f.renameTo(backup);
+            File copy = new File(name);
+            fileNew.renameTo(copy);
             if (perClass) {
                 nextDebug();
             }
@@ -320,11 +320,11 @@ public class Coverage {
         }
     }
 
-    void processBraket() throws Exception {
+    void processBracket() throws Exception {
         do {
             if (token.equals("(")) {
                 read();
-                processBraket();
+                processBracket();
             } else if (token.equals(")")) {
                 read();
                 return;
@@ -365,7 +365,7 @@ public class Coverage {
                     || token.equals("synchronized")) {
                 read();
                 readThis("(");
-                processBraket();
+                processBracket();
                 indent++;
                 processBlockOrStatement();
                 indent--;
@@ -373,7 +373,7 @@ public class Coverage {
             } else if (token.equals("if")) {
                 read();
                 readThis("(");
-                processBraket();
+                processBracket();
                 indent++;
                 processBlockOrStatement();
                 indent--;
@@ -393,7 +393,7 @@ public class Coverage {
                     if (token.equals("catch")) {
                         read();
                         readThis("(");
-                        processBraket();
+                        processBracket();
                         indent++;
                         processBlockOrStatement();
                         indent--;
@@ -431,7 +431,7 @@ public class Coverage {
                 processBlockOrStatement();
                 readThis("while");
                 readThis("(");
-                processBraket();
+                processBracket();
                 readThis(";");
                 setLine();
                 indent--;
@@ -452,7 +452,7 @@ public class Coverage {
             } else if (token.equals("switch")) {
                 read();
                 readThis("(");
-                processBraket();
+                processBracket();
                 indent++;
                 processBlockOrStatement();
                 indent--;
@@ -463,7 +463,7 @@ public class Coverage {
                 return;
             } else if (token.equals("(")) {
                 read();
-                processBraket();
+                processBracket();
             } else if (token.equals("=")) {
                 read();
                 if (token.equals("{")) {
@@ -493,8 +493,8 @@ public class Coverage {
             String func = i<0 ? function : function.substring(0, i);
             String fileLine = file + "." + func +"(";
             i = file.lastIndexOf('.');
-            String fil = i<0 ? file : file.substring(i+1);
-            fileLine += fil + ".java:" + line + ")";
+            String className = i<0 ? file : file.substring(i+1);
+            fileLine += className + ".java:" + line + ")";
             data.write(fileLine + " " + last + "\r\n");
         } else {
             data.write(file + " " + line + "\r\n");

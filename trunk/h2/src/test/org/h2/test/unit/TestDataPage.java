@@ -134,4 +134,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         throw new Error();
     }
 
+    public Object getLobSyncObject() {
+        return this;
+    }
+
 }

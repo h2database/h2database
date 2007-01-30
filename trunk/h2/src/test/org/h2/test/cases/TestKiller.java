@@ -55,14 +55,14 @@ public class TestKiller {
             }
             stmt.execute("CREATE TABLE TESTTAB(VL DECIMAL(16,6) PRIMARY KEY)");
             stmt.close();
-            PreparedStatement pstmt = conn.prepareStatement("INSERT INTO TESTTAB VALUES (?)");
-            pstmt.setBigDecimal(1, new TestBigDecimal("1"));
-            pstmt.execute();
-            pstmt.setBigDecimal(1, new TestBigDecimal("2"));
-            pstmt.execute();
-            pstmt.setBigDecimal(1, new TestBigDecimal("3"));
-            pstmt.execute();
-            pstmt.close();
+            PreparedStatement prep = conn.prepareStatement("INSERT INTO TESTTAB VALUES (?)");
+            prep.setBigDecimal(1, new TestBigDecimal("1"));
+            prep.execute();
+            prep.setBigDecimal(1, new TestBigDecimal("2"));
+            prep.execute();
+            prep.setBigDecimal(1, new TestBigDecimal("3"));
+            prep.execute();
+            prep.close();
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TESTTAB ORDER BY VL");
             while(rs.next()) {
                 System.out.println("VL:" + rs.getString("VL"));

@@ -16,7 +16,7 @@ import org.h2.util.MemoryUtils;
 public class TestLinearIndex {
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");
-        // stat.execute("create unique index idxid on test(id)");
+        // stat.execute("create unique index idx_id on test(id)");
         int len = 1000;
         for(int a=0; ; a++) {
             testLoop(true, len);
@@ -35,9 +35,9 @@ public class TestLinearIndex {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int, name varchar)");
         if(hashIndex) {
-            stat.execute("create unique hash index idxid on test(id)");
+            stat.execute("create unique hash index idx_id on test(id)");
         } else {
-            stat.execute("create unique index idxid on test(id)");
+            stat.execute("create unique index idx_id on test(id)");
         }
         stat.execute("insert into test select x, 'Hello World' from system_range(1, "+len+")");
         PreparedStatement prep = conn.prepareStatement("select * from test where id=?");

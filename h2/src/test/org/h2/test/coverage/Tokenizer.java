@@ -16,8 +16,8 @@ public class Tokenizer {
 
     private Reader reader;
 
-    private char[] buf = new char[20];
-    private int peekc;
+    private char[] chars = new char[20];
+    private int peekChar;
     private int line = 1;
 
     private byte[] charTypes = new byte[256];
@@ -98,7 +98,7 @@ public class Tokenizer {
                 type = c;
             }
         } else {
-            c = peekc;
+            c = peekChar;
             if (c < 0) {
                 try {
                     c = read();
@@ -114,8 +114,8 @@ public class Tokenizer {
         if (c < 0) {
             return type = TYPE_EOF;
         }
-        int ctype = c < 256 ? ct[c] : ALPHA;
-        while ((ctype & WHITESPACE) != 0) {
+        int charType = c < 256 ? ct[c] : ALPHA;
+        while ((charType & WHITESPACE) != 0) {
             if (c == '\r') {
                 line++;
                 c = read();
@@ -131,36 +131,36 @@ public class Tokenizer {
             if (c < 0) {
                 return type = TYPE_EOF;
             }
-            ctype = c < 256 ? ct[c] : ALPHA;
+            charType = c < 256 ? ct[c] : ALPHA;
         }
-        if ((ctype & ALPHA) != 0) {
+        if ((charType & ALPHA) != 0) {
             initToken();
             append(c);
             int i = 0;
             do {
-                if (i >= buf.length) {
-                    char[] nb = new char[buf.length * 2];
-                    System.arraycopy(buf, 0, nb, 0, buf.length);
-                    buf = nb;
+                if (i >= chars.length) {
+                    char[] nb = new char[chars.length * 2];
+                    System.arraycopy(chars, 0, nb, 0, chars.length);
+                    chars = nb;
                 }
-                buf[i++] = (char) c;
+                chars[i++] = (char) c;
                 c = read();
-                ctype = c < 0 ? WHITESPACE : c < 256 ? ct[c] : ALPHA;
-            } while ((ctype & ALPHA) != 0);
-            peekc = c;
-            value = String.copyValueOf(buf, 0, i);
+                charType = c < 0 ? WHITESPACE : c < 256 ? ct[c] : ALPHA;
+            } while ((charType & ALPHA) != 0);
+            peekChar = c;
+            value = String.copyValueOf(chars, 0, i);
             return type = TYPE_WORD;
         }
-        if ((ctype & QUOTE) != 0) {
+        if ((charType & QUOTE) != 0) {
             initToken();
             append(c);
             type = c;
             int i = 0;
             // \octal needs a lookahead
-            peekc = read();
-            while (peekc >= 0 && peekc != type && peekc != '\n'
-                    && peekc != '\r') {
-                if (peekc == '\\') {
+            peekChar = read();
+            while (peekChar >= 0 && peekChar != type && peekChar != '\n'
+                    && peekChar != '\r') {
+                if (peekChar == '\\') {
                     c = read();
                     int first = c; // to allow \377, but not \477
                     if (c >= '0' && c <= '7') {
@@ -171,12 +171,12 @@ public class Tokenizer {
                             c2 = read();
                             if ('0' <= c2 && c2 <= '7' && first <= '3') {
                                 c = (c << 3) + (c2 - '0');
-                                peekc = read();
+                                peekChar = read();
                             } else {
-                                peekc = c2;
+                                peekChar = c2;
                             }
                         } else {
-                            peekc = c2;
+                            peekChar = c2;
                         }
                     } else {
                         switch (c) {
@@ -196,32 +196,32 @@ public class Tokenizer {
                             c = '\t';
                             break;
                         }
-                        peekc = read();
+                        peekChar = read();
                     }
                 } else {
-                    c = peekc;
-                    peekc = read();
+                    c = peekChar;
+                    peekChar = read();
                 }
 
-                if (i >= buf.length) {
-                    char[] nb = new char[buf.length * 2];
-                    System.arraycopy(buf, 0, nb, 0, buf.length);
-                    buf = nb;
+                if (i >= chars.length) {
+                    char[] nb = new char[chars.length * 2];
+                    System.arraycopy(chars, 0, nb, 0, chars.length);
+                    chars = nb;
                 }
-                buf[i++] = (char) c;
+                chars[i++] = (char) c;
             }
-            if (peekc == type) {
-                // keep \n or \r intact in peekc
-                peekc = read();
+            if (peekChar == type) {
+                // keep \n or \r intact in peekChar
+                peekChar = read();
             }
-            value = String.copyValueOf(buf, 0, i);
+            value = String.copyValueOf(chars, 0, i);
             return type;
         }
         if (c == '/') {
             c = read();
             if (c == '*') {
-                int prevc = 0;
-                while ((c = read()) != '/' || prevc != '*') {
+                int prevChar = 0;
+                while ((c = read()) != '/' || prevChar != '*') {
                     if (c == '\r') {
                         line++;
                         c = read();
@@ -237,22 +237,22 @@ public class Tokenizer {
                     if (c < 0) {
                         return type = TYPE_EOF;
                     }
-                    prevc = c;
+                    prevChar = c;
                 }
-                peekc = read();
+                peekChar = read();
                 return nextToken();
             } else if (c == '/') {
                 while ((c = read()) != '\n' && c != '\r' && c >= 0) {
                     // nothing
                 }
-                peekc = c;
+                peekChar = c;
                 return nextToken();
             } else {
-                peekc = c;
+                peekChar = c;
                 return type = '/';
             }
         }
-        peekc = read();
+        peekChar = read();
         return type = c;
     }
 

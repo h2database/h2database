@@ -121,14 +121,14 @@ public class Profile extends Thread {
         print("NOT COVERED");
         printLine('-');
         FileReader reader = null;
-        FileWriter fwriter = null;
+        FileWriter fileWriter = null;
         try {
             reader = new FileReader("profile.txt");
             LineNumberReader r = new LineNumberReader(reader);
-            fwriter = new FileWriter("notcovered.txt");
-            BufferedWriter writer = new BufferedWriter(fwriter);
+            fileWriter = new FileWriter("notCovered.txt");
+            BufferedWriter writer = new BufferedWriter(fileWriter);
             int unvisited = 0;
-            int unvisitedthrow = 0;
+            int unvisitedThrow = 0;
             for (int i = 0; i < maxIndex; i++) {
                 String line = r.readLine();
                 if (count[i] == 0) {
@@ -139,15 +139,15 @@ public class Profile extends Thread {
                         }
                         unvisited++;
                     } else {
-                        unvisitedthrow++;
+                        unvisitedThrow++;
                     }
                 }
             }
             int percent = (100 * unvisited / maxIndex);
             print("Not covered: " + percent + " % " + " (" + unvisited + " of "
-                    + maxIndex + "; throw=" + unvisitedthrow + ")");
+                    + maxIndex + "; throw=" + unvisitedThrow + ")");
         } finally {
-            IOUtils.closeSilently(fwriter);
+            IOUtils.closeSilently(fileWriter);
             IOUtils.closeSilently(reader);
         }
     }
@@ -155,16 +155,16 @@ public class Profile extends Thread {
     void listTop(String title, int[] list, int max) throws Exception {
         printLine('-');
         int total = 0;
-        int totallines = 0;
+        int totalLines = 0;
         for (int j = 0; j < maxIndex; j++) {
             int l = list[j];
             if (l > 0) {
                 total += list[j];
-                totallines++;
+                totalLines++;
             }
         }
         if (max == 0) {
-            max = totallines;
+            max = totalLines;
         }
         print(title);
         print("Total: " + total);

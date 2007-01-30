@@ -31,45 +31,45 @@ public class TestBigDb extends TestBase {
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
         stat.execute(
-                "CREATE CACHED TABLE PAB_ARTLEV("+
-                "MUTATIECODE CHAR(1) DEFAULT CAST(RAND()*9 AS INT),"+ 
-                "PRDCODE CHAR(20) DEFAULT SECURE_RAND(10),"+ 
-                "ORGCODESUPPLIER CHAR(13) DEFAULT SECURE_RAND(6),"+ 
-                "PRDCODEGTIN CHAR(14) DEFAULT SECURE_RAND(7),"+ 
-                "PRDCODEMF CHAR(20)  DEFAULT SECURE_RAND(10),"+ 
-                "ORGCODEMF CHAR(13)  DEFAULT SECURE_RAND(6),"+  
-                "SUBSTITUTEDBY CHAR(20) DEFAULT SECURE_RAND(10),"+ 
-                "SUBSTITUTEDBYGTIN CHAR(14) DEFAULT SECURE_RAND(7),"+ 
-                "SUBSTITUTIONFOR CHAR(20) DEFAULT SECURE_RAND(10),"+ 
-                "SUBSTITUTIONFORGTIN CHAR(14) DEFAULT SECURE_RAND(7),"+ 
-                "VERWERKBAAR CHAR(2) DEFAULT SECURE_RAND(1),"+ 
-                "BESTELBAAR CHAR(2) DEFAULT SECURE_RAND(1),"+ 
-                "AANTALGEBRUIKSEENHEDEN DECIMAL(7,2) DEFAULT RAND(),"+ 
-                "PRIMARYUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "RATEPRICEORDERUNIT DECIMAL(9,3) DEFAULT RAND(),"+ 
-                "ORDERUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "ORDERQTYMIN DECIMAL(6,1) DEFAULT RAND(),"+ 
-                "ORDERQTYLOTSIZE DECIMAL(6,1) DEFAULT RAND(),"+
-                "ORDERUNITCODE2 CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "PRICEGROUP CHAR(20) DEFAULT SECURE_RAND(10),"+ 
-                "LEADTIME INTEGER DEFAULT RAND(),"+ 
-                "LEADTIMEUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "PRDGROUP CHAR(10) DEFAULT SECURE_RAND(5),"+ 
-                "WEIGHTGROSS DECIMAL(7,3) DEFAULT RAND(),"+
-                "WEIGHTUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "PACKUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "PACKLENGTH DECIMAL(7,3) DEFAULT RAND(),"+
-                "PACKWIDTH DECIMAL(7,3) DEFAULT RAND(),"+
-                "PACKHEIGHT DECIMAL(7,3) DEFAULT RAND(),"+
-                "SIZEUNITCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "STATUCCODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
-                "INTRASTATCODE CHAR(12) DEFAULT SECURE_RAND(6),"+
-                "PRDTITLE CHAR(50) DEFAULT SECURE_RAND(25),"+ 
-                "VALIDFROM DATE DEFAULT NOW(),"+
-                "MUTATIEDATUM DATE DEFAULT NOW())");                
+                "CREATE CACHED TABLE TEST("+
+                "M_CODE CHAR(1) DEFAULT CAST(RAND()*9 AS INT),"+ 
+                "PRD_CODE CHAR(20) DEFAULT SECURE_RAND(10),"+ 
+                "ORG_CODE_SUPPLIER CHAR(13) DEFAULT SECURE_RAND(6),"+ 
+                "PRD_CODE_1 CHAR(14) DEFAULT SECURE_RAND(7),"+ 
+                "PRD_CODE_2 CHAR(20)  DEFAULT SECURE_RAND(10),"+ 
+                "ORG_CODE CHAR(13)  DEFAULT SECURE_RAND(6),"+  
+                "SUBSTITUTED_BY CHAR(20) DEFAULT SECURE_RAND(10),"+ 
+                "SUBSTITUTED_BY_2 CHAR(14) DEFAULT SECURE_RAND(7),"+ 
+                "SUBSTITUTION_FOR CHAR(20) DEFAULT SECURE_RAND(10),"+ 
+                "SUBSTITUTION_FOR_2 CHAR(14) DEFAULT SECURE_RAND(7),"+ 
+                "TEST CHAR(2) DEFAULT SECURE_RAND(1),"+ 
+                "TEST_2 CHAR(2) DEFAULT SECURE_RAND(1),"+ 
+                "TEST_3 DECIMAL(7,2) DEFAULT RAND(),"+ 
+                "PRIMARY_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "RATE_PRICE_ORDER_UNIT DECIMAL(9,3) DEFAULT RAND(),"+ 
+                "ORDER_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "ORDER_QTY_MIN DECIMAL(6,1) DEFAULT RAND(),"+ 
+                "ORDER_QTY_LOT_SIZE DECIMAL(6,1) DEFAULT RAND(),"+
+                "ORDER_UNIT_CODE_2 CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "PRICE_GROUP CHAR(20) DEFAULT SECURE_RAND(10),"+ 
+                "LEAD_TIME INTEGER DEFAULT RAND(),"+ 
+                "LEAD_TIME_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "PRD_GROUP CHAR(10) DEFAULT SECURE_RAND(5),"+ 
+                "WEIGHT_GROSS DECIMAL(7,3) DEFAULT RAND(),"+
+                "WEIGHT_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "PACK_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "PACK_LENGTH DECIMAL(7,3) DEFAULT RAND(),"+
+                "PACK_WIDTH DECIMAL(7,3) DEFAULT RAND(),"+
+                "PACK_HEIGHT DECIMAL(7,3) DEFAULT RAND(),"+
+                "SIZE_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "STATUS_CODE CHAR(3) DEFAULT SECURE_RAND(1),"+ 
+                "INTRA_STAT_CODE CHAR(12) DEFAULT SECURE_RAND(6),"+
+                "PRD_TITLE CHAR(50) DEFAULT SECURE_RAND(25),"+ 
+                "VALID_FROM DATE DEFAULT NOW(),"+
+                "MOD_DATUM DATE DEFAULT NOW())");                
         int len = getSize(10, 50000);
         try {
-            PreparedStatement prep = conn.prepareStatement("INSERT INTO PAB_ARTLEV(PRDCODE) VALUES('abc' || ?)");
+            PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(PRD_CODE) VALUES('abc' || ?)");
             long time = System.currentTimeMillis();
             for(int i=0; i<len; i++) {
                 if((i % 1000) == 0) {
@@ -83,8 +83,8 @@ public class TestBigDb extends TestBase {
                 prep.setInt(1, i);
                 prep.execute();
             }
-            stat.execute("CREATE INDEX IDX_PAB_ARTLEV_PRDCODE ON PAB_ARTLEV(PRDCODE)");
-            ResultSet rs = stat.executeQuery("SELECT * FROM PAB_ARTLEV");
+            stat.execute("CREATE INDEX IDX_TEST_PRD_CODE ON TEST(PRD_CODE)");
+            ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
             int columns = rs.getMetaData().getColumnCount();
             while(rs.next()) {
                 for(int i=0; i<columns; i++) {
@@ -104,7 +104,7 @@ public class TestBigDb extends TestBase {
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT, NEG INT AS -ID, NAME VARCHAR, PRIMARY KEY(ID, NAME))");
-        stat.execute("CREATE INDEX IDXNEG ON TEST(NEG, NAME)");
+        stat.execute("CREATE INDEX IDX_NEG ON TEST(NEG, NAME)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, '1234567890')");
         int len = getSize(10, 1000);
         int block = getSize(3, 10);

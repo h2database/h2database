@@ -14,14 +14,14 @@ select * from Foo where A like 'abc%' escape '\' AND B=1;
 drop table Foo;
 > ok
 
-create memory table orders ( orderid varchar(10), name varchar(20),  custid varchar(10), completed numeric(1) not null, verified numeric(1) );
+create memory table orders ( orderid varchar(10), name varchar(20),  customer_id varchar(10), completed numeric(1) not null, verified numeric(1) );
 > ok
 
 select * from information_schema.columns where table_name = 'ORDERS';
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT REMARKS
 > ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- -------
 > SCRIPT        PUBLIC       ORDERS     COMPLETED   4                               NO          3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   0        FALSE       50
-> SCRIPT        PUBLIC       ORDERS     CUSTID      3                               YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50
+> SCRIPT        PUBLIC       ORDERS     CUSTOMER_ID 3                               YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50
 > SCRIPT        PUBLIC       ORDERS     NAME        2                               YES         12        20                       20                     20                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50
 > SCRIPT        PUBLIC       ORDERS     ORDERID     1                               YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50
 > SCRIPT        PUBLIC       ORDERS     VERIFIED    5                               YES         3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   1        FALSE       50
@@ -72,37 +72,37 @@ drop table test;
 create sequence main_seq;
 > ok
 
-create schema "TestSch";
+create schema "TestSchema";
 > ok
 
-create sequence "TestSch"."TestSeq";
+create sequence "TestSchema"."TestSeq";
 > ok
 
-create sequence "TestSch"."ABC";
+create sequence "TestSchema"."ABC";
 > ok
 
-select currval('main_seq'), currval('TestSch', 'TestSeq'), nextval('TestSch', 'ABC');
-> CURRVAL('main_seq') CURRVAL('TestSch', 'TestSeq') NEXTVAL('TestSch', 'ABC')
-> ------------------- ----------------------------- -------------------------
-> 0                   0                             1
+select currval('main_seq'), currval('TestSchema', 'TestSeq'), nextval('TestSchema', 'ABC');
+> CURRVAL('main_seq') CURRVAL('TestSchema', 'TestSeq') NEXTVAL('TestSchema', 'ABC')
+> ------------------- -------------------------------- ----------------------------
+> 0                   0                                1
 > rows: 1
 
 set autocommit off;
 > ok
 
-set schema "TestSch";
+set schema "TestSchema";
 > ok
 
-select nextval('abc'), currval('Abc'), nextval('TestSch', 'ABC');
-> NEXTVAL('abc') CURRVAL('Abc') NEXTVAL('TestSch', 'ABC')
-> -------------- -------------- -------------------------
+select nextval('abc'), currval('Abc'), nextval('TestSchema', 'ABC');
+> NEXTVAL('abc') CURRVAL('Abc') NEXTVAL('TestSchema', 'ABC')
+> -------------- -------------- ----------------------------
 > 2              2              3
 > rows: 1
 
 set schema public;
 > ok
 
-drop schema "TestSch";
+drop schema "TestSchema";
 > ok
 
 drop sequence main_seq;
@@ -138,13 +138,13 @@ drop table parent, child;
 create table test(id int);
 > ok
 
-create schema testsch;
+create schema TEST_SCHEMA;
 > ok
 
 set autocommit false;
 > ok
 
-set schema testsch;
+set schema TEST_SCHEMA;
 > ok
 
 create table test(id int, name varchar);
@@ -152,8 +152,8 @@ create table test(id int, name varchar);
 
 explain select * from test;
 > PLAN
-> -------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM TESTSCH.TEST /* TESTSCH.TEST_TABLE_SCAN */
+> ---------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM TEST_SCHEMA.TEST /* TEST_SCHEMA.TEST_TABLE_SCAN */
 > rows: 1
 
 explain select * from public.test;
@@ -162,7 +162,7 @@ explain select * from public.test;
 > SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
 > rows: 1
 
-drop schema testsch;
+drop schema TEST_SCHEMA;
 > ok
 
 set autocommit true;
@@ -335,7 +335,7 @@ select cast('000102030405060708090a0b0c0d0e0f' as uuid);
 > 00010203-0405-0607-0809-0a0b0c0d0e0f
 > rows: 1
 
-CREATE ALIAS PARSEINT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)";
+CREATE ALIAS PARSE_INT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)";
 > ok
 
 select min(SUBSTRING(random_uuid(), 15,1)='4') from system_range(1, 10);
@@ -344,13 +344,13 @@ select min(SUBSTRING(random_uuid(), 15,1)='4') from system_range(1, 10);
 > TRUE
 > rows: 1
 
-select min(8=bitand(12, PARSEINT2(SUBSTRING(random_uuid(), 20,1), 16))) from system_range(1, 10);
-> MIN(8 = BITAND(12, PARSEINT2(SUBSTRING(RANDOM_UUID(), 20, 1), 16)))
-> -------------------------------------------------------------------
+select min(8=bitand(12, PARSE_INT2(SUBSTRING(random_uuid(), 20,1), 16))) from system_range(1, 10);
+> MIN(8 = BITAND(12, PARSE_INT2(SUBSTRING(RANDOM_UUID(), 20, 1), 16)))
+> --------------------------------------------------------------------
 > TRUE
 > rows: 1
 
-drop alias PARSEINT2;
+drop alias PARSE_INT2;
 > ok
 
 create memory table test(name varchar check(name = upper(name)));
@@ -391,10 +391,10 @@ insert into address(name, name2) values('test@abc', 'test@gmail.com');
 insert into address(name, name2) values('test@abc', 'test@acme');
 > exception
 
-insert into address(name, name2) values('testabc', 'test@gmail');
+insert into address(name, name2) values('test_abc', 'test@gmail');
 > exception
 
-insert into address2(name) values('testabc'), (null);
+insert into address2(name) values('test_abc'), (null);
 > exception
 
 insert into address2(name) values('test@abc');
@@ -415,7 +415,7 @@ CREATE DOMAIN STRING2 AS VARCHAR NOT NULL;
 CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
 > ok
 
-create domain stringx as string3;
+create domain string_x as string3;
 > ok
 
 create memory table test(a string, b string1, c string2, d string3);
@@ -439,7 +439,7 @@ select * from information_schema.domains;
 > SCRIPT         PUBLIC        STRING1                    YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING1 AS VARCHAR
 > SCRIPT         PUBLIC        STRING2                    NO          12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
 > SCRIPT         PUBLIC        STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
-> SCRIPT         PUBLIC        STRINGX     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRINGX AS VARCHAR DEFAULT '<empty>'
+> SCRIPT         PUBLIC        STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
 > rows: 7
 
 script nodata nopasswords nosettings;
@@ -453,7 +453,7 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN STRING1 AS VARCHAR
 > CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
 > CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
-> CREATE DOMAIN STRINGX AS VARCHAR DEFAULT '<empty>'
+> CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
 > CREATE MEMORY TABLE PUBLIC.ADDRESS(     ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1),     NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) )
 > CREATE MEMORY TABLE PUBLIC.TEST(     A VARCHAR(255) DEFAULT '',     B VARCHAR,     C VARCHAR,     D VARCHAR DEFAULT '<empty>' )
 > CREATE PRIMARY KEY ON PUBLIC.ADDRESS(ID)
@@ -476,7 +476,7 @@ drop domain string2;
 drop domain string3;
 > ok
 
-drop domain stringx;
+drop domain string_x;
 > ok
 
 drop table address;
@@ -597,13 +597,13 @@ DROP CONSTANT IF EXISTS ONE;
 DROP CONSTANT IF EXISTS ONE;
 > ok
 
-CREATE TABLE A (IDA int primary key);
+CREATE TABLE A (ID_A int primary key);
 > ok
 
-CREATE TABLE B (IDB int primary key);
+CREATE TABLE B (ID_B int primary key);
 > ok
 
-CREATE TABLE C (IDC int primary key);
+CREATE TABLE C (ID_C int primary key);
 > ok
 
 insert into A values (1);
@@ -618,14 +618,14 @@ insert into B values (1);
 insert into C values (1);
 > update count: 1
 
-SELECT * FROM C WHERE NOT EXISTS ((SELECT IDA FROM A) EXCEPT (SELECT IDB FROM B));
-> IDC
-> ---
+SELECT * FROM C WHERE NOT EXISTS ((SELECT ID_A FROM A) EXCEPT (SELECT ID_B FROM B));
+> ID_C
+> ----
 > rows: 0
 
-(SELECT IDA FROM A) EXCEPT (SELECT IDB FROM B);
-> IDA
-> ---
+(SELECT ID_A FROM A) EXCEPT (SELECT ID_B FROM B);
+> ID_A
+> ----
 > 2
 > rows: 1
 
@@ -745,13 +745,13 @@ CREATE TABLE TEST2(ID INT PRIMARY KEY, NAME VARCHAR(255));
 create unique index idx_test2_name on test2(name);
 > ok
 
-INSERT INTO TEST2 VALUES(1, 'HeLLo');
+INSERT INTO TEST2 VALUES(1, 'HElLo');
 > update count: 1
 
 INSERT INTO TEST2 VALUES(2, 'World');
 > update count: 1
 
-INSERT INTO TEST2 VALUES(3, 'WoRLD');
+INSERT INTO TEST2 VALUES(3, 'WoRlD');
 > exception
 
 drop index idx_test2_name;
@@ -765,7 +765,7 @@ select * from test where name='HELLO';
 select * from test2 where name='HELLO';
 > ID NAME
 > -- -----
-> 1  HeLLo
+> 1  HElLo
 > rows: 1
 
 select * from test where name like 'HELLO';
@@ -776,7 +776,7 @@ select * from test where name like 'HELLO';
 select * from test2 where name like 'HELLO';
 > ID NAME
 > -- -----
-> 1  HeLLo
+> 1  HElLo
 > rows: 1
 
 explain plan for select * from test2, test where test2.name = test.name;
@@ -788,7 +788,7 @@ explain plan for select * from test2, test where test2.name = test.name;
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  HeLLo 1  Hello
+> 1  HElLo 1  Hello
 > 2  World 2  World
 > rows: 2
 
@@ -801,7 +801,7 @@ explain plan for select * from test, test2 where test2.name = test.name;
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  Hello 1  HeLLo
+> 1  Hello 1  HElLo
 > 2  World 2  World
 > rows: 2
 
@@ -817,7 +817,7 @@ explain plan for select * from test2, test where test2.name = test.name;
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  HeLLo 1  Hello
+> 1  HElLo 1  Hello
 > 2  World 2  World
 > rows: 2
 
@@ -830,7 +830,7 @@ explain plan for select * from test, test2 where test2.name = test.name;
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  Hello 1  HeLLo
+> 1  Hello 1  HElLo
 > 2  World 2  World
 > rows: 2
 
@@ -846,35 +846,35 @@ set ignorecase false;
 create table test(f1 varchar, f2 varchar);
 > ok
 
-insert into test values('aaa','222');
+insert into test values('abc','222');
 > update count: 1
 
-insert into test values('aaa','111');
+insert into test values('abc','111');
 > update count: 1
 
-insert into test values('aaa','333');
+insert into test values('abc','333');
 > update count: 1
 
 SELECT t.f1, t.f2 FROM test t ORDER BY t.f2;
 > F1  F2
 > --- ---
-> aaa 111
-> aaa 222
-> aaa 333
+> abc 111
+> abc 222
+> abc 333
 > rows (ordered): 3
 
 SELECT t1.f1, t1.f2, t2.f1, t2.f2 FROM test t1, test t2 ORDER BY t2.f2;
 > F1  F2  F1  F2
 > --- --- --- ---
-> aaa 222 aaa 111
-> aaa 111 aaa 111
-> aaa 333 aaa 111
-> aaa 222 aaa 222
-> aaa 111 aaa 222
-> aaa 333 aaa 222
-> aaa 222 aaa 333
-> aaa 111 aaa 333
-> aaa 333 aaa 333
+> abc 222 abc 111
+> abc 111 abc 111
+> abc 333 abc 111
+> abc 222 abc 222
+> abc 111 abc 222
+> abc 333 abc 222
+> abc 222 abc 333
+> abc 111 abc 333
+> abc 333 abc 333
 > rows (ordered): 9
 
 drop table if exists test;
@@ -1351,7 +1351,7 @@ call (select x from dual where x is null);
 > null
 > rows: 1
 
-create sequence testseq;
+create sequence test_seq;
 > ok
 
 create table test(id identity, parent int);
@@ -1378,13 +1378,13 @@ select * from INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME     CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
 > ---------------- --------------- ----------------- ------------- --------- ------------ -------
 > SCRIPT           PUBLIC          SYSTEM_SEQUENCE_0 0             1         TRUE
-> SCRIPT           PUBLIC          TESTSEQ           0             1         FALSE
+> SCRIPT           PUBLIC          TEST_SEQ          0             1         FALSE
 > rows: 2
 
 drop table test;
 > ok
 
-drop sequence testseq;
+drop sequence test_seq;
 > ok
 
 create table test(id int);
@@ -1433,10 +1433,10 @@ select (select id from test where 1=0) from test;
 drop table test;
 > ok
 
-select TRIM(' ' FROM '  aaa   ') from dual;
-> 'aaa'
+select TRIM(' ' FROM '  abc   ') from dual;
+> 'abc'
 > -----
-> aaa
+> abc
 > rows: 1
 
 create table test(id int primary key, a boolean);
@@ -1492,16 +1492,16 @@ drop table test;
 CREATE memory TABLE TEST(ID INT PRIMARY KEY, PARENT INT REFERENCES TEST);
 > ok
 
-CREATE memory TABLE s(sno VARCHAR(5) PRIMARY KEY, name VARCHAR(16), city VARCHAR(16));
+CREATE memory TABLE s(S_NO VARCHAR(5) PRIMARY KEY, name VARCHAR(16), city VARCHAR(16));
 > ok
 
-CREATE memory TABLE p(pno VARCHAR(5) PRIMARY KEY, descr VARCHAR(16), color VARCHAR(8));
+CREATE memory TABLE p(p_no VARCHAR(5) PRIMARY KEY, descr VARCHAR(16), color VARCHAR(8));
 > ok
 
-CREATE memory TABLE sp1(sno VARCHAR(5) REFERENCES s, pno VARCHAR(5) REFERENCES p, qty INT, PRIMARY KEY (sno, pno));
+CREATE memory TABLE sp1(S_NO VARCHAR(5) REFERENCES s, p_no VARCHAR(5) REFERENCES p, qty INT, PRIMARY KEY (S_NO, p_no));
 > ok
 
-CREATE memory TABLE sp2(sno VARCHAR(5), pno VARCHAR(5), qty INT, constraint c1 FOREIGN KEY (sno) references s, PRIMARY KEY (sno, pno));
+CREATE memory TABLE sp2(S_NO VARCHAR(5), p_no VARCHAR(5), qty INT, constraint c1 FOREIGN KEY (S_NO) references s, PRIMARY KEY (S_NO, p_no));
 > ok
 
 script NOPASSWORDS NOSETTINGS;
@@ -1512,19 +1512,19 @@ script NOPASSWORDS NOSETTINGS;
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.SP1
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.SP2
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
-> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_1 FOREIGN KEY(SNO) REFERENCES PUBLIC.S(SNO)
-> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_2 FOREIGN KEY(PNO) REFERENCES PUBLIC.P(PNO)
-> ALTER TABLE PUBLIC.SP2 ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(SNO) REFERENCES PUBLIC.S(SNO)
+> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_1 FOREIGN KEY(S_NO) REFERENCES PUBLIC.S(S_NO)
+> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_2 FOREIGN KEY(P_NO) REFERENCES PUBLIC.P(P_NO)
+> ALTER TABLE PUBLIC.SP2 ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(S_NO) REFERENCES PUBLIC.S(S_NO)
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_0 FOREIGN KEY(PARENT) REFERENCES PUBLIC.TEST(ID)
-> CREATE MEMORY TABLE PUBLIC.P(     PNO VARCHAR(5) NOT NULL,     DESCR VARCHAR(16),     COLOR VARCHAR(8) )
-> CREATE MEMORY TABLE PUBLIC.S(     SNO VARCHAR(5) NOT NULL,     NAME VARCHAR(16),     CITY VARCHAR(16) )
-> CREATE MEMORY TABLE PUBLIC.SP1(     SNO VARCHAR(5) NOT NULL,     PNO VARCHAR(5) NOT NULL,     QTY INT )
-> CREATE MEMORY TABLE PUBLIC.SP2(     SNO VARCHAR(5) NOT NULL,     PNO VARCHAR(5) NOT NULL,     QTY INT )
+> CREATE MEMORY TABLE PUBLIC.P(     P_NO VARCHAR(5) NOT NULL,     DESCR VARCHAR(16),     COLOR VARCHAR(8) )
+> CREATE MEMORY TABLE PUBLIC.S(     S_NO VARCHAR(5) NOT NULL,     NAME VARCHAR(16),     CITY VARCHAR(16) )
+> CREATE MEMORY TABLE PUBLIC.SP1(     S_NO VARCHAR(5) NOT NULL,     P_NO VARCHAR(5) NOT NULL,     QTY INT )
+> CREATE MEMORY TABLE PUBLIC.SP2(     S_NO VARCHAR(5) NOT NULL,     P_NO VARCHAR(5) NOT NULL,     QTY INT )
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     PARENT INT )
-> CREATE PRIMARY KEY ON PUBLIC.P(PNO)
-> CREATE PRIMARY KEY ON PUBLIC.S(SNO)
-> CREATE PRIMARY KEY ON PUBLIC.SP1(SNO, PNO)
-> CREATE PRIMARY KEY ON PUBLIC.SP2(SNO, PNO)
+> CREATE PRIMARY KEY ON PUBLIC.P(P_NO)
+> CREATE PRIMARY KEY ON PUBLIC.S(S_NO)
+> CREATE PRIMARY KEY ON PUBLIC.SP1(S_NO, P_NO)
+> CREATE PRIMARY KEY ON PUBLIC.SP2(S_NO, P_NO)
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 20
@@ -1766,13 +1766,13 @@ create schema s authorization sa;
 create memory table s.test(id int);
 > ok
 
-create index if not exists idxid on s.test(id);
+create index if not exists idx_id on s.test(id);
 > ok
 
-create index if not exists idxid on s.test(id);
+create index if not exists idx_id on s.test(id);
 > ok
 
-alter index s.idxid rename to s.indexid;
+alter index s.idx_id rename to s.index_id;
 > ok
 
 create sequence s.seq;
@@ -1781,7 +1781,7 @@ create sequence s.seq;
 alter sequence s.seq restart with 10;
 > ok
 
-alter table s.test add constraint cuid unique(id);
+alter table s.test add constraint cu_id unique(id);
 > ok
 
 alter table s.test add name varchar;
@@ -1790,7 +1790,7 @@ alter table s.test add name varchar;
 alter table s.test drop column name;
 > ok
 
-alter table s.test drop constraint cuid;
+alter table s.test drop constraint cu_id;
 > ok
 
 alter table s.test rename to testtab;
@@ -1799,25 +1799,25 @@ alter table s.test rename to testtab;
 alter table s.testtab rename to test;
 > ok
 
-create trigger testtrigger before insert on s.test call "org.h2.test.db.TestTriggersConstraints";
+create trigger test_trigger before insert on s.test call "org.h2.test.db.TestTriggersConstraints";
 > ok
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM S.TEST
-> CREATE INDEX S.INDEXID ON S.TEST(ID)
+> CREATE INDEX S.INDEX_ID ON S.TEST(ID)
 > CREATE MEMORY TABLE S.TEST(     ID INT )
 > CREATE SCHEMA S AUTHORIZATION SA
 > CREATE SEQUENCE S.SEQ START WITH 10
-> CREATE TRIGGER S.TESTTRIGGER BEFORE INSERT ON S.TEST QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints"
-> CREATE UNIQUE INDEX S.CUID_INDEX_0 ON S.TEST(ID)
+> CREATE TRIGGER S.TEST_TRIGGER BEFORE INSERT ON S.TEST QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints"
+> CREATE UNIQUE INDEX S.CU_ID_INDEX_0 ON S.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > DROP SEQUENCE IF EXISTS S.SEQ
 > DROP TABLE IF EXISTS S.TEST
 > rows: 10
 
-drop trigger s.testtrigger;
+drop trigger s.test_trigger;
 > ok
 
 drop schema s;
@@ -1829,7 +1829,7 @@ CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), y int as id+1);
 INSERT INTO TEST(id, name) VALUES(1, 'Hello');
 > update count: 1
 
-create index idxnid on test(name, id);
+create index idx_n_id on test(name, id);
 > ok
 
 alter table test add constraint abc foreign key(id) references (id);
@@ -1843,7 +1843,7 @@ script NOPASSWORDS NOSETTINGS drop;
 > --------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
 > ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.ABC FOREIGN KEY(I) REFERENCES PUBLIC.TEST(I)
-> CREATE INDEX PUBLIC.IDXNID ON PUBLIC.TEST(NAME, I)
+> CREATE INDEX PUBLIC.IDX_N_ID ON PUBLIC.TEST(NAME, I)
 > CREATE MEMORY TABLE PUBLIC.TEST(     I INT NOT NULL,     NAME VARCHAR(255),     Y INT AS (I + 1) )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(I)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
@@ -1938,7 +1938,7 @@ drop sequence seq1;
 create table test(a int primary key, b int, c int);
 > ok
 
-create unique index idxba on test(b, a);
+create unique index idx_ba on test(b, a);
 > ok
 
 alter table test add constraint abc foreign key(c, a) references test(b, a);
@@ -1953,7 +1953,7 @@ drop table test;
 create table ADDRESS (ADDRESS_ID int primary key, ADDRESS_TYPE int not null, SERVER_ID int not null);
 > ok
 
-create unique index idxa on address(ADDRESS_TYPE, SERVER_ID);
+create unique index idx_a on address(ADDRESS_TYPE, SERVER_ID);
 > ok
 
 create table SERVER (SERVER_ID int primary key, SERVER_TYPE int not null, ADDRESS_TYPE int);
@@ -1962,7 +1962,7 @@ create table SERVER (SERVER_ID int primary key, SERVER_TYPE int not null, ADDRES
 alter table ADDRESS add constraint addr foreign key (SERVER_ID) references SERVER;
 > ok
 
-alter table SERVER add constraint serv foreign key (ADDRESS_TYPE, SERVER_ID) references ADDRESS (ADDRESS_TYPE, SERVER_ID);
+alter table SERVER add constraint server_const foreign key (ADDRESS_TYPE, SERVER_ID) references ADDRESS (ADDRESS_TYPE, SERVER_ID);
 > ok
 
 insert into SERVER (SERVER_ID, SERVER_TYPE) values (1, 1);
@@ -1974,23 +1974,23 @@ drop table address;
 drop table server;
 > ok
 
-create table lefthand (id int primary key);
+create table left_hand (id int primary key);
 > ok
 
-create table righthand (id int primary key);
+create table right_hand (id int primary key);
 > ok
 
-insert into lefthand values(0);
+insert into left_hand values(0);
 > update count: 1
 
-insert into lefthand values(1);
+insert into left_hand values(1);
 > update count: 1
 
-insert into righthand values(0);
+insert into right_hand values(0);
 > update count: 1
 
 -- h2, postgresql, mysql, derby, hsqldb: 2
-select * from lefthand left outer join righthand on lefthand.id=righthand.id;
+select * from left_hand left outer join right_hand on left_hand.id=right_hand.id;
 > ID ID
 > -- ----
 > 0  0
@@ -1998,7 +1998,7 @@ select * from lefthand left outer join righthand on lefthand.id=righthand.id;
 > rows: 2
 
 -- h2, postgresql, mysql, derby, hsqldb: 2
-select * from lefthand left join righthand on lefthand.id=righthand.id;
+select * from left_hand left join right_hand on left_hand.id=right_hand.id;
 > ID ID
 > -- ----
 > 0  0
@@ -2006,99 +2006,99 @@ select * from lefthand left join righthand on lefthand.id=righthand.id;
 > rows: 2
 
 -- h2: 1 (2 cols); postgresql, mysql: 1 (1 col); derby, hsqldb: no natural join
-select * from lefthand natural join righthand;
+select * from left_hand natural join right_hand;
 > ID ID
 > -- --
 > 0  0
 > rows: 1
 
 -- h2, postgresql, mysql, derby, hsqldb: 1
-select * from lefthand left outer join righthand on lefthand.id=righthand.id where lefthand.id=1;
+select * from left_hand left outer join right_hand on left_hand.id=right_hand.id where left_hand.id=1;
 > ID ID
 > -- ----
 > 1  null
 > rows: 1
 
 -- h2, postgresql, mysql, derby, hsqldb: 1
-select * from lefthand left join righthand on lefthand.id=righthand.id where lefthand.id=1;
+select * from left_hand left join right_hand on left_hand.id=right_hand.id where left_hand.id=1;
 > ID ID
 > -- ----
 > 1  null
 > rows: 1
 
 -- h2: 0 (2 cols); postgresql, mysql: 0 (1 col); derby, hsqldb: no natural join
-select * from lefthand natural join righthand where lefthand.id=1;
+select * from left_hand natural join right_hand where left_hand.id=1;
 > ID ID
 > -- --
 > rows: 0
 
 -- !!! h2: 1; postgresql, mysql, hsqldb: 0; derby: exception
-select * from lefthand left outer join righthand on lefthand.id=righthand.id where lefthand.id=1 having righthand.id=2;
+select * from left_hand left outer join right_hand on left_hand.id=right_hand.id where left_hand.id=1 having right_hand.id=2;
 > ID ID
 > -- --
 > rows: 0
 
 -- !!! h2: 1; postgresql, mysql, hsqldb: 0; derby: exception
-select * from lefthand left join righthand on lefthand.id=righthand.id where lefthand.id=1 having righthand.id=2;
+select * from left_hand left join right_hand on left_hand.id=right_hand.id where left_hand.id=1 having right_hand.id=2;
 > ID ID
 > -- --
 > rows: 0
 
 -- h2: 0 (2 cols); postgresql: 0 (1 col), mysql: exception; derby, hsqldb: no natural join
-select * from lefthand natural join righthand where lefthand.id=1 having righthand.id=2;
+select * from left_hand natural join right_hand where left_hand.id=1 having right_hand.id=2;
 > exception
 
 -- h2, mysql, hsqldb: 0 rows; postgresql, derby: exception
-select * from lefthand left outer join righthand on lefthand.id=righthand.id where lefthand.id=1 group by lefthand.id having righthand.id=2;
+select * from left_hand left outer join right_hand on left_hand.id=right_hand.id where left_hand.id=1 group by left_hand.id having right_hand.id=2;
 > ID ID
 > -- --
 > rows: 0
 
 -- h2, mysql, hsqldb: 0 rows; postgresql, derby: exception
-select * from lefthand left join righthand on lefthand.id=righthand.id where lefthand.id=1 group by lefthand.id having righthand.id=2;
+select * from left_hand left join right_hand on left_hand.id=right_hand.id where left_hand.id=1 group by left_hand.id having right_hand.id=2;
 > ID ID
 > -- --
 > rows: 0
 
 -- h2: 0 rows; postgresql, mysql: exception; derby, hsqldb: no natural join
-select * from lefthand natural join righthand where lefthand.id=1 group by lefthand.id having righthand.id=2;
+select * from left_hand natural join right_hand where left_hand.id=1 group by left_hand.id having right_hand.id=2;
 > ID ID
 > -- --
 > rows: 0
 
-drop table righthand;
+drop table right_hand;
 > ok
 
-drop table lefthand;
+drop table left_hand;
 > ok
 
-CREATE TABLE PlanElems(id int primary key, name varchar, parent_id int, foreign key(parent_id) references(id) on delete cascade);
+CREATE TABLE PlanElements(id int primary key, name varchar, parent_id int, foreign key(parent_id) references(id) on delete cascade);
 > ok
 
-INSERT INTO PlanElems(id,name,parent_id) VALUES(1, '#1', null), (2, '#1-A', 1), (3, '#1-A-1', 2), (4, '#1-A-2', 2);
+INSERT INTO PlanElements(id,name,parent_id) VALUES(1, '#1', null), (2, '#1-A', 1), (3, '#1-A-1', 2), (4, '#1-A-2', 2);
 > update count: 4
 
-INSERT INTO PlanElems(id,name,parent_id) VALUES(5, '#1-B', 1), (6, '#1-B-1', 5), (7, '#1-B-2', 5);
+INSERT INTO PlanElements(id,name,parent_id) VALUES(5, '#1-B', 1), (6, '#1-B-1', 5), (7, '#1-B-2', 5);
 > update count: 3
 
-INSERT INTO PlanElems(id,name,parent_id) VALUES(8, '#1-C', 1), (9, '#1-C-1', 8), (10, '#1-C-2', 8);
+INSERT INTO PlanElements(id,name,parent_id) VALUES(8, '#1-C', 1), (9, '#1-C-1', 8), (10, '#1-C-2', 8);
 > update count: 3
 
-INSERT INTO PlanElems(id,name,parent_id) VALUES(11, '#1-D', 1), (12, '#1-D-1', 11), (13, '#1-D-2', 11), (14, '#1-D-3', 11);
+INSERT INTO PlanElements(id,name,parent_id) VALUES(11, '#1-D', 1), (12, '#1-D-1', 11), (13, '#1-D-2', 11), (14, '#1-D-3', 11);
 > update count: 4
 
-INSERT INTO PlanElems(id,name,parent_id) VALUES(15, '#1-E', 1), (16, '#1-E-1', 15), (17, '#1-E-2', 15), (18, '#1-E-3', 15), (19, '#1-E-4', 15);
+INSERT INTO PlanElements(id,name,parent_id) VALUES(15, '#1-E', 1), (16, '#1-E-1', 15), (17, '#1-E-2', 15), (18, '#1-E-3', 15), (19, '#1-E-4', 15);
 > update count: 5
 
-DELETE FROM PlanElems WHERE id = 1;
+DELETE FROM PlanElements WHERE id = 1;
 > update count: 1
 
-SELECT * FROM PlanElems;
+SELECT * FROM PlanElements;
 > ID NAME PARENT_ID
 > -- ---- ---------
 > rows: 0
 
-DROP TABLE PlanElems;
+DROP TABLE PlanElements;
 > ok
 
 CREATE TABLE PARENT(ID INT PRIMARY KEY, NAME VARCHAR(255));
@@ -2180,32 +2180,32 @@ drop table test;
 > ok
 
 --- script drop ---------------------------------------------------------------------------------------------
-create memory table test (id int auto_increment, imie varchar(10));
+create memory table test (id int auto_increment, im_ie varchar(10));
 > ok
 
-create sequence testseq;
+create sequence test_seq;
 > ok
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     IMIE VARCHAR(10) )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     IM_IE VARCHAR(10) )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 1 BELONGS_TO_TABLE
-> CREATE SEQUENCE PUBLIC.TESTSEQ START WITH 1
+> CREATE SEQUENCE PUBLIC.TEST_SEQ START WITH 1
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> DROP SEQUENCE IF EXISTS PUBLIC.TESTSEQ
+> DROP SEQUENCE IF EXISTS PUBLIC.TEST_SEQ
 > DROP TABLE IF EXISTS PUBLIC.TEST
 > rows: 8
 
-drop sequence testseq;
+drop sequence test_seq;
 > ok
 
 drop table test;
 > ok
 
---- contraints ---------------------------------------------------------------------------------------------
+--- constraints ---------------------------------------------------------------------------------------------
 CREATE MEMORY TABLE TEST(ID IDENTITY(100, 10), NAME VARCHAR);
 > ok
 
@@ -2288,10 +2288,10 @@ CREATE TABLE TEST(ID INT, PARENTID INT, FOREIGN KEY(PARENTID) REFERENCES(ID));
 INSERT INTO TEST VALUES(0, 0);
 > update count: 1
 
-ALTER TABLE TEST ADD COLUMN CHILDID INT;
+ALTER TABLE TEST ADD COLUMN CHILD_ID INT;
 > ok
 
-ALTER TABLE TEST ALTER COLUMN CHILDID VARCHAR;
+ALTER TABLE TEST ALTER COLUMN CHILD_ID VARCHAR;
 > ok
 
 ALTER TABLE TEST ALTER COLUMN PARENTID VARCHAR;
@@ -2300,7 +2300,7 @@ ALTER TABLE TEST ALTER COLUMN PARENTID VARCHAR;
 ALTER TABLE TEST DROP COLUMN PARENTID;
 > exception
 
-ALTER TABLE TEST DROP COLUMN CHILDID;
+ALTER TABLE TEST DROP COLUMN CHILD_ID;
 > ok
 
 SELECT * FROM TEST;
@@ -2318,10 +2318,10 @@ CREATE MEMORY TABLE A(X INT);
 CREATE MEMORY TABLE B(XX INT, CONSTRAINT B2A FOREIGN KEY(XX) REFERENCES A(X));
 > ok
 
-CREATE MEMORY TABLE C(XMASTER INT);
+CREATE MEMORY TABLE C(X_MASTER INT);
 > ok
 
-ALTER TABLE A ADD CONSTRAINT A2C FOREIGN KEY(X) REFERENCES C(XMASTER);
+ALTER TABLE A ADD CONSTRAINT A2C FOREIGN KEY(X) REFERENCES C(X_MASTER);
 > ok
 
 insert into c values(1);
@@ -2581,24 +2581,24 @@ DROP TABLE CHILD;
 > ok
 
 ---
-create table stringtest(label varchar(31), label2 varchar(255));
+create table STRING_TEST(label varchar(31), label2 varchar(255));
 > ok
 
-create table stringtest_ic(label varchar_ignorecase(31), label2
+create table STRING_TEST_ic(label varchar_ignorecase(31), label2
 varchar_ignorecase(255));
 > ok
 
-insert into stringtest values('HELLO','Bye');
+insert into STRING_TEST values('HELLO','Bye');
 > update count: 1
 
-insert into stringtest values('HELLO','Hello');
+insert into STRING_TEST values('HELLO','Hello');
 > update count: 1
 
-insert into stringtest_ic select * from stringtest;
+insert into STRING_TEST_ic select * from STRING_TEST;
 > update count: 2
 
--- Expect rows of stringtest_ic and stringtest to be identical
-select * from stringtest;
+-- Expect rows of STRING_TEST_ic and STRING_TEST to be identical
+select * from STRING_TEST;
 > LABEL LABEL2
 > ----- ------
 > HELLO Bye
@@ -2606,17 +2606,17 @@ select * from stringtest;
 > rows: 2
 
 -- correct
-select * from stringtest_ic;
+select * from STRING_TEST_ic;
 > LABEL LABEL2
 > ----- ------
 > HELLO Bye
 > HELLO Hello
 > rows: 2
 
-drop table stringtest;
+drop table STRING_TEST;
 > ok
 
-drop table stringtest_ic;
+drop table STRING_TEST_ic;
 > ok
 
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR_IGNORECASE);
@@ -2631,7 +2631,7 @@ SELECT * FROM TEST WHERE NAME = 'HELLO';
 > 1  Hello
 > rows: 1
 
-SELECT * FROM TEST WHERE NAME = 'HELLI';
+SELECT * FROM TEST WHERE NAME = 'HE11O';
 > ID NAME
 > -- ----
 > rows: 0
@@ -2745,7 +2745,7 @@ drop table t3;
 CREATE TABLE TEST(ID INT PRIMARY KEY, parent int, sid int);
 > ok
 
-create index idxp on test(sid);
+create index idx_p on test(sid);
 > ok
 
 insert into test select x, x, x from system_range(0,20);
@@ -2872,7 +2872,7 @@ insert into test values(0, null, null);
 insert into test values(1, '', '');
 > update count: 1
 
-insert into test values(2, 'Cafe', X'caffee');
+insert into test values(2, 'Cafe', X'cafe');
 > update count: 1
 
 script nopasswords nosettings;
@@ -2885,7 +2885,7 @@ script nopasswords nosettings;
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(0, NULL, NULL)
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(1, '', X'')
-> INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(2, 'Cafe', X'caffee')
+> INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(2, 'Cafe', X'cafe')
 > rows: 8
 
 drop table test;
@@ -2934,10 +2934,10 @@ explain select * from b b0, b b1, b b2, b b3, b b4 where b1.p = b0.id and b2.p =
 drop table if exists b;
 > ok
 
-create table test(id int primary key, firstname varchar, name varchar, state int);
+create table test(id int primary key, first_name varchar, name varchar, state int);
 > ok
 
-create index idx_firstname on test(firstname);
+create index idx_first_name on test(first_name);
 > ok
 
 create index idx_name on test(name);
@@ -2956,31 +2956,31 @@ insert into test values
 
 EXPLAIN SELECT * FROM TEST WHERE ID = 3;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.FIRSTNAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = 3 */ WHERE ID = 3
+> -----------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = 3 */ WHERE ID = 3
 > rows: 1
 
-SELECT SELECTIVITY(ID), SELECTIVITY(FIRSTNAME),
+SELECT SELECTIVITY(ID), SELECTIVITY(FIRST_NAME),
 SELECTIVITY(NAME), SELECTIVITY(STATE)
 FROM TEST WHERE ROWNUM()<100000;
-> SELECTIVITY(ID) SELECTIVITY(FIRSTNAME) SELECTIVITY(NAME) SELECTIVITY(STATE)
-> --------------- ---------------------- ----------------- ------------------
-> 100             60                     80                10
+> SELECTIVITY(ID) SELECTIVITY(FIRST_NAME) SELECTIVITY(NAME) SELECTIVITY(STATE)
+> --------------- ----------------------- ----------------- ------------------
+> 100             60                      80                10
 > rows: 1
 
-explain select * from test where name='Smith' and firstname='Tom' and state=0;
+explain select * from test where name='Smith' and first_name='Tom' and state=0;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.FIRSTNAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_FIRSTNAME: FIRSTNAME = 'Tom' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRSTNAME = 'Tom'))
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_FIRST_NAME: FIRST_NAME = 'Tom' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRST_NAME = 'Tom'))
 > rows: 1
 
 alter table test alter column name selectivity 100;
 > ok
 
-explain select * from test where name='Smith' and firstname='Tom' and state=0;
+explain select * from test where name='Smith' and first_name='Tom' and state=0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.FIRSTNAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_NAME: NAME = 'Smith' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRSTNAME = 'Tom'))
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_NAME: NAME = 'Smith' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRST_NAME = 'Tom'))
 > rows: 1
 
 drop table test;
@@ -3067,7 +3067,7 @@ CREATE TABLE TEST(ID INT, NAME VARCHAR(255), B INT);
 CREATE UNIQUE INDEX IDXNAME ON TEST(NAME);
 > ok
 
-CREATE UNIQUE INDEX IDXNAMEB ON TEST(NAME, B);
+CREATE UNIQUE INDEX IDX_NAME_B ON TEST(NAME, B);
 > ok
 
 INSERT INTO TEST(ID, NAME, B) VALUES (0, NULL, NULL);
@@ -3126,34 +3126,34 @@ SELECT * FROM TEST WHERE NOT (1=1);
 DROP TABLE TEST;
 > ok
 
-create table testnull(a int, b int);
+create table test_null(a int, b int);
 > ok
 
-insert into testnull values(0, 0);
+insert into test_null values(0, 0);
 > update count: 1
 
-insert into testnull values(0, null);
+insert into test_null values(0, null);
 > update count: 1
 
-insert into testnull values(null, null);
+insert into test_null values(null, null);
 > update count: 1
 
-insert into testnull values(null, 0);
+insert into test_null values(null, 0);
 > update count: 1
 
-select * from testnull where a=0;
+select * from test_null where a=0;
 > A B
 > - ----
 > 0 0
 > 0 null
 > rows: 2
 
-select * from testnull where not a=0;
+select * from test_null where not a=0;
 > A B
 > - -
 > rows: 0
 
-select * from testnull where (a=0 or b=0);
+select * from test_null where (a=0 or b=0);
 > A    B
 > ---- ----
 > 0    0
@@ -3161,31 +3161,31 @@ select * from testnull where (a=0 or b=0);
 > null 0
 > rows: 3
 
-select * from testnull where not (a=0 or b=0);
+select * from test_null where not (a=0 or b=0);
 > A B
 > - -
 > rows: 0
 
-select * from testnull where (a=1 or b=0);
+select * from test_null where (a=1 or b=0);
 > A    B
 > ---- -
 > 0    0
 > null 0
 > rows: 2
 
-select * from testnull where not( a=1 or b=0);
+select * from test_null where not( a=1 or b=0);
 > A B
 > - -
 > rows: 0
 
-select * from testnull where not(not( a=1 or b=0));
+select * from test_null where not(not( a=1 or b=0));
 > A    B
 > ---- -
 > 0    0
 > null 0
 > rows: 2
 
-select * from testnull where a=0 or b=0;
+select * from test_null where a=0 or b=0;
 > A    B
 > ---- ----
 > 0    0
@@ -3193,13 +3193,13 @@ select * from testnull where a=0 or b=0;
 > null 0
 > rows: 3
 
-SELECT count(*) FROM testnull WHERE not ('X'=null and 1=0);
+SELECT count(*) FROM test_null WHERE not ('X'=null and 1=0);
 > COUNT(*)
 > --------
 > 4
 > rows: 1
 
-drop table if exists testnull;
+drop table if exists test_null;
 > ok
 
 --- function alias ---------------------------------------------------------------------------------------------
@@ -3274,10 +3274,10 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
 > SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE
 > rows: 2
 
-CREATE SCHEMA testSchema AUTHORIZATION SA;
+CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
 > ok
 
-DROP SCHEMA testSchema;
+DROP SCHEMA TEST_SCHEMA;
 > ok
 
 create schema Contact_Schema AUTHORIZATION SA;
@@ -3290,27 +3290,27 @@ CHECK (address_id > 0),
 address_type         VARCHAR(20) NOT NULL
 CONSTRAINT address_type
 CHECK (address_type in ('postal','email','web')),
-CONSTRAINT XPKAddress
+CONSTRAINT X_PKAddress
 PRIMARY KEY (address_id)
 );
 > ok
 
-create schema ClientServ_Schema AUTHORIZATION SA;
+create schema ClientServer_Schema AUTHORIZATION SA;
 > ok
 
-CREATE TABLE ClientServ_Schema.Primarykey_Seq (
+CREATE TABLE ClientServer_Schema.PrimaryKey_Seq (
 sequence_name VARCHAR(100) NOT NULL,
 seq_number BIGINT NOT NULL,
-CONSTRAINT XPKPrimarykey_Seq
+CONSTRAINT X_PKPrimaryKey_Seq
 PRIMARY KEY (sequence_name)
 );
 > ok
 
 alter table Contact_Schema.Address add constraint abc foreign key(address_id)
-references ClientServ_Schema.Primarykey_Seq(seq_number);
+references ClientServer_Schema.PrimaryKey_Seq(seq_number);
 > ok
 
-drop table ClientServ_Schema.Primarykey_Seq;
+drop table ClientServer_Schema.PrimaryKey_Seq;
 > ok
 
 drop table Contact_Schema.Address;
@@ -3319,7 +3319,7 @@ drop table Contact_Schema.Address;
 drop schema Contact_Schema;
 > ok
 
-drop schema ClientServ_Schema;
+drop schema ClientServer_Schema;
 > ok
 
 --- alter table add / drop / rename column ----------------------------------------------------------------------------------------------
@@ -3368,40 +3368,40 @@ SELECT * FROM TEST;
 > 1  Hi   2001-01-01
 > rows: 1
 
-ALTER TABLE TEST ADD MODIFYDATE TIMESTAMP;
+ALTER TABLE TEST ADD MODIFY_DATE TIMESTAMP;
 > ok
 
-CREATE MEMORY TABLE TESTSEQ(ID INT, NAME VARCHAR);
+CREATE MEMORY TABLE TEST_SEQ(ID INT, NAME VARCHAR);
 > ok
 
-INSERT INTO TESTSEQ VALUES(-1, '-1');
+INSERT INTO TEST_SEQ VALUES(-1, '-1');
 > update count: 1
 
-ALTER TABLE TESTSEQ ALTER COLUMN ID IDENTITY;
+ALTER TABLE TEST_SEQ ALTER COLUMN ID IDENTITY;
 > ok
 
-INSERT INTO TESTSEQ VALUES(NULL, '1');
+INSERT INTO TEST_SEQ VALUES(NULL, '1');
 > update count: 1
 
-ALTER TABLE TESTSEQ ALTER COLUMN ID RESTART WITH 10;
+ALTER TABLE TEST_SEQ ALTER COLUMN ID RESTART WITH 10;
 > ok
 
-INSERT INTO TESTSEQ VALUES(NULL, '10');
+INSERT INTO TEST_SEQ VALUES(NULL, '10');
 > update count: 1
 
-alter table testseq drop primary key;
+alter table test_seq drop primary key;
 > ok
 
-ALTER TABLE TESTSEQ ALTER COLUMN ID INT DEFAULT 20;
+ALTER TABLE TEST_SEQ ALTER COLUMN ID INT DEFAULT 20;
 > ok
 
-INSERT INTO TESTSEQ VALUES(DEFAULT, '20');
+INSERT INTO TEST_SEQ VALUES(DEFAULT, '20');
 > update count: 1
 
-ALTER TABLE TESTSEQ ALTER COLUMN NAME RENAME TO DATA;
+ALTER TABLE TEST_SEQ ALTER COLUMN NAME RENAME TO DATA;
 > ok
 
-SELECT * FROM TESTSEQ ORDER BY ID;
+SELECT * FROM TEST_SEQ ORDER BY ID;
 > ID DATA
 > -- ----
 > -1 -1
@@ -3412,47 +3412,47 @@ SELECT * FROM TESTSEQ ORDER BY ID;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
-> -- 4 = SELECT COUNT(*) FROM PUBLIC.TESTSEQ
+> -- 4 = SELECT COUNT(*) FROM PUBLIC.TEST_SEQ
 > CREATE INDEX PUBLIC.IDXNAME ON PUBLIC.TEST(NAME)
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) DEFAULT 1,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFYDATE TIMESTAMP )
-> CREATE MEMORY TABLE PUBLIC.TESTSEQ(     ID INT DEFAULT 20,     DATA VARCHAR )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) DEFAULT 1,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP )
+> CREATE MEMORY TABLE PUBLIC.TEST_SEQ(     ID INT DEFAULT 20,     DATA VARCHAR )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFYDATE) VALUES(1, 'Hi', '2001-01-01', NULL)
-> INSERT INTO PUBLIC.TESTSEQ(ID, DATA) VALUES(-1, '-1')
-> INSERT INTO PUBLIC.TESTSEQ(ID, DATA) VALUES(1, '1')
-> INSERT INTO PUBLIC.TESTSEQ(ID, DATA) VALUES(10, '10')
-> INSERT INTO PUBLIC.TESTSEQ(ID, DATA) VALUES(20, '20')
+> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES(1, 'Hi', '2001-01-01', NULL)
+> INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(-1, '-1')
+> INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(1, '1')
+> INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(10, '10')
+> INSERT INTO PUBLIC.TEST_SEQ(ID, DATA) VALUES(20, '20')
 > rows: 12
 
-CREATE UNIQUE INDEX IDXNAMEID ON TEST(ID, NAME);
+CREATE UNIQUE INDEX IDX_NAME_ID ON TEST(ID, NAME);
 > ok
 
 ALTER TABLE TEST DROP COLUMN NAME;
 > exception
 
-DROP INDEX IDXNAMEID;
+DROP INDEX IDX_NAME_ID;
 > ok
 
-DROP INDEX IDXNAMEID IF EXISTS;
+DROP INDEX IDX_NAME_ID IF EXISTS;
 > ok
 
 ALTER TABLE TEST DROP NAME;
 > ok
 
-DROP TABLE TESTSEQ;
+DROP TABLE TEST_SEQ;
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFYDATE TIMESTAMP )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.TEST(ID, CREATEDATE, MODIFYDATE) VALUES(1, '2001-01-01', NULL)
+> INSERT INTO PUBLIC.TEST(ID, CREATEDATE, MODIFY_DATE) VALUES(1, '2001-01-01', NULL)
 > rows: 5
 
 ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
@@ -3460,12 +3460,12 @@ ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255),     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFYDATE TIMESTAMP )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255),     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFYDATE) VALUES(1, NULL, '2001-01-01', NULL)
+> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES(1, NULL, '2001-01-01', NULL)
 > rows: 5
 
 UPDATE TEST SET NAME = 'Hi';
@@ -3475,8 +3475,8 @@ INSERT INTO TEST VALUES(2, 'Hello', DEFAULT, DEFAULT);
 > update count: 1
 
 SELECT * FROM TEST;
-> ID NAME  CREATEDATE MODIFYDATE
-> -- ----- ---------- ----------
+> ID NAME  CREATEDATE MODIFY_DATE
+> -- ----- ---------- -----------
 > 1  Hi    2001-01-01 null
 > 2  Hello 2001-01-01 null
 > rows: 2
@@ -3656,11 +3656,11 @@ DROP TABLE TEST2COL;
 > ok
 
 --- testCases ----------------------------------------------------------------------------------------------
-CREATE TABLE t_1 (cha CHARACTER(10), dec DECIMAL(10,2), doub DOUBLE, lon BIGINT, "IN" INTEGER, sma SMALLINT, tin TINYINT,
-dat DATE DEFAULT CURRENT_DATE, tim TIME DEFAULT CURRENT_TIME, timest TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
+CREATE TABLE t_1 (ch CHARACTER(10), dec DECIMAL(10,2), do DOUBLE, lo BIGINT, "IN" INTEGER, sm SMALLINT, ty TINYINT,
+da DATE DEFAULT CURRENT_DATE, ti TIME DEFAULT CURRENT_TIME, ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
 > ok
 
-INSERT INTO T_1 (cha, dec, doub) VALUES ('name', 10.23, 0);
+INSERT INTO T_1 (ch, dec, do) VALUES ('name', 10.23, 0);
 > update count: 1
 
 SELECT COUNT(*) FROM T_1;
@@ -3673,85 +3673,85 @@ DROP TABLE T_1;
 > ok
 
 --- rights ----------------------------------------------------------------------------------------------
-CREATE USER TESTUSER PASSWORD '123';
+CREATE USER TEST_USER PASSWORD '123';
 > ok
 
 CREATE TABLE TEST(ID INT);
 > ok
 
-CREATE ROLE TESTROLE;
+CREATE ROLE TEST_ROLE;
 > ok
 
-CREATE ROLE IF NOT EXISTS TESTROLE;
+CREATE ROLE IF NOT EXISTS TEST_ROLE;
 > ok
 
-GRANT SELECT, INSERT ON TEST TO TESTUSER;
+GRANT SELECT, INSERT ON TEST TO TEST_USER;
 > ok
 
-GRANT UPDATE ON TEST TO TESTROLE;
+GRANT UPDATE ON TEST TO TEST_ROLE;
 > ok
 
-GRANT TESTROLE TO TESTUSER;
+GRANT TEST_ROLE TO TEST_USER;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
-> NAME     REMARKS
-> -------- -------
+> NAME      REMARKS
+> --------- -------
 > PUBLIC
-> TESTROLE
+> TEST_ROLE
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
-> GRANTEE  GRANTEETYPE GRANTEDROLE RIGHTS         TABLE_SCHEMA TABLE_NAME
-> -------- ----------- ----------- -------------- ------------ ----------
-> TESTROLE ROLE                    UPDATE         PUBLIC       TEST
-> TESTUSER USER                    SELECT, INSERT PUBLIC       TEST
-> TESTUSER USER        TESTROLE
+> GRANTEE   GRANTEETYPE GRANTEDROLE RIGHTS         TABLE_SCHEMA TABLE_NAME
+> --------- ----------- ----------- -------------- ------------ ----------
+> TEST_ROLE ROLE                    UPDATE         PUBLIC       TEST
+> TEST_USER USER                    SELECT, INSERT PUBLIC       TEST
+> TEST_USER USER        TEST_ROLE
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE  TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- -------- ------------- ------------ ---------- -------------- ------------
-> null    TESTROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TESTUSER SCRIPT        PUBLIC       TEST       INSERT         NO
-> null    TESTUSER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
+> ------- --------- ------------- ------------ ---------- -------------- ------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       INSERT         NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
 > rows: 3
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES;
-> GRANTOR GRANTEE  TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- -------- ------------- ------------ ---------- ----------- -------------- ------------
-> null    TESTROLE SCRIPT        PUBLIC       TEST       ID          UPDATE         NO
-> null    TESTUSER SCRIPT        PUBLIC       TEST       ID          INSERT         NO
-> null    TESTUSER SCRIPT        PUBLIC       TEST       ID          SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME PRIVILEGE_TYPE IS_GRANTABLE
+> ------- --------- ------------- ------------ ---------- ----------- -------------- ------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       ID          UPDATE         NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       ID          INSERT         NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       ID          SELECT         NO
 > rows: 3
 
-REVOKE INSERT ON TEST FROM TESTUSER;
+REVOKE INSERT ON TEST FROM TEST_USER;
 > ok
 
-REVOKE TESTROLE FROM TESTUSER;
+REVOKE TEST_ROLE FROM TEST_USER;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
-> GRANTEE  GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME
-> -------- ----------- ----------- ------ ------------ ----------
-> TESTROLE ROLE                    UPDATE PUBLIC       TEST
-> TESTUSER USER                    SELECT PUBLIC       TEST
+> GRANTEE   GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME
+> --------- ----------- ----------- ------ ------------ ----------
+> TEST_ROLE ROLE                    UPDATE PUBLIC       TEST
+> TEST_USER USER                    SELECT PUBLIC       TEST
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
-> GRANTOR GRANTEE  TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
-> ------- -------- ------------- ------------ ---------- -------------- ------------
-> null    TESTROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
-> null    TESTUSER SCRIPT        PUBLIC       TEST       SELECT         NO
+> GRANTOR GRANTEE   TABLE_CATALOG TABLE_SCHEMA TABLE_NAME PRIVILEGE_TYPE IS_GRANTABLE
+> ------- --------- ------------- ------------ ---------- -------------- ------------
+> null    TEST_ROLE SCRIPT        PUBLIC       TEST       UPDATE         NO
+> null    TEST_USER SCRIPT        PUBLIC       TEST       SELECT         NO
 > rows: 2
 
-DROP USER TESTUSER;
+DROP USER TEST_USER;
 > ok
 
 DROP TABLE TEST;
 > ok
 
-DROP ROLE TESTROLE;
+DROP ROLE TEST_ROLE;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
@@ -4053,124 +4053,124 @@ SELECT * FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
 > 3  Petra 2     2  Class2
 > rows: 4
 
-SELECT CH.ID CHID, CH.NAME CHNAME, CL.ID CLID, CL.NAME CLNAME FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
-> CHID CHNAME CLID CLNAME
-> ---- ------ ---- ------------
-> 0    Joe    0    Kindergarden
-> 1    Anne   1    Class1
-> 2    Joerg  1    Class1
-> 3    Petra  2    Class2
+SELECT CH.ID CH_ID, CH.NAME CH_NAME, CL.ID CL_ID, CL.NAME CL_NAME FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
+> CH_ID CH_NAME CL_ID CL_NAME
+> ----- ------- ----- ------------
+> 0     Joe     0     Kindergarden
+> 1     Anne    1     Class1
+> 2     Joerg   1     Class1
+> 3     Petra   2     Class2
 > rows: 4
 
-CREATE VIEW CHILDRENCLASSES(CHID, CHNAME, CLID, CLNAME) AS
-SELECT CH.ID CHID1, CH.NAME CHNAME2, CL.ID CLID3, CL.NAME CLNAME4
+CREATE VIEW CHILDREN_CLASSES(CH_ID, CH_NAME, CL_ID, CL_NAME) AS
+SELECT CH.ID CH_ID1, CH.NAME CH_NAME2, CL.ID CL_ID3, CL.NAME CL_NAME4
 FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
 > ok
 
-SELECT * FROM CHILDRENCLASSES WHERE CHNAME <> 'X';
-> CHID CHNAME CLID CLNAME
-> ---- ------ ---- ------------
-> 0    Joe    0    Kindergarden
-> 1    Anne   1    Class1
-> 2    Joerg  1    Class1
-> 3    Petra  2    Class2
+SELECT * FROM CHILDREN_CLASSES WHERE CH_NAME <> 'X';
+> CH_ID CH_NAME CL_ID CL_NAME
+> ----- ------- ----- ------------
+> 0     Joe     0     Kindergarden
+> 1     Anne    1     Class1
+> 2     Joerg   1     Class1
+> 3     Petra   2     Class2
 > rows: 4
 
-CREATE VIEW CHILDRENCLASS1 AS SELECT * FROM CHILDRENCLASSES WHERE CLID=1;
+CREATE VIEW CHILDREN_CLASS1 AS SELECT * FROM CHILDREN_CLASSES WHERE CL_ID=1;
 > ok
 
-SELECT * FROM CHILDRENCLASS1;
-> CHID CHNAME CLID CLNAME
-> ---- ------ ---- ------
-> 1    Anne   1    Class1
-> 2    Joerg  1    Class1
+SELECT * FROM CHILDREN_CLASS1;
+> CH_ID CH_NAME CL_ID CL_NAME
+> ----- ------- ----- -------
+> 1     Anne    1     Class1
+> 2     Joerg   1     Class1
 > rows: 2
 
-CREATE VIEW CHILDRENCLASS2 AS SELECT * FROM CHILDRENCLASSES WHERE CLID=2;
+CREATE VIEW CHILDREN_CLASS2 AS SELECT * FROM CHILDREN_CLASSES WHERE CL_ID=2;
 > ok
 
-SELECT * FROM CHILDRENCLASS2;
-> CHID CHNAME CLID CLNAME
-> ---- ------ ---- ------
-> 3    Petra  2    Class2
+SELECT * FROM CHILDREN_CLASS2;
+> CH_ID CH_NAME CL_ID CL_NAME
+> ----- ------- ----- -------
+> 3     Petra   2     Class2
 > rows: 1
 
-CREATE VIEW CHILDRENCLASS12 AS SELECT * FROM CHILDRENCLASS1 UNION ALL SELECT * FROM CHILDRENCLASS1;
+CREATE VIEW CHILDREN_CLASS12 AS SELECT * FROM CHILDREN_CLASS1 UNION ALL SELECT * FROM CHILDREN_CLASS1;
 > ok
 
-SELECT * FROM CHILDRENCLASS12;
-> CHID CHNAME CLID CLNAME
-> ---- ------ ---- ------
-> 1    Anne   1    Class1
-> 1    Anne   1    Class1
-> 2    Joerg  1    Class1
-> 2    Joerg  1    Class1
+SELECT * FROM CHILDREN_CLASS12;
+> CH_ID CH_NAME CL_ID CL_NAME
+> ----- ------- ----- -------
+> 1     Anne    1     Class1
+> 1     Anne    1     Class1
+> 2     Joerg   1     Class1
+> 2     Joerg   1     Class1
 > rows: 4
 
-DROP VIEW CHILDRENCLASS1;
+DROP VIEW CHILDREN_CLASS1;
 > ok
 
-DROP VIEW CHILDRENCLASS2;
+DROP VIEW CHILDREN_CLASS2;
 > ok
 
-DROP VIEW CHILDRENCLASSES;
+DROP VIEW CHILDREN_CLASSES;
 > ok
 
-DROP VIEW CHILDRENCLASS12;
+DROP VIEW CHILDREN_CLASS12;
 > exception
 
-CREATE VIEW VUNION AS SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN;
+CREATE VIEW V_UNION AS SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN;
 > ok
 
-SELECT * FROM VUNION WHERE ID=1;
+SELECT * FROM V_UNION WHERE ID=1;
 > ID NAME CLASS
 > -- ---- -----
 > 1  Anne 1
 > 1  Anne 1
 > rows: 2
 
-EXPLAIN SELECT * FROM VUNION WHERE ID=1;
+EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT VUNION.ID, VUNION.NAME, VUNION.CLASS FROM PUBLIC.VUNION /* SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN: ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN: ID = 1 */ WHERE ID = 1
 > rows: 1
 
-CREATE VIEW VEXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
+CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
 > ok
 
-SELECT * FROM VEXCEPT WHERE ID=1;
+SELECT * FROM V_EXCEPT WHERE ID=1;
 > ID NAME CLASS
 > -- ---- -----
 > 1  Anne 1
 > rows: 1
 
-EXPLAIN SELECT * FROM VEXCEPT WHERE ID=1;
+EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT VEXCEPT.ID, VEXCEPT.NAME, VEXCEPT.CLASS FROM PUBLIC.VEXCEPT /* SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2: ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2: ID = 1 */ WHERE ID = 1
 > rows: 1
 
-CREATE VIEW VINTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
+CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
 > ok
 
-SELECT * FROM VINTERSECT WHERE ID=1;
+SELECT * FROM V_INTERSECT WHERE ID=1;
 > ID NAME
 > -- ----
 > rows: 0
 
-EXPLAIN SELECT * FROM VINTERSECT WHERE ID=1;
+EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT VINTERSECT.ID, VINTERSECT.NAME FROM PUBLIC.VINTERSECT /* SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES: ID = 1 */ WHERE ID = 1
+> --------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES: ID = 1 */ WHERE ID = 1
 > rows: 1
 
-DROP VIEW VUNION;
+DROP VIEW V_UNION;
 > ok
 
-DROP VIEW VEXCEPT;
+DROP VIEW V_EXCEPT;
 > ok
 
-DROP VIEW VINTERSECT;
+DROP VIEW V_INTERSECT;
 > ok
 
 DROP TABLE CHILDREN;
@@ -4180,119 +4180,119 @@ DROP TABLE CLASSES;
 > ok
 
 --- view ----------------------------------------------------------------------------------------------
-CREATE CACHED TABLE TESTA(ID INT PRIMARY KEY, NAME VARCHAR(255));
+CREATE CACHED TABLE TEST_A(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok
 
-CREATE CACHED TABLE TESTB(ID INT PRIMARY KEY, NAME VARCHAR(255));
+CREATE CACHED TABLE TEST_B(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok
 
-SELECT A.ID AID, A.NAME ANAME, B.ID BID, B.NAME BNAME FROM TESTA A INNER JOIN TESTB B WHERE A.ID = B.ID;
-> AID ANAME BID BNAME
-> --- ----- --- -----
+SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A INNER JOIN TEST_B B WHERE A.ID = B.ID;
+> AID A_NAME BID B_NAME
+> --- ------ --- ------
 > rows: 0
 
-CREATE VIEW IF NOT EXISTS TESTALL AS SELECT A.ID AID, A.NAME ANAME, B.ID BID, B.NAME BNAME FROM TESTA A, TESTB B WHERE A.ID = B.ID;
+CREATE VIEW IF NOT EXISTS TEST_ALL AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID;
 > ok
 
-SELECT COUNT(*) FROM TESTALL;
+SELECT COUNT(*) FROM TEST_ALL;
 > COUNT(*)
 > --------
 > 0
 > rows: 1
 
-CREATE VIEW IF NOT EXISTS TESTALL AS
-SELECT * FROM TESTA;
+CREATE VIEW IF NOT EXISTS TEST_ALL AS
+SELECT * FROM TEST_A;
 > ok
 
-INSERT INTO TESTA VALUES(1, 'Hello');
+INSERT INTO TEST_A VALUES(1, 'Hello');
 > update count: 1
 
-INSERT INTO TESTB VALUES(1, 'Hallo');
+INSERT INTO TEST_B VALUES(1, 'Hallo');
 > update count: 1
 
-INSERT INTO TESTA VALUES(2, 'World');
+INSERT INTO TEST_A VALUES(2, 'World');
 > update count: 1
 
-INSERT INTO TESTB VALUES(2, 'Welt');
+INSERT INTO TEST_B VALUES(2, 'Welt');
 > update count: 1
 
-INSERT INTO TESTA VALUES(3, 'Record');
+INSERT INTO TEST_A VALUES(3, 'Record');
 > update count: 1
 
-INSERT INTO TESTB VALUES(3, 'Rekord');
+INSERT INTO TEST_B VALUES(3, 'Rekord');
 > update count: 1
 
-SELECT * FROM TESTALL;
-> AID ANAME  BID BNAME
+SELECT * FROM TEST_ALL;
+> AID A_NAME BID B_NAME
 > --- ------ --- ------
 > 1   Hello  1   Hallo
 > 2   World  2   Welt
 > 3   Record 3   Rekord
 > rows: 3
 
-SELECT * FROM TESTALL WHERE  AID=1;
-> AID ANAME BID BNAME
-> --- ----- --- -----
-> 1   Hello 1   Hallo
+SELECT * FROM TEST_ALL WHERE  AID=1;
+> AID A_NAME BID B_NAME
+> --- ------ --- ------
+> 1   Hello  1   Hallo
 > rows: 1
 
-SELECT * FROM TESTALL WHERE AID>0;
-> AID ANAME  BID BNAME
+SELECT * FROM TEST_ALL WHERE AID>0;
+> AID A_NAME BID B_NAME
 > --- ------ --- ------
 > 1   Hello  1   Hallo
 > 2   World  2   Welt
 > 3   Record 3   Rekord
 > rows: 3
 
-SELECT * FROM TESTALL WHERE AID<2;
-> AID ANAME BID BNAME
-> --- ----- --- -----
-> 1   Hello 1   Hallo
+SELECT * FROM TEST_ALL WHERE AID<2;
+> AID A_NAME BID B_NAME
+> --- ------ --- ------
+> 1   Hello  1   Hallo
 > rows: 1
 
-SELECT * FROM TESTALL WHERE AID<=2;
-> AID ANAME BID BNAME
-> --- ----- --- -----
-> 1   Hello 1   Hallo
-> 2   World 2   Welt
+SELECT * FROM TEST_ALL WHERE AID<=2;
+> AID A_NAME BID B_NAME
+> --- ------ --- ------
+> 1   Hello  1   Hallo
+> 2   World  2   Welt
 > rows: 2
 
-SELECT * FROM TESTALL WHERE AID>=2;
-> AID ANAME  BID BNAME
+SELECT * FROM TEST_ALL WHERE AID>=2;
+> AID A_NAME BID B_NAME
 > --- ------ --- ------
 > 2   World  2   Welt
 > 3   Record 3   Rekord
 > rows: 2
 
-CREATE VIEW TESTASUB AS SELECT * FROM TESTA WHERE ID < 2;
+CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE STORAGE_TYPE SQL                                                                                                                                                       REMARKS
-> ------------- ------------ ---------- ---------- ------------ --------------------------------------------------------------------------------------------------------------------------------------------------------- -------
-> SCRIPT        PUBLIC       TESTALL    VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TESTALL(AID, ANAME, BID, BNAME) AS SELECT A.ID AID, A.NAME ANAME, B.ID BID, B.NAME BNAME FROM TESTA A, TESTB B WHERE A.ID = B.ID
-> SCRIPT        PUBLIC       TESTASUB   VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TESTASUB(ID, NAME) AS SELECT * FROM TESTA WHERE ID < 2
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE STORAGE_TYPE SQL                                                                                                                                                              REMARKS
+> ------------- ------------ ---------- ---------- ------------ ---------------------------------------------------------------------------------------------------------------------------------------------------------------- -------
+> SCRIPT        PUBLIC       TEST_ALL   VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID
+> SCRIPT        PUBLIC       TEST_A_SUB VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2
 > rows: 2
 
-SELECT * FROM TESTASUB WHERE NAME IS NOT NULL;
+SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;
 > ID NAME
 > -- -----
 > 1  Hello
 > rows: 1
 
-DROP VIEW TESTASUB;
+DROP VIEW TEST_A_SUB;
 > ok
 
-DROP TABLE TESTA;
+DROP TABLE TEST_A;
 > ok
 
-DROP TABLE TESTB;
+DROP TABLE TEST_B;
 > ok
 
-DROP VIEW TESTALL;
+DROP VIEW TEST_ALL;
 > exception
 
-DROP VIEW IF EXISTS TESTALL;
+DROP VIEW IF EXISTS TEST_ALL;
 > ok
 
 --- commit/rollback ----------------------------------------------------------------------------------------------
@@ -4322,7 +4322,7 @@ SAVEPOINT TEST;
 INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
-ROLLBACK TO SAVEPOINT NOTEXISTING;
+ROLLBACK TO SAVEPOINT NOT_EXISTING;
 > exception
 
 ROLLBACK TO SAVEPOINT TEST;
@@ -4508,35 +4508,35 @@ drop table t1;
 drop table t2;
 > ok
 
-create table customer(customerid int, customername varchar);
+create table customer(customerid int, customer_name varchar);
 > ok
 
 insert into customer values(0, 'Acme');
 > update count: 1
 
-create table invoice(customerid int, invoiceid int, invoicetext varchar);
+create table invoice(customerid int, invoiceid int, invoice_text varchar);
 > ok
 
 insert into invoice values(0, 1, 'Soap'), (0, 2, 'More Soap');
 > update count: 2
 
-create table invoiceline(lineid int, invoiceid int, customerid int, linetext varchar);
+create table INVOICE_LINE(line_id int, invoiceid int, customerid int, line_text varchar);
 > ok
 
-insert into invoiceline values(10, 1, 0, 'Super Soap'), (20, 1, 0, 'Regular Soap');
+insert into INVOICE_LINE values(10, 1, 0, 'Super Soap'), (20, 1, 0, 'Regular Soap');
 > update count: 2
 
-select c.*, i.*, l.* from customer c natural join invoice i natural join invoiceline l;
-> CUSTOMERID CUSTOMERNAME CUSTOMERID INVOICEID INVOICETEXT LINEID INVOICEID CUSTOMERID LINETEXT
-> ---------- ------------ ---------- --------- ----------- ------ --------- ---------- ------------
-> 0          Acme         0          1         Soap        10     1         0          Super Soap
-> 0          Acme         0          1         Soap        20     1         0          Regular Soap
+select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+> CUSTOMERID CUSTOMER_NAME CUSTOMERID INVOICEID INVOICE_TEXT LINE_ID INVOICEID CUSTOMERID LINE_TEXT
+> ---------- ------------- ---------- --------- ------------ ------- --------- ---------- ------------
+> 0          Acme          0          1         Soap         10      1         0          Super Soap
+> 0          Acme          0          1         Soap         20      1         0          Regular Soap
 > rows: 2
 
-explain select c.*, i.*, l.* from customer c natural join invoice i natural join invoiceline l;
+explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT C.CUSTOMERID, C.CUSTOMERNAME, I.CUSTOMERID, I.INVOICEID, I.INVOICETEXT, L.LINEID, L.INVOICEID, L.CUSTOMERID, L.LINETEXT FROM PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_TABLE_SCAN */ INNER JOIN PUBLIC.INVOICE I /* PUBLIC.INVOICE_TABLE_SCAN */ /* WHERE PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID*/ INNER JOIN PUBLIC.INVOICELINE L /* PUBLIC.INVOICELINE_TABLE_SCAN */ WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.CUSTOMERID, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.INVOICEID, L.CUSTOMERID, L.LINE_TEXT FROM PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER_TABLE_SCAN */ INNER JOIN PUBLIC.INVOICE I /* PUBLIC.INVOICE_TABLE_SCAN */ /* WHERE PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID*/ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE_TABLE_SCAN */ WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
 > rows: 1
 
 drop table customer;
@@ -4545,7 +4545,7 @@ drop table customer;
 drop table invoice;
 > ok
 
-drop table invoiceline;
+drop table INVOICE_LINE;
 > ok
 
 --- outer joins ----------------------------------------------------------------------------------------------
@@ -4603,10 +4603,10 @@ CREATE SOMETHING STRANGE;
 SELECT T1.* T2;
 > exception
 
-select replace('hihihi', 'i', 'o') ehohoho, replace('this is tom', 'i') 1ethstom from test;
+select replace('abchihihi', 'i', 'o') abcehohoho, replace('this is tom', 'i') 1e_th_st_om from test;
 > exception
 
-select monthname(date )'005-0E9-12') dset fom test;
+select monthname(date )'005-0E9-12') d_set fm test;
 > exception
 
 call substring('bob', 2, -1);
@@ -4631,7 +4631,7 @@ INSERT INTO TEST VALUES(2, 'World');
 INSERT INTO TEST VALUES(3, 'Word');
 > update count: 1
 
-INSERT INTO TEST VALUES(4, 'Wor%');
+INSERT INTO TEST VALUES(4, 'Wo%');
 > update count: 1
 
 SELECT * FROM TEST WHERE NAME IS NULL;
@@ -4646,7 +4646,7 @@ SELECT * FROM TEST WHERE NAME IS NOT NULL;
 > 1  Hello
 > 2  World
 > 3  Word
-> 4  Wor%
+> 4  Wo%
 > rows: 4
 
 SELECT * FROM TEST WHERE NAME BETWEEN 'H' AND 'Word';
@@ -4654,7 +4654,7 @@ SELECT * FROM TEST WHERE NAME BETWEEN 'H' AND 'Word';
 > -- -----
 > 1  Hello
 > 3  Word
-> 4  Wor%
+> 4  Wo%
 > rows: 3
 
 SELECT * FROM TEST WHERE ID >= 2 AND ID <= 3 AND ID <> 2;
@@ -4670,14 +4670,14 @@ SELECT * FROM TEST WHERE ID>0 AND ID<4 AND ID!=2;
 > 3  Word
 > rows: 2
 
-SELECT * FROM TEST WHERE 'Hello' LIKE '_ell%';
+SELECT * FROM TEST WHERE 'Hello' LIKE '_el%';
 > ID NAME
 > -- -----
 > 0  null
 > 1  Hello
 > 2  World
 > 3  Word
-> 4  Wor%
+> 4  Wo%
 > rows: 5
 
 SELECT * FROM TEST WHERE NAME LIKE 'Hello%';
@@ -4686,24 +4686,24 @@ SELECT * FROM TEST WHERE NAME LIKE 'Hello%';
 > 1  Hello
 > rows: 1
 
-SELECT * FROM TEST WHERE NAME LIKE 'Wor%';
+SELECT * FROM TEST WHERE NAME LIKE 'Wo%';
 > ID NAME
 > -- -----
 > 2  World
 > 3  Word
-> 4  Wor%
+> 4  Wo%
 > rows: 3
 
-SELECT * FROM TEST WHERE NAME LIKE 'Wor\%';
+SELECT * FROM TEST WHERE NAME LIKE 'Wo\%';
 > ID NAME
 > -- ----
-> 4  Wor%
+> 4  Wo%
 > rows: 1
 
-SELECT * FROM TEST WHERE NAME LIKE 'WorX%' ESCAPE 'X';
+SELECT * FROM TEST WHERE NAME LIKE 'WoX%' ESCAPE 'X';
 > ID NAME
 > -- ----
-> 4  Wor%
+> 4  Wo%
 > rows: 1
 
 SELECT * FROM TEST WHERE NAME LIKE 'Word_';
@@ -4729,7 +4729,7 @@ SELECT T1.*, T2.* FROM TEST AS T1, TEST AS T2 WHERE T1.ID = T2.ID AND T1.NAME LI
 > 1  Hello 1  Hello
 > 2  World 2  World
 > 3  Word  3  Word
-> 4  Wor%  4  Wor%
+> 4  Wo%   4  Wo%
 > rows: 4
 
 SELECT ID, MAX(NAME) FROM TEST GROUP BY ID HAVING MAX(NAME) = 'World';
@@ -4766,7 +4766,7 @@ SELECT * FROM TEST;
 > 1  Hello
 > rows: 1
 
-DROOP TABELL TESTT;
+DROP_ TABLE_ TEST_T;
 > exception
 
 DROP TABLE TEST /*;
@@ -4915,7 +4915,7 @@ DROP TABLE TEST;
 > ok
 
 --- data types (blob, clob, varchar_ignorecase) ----------------------------------------------------------------------------------------------
-CREATE TABLE TEST(ID INT, XB BINARY, XBL BLOB, XOT OTHER, XCL CLOB, XVI VARCHAR_IGNORECASE);
+CREATE TABLE TEST(ID INT, XB BINARY, XBL BLOB, XO OTHER, XCL CLOB, XVI VARCHAR_IGNORECASE);
 > ok
 
 INSERT INTO TEST VALUES(0, X '', '', '', '', '');
@@ -4934,7 +4934,7 @@ INSERT INTO TEST VALUES(4, NULL, NULL, NULL, NULL, NULL);
 > update count: 1
 
 SELECT * FROM TEST;
-> ID XB                                                                                                                                                                                                                                                                                                           XBL                                                                                                                                                                                                                                                                                                          XOT                                                                                                                                                                                                                                                                                                          XCL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      XVI
+> ID XB                                                                                                                                                                                                                                                                                                           XBL                                                                                                                                                                                                                                                                                                          XO                                                                                                                                                                                                                                                                                                           XCL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      XVI
 > -- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > 0
 > 1  0101                                                                                                                                                                                                                                                                                                         0101                                                                                                                                                                                                                                                                                                         0101                                                                                                                                                                                                                                                                                                         abc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      aa
@@ -4964,16 +4964,16 @@ SELECT ID FROM TEST WHERE XVI LIKE 'abc%';
 > 3
 > rows: 1
 
-SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('aaff' AS BINARY), CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
-> 'abc' 'Papa Joe''s' -1 2 0.0 X'aaff' 125 TRUE FALSE
+SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY), CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
+> 'abc' 'Papa Joe''s' -1 2 0.0 X'0a0f' 125 TRUE FALSE
 > ----- ------------- -- - --- ------- --- ---- -----
-> abc   Papa Joe's    -1 2 0.0 aaff    125 TRUE FALSE
+> abc   Papa Joe's    -1 2 0.0 0a0f    125 TRUE FALSE
 > rows: 1
 
-SELECT CAST('abcd' AS VARCHAR(255)), CAST('efgh' AS VARCHAR(3));
-> 'abcd' 'efg'
+SELECT CAST('abcd' AS VARCHAR(255)), CAST('ef_gh' AS VARCHAR(3));
+> 'abcd' 'ef_'
 > ------ -----
-> abcd   efg
+> abcd   ef_
 > rows: 1
 
 DROP TABLE TEST;
@@ -5082,7 +5082,7 @@ CALL 1E-1;
 > 0.1
 > rows: 1
 
-CREATE TABLE TEST(ID INT, XBIT BIT, XTIN TINYINT, XSMA SMALLINT, XBIG BIGINT, XDEC DECIMAL(10,2), XDOU DOUBLE PRECISION, XREA REAL);
+CREATE TABLE TEST(ID INT, X1 BIT, XT TINYINT, X_SM SMALLINT, XB BIGINT, XD DECIMAL(10,2), XD2 DOUBLE PRECISION, XR REAL);
 > ok
 
 INSERT INTO TEST VALUES(?, ?, ?, ?, ?, ?, ?, ?);
@@ -5096,7 +5096,7 @@ NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
 > update count: 5
 
 SELECT *, 0xFF, -0x1234567890abcd FROM TEST;
-> ID   XBIT  XTIN XSMA XBIG XDEC  XDOU XREA 255 -5124095575370701
+> ID   X1    XT   X_SM XB   XD    XD2  XR   255 -5124095575370701
 > ---- ----- ---- ---- ---- ----- ---- ---- --- -----------------
 > -1   FALSE -1   -1   -1   -1.00 -1.0 -1.0 255 -5124095575370701
 > 0    FALSE 0    0    0    0.00  0.0  0.0  255 -5124095575370701
@@ -5105,8 +5105,8 @@ SELECT *, 0xFF, -0x1234567890abcd FROM TEST;
 > null null  null null null null  null null 255 -5124095575370701
 > rows: 5
 
-SELECT XDEC, CAST(XDEC AS DECIMAL(10,1)) D2DE, CAST(XDOU AS DECIMAL(4, 3)) DO2DE, CAST(XREA AS DECIMAL(20,3)) R2DE FROM TEST;
-> XDEC  D2DE DO2DE  R2DE
+SELECT XD, CAST(XD AS DECIMAL(10,1)) D2DE, CAST(XD2 AS DECIMAL(4, 3)) DO2DE, CAST(XR AS DECIMAL(20,3)) R2DE FROM TEST;
+> XD    D2DE DO2DE  R2DE
 > ----- ---- ------ ------
 > -1.00 -1.0 -1.000 -1.000
 > 0.00  0.0  0.000  0.000
@@ -5115,7 +5115,7 @@ SELECT XDEC, CAST(XDEC AS DECIMAL(10,1)) D2DE, CAST(XDOU AS DECIMAL(4, 3)) DO2DE
 > null  null null   null
 > rows: 5
 
-SELECT ID, CAST(XBIG AS DOUBLE) L2D, CAST(XSMA AS DOUBLE) S2D, CAST(XTIN AS DOUBLE) X2D FROM TEST;
+SELECT ID, CAST(XB AS DOUBLE) L2D, CAST(X_SM AS DOUBLE) S2D, CAST(XT AS DOUBLE) X2D FROM TEST;
 > ID   L2D  S2D  X2D
 > ---- ---- ---- ----
 > -1   -1.0 -1.0 -1.0
@@ -5125,7 +5125,7 @@ SELECT ID, CAST(XBIG AS DOUBLE) L2D, CAST(XSMA AS DOUBLE) S2D, CAST(XTIN AS DOUB
 > null null null null
 > rows: 5
 
-SELECT ID, CAST(XBIG AS REAL) L2D, CAST(XSMA AS REAL) S2D, CAST(XTIN AS REAL) T2R FROM TEST;
+SELECT ID, CAST(XB AS REAL) L2D, CAST(X_SM AS REAL) S2D, CAST(XT AS REAL) T2R FROM TEST;
 > ID   L2D  S2D  T2R
 > ---- ---- ---- ----
 > -1   -1.0 -1.0 -1.0
@@ -5135,7 +5135,7 @@ SELECT ID, CAST(XBIG AS REAL) L2D, CAST(XSMA AS REAL) S2D, CAST(XTIN AS REAL) T2
 > null null null null
 > rows: 5
 
-SELECT ID, CAST(XSMA AS BIGINT) S2L, CAST(XTIN AS BIGINT) B2L, CAST(XDOU AS BIGINT) D2L, CAST(XREA AS BIGINT) R2L FROM TEST;
+SELECT ID, CAST(X_SM AS BIGINT) S2L, CAST(XT AS BIGINT) B2L, CAST(XD2 AS BIGINT) D2L, CAST(XR AS BIGINT) R2L FROM TEST;
 > ID   S2L  B2L  D2L  R2L
 > ---- ---- ---- ---- ----
 > -1   -1   -1   -1   -1
@@ -5145,7 +5145,7 @@ SELECT ID, CAST(XSMA AS BIGINT) S2L, CAST(XTIN AS BIGINT) B2L, CAST(XDOU AS BIGI
 > null null null null null
 > rows: 5
 
-SELECT ID, CAST(XBIG AS INT) L2I, CAST(XDOU AS INT) D2I, CAST(XDOU AS SMALLINT) DO2I, CAST(XREA AS SMALLINT) R2I FROM TEST;
+SELECT ID, CAST(XB AS INT) L2I, CAST(XD2 AS INT) D2I, CAST(XD2 AS SMALLINT) DO2I, CAST(XR AS SMALLINT) R2I FROM TEST;
 > ID   L2I  D2I  DO2I R2I
 > ---- ---- ---- ---- ----
 > -1   -1   -1   -1   -1
@@ -5155,7 +5155,7 @@ SELECT ID, CAST(XBIG AS INT) L2I, CAST(XDOU AS INT) D2I, CAST(XDOU AS SMALLINT) 
 > null null null null null
 > rows: 5
 
-SELECT ID, CAST(XDEC AS SMALLINT) D2S, CAST(XBIG AS SMALLINT) L2S, CAST(XTIN AS SMALLINT) B2S FROM TEST;
+SELECT ID, CAST(XD AS SMALLINT) D2S, CAST(XB AS SMALLINT) L2S, CAST(XT AS SMALLINT) B2S FROM TEST;
 > ID   D2S  L2S  B2S
 > ---- ---- ---- ----
 > -1   -1   -1   -1
@@ -5165,7 +5165,7 @@ SELECT ID, CAST(XDEC AS SMALLINT) D2S, CAST(XBIG AS SMALLINT) L2S, CAST(XTIN AS 
 > null null null null
 > rows: 5
 
-SELECT ID, CAST(XDOU AS TINYINT) D2B, CAST(XDEC AS TINYINT) DE2B, CAST(XBIG AS TINYINT) L2B, CAST(XSMA AS TINYINT) S2B FROM TEST;
+SELECT ID, CAST(XD2 AS TINYINT) D2B, CAST(XD AS TINYINT) DE2B, CAST(XB AS TINYINT) L2B, CAST(X_SM AS TINYINT) S2B FROM TEST;
 > ID   D2B  DE2B L2B  S2B
 > ---- ---- ---- ---- ----
 > -1   -1   -1   -1   -1
@@ -5175,7 +5175,7 @@ SELECT ID, CAST(XDOU AS TINYINT) D2B, CAST(XDEC AS TINYINT) DE2B, CAST(XBIG AS T
 > null null null null null
 > rows: 5
 
-SELECT ID, CAST(XDOU AS BIT) D2B, CAST(XDEC AS BIT) DE2B, CAST(XBIG AS BIT) L2B, CAST(XSMA AS BIT) S2B FROM TEST;
+SELECT ID, CAST(XD2 AS BIT) D2B, CAST(XD AS BIT) DE2B, CAST(XB AS BIT) L2B, CAST(X_SM AS BIT) S2B FROM TEST;
 > ID   D2B   DE2B  L2B   S2B
 > ---- ----- ----- ----- -----
 > -1   TRUE  TRUE  TRUE  TRUE
@@ -5191,86 +5191,86 @@ SELECT CAST('TRUE' AS BIT) NT, CAST('1.0' AS BIT) N1, CAST('0.0' AS BIT) N0;
 > TRUE TRUE FALSE
 > rows: 1
 
-SELECT ID, ID+XBIT, ID+XTIN, ID+XSMA, ID+XBIG, ID+XDEC, ID+XDOU, ID+XREA FROM TEST;
-> ID   ID + XBIT ID + XTIN ID + XSMA ID + XBIG ID + XDEC ID + XDOU ID + XREA
-> ---- --------- --------- --------- --------- --------- --------- ---------
-> -1   -1        -2        -2        -2        -2.00     -2.0      -2.0
-> 0    0         0         0         0         0.00      0.0       0.0
-> 1    2         2         2         2         2.00      2.0       2.0
-> 4    5         8         8         8         8.00      8.0       8.0
-> null null      null      null      null      null      null      null
+SELECT ID, ID+X1, ID+XT, ID+X_SM, ID+XB, ID+XD, ID+XD2, ID+XR FROM TEST;
+> ID   ID + X1 ID + XT ID + X_SM ID + XB ID + XD ID + XD2 ID + XR
+> ---- ------- ------- --------- ------- ------- -------- -------
+> -1   -1      -2      -2        -2      -2.00   -2.0     -2.0
+> 0    0       0       0         0       0.00    0.0      0.0
+> 1    2       2       2         2       2.00    2.0      2.0
+> 4    5       8       8         8       8.00    8.0      8.0
+> null null    null    null      null    null    null     null
 > rows: 5
 
-SELECT ID, 10-XBIT, 10-XTIN, 10-XSMA, 10-XBIG, 10-XDEC, 10-XDOU, 10-XREA FROM TEST;
-> ID   10 - XBIT 10 - XTIN 10 - XSMA 10 - XBIG 10 - XDEC 10 - XDOU 10 - XREA
-> ---- --------- --------- --------- --------- --------- --------- ---------
-> -1   10        11        11        11        11.00     11.0      11.0
-> 0    10        10        10        10        10.00     10.0      10.0
-> 1    9         9         9         9         9.00      9.0       9.0
-> 4    9         6         6         6         6.00      6.0       6.0
-> null null      null      null      null      null      null      null
+SELECT ID, 10-X1, 10-XT, 10-X_SM, 10-XB, 10-XD, 10-XD2, 10-XR FROM TEST;
+> ID   10 - X1 10 - XT 10 - X_SM 10 - XB 10 - XD 10 - XD2 10 - XR
+> ---- ------- ------- --------- ------- ------- -------- -------
+> -1   10      11      11        11      11.00   11.0     11.0
+> 0    10      10      10        10      10.00   10.0     10.0
+> 1    9       9       9         9       9.00    9.0      9.0
+> 4    9       6       6         6       6.00    6.0      6.0
+> null null    null    null      null    null    null     null
 > rows: 5
 
-SELECT ID, 10*XBIT, 10*XTIN, 10*XSMA, 10*XBIG, 10*XDEC, 10*XDOU, 10*XREA FROM TEST;
-> ID   10 * XBIT 10 * XTIN 10 * XSMA 10 * XBIG 10 * XDEC 10 * XDOU 10 * XREA
-> ---- --------- --------- --------- --------- --------- --------- ---------
-> -1   0         -10       -10       -10       -10.00    -10.0     -10.0
-> 0    0         0         0         0         0.00      0.0       0.0
-> 1    10        10        10        10        10.00     10.0      10.0
-> 4    10        40        40        40        40.00     40.0      40.0
-> null null      null      null      null      null      null      null
+SELECT ID, 10*X1, 10*XT, 10*X_SM, 10*XB, 10*XD, 10*XD2, 10*XR FROM TEST;
+> ID   10 * X1 10 * XT 10 * X_SM 10 * XB 10 * XD 10 * XD2 10 * XR
+> ---- ------- ------- --------- ------- ------- -------- -------
+> -1   0       -10     -10       -10     -10.00  -10.0    -10.0
+> 0    0       0       0         0       0.00    0.0      0.0
+> 1    10      10      10        10      10.00   10.0     10.0
+> 4    10      40      40        40      40.00   40.0     40.0
+> null null    null    null      null    null    null     null
 > rows: 5
 
-SELECT ID, CAST(XTIN AS NUMBER(10,1)),
-CAST(XSMA AS NUMBER(10,1)), CAST(XBIG AS NUMBER(10,1)), CAST(XDEC AS NUMBER(10,1)),
-CAST(XDOU AS NUMBER(10,1)), CAST(XREA AS NUMBER(10,1)) FROM TEST;
-> ID   CAST(XTIN AS DECIMAL(10, 1)) CAST(XSMA AS DECIMAL(10, 1)) CAST(XBIG AS DECIMAL(10, 1)) CAST(XDEC AS DECIMAL(10, 1)) CAST(XDOU AS DECIMAL(10, 1)) CAST(XREA AS DECIMAL(10, 1))
-> ---- ---------------------------- ---------------------------- ---------------------------- ---------------------------- ---------------------------- ----------------------------
-> -1   -1.0                         -1.0                         -1.0                         -1.0                         -1.0                         -1.0
-> 0    0.0                          0.0                          0.0                          0.0                          0.0                          0.0
-> 1    1.0                          1.0                          1.0                          1.0                          1.0                          1.0
-> 4    4.0                          4.0                          4.0                          4.0                          4.0                          4.0
-> null null                         null                         null                         null                         null                         null
+SELECT ID, CAST(XT AS NUMBER(10,1)),
+CAST(X_SM AS NUMBER(10,1)), CAST(XB AS NUMBER(10,1)), CAST(XD AS NUMBER(10,1)),
+CAST(XD2 AS NUMBER(10,1)), CAST(XR AS NUMBER(10,1)) FROM TEST;
+> ID   CAST(XT AS DECIMAL(10, 1)) CAST(X_SM AS DECIMAL(10, 1)) CAST(XB AS DECIMAL(10, 1)) CAST(XD AS DECIMAL(10, 1)) CAST(XD2 AS DECIMAL(10, 1)) CAST(XR AS DECIMAL(10, 1))
+> ---- -------------------------- ---------------------------- -------------------------- -------------------------- --------------------------- --------------------------
+> -1   -1.0                       -1.0                         -1.0                       -1.0                       -1.0                        -1.0
+> 0    0.0                        0.0                          0.0                        0.0                        0.0                         0.0
+> 1    1.0                        1.0                          1.0                        1.0                        1.0                         1.0
+> 4    4.0                        4.0                          4.0                        4.0                        4.0                         4.0
+> null null                       null                         null                       null                       null                        null
 > rows: 5
 
-SELECT ID, SIGN(XTIN), SIGN(XSMA), SIGN(XBIG), SIGN(XDEC), SIGN(XDOU), SIGN(XREA) FROM TEST;
-> ID   SIGN(XTIN) SIGN(XSMA) SIGN(XBIG) SIGN(XDEC) SIGN(XDOU) SIGN(XREA)
-> ---- ---------- ---------- ---------- ---------- ---------- ----------
-> -1   -1         -1         -1         -1         -1         -1
-> 0    0          0          0          0          0          0
-> 1    1          1          1          1          1          1
-> 4    1          1          1          1          1          1
-> null null       null       null       null       null       null
+SELECT ID, SIGN(XT), SIGN(X_SM), SIGN(XB), SIGN(XD), SIGN(XD2), SIGN(XR) FROM TEST;
+> ID   SIGN(XT) SIGN(X_SM) SIGN(XB) SIGN(XD) SIGN(XD2) SIGN(XR)
+> ---- -------- ---------- -------- -------- --------- --------
+> -1   -1       -1         -1       -1       -1        -1
+> 0    0        0          0        0        0         0
+> 1    1        1          1        1        1         1
+> 4    1        1          1        1        1         1
+> null null     null       null     null     null      null
 > rows: 5
 
-SELECT ID, XTIN-XTIN-XTIN, XSMA-XSMA-XSMA, XBIG-XBIG-XBIG, XDEC-XDEC-XDEC, XDOU-XDOU-XDOU, XREA-XREA-XREA FROM TEST;
-> ID   (XTIN - XTIN) - XTIN (XSMA - XSMA) - XSMA (XBIG - XBIG) - XBIG (XDEC - XDEC) - XDEC (XDOU - XDOU) - XDOU (XREA - XREA) - XREA
-> ---- -------------------- -------------------- -------------------- -------------------- -------------------- --------------------
-> -1   1                    1                    1                    1.00                 1.0                  1.0
-> 0    0                    0                    0                    0.00                 0.0                  0.0
-> 1    -1                   -1                   -1                   -1.00                -1.0                 -1.0
-> 4    -4                   -4                   -4                   -4.00                -4.0                 -4.0
-> null null                 null                 null                 null                 null                 null
+SELECT ID, XT-XT-XT, X_SM-X_SM-X_SM, XB-XB-XB, XD-XD-XD, XD2-XD2-XD2, XR-XR-XR FROM TEST;
+> ID   (XT - XT) - XT (X_SM - X_SM) - X_SM (XB - XB) - XB (XD - XD) - XD (XD2 - XD2) - XD2 (XR - XR) - XR
+> ---- -------------- -------------------- -------------- -------------- ----------------- --------------
+> -1   1              1                    1              1.00           1.0               1.0
+> 0    0              0                    0              0.00           0.0               0.0
+> 1    -1             -1                   -1             -1.00          -1.0              -1.0
+> 4    -4             -4                   -4             -4.00          -4.0              -4.0
+> null null           null                 null           null           null              null
 > rows: 5
 
-SELECT ID, XTIN+XTIN, XSMA+XSMA, XBIG+XBIG, XDEC+XDEC, XDOU+XDOU, XREA+XREA FROM TEST;
-> ID   XTIN + XTIN XSMA + XSMA XBIG + XBIG XDEC + XDEC XDOU + XDOU XREA + XREA
-> ---- ----------- ----------- ----------- ----------- ----------- -----------
-> -1   -2          -2          -2          -2.00       -2.0        -2.0
-> 0    0           0           0           0.00        0.0         0.0
-> 1    2           2           2           2.00        2.0         2.0
-> 4    8           8           8           8.00        8.0         8.0
-> null null        null        null        null        null        null
+SELECT ID, XT+XT, X_SM+X_SM, XB+XB, XD+XD, XD2+XD2, XR+XR FROM TEST;
+> ID   XT + XT X_SM + X_SM XB + XB XD + XD XD2 + XD2 XR + XR
+> ---- ------- ----------- ------- ------- --------- -------
+> -1   -2      -2          -2      -2.00   -2.0      -2.0
+> 0    0       0           0       0.00    0.0       0.0
+> 1    2       2           2       2.00    2.0       2.0
+> 4    8       8           8       8.00    8.0       8.0
+> null null    null        null    null    null      null
 > rows: 5
 
-SELECT ID, XTIN*XTIN, XSMA*XSMA, XBIG*XBIG, XDEC*XDEC, XDOU*XDOU, XREA*XREA FROM TEST;
-> ID   XTIN * XTIN XSMA * XSMA XBIG * XBIG XDEC * XDEC XDOU * XDOU XREA * XREA
-> ---- ----------- ----------- ----------- ----------- ----------- -----------
-> -1   1           1           1           1.0000      1.0         1.0
-> 0    0           0           0           0.0000      0.0         0.0
-> 1    1           1           1           1.0000      1.0         1.0
-> 4    16          16          16          16.0000     16.0        16.0
-> null null        null        null        null        null        null
+SELECT ID, XT*XT, X_SM*X_SM, XB*XB, XD*XD, XD2*XD2, XR*XR FROM TEST;
+> ID   XT * XT X_SM * X_SM XB * XB XD * XD XD2 * XD2 XR * XR
+> ---- ------- ----------- ------- ------- --------- -------
+> -1   1       1           1       1.0000  1.0       1.0
+> 0    0       0           0       0.0000  0.0       0.0
+> 1    1       1           1       1.0000  1.0       1.0
+> 4    16      16          16      16.0000 16.0      16.0
+> null null    null        null    null    null      null
 > rows: 5
 
 SELECT 2/3 FROM TEST WHERE ID=1;
@@ -5282,42 +5282,42 @@ SELECT 2/3 FROM TEST WHERE ID=1;
 SELECT ID/ID FROM TEST;
 > exception
 
-SELECT XTIN/XTIN FROM TEST;
+SELECT XT/XT FROM TEST;
 > exception
 
-SELECT XSMA/XSMA FROM TEST;
+SELECT X_SM/X_SM FROM TEST;
 > exception
 
-SELECT XBIG/XBIG FROM TEST;
+SELECT XB/XB FROM TEST;
 > exception
 
-SELECT XDEC/XDEC FROM TEST;
+SELECT XD/XD FROM TEST;
 > exception
 
-SELECT XDOU/XDOU FROM TEST;
+SELECT XD2/XD2 FROM TEST;
 > exception
 
-SELECT XREA/XREA FROM TEST;
+SELECT XR/XR FROM TEST;
 > exception
 
-SELECT ID++0, -XBIT, -XTIN, -XSMA, -XBIG, -XDEC, -XDOU, -XREA FROM TEST;
-> ID + 0 - XBIT - XTIN - XSMA - XBIG - XDEC - XDOU - XREA
-> ------ ------ ------ ------ ------ ------ ------ ------
-> -1     TRUE   1      1      1      1.00   1.0    1.0
-> 0      TRUE   0      0      0      0.00   0.0    0.0
-> 1      FALSE  -1     -1     -1     -1.00  -1.0   -1.0
-> 4      FALSE  -4     -4     -4     -4.00  -4.0   -4.0
-> null   null   null   null   null   null   null   null
+SELECT ID++0, -X1, -XT, -X_SM, -XB, -XD, -XD2, -XR FROM TEST;
+> ID + 0 - X1  - XT - X_SM - XB - XD  - XD2 - XR
+> ------ ----- ---- ------ ---- ----- ----- ----
+> -1     TRUE  1    1      1    1.00  1.0   1.0
+> 0      TRUE  0    0      0    0.00  0.0   0.0
+> 1      FALSE -1   -1     -1   -1.00 -1.0  -1.0
+> 4      FALSE -4   -4     -4   -4.00 -4.0  -4.0
+> null   null  null null   null null  null  null
 > rows: 5
 
-SELECT ID, XBIT||'!', XTIN||'!', XSMA||'!', XBIG||'!', XDEC||'!', XDOU||'!', XREA||'!' FROM TEST;
-> ID   XBIT || '!' XTIN || '!' XSMA || '!' XBIG || '!' XDEC || '!' XDOU || '!' XREA || '!'
-> ---- ----------- ----------- ----------- ----------- ----------- ----------- -----------
-> -1   FALSE!      -1!         -1!         -1!         -1.00!      -1.0!       -1.0!
-> 0    FALSE!      0!          0!          0!          0.00!       0.0!        0.0!
-> 1    TRUE!       1!          1!          1!          1.00!       1.0!        1.0!
-> 4    TRUE!       4!          4!          4!          4.00!       4.0!        4.0!
-> null !           !           !           !           !           !           !
+SELECT ID, X1||'!', XT||'!', X_SM||'!', XB||'!', XD||'!', XD2||'!', XR||'!' FROM TEST;
+> ID   X1 || '!' XT || '!' X_SM || '!' XB || '!' XD || '!' XD2 || '!' XR || '!'
+> ---- --------- --------- ----------- --------- --------- ---------- ---------
+> -1   FALSE!    -1!       -1!         -1!       -1.00!    -1.0!      -1.0!
+> 0    FALSE!    0!        0!          0!        0.00!     0.0!       0.0!
+> 1    TRUE!     1!        1!          1!        1.00!     1.0!       1.0!
+> 4    TRUE!     4!        4!          4!        4.00!     4.0!       4.0!
+> null !         !         !           !         !         !          !
 > rows: 5
 
 DROP TABLE TEST;
@@ -5452,12 +5452,12 @@ create table t(x double precision, y double precision);
 > ok
 
 create view s as
-select stddev_pop(x) spx, stddev_samp(x) ssx, var_pop(x) vpx, var_samp(x) vsx,
-stddev_pop(y) spy, stddev_samp(y) ssy, var_pop(y) vpy, var_samp(y) vsy from t;
+select stddev_pop(x) s_px, stddev_samp(x) s_sx, var_pop(x) v_px, var_samp(x) v_sx,
+stddev_pop(y) s_py, stddev_samp(y) s_sy, var_pop(y) v_py, var_samp(y) v_sy from t;
 > ok
 
 select * from s;
-> SPX  SSX  VPX  VSX  SPY  SSY  VPY  VSY
+> S_PX S_SX V_PX V_SX S_PY S_SY V_PY V_SY
 > ---- ---- ---- ---- ---- ---- ---- ----
 > null null null null null null null null
 > rows: 1
@@ -5472,25 +5472,25 @@ insert into t values(1000000004, 4);
 > update count: 1
 
 select * from s;
-> SPX SSX  VPX VSX  SPY SSY  VPY VSY
-> --- ---- --- ---- --- ---- --- ----
-> 0.0 null 0.0 null 0.0 null 0.0 null
+> S_PX S_SX V_PX V_SX S_PY S_SY V_PY V_SY
+> ---- ---- ---- ---- ---- ---- ---- ----
+> 0.0  null 0.0  null 0.0  null 0.0  null
 > rows: 1
 
 insert into t values(1000000007, 7);
 > update count: 1
 
 select * from s;
-> SPX SSX                VPX  VSX SPY SSY                VPY  VSY
-> --- ------------------ ---- --- --- ------------------ ---- ---
-> 1.5 2.1213203435596424 2.25 4.5 1.5 2.1213203435596424 2.25 4.5
+> S_PX S_SX               V_PX V_SX S_PY S_SY               V_PY V_SY
+> ---- ------------------ ---- ---- ---- ------------------ ---- ----
+> 1.5  2.1213203435596424 2.25 4.5  1.5  2.1213203435596424 2.25 4.5
 > rows: 1
 
 insert into t values(1000000013, 13);
 > update count: 1
 
 select * from s;
-> SPX                SSX              VPX  VSX  SPY                SSY              VPY  VSY
+> S_PX               S_SX             V_PX V_SX S_PY               S_SY             V_PY V_SY
 > ------------------ ---------------- ---- ---- ------------------ ---------------- ---- ----
 > 3.7416573867739413 4.58257569495584 14.0 21.0 3.7416573867739413 4.58257569495584 14.0 21.0
 > rows: 1
@@ -5499,7 +5499,7 @@ insert into t values(1000000016, 16);
 > update count: 1
 
 select * from s;
-> SPX               SSX               VPX  VSX  SPY               SSY               VPY  VSY
+> S_PX              S_SX              V_PX V_SX S_PY              S_SY              V_PY V_SY
 > ----------------- ----------------- ---- ---- ----------------- ----------------- ---- ----
 > 4.743416490252569 5.477225575051661 22.5 30.0 4.743416490252569 5.477225575051661 22.5 30.0
 > rows: 1
@@ -5508,14 +5508,14 @@ insert into t values(1000000016, 16);
 > update count: 1
 
 select * from s;
-> SPX               SSX               VPX                VSX  SPY               SSY               VPY                VSY
+> S_PX              S_SX              V_PX               V_SX S_PY              S_SY              V_PY               V_SY
 > ----------------- ----------------- ------------------ ---- ----------------- ----------------- ------------------ ----
 > 4.874423042781576 5.449770637375485 23.759999999999998 29.7 4.874423042781576 5.449770637375485 23.759999999999998 29.7
 > rows: 1
 
-select stddev_pop(distinct x) spx, stddev_samp(distinct x) ssx, var_pop(distinct x) vpx, var_samp(distinct x) vsx,
-stddev_pop(distinct y) spy, stddev_samp(distinct y) ssy, var_pop(distinct y) vpy, var_samp(distinct y) vsy from t;
-> SPX               SSX               VPX  VSX  SPY               SSY               VPY  VSY
+select stddev_pop(distinct x) s_px, stddev_samp(distinct x) s_sx, var_pop(distinct x) v_px, var_samp(distinct x) v_sx,
+stddev_pop(distinct y) s_py, stddev_samp(distinct y) s_sy, var_pop(distinct y) v_py, var_samp(distinct y) V_SY from t;
+> S_PX              S_SX              V_PX V_SX S_PY              S_SY              V_PY V_SY
 > ----------------- ----------------- ---- ---- ----------------- ----------------- ---- ----
 > 4.743416490252569 5.477225575051661 22.5 30.0 4.743416490252569 5.477225575051661 22.5 30.0
 > rows: 1
@@ -5709,7 +5709,7 @@ DROP TABLE TEST;
 > ok
 
 --- help ----------------------------------------------------------------------------------------------
-HELP ABCDE EFGH;
+HELP ABCDE EF_GH;
 > ID SECTION TOPIC SYNTAX TEXT EXAMPLE
 > -- ------- ----- ------ ---- -------
 > rows: 0
@@ -5721,31 +5721,31 @@ CREATE CACHED TABLE TEST(ID INT PRIMARY KEY);
 CREATE CACHED TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY);
 > ok
 
-CREATE SEQUENCE IF NOT EXISTS TESTSEQ START WITH 10;
+CREATE SEQUENCE IF NOT EXISTS TEST_SEQ START WITH 10;
 > ok
 
-CREATE SEQUENCE IF NOT EXISTS TESTSEQ START WITH 20;
+CREATE SEQUENCE IF NOT EXISTS TEST_SEQ START WITH 20;
 > ok
 
-INSERT INTO TEST VALUES(NEXT VALUE FOR TESTSEQ);
+INSERT INTO TEST VALUES(NEXT VALUE FOR TEST_SEQ);
 > update count: 1
 
-CALL CURRVAL('testseq');
-> CURRVAL('testseq')
-> ------------------
+CALL CURRVAL('test_seq');
+> CURRVAL('test_seq')
+> -------------------
 > 10
 > rows: 1
 
-INSERT INTO TEST VALUES(NEXT VALUE FOR TESTSEQ);
+INSERT INTO TEST VALUES(NEXT VALUE FOR TEST_SEQ);
 > update count: 1
 
-CALL NEXT VALUE FOR TESTSEQ;
-> NEXT VALUE FOR PUBLIC.TESTSEQ
-> -----------------------------
+CALL NEXT VALUE FOR TEST_SEQ;
+> NEXT VALUE FOR PUBLIC.TEST_SEQ
+> ------------------------------
 > 12
 > rows: 1
 
-INSERT INTO TEST VALUES(NEXT VALUE FOR TESTSEQ);
+INSERT INTO TEST VALUES(NEXT VALUE FOR TEST_SEQ);
 > update count: 1
 
 SELECT * FROM TEST;
@@ -5770,13 +5770,13 @@ SELECT TOP 2 * FROM TEST ORDER BY ID DESC;
 > 11
 > rows (ordered): 2
 
-ALTER SEQUENCE TESTSEQ RESTART WITH 20 INCREMENT BY -1;
+ALTER SEQUENCE TEST_SEQ RESTART WITH 20 INCREMENT BY -1;
 > ok
 
-INSERT INTO TEST VALUES(NEXT VALUE FOR TESTSEQ);
+INSERT INTO TEST VALUES(NEXT VALUE FOR TEST_SEQ);
 > update count: 1
 
-INSERT INTO TEST VALUES(NEXT VALUE FOR TESTSEQ);
+INSERT INTO TEST VALUES(NEXT VALUE FOR TEST_SEQ);
 > update count: 1
 
 SELECT * FROM TEST ORDER BY ID ASC;
@@ -5789,27 +5789,27 @@ SELECT * FROM TEST ORDER BY ID ASC;
 > 20
 > rows (ordered): 5
 
-CALL NEXTVAL('testseq');
-> NEXTVAL('testseq')
-> ------------------
+CALL NEXTVAL('test_seq');
+> NEXTVAL('test_seq')
+> -------------------
 > 18
 > rows: 1
 
-DROP SEQUENCE IF EXISTS TESTSEQ;
+DROP SEQUENCE IF EXISTS TEST_SEQ;
 > ok
 
-DROP SEQUENCE IF EXISTS TESTSEQ;
+DROP SEQUENCE IF EXISTS TEST_SEQ;
 > ok
 
-CREATE SEQUENCE TESTLONG START WITH 90123456789012345 INCREMENT BY -1;
+CREATE SEQUENCE TEST_LONG START WITH 90123456789012345 INCREMENT BY -1;
 > ok
 
 SET AUTOCOMMIT FALSE;
 > ok
 
-CALL NEXT VALUE FOR TESTLONG;
-> NEXT VALUE FOR PUBLIC.TESTLONG
-> ------------------------------
+CALL NEXT VALUE FOR TEST_LONG;
+> NEXT VALUE FOR PUBLIC.TEST_LONG
+> -------------------------------
 > 90123456789012345
 > rows: 1
 
@@ -5822,13 +5822,13 @@ CALL IDENTITY();
 SELECT * FROM INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME CURRENT_VALUE     INCREMENT IS_GENERATED REMARKS
 > ---------------- --------------- ------------- ----------------- --------- ------------ -------
-> SCRIPT           PUBLIC          TESTLONG      90123456789012345 -1        FALSE
+> SCRIPT           PUBLIC          TEST_LONG     90123456789012345 -1        FALSE
 > rows: 1
 
 SET AUTOCOMMIT TRUE;
 > ok
 
-DROP SEQUENCE TESTLONG;
+DROP SEQUENCE TEST_LONG;
 > ok
 
 DROP TABLE TEST;
@@ -5957,10 +5957,10 @@ INSERT INTO TEST VALUES(4, 'Joe', 3);
 DROP TABLE TEST;
 > ok
 
-CREATE MEMORY TABLE TEST(AINT INT NOT NULL, BINT INT NOT NULL, PRIMARY KEY(AINT, BINT));
+CREATE MEMORY TABLE TEST(A_INT INT NOT NULL, B_INT INT NOT NULL, PRIMARY KEY(A_INT, B_INT));
 > ok
 
-ALTER TABLE TEST ADD CONSTRAINT AUNI UNIQUE(AINT);
+ALTER TABLE TEST ADD CONSTRAINT A_UNIQUE UNIQUE(A_INT);
 > ok
 
 ALTER TABLE TEST DROP PRIMARY KEY;
@@ -5969,18 +5969,18 @@ ALTER TABLE TEST DROP PRIMARY KEY;
 ALTER TABLE TEST DROP PRIMARY KEY;
 > exception
 
-ALTER TABLE TEST DROP CONSTRAINT AUNI;
+ALTER TABLE TEST DROP CONSTRAINT A_UNIQUE;
 > ok
 
-ALTER TABLE TEST ADD CONSTRAINT C1 FOREIGN KEY(AINT) REFERENCES TEST(BINT);
+ALTER TABLE TEST ADD CONSTRAINT C1 FOREIGN KEY(A_INT) REFERENCES TEST(B_INT);
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(AINT) REFERENCES PUBLIC.TEST(BINT)
-> CREATE MEMORY TABLE PUBLIC.TEST(     AINT INT NOT NULL,     BINT INT NOT NULL )
+> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(A_INT) REFERENCES PUBLIC.TEST(B_INT)
+> CREATE MEMORY TABLE PUBLIC.TEST(     A_INT INT NOT NULL,     B_INT INT NOT NULL )
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 4
 
@@ -5993,177 +5993,177 @@ ALTER TABLE TEST DROP CONSTRAINT C1;
 DROP TABLE TEST;
 > ok
 
-CREATE MEMORY TABLE ATEST(AINT INT NOT NULL, AVARCHAR VARCHAR(255) DEFAULT 'x', ADATE DATE, ADECIMAL DECIMAL(10,2));
+CREATE MEMORY TABLE A_TEST(A_INT INT NOT NULL, A_VARCHAR VARCHAR(255) DEFAULT 'x', A_DATE DATE, A_DECIMAL DECIMAL(10,2));
 > ok
 
-ALTER TABLE ATEST ADD PRIMARY KEY(AINT);
+ALTER TABLE A_TEST ADD PRIMARY KEY(A_INT);
 > ok
 
-ALTER TABLE ATEST ADD CONSTRAINT MINLENGTH CHECK LENGTH(AVARCHAR)>1;
+ALTER TABLE A_TEST ADD CONSTRAINT MIN_LENGTH CHECK LENGTH(A_VARCHAR)>1;
 > ok
 
-ALTER TABLE ATEST ADD CONSTRAINT DATEUNIQUE UNIQUE(ADATE);
+ALTER TABLE A_TEST ADD CONSTRAINT DATE_UNIQUE UNIQUE(A_DATE);
 > ok
 
-ALTER TABLE ATEST ADD CONSTRAINT DATEUNIQUE_2 UNIQUE(ADATE);
+ALTER TABLE A_TEST ADD CONSTRAINT DATE_UNIQUE_2 UNIQUE(A_DATE);
 > ok
 
-INSERT INTO ATEST VALUES(NULL, NULL, NULL, NULL);
+INSERT INTO A_TEST VALUES(NULL, NULL, NULL, NULL);
 > exception
 
-INSERT INTO ATEST VALUES(1, 'A', NULL, NULL);
+INSERT INTO A_TEST VALUES(1, 'A', NULL, NULL);
 > exception
 
-INSERT INTO ATEST VALUES(1, 'AB', NULL, NULL);
+INSERT INTO A_TEST VALUES(1, 'AB', NULL, NULL);
 > update count: 1
 
-INSERT INTO ATEST VALUES(1, 'AB', NULL, NULL);
+INSERT INTO A_TEST VALUES(1, 'AB', NULL, NULL);
 > exception
 
-INSERT INTO ATEST VALUES(2, 'AB', NULL, NULL);
+INSERT INTO A_TEST VALUES(2, 'AB', NULL, NULL);
 > update count: 1
 
-INSERT INTO ATEST VALUES(3, 'AB', '2004-01-01', NULL);
+INSERT INTO A_TEST VALUES(3, 'AB', '2004-01-01', NULL);
 > update count: 1
 
-INSERT INTO ATEST VALUES(4, 'AB', '2004-01-01', NULL);
+INSERT INTO A_TEST VALUES(4, 'AB', '2004-01-01', NULL);
 > exception
 
-INSERT INTO ATEST VALUES(5, 'ABC', '2004-01-02', NULL);
+INSERT INTO A_TEST VALUES(5, 'ABC', '2004-01-02', NULL);
 > update count: 1
 
-CREATE MEMORY TABLE BTEST(BINT INT DEFAULT -1 NOT NULL , BVARCHAR VARCHAR(255) DEFAULT NULL NULL, CONSTRAINT BUNIQUE UNIQUE(BINT));
+CREATE MEMORY TABLE B_TEST(B_INT INT DEFAULT -1 NOT NULL , B_VARCHAR VARCHAR(255) DEFAULT NULL NULL, CONSTRAINT B_UNIQUE UNIQUE(B_INT));
 > ok
 
-ALTER TABLE BTEST ADD CHECK LENGTH(BVARCHAR)>1;
+ALTER TABLE B_TEST ADD CHECK LENGTH(B_VARCHAR)>1;
 > ok
 
-ALTER TABLE BTEST ADD CONSTRAINT C1 FOREIGN KEY(BINT) REFERENCES ATEST(AINT) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE B_TEST ADD CONSTRAINT C1 FOREIGN KEY(B_INT) REFERENCES A_TEST(A_INT) ON DELETE CASCADE ON UPDATE CASCADE;
 > ok
 
-ALTER TABLE BTEST ADD PRIMARY KEY(BINT);
+ALTER TABLE B_TEST ADD PRIMARY KEY(B_INT);
 > ok
 
-INSERT INTO BTEST VALUES(10, 'X');
+INSERT INTO B_TEST VALUES(10, 'X');
 > exception
 
-INSERT INTO BTEST VALUES(1, 'X');
+INSERT INTO B_TEST VALUES(1, 'X');
 > exception
 
-INSERT INTO BTEST VALUES(1, 'XX');
+INSERT INTO B_TEST VALUES(1, 'XX');
 > update count: 1
 
-SELECT * FROM BTEST;
-> BINT BVARCHAR
-> ---- --------
-> 1    XX
+SELECT * FROM B_TEST;
+> B_INT B_VARCHAR
+> ----- ---------
+> 1     XX
 > rows: 1
 
-UPDATE ATEST SET AINT = AINT*10;
+UPDATE A_TEST SET A_INT = A_INT*10;
 > update count: 4
 
-SELECT * FROM BTEST;
-> BINT BVARCHAR
-> ---- --------
-> 10   XX
+SELECT * FROM B_TEST;
+> B_INT B_VARCHAR
+> ----- ---------
+> 10    XX
 > rows: 1
 
-ALTER TABLE BTEST DROP CONSTRAINT C1;
+ALTER TABLE B_TEST DROP CONSTRAINT C1;
 > ok
 
-ALTER TABLE BTEST ADD CONSTRAINT C2 FOREIGN KEY(BINT) REFERENCES ATEST(AINT) ON DELETE SET NULL ON UPDATE SET NULL;
+ALTER TABLE B_TEST ADD CONSTRAINT C2 FOREIGN KEY(B_INT) REFERENCES A_TEST(A_INT) ON DELETE SET NULL ON UPDATE SET NULL;
 > ok
 
-UPDATE ATEST SET AINT = AINT*10;
+UPDATE A_TEST SET A_INT = A_INT*10;
 > exception
 
-SELECT * FROM BTEST;
-> BINT BVARCHAR
-> ---- --------
-> 10   XX
+SELECT * FROM B_TEST;
+> B_INT B_VARCHAR
+> ----- ---------
+> 10    XX
 > rows: 1
 
-ALTER TABLE BTEST DROP CONSTRAINT C2;
+ALTER TABLE B_TEST DROP CONSTRAINT C2;
 > ok
 
-UPDATE BTEST SET BINT = 20;
+UPDATE B_TEST SET B_INT = 20;
 > update count: 1
 
-SELECT AINT FROM ATEST;
-> AINT
-> ----
+SELECT A_INT FROM A_TEST;
+> A_INT
+> -----
 > 10
 > 20
 > 30
 > 50
 > rows: 4
 
-ALTER TABLE BTEST ADD CONSTRAINT C3 FOREIGN KEY(BINT) REFERENCES ATEST(AINT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT;
+ALTER TABLE B_TEST ADD CONSTRAINT C3 FOREIGN KEY(B_INT) REFERENCES A_TEST(A_INT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT;
 > ok
 
-UPDATE ATEST SET AINT = AINT*10;
+UPDATE A_TEST SET A_INT = A_INT*10;
 > update count: 4
 
-SELECT * FROM BTEST;
-> BINT BVARCHAR
-> ---- --------
-> -1   XX
+SELECT * FROM B_TEST;
+> B_INT B_VARCHAR
+> ----- ---------
+> -1    XX
 > rows: 1
 
-DELETE FROM ATEST;
+DELETE FROM A_TEST;
 > update count: 4
 
-SELECT * FROM BTEST;
-> BINT BVARCHAR
-> ---- --------
-> -1   XX
+SELECT * FROM B_TEST;
+> B_INT B_VARCHAR
+> ----- ---------
+> -1    XX
 > rows: 1
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------------------------------------
-> -- 0 = SELECT COUNT(*) FROM PUBLIC.ATEST
-> -- 1 = SELECT COUNT(*) FROM PUBLIC.BTEST
-> ALTER TABLE PUBLIC.ATEST ADD CONSTRAINT PUBLIC.DATEUNIQUE UNIQUE(ADATE)
-> ALTER TABLE PUBLIC.ATEST ADD CONSTRAINT PUBLIC.DATEUNIQUE_2 UNIQUE(ADATE)
-> ALTER TABLE PUBLIC.ATEST ADD CONSTRAINT PUBLIC.MINLENGTH CHECK(LENGTH(AVARCHAR) > 1)
-> ALTER TABLE PUBLIC.BTEST ADD CONSTRAINT PUBLIC.BUNIQUE UNIQUE(BINT)
-> ALTER TABLE PUBLIC.BTEST ADD CONSTRAINT PUBLIC.C3 FOREIGN KEY(BINT) REFERENCES PUBLIC.ATEST(AINT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
-> ALTER TABLE PUBLIC.BTEST ADD CONSTRAINT PUBLIC.CONSTRAINT_0 CHECK(LENGTH(BVARCHAR) > 1)
-> CREATE MEMORY TABLE PUBLIC.ATEST(     AINT INT NOT NULL,     AVARCHAR VARCHAR(255) DEFAULT 'x',     ADATE DATE,     ADECIMAL DECIMAL(10, 2) )
-> CREATE MEMORY TABLE PUBLIC.BTEST(     BINT INT DEFAULT -1 NOT NULL,     BVARCHAR VARCHAR(255) DEFAULT NULL )
-> CREATE PRIMARY KEY ON PUBLIC.ATEST(AINT)
-> CREATE PRIMARY KEY ON PUBLIC.BTEST(BINT)
+> --------------------------------------------------------------------------------------------------------------------------------------------------
+> -- 0 = SELECT COUNT(*) FROM PUBLIC.A_TEST
+> -- 1 = SELECT COUNT(*) FROM PUBLIC.B_TEST
+> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.DATE_UNIQUE UNIQUE(A_DATE)
+> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.DATE_UNIQUE_2 UNIQUE(A_DATE)
+> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.MIN_LENGTH CHECK(LENGTH(A_VARCHAR) > 1)
+> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.B_UNIQUE UNIQUE(B_INT)
+> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.C3 FOREIGN KEY(B_INT) REFERENCES PUBLIC.A_TEST(A_INT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
+> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_0 CHECK(LENGTH(B_VARCHAR) > 1)
+> CREATE MEMORY TABLE PUBLIC.A_TEST(     A_INT INT NOT NULL,     A_VARCHAR VARCHAR(255) DEFAULT 'x',     A_DATE DATE,     A_DECIMAL DECIMAL(10, 2) )
+> CREATE MEMORY TABLE PUBLIC.B_TEST(     B_INT INT DEFAULT -1 NOT NULL,     B_VARCHAR VARCHAR(255) DEFAULT NULL )
+> CREATE PRIMARY KEY ON PUBLIC.A_TEST(A_INT)
+> CREATE PRIMARY KEY ON PUBLIC.B_TEST(B_INT)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.BTEST(BINT, BVARCHAR) VALUES(-1, 'XX')
+> INSERT INTO PUBLIC.B_TEST(B_INT, B_VARCHAR) VALUES(-1, 'XX')
 > rows: 14
 
-DROP TABLE ATEST;
+DROP TABLE A_TEST;
 > ok
 
-DROP TABLE BTEST;
+DROP TABLE B_TEST;
 > ok
 
 CREATE MEMORY TABLE FAMILY(ID INT, NAME VARCHAR(20));
 > ok
 
-CREATE INDEX FAMILYIDNAME ON FAMILY(ID, NAME);
+CREATE INDEX FAMILY_ID_NAME ON FAMILY(ID, NAME);
 > ok
 
-CREATE MEMORY TABLE PARENT(ID INT, FAMILYID INT, NAME VARCHAR(20));
+CREATE MEMORY TABLE PARENT(ID INT, FAMILY_ID INT, NAME VARCHAR(20));
 > ok
 
-ALTER TABLE PARENT ADD CONSTRAINT PARENTFAMILY FOREIGN KEY(FAMILYID)
+ALTER TABLE PARENT ADD CONSTRAINT PARENT_FAMILY FOREIGN KEY(FAMILY_ID)
 REFERENCES FAMILY(ID);
 > ok
 
 CREATE MEMORY TABLE CHILD(
 ID INT,
 PARENTID INT,
-FAMILYID INT,
+FAMILY_ID INT,
 UNIQUE(ID, PARENTID),
-CONSTRAINT PARENTCHILD FOREIGN KEY(PARENTID, FAMILYID)
-REFERENCES PARENT(ID, FAMILYID)
+CONSTRAINT PARENT_CHILD FOREIGN KEY(PARENTID, FAMILY_ID)
+REFERENCES PARENT(ID, FAMILY_ID)
 ON UPDATE CASCADE
 ON DELETE SET NULL,
 NAME VARCHAR(20));
@@ -6197,12 +6197,12 @@ UPDATE PARENT SET ID=3 WHERE ID=1;
 > update count: 1
 
 SELECT * FROM CHILD;
-> ID  PARENTID FAMILYID NAME
-> --- -------- -------- ------
-> 100 3        1        Simon
-> 101 3        1        Sabine
-> 200 2        1        Jim
-> 201 2        1        Johann
+> ID  PARENTID FAMILY_ID NAME
+> --- -------- --------- ------
+> 100 3        1         Simon
+> 101 3        1         Sabine
+> 200 2        1         Jim
+> 201 2        1         Johann
 > rows: 4
 
 UPDATE CHILD SET PARENTID=-1 WHERE PARENTID IS NOT NULL;
@@ -6212,70 +6212,70 @@ DELETE FROM PARENT WHERE ID=2;
 > update count: 1
 
 SELECT * FROM CHILD;
-> ID  PARENTID FAMILYID NAME
-> --- -------- -------- ------
-> 100 3        1        Simon
-> 101 3        1        Sabine
-> 200 null     null     Jim
-> 201 null     null     Johann
+> ID  PARENTID FAMILY_ID NAME
+> --- -------- --------- ------
+> 100 3        1         Simon
+> 101 3        1         Sabine
+> 200 null     null      Jim
+> 201 null     null      Johann
 > rows: 4
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.FAMILY
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.PARENT
 > -- 4 = SELECT COUNT(*) FROM PUBLIC.CHILD
 > ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_0 UNIQUE(ID, PARENTID)
-> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.PARENTCHILD FOREIGN KEY(PARENTID, FAMILYID) REFERENCES PUBLIC.PARENT(ID, FAMILYID) ON DELETE SET NULL ON UPDATE CASCADE
-> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENTFAMILY FOREIGN KEY(FAMILYID) REFERENCES PUBLIC.FAMILY(ID)
-> CREATE INDEX PUBLIC.FAMILYIDNAME ON PUBLIC.FAMILY(ID, NAME)
-> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILYID INT,     NAME VARCHAR(20) )
+> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.PARENT_CHILD FOREIGN KEY(PARENTID, FAMILY_ID) REFERENCES PUBLIC.PARENT(ID, FAMILY_ID) ON DELETE SET NULL ON UPDATE CASCADE
+> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID)
+> CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME)
+> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILY_ID INT,     NAME VARCHAR(20) )
 > CREATE MEMORY TABLE PUBLIC.FAMILY(     ID INT,     NAME VARCHAR(20) )
-> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILYID INT,     NAME VARCHAR(20) )
+> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILY_ID INT,     NAME VARCHAR(20) )
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(100, 3, 1, 'Simon')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(101, 3, 1, 'Sabine')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(200, NULL, NULL, 'Jim')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(201, NULL, NULL, 'Johann')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(100, 3, 1, 'Simon')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(101, 3, 1, 'Sabine')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(200, NULL, NULL, 'Jim')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(201, NULL, NULL, 'Johann')
 > INSERT INTO PUBLIC.FAMILY(ID, NAME) VALUES(1, 'Capone')
-> INSERT INTO PUBLIC.PARENT(ID, FAMILYID, NAME) VALUES(3, 1, 'Sue')
+> INSERT INTO PUBLIC.PARENT(ID, FAMILY_ID, NAME) VALUES(3, 1, 'Sue')
 > rows: 17
 
-ALTER TABLE CHILD DROP CONSTRAINT PARENTCHILD;
+ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.FAMILY
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.PARENT
 > -- 4 = SELECT COUNT(*) FROM PUBLIC.CHILD
 > ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_0 UNIQUE(ID, PARENTID)
-> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENTFAMILY FOREIGN KEY(FAMILYID) REFERENCES PUBLIC.FAMILY(ID)
-> CREATE INDEX PUBLIC.FAMILYIDNAME ON PUBLIC.FAMILY(ID, NAME)
-> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILYID INT,     NAME VARCHAR(20) )
+> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID)
+> CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME)
+> CREATE MEMORY TABLE PUBLIC.CHILD(     ID INT,     PARENTID INT,     FAMILY_ID INT,     NAME VARCHAR(20) )
 > CREATE MEMORY TABLE PUBLIC.FAMILY(     ID INT,     NAME VARCHAR(20) )
-> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILYID INT,     NAME VARCHAR(20) )
+> CREATE MEMORY TABLE PUBLIC.PARENT(     ID INT,     FAMILY_ID INT,     NAME VARCHAR(20) )
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(100, 3, 1, 'Simon')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(101, 3, 1, 'Sabine')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(200, NULL, NULL, 'Jim')
-> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILYID, NAME) VALUES(201, NULL, NULL, 'Johann')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(100, 3, 1, 'Simon')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(101, 3, 1, 'Sabine')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(200, NULL, NULL, 'Jim')
+> INSERT INTO PUBLIC.CHILD(ID, PARENTID, FAMILY_ID, NAME) VALUES(201, NULL, NULL, 'Johann')
 > INSERT INTO PUBLIC.FAMILY(ID, NAME) VALUES(1, 'Capone')
-> INSERT INTO PUBLIC.PARENT(ID, FAMILYID, NAME) VALUES(3, 1, 'Sue')
+> INSERT INTO PUBLIC.PARENT(ID, FAMILY_ID, NAME) VALUES(3, 1, 'Sue')
 > rows: 16
 
 DELETE FROM PARENT;
 > update count: 1
 
 SELECT * FROM CHILD;
-> ID  PARENTID FAMILYID NAME
-> --- -------- -------- ------
-> 100 3        1        Simon
-> 101 3        1        Sabine
-> 200 null     null     Jim
-> 201 null     null     Johann
+> ID  PARENTID FAMILY_ID NAME
+> --- -------- --------- ------
+> 100 3        1         Simon
+> 101 3        1         Sabine
+> 200 null     null      Jim
+> 201 null     null      Johann
 > rows: 4
 
 DROP TABLE PARENT;
@@ -6367,13 +6367,13 @@ CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
 CREATE MEMORY TABLE TEST2_X(ID INT);
 > ok
 
-CREATE INDEX IDXID ON TEST2_X(ID);
+CREATE INDEX IDX_ID ON TEST2_X(ID);
 > ok
 
 ALTER TABLE TEST2_X RENAME TO TEST2;
 > ok
 
-ALTER INDEX IDXID RENAME TO IDX_ID;
+ALTER INDEX IDX_ID RENAME TO IDX_ID2;
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS;
@@ -6381,7 +6381,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > -----------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST2
-> CREATE INDEX PUBLIC.IDX_ID ON PUBLIC.TEST2(ID)
+> CREATE INDEX PUBLIC.IDX_ID2 ON PUBLIC.TEST2(ID)
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) )
 > CREATE MEMORY TABLE PUBLIC.TEST2(     ID INT )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
@@ -6552,23 +6552,23 @@ CALL XMLTEXT('<test>');
 create memory table test(id int primary key, name varchar(255));
 > ok
 
-INSERT INTO TEST VALUES(2, STRINGDECODE('Sond\344rzeich\344 ') || char(22222) || STRINGDECODE(' \366\344\374\326\304\334\351\350\340\361!'));
+INSERT INTO TEST VALUES(2, STRINGDECODE('abcsond\344rzeich\344 ') || char(22222) || STRINGDECODE(' \366\344\374\326\304\334\351\350\340\361!'));
 > update count: 1
 
 script nopasswords nosettings;
 > SCRIPT
-> --------------------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES(2, STRINGDECODE('Sond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'))
+> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES(2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'))
 > rows: 5
 
-call STRINGENCODE(STRINGDECODE('Sond\344rzeich\344 \u56ce \366\344\374\326\304\334\351\350\340\361!'));
-> 'Sond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'
-> ---------------------------------------------------------------------------------------------
-> Sond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!
+call STRINGENCODE(STRINGDECODE('abcsond\344rzeich\344 \u56ce \366\344\374\326\304\334\351\350\340\361!'));
+> 'abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'
+> ------------------------------------------------------------------------------------------------
+> abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!
 > rows: 1
 
 delete from test;
@@ -6817,9 +6817,9 @@ select char(null) en, char(65) ea from test;
 > null A
 > rows: 1
 
-select concat(null, null) en, concat(null, 'a') ea, concat('b', null) eb, concat('ab', 'c') eabc from test;
-> EN   EA EB EABC
-> ---- -- -- ----
+select concat(null, null) en, concat(null, 'a') ea, concat('b', null) eb, concat('ab', 'c') abc from test;
+> EN   EA EB ABC
+> ---- -- -- ---
 > null a  b  abc
 > rows: 1
 
@@ -6841,57 +6841,57 @@ select difference('abc', 'abc') e0, difference('Thomas', 'Tom') e1 from test;
 > 4  3
 > rows: 1
 
-select hextoraw(null) en, rawtohex(null) en1, hextoraw(rawtohex('abc')) eabc from test;
-> EN   EN1  EABC
-> ---- ---- ----
+select hextoraw(null) en, rawtohex(null) en1, hextoraw(rawtohex('abc')) abc from test;
+> EN   EN1  ABC
+> ---- ---- ---
 > null null abc
 > rows: 1
 
-select insert(null, null, null, null) en, insert('Rund', 1, 0, 'o') eround, insert(null, 1, 1, 'a') ea from test;
-> EN   EROUND EA
-> ---- ------ --
-> null Rund   a
+select insert(null, null, null, null) en, insert('Rund', 1, 0, 'o') e_round, insert(null, 1, 1, 'a') ea from test;
+> EN   E_ROUND EA
+> ---- ------- --
+> null Rund    a
 > rows: 1
 
-select insert('World', 2, 4, 'elt') ewelt, insert('Hello', 2, 1, 'a') ehallo from test;
-> EWELT EHALLO
-> ----- ------
-> Welt  Hallo
+select insert('World', 2, 4, 'e') welt, insert('Hello', 2, 1, 'a') hallo from test;
+> WELT HALLO
+> ---- -----
+> We   Hallo
 > rows: 1
 
-select lcase(null) en, lcase('Hello') ehello, lcase('ABC') eabc from test;
-> EN   EHELLO EABC
-> ---- ------ ----
-> null hello  abc
+select lcase(null) en, lcase('Hello') hello, lcase('ABC') abc from test;
+> EN   HELLO ABC
+> ---- ----- ---
+> null hello abc
 > rows: 1
 
-select lower(null) en, lower('Hello') ehello, lower('ABC') eabc from test;
-> EN   EHELLO EABC
-> ---- ------ ----
-> null hello  abc
+select lower(null) en, lower('Hello') hello, lower('ABC') abc from test;
+> EN   HELLO ABC
+> ---- ----- ---
+> null hello abc
 > rows: 1
 
-select ucase(null) en, ucase('Hello') ehello, ucase('ABC') eabc from test;
-> EN   EHELLO EABC
-> ---- ------ ----
-> null HELLO  ABC
+select ucase(null) en, ucase('Hello') hello, ucase('ABC') abc from test;
+> EN   HELLO ABC
+> ---- ----- ---
+> null HELLO ABC
 > rows: 1
 
-select upper(null) en, upper('Hello') ehello, upper('ABC') eabc from test;
-> EN   EHELLO EABC
-> ---- ------ ----
-> null HELLO  ABC
+select upper(null) en, upper('Hello') hello, upper('ABC') abc from test;
+> EN   HELLO ABC
+> ---- ----- ---
+> null HELLO ABC
 > rows: 1
 
-select left(null, 10) en, left('abc', null) en2, left('boat', 2) ebo, left('', 1) ee, left('a', -1) ee2 from test;
-> EN   EN2  EBO EE EE2
-> ---- ---- --- -- ---
+select left(null, 10) en, left('abc', null) en2, left('boat', 2) e_bo, left('', 1) ee, left('a', -1) ee2 from test;
+> EN   EN2  E_BO EE EE2
+> ---- ---- ---- -- ---
 > null null bo
 > rows: 1
 
-select right(null, 10) en, right('abc', null) en2, right('boat-trip', 2) eip, right('', 1) ee, right('a', -1) ee2 from test;
-> EN   EN2  EIP EE EE2
-> ---- ---- --- -- ---
+select right(null, 10) en, right('abc', null) en2, right('boat-trip', 2) e_ip, right('', 1) ee, right('a', -1) ee2 from test;
+> EN   EN2  E_IP EE EE2
+> ---- ---- ---- -- ---
 > null null ip
 > rows: 1
 
@@ -6901,26 +6901,26 @@ select locate(null, null) en, locate(null, null, null) en1 from test;
 > null null
 > rows: 1
 
-select locate('World', 'Hello World') e7, locate('hi', 'hihihi', 2) e3 from test;
+select locate('World', 'Hello World') e7, locate('hi', 'abchihihi', 2) e3 from test;
 > E7 E3
 > -- --
-> 7  3
+> 7  4
 > rows: 1
 
-select instr('Hello World', 'World') e7, instr('hihihi', 'hi', 2) e3, instr('Ooo', 'o') e2 from test;
+select instr('Hello World', 'World') e7, instr('abchihihi', 'hi', 2) e3, instr('abcooo', 'o') e2 from test;
 > E7 E3 E2
 > -- -- --
-> 7  3  2
+> 7  4  4
 > rows: 1
 
-select position(null, null) en, position(null, 'abc') en1, position('World', 'Hello World') e7, position('hi', 'hihihi') e1 from test;
+select position(null, null) en, position(null, 'abc') en1, position('World', 'Hello World') e7, position('hi', 'abchihihi') e1 from test;
 > EN   EN1  E7 E1
 > ---- ---- -- --
-> null null 7  1
+> null null 7  4
 > rows: 1
 
-select ltrim(null) en, '>' || ltrim('a') || '<' ea, '>' || ltrim(' a ') || '<' eas from test;
-> EN   EA  EAS
+select ltrim(null) en, '>' || ltrim('a') || '<' ea, '>' || ltrim(' a ') || '<' e_as from test;
+> EN   EA  E_AS
 > ---- --- ----
 > null >a< >a <
 > rows: 1
@@ -6931,15 +6931,15 @@ select TRIM(BOTH '_' FROM '__A__') A, TRIM(LEADING FROM '    B    ') BS, TRIM(TR
 > A B     xA
 > rows: 1
 
-select rtrim(null) en, '>' || rtrim('a') || '<' ea, '>' || rtrim(' a ') || '<' esa from test;
-> EN   EA  ESA
+select rtrim(null) en, '>' || rtrim('a') || '<' ea, '>' || rtrim(' a ') || '<' es from test;
+> EN   EA  ES
 > ---- --- ----
 > null >a< > a<
 > rows: 1
 
-select repeat(null, null) en, repeat('Ho', 2) ehoho , repeat('abc', 0) ee from test;
-> EN   EHOHO EE
-> ---- ----- --
+select repeat(null, null) en, repeat('Ho', 2) abcehoho , repeat('abc', 0) ee from test;
+> EN   ABCEHOHO EE
+> ---- -------- --
 > null HoHo
 > rows: 1
 
@@ -6949,10 +6949,10 @@ select replace(null, null) en, replace(null, null, null) en1 from test;
 >
 > rows: 1
 
-select replace('hihihi', 'i', 'o') ehohoho, replace('this is tom', 'i') ethstom from test;
-> EHOHOHO ETHSTOM
-> ------- ---------
-> hohoho  ths s tom
+select replace('abchihihi', 'i', 'o') abcehohoho, replace('that is tom', 'i') abcethstom from test;
+> ABCEHOHOHO ABCETHSTOM
+> ---------- ----------
+> abchohoho  that s tom
 > rows: 1
 
 select soundex(null) en, soundex('tom') et from test;
@@ -6971,28 +6971,28 @@ soundex('VanDeusen') V532, soundex('Ashcraft') A261 from test;
 > W252 L000 G362 P236 J250 T522 V532 A261
 > rows: 1
 
-select space(null) en, '>' || space(1) || '<' es, '>' || space(3) || '<' esss from test;
-> EN   ES  ESSS
+select space(null) en, '>' || space(1) || '<' es, '>' || space(3) || '<' e2 from test;
+> EN   ES  E2
 > ---- --- -----
 > null > < >   <
 > rows: 1
 
-select substr(null, null) en, substr(null, null, null) e1, substr('bob', 2) eob, substr('bob', 2, 1) eo  from test;
-> EN   E1   EOB EO
-> ---- ---- --- --
-> null null ob  o
+select substr(null, null) en, substr(null, null, null) e1, substr('bob', 2) e_ob, substr('bob', 2, 1) eo  from test;
+> EN   E1   E_OB EO
+> ---- ---- ---- --
+> null null ob   o
 > rows: 1
 
-select substring(null, null) en, substring(null, null, null) e1, substring('bob', 2) eob, substring('bob', 2, 1) eo  from test;
-> EN   E1   EOB EO
-> ---- ---- --- --
-> null null ob  o
+select substring(null, null) en, substring(null, null, null) e1, substring('bob', 2) e_ob, substring('bob', 2, 1) eo  from test;
+> EN   E1   E_OB EO
+> ---- ---- ---- --
+> null null ob   o
 > rows: 1
 
-select substring(null from null) en, substring(null from null for null) e1, substring('bob' from 2) eob, substring('bob' from 2 for 1) eo  from test;
-> EN   E1   EOB EO
-> ---- ---- --- --
-> null null ob  o
+select substring(null from null) en, substring(null from null for null) e1, substring('bob' from 2) e_ob, substring('bob' from 2 for 1) eo  from test;
+> EN   E1   E_OB EO
+> ---- ---- ---- --
+> null null ob   o
 > rows: 1
 
 call hash('SHA256', stringtoutf8('Hello'), 1);
@@ -7163,14 +7163,14 @@ select datediff('millisecond', timestamp '2004-01-01 10:00:00.5', timestamp '200
 > 500
 > rows: 1
 
-select dayname(date '2005-09-12') dmon from test;
-> DMON
-> ------
+select dayname(date '2005-09-12') d_monday from test;
+> D_MONDAY
+> --------
 > Monday
 > rows: 1
 
-select monthname(date '2005-09-12') dsept from test;
-> DSEPT
+select monthname(date '2005-09-12') d_sept from test;
+> D_SEPT
 > ---------
 > September
 > rows: 1
@@ -7235,33 +7235,33 @@ select second(timestamp '2005-01-01 23:10:59') d59 from test;
 > 59
 > rows: 1
 
-select right(database(), 6) xscript from test;
-> XSCRIPT
-> -------
+select right(database(), 6) x_script from test;
+> X_SCRIPT
+> --------
 > SCRIPT
 > rows: 1
 
-select user() xsa, current_user() xsa2 from test;
-> XSA XSA2
-> --- ----
-> SA  SA
+select user() x_sa, current_user() x_sa2 from test;
+> X_SA X_SA2
+> ---- -----
+> SA   SA
 > rows: 1
 
-select current_user() xsa from test;
-> XSA
-> ---
+select current_user() x_sa from test;
+> X_SA
+> ----
 > SA
 > rows: 1
 
-select autocommit() xtrue from test;
-> XTRUE
-> -----
+select autocommit() x_true from test;
+> X_TRUE
+> ------
 > TRUE
 > rows: 1
 
-select readonly() xfalse from test;
-> XFALSE
-> ------
+select readonly() x_false from test;
+> X_FALSE
+> -------
 > FALSE
 > rows: 1
 
@@ -7441,31 +7441,31 @@ drop table test;
 > ok
 
 --- test cases ---------------------------------------------------------------------------------------------
-create memory table word(wrd_id integer, name varchar);
+create memory table word(word_id integer, name varchar);
 > ok
 
-alter table word alter column wrd_id integer(10) auto_increment;
+alter table word alter column word_id integer(10) auto_increment;
 > ok
 
 script NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.WORD
-> CREATE MEMORY TABLE PUBLIC.WORD(     WRD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
-> CREATE PRIMARY KEY ON PUBLIC.WORD(WRD_ID)
+> CREATE MEMORY TABLE PUBLIC.WORD(     WORD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
+> CREATE PRIMARY KEY ON PUBLIC.WORD(WORD_ID)
 > CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 1 BELONGS_TO_TABLE
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 5
 
-alter table word alter column wrd_id restart with 30872;
+alter table word alter column word_id restart with 30872;
 > ok
 
 script NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.WORD
-> CREATE MEMORY TABLE PUBLIC.WORD(     WRD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
-> CREATE PRIMARY KEY ON PUBLIC.WORD(WRD_ID)
+> CREATE MEMORY TABLE PUBLIC.WORD(     WORD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
+> CREATE PRIMARY KEY ON PUBLIC.WORD(WORD_ID)
 > CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 30872 BELONGS_TO_TABLE
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 5

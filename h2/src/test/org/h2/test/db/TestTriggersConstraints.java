@@ -88,8 +88,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
         stat.execute("DROP TRIGGER  INS_AFTER");
         stat.execute("DROP TRIGGER  UPD_BEFORE");
-        stat.execute("UPDATE TEST SET NAME=NAME||'-upd-notrigger'");
-        stat.execute("INSERT INTO TEST VALUES(100, 'Insert-notrigger')");
+        stat.execute("UPDATE TEST SET NAME=NAME||'-upd-no_trigger'");
+        stat.execute("INSERT INTO TEST VALUES(100, 'Insert-no_trigger')");
         conn.close();
 
         conn = getConnection("trigger");

@@ -39,23 +39,23 @@ public class TestTempTables extends TestBase {
         // (this features are here for compatibility only)
         ResultSet rs;
         c1.setAutoCommit(false);
-        s1.execute("create local temporary table testtemp(id int) on commit delete rows");
-        s1.execute("insert into testtemp values(1)");
-        rs = s1.executeQuery("select * from testtemp");
+        s1.execute("create local temporary table test_temp(id int) on commit delete rows");
+        s1.execute("insert into test_temp values(1)");
+        rs = s1.executeQuery("select * from test_temp");
         checkResultRowCount(rs, 1);
         c1.commit();
-        rs = s1.executeQuery("select * from testtemp");
+        rs = s1.executeQuery("select * from test_temp");
         checkResultRowCount(rs, 0);
-        s1.execute("drop table testtemp");
+        s1.execute("drop table test_temp");
         
-        s1.execute("create local temporary table testtemp(id int) on commit drop");
-        s1.execute("insert into testtemp values(1)");
-        rs = s1.executeQuery("select * from testtemp");
+        s1.execute("create local temporary table test_temp(id int) on commit drop");
+        s1.execute("insert into test_temp values(1)");
+        rs = s1.executeQuery("select * from test_temp");
         checkResultRowCount(rs, 1);
         c1.commit();
         try {
-            rs = s1.executeQuery("select * from testtemp");
-            error("testtemp should have been dropped automatically");
+            rs = s1.executeQuery("select * from test_temp");
+            error("test_temp should have been dropped automatically");
         } catch(SQLException e) {
             checkNotGeneralException(e);
         }

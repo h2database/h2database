@@ -213,7 +213,7 @@ public class TestIndex extends TestBase {
         
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(A INT, B INT, DATA VARCHAR(255))");
-        stat.execute("CREATE UNIQUE HASH INDEX IDXAB ON TEST(A, B)");
+        stat.execute("CREATE UNIQUE HASH INDEX IDX_AB ON TEST(A, B)");
         PreparedStatement prep;
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
         // speed is quadratic (len*len)

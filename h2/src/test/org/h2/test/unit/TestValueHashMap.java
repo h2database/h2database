@@ -128,4 +128,8 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return null;
     }
 
+    public Object getLobSyncObject() {
+        return this;
+    }
+
 }

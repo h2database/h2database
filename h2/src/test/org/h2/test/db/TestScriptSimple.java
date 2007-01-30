@@ -22,8 +22,8 @@ public class TestScriptSimple extends TestBase {
         }
         deleteDb("scriptSimple");
         reconnect();
-        String infile = "org/h2/test/testSimple.in.txt";
-        InputStream is = getClass().getClassLoader().getResourceAsStream(infile);
+        String inFile = "org/h2/test/testSimple.in.txt";
+        InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         ScriptReader reader = new ScriptReader(lineReader);
         while(true) {

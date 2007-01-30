@@ -140,10 +140,10 @@ public class BenchC implements Bench {
         db.closeConnection();
         db.end();
         
-        db.start(this, "Open/Close");
-        db.openConnection();
-        db.closeConnection();
-        db.end();
+//        db.start(this, "Open/Close");
+//        db.openConnection();
+//        db.closeConnection();
+//        db.end();
         
     }
     
@@ -484,7 +484,7 @@ public class BenchC implements Bench {
         }
     }
 
-    public void run() throws Exception {
+    public void runTest() throws Exception {
         db.start(this, "Transactions");
         db.openConnection();
         for(int i=0; i<70; i++) {

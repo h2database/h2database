@@ -18,7 +18,6 @@ public class TestSpeed extends TestBase {
 
     // java -cp .;..\..\hsqldb\lib\hsqldb.jar -Xrunhprof:heap=sites,depth=6 org.h2.test.TestAll
     // java -Xrunhprof:heap=sites org.h2.test.TestAll
-    // java -Xprof org.h2.test.TestAll
 
     // TODO test: here is more code, currently untested!
 
@@ -52,16 +51,16 @@ public class TestSpeed extends TestBase {
 //        for(int i=0; i<1000; i++) {
 //            stat.execute("INSERT INTO TEST VALUES("+i+", 'Hello')");
 //        }
-//        stat.execute("CREATE TABLE TESTA(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-//        stat.execute("INSERT INTO TESTA VALUES(0, 'Hello')");
+//        stat.execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+//        stat.execute("INSERT INTO TEST_A VALUES(0, 'Hello')");
         long time = System.currentTimeMillis();
 //        for(int i=1; i<8000; i*=2) {
-//            stat.execute("INSERT INTO TESTA SELECT ID+"+i+", NAME FROM TESTA");
+//            stat.execute("INSERT INTO TEST_A SELECT ID+"+i+", NAME FROM TEST_A");
 //                
-////            stat.execute("INSERT INTO TESTA VALUES("+i+", 'Hello')");
+////            stat.execute("INSERT INTO TEST_A VALUES("+i+", 'Hello')");
 //        }
 //        for(int i=0; i<4; i++) {
-//            ResultSet rs = stat.executeQuery("SELECT * FROM TESTA");
+//            ResultSet rs = stat.executeQuery("SELECT * FROM TEST_A");
 //            while(rs.next()) {
 //                rs.getInt(1);
 //                rs.getString(2);
@@ -70,9 +69,9 @@ public class TestSpeed extends TestBase {
 //        System.out.println(System.currentTimeMillis()-time);
         
 //        
-//        stat.execute("CREATE TABLE TESTB(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+//        stat.execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY, NAME VARCHAR(255))");
 //        for(int i=0; i<80000; i++) {
-//            stat.execute("INSERT INTO TESTB VALUES("+i+", 'Hello')");
+//            stat.execute("INSERT INTO TEST_B VALUES("+i+", 'Hello')");
 //        }
 
         //        conn.close();
@@ -82,7 +81,7 @@ public class TestSpeed extends TestBase {
 //        
 //        stat.execute("CREATE TABLE TEST(ID INT)");
 //        stat.execute("INSERT INTO TEST VALUES(1)");
-//        ResultSet rs = stat.executeQuery("SELECT ID OTHERID FROM TEST");
+//        ResultSet rs = stat.executeQuery("SELECT ID OTHER_ID FROM TEST");
 //        rs.next();
 //        rs.getString("ID");
 //        stat.execute("DROP TABLE TEST");
@@ -96,11 +95,11 @@ public class TestSpeed extends TestBase {
         int max = getSize(1, 10000);
         for(int i=0; i<max; i++) {
             prep.setInt(1, i);
-            prep.setString(2, "Helloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
-            //prep.setString(2, "Helloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd");
+            prep.setString(2, "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
+            //prep.setString(2, "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd");
             prep.execute();
 //            System.out.println("i="+i);
-//            stat.execute("INSERT INTO TEST VALUES("+i+", 'Helloasdfaldsjflajdflajdslfaajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd"+i+"')");
+//            stat.execute("INSERT INTO TEST VALUES("+i+", 'abchelloasdfaldsjflajdflajdslfaajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd"+i+"')");
 //            ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE ID="+i);
 //            if(!rs.next()) {
 //                throw new Error("hey! i="+i);

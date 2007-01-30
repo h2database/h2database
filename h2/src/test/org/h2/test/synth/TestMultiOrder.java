@@ -27,7 +27,7 @@ public class TestMultiOrder extends TestMultiThread {
     }
     
     void begin() throws SQLException {
-        insertLine = conn.prepareStatement("insert into orderLine(orderid, lineid, text, amount) values(?, ?, ?, ?)");
+        insertLine = conn.prepareStatement("insert into orderLine(order_id, line_id, text, amount) values(?, ?, ?, ?)");
         insertCustomer();
     }
     
@@ -117,7 +117,7 @@ public class TestMultiOrder extends TestMultiThread {
         conn.createStatement().execute("drop table orderLine if exists");
         conn.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
         conn.createStatement().execute("create table orders(id int identity primary key, customer_id int, total decimal)");
-        conn.createStatement().execute("create table orderLine(orderid int, lineid int, text varchar, amount decimal, primary key(orderid, lineid))");
+        conn.createStatement().execute("create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
         conn.close();
     }
 

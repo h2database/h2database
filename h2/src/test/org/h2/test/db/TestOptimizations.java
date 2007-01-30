@@ -104,7 +104,7 @@ public class TestOptimizations extends TestBase {
         Connection conn=getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("create "+(memory?"memory":"") +" table test(id int primary key, value int)");
-        stat.execute("create index idxvalueid on test(value, id);");
+        stat.execute("create index idx_value_id on test(value, id);");
         int len = getSize(1000, 10000);
         HashMap map = new HashMap();
         TreeSet set = new TreeSet();

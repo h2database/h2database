@@ -247,8 +247,8 @@ public abstract class TestBase {
     }
 
     protected static void printTime(String s) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println(sdf.format(new java.util.Date()) + " " + s);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(dateFormat.format(new java.util.Date()) + " " + s);
     }
     
     protected void deleteDb(String name) throws Exception {
@@ -357,14 +357,14 @@ public abstract class TestBase {
         checkFalse(rs.next());
     }
     
-    protected void testResultSetMeta(ResultSet rs, int columncount, String[] labels,
+    protected void testResultSetMeta(ResultSet rs, int columnCount, String[] labels,
             int[] datatypes, int[] precision, int[] scale) throws Exception {
         ResultSetMetaData meta = rs.getMetaData();
         int cc = meta.getColumnCount();
-        if (cc != columncount) {
-            error("result set contains " + cc + " columns not " + columncount);
+        if (cc != columnCount) {
+            error("result set contains " + cc + " columns not " + columnCount);
         }
-        for (int i = 0; i < columncount; i++) {
+        for (int i = 0; i < columnCount; i++) {
             if (labels != null) {
                 String l = meta.getColumnLabel(i + 1);
                 if (!labels[i].equals(l)) {
@@ -437,16 +437,16 @@ public abstract class TestBase {
         if (rows == 0) {
             // special case: no rows
             if (rs.next()) {
-                error("testResultSet expected rowcount:" + rows + " got:0");
+                error("testResultSet expected rowCount:" + rows + " got:0");
             }
         }
         int len2 = data[0].length;
         if (len < len2) {
-            error("testResultSet expected columncount:" + len2 + " got:" + len);
+            error("testResultSet expected columnCount:" + len2 + " got:" + len);
         }
         for (int i = 0; i < rows; i++) {
             if (!rs.next()) {
-                error("testResultSet expected rowcount:" + rows + " got:" + i);
+                error("testResultSet expected rowCount:" + rows + " got:" + i);
             }
             String[] row = getData(rs, len);
             if (ordered) {
@@ -515,7 +515,7 @@ public abstract class TestBase {
         ((JdbcConnection)conn).setPowerOffCount(1);
         try {
             conn.createStatement().execute("SET WRITE_DELAY 0");
-            conn.createStatement().execute("CREATE TABLE AAA(ID INT)");
+            conn.createStatement().execute("CREATE TABLE TEST_A(ID INT)");
             error("should be crashed already");
         } catch(SQLException e) {
             // expected

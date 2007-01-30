@@ -212,7 +212,7 @@ public class TestPerformance {
     
     private void runTest(Database db, Bench bench, int size) throws Exception {
         bench.init(db, size);
-        bench.run();
+        bench.runTest();
     }
 
 }

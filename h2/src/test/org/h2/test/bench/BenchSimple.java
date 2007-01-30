@@ -36,14 +36,14 @@ public class BenchSimple implements Bench {
         db.closeConnection();
         db.end();
         
-        db.start(this, "Open/Close");
-        db.openConnection();
-        db.closeConnection();
-        db.end();        
+//        db.start(this, "Open/Close");
+//        db.openConnection();
+//        db.closeConnection();
+//        db.end();        
         
     }
 
-    public void run() throws Exception {
+    public void runTest() throws Exception {
         PreparedStatement prep;
         Random random = db.getRandom();
         

@@ -72,7 +72,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
                         PreparedStatement prep = conn.prepareStatement("insert into employee values(?, ?, 0)");
                         int id = getNextId();
                         prep.setInt(1, id);
-                        prep.setString(2, "emp " + id);
+                        prep.setString(2, "employee " + id);
                         prep.execute();
                         conn.close();
                     } catch(Throwable e) {

@@ -25,13 +25,13 @@ public class TestRights extends TestBase {
         testTableType(conn, "CACHED");
 
         // rights on tables and views
-        executeSuccess("CREATE USER PASSREADER PASSWORD 'abc'");
+        executeSuccess("CREATE USER PASS_READER PASSWORD 'abc'");
         executeSuccess("CREATE TABLE PASS(ID INT PRIMARY KEY, NAME VARCHAR, PASSWORD VARCHAR)");
         executeSuccess("CREATE VIEW PASS_NAME AS SELECT ID, NAME FROM PASS");
-        executeSuccess("GRANT SELECT ON PASS_NAME TO PASSREADER");
+        executeSuccess("GRANT SELECT ON PASS_NAME TO PASS_READER");
         conn.close();
         
-        conn = getConnection("rights", "PASSREADER", "abc");
+        conn = getConnection("rights", "PASS_READER", "abc");
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
         executeError("SELECT * FROM PASS");
@@ -47,21 +47,21 @@ public class TestRights extends TestBase {
         executeSuccess("CREATE TABLE SCHEMA_A.TABLE_B(ID INT)");
         executeSuccess("GRANT ALL ON SCHEMA_A.TABLE_B TO TEST");
         executeSuccess("CREATE TABLE HIDDEN(ID INT)");
-        executeSuccess("CREATE TABLE PUBTABLE(ID INT)");
-        executeSuccess("CREATE TABLE ROLETABLE(ID INT)");
-        executeSuccess("CREATE ROLE TESTROLE");
-        executeSuccess("GRANT SELECT ON ROLETABLE TO TESTROLE");
-        executeSuccess("GRANT UPDATE ON ROLETABLE TO TESTROLE");
-        executeSuccess("REVOKE UPDATE ON ROLETABLE FROM TESTROLE");
-        executeError("REVOKE SELECT, SUB1 ON ROLETABLE FROM TESTROLE");
-        executeSuccess("GRANT TESTROLE TO TEST");
-        executeSuccess("GRANT SELECT ON PUBTABLE TO PUBLIC");
+        executeSuccess("CREATE TABLE PUB_TABLE(ID INT)");
+        executeSuccess("CREATE TABLE ROLE_TABLE(ID INT)");
+        executeSuccess("CREATE ROLE TEST_ROLE");
+        executeSuccess("GRANT SELECT ON ROLE_TABLE TO TEST_ROLE");
+        executeSuccess("GRANT UPDATE ON ROLE_TABLE TO TEST_ROLE");
+        executeSuccess("REVOKE UPDATE ON ROLE_TABLE FROM TEST_ROLE");
+        executeError("REVOKE SELECT, SUB1 ON ROLE_TABLE FROM TEST_ROLE");
+        executeSuccess("GRANT TEST_ROLE TO TEST");
+        executeSuccess("GRANT SELECT ON PUB_TABLE TO PUBLIC");
         executeSuccess("GRANT SELECT ON TEST TO TEST");
         executeSuccess("CREATE ROLE SUB1");
         executeSuccess("CREATE ROLE SUB2");
-        executeSuccess("CREATE TABLE SUBTABLE(ID INT)");
-        executeSuccess("GRANT ALL ON SUBTABLE TO SUB2");
-        executeSuccess("REVOKE UPDATE, DELETE ON SUBTABLE FROM SUB2");
+        executeSuccess("CREATE TABLE SUB_TABLE(ID INT)");
+        executeSuccess("GRANT ALL ON SUB_TABLE TO SUB2");
+        executeSuccess("REVOKE UPDATE, DELETE ON SUB_TABLE FROM SUB2");
         executeSuccess("GRANT SUB2 TO SUB1");
         executeSuccess("GRANT SUB1 TO TEST");
         
@@ -97,16 +97,16 @@ public class TestRights extends TestBase {
         executeSuccess("SELECT * FROM TEST");
         executeSuccess("SELECT * FROM SYSTEM_RANGE(1,2)");
         executeSuccess("SELECT * FROM SCHEMA_A.TABLE_B");
-        executeSuccess("SELECT * FROM PUBTABLE");
-        executeSuccess("SELECT * FROM ROLETABLE");
-        executeError("UPDATE ROLETABLE SET ID=0");
-        executeError("DELETE FROM ROLETABLE");
+        executeSuccess("SELECT * FROM PUB_TABLE");
+        executeSuccess("SELECT * FROM ROLE_TABLE");
+        executeError("UPDATE ROLE_TABLE SET ID=0");
+        executeError("DELETE FROM ROLE_TABLE");
         executeError("SELECT * FROM HIDDEN");
         executeError("UPDATE TEST SET ID=0");
-        executeSuccess("SELECT * FROM SUBTABLE");
-        executeSuccess("INSERT INTO SUBTABLE VALUES(1)");
-        executeError("DELETE FROM SUBTABLE");
-        executeError("UPDATE FROM SUBTABLE");
+        executeSuccess("SELECT * FROM SUB_TABLE");
+        executeSuccess("INSERT INTO SUB_TABLE VALUES(1)");
+        executeError("DELETE FROM SUB_TABLE");
+        executeError("UPDATE FROM SUB_TABLE");
         
         executeError("CREATE USER TEST3 PASSWORD 'def'");
         executeError("ALTER USER TEST2 ADMIN FALSE");
@@ -120,7 +120,7 @@ public class TestRights extends TestBase {
         conn = getConnection("rights");
         stat = conn.createStatement();
         executeSuccess("DROP ROLE SUB1");
-        executeSuccess("DROP TABLE ROLETABLE");
+        executeSuccess("DROP TABLE ROLE_TABLE");
         executeSuccess("DROP USER TEST");
         
         conn.close();
@@ -159,7 +159,7 @@ public class TestRights extends TestBase {
         if(stat.execute(sql)) {
             ResultSet rs = stat.getResultSet();
             
-            // this will check if the resultset is updatable
+            // this will check if the result set is updatable
             rs.getConcurrency();
             
             ResultSetMetaData meta = rs.getMetaData();

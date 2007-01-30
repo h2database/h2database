@@ -33,7 +33,7 @@ public class TestRebuildIndex {
             }
         } else {
             long time = System.currentTimeMillis();
-            stat.execute("CREATE INDEX IDXDATA ON TEST(DATA)");
+            stat.execute("CREATE INDEX idx_data ON TEST(DATA)");
             time = System.currentTimeMillis() - time;
             System.out.println("time: " + time);
             // lzf: 5688 / 11944 kb

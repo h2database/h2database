@@ -214,11 +214,11 @@ class Database {
     public void update(String sql) throws Exception {
         sql = getSQL(sql);
         if(sql.trim().length()>0) {
+            executedStatements++;        
             stat.execute(sql);
         } else {
             System.out.println("?");
         }
-        executedStatements++;        
     }
 
     public void setAutoCommit(boolean b) throws Exception {

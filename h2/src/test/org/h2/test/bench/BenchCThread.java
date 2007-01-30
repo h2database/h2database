@@ -257,14 +257,14 @@ public class BenchCThread {
             c_w_id = warehouseId;
             c_d_id = d_id;
         }
-        boolean byname;
+        boolean byName;
         String c_last;
         int c_id = 1;
         if (random.getInt(1, 100) <= 60) {
-            byname = true;
+            byName = true;
             c_last = random.getLastname(random.getNonUniform(255, 0, 999));
         } else {
-            byname = false;
+            byName = false;
             c_last = "";
             c_id = random.getNonUniform(1023, 1, bench.customersPerDistrict);
         }
@@ -311,7 +311,7 @@ public class BenchCThread {
         rs.close();
         BigDecimal c_balance;
         String c_credit;
-        if (byname) {
+        if (byName) {
             prep = prepare("SELECT COUNT(C_ID) FROM CUSTOMER "
                     + "WHERE C_LAST=? AND C_D_ID=? AND C_W_ID=?");
             prep.setString(1, c_last);
@@ -439,14 +439,14 @@ public class BenchCThread {
 
     private void processOrderStatus() throws Exception {
         int d_id = random.getInt(1, bench.districtsPerWarehouse);
-        boolean byname;
+        boolean byName;
         String c_last = null;
         int c_id = -1;
         if (random.getInt(1, 100) <= 60) {
-            byname = true;
+            byName = true;
             c_last = random.getLastname(random.getNonUniform(255, 0, 999));
         } else {
-            byname = false;
+            byName = false;
             c_id = random.getNonUniform(1023, 1, bench.customersPerDistrict);
         }
         PreparedStatement prep;
@@ -454,7 +454,7 @@ public class BenchCThread {
 
         prep = prepare("UPDATE DISTRICT SET D_NEXT_O_ID=-1 WHERE D_ID=-1");
         db.update(prep);
-        if (byname) {
+        if (byName) {
             prep = prepare("SELECT COUNT(C_ID) FROM CUSTOMER "
                     + "WHERE C_LAST=? AND C_D_ID=? AND C_W_ID=?");
             prep.setString(1, c_last);

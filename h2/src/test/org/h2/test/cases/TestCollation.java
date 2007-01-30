@@ -65,29 +65,29 @@ public class TestCollation {
 
 //        This problem also happen if there are date parameters;        
 
-            Statement stm = conn.createStatement();
-            stm.executeUpdate(
+            Statement stat = conn.createStatement();
+            stat.executeUpdate(
                 "DROP TABLE IF EXISTS test");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "SET COLLATION OFF");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "CREATE TABLE test (id INT IDENTITY, code VARCHAR(20) NOT NULL, parentId INT)");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "CREATE INDEX test_code ON test(code)");
-            PreparedStatement pstm = conn.prepareStatement(
+            PreparedStatement prep2 = conn.prepareStatement(
                 "INSERT INTO test (code,parentId) VALUES (?,NULL)");
-            PreparedStatement pstm2 = conn.prepareStatement(
+            PreparedStatement prep3 = conn.prepareStatement(
                 "INSERT INTO test (code,parentId) SELECT ?,id FROM test WHERE code=?");
 
             long time = System.currentTimeMillis();
             for (int i = 1; i < TOTAL; ++i) {
                 if (i < ROOT) {
-                    pstm.setString(1, Integer.toBinaryString(i));
-                    pstm.executeUpdate();
+                    prep2.setString(1, Integer.toBinaryString(i));
+                    prep2.executeUpdate();
                 } else {
-                    pstm2.setString(1, Integer.toBinaryString(i));
-                    pstm2.setString(2, Integer.toBinaryString(i % 100 + 1));
-                    pstm2.executeUpdate();
+                    prep3.setString(1, Integer.toBinaryString(i));
+                    prep3.setString(2, Integer.toBinaryString(i % 100 + 1));
+                    prep3.executeUpdate();
                 }
             }
             System.out.println("INSERT w/o Collation: " + (System.currentTimeMillis()-time));
@@ -98,29 +98,29 @@ public class TestCollation {
 
     public void testWithCollation() throws Exception {
 
-            Statement stm = conn.createStatement();
-            stm.executeUpdate(
+            Statement stat = conn.createStatement();
+            stat.executeUpdate(
                 "DROP TABLE IF EXISTS test");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "SET COLLATION ENGLISH STRENGTH PRIMARY");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "CREATE TABLE test (id INT IDENTITY, code VARCHAR(20) NOT NULL, parentId INT)");
-            stm.executeUpdate(
+            stat.executeUpdate(
                 "CREATE INDEX test_code ON test(code)");
-            PreparedStatement pstm = conn.prepareStatement(
+            PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO test (code,parentId) VALUES (?,NULL)");
-            PreparedStatement pstm2 = conn.prepareStatement(
+            PreparedStatement prep2 = conn.prepareStatement(
                 "INSERT INTO test (code,parentId) SELECT ?,id FROM test WHERE code=?");
 
             long time = System.currentTimeMillis();
             for (int i = 1; i < TOTAL; ++i) {
                 if (i < ROOT) {
-                    pstm.setString(1, Integer.toBinaryString(i));
-                    pstm.executeUpdate();
+                    prep.setString(1, Integer.toBinaryString(i));
+                    prep.executeUpdate();
                 } else {
-                    pstm2.setString(1, Integer.toBinaryString(i));
-                    pstm2.setString(2, Integer.toBinaryString(i % 100 + 1));
-                    pstm2.executeUpdate();
+                    prep2.setString(1, Integer.toBinaryString(i));
+                    prep2.setString(2, Integer.toBinaryString(i % 100 + 1));
+                    prep2.executeUpdate();
                 }
             }
             System.out.println("INSERT with Collation: " + (System.currentTimeMillis()-time));

@@ -192,7 +192,7 @@ public class TestLob extends TestBase {
         conn0.createStatement();
         stat0.executeUpdate("drop table CLOB_ENTITY if exists");
         stat0.getWarnings();
-        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, SER_DATA clob, CLOB_DATA clob, primary key (ID))");
+        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, DATA clob, CLOB_DATA clob, primary key (ID))");
         stat0.getWarnings();
         stat0.close();
         conn0.getWarnings();
@@ -211,7 +211,7 @@ public class TestLob extends TestBase {
         prep0.close();
         conn0.getAutoCommit();
         PreparedStatement prep1 = 
-        conn0.prepareStatement("insert into CLOB_ENTITY (SER_DATA, CLOB_DATA, ID) values (?, ?, ?)");
+        conn0.prepareStatement("insert into CLOB_ENTITY (DATA, CLOB_DATA, ID) values (?, ?, ?)");
         prep1.setNull(1, 2005);
         StringBuffer buff = new StringBuffer(10000);
         for(int i=0; i<10000; i++) {
@@ -232,12 +232,12 @@ public class TestLob extends TestBase {
         conn0.getAutoCommit();
         conn0.getAutoCommit();
         PreparedStatement prep2 = 
-        conn0.prepareStatement("select clobholdin0_.ID as ID0_0_, clobholdin0_.SER_DATA as SER2_0_0_, clobholdin0_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY clobholdin0_ where clobholdin0_.ID=?");
+        conn0.prepareStatement("select c_.ID as ID0_0_, c_.DATA as S_, c_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY c_ where c_.ID=?");
         prep2.setLong(1, 1);
         ResultSet rs1 = 
         prep2.executeQuery();
         rs1.next();
-        rs1.getCharacterStream("SER2_0_0_");
+        rs1.getCharacterStream("S_");
         Clob clob0 = 
         rs1.getClob("CLOB3_0_0_");
         rs1.wasNull();

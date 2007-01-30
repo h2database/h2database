@@ -34,7 +34,7 @@ public class TestScript extends TestBase {
     private int line;
     private PrintStream out;
     private ArrayList result = new ArrayList();
-    private String putback;
+    private String putBack;
     private StringBuffer errors;
     private ArrayList statements;
     private String fileName = "org/h2/test/test.in.txt";
@@ -63,26 +63,26 @@ public class TestScript extends TestBase {
 
     public void testScript() throws Exception {
         deleteDb("script");
-        String outfile = "test.out.txt";
-        String infile = fileName;
+        String outFile = "test.out.txt";
+        String inFile = fileName;
         conn = getConnection("script");
         stat = conn.createStatement();
-        out = new PrintStream(new FileOutputStream(outfile));
+        out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuffer();
-        testFile(infile);
+        testFile(inFile);
         conn.close();
         out.close();
         if(errors.length()>0) {
             throw new Exception("errors:\n" + errors.toString());
         } else {
-            new File(outfile).delete();
+            new File(outFile).delete();
         }
     }
 
     private String readLine() throws IOException {
-        if (putback != null) {
-            String s = putback;
-            putback = null;
+        if (putBack != null) {
+            String s = putBack;
+            putBack = null;
             return s;
         }
         while(true) {
@@ -97,8 +97,8 @@ public class TestScript extends TestBase {
         }
     }
 
-    private void testFile(String infile) throws Exception {
-        InputStream is = getClass().getClassLoader().getResourceAsStream(infile);
+    private void testFile(String inFile) throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuffer buff = new StringBuffer();
         while (true) {
@@ -320,9 +320,9 @@ public class TestScript extends TestBase {
             if (!compare.equals(s)) {
                 errors.append("line: ");
                 errors.append(line);
-                errors.append("\nexp: ");
+                errors.append("\n" + "exp: ");
                 errors.append(compare);
-                errors.append("\ngot: ");
+                errors.append("\n" + "got: ");
                 errors.append(s);
                 errors.append("\n");
                 if(e != null) {
@@ -335,7 +335,7 @@ public class TestScript extends TestBase {
                 }
             }
         } else {
-            putback = compare;
+            putBack = compare;
         }
         write(s);
 

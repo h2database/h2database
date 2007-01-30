@@ -78,6 +78,7 @@ public class Comparison extends Condition {
         Function function = Function.getFunction(session.getDatabase(), "CAST");
         function.setParameter(0, expr);
         function.setDataType(dataType, precision, scale);
+        function.doneWithParameters();
         return function.optimize(session);
     }
 

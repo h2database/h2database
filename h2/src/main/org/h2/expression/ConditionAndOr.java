@@ -97,7 +97,7 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO NULL values: see http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
+        // TODO NULL: see http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
         // TODO test if all optimizations are switched off against all on (including performance)
         // TODO document NULL exactly for every case
         left = left.optimize(session);

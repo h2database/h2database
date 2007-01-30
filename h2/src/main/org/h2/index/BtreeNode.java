@@ -358,12 +358,12 @@ public class BtreeNode extends BtreePage {
         String first = null;
         String last = null;
         for(int i=0; i<pageChildren.size(); i++) {
-            String firstnow = index.getPage(pageChildren.get(i)).print(indent + "    ");
+            String firstNow = index.getPage(pageChildren.get(i)).print(indent + "    ");
             if(first == null) {
-                first = firstnow;
+                first = firstNow;
             }
-            if(last != null && !last.equals(firstnow)) {
-                System.out.println("STOP!!! " + last + " firstnow:" + firstnow);
+            if(last != null && !last.equals(firstNow)) {
+                System.out.println("STOP!!! " + last + " firstNow:" + firstNow);
             }
             if(i<pageData.size()) {
                 String now = getData(i).getValue(1).getString().substring(4150);

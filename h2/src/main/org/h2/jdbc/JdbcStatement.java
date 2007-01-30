@@ -85,7 +85,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * If the statement is a create or drop and does not throw an exception,
      * the current transaction (if any) is committed after executing the statement.
-     * If autocommit is on, this statement will be committed.
+     * If auto commit is on, this statement will be committed.
      *
      * @param sql the SQL statement
      * @return the update count (number of row affected by an insert,
@@ -125,7 +125,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * If the statement is a create or drop and does not throw an exception,
      * the current transaction (if any) is committed after executing the statement.
-     * If autocommit is on, and the statement is not a select, this statement will be committed.
+     * If auto commit is on, and the statement is not a select, this statement will be committed.
      *
      * @return true if a result set is available, false if not
      */
@@ -585,7 +585,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Executes the batch.
      *
-     * @return the array of updatecounts
+     * @return the array of update counts
      */
     public int[] executeBatch() throws SQLException {
         try {

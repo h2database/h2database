@@ -70,14 +70,17 @@ implements XAConnection, XAResource, JdbcConnectionListener
         Properties info = new Properties();
         info.setProperty("user", user);
         info.setProperty("password", password);
-        conn = new JdbcConnection(url, info);        
+        conn = new JdbcConnection(url, info);
+        conn.setJdbcConnectionListener(this);
         return conn;
     }
 
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener)");
         listeners.add(listener);
-        conn.setJdbcConnectionListener(this);
+        if(conn != null) {
+            conn.setJdbcConnectionListener(this);
+        }
     }
 
     public void removeConnectionEventListener(ConnectionEventListener listener) {
@@ -238,7 +241,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         buff.append(xid.getFormatId());
         buff.append(",bq:");
         buff.append(ByteUtils.convertBytesToString(xid.getBranchQualifier()));
-        buff.append(",gxid:");
+        buff.append(",gx:");
         buff.append(ByteUtils.convertBytesToString(xid.getGlobalTransactionId()));
         buff.append(",c:");
         buff.append(xid.getClass().getName());

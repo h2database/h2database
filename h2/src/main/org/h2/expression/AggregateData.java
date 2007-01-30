@@ -66,6 +66,7 @@ public class AggregateData {
             if(value == null) {
                 value = v;
             } else {
+                v = v.convertTo(value.getType());
                 value = value.add(v);
             }
             break;

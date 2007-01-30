@@ -67,8 +67,8 @@ MERGE INTO tableName [(columnName [,...])] [KEY(columnName [,...])]
 ","
 Updates the row if it exists, and if the row does not exist, inserts a new row.
 If the key columns are not specified, the primary key columns are used to find the row.
-This command is sometimes called 'UPSERT' as it UPdates a row if it exists,
-or inSERTS the row if it does not yet exist.
+This command is sometimes called 'UPSERT' as it updates a row if it exists,
+or inserts the row if it does not yet exist.
 If more than one row per new row is affected, an exception is thrown.
 ","
 MERGE INTO TEST KEY(ID) VALUES(2, 'World')
@@ -122,7 +122,7 @@ ALTER SEQUENCE sequenceName
 ","
 Changes the next value and / or the increment of a sequence.
 ","
-ALTER SEQUENCE SEQID RESTART WITH 1000
+ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
@@ -197,8 +197,8 @@ ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT ''
 ALTER TABLE tableName ALTER COLUMN columnName
 SET NOT NULL
 ","
-Sets a column to not allow NULL values.
-This is not possible if there are any null values in the table.
+Sets a column to not allow NULL.
+This is not possible if there are any rows with NULL in this column.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL
 "
@@ -207,7 +207,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL
 ALTER TABLE tableName ALTER COLUMN columnName
 SET NULL
 ","
-Sets a column to allow NULL values.
+Sets a column to allow NULL.
 This is not possible if the column is part of a primary key or multi-column hash index.
 If there are single column indexes on this column, they are dropped.
 ","
@@ -235,7 +235,7 @@ ALTER TABLE tableName RENAME TO newName
 ","
 Renames a table.
 ","
-ALTER TABLE TEST RENAME TO MYDATA
+ALTER TABLE TEST RENAME TO MY_DATA
 "
 
 "Commands (DDL)","ALTER USER ADMIN","
@@ -331,7 +331,7 @@ CREATE DOMAIN [IF NOT EXISTS] newDomainName AS dataType
 [CHECK condition]
 ","
  Creates a new data type (domain).
- The check condition must evaluate to true or to NULL (to prevent NULL values, use NOT NULL).
+ The check condition must evaluate to true or to NULL (to prevent NULL, use NOT NULL).
  In the condition, the term VALUE refers to the value being tested.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
@@ -383,7 +383,7 @@ CREATE SEQUENCE [IF NOT EXISTS] newSequenceName
 ","
 Creates a new sequence. The data type of a sequence is BIGINT.
 ","
-CREATE SEQUENCE SEQID
+CREATE SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","CREATE TABLE","
@@ -486,7 +486,7 @@ DROP SEQUENCE [IF EXISTS] sequenceName
 ","
 Drops a sequence.
 ","
-DROP SEQUENCE SEQID
+DROP SEQUENCE SEQ_ID
 "
 "Commands (DDL)","DROP SCHEMA","
 DROP SCHEMA [IF EXISTS] schemaName
@@ -679,7 +679,7 @@ SET ASSERT 0
 "Commands (Other)","SET AUTOCOMMIT","
 SET AUTOCOMMIT {TRUE | ON | FALSE | OFF}
 ","
-Switches autocommit on or off.
+Switches auto commit on or off.
 ","
 SET AUTOCOMMIT OFF
 "
@@ -726,7 +726,7 @@ SET COLLATION ENGLISH
 "Commands (Other)","SET COMPRESS_LOB","
 SET COMPRESS_LOB {NO|LZF|DEFLATE}
 ","
-Sets the compression algorithm for BLOBs and CLOBs.
+Sets the compression algorithm for BLOB and CLOB data.
 Compression is usually slower, but needs less memory.
 This setting is persistent.
 Admin rights are required to execute this command.
@@ -930,7 +930,7 @@ SET PASSWORD string
 Changes the password of the current user.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 ","
-SET PASSWORD 'stzri!.5'
+SET PASSWORD 'abcstzri!.5'
 "
 
 "Commands (Other)","SET SALT HASH","
@@ -1041,7 +1041,7 @@ CHECK expression
 | referentialConstraint}
 ","
 Defines a constraint.
-The check condition must evaluate to true or to NULL (to prevent NULL values, use NOT NULL).
+The check condition must evaluate to true or to NULL (to prevent NULL, use NOT NULL).
 ","
 PRIMARY KEY(ID, NAME)
 "
@@ -2325,7 +2325,7 @@ YEAR(CREATED)
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT(): boolean
 ","
-Returns true if autocommit is switched on for this session.
+Returns true if auto commit is switched on for this session.
 ","
 AUTOCOMMIT()
 "
@@ -2368,7 +2368,7 @@ Returns the current (last) value of the sequence.
 If the schema name is not set, the current schema is used.
 If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
 ","
-CURRVAL('TESTSEQ')
+CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
@@ -2471,7 +2471,7 @@ Returns the next value of the sequence.
 If the schema name is not set, the current schema is used.
 If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
 ","
-NEXTVAL('TESTSEQ')
+NEXTVAL('TEST_SEQ')
 "
 
 "Functions (System)","NULLIF","

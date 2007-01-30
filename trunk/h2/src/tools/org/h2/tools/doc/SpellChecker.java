@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.tools.doc;
 
 import java.io.File;
@@ -21,8 +25,12 @@ public class SpellChecker {
     private boolean debug;
     private boolean printDictionary;
     private boolean addToDictionary;
-    private static final String[] SUFFIX = new String[]{"java", "sql", "cpp", "txt", "html", "xml", "jsp", "css", "bat", "nsi", "csv", "xml", "js", "def", "dev", "h", "Driver", "properties", "win", "task", "php", "" };
-    private static final String[] IGNORE = new String[]{"gif", "png", "odg", "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar"};
+    private static final String[] SUFFIX = new String[]{
+        "html", "java", "sql", "txt", "xml", "jsp", "css", "bat", "csv", "xml", "js", "Driver", "properties", "task", "php", "" };
+    private static final String[] IGNORE = new String[]{
+        "cpp", "h", "win", "dev", "def", "nsi", 
+        "gif", "png", "odg", "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar"};
+    private static final String PREFIX_IGNORE = "abc";
     
     public static void main(String[] args) throws IOException {
         String dir = "src";
@@ -57,11 +65,10 @@ public class SpellChecker {
             System.out.println("UNKNOWN WORDS");        
             for(Iterator it = unknown.keySet().iterator(); it.hasNext();) {
                 String s = (String) it.next();
-                int count = ((Integer) unknown.get(s)).intValue();
-                if(count > 5) {
-                    System.out.print(s + " ");
-                }
+                // int count = ((Integer) unknown.get(s)).intValue();
+                System.out.print(s + " ");
             }
+            System.out.println();        
             System.out.println();        
             throw new IOException("spell check failed");
         }
@@ -69,15 +76,9 @@ public class SpellChecker {
 
     private void process(File file) throws IOException {
         String name = file.getCanonicalPath();
-        if(name.endsWith(".svn")) {
+        if(name.endsWith(".svn") || name.indexOf("_text_") > 0) {
             return;
         }
-        
-        int removeThisLater;
-//        if(name.indexOf("\\test\\") >= 0) {
-//            return;
-//        }
-        
         if(file.isDirectory()) {
             File[] list = file.listFiles();
             for(int i=0; i<list.length; i++) {
@@ -112,22 +113,20 @@ public class SpellChecker {
             if(!ok) {
                 throw new IOException("Unsupported suffix: " + suffix + " for file: " + fileName);
             }
-            if("java".equals(suffix) || "xml".equals(suffix) || "txt".equals(suffix)) {
-                FileReader reader = null;
-                String text = null;
-                try {
-                    reader = new FileReader(file);
-                    text = readStringAndClose(reader, -1);                    
-                } finally {
-                    IOUtils.closeSilently(reader);
-                }
-                if(fileName.endsWith("dictionary.txt")) {
-                    addToDictionary = true;
-                } else {
-                    addToDictionary = false;
-                }
-                scan(fileName, text);
+            FileReader reader = null;
+            String text = null;
+            try {
+                reader = new FileReader(file);
+                text = readStringAndClose(reader, -1);                    
+            } finally {
+                IOUtils.closeSilently(reader);
             }
+            if(fileName.endsWith("dictionary.txt")) {
+                addToDictionary = true;
+            } else {
+                addToDictionary = false;
+            }
+            scan(fileName, text);
         }
     }
     
@@ -200,7 +199,10 @@ public class SpellChecker {
         token = token.toLowerCase();
         if(!addToDictionary && debug) {
             System.out.print(token + " ");
-        }        
+        }
+        if(token.startsWith(PREFIX_IGNORE)) {
+            return;
+        }
         if(addToDictionary) {
             dictionary.add(token);
         } else {

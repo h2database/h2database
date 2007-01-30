@@ -4,19 +4,12 @@
  */
 package org.h2.command.dml;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.store.DiskFile;
 
 
 /**
@@ -122,32 +115,6 @@ public class TransactionCommand extends Prepared {
             throw Message.getInternalError("type=" + type);
         }
         return 0;
-    }
-
-    private void backupTo(String fileName) throws SQLException {
-        int todoMoveToOwnCommand;
-        try {
-            FileOutputStream fileOut = new FileOutputStream("test.zip");
-            ZipOutputStream out = new ZipOutputStream(fileOut);
-            out.putNextEntry(new ZipEntry("test.data.db"));
-            DiskFile file = session.getDatabase().getDataFile();
-            try {
-                session.getDatabase().getLog().updateKeepFiles(1);
-                int pos = -1;
-                while(true) {
-                    pos = file.readDirect(pos, out);
-                    if(pos < 0) {
-                        break;
-                    }
-                }
-                out.close();
-                fileOut.close();
-            } finally {
-                session.getDatabase().getLog().updateKeepFiles(-1);
-            }
-        } catch(IOException e) {
-            throw Message.convert(e);
-        }
     }
 
     public boolean isTransactional() {

@@ -83,8 +83,10 @@ public abstract class Query extends Prepared {
         if(lastResult != null && limit == lastLimit) {
             if(sameResultAsLast(session, params, lastParameters, lastEvaluated)) {
                 lastResult = lastResult.createShallowCopy(session);
-                lastResult.reset();
-                return lastResult;
+                if(lastResult != null) {
+                    lastResult.reset();
+                    return lastResult;
+                }
             }
         }
         lastParameters = params;

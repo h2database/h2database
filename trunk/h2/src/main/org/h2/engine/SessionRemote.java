@@ -53,6 +53,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private String databaseName;
     private String cipher;
     private byte[] fileEncryptionKey;
+    private Object lobSyncObject = new Object();
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         int port = Constants.DEFAULT_SERVER_PORT;
@@ -91,12 +92,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
         return trans;
     }
 
-    private void switchOffAutocommitIfCluster() throws SQLException {
+    private void switchOffAutoCommitIfCluster() throws SQLException {
         if(autoCommit && transferList.size() > 1) {
             if(switchOffAutoCommit == null) {
                 switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE");
             }
-            // this will call setAutocommit(false)
+            // this will call setAutoCommit(false)
             switchOffAutoCommit.executeUpdate();
             // so we need to switch it on
             autoCommit = true;
@@ -109,7 +110,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public void autoCommitIfCluster() throws SQLException {
         if(autoCommit && transferList!= null && transferList.size() > 1) {
-            // server side autocommit is off because of race conditions
+            // server side auto commit is off because of race conditions
             // (update set id=1 where id=0, but update set id=2 where id=0 is faster)
             for(int i=0; i<transferList.size(); i++) {
                 Transfer transfer = (Transfer) transferList.get(i);
@@ -217,7 +218,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         if(switchOffCluster) {
             switchOffCluster();
         }
-        switchOffAutocommitIfCluster();
+        switchOffAutoCommitIfCluster();
     }
 
     private void switchOffCluster() throws SQLException {
@@ -377,6 +378,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public DataHandler getDataHandler() {
         return this;
+    }
+
+    public Object getLobSyncObject() {
+        return lobSyncObject;
     }
 
 }

@@ -201,4 +201,8 @@ public class ScriptBase extends Prepared implements DataHandler {
         this.compressionAlgorithm = algorithm;
     }
 
+    public Object getLobSyncObject() {
+        return this;
+    }
+
 }

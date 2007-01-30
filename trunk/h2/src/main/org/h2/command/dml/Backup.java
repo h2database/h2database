@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.command.dml;
 
 import java.io.FileInputStream;
@@ -50,38 +54,32 @@ public class Backup extends Prepared {
             name = FileUtils.getFileName(name);
             FileOutputStream zip = new FileOutputStream(fileName);
             ZipOutputStream out = new ZipOutputStream(zip);
-            out.putNextEntry(new ZipEntry(name + Constants.SUFFIX_DATA_FILE));
-            DiskFile file = db.getDataFile();
             LogSystem log = db.getLog();
             try {
+                log.flush();
                 log.updateKeepFiles(1);
-                int pos = -1;
-                int max = file.getReadCount();
-                while(true) {
-                    pos = file.readDirect(pos, out);
-                    if(pos < 0) {
-                        break;
-                    }
-                    db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, pos, max);
-                }
-                out.closeEntry();
+                String fn = db.getName() + Constants.SUFFIX_DATA_FILE;
+                backupDiskFile(out, fn, db.getDataFile());
+                fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
+                backupDiskFile(out, fn, db.getIndexFile());
                 ObjectArray list = log.getActiveLogFiles();
-                max = list.size();
-                for(int i=0; i<list.size(); i++) {
-                    LogFile lf = (LogFile) list.get(i);
-                    String fn = lf.getFileName();
-                    out.putNextEntry(new ZipEntry(FileUtils.getFileName(fn)));
-                    FileInputStream in = new FileInputStream(fn);
-                    IOUtils.copyAndCloseInput(in, out);
-                    out.closeEntry();
-                    db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
+                int max = list.size();
+                // synchronize on the database, to avoid concurrent temp file creation / deletion / backup
+                synchronized(db.getLobSyncObject()) {
+                    for(int i=0; i<list.size(); i++) {
+                        LogFile lf = (LogFile) list.get(i);
+                        fn = lf.getFileName();
+                        backupFile(out, fn);
+                        db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
+                    }
+                    ArrayList fileList = FileBase.getDatabaseFiles(db.getDatabasePath(), name, true);
+                    for(int i=0; i<fileList.size(); i++) {
+                        fn = (String) fileList.get(i);
+                        if(fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                            backupFile(out, fn);
+                        }
+                    }
                 }
-                int todoLockDatabaseSomehow;
-                ArrayList fileList = FileBase.getDatabaseFiles(db.getDatabasePath(), name, true);
-                for(int i=0; i<fileList.size(); i++) {
-                    String fn = (String) fileList.get(i);
-                }
-                int todoCopyLobFiles;
                 out.close();
                 zip.close();
             } finally {
@@ -90,6 +88,29 @@ public class Backup extends Prepared {
         } catch(IOException e) {
             throw Message.convert(e);
         }
+    }
+    
+    private void backupDiskFile(ZipOutputStream out, String fileName, DiskFile file) throws SQLException, IOException {
+        Database db = session.getDatabase();
+        fileName = FileUtils.getFileName(fileName);
+        out.putNextEntry(new ZipEntry(fileName));
+        int pos = -1;
+        int max = file.getReadCount();
+        while(true) {
+            pos = file.readDirect(pos, out);
+            if(pos < 0) {
+                break;
+            }
+            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
+        }
+        out.closeEntry();
+    }
+    
+    private void backupFile(ZipOutputStream out, String fn) throws SQLException, IOException {
+        out.putNextEntry(new ZipEntry(FileUtils.getFileName(fn)));
+        FileInputStream in = new FileInputStream(fn);
+        IOUtils.copyAndCloseInput(in, out);
+        out.closeEntry();
     }
 
     public boolean isTransactional() {

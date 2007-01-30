@@ -36,7 +36,19 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / TODO</h3><ul>
+<h3>Version 1.0 / 2007-01-30</h3><ul>
+<li>Experimental online backup feature using the SQL statement BACKUP TO 'fileName'. 
+    This creates a backup in the form of a zip file. Unlike the SCRIPT TO command, the data tables are not locked.
+<li>When using the server mode, temporary files for large LOB values are now deleted when the result set is closed.
+    This also means that LOBs become unavailable after closing the result, however this is according to the specs.
+<li>It was possible that SUM throws a class cast exception if the parameter was a conditional expression.
+<li>Benchmark: Added a multi-client test case, BenchB (similar to TPC-B).
+<li>Compatibility: SCHEMA_NAME.SEQUENCE_NAME.NEXTVAL now works as expected.
+<li>The Console is now translated to Hungarian thanks to Andras Hideg, 
+    and to Indonesian thanks to Joko Yuliantoro
+<li>XAConnection: A NullPointerException was thrown if addConnectionEventListener was called before opening the connection.
+<li>In case the result set of a subquery was re-used, an exception was throws if the subquery result did not fit in memory.
+    Now the result is not re-used in this case. Generally, large subqueries should be avoided for performance reasons.
 <li>The command "drop all objects delete files" did not work on linux if the database name was lower case.
 <li>When setting the URL to an empty string the DataSource now throws an better exception.
 <li>Parsing of LIKE .. ESCAPE did not stop at the expected point. Fixed.
@@ -55,7 +67,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Fixed a problem where data in the log file was not written to the data file (recovery failure) after a crash, 
     if an index was deleted previously.
 <li>SCRIPT NODATA now writes the row count for each table (this simplifies comparing databases).
-<li>Selecting a column using the syntax schemaName.tableName.columName did not work in all cases.
+<li>Selecting a column using the syntax schemaName.tableName.columnName did not work in all cases.
 <li>Can now parse timestamps with timezone information (Z or +/-hh:mm) and dates before year 1.
     However dates before year 1 are not formatted correctly (this is a Java problem).
 <li>When stopping the TCP server from an application and immediately afterwards staring it again
@@ -70,7 +82,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 / 2007-01-02</h3><ul>
 <li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
-<li>Prepardd statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
+<li>Prepared statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
 <li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
 <li>Client trace files now created in the directory 'trace.db' and no longer the application directory. 
     This can be changed using the system property h2.clientTraceDirectory.
@@ -103,7 +115,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     earlier.
 <li>Opening a large database is now much faster when even when using the default log mode (LOG=1),
     if the database was closed previously.
-<li>Very large BLOBs and CLOBs can now be used with the server and the cluster mode.
+<li>Very large BLOB and CLOB data can now be used with the server and the cluster mode.
     The objects will temporarily be buffered on the client side if they are larger than some
     size (currently 64 KB).
 <li>PreparedStatement.setObject(x, y, Types.OTHER) does now serialize the object in every case
@@ -143,10 +155,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </ul>
 
 <h3>Version 1.0 / 2006-11-20</h3><ul>
-<li>SCRIPT: New option BLOCKSIZE to split BLOBs and CLOBs into separate blocks, to avoid OutOfMemory problems.
+<li>SCRIPT: New option BLOCKSIZE to split BLOB and CLOB data into separate blocks, to avoid OutOfMemory problems.
 <li>When using the READ_COMMITTED isolation level, a transaction now waits until there are no write locks
     when trying to read data. However, it still does not add a read lock.
-<li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOBs and/or BLOBs did not work. Fixed.
+<li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOB and/or BLOB did not work. Fixed.
 <li>CSV tool: the methods setFieldSeparatorWrite and setRowSeparatorWrite where not accessible. 
     The API has been changed, there is now only one static method, getInstance().
 <li>ALTER TABLE ADD did throw a strange message if the table contained views. Now the message is better,
@@ -257,7 +269,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     was not correctly synchronized. Fixed.
 <li>
     Function aliases may optionally include parameter classes. Example:
-    CREATE ALIAS PARSEINT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)"
+    CREATE ALIAS PARSE_INT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)"
 <li>
     Support for UUID
 <li>
@@ -565,7 +577,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>
     Compatibility: SUBSTRING(string FROM start FOR length)
 <li>
-    CREATE VIEW now supports a column list: CREATE VIEW TESTV(A, B) AS ...
+    CREATE VIEW now supports a column list: CREATE VIEW TEST_V(A, B) AS ...
 <li>
     Compatibility: 'T', 'Y', 'YES', 'F', 'N', 'NO' (case insensitive) can now also be converted to boolean.
     This is allowed now: WHERE BOOLEAN_FIELD='T'=(ID>1)
@@ -905,7 +917,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     To avoid doing a table scan when no rows are in the table at prepare time, and many rows at execution time.
     Using a row count offset of 1000.
 <li>
-    MERGE: new SQL command to insert or update a row. Sometimes this is called UPSERT for UPdate or INSERT.
+    MERGE: new SQL command to insert or update a row. Sometimes this is called UPSERT for update or insert.
     The grammar is a lot simpler than what Oracle supports.
 <li>
     SCRIPT: now the CREATE INDEX statements are after the INSERT statements, to improve performance.
@@ -992,7 +1004,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 0.9 / 2006-04-23</h3><ul>
 <li>
-    Improved Hibernate Dialect for SQuirrel DB Copy.
+    Improved Hibernate Dialect for SQuirreL DB Copy.
 <li>
     Support for UPDATE TEST SET (column [,...])=(select | expr [,...]').
     For Compiere compatibility.
@@ -1252,7 +1264,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 <li>Document how to use H2 with PHP (generic database API)
 <li>Optimization: result set caching (like MySQL)
-<li>MVCC (Multi Version Cuncurrency Control)
+<li>MVCC (Multi Version Concurrency Control)
 <li>Server side cursors
 <li>Row level locking
 <li>System table: open sessions and locks of a database
@@ -1302,12 +1314,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Implement, test, document XAConnection and so on
 <li>Web site: meta keywords, description, get rid of frame set
 <li>Pluggable data type (for compression, validation, conversion, encryption)
-<li>CHECK: find out what makes CHECK=TRUE slow, then: fast, nocheck, slow
+<li>CHECK: find out what makes CHECK=TRUE slow, then: fast, no check, slow
 <li>Improve recovery: improve code for log recovery problems (less try/catch)
 <li>Log linear hash index changes, fast open / close
 <li>Index usage for (ID, NAME)=(1, 'Hi'); document
-<li>Faster hash function for strings, byte arrays, bigdecimal
-<li>Suggestion: include jetty as Servlet Container (not AMP but JHJ)
+<li>Faster hash function for strings, byte arrays, big decimal
+<li>Suggestion: include jetty as Servlet Container (like LAMP)
 <li>Trace shipping to server
 <li>Performance / server mode: delay prepare? use UDP?
 <li>Version check: javascript in the docs / web console and maybe in the library
@@ -1338,7 +1350,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Maybe include JTidy. Check license
 <li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 <li>Column level privileges
-<li>Copy database: Tool with config GUI and batch mode, extendable (example: compare)
+<li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 <li>Document shrinking jar file using http://proguard.sourceforge.net/
 <li>Document, implement tool for long running transactions using user defined compensation statements
 <li>Support SET TABLE DUAL READONLY;
@@ -1386,7 +1398,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Clustering: recovery needs to becomes fully automatic.
 <li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 <li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
-<li>Support home directory as ~ in database URL (jdbc:h2:file:~/.mydir/myDB)
+<li>Support home directory as ~ in database URL (jdbc:h2:file:~/.dir/db)
 <li>Document EXISTS and so on, provide more samples.
 <li>Modular build (multiple independent jars).
 <li>Better space re-use in the files after deleting data (shrink the files)
@@ -1420,7 +1432,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Clustering: When a database is back alive, automatically synchronize with the master
 <li>Standalone tool to get relevant system properties and add it to the trace output.
 <li>Support mixed clustering mode (one embedded, the other server mode)
-<li>Support 'call rpcname($1=somevalue)' (PostgreSQL, Oracle)
+<li>Support 'call proc($1=value)' (PostgreSQL, Oracle)
 <li>HSQLDB compatibility: "INSERT INTO TEST(name) VALUES(?); SELECT IDENTITY()"
 <li>Shutdown lock (shutdown can only start if there are no logins pending, and logins are delayed until shutdown ends)
 <li>Automatically delete the index file if opening it fails
@@ -1454,14 +1466,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Backup tool should work with other databases as well
 <li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 <li>Maybe use Fowler Noll Vo hash function
-<li>Improved full text search (supports LOBs, readers / tokenizers / filters).
+<li>Improved full text search (supports LOBs, reader / tokenizer / filter).
 <li>Performance: Update in-place
 <li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 <li>Remove finally() (almost) everywhere
 <li>Java static code analysis: http://pmd.sourceforge.net/
 <li>Java static code analysis: http://www.eclipse.org/tptp/
 <li>Java static code analysis: http://checkstyle.sourceforge.net/
-<li>Compatiblity for CREATE SCHEMA AUTHORIZATION
+<li>Compatibility for CREATE SCHEMA AUTHORIZATION
 <li>Implement Clob / Blob truncate and the remaining functionality
 <li>Maybe close LOBs after closing connection
 <li>Tree join functionality
@@ -1507,9 +1519,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>User defined aggregate functions
 <li>System property for base directory (h2.baseDir) in embedded mode
 <li>Feature matrix like here: http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp.
-<li>Updatable resultset on table without primary key or unique index
+<li>Updatable result set on table without primary key or unique index
 <li>Use LinkedList instead of ArrayList where applicable
 <li>Optimization: (A=B AND B=C) > (A=B AND B=C AND A=C)
+<li>Support % operator (modulo)
+<li>Large subqueries: close them when the main query is closed, not earlier (so result can be reused)
+<li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
+<li>Support nested transactions
+<li>Add a benchmark for big databases, and one for many users
+<li>Compression in the result set (repeating values in the same column)
+<li>Improve command line consistency (+/- options, or true false options)
+<li>Allow to use the catalog name in statements: [[catalog.]schema.]object
+<li>Support curtimestamp (like curtime, curdate)
 </ul>
 
 <h3>Not Planned</h3>

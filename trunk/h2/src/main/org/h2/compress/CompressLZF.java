@@ -49,11 +49,10 @@ public class CompressLZF implements Compressor {
         return Compressor.LZF;
     }
     
-    static final int HLOG = 14;
-    static final int HASH_SIZE = (1 << 14);
-    static final int MAX_LITERAL = (1 << 5);
-    static final int MAX_OFF = (1 << 13);
-    static final int MAX_REF = ((1 << 8) + (1 << 3));
+    private static final int HASH_SIZE = (1 << 14);
+    private static final int MAX_LITERAL = (1 << 5);
+    private static final int MAX_OFF = (1 << 13);
+    private static final int MAX_REF = ((1 << 8) + (1 << 3));
 
     int first(byte[] in, int inPos) {
         return (in[inPos] << 8) + (in[inPos + 1] & 255);
@@ -79,11 +78,11 @@ public class CompressLZF implements Compressor {
             System.arraycopy(empty, 0, hashTab, 0, HASH_SIZE);
         }
         int literals = 0;
-        int hval = first(in, inPos);
+        int hash = first(in, inPos);
         while (true) {
             if (inPos < inLen - 4) {
-                hval = next(hval, in, inPos);
-                int off = hash(hval);
+                hash = next(hash, in, inPos);
+                int off = hash(hash);
                 int ref = hashTab[off];
                 hashTab[off] = inPos;
                 off = inPos - ref - 1;
@@ -110,11 +109,11 @@ public class CompressLZF implements Compressor {
                     }
                     out[outPos++] = (byte) off;
                     inPos += len;
-                    hval = first(in, inPos);
-                    hval = next(hval, in, inPos);
-                    hashTab[hash(hval)] = inPos++;
-                    hval = next(hval, in, inPos);
-                    hashTab[hash(hval)] = inPos++;
+                    hash = first(in, inPos);
+                    hash = next(hash, in, inPos);
+                    hashTab[hash(hash)] = inPos++;
+                    hash = next(hash, in, inPos);
+                    hashTab[hash(hash)] = inPos++;
                     continue;
                 }
             } else if (inPos == inLen) {

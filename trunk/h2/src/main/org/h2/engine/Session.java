@@ -203,7 +203,7 @@ public class Session implements SessionInterface {
             Iterator it = unlinkSet.iterator();
             while(it.hasNext()) {
                 Value v = (Value) it.next();
-                v.unlink(database);
+                v.unlink();
             }
             unlinkSet = null;
         }

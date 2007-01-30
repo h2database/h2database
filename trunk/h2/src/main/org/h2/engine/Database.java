@@ -133,6 +133,7 @@ public class Database implements DataHandler {
     private boolean optimizeReuseResults = true;
     private String cacheType;
     private boolean indexSummaryValid = true;
+    private Object lobSyncObject = new Object();
 
     public static void setInitialPowerOffCount(int count) {
         initialPowerOffCount = count;
@@ -1481,6 +1482,10 @@ public class Database implements DataHandler {
     
     public boolean getIndexSummaryValid() {
         return indexSummaryValid;
+    }
+
+    public Object getLobSyncObject() {
+        return lobSyncObject;
     }
 
 }

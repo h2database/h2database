@@ -52,34 +52,34 @@
 	</target>
 
 	<target name="codeswitch_prepare">
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" debug="true" includes="org/h2/tools/code/CodeSwitch.java"/>
+		<javac executable="${javac}" srcdir="src/tools" debug="true" includes="org/h2/tools/code/CodeSwitch.java"/>
 	</target>
 
 	<target name="codeswitch_jdk13" depends="codeswitch_prepare">
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="+JDK13 -JDK14 -JDK16 ../main/org/h2"/>
-		</java>
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
 		</propertyfile>
+		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
+			<arg line="+JDK13 -JDK14 -JDK16 ../main/org/h2"/>
+		</java>
 	</target>
 
 	<target name="codeswitch_jdk14" depends="codeswitch_prepare">
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="-JDK13 +JDK14 -JDK16 ../main/org/h2"/>
-		</java>
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.4" />
 		</propertyfile>
+		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
+			<arg line="-JDK13 +JDK14 -JDK16 ../main/org/h2"/>
+		</java>
 	</target>
 
 	<target name="codeswitch_jdk16" depends="codeswitch_prepare">
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
-			<arg line="-JDK13 +JDK16 +JDK14 ../main/org/h2"/>
-		</java>
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.6" />
 		</propertyfile>
+		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="src/tools">
+			<arg line="-JDK13 +JDK16 +JDK14 ../main/org/h2"/>
+		</java>
 	</target>
 
 	<target name="compileResources" depends="clean">

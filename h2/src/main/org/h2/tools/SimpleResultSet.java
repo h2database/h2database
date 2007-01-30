@@ -195,9 +195,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns whether the last column accessed was a null value.
+     * Returns whether the last column accessed was null.
      *
-     * @return true if the last column accessed was a null value
+     * @return true if the last column accessed was null
      */
     public boolean wasNull() throws SQLException {
         return wasNull;

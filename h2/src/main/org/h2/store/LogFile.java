@@ -30,7 +30,7 @@ import org.h2.util.ObjectArray;
  * [delete/insert only:]
  * int storage
  * int record.pos
- * int record.blockcount
+ * int record.blockCount
  * [prepare commit only:]
  * string transaction
  */

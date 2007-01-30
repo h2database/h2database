@@ -32,7 +32,7 @@ function initSort() {
             for(var j=0;j<header.cells.length;j++) {
                 var cell = header.cells[j];
                 var text = cell.innerHTML;
-                cell.innerHTML = '<a href="#" style="text-decoration: none;" class="sortheader" onclick="resortTable(this);">'+text+'<span class="sortarrow">&nbsp;&nbsp;</span></a>';
+                cell.innerHTML = '<a href="#" style="text-decoration: none;" class="sortHeader" onclick="resortTable(this);">'+text+'<span class="sortArrow">&nbsp;&nbsp;</span></a>';
             }
         }
     }
@@ -83,16 +83,16 @@ function getInnerText(el) {
     return str;
 }
 
-function resortTable(lnk) {
+function resortTable(link) {
     // get the span
     var span;
-    for (var ci=0;ci<lnk.childNodes.length;ci++) {
-        if (lnk.childNodes[ci].tagName && lnk.childNodes[ci].tagName.toLowerCase() == 'span') {
-            span = lnk.childNodes[ci];
+    for (var ci=0;ci<link.childNodes.length;ci++) {
+        if (link.childNodes[ci].tagName && link.childNodes[ci].tagName.toLowerCase() == 'span') {
+            span = link.childNodes[ci];
         }
     }
     var spantext = getInnerText(span);
-    var td = lnk.parentNode;
+    var td = link.parentNode;
     var column = td.cellIndex;
     var table = getParent(td,'TABLE');
 
@@ -125,13 +125,13 @@ function resortTable(lnk) {
     newRows.sort(sortCallback);
 
     var arrow;
-    if (span.getAttribute("sortdir") == 'down') {
+    if (span.getAttribute("sortDir") == 'down') {
         arrow = '&nbsp;<img src="sort_up.gif" with=7 height=10 border=0>';
         newRows.reverse();
-        span.setAttribute('sortdir','up');
+        span.setAttribute('sortDir','up');
     } else {
         arrow = '&nbsp;<img src="sort_down.gif" with=7 height=10 border=0>';
-        span.setAttribute('sortdir','down');
+        span.setAttribute('sortDir','down');
     }
 
 //alert("start move");
@@ -144,12 +144,12 @@ function resortTable(lnk) {
 //alert("end");
 
     // delete any other arrows there may be showing
-    var allspans = document.getElementsByTagName("span");
-    for (var i=0;i<allspans.length;i++) {
-        if (allspans[i].className == 'sortarrow') {
+    var allSpans = document.getElementsByTagName("span");
+    for (var i=0;i<allSpans.length;i++) {
+        if (allSpans[i].className == 'sortArrow') {
                // in the same table as us?
-            if (getParent(allspans[i],"table") == getParent(lnk,"table")) {
-                allspans[i].innerHTML = '&nbsp;&nbsp;';
+            if (getParent(allSpans[i],"table") == getParent(link,"table")) {
+                allSpans[i].innerHTML = '&nbsp;&nbsp;';
             }
         }
     }

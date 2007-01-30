@@ -37,9 +37,11 @@ public class WebServer implements Service {
         { "es", "Espa\u00f1ol" },
         { "zh_CN", "\u4E2D\u6587"},
         { "ja", "\u65e5\u672c\u8a9e"},
+        { "hu", "Magyar"},
+        { "in", "Indonesia"}
     };
 
-//    String lang = 
+//    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
 //        java.util.Locale.CHINESE.getDisplayLanguage(
 //        java.util.Locale.CHINESE);
 //       for(int i=0; i<lang.length(); i++)
@@ -181,7 +183,7 @@ public class WebServer implements Service {
     }
 
     void trace(String s) {
-//          System.out.println(s);
+        // System.out.println(s);
     }
 
     public boolean supportsLanguage(String language) {

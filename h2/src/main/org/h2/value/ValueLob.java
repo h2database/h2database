@@ -337,26 +337,35 @@ public class ValueLob extends Value {
     public boolean isLinked() {
         return linked;
     }
+    
+    public void close() throws SQLException {
+        if(fileName != null) {
+            if(tempFile != null) {
+                tempFile.stopAutoDelete();
+            }
+            deleteFile(handler, fileName);
+        }
+    }
 
-    public void unlink(DataHandler handler) throws SQLException {
+    public void unlink() throws SQLException {
         if (linked && fileName != null) {
             String temp;
-            if(Constants.LOB_FILES_IN_DIRECTORIES) {
-                temp = getFileName(handler, -1, objectId);
-            } else {
-                // just to get a filename - an empty file will be created
-                temp = handler.createTempFile();
+            // synchronize on the database, to avoid concurrent temp file creation / deletion / backup
+            synchronized(handler) {
+                if(Constants.LOB_FILES_IN_DIRECTORIES) {
+                    temp = getFileName(handler, -1, objectId);
+                } else {
+                    // just to get a filename - an empty file will be created
+                    temp = handler.createTempFile();
+                }
+                deleteFile(handler, temp);
+                renameFile(handler, fileName, temp);
+                tempFile = FileStore.open(handler, temp, null);
+                tempFile.autoDelete();
+                tempFile.closeSilently();
+                fileName = temp;
+                linked = false;
             }
-            // delete the temp file
-            // TODO could there be a race condition? maybe another thread creates the file again?
-            FileUtils.delete(temp);
-            // rename the current file to the temp file
-            FileUtils.rename(fileName, temp);
-            tempFile = FileStore.open(handler, temp, null);
-            tempFile.autoDelete();
-            tempFile.closeSilently();
-            fileName = temp;
-            linked = false;
         }
     }
 
@@ -374,7 +383,7 @@ public class ValueLob extends Value {
             }            
             copy.tableId = tabId;
             String live = getFileName(handler, copy.tableId, copy.objectId);
-            FileUtils.copy(fileName, live);
+            copyFile(handler, fileName, live);
             copy.fileName = live;
             copy.linked = true;
             return copy;
@@ -384,7 +393,7 @@ public class ValueLob extends Value {
             String live = getFileName(handler, tableId, objectId);
             tempFile.stopAutoDelete();
             tempFile = null;
-            FileUtils.rename(fileName, live);
+            renameFile(handler, fileName, live);
             fileName = live;
             linked = true;
         }
@@ -575,7 +584,7 @@ public class ValueLob extends Value {
             for(int i=0; i<list.length; i++) {
                 String name = list[i];
                 if(name.startsWith(prefix+"." + tableId) && name.endsWith(".lob.db")) {
-                    FileUtils.delete(name);
+                    deleteFile(handler, name);
                 }
             }
         }
@@ -589,7 +598,7 @@ public class ValueLob extends Value {
             } else {
                 String name = list[i];
                 if(name.endsWith(".t" + tableId + ".lob.db")) {
-                    FileUtils.delete(name);
+                    deleteFile(handler, name);
                 }
             }
         }
@@ -597,6 +606,29 @@ public class ValueLob extends Value {
 
     public boolean useCompression() {
         return compression;
+    }
+    
+    public boolean isFileBased() {
+        return fileName != null;
+    }
+    
+    private static synchronized void deleteFile(DataHandler handler, String fileName) throws SQLException {
+        // synchronize on the database, to avoid concurrent temp file creation / deletion / backup
+        synchronized(handler.getLobSyncObject()) {
+            FileUtils.delete(fileName);
+        }
+    }
+    
+    private static synchronized void renameFile(DataHandler handler, String oldName, String newName) throws SQLException {
+        synchronized(handler.getLobSyncObject()) {
+            FileUtils.rename(oldName, newName);
+        }
+    }
+    
+    private void copyFile(DataHandler handler, String fileName, String live) throws SQLException {
+        synchronized(handler.getLobSyncObject()) {
+            FileUtils.copy(fileName, live);
+        }
     }
 
 }

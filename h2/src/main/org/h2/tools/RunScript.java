@@ -72,6 +72,7 @@ public class RunScript {
         String script = "backup.sql";
         String options = null;
         boolean continueOnError = false;
+        boolean showTime = false;
         for (int i = 0; args != null && i < args.length; i++) {
             if (args[i].equals("-url")) {
                 url = args[++i];
@@ -83,6 +84,8 @@ public class RunScript {
                 continueOnError = true;
             } else if (args[i].equals("-script")) {
                 script = args[++i];
+            } else if (args[i].equals("-time")) {
+                showTime = true;
             } else if (args[i].equals("-driver")) {
                 String driver = args[++i];
                 try {
@@ -117,7 +120,9 @@ public class RunScript {
         }
         // }
         time = System.currentTimeMillis() - time;
-        System.out.println("Done in " + time + " ms");
+        if(showTime) {
+            System.out.println("Done in " + time + " ms");
+        }
     }
 
     /**

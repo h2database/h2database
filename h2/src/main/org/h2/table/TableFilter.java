@@ -45,7 +45,6 @@ public class TableFilter implements ColumnResolver {
     private Row current;
     private int state;
     
-    private int todo;
     private ObjectArray joins;
     // private TableFilter join;
     
@@ -264,14 +263,14 @@ public class TableFilter implements ColumnResolver {
                 TableFilter join = getTableFilter(i);
                 join.reset();
             }
-            boolean cont = false;
+            boolean doContinue = false;
             for(int i=0; joins != null && i<joins.size(); i++) {
                 TableFilter join = getTableFilter(i);
                 if(!join.next()) {
-                    cont = true;
+                    doContinue = true;
                 }
             }
-            if(cont) {
+            if(doContinue) {
                 continue;
             }
             // check if it's ok

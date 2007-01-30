@@ -386,9 +386,9 @@ public class StringUtils {
      * Parses a date using a format string
      */
     public static Date parseDateTime(String date, String format, String locale, String timezone) throws SQLException {
-        SimpleDateFormat sdf = getDateFormat(format, locale, timezone);
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
         try {
-            return sdf.parse(date);
+            return dateFormat.parse(date);
         } catch(ParseException e) {
             throw Message.getSQLException(Message.PARSE_ERROR_1, date);
         }

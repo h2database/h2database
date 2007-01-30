@@ -23,7 +23,7 @@ public class ExactUTF8InputStreamReader extends Reader {
     public void close() throws IOException {
     }
 
-    public int read(char[] cbuf, int off, int len) throws IOException {
+    public int read(char[] chars, int off, int len) throws IOException {
         for(int i=0; i<len; i++, off++) {
             int x = in.read();
             if(x < 0) {
@@ -31,11 +31,11 @@ public class ExactUTF8InputStreamReader extends Reader {
             }
             x = x & 0xff;
             if(x < 0x80) {
-                cbuf[off] = (char)x;
+                chars[off] = (char)x;
             } else if(x >= 0xe0) {
-                cbuf[off] = (char)(((x & 0xf) << 12) + ((in.read() & 0x3f) << 6) + (in.read() & 0x3f));
+                chars[off] = (char)(((x & 0xf) << 12) + ((in.read() & 0x3f) << 6) + (in.read() & 0x3f));
             } else {
-                cbuf[off] = (char)(((x & 0x1f) << 6) + (in.read() & 0x3f));
+                chars[off] = (char)(((x & 0x1f) << 6) + (in.read() & 0x3f));
             }
         }
         return len;

@@ -13,13 +13,13 @@ Initial Developer: H2 Group
 
 var agent=navigator.userAgent.toLowerCase();
 var is_opera = agent.indexOf("opera") >= 0;
-var autocomplete = 1;
+var autoComplete = 1;
 var selectedRow = -1;
 var lastList = '';
 var lastQuery = null;
 var columnsByTable = new Object();
 var tableAliases = new Object();
-var showAutocompleteWait = 0;
+var showAutoCompleteWait = 0;
 var req;
 
 function refreshTables() {
@@ -151,8 +151,8 @@ function insertText(s, isTable) {
         if (document.selection) {
             // IE
             field.focus();
-            sel = document.selection.createRange();
-            sel.text = s;
+            selection = document.selection.createRange();
+            selection.text = s;
         } else if (field.selectionStart || field.selectionStart == '0') {
             // Firefox
             var startPos = field.selectionStart;
@@ -169,22 +169,22 @@ function insertText(s, isTable) {
 }
 
 function keyUp() {
-    if(autocomplete != 0) {
-        showAutocomplete();
+    if(autoComplete != 0) {
+        showAutoComplete();
     }
     return true;
 }
 
-function showAutocomplete() {
-    if(showAutocompleteWait==0) {
-        showAutocompleteWait=5;
-        setTimeout('showAutocompleteNow()', 100);
+function showAutoComplete() {
+    if(showAutoCompleteWait==0) {
+        showAutoCompleteWait=5;
+        setTimeout('showAutoCompleteNow()', 100);
     } else {
-        showAutocompleteWait-=1;
+        showAutoCompleteWait-=1;
     }
 }
 
-function showAutocompleteNow() {
+function showAutoCompleteNow() {
     var input = document.h2query.sql;
     setSelection(input);
     var pos = input.selectionStart;
@@ -193,7 +193,7 @@ function showAutocompleteNow() {
         lastQuery = s;
         retrieveList(s);
     }
-    showAutocompleteWait = 0;
+    showAutoCompleteWait = 0;
 }
 
 function keyDown(event) {
@@ -205,13 +205,13 @@ function keyDown(event) {
         document.h2query.submit();
         return false;
     } else if(key == 32 && event.ctrlKey) {
-        showAutocomplete();
+        showAutoComplete();
         return false;
-    } else if(key == 190 && autocomplete==0) {
+    } else if(key == 190 && autoComplete==0) {
         help();
         return true;
     }
-    var table = getAutocompleteTable();
+    var table = getAutoCompleteTable();
     if(table.rows.length > 0) {
         if(key == 27) {
             while(table.rows.length > 0) {
@@ -225,8 +225,8 @@ function keyDown(event) {
                 if(row.cells.length>1) {
                     insertText(row.cells[1].innerHTML);
                 }
-                if(autocomplete == 0) {
-                    setAutocomplete(0);
+                if(autoComplete == 0) {
+                    setAutoComplete(0);
                 }    
                 return false;
             }
@@ -248,18 +248,18 @@ function keyDown(event) {
      // alert('key:' + key);
     // bs:8 ret:13 lt:37 up:38 rt:39 dn:40 tab:9
     // pgup:33 pgdn:34 home:36 end:35 del:46 shift:16 
-    // ctrl,altgr:17 alt:18 caps:20 5(num):12 ins:45
+    // ctrl,alt gr:17 alt:18 caps:20 5(num):12 ins:45
     // pause:19 f1..13:112..123 win-start:91 win-ctx:93 esc:27
 }
 
-function setAutocomplete(value) {
-    autocomplete = value;
+function setAutoComplete(value) {
+    autoComplete = value;
     if(value != 1) {
         var s = lastList;
         lastList = '';
         showList(s);
     } else {
-        var table = getAutocompleteTable();
+        var table = getAutoCompleteTable();
         while(table.rows.length > 0) {
             table.deleteRow(0);
         }
@@ -271,12 +271,12 @@ function highlightRow(row) {
     if(row != null) {
         selectedRow = row;
     }
-    var table = getAutocompleteTable();
+    var table = getAutoCompleteTable();
     highlightThisRow(table.rows[selectedRow]);
 }
 
 function highlightThisRow(row) {
-    var table = getAutocompleteTable();
+    var table = getAutoCompleteTable();
     for(var i=0; i<table.rows.length; i++) {
         var r = table.rows[i];
         var col = (r == row) ? '#95beff' : '';
@@ -288,7 +288,7 @@ function highlightThisRow(row) {
     showOutput('none');
 }
 
-function getAutocompleteTable() {
+function getAutoCompleteTable() {
     return top.h2result.document.getElementById('h2auto');
 //    return top.frames['h2result'].document.getElementById('h2auto');
 //    return top.h2menu.h2result.document.getElementById('h2auto');
@@ -304,14 +304,14 @@ function showList(s) {
     }
     lastList = s;
     var list = s.length == 0 ? null : s.split('|');
-    var table = getAutocompleteTable();
+    var table = getAutoCompleteTable();
     if(table == null) {
         return;
     }
     while(table.rows.length > 0) {
         table.deleteRow(0);
     }
-    if(autocomplete==0) {
+    if(autoComplete==0) {
         return;
     }
     selectedRow = 0;
@@ -321,7 +321,7 @@ function showList(s) {
     for(var i=0; list != null && i<list.length; i++) {
         var kv = list[i].split('#');
         var type = kv[0];
-        if(type > 0 && autocomplete != 2) {
+        if(type > 0 && autoComplete != 2) {
             continue;
         }
         var row = doc.createElement("tr");
@@ -333,7 +333,7 @@ function showList(s) {
             break;
         }
         count++;
-        cell.className = 'autocomp' + type;
+        cell.className = 'autoComp' + type;
         key = decodeURIComponent(key);
         row.onmouseover = function(){highlightThisRow(this)};
         if(!document.all || is_opera) {
@@ -404,8 +404,8 @@ function sendAsyncRequest(url) {
         req.open("GET", url, true);
         req.send("");
     } else {
-        var getlist = document.getElementById('h2iframeTransport');
-        getlist.src = url;
+        var getList = document.getElementById('h2iframeTransport');
+        getList.src = url;
     }
 }
 

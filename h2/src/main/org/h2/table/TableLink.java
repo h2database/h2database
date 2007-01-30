@@ -77,15 +77,15 @@ public class TableLink extends Table {
             try {
                 stat = conn.createStatement();
                 rs = stat.executeQuery("SELECT * FROM " + originalTable + " T WHERE 1=0");
-                ResultSetMetaData rsm = rs.getMetaData();
-                for(i=0; i<rsm.getColumnCount();) {
-                    String n = rsm.getColumnName(i+1);
+                ResultSetMetaData rsMeta = rs.getMetaData();
+                for(i=0; i<rsMeta.getColumnCount();) {
+                    String n = rsMeta.getColumnName(i+1);
                     if(storesLowerCase && n.equals(StringUtils.toLowerEnglish(n))) {
                         n = StringUtils.toUpperEnglish(n);
                     }
-                    int sqlType = rsm.getColumnType(i+1);
-                    long precision = rsm.getPrecision(i+1);
-                    int scale = rsm.getScale(i+1);
+                    int sqlType = rsMeta.getColumnType(i+1);
+                    long precision = rsMeta.getPrecision(i+1);
+                    int scale = rsMeta.getScale(i+1);
                     int type = DataType.convertSQLTypeToValueType(sqlType);
                     precision = Math.max(precision, DataType.getDataType(type).defaultPrecision);
                     Column col = new Column(n, type, precision, scale);
@@ -127,7 +127,7 @@ public class TableLink extends Table {
         try {
             rs = meta.getIndexInfo(null, null, originalTable, false, false);
         } catch(SQLException e) {
-            // Oracle throws an exception if the table is not found or is a SYNONMY
+            // Oracle throws an exception if the table is not found or is a SYNONYM
             rs = null;
         }
         String indexName = null;

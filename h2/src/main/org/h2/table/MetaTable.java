@@ -962,8 +962,8 @@ public class MetaTable extends Table {
                 if(!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                int upd = getRefAction(ref.getUpdateAction());
-                int del = getRefAction(ref.getDeleteAction());
+                int update = getRefAction(ref.getUpdateAction());
+                int delete = getRefAction(ref.getDeleteAction());
                 for(int j=0; j<cols.length; j++) {
                     add(rows, new String[] {
                             catalog, // PKTABLE_CATALOG
@@ -975,8 +975,8 @@ public class MetaTable extends Table {
                             identifier(tab.getName()), // FKTABLE_NAME
                             identifier(cols[j].getName()), // FKCOLUMN_NAME
                             String.valueOf(j + 1), // ORDINAL_POSITION
-                            String.valueOf(upd), // UPDATE_RULE SMALLINT
-                            String.valueOf(del), // DELETE_RULE SMALLINT
+                            String.valueOf(update), // UPDATE_RULE SMALLINT
+                            String.valueOf(delete), // DELETE_RULE SMALLINT
                             identifier(ref.getName()), // FK_NAME
                             null, // PK_NAME
                             "" + DatabaseMetaData.importedKeyNotDeferrable, // DEFERRABILITY
@@ -1139,20 +1139,20 @@ public class MetaTable extends Table {
 
     private void addPrivileges(ObjectArray rows, DbObject grantee, String catalog, Table table, String column, int rightMask) throws SQLException {
         if((rightMask & Right.SELECT) != 0) {
-            addPrivileg(rows, grantee, catalog, table, column, "SELECT");
+            addPrivilege(rows, grantee, catalog, table, column, "SELECT");
         }
         if((rightMask & Right.INSERT) != 0) {
-            addPrivileg(rows, grantee, catalog, table, column, "INSERT");
+            addPrivilege(rows, grantee, catalog, table, column, "INSERT");
         }
         if((rightMask & Right.UPDATE) != 0) {
-            addPrivileg(rows, grantee, catalog, table, column, "UPDATE");
+            addPrivilege(rows, grantee, catalog, table, column, "UPDATE");
         }
         if((rightMask & Right.DELETE) != 0) {
-            addPrivileg(rows, grantee, catalog, table, column, "DELETE");
+            addPrivilege(rows, grantee, catalog, table, column, "DELETE");
         }
     }
 
-    private void addPrivileg(ObjectArray rows, DbObject grantee, String catalog, Table table, String column, String right) throws SQLException {
+    private void addPrivilege(ObjectArray rows, DbObject grantee, String catalog, Table table, String column, String right) throws SQLException {
         String isGrantable = "NO";
         if(grantee.getType() == DbObject.USER) {
             User user = (User)grantee;

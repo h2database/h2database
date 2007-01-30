@@ -178,7 +178,7 @@ public class DiskFile implements CacheWriter {
             byte[] b2 = buff.toByteArray();
             return b2;
         } catch(IOException e) {
-            // will probably never happen, because only in-memory strutures are used
+            // will probably never happen, because only in-memory structures are used
             return null;
         }
     }

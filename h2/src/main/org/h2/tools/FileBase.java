@@ -52,8 +52,6 @@ public abstract class FileBase {
                 ok = true;
             } else if(f.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 ok = true;
-            } else if(f.endsWith(Constants.SUFFIX_SUMMARY_FILE)) {
-                ok = true;
             } else if(all) {
                 if(f.endsWith(Constants.SUFFIX_LOCK_FILE)) {
                     ok = true;

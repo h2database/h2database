@@ -74,6 +74,9 @@ public class LocalResult implements ResultInterface {
     }
     
     public LocalResult createShallowCopy(Session session) {
+        if(disk == null && rows == null || rows.size() < rowCount) {
+            return null;
+        }
         LocalResult copy = new LocalResult(0);
         copy.maxMemoryRows = this.maxMemoryRows;
         copy.session = session;

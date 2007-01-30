@@ -840,4 +840,11 @@ public class Recover implements DataHandler {
         return null;
     }
 
+    /**
+     * INTERNAL
+     */      
+    public Object getLobSyncObject() {
+        return this;
+    }
+
 }

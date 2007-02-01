@@ -37,12 +37,12 @@ public class Backup {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-url jdbc:h2:... (database URL)
-     * <li>-user username
-     * <li>-password password
-     * <li>-script filename (default file name is backup.sql)
-     * <li>-options to specify a list of options (only for H2)
-     * </ul>
+     * </li><li>-url jdbc:h2:... (database URL)
+     * </li><li>-user username
+     * </li><li>-password password
+     * </li><li>-script filename (default file name is backup.sql)
+     * </li><li>-options to specify a list of options (only for H2)
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException

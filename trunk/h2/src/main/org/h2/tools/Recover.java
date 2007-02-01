@@ -74,10 +74,10 @@ public class Recover implements DataHandler {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-dir directory (the default is the current directory)
-     * <li>-db databaseName (all databases if no name is specified)
-     * <li>-log {true|false} (log additional messages)
-     * </ul>
+     * </li><li>-dir directory (the default is the current directory)
+     * </li><li>-db databaseName (all databases if no name is specified)
+     * </li><li>-log {true|false} (log additional messages)
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException

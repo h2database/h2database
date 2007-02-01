@@ -31,9 +31,9 @@ public class CreateCluster {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-urlSource jdbc:h2:... (the database URL of the source database)
-     * <li>-urlTarget jdbc:h2:... (the database URL of the target database)
-     * </ul>
+     * </li><li>-urlSource jdbc:h2:... (the database URL of the source database)
+     * </li><li>-urlTarget jdbc:h2:... (the database URL of the target database)
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException

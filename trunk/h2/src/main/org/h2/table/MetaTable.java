@@ -1006,13 +1006,14 @@ public class MetaTable extends Table {
                 }
                 String columnList = null;
                 if(columns != null) {
-                    columnList = "";
+                    StringBuffer buff = new StringBuffer();
                     for(int j=0; j<columns.length; j++) {
                         if(j>0) {
-                            columnList += ",";
+                            buff.append(',');
                         }
-                        columnList += columns[j].getName();
+                        buff.append(columns[j].getName());
                     }
+                    columnList = buff.toString();
                 }
                 add(rows, new String[] {
                         catalog, // CONSTRAINT_CATALOG

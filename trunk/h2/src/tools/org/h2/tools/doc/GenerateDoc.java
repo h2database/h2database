@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -82,8 +83,10 @@ public class GenerateDoc {
     
     void map(String key, String sql) throws Exception {
         ResultSet rs = null;
+        Statement stat = null;
         try {
-            rs = conn.createStatement().executeQuery(sql);
+            stat = conn.createStatement();
+            rs = stat.executeQuery(sql);
             ArrayList list = new ArrayList();
             while(rs.next()) {
                 HashMap map = new HashMap();
@@ -96,7 +99,7 @@ public class GenerateDoc {
                 String topic = rs.getString("TOPIC");
                 String syntax =  rs.getString("SYNTAX");
                 syntax = PageParser.escapeHtml(syntax);
-                syntax = StringUtils.replaceAll(syntax, "<br>", "");
+                syntax = StringUtils.replaceAll(syntax, "<br />", "");
                 syntax = bnf.getSyntax(topic, syntax);
                 map.put("syntax", syntax);
                 list.add(map);
@@ -104,6 +107,7 @@ public class GenerateDoc {
             session.put(key, list);
         } finally {
             JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(stat);
         }
     }
 }

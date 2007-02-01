@@ -173,10 +173,10 @@ public class FullText implements Trigger {
     * This adds the following Java functions to the database:
     * <ul>
     * <li>FT_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-    * <li>FT_SEARCH(queryString, limitInt, offsetInt): result set
-    * <li>FT_REINDEX()
-    * <li>FT_DROP_ALL()
-    * </ul>
+    * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set
+    * </li><li>FT_REINDEX()
+    * </li><li>FT_DROP_ALL()
+    * </li></ul>
     * It also adds a schema FULLTEXT to the database where bookkeeping information is stored.
     * This function may be called from a Java application, or by using the SQL statements:
     * <pre>

@@ -259,7 +259,7 @@ public class PageParser {
                 break;
             case '\n':
                 if (convertBreak) {
-                    buff.append("<br>");
+                    buff.append("<br />");
                     leadingSpace = true;
                 } else {
                     buff.append(c);

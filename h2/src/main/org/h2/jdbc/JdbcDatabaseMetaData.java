@@ -86,13 +86,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 TABLE_TYPE (String) table type
-     * <li>5 REMARKS (String) comment
-     *
-     * <li>6 SQL (String) the create table statement or NULL for systems tables
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 TABLE_TYPE (String) table type
+     * </li><li>5 REMARKS (String) comment
+     * </li><li>6 SQL (String) the create table statement or NULL for systems tables
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name (uppercase for unquoted names)
@@ -156,24 +155,24 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 COLUMN_NAME (String) column name
-     * <li>5 DATA_TYPE (short) data type (see java.sql.Types)
-     * <li>6 TYPE_NAME (String) data type name ("INTEGER", "VARCHAR",...)
-     * <li>7 COLUMN_SIZE (int) precision
-     * <li>8 BUFFER_LENGTH (int) unused
-     * <li>9 DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)
-     * <li>10 NUM_PREC_RADIX (int) radix (always 10)
-     * <li>11 NULLABLE (int) nullable or not. columnNoNulls or columnNullable
-     * <li>12 REMARKS (String) comment (always empty)
-     * <li>13 COLUMN_DEF (String) default value
-     * <li>14 SQL_DATA_TYPE (int) unused
-     * <li>15 SQL_DATETIME_SUB (int) unused
-     * <li>16 CHAR_OCTET_LENGTH (int) unused
-     * <li>17 ORDINAL_POSITION (int) the column index (1,2,...)
-     * <li>18 IS_NULLABLE (String) "NO" or "YES"
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 COLUMN_NAME (String) column name
+     * </li><li>5 DATA_TYPE (short) data type (see java.sql.Types)
+     * </li><li>6 TYPE_NAME (String) data type name ("INTEGER", "VARCHAR",...)
+     * </li><li>7 COLUMN_SIZE (int) precision
+     * </li><li>8 BUFFER_LENGTH (int) unused
+     * </li><li>9 DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR)
+     * </li><li>10 NUM_PREC_RADIX (int) radix (always 10)
+     * </li><li>11 NULLABLE (int) nullable or not. columnNoNulls or columnNullable
+     * </li><li>12 REMARKS (String) comment (always empty)
+     * </li><li>13 COLUMN_DEF (String) default value
+     * </li><li>14 SQL_DATA_TYPE (int) unused
+     * </li><li>15 SQL_DATETIME_SUB (int) unused
+     * </li><li>16 CHAR_OCTET_LENGTH (int) unused
+     * </li><li>17 ORDINAL_POSITION (int) the column index (1,2,...)
+     * </li><li>18 IS_NULLABLE (String) "NO" or "YES"
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name (uppercase for unquoted names)
@@ -236,19 +235,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 NON_UNIQUE (boolean) 'false' for unique, 'true' for non-unique
-     * <li>5 INDEX_QUALIFIER (String) index catalog
-     * <li>6 INDEX_NAME (String) index name
-     * <li>7 TYPE (short) the index type (always tableIndexOther)
-     * <li>8 ORDINAL_POSITION (short) column index (1, 2, ...)
-     * <li>9 COLUMN_NAME (String) column name
-     * <li>10 ASC_OR_DESC (String) ascending or descending (always 'A')
-     * <li>11 CARDINALITY (int) numbers of unique values
-     * <li>12 PAGES (int) number of pages use (always 0)
-     * <li>13 FILTER_CONDITION (String) filter condition (always empty)
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 NON_UNIQUE (boolean) 'false' for unique, 'true' for non-unique
+     * </li><li>5 INDEX_QUALIFIER (String) index catalog
+     * </li><li>6 INDEX_NAME (String) index name
+     * </li><li>7 TYPE (short) the index type (always tableIndexOther)
+     * </li><li>8 ORDINAL_POSITION (short) column index (1, 2, ...)
+     * </li><li>9 COLUMN_NAME (String) column name
+     * </li><li>10 ASC_OR_DESC (String) ascending or descending (always 'A')
+     * </li><li>11 CARDINALITY (int) numbers of unique values
+     * </li><li>12 PAGES (int) number of pages use (always 0)
+     * </li><li>13 FILTER_CONDITION (String) filter condition (always empty)
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
@@ -311,12 +310,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 COLUMN_NAME (String) column name
-     * <li>5 KEY_SEQ (short) the column index of this column (1,2,...)
-     * <li>6 PK_NAME (String) always 'PRIMARY_KEY'
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 COLUMN_NAME (String) column name
+     * </li><li>5 KEY_SEQ (short) the column index of this column (1,2,...)
+     * </li><li>6 PK_NAME (String) always 'PRIMARY_KEY'
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
@@ -473,15 +472,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 PROCEDURE_CAT (String) catalog
-     * <li>2 PROCEDURE_SCHEM (String) schema
-     * <li>3 PROCEDURE_NAME (String) name
-     * <li>4 NUM_INPUT_PARAMS (int) for future use, always 0
-     * <li>5 NUM_OUTPUT_PARAMS (int) for future use, always 0
-     * <li>6 NUM_RESULT_SETS (int) for future use, always 0
-     * <li>7 REMARKS (String) description
-     * <li>8 PROCEDURE_TYPE (short) if this procedure returns a result
+     * </li><li>2 PROCEDURE_SCHEM (String) schema
+     * </li><li>3 PROCEDURE_NAME (String) name
+     * </li><li>4 NUM_INPUT_PARAMS (int) for future use, always 0
+     * </li><li>5 NUM_OUTPUT_PARAMS (int) for future use, always 0
+     * </li><li>6 NUM_RESULT_SETS (int) for future use, always 0
+     * </li><li>7 REMARKS (String) description
+     * </li><li>8 PROCEDURE_TYPE (short) if this procedure returns a result
      *              (procedureNoResult or procedureReturnsResult)
-     * </ul>
+     * </li></ul>
      *
      * @return an empty result set
      * @throws SQLException if the connection is closed
@@ -524,19 +523,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 PROCEDURE_CAT (String) catalog
-     * <li>2 PROCEDURE_SCHEM (String) schema
-     * <li>3 PROCEDURE_NAME (String) name
-     * <li>4 COLUMN_NAME (String) column name
-     * <li>5 COLUMN_TYPE (short) column type
-     * <li>6 DATA_TYPE (short) sql type
-     * <li>7 TYPE_NAME (String) type name
-     * <li>8 PRECISION (int) precision
-     * <li>9 LENGTH (int) length
-     * <li>10 SCALE (short) scale
-     * <li>11 RADIX (int) always 10
-     * <li>12 NULLABLE (short) nullable
-     * <li>13 REMARKS (String) description
-     * </ul>
+     * </li><li>2 PROCEDURE_SCHEM (String) schema
+     * </li><li>3 PROCEDURE_NAME (String) name
+     * </li><li>4 COLUMN_NAME (String) column name
+     * </li><li>5 COLUMN_TYPE (short) column type
+     * </li><li>6 DATA_TYPE (short) sql type
+     * </li><li>7 TYPE_NAME (String) type name
+     * </li><li>8 PRECISION (int) precision
+     * </li><li>9 LENGTH (int) length
+     * </li><li>10 SCALE (short) scale
+     * </li><li>11 RADIX (int) always 10
+     * </li><li>12 NULLABLE (short) nullable
+     * </li><li>13 REMARKS (String) description
+     * </li></ul>
      *
      * @throws SQLException if the connection is closed
      */
@@ -587,9 +586,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_SCHEM (String) schema name
-     * <li>2 TABLE_CATALOG (String) catalog name
-     * <li>3 IS_DEFAULT (boolean) if this is the default schema
-     * </ul>
+     * </li><li>2 TABLE_CATALOG (String) catalog name
+     * </li><li>3 IS_DEFAULT (boolean) if this is the default schema
+     * </li></ul>
      *
      * @return the schema list
      * @throws SQLException if the connection is closed
@@ -617,7 +616,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) catalog name
-     * </ul>
+     * </li></ul>
      *
      * @return the catalog list
      * @throws SQLException if the connection is closed
@@ -642,7 +641,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_TYPE (String) table type
-     * </ul>
+     * </li></ul>
      *
      * @return the table types
      * @throws SQLException if the connection is closed
@@ -667,14 +666,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 COLUMN_NAME (String) column name
-     * <li>5 GRANTOR (String) grantor of access
-     * <li>6 GRANTEE (String) grantee of access
-     * <li>7 PRIVILEGE (String) SELECT, INSERT, UPDATE, DELETE or REFERENCES (only one per row)
-     * <li>8 IS_GRANTABLE (String) YES means the grantee can grant access to others
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 COLUMN_NAME (String) column name
+     * </li><li>5 GRANTOR (String) grantor of access
+     * </li><li>6 GRANTEE (String) grantee of access
+     * </li><li>7 PRIVILEGE (String) SELECT, INSERT, UPDATE, DELETE or REFERENCES (only one per row)
+     * </li><li>8 IS_GRANTABLE (String) YES means the grantee can grant access to others
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema null (to get all objects) or a schema name (uppercase for unquoted names)
@@ -725,13 +724,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 GRANTOR (String) grantor of access
-     * <li>5 GRANTEE (String) grantee of access
-     * <li>6 PRIVILEGE (String) SELECT, INSERT, UPDATE, DELETE or REFERENCES (only one per row)
-     * <li>7 IS_GRANTABLE (String) YES means the grantee can grant access to others
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 GRANTOR (String) grantor of access
+     * </li><li>5 GRANTEE (String) grantee of access
+     * </li><li>6 PRIVILEGE (String) SELECT, INSERT, UPDATE, DELETE or REFERENCES (only one per row)
+     * </li><li>7 IS_GRANTABLE (String) YES means the grantee can grant access to others
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name (uppercase for unquoted names)
@@ -776,14 +775,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 SCOPE (short) scope of result (always bestRowSession)
-     * <li>2 COLUMN_NAME (String) column name
-     * <li>3 DATA_TYPE (short) SQL data type, see also java.sql.Types
-     * <li>4 TYPE_NAME (String) type name
-     * <li>5 COLUMN_SIZE (int) precision
-     * <li>6 BUFFER_LENGTH (int) unused
-     * <li>7 DECIMAL_DIGITS (short) scale
-     * <li>8 PSEUDO_COLUMN (short) (always bestRowNotPseudo)
-     * </ul>
+     * </li><li>2 COLUMN_NAME (String) column name
+     * </li><li>3 DATA_TYPE (short) SQL data type, see also java.sql.Types
+     * </li><li>4 TYPE_NAME (String) type name
+     * </li><li>5 COLUMN_SIZE (int) precision
+     * </li><li>6 BUFFER_LENGTH (int) unused
+     * </li><li>7 DECIMAL_DIGITS (short) scale
+     * </li><li>8 PSEUDO_COLUMN (short) (always bestRowNotPseudo)
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
@@ -838,14 +837,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 SCOPE (int) not used
-     * <li>2 COLUMN_NAME (String) column name
-     * <li>3 DATA_TYPE (int) SQL data type - see also java.sql.Types
-     * <li>4 TYPE_NAME (String) data type name
-     * <li>5 COLUMN_SIZE (int) precision
-     * <li>6 BUFFER_LENGTH (int) length (bytes)
-     * <li>7 DECIMAL_DIGITS (int) scale
-     * <li>8 PSEUDO_COLUMN (int) is this column a pseudo column
-     * </ul>
+     * </li><li>2 COLUMN_NAME (String) column name
+     * </li><li>3 DATA_TYPE (int) SQL data type - see also java.sql.Types
+     * </li><li>4 TYPE_NAME (String) data type name
+     * </li><li>5 COLUMN_SIZE (int) precision
+     * </li><li>6 BUFFER_LENGTH (int) length (bytes)
+     * </li><li>7 DECIMAL_DIGITS (int) scale
+     * </li><li>8 PSEUDO_COLUMN (int) is this column a pseudo column
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
@@ -886,20 +885,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog
-     * <li>2 PKTABLE_SCHEM (String) primary schema
-     * <li>3 PKTABLE_NAME (String) primary table
-     * <li>4 PKCOLUMN_NAME (String) primary column
-     * <li>5 FKTABLE_CAT (String) foreign catalog
-     * <li>6 FKTABLE_SCHEM (String) foreign schema
-     * <li>7 FKTABLE_NAME (String) foreign table
-     * <li>8 FKCOLUMN_NAME (String) foreign column
-     * <li>9 KEY_SEQ (short) sequence number (1, 2, ...)
-     * <li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
-     * <li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
-     * <li>12 FK_NAME (String) foreign key name
-     * <li>13 PK_NAME (String) primary key name
-     * <li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
-     * </ul>
+     * </li><li>2 PKTABLE_SCHEM (String) primary schema
+     * </li><li>3 PKTABLE_NAME (String) primary table
+     * </li><li>4 PKCOLUMN_NAME (String) primary column
+     * </li><li>5 FKTABLE_CAT (String) foreign catalog
+     * </li><li>6 FKTABLE_SCHEM (String) foreign schema
+     * </li><li>7 FKTABLE_NAME (String) foreign table
+     * </li><li>8 FKCOLUMN_NAME (String) foreign column
+     * </li><li>9 KEY_SEQ (short) sequence number (1, 2, ...)
+     * </li><li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
+     * </li><li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
+     * </li><li>12 FK_NAME (String) foreign key name
+     * </li><li>13 PK_NAME (String) primary key name
+     * </li><li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema the schema name of the foreign table
@@ -951,20 +950,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog
-     * <li>2 PKTABLE_SCHEM (String) primary schema
-     * <li>3 PKTABLE_NAME (String) primary table
-     * <li>4 PKCOLUMN_NAME (String) primary column
-     * <li>5 FKTABLE_CAT (String) foreign catalog
-     * <li>6 FKTABLE_SCHEM (String) foreign schema
-     * <li>7 FKTABLE_NAME (String) foreign table
-     * <li>8 FKCOLUMN_NAME (String) foreign column
-     * <li>9 KEY_SEQ (short) sequence number (1,2,...)
-     * <li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
-     * <li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
-     * <li>12 FK_NAME (String) foreign key name
-     * <li>13 PK_NAME (String) primary key name
-     * <li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
-     * </ul>
+     * </li><li>2 PKTABLE_SCHEM (String) primary schema
+     * </li><li>3 PKTABLE_NAME (String) primary table
+     * </li><li>4 PKCOLUMN_NAME (String) primary column
+     * </li><li>5 FKTABLE_CAT (String) foreign catalog
+     * </li><li>6 FKTABLE_SCHEM (String) foreign schema
+     * </li><li>7 FKTABLE_NAME (String) foreign table
+     * </li><li>8 FKCOLUMN_NAME (String) foreign column
+     * </li><li>9 KEY_SEQ (short) sequence number (1,2,...)
+     * </li><li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
+     * </li><li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
+     * </li><li>12 FK_NAME (String) foreign key name
+     * </li><li>13 PK_NAME (String) primary key name
+     * </li><li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
+     * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema the schema name of the primary table
@@ -1018,20 +1017,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog
-     * <li>2 PKTABLE_SCHEM (String) primary schema
-     * <li>3 PKTABLE_NAME (String) primary table
-     * <li>4 PKCOLUMN_NAME (String) primary column
-     * <li>5 FKTABLE_CAT (String) foreign catalog
-     * <li>6 FKTABLE_SCHEM (String) foreign schema
-     * <li>7 FKTABLE_NAME (String) foreign table
-     * <li>8 FKCOLUMN_NAME (String) foreign column
-     * <li>9 KEY_SEQ (short) sequence number (1,2,...)
-     * <li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
-     * <li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
-     * <li>12 FK_NAME (String) foreign key name
-     * <li>13 PK_NAME (String) primary key name
-     * <li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
-     * </ul>
+     * </li><li>2 PKTABLE_SCHEM (String) primary schema
+     * </li><li>3 PKTABLE_NAME (String) primary table
+     * </li><li>4 PKCOLUMN_NAME (String) primary column
+     * </li><li>5 FKTABLE_CAT (String) foreign catalog
+     * </li><li>6 FKTABLE_SCHEM (String) foreign schema
+     * </li><li>7 FKTABLE_NAME (String) foreign table
+     * </li><li>8 FKCOLUMN_NAME (String) foreign column
+     * </li><li>9 KEY_SEQ (short) sequence number (1,2,...)
+     * </li><li>10 UPDATE_RULE (short) action on update (see DatabaseMetaData.importedKey...)
+     * </li><li>11 DELETE_RULE (short) action on delete (see DatabaseMetaData.importedKey...)
+     * </li><li>12 FK_NAME (String) foreign key name
+     * </li><li>13 PK_NAME (String) primary key name
+     * </li><li>14 DEFERRABILITY (short) deferrable or not (always importedKeyNotDeferrable)
+     * </li></ul>
      *
      * @param primaryCatalog ignored
      * @param primarySchema the schema name of the primary table (must be specified)
@@ -1097,13 +1096,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TYPE_CAT (String) catalog
-     * <li>2 TYPE_SCHEM (String) schema
-     * <li>3 TYPE_NAME (String) type name
-     * <li>4 CLASS_NAME (String) Java class
-     * <li>5 DATA_TYPE (short) SQL Type - see also java.sql.Types
-     * <li>6 REMARKS (String) description
-     * <li>7 BASE_TYPE (short) base type - see also java.sql.Types
-     * </ul>
+     * </li><li>2 TYPE_SCHEM (String) schema
+     * </li><li>3 TYPE_NAME (String) type name
+     * </li><li>4 CLASS_NAME (String) Java class
+     * </li><li>5 DATA_TYPE (short) SQL Type - see also java.sql.Types
+     * </li><li>6 REMARKS (String) description
+     * </li><li>7 BASE_TYPE (short) base type - see also java.sql.Types
+     * </li></ul>
      *
      * @param catalog ignored
      * @param schemaPattern ignored
@@ -1147,24 +1146,24 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TYPE_NAME (String) type name
-     * <li>2 DATA_TYPE (short) SQL data type - see also java.sql.Types
-     * <li>3 PRECISION (int) maximum precision
-     * <li>4 LITERAL_PREFIX (String) prefix used to quote a literal
-     * <li>5 LITERAL_SUFFIX (String) suffix used to quote a literal
-     * <li>6 CREATE_PARAMS (String) parameters used (may be null)
-     * <li>7 NULLABLE (short) typeNoNulls (NULL not allowed) or typeNullable
-     * <li>8 CASE_SENSITIVE (boolean) case sensitive
-     * <li>9 SEARCHABLE (short) typeSearchable
-     * <li>10 UNSIGNED_ATTRIBUTE (boolean) unsigned
-     * <li>11 FIXED_PREC_SCALE (boolean) fixed precision
-     * <li>12 AUTO_INCREMENT (boolean) auto increment
-     * <li>13 LOCAL_TYPE_NAME (String) localized version of the data type
-     * <li>14 MINIMUM_SCALE (short) minimum scale
-     * <li>15 MAXIMUM_SCALE (short) maximum scale
-     * <li>16 SQL_DATA_TYPE (int) unused
-     * <li>17 SQL_DATETIME_SUB (int) unused
-     * <li>18 NUM_PREC_RADIX (int) 2 for binary, 10 for decimal
-     * </ul>
+     * </li><li>2 DATA_TYPE (short) SQL data type - see also java.sql.Types
+     * </li><li>3 PRECISION (int) maximum precision
+     * </li><li>4 LITERAL_PREFIX (String) prefix used to quote a literal
+     * </li><li>5 LITERAL_SUFFIX (String) suffix used to quote a literal
+     * </li><li>6 CREATE_PARAMS (String) parameters used (may be null)
+     * </li><li>7 NULLABLE (short) typeNoNulls (NULL not allowed) or typeNullable
+     * </li><li>8 CASE_SENSITIVE (boolean) case sensitive
+     * </li><li>9 SEARCHABLE (short) typeSearchable
+     * </li><li>10 UNSIGNED_ATTRIBUTE (boolean) unsigned
+     * </li><li>11 FIXED_PREC_SCALE (boolean) fixed precision
+     * </li><li>12 AUTO_INCREMENT (boolean) auto increment
+     * </li><li>13 LOCAL_TYPE_NAME (String) localized version of the data type
+     * </li><li>14 MINIMUM_SCALE (short) minimum scale
+     * </li><li>15 MAXIMUM_SCALE (short) maximum scale
+     * </li><li>16 SQL_DATA_TYPE (int) unused
+     * </li><li>17 SQL_DATETIME_SUB (int) unused
+     * </li><li>18 NUM_PREC_RADIX (int) 2 for binary, 10 for decimal
+     * </li></ul>
      *
      * @return the list of data types
      * @throws SQLException if the connection is closed
@@ -2426,10 +2425,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog
-     * <li>2 TABLE_SCHEM (String) table schema
-     * <li>3 TABLE_NAME (String) table name
-     * <li>4 SUPERTABLE_NAME (String) the name of the super table
-     * </ul>
+     * </li><li>2 TABLE_SCHEM (String) table schema
+     * </li><li>3 TABLE_NAME (String) table name
+     * </li><li>4 SUPERTABLE_NAME (String) the name of the super table
+     * </li></ul>
      *
      * @return an empty result set
      */

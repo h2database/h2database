@@ -222,17 +222,16 @@ public class Constants {
     public static final int CACHE_MIN_RECORDS = 16;
     
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
-
-    
-    public static boolean CHECK = getBooleanSetting("h2.check", true);
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
 
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
+    public static boolean CHECK = getBooleanSetting("h2.check", true);
     public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
     public static boolean RUN_FINALIZE = getBooleanSetting("h2.runFinalize", true);
+    public static String SCRIPT_DIRECTORY = getStringSetting("h2.scriptDirectory", "");
 
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
@@ -250,7 +249,6 @@ public class Constants {
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
-    public static String SCRIPT_DIRECTORY = getStringSetting("h2.scriptDirectory", "");
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

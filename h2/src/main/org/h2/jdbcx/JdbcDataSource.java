@@ -4,6 +4,7 @@
  */
 package org.h2.jdbcx;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.sql.Connection;
@@ -44,7 +45,7 @@ Serializable, Referenceable  {
     
     private static final long serialVersionUID = 1288136338451857771L;
     
-    private transient JdbcDataSourceFactory factory = new JdbcDataSourceFactory();
+    private transient JdbcDataSourceFactory factory;
     private transient PrintWriter logWriter;
     private int timeout;
     private String user = "";
@@ -52,8 +53,18 @@ Serializable, Referenceable  {
     private String url = "";
     
     public JdbcDataSource() {
+        initFactory();
         int id = getNextId(TraceObject.DATA_SOURCE);
         setTrace(factory.getTrace(), TraceObject.DATA_SOURCE, id);
+    }
+    
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        initFactory();
+        in.defaultReadObject();
+    }
+    
+    private void initFactory() {
+        factory = new JdbcDataSourceFactory();
     }
 
     public int getLoginTimeout() throws SQLException {

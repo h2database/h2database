@@ -45,8 +45,8 @@ function editRow(row, session, write, undo) {
     for(i=1; i<table.rows.length; i++) {
         var cell = table.rows[i].cells[0];
         if(i == y) {
-            var edit = '<img width=16 height=16 src="ico_ok.gif" onclick="javascript:editing.op.value=\'1\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+write+'" title="'+write+'" border="1">';
-            var undo = '<img width=16 height=16 src="ico_undo.gif" onclick="javascript:editing.op.value=\'3\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+undo+'" title="'+undo+'" border="1">';
+            var edit = '<img width=16 height=16 src="ico_ok.gif" onclick="javascript:editing.op.value=\'1\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+write+'" title="'+write+'" border="1"/>';
+            var undo = '<img width=16 height=16 src="ico_undo.gif" onclick="javascript:editing.op.value=\'3\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+undo+'" title="'+undo+'" border="1"/>';
             cell.innerHTML = edit + undo;
         } else {
             cell.innerHTML = '';
@@ -56,7 +56,7 @@ function editRow(row, session, write, undo) {
     for(i=1; i<cells.length; i++) {
         var cell = cells[i];
         var text = getInnerText(cell);
-        cell.innerHTML = '<input type="text" name="r'+row+'c' + i + '" value="'+text+'" size="' + (text.length+5) + '">';
+        cell.innerHTML = '<input type="text" name="r'+row+'c' + i + '" value="'+text+'" size="' + (text.length+5) + '"/>';
     }
 }
 
@@ -126,11 +126,11 @@ function resortTable(link) {
 
     var arrow;
     if (span.getAttribute("sortDir") == 'down') {
-        arrow = '&nbsp;<img src="sort_up.gif" with=7 height=10 border=0>';
+        arrow = '&nbsp;<img src="sort_up.gif" with=7 height=10 border=0/>';
         newRows.reverse();
         span.setAttribute('sortDir','up');
     } else {
-        arrow = '&nbsp;<img src="sort_down.gif" with=7 height=10 border=0>';
+        arrow = '&nbsp;<img src="sort_down.gif" with=7 height=10 border=0/>';
         span.setAttribute('sortDir','down');
     }
 

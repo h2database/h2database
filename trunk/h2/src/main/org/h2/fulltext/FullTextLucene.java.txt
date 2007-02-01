@@ -165,10 +165,10 @@ public class FullTextLucene implements Trigger {
      * database:
      * <ul>
      * <li>FTL_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-     * <li>FTL_SEARCH(queryString, limitInt, offsetInt): result set
-     * <li>FTL_REINDEX()
-     * <li>FTL_DROP_ALL()
-     * </ul>
+     * </li><li>FTL_SEARCH(queryString, limitInt, offsetInt): result set
+     * </li><li>FTL_REINDEX()
+     * </li><li>FTL_DROP_ALL()
+     * </li></ul>
      * It also adds a schema FTL to the database where bookkeeping information is stored. This function may be
      * called from a Java application, or by using the SQL statements:
      *

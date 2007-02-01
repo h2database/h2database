@@ -4,9 +4,9 @@ Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http:/
 Initial Developer: H2 Group
 -->
 <html><head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>${text.a.title}</title>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 
     <script type="text/javascript">
         <!--
@@ -27,20 +27,20 @@ Initial Developer: H2 Group
             <tr><td  class="login" colspan="2"></td></tr>
             <tr class="login">
                 <td class="login">${text.a.password}:</td>
-                <td class="login"><input type="password" name="password" value="" style="width:200px;"></td>
+                <td class="login"><input type="password" name="password" value="" style="width:200px;" /></td>
             </tr>
             <tr class="login">
                 <td class="login"></td>
                 <td class="login">
-                    <input type="submit" class="button" value="${text.adminLoginOk}">
+                    <input type="submit" class="button" value="${text.adminLoginOk}" />
                     &nbsp;
-                    <input type="button" class="button" value="${text.adminLoginCancel}" onclick="javascript:document.adminLogin.action='/index.do?jsessionid=${sessionId}';submit()">
-                    <br>
-                    <br>
+                    <input type="button" class="button" value="${text.adminLoginCancel}" onclick="javascript:document.adminLogin.action='/index.do?jsessionid=${sessionId}';submit()" />
+                    <br />
+                    <br />
                 </td>
             </tr>
         </table>
-        <br>
+        <br />
         <p class="error">${error}</p>
     </form>
     <script type="text/javascript">

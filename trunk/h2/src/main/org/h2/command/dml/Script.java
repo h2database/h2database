@@ -204,39 +204,43 @@ public class Script extends ScriptBase {
                         Index index = plan.getIndex();
                         Cursor cursor = index.find(session, null, null);
                         Column[] columns = table.getColumns();
-                        String ins = "INSERT INTO " + table.getSQL() + "(";
+                        StringBuffer buff = new StringBuffer();
+                        buff.append("INSERT INTO ");
+                        buff.append(table.getSQL());
+                        buff.append('(');
                         for(int j=0; j<columns.length; j++) {
                             if(j>0) {
-                                ins += ", ";
+                                buff.append(", ");
                             }
-                            ins += Parser.quoteIdentifier(columns[j].getName());
+                            buff.append(Parser.quoteIdentifier(columns[j].getName()));
                         }
-                        ins += ") VALUES(";
+                        buff.append(") VALUES(");
+                        String ins = buff.toString();
                         while(cursor.next()) {
                             Row row = cursor.get();
-                            String s = ins;
+                            buff = new StringBuffer(ins);
                             for(int j=0; j<row.getColumnCount(); j++) {
                                 if(j>0) {
-                                    s += ", ";
+                                    buff.append(", ");
                                 }
                                 Value v = row.getValue(j);
                                 if(v.getPrecision() > lobBlockSize) {
                                     int id;
                                     if(v.getType() == Value.CLOB) {
                                         id = writeLobStream((ValueLob)v);
-                                        s += "SYSTEM_COMBINE_CLOB("+id+")";
+                                        buff.append("SYSTEM_COMBINE_CLOB("+id+")");
                                     } else if(v.getType() == Value.BLOB) {
                                         id = writeLobStream((ValueLob)v);
-                                        s += "SYSTEM_COMBINE_BLOB("+id+")";
+                                        buff.append("SYSTEM_COMBINE_BLOB("+id+")");
                                     } else {
-                                        s += v.getSQL();
+                                        buff.append(v.getSQL());
                                     }
                                 } else {
-                                    s += v.getSQL();
+                                    buff.append(v.getSQL());
                                 }
                             }
-                            s += ")";
-                            add(s, true);
+                            buff.append(")");
+                            add(buff.toString(), true);
                         }
                     }
                 }

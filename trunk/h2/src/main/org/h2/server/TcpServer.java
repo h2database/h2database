@@ -24,7 +24,6 @@ import org.h2.util.NetUtils;
 public class TcpServer implements Service {
     
     // TODO new feature: implement automatic client / server mode if 'socket' file locking is used
-    // TODO make the kernel multi-threaded
     // TODO better exception message if the port is already in use, maybe automatically use the next free port?
     
     public static final int DEFAULT_PORT = 9092;

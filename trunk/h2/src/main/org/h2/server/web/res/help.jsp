@@ -5,9 +5,9 @@ Initial Developer: H2 Group
 -->
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>${text.a.title}</title>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 </head>
 <body class="result">
 
@@ -25,25 +25,25 @@ function set(s) {
 <table>
 <tr><th>${text.helpIcon}</th><th>${text.helpAction}</th></tr>
 <tr>
-     <td style="padding:0px"><img src="icon_help.gif" alt="${text.a.help}"></td>
+     <td style="padding:0px"><img src="icon_help.gif" alt="${text.a.help}"/></td>
     <td style="vertical-align: middle;">
         ${text.helpDisplayThis}
     </td>
 </tr>
 <tr>
-     <td style="padding:0px"><img src="icon_history.gif" alt="${text.toolbar.history}"></td>
+     <td style="padding:0px"><img src="icon_history.gif" alt="${text.toolbar.history}"/></td>
     <td style="vertical-align: middle;">
         ${text.helpCommandHistory}
     </td>
 </tr>
 <tr>
-     <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.run}"></td>
+     <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.run}"/></td>
     <td style="vertical-align: middle;">
         ${text.helpExecuteCurrent}
     </td>
 </tr>
 <tr>
-     <td style="padding:0px"><img src="icon_disconnect.gif" alt="${text.toolbar.disconnect}"></td>
+     <td style="padding:0px"><img src="icon_disconnect.gif" alt="${text.toolbar.disconnect}"/></td>
     <td style="vertical-align: middle;">
         ${text.helpDisconnect}
     </td>
@@ -52,22 +52,22 @@ function set(s) {
 <h3>${text.helpSampleSQL}</h3>
 <table><tr><th>${text.helpOperations}</th><th>${text.helpStatements}</th></tr>
 <tr><td><a href="javascript:set('DROP TABLE IF EXISTS TEST;\rCREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));\rINSERT INTO TEST VALUES(1, \'Hello\');\rINSERT INTO TEST VALUES(2, \'World\');\rSELECT * FROM TEST ORDER BY ID;\rUPDATE TEST SET NAME=\'Hi\' WHERE ID=1;\rDELETE FROM TEST WHERE ID=2;');"> 
-    ${text.helpDropTable}<br>
-    ${text.helpCreateTable}<br>
-    &nbsp;&nbsp;${text.helpWithColumnsIdName}<br>
-    ${text.helpAddRow}<br>
-    ${text.helpAddAnotherRow}<br>
-    ${text.helpQuery}<br>
-    ${text.helpUpdate}<br>
+    ${text.helpDropTable}<br />
+    ${text.helpCreateTable}<br />
+    &nbsp;&nbsp;${text.helpWithColumnsIdName}<br />
+    ${text.helpAddRow}<br />
+    ${text.helpAddAnotherRow}<br />
+    ${text.helpQuery}<br />
+    ${text.helpUpdate}<br />
     ${text.helpDeleteRow}
 </a></td><td>
-    DROP TABLE IF EXISTS TEST;<br>
-    CREATE TABLE TEST(ID INT PRIMARY KEY,<br>
-    &nbsp;&nbsp; NAME VARCHAR(255));<br>
-    INSERT INTO TEST VALUES(1, 'Hello');<br>
-    INSERT INTO TEST VALUES(2, 'World');<br>
-    SELECT * FROM TEST ORDER BY ID;<br>
-    UPDATE TEST SET NAME='Hi' WHERE ID=1;<br>
+    DROP TABLE IF EXISTS TEST;<br />
+    CREATE TABLE TEST(ID INT PRIMARY KEY,<br />
+    &nbsp;&nbsp; NAME VARCHAR(255));<br />
+    INSERT INTO TEST VALUES(1, 'Hello');<br />
+    INSERT INTO TEST VALUES(2, 'World');<br />
+    SELECT * FROM TEST ORDER BY ID;<br />
+    UPDATE TEST SET NAME='Hi' WHERE ID=1;<br />
     DELETE FROM TEST WHERE ID=2;
 </td></tr>
 </table>

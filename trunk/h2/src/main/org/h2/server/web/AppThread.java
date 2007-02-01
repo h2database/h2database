@@ -451,7 +451,7 @@ public class AppThread extends WebServerThread {
                         }
                     }
                     rs.close();
-                    rs = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
                     for(int i=0; rs.next(); i++) {
                         if(i==0) {
                             buff.append("setNode("+treeIndex+", 0, 1, 'users', '${text.tree.users}', null);\n");
@@ -475,8 +475,7 @@ public class AppThread extends WebServerThread {
             buff.append("setNode("+treeIndex+", 0, 0, 'info', '" + PageParser.escapeJavaScript(version)+ "', null);\n");
             buff.append("refreshQueryTables();");
             session.put("tree", buff.toString());
-        } catch(Exception e) {
-            // TODO log error
+        } catch(SQLException e) {
             session.put("tree", "");
             session.put("error", getStackTrace(0, e));
         }
@@ -490,7 +489,7 @@ public class AppThread extends WebServerThread {
         s = PageParser.escapeHtml(s);
         s = StringUtils.replaceAll(s, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
         String message = PageParser.escapeHtml(e.getMessage());
-        s = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st"+id+"').style;x.display=x.display==''?'none':'';\">" + message + "</a><span style=\"display: none;\" id=\"st"+id+"\"><br>"+ s + "</span>";
+        s = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st"+id+"').style;x.display=x.display==''?'none':'';\">" + message + "</a><span style=\"display: none;\" id=\"st"+id+"\"><br />"+ s + "</span>";
         s = formatAsError(s);
         return s;
     }
@@ -524,7 +523,7 @@ public class AppThread extends WebServerThread {
 
     private String getLoginError(Exception e) {
         if(e instanceof ClassNotFoundException) {
-            return "${text.login.driverNotFound}<br>" + getStackTrace(0, e);
+            return "${text.login.driverNotFound}<br />" + getStackTrace(0, e);
         } else {
             return getStackTrace(0, e);
         }
@@ -587,10 +586,10 @@ public class AppThread extends WebServerThread {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
                 }
-                result = "Transaction Isolation: " + conn.getTransactionIsolation() + "<br>";
-                result += Connection.TRANSACTION_READ_UNCOMMITTED + ": READ_UNCOMMITTED<br>";
-                result += Connection.TRANSACTION_READ_COMMITTED + ": READ_COMMITTED<br>";
-                result += Connection.TRANSACTION_REPEATABLE_READ + ": REPEATABLE_READ<br>";
+                result = "Transaction Isolation: " + conn.getTransactionIsolation() + "<br />";
+                result += Connection.TRANSACTION_READ_UNCOMMITTED + ": READ_UNCOMMITTED<br />";
+                result += Connection.TRANSACTION_READ_COMMITTED + ": READ_COMMITTED<br />";
+                result += Connection.TRANSACTION_REPEATABLE_READ + ": REPEATABLE_READ<br />";
                 result += Connection.TRANSACTION_SERIALIZABLE + ": SERIALIZABLE";
             } else if(sql.startsWith("@SET MAXROWS ")) {
                 int maxrows = Integer.parseInt(sql.substring("@SET MAXROWS ".length()));
@@ -611,10 +610,10 @@ public class AppThread extends WebServerThread {
                     String s = (String) list.get(i);
                     if(!s.startsWith("@")) {
                         buff.append(PageParser.escapeHtml(s+";"));
-                        buff.append("<br>");
+                        buff.append("<br />");
                     }
                     buff.append(getResult(conn, i+1, s, list.size()==1));
-                    buff.append("<br>");
+                    buff.append("<br />");
                 }
                 result = buff.toString();
             }
@@ -654,7 +653,7 @@ public class AppThread extends WebServerThread {
                 // cancel
             }
         } catch(Throwable e) {
-            result = "<br>"+getStackTrace(0, e);
+            result = "<br />"+getStackTrace(0, e);
             error = formatAsError(e.getMessage());
         }
         String sql = "@EDIT " + (String) session.get("resultSetSQL");
@@ -954,7 +953,7 @@ public class AppThread extends WebServerThread {
                     if(!isResultSet) {
                         buff.append("${text.result.updateCount}: "+stat.getUpdateCount());
                         time = System.currentTimeMillis() - time;
-                        buff.append("<br>(");
+                        buff.append("<br />(");
                         buff.append(time);
                         buff.append(" ms)");
                         stat.close();
@@ -1078,7 +1077,7 @@ public class AppThread extends WebServerThread {
             buff.append("<tr><td>");
             buff.append("<a href=\"getHistory.do?id=");
             buff.append(i);
-            buff.append("&jsessionid=${sessionId}\" target=\"h2query\" ><img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"></a>");
+            buff.append("&jsessionid=${sessionId}\" target=\"h2query\" ><img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/></a>");
             buff.append("</td><td>");
             buff.append(PageParser.escapeHtml(sql));
             buff.append("</td></tr>");
@@ -1095,8 +1094,8 @@ public class AppThread extends WebServerThread {
         if(edit) {
             buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" "
                     + "action=\"/editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">");
-            buff.append("<input type=\"hidden\" name=\"op\" value=\"1\">");
-            buff.append("<input type=\"hidden\" name=\"row\" value=\"\">");
+            buff.append("<input type=\"hidden\" name=\"op\" value=\"1\" />");
+            buff.append("<input type=\"hidden\" name=\"row\" value=\"\" />");
             buff.append("<table cellspacing=0 cellpadding=0 id=\"editTable\">");
         } else {
             buff.append("<table cellspacing=0 cellpadding=0>");
@@ -1157,10 +1156,10 @@ public class AppThread extends WebServerThread {
                     buff.append("<img onclick=\"javascript:editRow(");
                     buff.append(rs.getRow());
                     buff.append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'");
-                    buff.append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\">");
+                    buff.append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>");
                     buff.append("<a href=\"editResult.do?op=2&row=");
                     buff.append(rs.getRow());
-                    buff.append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\"></a>");
+                    buff.append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>");
                     buff.append("</td>");
                 }
                 for(int i=0; i<columns; i++) {
@@ -1184,7 +1183,7 @@ public class AppThread extends WebServerThread {
         if(edit) {
             buff.append("<tr><td>");
             buff.append("<img onclick=\"javascript:editRow(-1, '${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'");
-            buff.append(")\" width=16 height=16 src=\"ico_add.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.add}\" title=\"${text.resultEdit.add}\" border=\"1\">");
+            buff.append(")\" width=16 height=16 src=\"ico_add.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.add}\" title=\"${text.resultEdit.add}\" border=\"1\"/>");
             buff.append("</td>");
             for(int i=0; i<columns; i++) {
                 buff.append("<td></td>");
@@ -1209,9 +1208,9 @@ public class AppThread extends WebServerThread {
         buff.append(time);
         buff.append(" ms)");
         if(!edit && isUpdatable && allowEdit) {
-            buff.append("<br><br><form name=\"editResult\" method=\"post\" action=\"/query.do?jsessionid=${sessionId}\" target=\"h2result\">");
-            buff.append("<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\">");
-            buff.append("<input type=\"hidden\" name=\"sql\" value=\"@EDIT " + PageParser.escapeHtml(sql) +"\">");
+            buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"/query.do?jsessionid=${sessionId}\" target=\"h2result\">");
+            buff.append("<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />");
+            buff.append("<input type=\"hidden\" name=\"sql\" value=\"@EDIT " + PageParser.escapeHtml(sql) +"\" />");
             buff.append("</form>");
         }
         return buff.toString();

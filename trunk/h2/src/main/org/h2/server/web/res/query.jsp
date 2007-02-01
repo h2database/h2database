@@ -5,9 +5,9 @@ Initial Developer: H2 Group
 -->
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
         <title>${text.a.title}</title>
-        <link rel="stylesheet" type="text/css" href="stylesheet.css">
+        <link rel="stylesheet" type="text/css" href="stylesheet.css" />
         <script type="text/javascript">
 //<!--
 
@@ -424,8 +424,8 @@ function processAsyncResponse() {
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
         <form name="h2query" method="post" action="/query.do?jsessionid=${sessionId}" target="h2result">
-            <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;">
-            <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;">
+            <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;" />
+            <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
             ${text.toolbar.sqlStatement}:
             <div style="display:none">
                 <iframe id="h2iframeTransport" src="" onload="showList(this.contentWindow.document.body.innerHTML);"></iframe>

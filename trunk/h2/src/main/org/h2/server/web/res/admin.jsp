@@ -4,9 +4,9 @@ Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http:/
 Initial Developer: H2 Group
 -->
 <html><head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>${text.a.title}</title>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 
     <script type="text/javascript">
         <!--
@@ -24,62 +24,62 @@ Initial Developer: H2 Group
     <p>
         <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a> 
     </p>
-    <hr>
+    <hr />
     <form name="admin" method="post" action="/adminSave.do?jsessionid=${sessionId}">
     <h3>
         ${text.adminAllow}
     </h3>
     <p>
         <c:if test="allowOthers=='false'">
-            <input type="radio" name="allowOthers" value="false" checked="checked">
+            <input type="radio" name="allowOthers" value="false" checked="checked" />
         </c:if>
         <c:if test="allowOthers=='true'">
-            <input type="radio" name="allowOthers" value="false">
+            <input type="radio" name="allowOthers" value="false" />
         </c:if>
-        ${text.adminLocal}<br>
+        ${text.adminLocal}<br />
         
         <c:if test="allowOthers=='true'">
-            <input type="radio" name="allowOthers" value="true" checked="checked">
+            <input type="radio" name="allowOthers" value="true" checked="checked" />
         </c:if>
         <c:if test="allowOthers=='false'">
-            <input type="radio" name="allowOthers" value="true">
+            <input type="radio" name="allowOthers" value="true" />
         </c:if>
-        ${text.adminOthers}<br>
+        ${text.adminOthers}<br />
     </p>
     <h3>
         ${text.adminConnection}
     </h3>
     <p>
         <c:if test="ssl=='false'">
-            <input type="radio" name="ssl" value="false" checked="checked">
+            <input type="radio" name="ssl" value="false" checked="checked" />
         </c:if>
         <c:if test="ssl=='true'">
-            <input type="radio" name="ssl" value="false">
+            <input type="radio" name="ssl" value="false" />
         </c:if>
-        ${text.adminHttp}<br>
+        ${text.adminHttp}<br />
 
         <c:if test="ssl=='true'">
-            <input type="radio" name="ssl" value="true" checked="checked">
+            <input type="radio" name="ssl" value="true" checked="checked" />
         </c:if>
         <c:if test="ssl=='false'">
-            <input type="radio" name="ssl" value="true">
+            <input type="radio" name="ssl" value="true" />
         </c:if>
-        ${text.adminHttps}<br>
+        ${text.adminHttps}<br />
     </p>
     <h3>
         Port number
     </h3>
     <p>
-        ${text.adminPort}: <input type="text" name="port" value="${port}">
+        ${text.adminPort}: <input type="text" name="port" value="${port}" />
     </p>
-    <hr>
+    <hr />
     <p>
-        <input type="submit" class="button" value="${text.adminSave}">
+        <input type="submit" class="button" value="${text.adminSave}" />
     </p>
     <p>
         ${text.adminRestart}
     </p>
-    <hr>
+    <hr />
     <h3>
         ${text.adminSessions}
     </h3>

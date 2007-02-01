@@ -452,8 +452,10 @@ public class Parser {
         int type = TransactionCommand.SHUTDOWN;
         if(readIf("IMMEDIATELY")) {
             type = TransactionCommand.SHUTDOWN_IMMEDIATELY;
-        } else if(readIf("COMPACT")) {
-        } else if(readIf("SCRIPT")) {
+        } else {
+            if(!readIf("COMPACT")) {
+                readIf("SCRIPT");
+            }
         }
         TransactionCommand command = new TransactionCommand(session, type);
         return command;

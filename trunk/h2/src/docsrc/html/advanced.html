@@ -3,50 +3,50 @@
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Advanced Topics
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Advanced Topics</h1>
 <a href="#result_sets">
-    Result Sets</a><br>
+    Result Sets</a><br />
 <a href="#large_objects">
-    Large Objects</a><br>
+    Large Objects</a><br />
 <a href="#linked_tables">
-    Linked Tables</a><br>
+    Linked Tables</a><br />
 <a href="#transaction_isolation">
-    Transaction Isolation</a><br>
+    Transaction Isolation</a><br />
 <a href="#clustering">
-    Clustering / High Availability</a><br>
+    Clustering / High Availability</a><br />
 <a href="#two_phase_commit">
-    Two Phase Commit</a><br>
+    Two Phase Commit</a><br />
 <a href="#compatibility">
-    Compatibility</a><br>
+    Compatibility</a><br />
 <a href="#windows_service">
-    Run as Windows Service</a><br>
+    Run as Windows Service</a><br />
 <a href="#odbc_driver">
-    ODBC Driver</a><br>
+    ODBC Driver</a><br />
 <a href="#acid">
-    ACID</a><br>
+    ACID</a><br />
 <a href="#using_recover_tool">
-    Using the Recover Tool</a><br>
+    Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
-    File Locking Protocols</a><br>
+    File Locking Protocols</a><br />
 <a href="#sql_injection">
-    Protection against SQL Injection</a><br>
+    Protection against SQL Injection</a><br />
 <a href="#security_protocols">
-    Security Protocols</a><br>
+    Security Protocols</a><br />
 <a href="#uuid">
-    Universally Unique Identifiers (UUID)</a><br>
+    Universally Unique Identifiers (UUID)</a><br />
 <a href="#system_properties">
-    Settings Read from System Properties</a><br>
+    Settings Read from System Properties</a><br />
 <a href="#glossary_links">
-    Glossary and Links</a><br>
+    Glossary and Links</a><br />
 
-<br><a name="result_sets"></a>
+<br /><a name="result_sets"></a>
 <h2>Result Sets</h2>
 
 <h3>Limiting the Number of Rows</h3>
@@ -62,7 +62,7 @@ For result set larger than 1000 rows, the result is buffered to disk. If ORDER B
 the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
 quick sort, then written to disk; when reading the data, the blocks are merged together.
 
-<br><a name="large_objects"></a>
+<br /><a name="large_objects"></a>
 <h2>Large Objects</h2>
 
 <h3>Storing and Reading Large Objects</h3>
@@ -75,7 +75,7 @@ and to read a CLOB, use ResultSet.getCharacterStream.
 If the client/server mode is used, the BLOB and CLOB data is fully read into memory when
 accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
 
-<br><a name="linked_tables"></a>
+<br /><a name="linked_tables"></a>
 <h2>Linked Tables</h2>
 
 This database supports linked tables, which means tables that don't exist in the current database but
@@ -88,22 +88,22 @@ There is a restriction when inserting data to this table: When inserting or upda
 NULL and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
 
-<br><a name="transaction_isolation"></a>
+<br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>
 This database supports the transaction isolation level 'serializable', in which dirty reads, non-repeatable
 reads and phantom reads are prohibited.
 
 <ul>
-<li><b>Dirty Reads</b><br>
+<li><b>Dirty Reads</b><br />
     Means a connection can read uncommitted changes made by another connection.
-<li><b>Non-Repeatable Reads</b><br>
+</li><li><b>Non-Repeatable Reads</b><br />
     A connection reads a row, another connection changes a row and commits,
     and the first connection re-reads the same row and gets the new result.
-<li><b>Phantom Reads</b><br>
+</li><li><b>Phantom Reads</b><br />
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
     re-reads using the same condition and gets the new row.
-</ul>
+</li></ul>
 
 <h3>Table Level Locking</h3>
 The database allows multiple concurrent connections to the same database.
@@ -127,7 +127,7 @@ the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
 
-<br><a name="clustering"></a>
+<br /><a name="clustering"></a>
 <h2>Clustering / High Availability</h2>
 <p>
 This database supports a simple clustering / high availability mechanism. The architecture is:
@@ -145,11 +145,11 @@ To initialize the cluster, use the following steps:
 </p>
 <ul>
 <li>Create a database
-<li>Use the CreateCluster tool to copy the database to another location and initialize the clustering.
+</li><li>Use the CreateCluster tool to copy the database to another location and initialize the clustering.
     Afterwards, you have two databases containing the same data.
-<li>Start two servers (one for each copy of the database)
-<li>You are now ready to connect to the databases with the client application(s)
-</ul>
+</li><li>Start two servers (one for each copy of the database)
+</li><li>You are now ready to connect to the databases with the client application(s)
+</li></ul>
 
 <h3>Using the CreateCluster Tool</h3>
 To understand how clustering works, please try out the following example.
@@ -158,9 +158,9 @@ databases will be on different servers.
 <ul>
 <li>Create two directories: server1 and server2.
     Each directory will simulate a directory on a computer.
-<li>Start a TCP server pointing to the first directory.
+</li><li>Start a TCP server pointing to the first directory.
     You can do this using the command line:
-<pre>
+</li><pre>
 java org.h2.tools.Server
     -tcp -tcpPort 9101
     -baseDir server1
@@ -168,7 +168,7 @@ java org.h2.tools.Server
 <li>Start a second TCP server pointing to the second directory.
     This will simulate a server running on a second (redundant) computer.
     You can do this using the command line:
-<pre>
+</li><pre>
 java org.h2.tools.Server
     -tcp -tcpPort 9102
     -baseDir server2
@@ -176,7 +176,7 @@ java org.h2.tools.Server
 <li>Use the CreateCluster tool to initialize clustering.
     This will automatically create a new, empty database if it does not exist.
     Run the tool on the command line:
-<pre>
+</li><pre>
 java org.h2.tools.CreateCluster
   -urlSource jdbc:h2:tcp://localhost:9101/test
   -urlTarget jdbc:h2:tcp://localhost:9102/test
@@ -186,13 +186,13 @@ java org.h2.tools.CreateCluster
 <li>You can now connect to the databases using
 an application or the H2 Console using the JDBC URL
 jdbc:h2:tcp://localhost:9101,localhost:9102/test
-<li>If you stop a server (by killing the process),
+</li><li>If you stop a server (by killing the process),
 you will notice that the other machine continues to work,
 and therefore the database is still accessible.
-<li>To restore the cluster, you first need to delete the
+</li><li>To restore the cluster, you first need to delete the
 database that failed, then restart the server that was stopped,
 and re-run the CreateCluster tool.
-</ul>
+</li></ul>
 
 <h3>Clustering Algorithm and Limitations</h3>
 Read-only queries are only executed against the first cluster node, but all other statements are
@@ -203,26 +203,26 @@ CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should no
 directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
 
-<br><a name="two_phase_commit"></a>
+<br /><a name="two_phase_commit"></a>
 <h2>Two Phase Commit</h2>
 The two phase commit protocol is supported. 2-phase-commit works as follows:
 <ul>
 <li>Autocommit needs to be switched off
-<li>A transaction is started, for example by inserting a row
-<li>The transaction is marked 'prepared' by executing the SQL statement
-    <code>PREPARE COMMIT transactionName</code>
+</li><li>A transaction is started, for example by inserting a row
+</li><li>The transaction is marked 'prepared' by executing the SQL statement
+    </li><code>PREPARE COMMIT transactionName</code>
 <li>The transaction can now be committed or rolled back
-<li>If a problem occurs before the transaction was successfully committed or rolled back
+</li><li>If a problem occurs before the transaction was successfully committed or rolled back
     (for example because a network problem occurred), the transaction is in the state 'in-doubt'
-<li>When re-connecting to the database, the in-doubt transactions can be listed
-    with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+</li><li>When re-connecting to the database, the in-doubt transactions can be listed
+    with </li><code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
 <li>Each transaction in this list must now be committed or rolled back by executing
-    <code>COMMIT TRANSACTION transactionName</code> or
+    </li><code>COMMIT TRANSACTION transactionName</code> or
     <code>ROLLBACK TRANSACTION transactionName</code>
 <li>The database needs to be closed and re-opened to apply the changes
-</ul>
+</li></ul>
 
-<br><a name="compatibility"></a>
+<br /><a name="compatibility"></a>
 <h2>Compatibility</h2>
 
 This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL.
@@ -246,7 +246,7 @@ Certain words of this list are keywords because they are functions that can be u
 for example CURRENT_TIMESTAMP.
 </p>
 
-<br><a name="windows_service"></a>
+<br /><a name="windows_service"></a>
 <h2>Run as Windows Service</h2>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service. 
 There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
@@ -278,7 +278,7 @@ Please note that the batch file does not print an error message if the service i
 To uninstall the service, double click on 5_uninstall_service.bat.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 
-<br><a name="odbc_driver"></a>
+<br /><a name="odbc_driver"></a>
 <h2>ODBC Driver</h2>
 The ODBC driver of this database is currently not very stable and only tested superficially
 with a few applications (OpenOffice 2.0, Microsoft Excel and Microsoft Access) and
@@ -294,7 +294,7 @@ where you can create new or modify existing data sources.
 When you create a new H2 ODBC data source, a dialog window will appear
 and ask for the database settings:
 </p>
-<img src="odbcDataSource.png" alt="ODBC Configuration">
+<img src="odbcDataSource.png" alt="ODBC Configuration" />
 
 <h3>Log Option</h3>
 The driver is able to log operations to a file.
@@ -322,15 +322,15 @@ Therefore the ODBC driver should not be used where security is important.
 <h3>Uninstalling</h3>
 To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uninstall the driver.
 
-<br><a name="acid"></a>
+<br /><a name="acid"></a>
 <h2>ACID</h2>
 In the DBMS world, ACID stands for Atomicity, Consistency, Isolation, and Durability.
 <ul>
 <li>Atomicity: Transactions must be atomic, that means either all tasks of a transaction are performed, or none.
-<li>Consistency: Only operations that comply with the defined constraints are allowed.
-<li>Isolation: Transactions must be completely isolated from each other.
-<li>Durability: Transaction committed to the database will not be lost.
-</ul>
+</li><li>Consistency: Only operations that comply with the defined constraints are allowed.
+</li><li>Isolation: Transactions must be completely isolated from each other.
+</li><li>Durability: Transaction committed to the database will not be lost.
+</li></ul>
 This database also supports these properties by default, except durability, which can only
 be guaranteed by other means (battery, clustering).
 
@@ -360,14 +360,14 @@ In Java, there are two ways how this can be achieved:
 <li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
 Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor
 have been written to the physical medium.
-<li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
+</li><li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
 to be written to the storage device that contains it.
-</ul>
+</li></ul>
 There is one related option, but it does not force changes to disk: RandomAccessFile(.., "rws" / "rwd"):
 <ul>
 <li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
-<li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
-</ul>
+</li><li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
+</li></ul>
 <p>
 A simple power-off test using two computers (they communicate over the network, and one the power
 is switched off on one computer) shows that the data is not always persisted to the hard drive,
@@ -405,7 +405,7 @@ run the application again. You will find out that in most cases, none of the dat
 records that the listener computer knows about. For details, please consult the source code of the
 listener and test application.
 
-<br><a name="using_recover_tool"></a>
+<br /><a name="using_recover_tool"></a>
 <h2>Using the Recover Tool</h2>
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
 At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
@@ -418,7 +418,7 @@ This file contains raw insert statement (for the data) and data definition (DDL)
 the schema of the database. This file cannot be executed directly, as the raw insert statements
 don't have the correct table names, so the file needs to be pre-processed manually before executing.
 
-<br><a name="file_locking_protocols"></a>
+<br /><a name="file_locking_protocols"></a>
 <h2>File Locking Protocols</h2>
 <p>
 Whenever a database is opened, a lock file is created to signal other processes
@@ -443,7 +443,7 @@ Then, the process waits a little bit (20ms) and checks the file again. If the fi
 during this time, the operation is aborted. This protects against a race condition
 when a process deletes the lock file just after one create it, and a third process creates
 the file again. It does not occur if there are only two writers.
-<li>
+</li><li>
 If the file can be created, a random number is inserted together with the locking method
 ('file'). Afterwards, a watchdog thread is started that
 checks regularly (every second once by default) if the file was deleted or modified by
@@ -452,7 +452,7 @@ old data. The watchdog thread runs with high priority so that a change to the lo
 not get through undetected even if the system is very busy. However, the watchdog thread
 does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk
 and does not write to it.
-<li>
+</li><li>
 If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times).
 If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent
 writers. Afterwards, the file is overwritten with a new version (challenge).
@@ -462,7 +462,7 @@ and this process will fail to lock the database.
 However, if there is no watchdog thread, the lock file will still be as written by
 this thread. In this case, the file is deleted and atomically created again.
 The watchdog thread is started in this case and the file is locked.
-</ul>
+</li></ul>
 <p>
 This algorithm is tested with over 100 concurrent threads. In some cases, when there are
 many concurrent threads trying to lock the database, they block each other (meaning
@@ -480,20 +480,20 @@ The algorithm is:
 Then a server socket is opened on a defined port, and kept open.
 The port and IP address of the process that opened the database is written
 into the lock file.
-<li>If the lock file exists, and the lock method is 'file', then the software switches
+</li><li>If the lock file exists, and the lock method is 'file', then the software switches
 to the 'file' method.
-<li>If the lock file exists, and the lock method is 'socket', then the process
+</li><li>If the lock file exists, and the lock method is 'socket', then the process
 checks if the port is in use. If the original process is still running, the port is in use
 and this process throws an exception (database is in use). If the original process
 died (for example due to a blackout, or abnormal termination of the virtual machine),
 then the port was released. The new process deletes the lock file and starts again.
-</ul>
+</li></ul>
 This method does not require a watchdog thread actively polling (reading) the same
 file every second. The problem with this method is, if the file is stored on a network
 share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
 
-<br><a name="sql_injection"></a>
+<br /><a name="sql_injection"></a>
 <h2>Protection against SQL Injection</h2>
 <h3>What is SQL Injection</h3>
 This database engine provides a solution for the security vulnerability known as 'SQL Injection'. 
@@ -556,7 +556,7 @@ It is not required to create a constant for the number 0 as there is already a b
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
 
-<br><a name="security_protocols"></a>
+<br /><a name="security_protocols"></a>
 <h2>Security Protocols</h2>
 The following paragraphs document the security protocols used in this database.
 These descriptions are very technical and only intended for security experts that already know
@@ -641,7 +641,7 @@ The web server supports HTTP and HTTPS connections using SSLServerSocket.
 There is a default self-certified certificate to support an easy starting point, but
 custom certificates are supported as well.
 
-<br><a name="uuid"></a>
+<br /><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
 This database supports the UUIDs. Also supported is a function to create new UUIDs using 
 a cryptographically strong pseudo random number generator.
@@ -670,7 +670,7 @@ Some values are:
 One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, 
 that means the probability is about 0.000'000'000'06.
 
-<br><a name="system_properties"></a>
+<br /><a name="system_properties"></a>
 <h2>Settings Read from System Properties</h2>
 <p>
 Some settings of the database can be set on the command line using
@@ -714,7 +714,7 @@ INFORMATION_SCHEMA.SETTINGS
 <tr><td>h2.scriptDirectory</td><td></td><td>Relative or absolute directory where the script files are stored to or read from</td></tr>
 </table>
 
-<br><a name="glossary_links"></a>
+<br /><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>
 <table><tr><th>Term</th><th>Description</th></tr>
 <tr>

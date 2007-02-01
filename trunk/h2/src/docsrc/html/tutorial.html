@@ -3,40 +3,40 @@
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Tutorial
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Tutorial</h1>
 <a href="#tutorial_starting_h2_console">
-    Starting and Using the H2 Console</a><br>
+    Starting and Using the H2 Console</a><br />
 <a href="#connecting_using_jdbc">
-    Connecting to a Database using JDBC</a><br>
+    Connecting to a Database using JDBC</a><br />
 <a href="#creating_new_databases">
-    Creating New Databases</a><br>
+    Creating New Databases</a><br />
 <a href="#using_server">
-    Using the Server</a><br>    
+    Using the Server</a><br />    
 <a href="#using_hibernate">
-    Using Hibernate</a><br>
+    Using Hibernate</a><br />
 <a href="#web_applications">
-    Using Databases in Web Applications</a><br>
+    Using Databases in Web Applications</a><br />
 <a href="#csv">
-    CSV (Comma Separated Values) Support</a><br>
+    CSV (Comma Separated Values) Support</a><br />
 <a href="#upgrade_backup_restore">
-    Upgrade, Backup, and Restore</a><br>
+    Upgrade, Backup, and Restore</a><br />
 <a href="#open_office">
-    Using OpenOffice Base</a><br>
+    Using OpenOffice Base</a><br />
 
-<br><a name="tutorial_starting_h2_console"></a>
+<br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
 <p>
 This application lets you access a SQL database using a browser interface.
 This can be a H2 database, or another database that supports the JDBC API.
 </p>
-<img src="console.png" alt="Web Browser - H2 Console Server - H2 Database">
+<img src="console.png" alt="Web Browser - H2 Console Server - H2 Database" />
 <p>
 This is a client / server application, so both a server and a client are required to run it.
 </p><p>
@@ -47,9 +47,9 @@ Depending on your platform and environment, there are multiple ways to start the
   <td>Windows</td>
   <td>1.4 or 1.5</td>
   <td>
-      Click [Start], [All Programs], [H2], and [H2 Console]<br>
+      Click [Start], [All Programs], [H2], and [H2 Console]<br />
       If this worked correctly, an icon will be added to the system tray:
-    <img src="h2.png" alt="[H2 icon]"><br>
+    <img src="h2.png" alt="[H2 icon]" /><br />
     If you don't get the system tray icon, then maybe Java is not installed correctly (in this case, try another way to start the application).
     A browser window should open
     and point to the Login page (URL: <a href="http://localhost:8082" target="_blank">http://localhost:8082</a>).
@@ -59,7 +59,7 @@ Depending on your platform and environment, there are multiple ways to start the
   <td>Windows</td>
   <td>1.4 or 1.5</td>
   <td>
-      Open a file browser, navigate to h2/bin, and double click on h2.bat.<br>
+      Open a file browser, navigate to h2/bin, and double click on h2.bat.<br />
       If this worked correctly, an icon will be added to the system tray.
     If there is a problem, you will see the error message on the console window.
     A browser window will open
@@ -190,7 +190,7 @@ press [Ctrl]+[C] on the console where the server was started (Windows),
 or close the console window.
 </p>
 
-<br><a name="connecting_using_jdbc"></a>
+<br /><a name="connecting_using_jdbc"></a>
 <h2>Connecting to a Database using JDBC</h2>
 To connect to a database, a Java application first needs to load the database driver, 
 and then get a connection. A simple way to do that is using the following code:
@@ -214,12 +214,12 @@ to be recognized by this database. The second parameter in the <code>getConnecti
 is the user name ('sa' for System Administrator in this example). The third parameter is the password.
 Please note that in this database, user names are not case sensitive, but passwords are case sensitive.
 
-<br><a name="creating_new_databases"></a>
+<br /><a name="creating_new_databases"></a>
 <h2>Creating New Databases</h2>
 By default, if the database specified in the URL does not yet exist, a new (empty) 
 database is created automatically.
 
-<br><a name="using_server"></a>
+<br /><a name="using_server"></a>
 <h2>Using the Server</h2>
 H2 currently supports three servers: a Web Server, a TCP Server and an ODBC Server.
 The servers can be started in different ways.
@@ -230,9 +230,9 @@ There currently are a few limitations when using the server or cluster mode:
 <li>Statement.cancel() is only supported in embedded mode.
     A connection can only execute one operation at a time in server or cluster mode,
     and is blocked until this operation is finished.
-<li>CLOBs and BLOBs are sent to the server in one piece and not as a stream.
+</li><li>CLOBs and BLOBs are sent to the server in one piece and not as a stream.
     That means those objects need to fit in memory when using the server or cluster mode.
-</ul>
+</li></ul>
 
 <h3>Starting from Command Line</h3>
 To start the Server from the command line with the default settings, run
@@ -278,14 +278,14 @@ This function should be called after all connection to the databases are closed
 to avoid recovery when the databases are opened the next time.
 To stop remote server, remote connections must be enabled on the server.
 
-<br><a name="using_hibernate"></a>
+<br /><a name="using_hibernate"></a>
 <h2>Using Hibernate</h2>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect, 
 or the native H2 Dialect that is available in the file src/tools/org/h2/tools/hibernate/H2Dialect.txt.
 This dialect will be integrated into Hibernate, but until this is done you need to copy the file
 into the folder src\org\hibernate\dialect (Hibernate 3.1), rename it to H2Dialect.java and re-compile hibernate.
 
-<br><a name="web_applications"></a>
+<br /><a name="web_applications"></a>
 <h2>Using Databases in Web Applications</h2>
 There are multiple ways to access a database from within web
 applications. Here are some examples if you use Tomcat or JBoss.
@@ -356,7 +356,7 @@ public class DbStarter implements ServletContextListener {
 }
 </pre>
 
-<br><a name="csv"></a>
+<br /><a name="csv"></a>
 <h2>CSV (Comma Separated Values) Support</h2>
 The CSV file support can be used inside the database using the functions CSVREAD and CSVWRITE, 
 and the CSV library can be used outside the database as a standalone tool.
@@ -404,7 +404,7 @@ while(rs.next()) {
 rs.close();
 </pre>
 
-<br><a name="upgrade_backup_restore"></a>
+<br /><a name="upgrade_backup_restore"></a>
 <h2>Upgrade, Backup, and Restore</h2>
 
 <h3>Database Upgrade</h3>
@@ -438,19 +438,19 @@ SQL script files may contain references to other script files, in the form of
 RUNSCRIPT commands. However, when using the server mode, the references script files
 need to be available on the server side.
 
-<br><a name="open_office"></a>
+<br /><a name="open_office"></a>
 <h2>Using OpenOffice Base</h2>
 OpenOffice.org Base supports database access over the JDBC API. To connect to a H2 database 
 using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.
 The steps to connect to a H2 database are:
 <ul>
 <li>Stop OpenOffice, including the autostart
-<li>Copy h2.jar into the directory &lt;OpenOffice&gt;\program\classes
-<li>Start OpenOffice Base
-<li>Connect to an existing database, select JDBC, [Next]
-<li>Example datasource URL: jdbc:h2:c:/temp/test
-<li>JDBC driver class: org.h2.Driver
-</ul>
+</li><li>Copy h2.jar into the directory &lt;OpenOffice&gt;\program\classes
+</li><li>Start OpenOffice Base
+</li><li>Connect to an existing database, select JDBC, [Next]
+</li><li>Example datasource URL: jdbc:h2:c:/temp/test
+</li><li>JDBC driver class: org.h2.Driver
+</li></ul>
 Now you can access the database stored in the directory C:/temp.
 
 </div></td></tr></table></body></html>

@@ -14,9 +14,9 @@ $headers = 'From: feedback@h2database.com' . "\r\n" .
 $headers = 
 mail("dbsupport@h2database.com", "[H2 Feedback] $now $spam2", $body, $headers);
 ?>
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 H2 Database
-</title><link rel="stylesheet" type="text/css" href="../stylesheet.css"></head><body>
+</title><link rel="stylesheet" type="text/css" href="../stylesheet.css" /></head><body>
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h2>The email was sent successfully</h2>

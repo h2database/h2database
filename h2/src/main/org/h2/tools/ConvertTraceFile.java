@@ -30,10 +30,10 @@ public class ConvertTraceFile {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-traceFile filename (the default is test.trace.db)
-     * <li>-script filename (the default is test.sql)
-     * <li>-javaClass className (the default is Test)
-     * </ul>
+     * </li><li>-traceFile filename (the default is test.trace.db)
+     * </li><li>-script filename (the default is test.sql)
+     * </li><li>-javaClass className (the default is Test)
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws Exception

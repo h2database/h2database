@@ -89,9 +89,9 @@ public class XMLChecker {
 
     private static void checkXML(String xml, boolean html) throws Exception {
         String lastElement = null;
-        String[] noClose = new String[]{
-                "li", "link", "meta", "br", "img", "input", "hr", "frame"
-        };
+        // <li>: replace <li>([^\r]*[^<]*) with <li>$1</li>
+        // use this for html file, for example if <li> is not closed
+        String[] noClose = new String[]{};
         XMLParser parser = new XMLParser(xml);
         Stack stack = new Stack();
         boolean rootElement = false;

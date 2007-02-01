@@ -86,6 +86,31 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
+        // improve TestHalt
+        
+        // TODO backup : lobs are not backed up
+//        DROP TABLE IF EXISTS TEST;
+//        CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB);
+//        INSERT INTO TEST VALUES(1, space(10000));
+//        INSERT INTO TEST VALUES(2, 'World');
+        
+//        drop table bar;
+//        drop table foo;
+//        create table FOO(id integer primary key);
+//        create table BAR(fooId integer);
+//        alter table bar add foreign key (fooid) references foo (id);
+//        truncate table bar;
+        
+//        drop table FOO;
+//        create table FOO (ID int, A number(18, 2));
+//        insert into FOO (ID, A) values (1, 10.0), (2, 20.0);
+//        select SUM (CASE when ID=1 then 0 ELSE A END) col0 from Foo;
+
+
+        // hot backup: test, test encrypted database
+        // BACKUP: compare sql syntax with other databases
+        // Hot backup (incremental backup, online backup): backup data, log, index? files
+        
         // h2
         // update FOO set a = dateadd('second', 4320000, a);
         // ms sql server
@@ -99,11 +124,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
         // test backup
         // backup: lobs, index
-        
-        // improve TestHalt
-        
-        // BACKUP: compare sql syntax with other databases
-        // Hot backup (incremental backup, online backup): backup data, log, index? files
         
         // GroovyServlet
 

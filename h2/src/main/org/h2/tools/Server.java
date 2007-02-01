@@ -72,34 +72,34 @@ public class Server implements Runnable {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-web (start the Web Server)
-     * <li>-tcp (start the TCP Server)
-     * <li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
-     * <li>-odbc (start the ODBC Server)
-     * <li>-browser (start a browser and open a page to connect to the Web Server)
-     * <li>-log [true|false] (enable or disable logging)
-     * <li>-baseDir {directory} (sets the base directory for database files)
-     * <li>-ifExists [true|false] (only existing databases may be opened)
-     * <li>-ftp (start the FTP Server)
-     * </ul>
+     * </li><li>-web (start the Web Server)
+     * </li><li>-tcp (start the TCP Server)
+     * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
+     * </li><li>-odbc (start the ODBC Server)
+     * </li><li>-browser (start a browser and open a page to connect to the Web Server)
+     * </li><li>-log [true|false] (enable or disable logging)
+     * </li><li>-baseDir {directory} (sets the base directory for database files)
+     * </li><li>-ifExists [true|false] (only existing databases may be opened)
+     * </li><li>-ftp (start the FTP Server)
+     * </li></ul>
      * For each Server, there are additional options available:
      * <ul>
      * <li>-webPort {port} (the port of Web Server, default: 8082)
-     * <li>-webSSL [true|false] (if SSL should be used)
-     * <li>-webAllowOthers [true|false] (enable/disable remote connections)
-     * <li>-tcpPort {port} (the port of TCP Server, default: 9092)
-     * <li>-tcpSSL [true|false] (if SSL should be used)
-     * <li>-tcpAllowOthers [true|false] (enable/disable remote connections)
-     * <li>-tcpPassword {password} (the password for shutting down a TCP Server)
-     * <li>-tcpShutdownForce [true|false] (don't wait for other connections to close)
-     * <li>-odbcPort {port} (the port of ODBC Server, default: 9083)
-     * <li>-odbcAllowOthers [true|false] (enable/disable remote connections)
-     * <li>-ftpPort {port}
-     * <li>-ftpDir {directory}
-     * <li>-ftpRead  {readUserName}
-     * <li>-ftpWrite {writeUserName}
-     * <li>-ftpWritePassword {password}
-     * </ul>
+     * </li><li>-webSSL [true|false] (if SSL should be used)
+     * </li><li>-webAllowOthers [true|false] (enable/disable remote connections)
+     * </li><li>-tcpPort {port} (the port of TCP Server, default: 9092)
+     * </li><li>-tcpSSL [true|false] (if SSL should be used)
+     * </li><li>-tcpAllowOthers [true|false] (enable/disable remote connections)
+     * </li><li>-tcpPassword {password} (the password for shutting down a TCP Server)
+     * </li><li>-tcpShutdownForce [true|false] (don't wait for other connections to close)
+     * </li><li>-odbcPort {port} (the port of ODBC Server, default: 9083)
+     * </li><li>-odbcAllowOthers [true|false] (enable/disable remote connections)
+     * </li><li>-ftpPort {port}
+     * </li><li>-ftpDir {directory}
+     * </li><li>-ftpRead  {readUserName}
+     * </li><li>-ftpWrite {writeUserName}
+     * </li><li>-ftpWritePassword {password}
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException

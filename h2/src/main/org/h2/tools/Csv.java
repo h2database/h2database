@@ -107,7 +107,7 @@ public class Csv implements SimpleRowSource {
             columnNames = colNames;
             initRead();
             SimpleResultSet result = new SimpleResultSet(this);
-            normalizeColumnNames();
+            makeColumnNamesUnique();
             for(int i=0; i<columnNames.length; i++) {
                 result.addColumn(columnNames[i], Types.VARCHAR, 255, 0);
             }
@@ -135,7 +135,7 @@ public class Csv implements SimpleRowSource {
             this.reader = reader;
             initRead();
             SimpleResultSet result = new SimpleResultSet(this);
-            normalizeColumnNames();
+            makeColumnNamesUnique();
             for(int i=0; i<columnNames.length; i++) {
                 result.addColumn(columnNames[i], Types.VARCHAR, 255, 0);
             }
@@ -145,7 +145,7 @@ public class Csv implements SimpleRowSource {
         }
     }
     
-    private void normalizeColumnNames() {
+    private void makeColumnNamesUnique() {
         for(int i=0; i<columnNames.length; i++) {
             String x = columnNames[i];
             if(x == null || x.length()==0) {

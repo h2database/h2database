@@ -47,9 +47,9 @@ public class MergeDocs {
         String finalText= buff.toString();
         File output = new File(baseDir, "onePage.html");
         PrintWriter writer = new PrintWriter(new FileWriter(output));
-        writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"><title>");
+        writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
-        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheetPdf.css\"></head><body>");
+        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheetPdf.css\" /></head><body>");
         writer.println(finalText);
         writer.println("</body></html>");
         writer.close();

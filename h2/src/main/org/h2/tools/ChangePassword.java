@@ -39,13 +39,13 @@ public class ChangePassword extends FileBase {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * <li>-dir directory (the default is the current directory)
-     * <li>-db databaseName (all databases if no name is specified)
-     * <li>-cipher type (AES or XTEA)
-     * <li>-decrypt password (null if the database is not encrypted)
-     * <li>-encrypt password (null if the database should not be encrypted)
-     * <li>-quiet does not print progress information
-     * </ul>
+     * </li><li>-dir directory (the default is the current directory)
+     * </li><li>-db databaseName (all databases if no name is specified)
+     * </li><li>-cipher type (AES or XTEA)
+     * </li><li>-decrypt password (null if the database is not encrypted)
+     * </li><li>-encrypt password (null if the database should not be encrypted)
+     * </li><li>-quiet does not print progress information
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException

@@ -45,9 +45,12 @@ public class Newsfeed {
         s = StringUtils.replaceAll(s, "<ul>", "");
         s = StringUtils.replaceAll(s, "</ul>", "");
         s = StringUtils.replaceAll(s, "<li>", "- ");
+        s = StringUtils.replaceAll(s, "</li>", "");
         s = StringUtils.replaceAll(s, "<a href=\"", "( ");
         s = StringUtils.replaceAll(s, "\">", " ) ");
         s = StringUtils.replaceAll(s, "</a>", "");
+        s = StringUtils.replaceAll(s, "<br />", "");
+        s = StringUtils.replaceAll(s, "<br/>", "");
         s = StringUtils.replaceAll(s, "<br>", "");
         if(s.indexOf('<') >= 0 || s.indexOf('>') >= 0) {
             throw new Error("Unsupported HTML Tag: < or > in " + s);

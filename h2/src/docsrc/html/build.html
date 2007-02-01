@@ -3,9 +3,9 @@
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Build
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
@@ -13,33 +13,33 @@ Build
 <h1>Build</h1>
 
 <a href="#portability">
-    Portability</a><br>
+    Portability</a><br />
 <a href="#environment">
-    Environment</a><br>
+    Environment</a><br />
 <a href="#building">
-    Building the Software</a><br>
+    Building the Software</a><br />
 <a href="#maven2">
-    Using Maven 2</a><br>
+    Using Maven 2</a><br />
 
-<br><a name="portability"></a>
+<br /><a name="portability"></a>
 <h2>Portability</h2>
 This database is written in Java and therefore works on many platforms.
 It is also possible to compile it to a native executable using GCJ. 
 
-<br><a name="environment"></a>
+<br /><a name="environment"></a>
 <h2>Environment</h2>
 To build the database executables, the following software stack was used.
 In most cases, newer version or compatible software works too, but this was not tested.
 <ul>
     <li>Windows XP
-    <li>Sun JDK Version 1.4
-    <li>Apache Ant Version 1.6.5
-    <li>Mozilla Firefox 1.5
-    <li>Eclipse Version 3.2.1
-    <li>YourKit Java Profiler
-</ul>
+    </li><li>Sun JDK Version 1.4
+    </li><li>Apache Ant Version 1.6.5
+    </li><li>Mozilla Firefox 1.5
+    </li><li>Eclipse Version 3.2.1
+    </li><li>YourKit Java Profiler
+</li></ul>
 
-<br><a name="building"></a>
+<br /><a name="building"></a>
 <h2>Building the Software</h2>
 On the command line, go to the directory src and execute the following command:
 <pre>
@@ -56,7 +56,7 @@ ant jarClient
 </pre>
 The other targets may be used as well.
 
-<br><a name="maven2"></a>
+<br /><a name="maven2"></a>
 <h2>Using Maven 2</h2>
 <h3>Using a Central Repository</h3>
 You can include the database in your Maven 2 project as a dependency. 

@@ -3,9 +3,9 @@
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Features
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
@@ -13,125 +13,125 @@ Features
 <h1>Features</h1>
 
 <a href="#feature_list">
-    Feature List</a><br>
+    Feature List</a><br />
 <a href="#comparison">
-    Comparison to Other Database Engines</a><br>
+    Comparison to Other Database Engines</a><br />
 <a href="#products_work_with">
-    Products that Work with H2</a><br>
+    Products that Work with H2</a><br />
 <a href="#why_java">
-    Why Java</a><br>
+    Why Java</a><br />
 <a href="#connection_modes">
-    Connection Modes</a><br>
+    Connection Modes</a><br />
 <a href="#database_url">
-    Database URL Overview</a><br>
+    Database URL Overview</a><br />
 <a href="#file_encryption">
-    Connecting to a Database with File Encryption</a><br>
+    Connecting to a Database with File Encryption</a><br />
 <a href="#database_file_locking">
-    Database File Locking</a><br>
+    Database File Locking</a><br />
 <a href="#database_only_if_exists">
-    Opening a Database Only if it Already Exists</a><br>
+    Opening a Database Only if it Already Exists</a><br />
 <a href="#closing_the_database">
-    Closing the Database</a><br>
+    Closing the Database</a><br />
 <a href="#log_index_changes">
-    Log Index Changes</a><br>
+    Log Index Changes</a><br />
 <a href="#multiple_connections">
-    Multiple Connections</a><br>
+    Multiple Connections</a><br />
 <a href="#database_file_layout">
-    Database File Layout</a><br>
+    Database File Layout</a><br />
 <a href="#logging_recovery">
-    Logging and Recovery</a><br>
+    Logging and Recovery</a><br />
 <a href="#compatibility_modes">
-    Compatibility Modes</a><br>
+    Compatibility Modes</a><br />
 <a href="#trace_options">
-    Using the Trace Options</a><br>
+    Using the Trace Options</a><br />
 <a href="#read_only">
-    Read Only Databases</a><br>
+    Read Only Databases</a><br />
 <a href="#storage_formats">
-    Binary and Text Storage Formats</a><br>
+    Binary and Text Storage Formats</a><br />
 <a href="#low_disk_space">
-    Graceful Handling of Low Disk Space Situations</a><br>
+    Graceful Handling of Low Disk Space Situations</a><br />
 <a href="#computed_columns">
-    Computed Columns / Function Based Index</a><br>
+    Computed Columns / Function Based Index</a><br />
 <a href="#multi_dimensional">
-    Multi-Dimensional Indexes</a><br>
+    Multi-Dimensional Indexes</a><br />
 <a href="#passwords">
-    Using Passwords</a><br>
+    Using Passwords</a><br />
 <a href="#user_defined_functions">
-    User Defined Functions and Stored Procedures</a><br>
+    User Defined Functions and Stored Procedures</a><br />
 <a href="#triggers">
-    Triggers</a><br>
+    Triggers</a><br />
 <a href="#compacting">
-    Compacting a Database</a><br>
+    Compacting a Database</a><br />
 <a href="#cache_settings">
-    Cache Settings</a><br>
+    Cache Settings</a><br />
 
-<br><a name="feature_list"></a>
+<br /><a name="feature_list"></a>
 <h2>Feature List</h2>
 <h3>Main Features</h3>
 <ul>
 <li>Very fast database engine
-<li>Free, with source code
-<li>Written in Java
-<li>Supports standard SQL, JDBC API
-<li>Embedded and Server mode, Clustering support
-<li>Strong security features
-<li>Experimental native version (GCJ) and ODBC drivers
-</ul>
+</li><li>Free, with source code
+</li><li>Written in Java
+</li><li>Supports standard SQL, JDBC API
+</li><li>Embedded and Server mode, Clustering support
+</li><li>Strong security features
+</li><li>Experimental native version (GCJ) and ODBC drivers
+</li></ul>
 
 <h3>Additional Features</h3>
 <ul>
 <li>Disk based or in-memory databases and tables, read-only database support, temporary tables
-<li>Transaction support (serializable transaction isolation), 2-phase-commit
-<li>Multiple connections, table level locking
-<li>Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
-<li>Scrollable and updatable result set support, large result set, external result sorting, functions can return a result set
-<li>Encrypted database (AES or XTEA), SHA-256 password encryption, encryption functions, SSL
-</ul>
+</li><li>Transaction support (serializable transaction isolation), 2-phase-commit
+</li><li>Multiple connections, table level locking
+</li><li>Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
+</li><li>Scrollable and updatable result set support, large result set, external result sorting, functions can return a result set
+</li><li>Encrypted database (AES or XTEA), SHA-256 password encryption, encryption functions, SSL
+</li></ul>
 
 <h3>SQL Support</h3>
 <ul>
 <li>Compatibility modes for HSQLDB, MySQL and PostgreSQL
-<li>Support for multiple schemas, information schema
-<li>Referential integrity / foreign key constraints with cascade, check constraints
-<li>Inner and outer joins, subqueries, read only views and inline views
-<li>Triggers and Java functions / stored procedures
-<li>Many built-in functions, including XML and lossless data compression
-<li>Wide range of data types including large objects (BLOB/CLOB)
-<li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
-<li>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
-<li>Collation support, Users, Roles
-</ul>
+</li><li>Support for multiple schemas, information schema
+</li><li>Referential integrity / foreign key constraints with cascade, check constraints
+</li><li>Inner and outer joins, subqueries, read only views and inline views
+</li><li>Triggers and Java functions / stored procedures
+</li><li>Many built-in functions, including XML and lossless data compression
+</li><li>Wide range of data types including large objects (BLOB/CLOB)
+</li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
+</li><li>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
+</li><li>Collation support, Users, Roles
+</li></ul>
 
 <h3>Security Features</h3>
 <ul>
 <li>User password authenticated uses SHA-256 and salt
-<li>User passwords are never transmitted in plain text over the network (even when using insecure connections)
-<li>All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
-<li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
-<li>The built-in web server supports connections over SSL/TLS
-<li>Passwords can be sent to the database using char arrays instead of Strings
-<li>Includes a solution for the SQL injection problem
-</ul>
+</li><li>User passwords are never transmitted in plain text over the network (even when using insecure connections)
+</li><li>All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
+</li><li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
+</li><li>The built-in web server supports connections over SSL/TLS
+</li><li>Passwords can be sent to the database using char arrays instead of Strings
+</li><li>Includes a solution for the SQL injection problem
+</li></ul>
 
 <h3>Other Features and Tools</h3>
 <ul>
 <li>Small footprint (smaller than 1 MB), low memory requirements
-<li>Multiple index types (b-tree, tree, hash, linear hash)
-<li>Support for multi-dimensional indexes
-<li>CSV file support
-<li>Support for linked tables, and a built-in virtual 'range' table
-<li>EXPLAIN PLAN support, sophisticated trace options
-<li>Database closing can be delayed or disabled to improve the performance
-<li>Web-based Console application (English, German, partially French and Spanish) with autocomplete
-<li>The database can generate SQL script files
-<li>Contains a recovery tool that can dump the contents of the data file
-<li>Automatic re-compilation of prepared statements
-<li>Uses a small number of database files, binary and text storage formats, graceful handling of low disk space situations
-<li>Uses a checksum for each record and log entry for data integrity
-<li>Well tested (high code coverage, randomized stress tests)
-</ul>
+</li><li>Multiple index types (b-tree, tree, hash, linear hash)
+</li><li>Support for multi-dimensional indexes
+</li><li>CSV file support
+</li><li>Support for linked tables, and a built-in virtual 'range' table
+</li><li>EXPLAIN PLAN support, sophisticated trace options
+</li><li>Database closing can be delayed or disabled to improve the performance
+</li><li>Web-based Console application (English, German, partially French and Spanish) with autocomplete
+</li><li>The database can generate SQL script files
+</li><li>Contains a recovery tool that can dump the contents of the data file
+</li><li>Automatic re-compilation of prepared statements
+</li><li>Uses a small number of database files, binary and text storage formats, graceful handling of low disk space situations
+</li><li>Uses a checksum for each record and log entry for data integrity
+</li><li>Well tested (high code coverage, randomized stress tests)
+</li></ul>
 
-<br><a name="comparison"></a>
+<br /><a name="comparison"></a>
 <h2>Comparison to Other Database Engines</h2>
 
 <table><tr>
@@ -219,7 +219,7 @@ It looks like the development of this database has stopped. The last release was
 <h3>McKoi</h3>
 It looks like the development of this database has stopped. The last release was August 2004
 
-<br><a name="products_work_with"></a>
+<br /><a name="products_work_with"></a>
 <h2>Products that Work with H2</h2>
 <table>
 <tr><th>Product</th><th>Description</th></tr>
@@ -281,16 +281,16 @@ It looks like the development of this database has stopped. The last release was
     </tr>
 </table>
 
-<br><a name="why_java"></a>
+<br /><a name="why_java"></a>
 <h2>Why Java</h2>
 A few reasons using a Java database are:
 <ul>
 <li>Very simple to integrate in Java applications
-<li>Support for many different platforms
-<li>More secure than native applications (no buffer overflows)
-<li>User defined functions (or triggers) run very fast
-<li>Unicode support
-</ul>
+</li><li>Support for many different platforms
+</li><li>More secure than native applications (no buffer overflows)
+</li><li>User defined functions (or triggers) run very fast
+</li><li>Unicode support
+</li></ul>
 <p>
 Some people think that Java is still too slow for low level operations, 
 but this is not the case (not any more). In general, the code can be written a lot faster 
@@ -315,17 +315,17 @@ Java implementations (such as Swing) are not used or only used for specific feat
 (such as the SysTray library).
 </p>
 
-<br><a name="connection_modes"></a>
+<br /><a name="connection_modes"></a>
 <h2>Connection Modes</h2>
 The following connection modes are supported:
 <ul>
 <li>Local connections using JDBC (embedded) 
-<li>Remote connections using JDBC over TCP/IP (client/server)
-<li>Remote connections using ODBC over TCP/IP (client/server)
-<li>In-Memory databases (private and shared)
-</ul>
+</li><li>Remote connections using JDBC over TCP/IP (client/server)
+</li><li>Remote connections using ODBC over TCP/IP (client/server)
+</li><li>In-Memory databases (private and shared)
+</li></ul>
 
-<br><a name="database_url"></a>
+<br /><a name="database_url"></a>
 <h2>Database URL Overview</h2>
 <p>
 This database does support multiple connection modes and features when connecting to a database.
@@ -335,10 +335,10 @@ This is achieved using different database URLs. The settings in the URLs are not
 <tr>
   <td>Embedded (local) connection</td>
   <td>
-    jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br>
-      jdbc:h2:test<br>
-     jdbc:h2:file:/data/sample<br>
-     jdbc:h2:file:C:/data/sample (Windows only)<br>
+    jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
+      jdbc:h2:test<br />
+     jdbc:h2:file:/data/sample<br />
+     jdbc:h2:file:C:/data/sample (Windows only)<br />
   </td>
 </tr>
 <tr>
@@ -348,46 +348,46 @@ This is achieved using different database URLs. The settings in the URLs are not
 <tr>
   <td>In-Memory (named)</td>
   <td>
-    jdbc:h2:mem:&lt;databaseName&gt;<br>
+    jdbc:h2:mem:&lt;databaseName&gt;<br />
     jdbc:h2:mem:test_mem
   </td>
 </tr>
 <tr>
   <td>Remote using TCP/IP</td>
   <td>
-    jdbc:h2:tcp://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br>
-    jdbc:h2:tcp://localhost/test<br>
+    jdbc:h2:tcp://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br />
+    jdbc:h2:tcp://localhost/test<br />
     jdbc:h2:tcp://dbserv:8084/sample
   </td>
 </tr>
 <tr>
   <td>Remote using SSL/TLS</td>
   <td>
-    jdbc:h2:ssl://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br>
+    jdbc:h2:ssl://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br />
     jdbc:h2:ssl://secureserv:8085/sample;
   </td>
 </tr>
 <tr>
   <td>Using Encrypted Files</td>
   <td>
-    jdbc:h2:&lt;url&gt;;CIPHER=[AES][XTEA]<br>
-    jdbc:h2:ssl://secureserv/testdb;CIPHER=AES<br>
-    jdbc:h2:file:secure;CIPHER=XTEA<br>
+    jdbc:h2:&lt;url&gt;;CIPHER=[AES][XTEA]<br />
+    jdbc:h2:ssl://secureserv/testdb;CIPHER=AES<br />
+    jdbc:h2:file:secure;CIPHER=XTEA<br />
   </td>
 </tr>
 <tr>
   <td>File Locking Methods</td>
   <td>
-    jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br>
-    jdbc:h2:file:quickAndDirty;FILE_LOCK=NO<br>
-    jdbc:h2:file:private;CIPHER=XTEA;FILE_LOCK=SOCKET<br>
+    jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
+    jdbc:h2:file:quickAndDirty;FILE_LOCK=NO<br />
+    jdbc:h2:file:private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
   </td>
 </tr>
 <tr>
   <td>Only Open if it Already Exists</td>
   <td>
-    jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br>
-    jdbc:h2:file:sample;IFEXISTS=TRUE<br>
+    jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
+    jdbc:h2:file:sample;IFEXISTS=TRUE<br />
   </td>
 </tr>
 <tr>
@@ -399,35 +399,35 @@ This is achieved using different database URLs. The settings in the URLs are not
 <tr>
   <td>User Name and/or Password</td>
   <td>
-    jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br>
-    jdbc:h2:file:sample;USER=sa;PASSWORD=123<br>
+    jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
+    jdbc:h2:file:sample;USER=sa;PASSWORD=123<br />
   </td>
 </tr>
 <tr>
   <td>Log Index Changes</td>
   <td>
-    jdbc:h2:&lt;url&gt;;LOG=2<br>
-    jdbc:h2:file:sample;LOG=2<br>
+    jdbc:h2:&lt;url&gt;;LOG=2<br />
+    jdbc:h2:file:sample;LOG=2<br />
   </td>
 </tr>
 <tr>
   <td>Debug Trace Settings</td>
   <td>
-    jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br>
-    jdbc:h2:file:sample;TRACE_LEVEL_FILE=3<br>
+    jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
+    jdbc:h2:file:sample;TRACE_LEVEL_FILE=3<br />
   </td>
 </tr>
 <tr>
   <td>Ignore Unknown Settings</td>
   <td>
-    jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br>
+    jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
   </td>
 </tr>
 <tr>
   <td>Changing Other Settings</td>
   <td>
-    jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br>
-    jdbc:h2:file:sample;TRACE_LEVEL_SYSTEM_OUT=3<br>
+    jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
+    jdbc:h2:file:sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
   </td>
 </tr>
 </table>
@@ -457,7 +457,7 @@ An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>
 (using private database remotely is also possible).
 </p>
 
-<br><a name="file_encryption"></a>
+<br /><a name="file_encryption"></a>
 <h2>Connecting to a Database with File Encryption</h2>
 To use file encryption, it is required to specify the encryption algorithm (the 'cipher') 
 and the file password. The algorithm needs to be specified using the connection parameter.
@@ -475,7 +475,7 @@ conn = DriverManager.
     getConnection(url, user, pwds);
 </pre>
 
-<br><a name="database_file_locking"></a>
+<br /><a name="database_file_locking"></a>
 <h2>Database File Locking</h2>
 <p>
 Whenever a database is opened, a lock file is created to signal other processes 
@@ -487,12 +487,12 @@ The following file locking methods are implemented:
 <ul>
 <li>The default method is 'file' and uses a watchdog thread to
 protect the database file. The watchdog reads the lock file each second. 
-<li>The second method is 'socket' and opens a server socket. The socket method does 
+</li><li>The second method is 'socket' and opens a server socket. The socket method does 
 not require reading the lock file every second. The socket method should only be used
 if the database files are only accessed by the one (and always the same) computer.
-<li>It is also possible to open the database without file locking;
+</li><li>It is also possible to open the database without file locking;
 in this case it is up to the application to protect the database files. 
-</ul>
+</li></ul>
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
 The following code opens the database with the 'socket' locking method:
 <pre>
@@ -507,7 +507,7 @@ String url = "jdbc:h2:test;FILE_LOCK=NO";
 For more information about the algorithms please see in Advanced Topics under 
 File Locking Protocol.  
 
-<br><a name="database_only_if_exists"></a>
+<br /><a name="database_only_if_exists"></a>
 <h2>Opening a Database Only if it Already Exists</h2>
 By default, when an application calls <code>DriverManager.getConnection(url,...)</code> 
 and the database specified in the URL does not yet exist, a new (empty) database is created.
@@ -520,7 +520,7 @@ The complete URL may look like this:
 String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 </pre>
 
-<br><a name="closing_the_database"></a>
+<br /><a name="closing_the_database"></a>
 <h2>Closing the Database</h2>
 
 <h3>Delayed Database Closing</h3>
@@ -551,7 +551,7 @@ The database URL to disable database closing on exit is:
 String url = "jdbc:h2:test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
-<br><a name="log_index_changes"></a>
+<br /><a name="log_index_changes"></a>
 <h2>Log Index Changes</h2>
 Usually, changes to the index file are not logged for performance.
 If the index file is corrupt or missing when opening a database, it is re-created from the data.
@@ -582,7 +582,7 @@ same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of settings supported by this database please see the
 SQL grammar documentation.
 
-<br><a name="multiple_connections"></a>
+<br /><a name="multiple_connections"></a>
 <h2>Multiple Connections</h2>
 
 <h3>Opening Multiple Databases at the Same Time</h3>
@@ -626,8 +626,8 @@ Here is an overview on what statements generate what type of lock:
     Read
   </td>
   <td>
-    SELECT * FROM TEST<br>
-    CALL SELECT MAX(ID) FROM TEST<br>
+    SELECT * FROM TEST<br />
+    CALL SELECT MAX(ID) FROM TEST<br />
     SCRIPT
   </td>
 </tr>
@@ -644,9 +644,9 @@ Here is an overview on what statements generate what type of lock:
     Write
   </td>
   <td>
-    INSERT INTO TEST VALUES(1, 'Hello')<br>
-    INSERT INTO TEST SELECT * FROM TEST<br>
-    UPDATE TEST SET NAME='Hi'<br>
+    INSERT INTO TEST VALUES(1, 'Hello')<br />
+    INSERT INTO TEST SELECT * FROM TEST<br />
+    UPDATE TEST SET NAME='Hi'<br />
     DELETE FROM TEST
   </td>
 </tr>
@@ -655,8 +655,8 @@ Here is an overview on what statements generate what type of lock:
     Write
   </td>
   <td>
-    ALTER TABLE TEST ...<br>
-    CREATE INDEX ... ON TEST ...<br>
+    ALTER TABLE TEST ...<br />
+    CREATE INDEX ... ON TEST ...<br />
     DROP INDEX ...
   </td>
 </tr>
@@ -668,7 +668,7 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persistent.
 </p>
 
-<br><a name="database_file_layout"></a>
+<br /><a name="database_file_layout"></a>
 <h2>Database File Layout</h2>
 <p>
 There are a number of files created for persistent databases. Other than some databases, 
@@ -683,8 +683,8 @@ The following files can be created by the database:
 <tr><td>
     test.data.db
 </td><td>
-    Data file<br>
-    Contains the data for all tables<br>
+    Data file<br />
+    Contains the data for all tables<br />
     Format: &lt;database&gt;.data.db
 </td><td>
     1 per database
@@ -692,8 +692,8 @@ The following files can be created by the database:
 <tr><td>
     test.index.db
 </td><td>
-    Index file<br>
-    Contains the data for all (btree) indexes<br>
+    Index file<br />
+    Contains the data for all (btree) indexes<br />
     Format: &lt;database&gt;.index.db
 </td><td>
     1 per database
@@ -701,8 +701,8 @@ The following files can be created by the database:
 <tr><td>
     test.0.log.db
 </td><td>
-    Log file<br>
-    The log file is used for recovery<br>
+    Log file<br />
+    The log file is used for recovery<br />
     Format: &lt;database&gt;.&lt;id&gt;.log.db
 </td><td>
     0 or more per database
@@ -710,8 +710,8 @@ The following files can be created by the database:
 <tr><td>
     test.lock.db
 </td><td>
-    Database lock file<br>
-    Exists only if the database is open<br>
+    Database lock file<br />
+    Exists only if the database is open<br />
     Format: &lt;database&gt;.lock.db
 </td><td>
     1 per database
@@ -719,9 +719,9 @@ The following files can be created by the database:
 <tr><td>
     test.trace.db
 </td><td>
-    Trace file<br>
-    Contains trace information<br>
-    Format: &lt;database&gt;.trace.db<br>
+    Trace file<br />
+    Contains trace information<br />
+    Format: &lt;database&gt;.trace.db<br />
     If the file is too big, it is renamed to &lt;database&gt;.trace.db.old
 </td><td>
     1 per database
@@ -729,8 +729,8 @@ The following files can be created by the database:
 <tr><td>
     test.14.15.lob.db
 </td><td>
-    Large object<br>
-    Contains the data for BLOB or CLOB<br>
+    Large object<br />
+    Contains the data for BLOB or CLOB<br />
     Format: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
 </td><td>
     1 per object
@@ -738,8 +738,8 @@ The following files can be created by the database:
 <tr><td>
     test.123.temp.db
 </td><td>
-    Temporary file<br>
-    Contains a temporary blob or a large result set<br>
+    Temporary file<br />
+    Contains a temporary blob or a large result set<br />
     Format: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
 </td><td>
     1 per object
@@ -747,8 +747,8 @@ The following files can be created by the database:
 <tr><td>
     test.7.hash.db
 </td><td>
-    Hash index file<br>
-    Contains the data for a linear hash index<br>
+    Hash index file<br />
+    Contains the data for a linear hash index<br />
     Format: &lt;database&gt;.&lt;object id&gt;.hash.db
 </td><td>
     1 per linear hash index
@@ -775,7 +775,7 @@ automatically if they don't exist.
 To backup data while the database is running, the SQL command SCRIPT can be used.
 </p>
 
-<br><a name="logging_recovery"></a>
+<br /><a name="logging_recovery"></a>
 <h2>Logging and Recovery</h2>
 <p>
 Whenever data is modified in the database and those changes are committed, the changes are logged 
@@ -799,7 +799,7 @@ must contain RECOVER=1, as in jdbc:h2:test;RECOVER=1. Indexes are rebuilt in thi
 the summary (object allocation table) is not read in this case, so opening the database takes longer.
 </p>
 
-<br><a name="compatibility_modes"></a>
+<br /><a name="compatibility_modes"></a>
 <h2>Compatibility Modes</h2>
 <p>
 All database engines behave a little bit different. For certain features, 
@@ -836,17 +836,17 @@ Here is the list of currently supported modes and the difference to the regular 
 </td></tr>
 </table>
 
-<br><a name="trace_options"></a>
+<br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>
 To find problems in an application, it is sometimes good to see what database operations 
 where executed. This database offers the following trace features:
 <ul>
 <li>Trace to System.out and/or a file
-<li>Support for trace levels OFF, ERROR, INFO, and DEBUG
-<li>The maximum size of the trace file can be set
-<li>The Java code generation is possible
-<li>Trace can be enabled at runtime by manually creating a file
-</ul>
+</li><li>Support for trace levels OFF, ERROR, INFO, and DEBUG
+</li><li>The maximum size of the trace file can be set
+</li><li>The Java code generation is possible
+</li><li>Trace can be enabled at runtime by manually creating a file
+</li></ul>
 
 <h3>Trace Options</h3>
 The simplest way to enable the trace option is setting it in the database URL.
@@ -921,7 +921,7 @@ However, if the start file is read only, the database engine cannot delete the f
 will always enable the trace mode when connecting.
 </p>
 
-<br><a name="read_only"></a>
+<br /><a name="read_only"></a>
 <h2>Read Only Databases</h2>
 If the database files are read-only, then the database is read-only as well.
 It is not possible to create new tables, add or modify data in this database.
@@ -932,7 +932,7 @@ When you open the database now, it is read-only.
 There are two ways an application can find out a database is read-only:
 By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
 
-<br><a name="storage_formats"></a>
+<br /><a name="storage_formats"></a>
 <h2>Binary and Text Storage Formats</h2>
 This database engine supports both binary and text storage formats. 
 The binary format is faster, but the text storage format can be useful as well,
@@ -942,7 +942,7 @@ New databases are created in the binary storage format by default.
 To create a new database in the text storage format, the database URL must contain
 the parameter STORAGE=TEXT. Example URL: jdbc:h2:test;STORAGE=TEXT
 
-<br><a name="low_disk_space"></a>
+<br /><a name="low_disk_space"></a>
 <h2>Graceful Handling of Low Disk Space Situations</h2>
 <p>
 The database is able to deal with situations where the disk space available is running low.
@@ -968,7 +968,7 @@ If a database can not be opened because the boot info (the SQL script that is ru
 is corrupted, then the database can be opened by specifying a database event listener. 
 The exceptions are logged, but opening the database will continue.
 
-<br><a name="computed_columns"></a>
+<br /><a name="computed_columns"></a>
 <h2>Computed Columns / Function Based Index</h2>
 Function indexes are not directly supported by this database, but they can be easily emulated
 by using computed columns. For example, if an index on the upper-case version of
@@ -990,7 +990,7 @@ INSERT INTO ADDRESS(ID, NAME) VALUES(1, 'Miller');
 SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 </pre>
 
-<br><a name="multi_dimensional"></a>
+<br /><a name="multi_dimensional"></a>
 <h2>Multi-Dimensional Indexes</h2>
 <p>
 A tool is provided to execute efficient multi-dimension (spatial) range queries.
@@ -1013,7 +1013,7 @@ For an example how to use the tool, please have a look at the sample code provid
 in TestMultiDimension.java.
 </p>
 
-<br><a name="passwords"></a>
+<br /><a name="passwords"></a>
 <h2>Using Passwords</h2>
 
 <h3>Using Secure Passwords</h3>
@@ -1077,7 +1077,7 @@ Connection conn = DriverManager.
 </code>
 The settings in the URL override the settings passed as a separate parameter.
 
-<br><a name="user_defined_functions"></a>
+<br /><a name="user_defined_functions"></a>
 <h2>User Defined Functions and Stored Procedures</h2>
 
 In addition to the built-in functions, this database supports user defined Java functions.
@@ -1170,7 +1170,7 @@ CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(3) WHERE X>0;
 </pre>
 
-<br><a name="triggers"></a>
+<br /><a name="triggers"></a>
 <h2>Triggers</h2>
 This database supports Java triggers that are called before or after a row is updated, inserted or deleted.
 Triggers can be used for complex consistency checks, or to update related data in the database.
@@ -1197,7 +1197,7 @@ CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
 </pre>
 The trigger can be used to veto a change, by throwing a SQL Exception.
 
-<br><a name="compacting"></a>
+<br /><a name="compacting"></a>
 <h2>Compacting a Database</h2>
 Empty space in the database file is re-used automatically. 
 To re-build the indexes, the most simple way is to delete the .index.db file
@@ -1218,7 +1218,7 @@ See also the sample application org.h2.samples.Compact.
 The commands SCRIPT / RUNSCRIPT can be used as well to create the a backup
 of a database and re-build the database from the script.
 
-<br><a name="cache_settings"></a>
+<br /><a name="cache_settings"></a>
 <h2>Cache Settings</h2>
 <p>
 The database keeps most frequently used data and index pages in the main memory.

@@ -3,20 +3,20 @@
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><title>
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Data Types
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css">
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Data Types</h1>
 <c:forEach var="item" items="dataTypes">
-    <a href="#sql${item.id}">${item.topic}</a><br>
+    <a href="#sql${item.id}">${item.topic}</a><br />
 </c:forEach>
 
 <c:forEach var="item" items="dataTypes">
-<br>
+<br />
 <a name="sql${item.id}"></a><h3>${item.topic}</h3>
 <pre>
 ${item.syntax}
@@ -24,9 +24,9 @@ ${item.syntax}
 <p>
 ${item.text}
 </p>
-<b>Example:</b><br>
+<b>Example:</b><br />
 ${item.example}
-<br>
+<br />
 </c:forEach>
 
 </div></td></tr></table></body></html>

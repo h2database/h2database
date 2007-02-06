@@ -473,7 +473,7 @@ public class Select extends Query {
             isQuickQuery = isEverything(optimizable);
         }
         cost = preparePlan();
-        if(sort != null && !isQuickQuery && !isGroupQuery) {
+        if(sort != null && !isQuickQuery && !isGroupQuery && !distinct) {
             Index index = getSortIndex();
             Index current = topTableFilter.getIndex();
             if(index != null && (current.indexType.isScan() || current == index)) {
@@ -537,6 +537,9 @@ public class Select extends Query {
     }
 
     public String getPlan() {
+        if(topTableFilter == null) {
+            return sql;
+        }
         StringBuffer buff = new StringBuffer();
         Expression[] exprList = new Expression[expressions.size()];
         expressions.toArray(exprList);

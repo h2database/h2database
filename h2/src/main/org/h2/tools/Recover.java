@@ -32,6 +32,7 @@ import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
+import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.LogFile;
@@ -112,7 +113,7 @@ public class Recover implements DataHandler {
     }
     
     private void removePassword(String dir, String db) throws SQLException {
-        ArrayList list = FileBase.getDatabaseFiles(dir, db, true);
+        ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
         for(int i=0; i<list.size(); i++) {
             String fileName = (String) list.get(i);
             if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
@@ -252,7 +253,7 @@ public class Recover implements DataHandler {
     }
     
     private void process(String dir, String db) throws SQLException {
-        ArrayList list = FileBase.getDatabaseFiles(dir, db, true);
+        ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
         for(int i=0; i<list.size(); i++) {
             String fileName = (String) list.get(i);
             // TODO recover: should create a working SQL script if possible (2 passes)
@@ -337,6 +338,49 @@ public class Recover implements DataHandler {
                 FileUtils.delete(n);
             } catch (SQLException e) {
                 logError(n, e);
+            }
+        }
+    }
+    
+    private void writeLogRecord(PrintWriter writer, DataPage s) {
+        try {
+            recordLength = s.readInt();
+            if(recordLength <= 0) {
+                writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
+                return;
+            }
+            Value[] data;
+            try {
+                data = new Value[recordLength];
+            } catch(OutOfMemoryError e) {
+                writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+                return;
+            }
+            StringBuffer sb = new StringBuffer();
+            sb.append("//     data: ");
+            for(valueId=0; valueId<recordLength; valueId++) {
+                try {
+                    Value v = s.readValue();
+                    data[valueId] = v;
+                    if(valueId>0) {
+                        sb.append(", ");
+                    }
+                    sb.append(v.getSQL());
+                } catch(Exception e) {
+                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                    continue;
+                } catch(OutOfMemoryError e) {
+                    writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+                    continue;
+                }
+            }
+            writer.println(sb.toString());
+            writer.flush();
+        } catch(IOException e) {
+            try {
+                writeDataError(writer, "error: " + e.toString(), s.getBytes(), blockCount);
+            } catch(IOException e2) {
+                writeError(writer, e);
             }
         }
     }
@@ -433,9 +477,11 @@ public class Recover implements DataHandler {
                             break;
                         case 'I':
                             writer.println("//   insert session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                            writeLogRecord(writer, s);
                             break;
                         case 'D':
                             writer.println("//   delete session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                            writeLogRecord(writer, s);
                             break;
                         default:
                             writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);

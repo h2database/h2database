@@ -95,6 +95,7 @@ public class ConditionIn extends Condition {
             return expr;
         }
         if(Constants.OPTIMIZE_IN) {
+            int dataType = left.getType();
             ExpressionVisitor independent = ExpressionVisitor.get(ExpressionVisitor.INDEPENDENT);
             independent.queryLevel = queryLevel;
             if(areAllValues(independent)) {
@@ -103,6 +104,7 @@ public class ConditionIn extends Condition {
                     for(int i=0; i<values.size(); i++) {
                         Expression e = (Expression) values.get(i);
                         Value v = e.getValue(session);
+                        v = v.convertTo(dataType);
                         values.set(i, ValueExpression.get(v));
                         if(min == null || min.compareTo(v, mode) > 0) {
                             min = v;

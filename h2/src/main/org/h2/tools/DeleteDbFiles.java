@@ -5,8 +5,10 @@
 package org.h2.tools;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.h2.engine.Constants;
+import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 
 /**
@@ -15,10 +17,8 @@ import org.h2.util.FileUtils;
  * @author Thomas
  */
 
-public class DeleteDbFiles extends FileBase {
+public class DeleteDbFiles {
     
-    private boolean quiet;
-
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-quiet]");
     }
@@ -70,20 +70,25 @@ public class DeleteDbFiles extends FileBase {
      */
     public static void execute(String dir, String db, boolean quiet) throws SQLException {
         DeleteDbFiles delete = new DeleteDbFiles();
-        delete.quiet = quiet;
-        delete.processFiles(dir, db, !quiet);
+        ArrayList files = FileLister.getDatabaseFiles(dir, db, true);
+        for (int i = 0; i < files.size(); i++) {
+            String fileName = (String) files.get(i);
+            delete.process(fileName, quiet);
+            if (!quiet) {
+                System.out.println("processed: " + fileName);
+            }
+        }
+        if (files.size() == 0 && !quiet) {
+            System.out.println("No database files found");
+        }
     }
 
-    protected void process(String fileName) throws SQLException {
+    private void process(String fileName, boolean quiet) throws SQLException {
         if(quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
             FileUtils.tryDelete(fileName);
         } else {
             FileUtils.delete(fileName);
         }
-    }
-    
-    protected boolean allFiles() {
-        return true;
-    }    
+    }  
 
 }

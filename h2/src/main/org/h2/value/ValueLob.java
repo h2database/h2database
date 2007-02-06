@@ -512,22 +512,13 @@ public class ValueLob extends Value {
         try {
             String s;
             if(type == Value.CLOB) {
-                if(precision < Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB) {
-                    s = getString();
-                    return StringUtils.quoteStringSQL(s);
-                } else {
-                    return "READ_CLOB('" + fileName + "', "+precision+")";
-                    // TODO
-                }                
+                s = getString();
+                return StringUtils.quoteStringSQL(s);
             } else {
-                if(precision < Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB) {
-                    byte[] buff = getBytes();
-                    s = ByteUtils.convertBytesToString(buff);
-                    return "X'" + s + "'";
-                } else {
-                    return "READ_BLOB('"+ fileName +"', "+precision+")";
-                }
-            }
+                byte[] buff = getBytes();
+                s = ByteUtils.convertBytesToString(buff);
+                return "X'" + s + "'";
+            }            
         } catch(SQLException e) {
             throw Message.convertToInternal(e);
         }

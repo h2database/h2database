@@ -2,7 +2,7 @@
  * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.tools;
+package org.h2.store;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,11 +14,7 @@ import org.h2.util.FileUtils;
  * @author Thomas
  */
 
-public abstract class FileBase {
-    
-    protected boolean allFiles() {
-        return false;
-    }
+public class FileLister {
     
     /**
      * Get the list of database files.
@@ -70,21 +66,5 @@ public abstract class FileBase {
         }
         return files;
     }
-
-    protected void processFiles(String dir, String db, boolean log) throws SQLException {
-        ArrayList files = getDatabaseFiles(dir, db, allFiles());
-        for(int i=0; i<files.size(); i++) {
-            String fileName = (String) files.get(i);
-            process(fileName);
-            if(log) {
-                System.out.println("processed: "+fileName);
-            }
-        }
-        if(files.size() == 0 && log) {
-            System.out.println("No database files found");
-        }        
-    }
-    
-    protected abstract void process(String fileName) throws SQLException;
 
 }

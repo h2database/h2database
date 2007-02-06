@@ -35,6 +35,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h2>Change Log</h2>
 
 <h3>Version 1.0 (Current)</h3>
+<h3>Version 1.0 / 2007-02-TODO</h3><ul>
+<li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
+</li><li>When a subquery was used in the select list of a query, and GROUP BY was used at the same time,
+	a NullPointerException could occur. Fixed.
+</li><li>ORDER BY did not work when DISTINCT was used at the same timein some situations. Fixed.
+</li><li>When using IN(...) on a case insensitive column (VARCHAR_IGNORECASE), 
+	an incorrect optimization was made and the result was wrong sometimes.
+</li></ul>
 
 <h3>Version 1.0 / 2007-01-30</h3><ul>
 <li>Experimental online backup feature using the SQL statement BACKUP TO 'fileName'. 
@@ -1532,6 +1540,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support curtimestamp (like curtime, curdate)
 </li><li>Support ANALYZE {TABLE|INDEX} tablename COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 </li><li>Support Sequoia (Continuent.org)
+</li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
+</li><li>Pluggable tracing system, ThreadPool,  (AvalonDB / deebee / Paul Hammant)
 </li></ul>
 
 <h3>Not Planned</h3>

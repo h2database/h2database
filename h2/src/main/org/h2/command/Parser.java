@@ -105,6 +105,7 @@ import org.h2.table.Column;
 import org.h2.table.FunctionTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
+import org.h2.table.TableData;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
@@ -359,6 +360,11 @@ public class Parser {
             case 'V':
                 if(readIf("VALUES")) {
                     c = parserCall();
+                }
+                break;
+            case 'W':
+                if(readIf("WITH")) {
+                    c = parserWith();
                 }
                 break;
             default:
@@ -1065,7 +1071,7 @@ public class Parser {
         command.init();
         return command;
     }
-    
+
     private Query parseQueryWithParams() throws SQLException {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
@@ -3147,19 +3153,58 @@ public class Parser {
         command.setJavaClassMethod(readUniqueIdentifier());
         return command;
     }
+    
+    private Query parserWith() throws SQLException {
+//        String tempViewName = readUniqueIdentifier();
+//        if(readIf("(")) {
+//            String[] cols = parseColumnList(false);
+//            command.setColumnNames(cols);
+//
+//
+//            if(recursive) {
+//                ObjectArray columns = new ObjectArray();
+//                for(int i=0; i<cols.length; i++) {
+//                    columns.add(new Column(cols[i], Value.STRING, 0, 0));
+//                }
+//                recursiveTable = new TableData(getSchema(), viewName, 0, columns, false);
+//                recursiveTable.setTemporary(true);
+//                session.addLocalTempTable(recursiveTable);
+//            }
+        return null;
+        
+        
+    }
 
     private CreateView parseCreateView(boolean force) throws SQLException {
+        int test;
+        TableData recursiveTable = null;
+        boolean recursive = readIf("RECURSIVE");
+        
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
-        String select = StringCache.getNew(sqlCommand.substring(parseIndex));
         command.setComment(readCommentIf());
         if(readIf("(")) {
             String[] cols = parseColumnList(false);
             command.setColumnNames(cols);
+
+
+            if(recursive) {
+                ObjectArray columns = new ObjectArray();
+                for(int i=0; i<cols.length; i++) {
+                    columns.add(new Column(cols[i], Value.STRING, 0, 0));
+                }
+                recursiveTable = new TableData(getSchema(), viewName, 0, columns, false);
+                recursiveTable.setTemporary(true);
+                session.addLocalTempTable(recursiveTable);
+            }
+            
+            
         }
+        
+        String select = StringCache.getNew(sqlCommand.substring(parseIndex));
         read("AS");
         try {
             Query query = parseSelect();
@@ -3172,6 +3217,11 @@ public class Parser {
                 throw e;
             }
         }
+        
+        if(recursiveTable != null) {
+            session.removeLocalTempTable(recursiveTable);
+        }
+        
         return command;
     }
 

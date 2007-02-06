@@ -19,9 +19,9 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.store.DiskFile;
+import org.h2.store.FileLister;
 import org.h2.store.LogFile;
 import org.h2.store.LogSystem;
-import org.h2.tools.FileBase;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
@@ -72,7 +72,7 @@ public class Backup extends Prepared {
                         backupFile(out, fn);
                         db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
                     }
-                    ArrayList fileList = FileBase.getDatabaseFiles(db.getDatabasePath(), name, true);
+                    ArrayList fileList = FileLister.getDatabaseFiles(db.getDatabasePath(), name, true);
                     for(int i=0; i<fileList.size(); i++) {
                         fn = (String) fileList.get(i);
                         if(fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {

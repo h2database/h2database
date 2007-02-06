@@ -6,23 +6,24 @@ package org.h2.tools;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.h2.engine.Database;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
+import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.util.FileUtils;
 
 /**
  * A tools to change, remove or set a file password of a database without opening it.
  */
-public class ChangePassword extends FileBase {
-    
+public class ChangePassword {
+
     private String dir;
     private String cipher;
     private byte[] decrypt;
     private byte[] encrypt;
-    private boolean testRenameOnly;
     
     // TODO security: maybe allow functions in the url
     // jdbc:h2:test;action=[decrypt|encrypt|check|reindex|recover|compress...]
@@ -113,35 +114,36 @@ public class ChangePassword extends FileBase {
         change.encrypt = encrypt;
 
         // first, test only if the file can be renamed (to find errors with locked files early)
-        change.testRenameOnly = true;
-        change.processFiles(dir, db, !quiet);
-        // if this worked, the operation will (hopefully) be successful 
-        // TODO changePassword: this is a workaround! make the operation atomic (all files or none)
-        change.testRenameOnly = false;
-        change.processFiles(dir, db, !quiet);
-    }
-
-    protected void process(String fileName) throws SQLException {
-        if(FileUtils.isDirectory(fileName)) {
-            return;
-        }
-        if(testRenameOnly) {
+        ArrayList files = FileLister.getDatabaseFiles(dir, db, true);
+        for (int i = 0; i < files.size(); i++) {
+            String fileName = (String) files.get(i);
             String temp = dir + "/temp.db";
             FileUtils.delete(temp);
             FileUtils.rename(fileName, temp);
             FileUtils.rename(temp, fileName);
-        } else {
-            boolean textStorage = Database.isTextStorage(fileName, false);
-            byte[] magic = Database.getMagic(textStorage);
-            FileStore in;
-            if(decrypt == null) {
-                in = FileStore.open(null, fileName, magic);
-            } else {
-                in = FileStore.open(null, fileName, magic, cipher, decrypt);
-            }
-            in.init();
-            copy(fileName, textStorage, in, encrypt);
         }
+        // if this worked, the operation will (hopefully) be successful 
+        // TODO changePassword: this is a workaround! make the operation atomic (all files or none)
+        for (int i = 0; i < files.size(); i++) {
+            String fileName = (String) files.get(i);
+            change.process(fileName);
+        }
+        if (files.size() == 0 && !quiet) {
+            System.out.println("No database files found");
+        }             
+    }
+
+    private void process(String fileName) throws SQLException {
+        boolean textStorage = Database.isTextStorage(fileName, false);
+        byte[] magic = Database.getMagic(textStorage);
+        FileStore in;
+        if(decrypt == null) {
+            in = FileStore.open(null, fileName, magic);
+        } else {
+            in = FileStore.open(null, fileName, magic, cipher, decrypt);
+        }
+        in.init();
+        copy(fileName, textStorage, in, encrypt);
     }
     
     private void copy(String fileName, boolean textStorage, FileStore in, byte[] key) throws SQLException {

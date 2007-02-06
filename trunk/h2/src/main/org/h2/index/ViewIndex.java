@@ -7,6 +7,7 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.command.dml.Query;
+import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
@@ -35,10 +36,21 @@ public class ViewIndex extends Index {
     private long lastEvaluated;
     private LocalResult lastResult;
     
-    public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters) {
+    private int todoRecursiveMustBePrivate;
+    public boolean recursive;
+    private int recurseLevel;
+    private LocalResult recursiveResult;
+    
+    public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
         super(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
+        
+        int test;
+        this.recursive = recursive;
+        columns = new Column[0];
+        params = new Parameter[0];
+
     }
     
     public String getPlanSQL() {
@@ -76,6 +88,9 @@ public class ViewIndex extends Index {
     }
     
     public double getCost(Session session, int[] masks) throws SQLException {
+        if(recursive) {
+            return 10;
+        }
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
         CostElement cachedCost = (CostElement) costCache.get(masksArray);
         if(cachedCost != null) {
@@ -85,11 +100,11 @@ public class ViewIndex extends Index {
             }
         }
         Query query = (Query)session.prepare(querySQL, true);
-        IntArray paramIndex = new IntArray();
         if(masks == null) {
             columns = new Column[0];
             params = new Parameter[0];
         } else {
+            IntArray paramIndex = new IntArray();
             for(int i=0; i<masks.length; i++) {
                 int mask = masks[i];
                 if(mask == 0) {
@@ -110,6 +125,9 @@ public class ViewIndex extends Index {
                 int comparisonType = getComparisonType(mask);
                 query.addGlobalCondition(param, idx, comparisonType);
             }
+            if(recursive) {
+                return 10;
+            }
             String sql = query.getSQL();
             query = (Query)session.prepare(sql);
         }
@@ -123,6 +141,35 @@ public class ViewIndex extends Index {
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         Query query = (Query)session.prepare(querySQL, true);
+        if(recursive) {
+            SelectUnion union = (SelectUnion) query;
+            Query left = union.getLeftQuery();
+            Query right = union.getRightQuery();
+            LocalResult completeResult;
+            if(recurseLevel==0) {
+                LocalResult result = left.query(0);
+                completeResult = result;
+                recurseLevel = 1;
+                result = left.query(0);
+                while(true) {
+                    recursiveResult = result;
+                    recurseLevel++;
+                    result = right.query(0);
+                    if(result.getRowCount() == 0) {
+                        break;
+                    }
+                    result = right.query(0);
+                    while(result.next()) {
+                        completeResult.addRow(result.currentRow());
+                    }
+                }
+                completeResult.done();
+                recurseLevel=0;
+                return new ViewCursor(table, completeResult);
+            } else {
+                return new ViewCursor(table, recursiveResult);
+            }
+        }
         ObjectArray paramList = query.getParameters();
         for(int i=0; first != null && i<first.getColumnCount(); i++) {
             Value v = first.getValue(i);

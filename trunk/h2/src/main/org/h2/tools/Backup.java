@@ -5,15 +5,24 @@
 package org.h2.tools;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.h2.message.Message;
+import org.h2.store.FileLister;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -152,6 +161,39 @@ public class Backup {
             IOUtils.closeSilently(fileWriter);
         }
     }
-
+    
+    /**
+     * INTERNAL
+     */
+    public static void backupFiles(String zipFileName, String directory, String db) throws IOException, SQLException {
+        File file = new File(zipFileName);
+        if(file.exists()) {
+            file.delete();
+        }
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            ZipOutputStream zipOut = new ZipOutputStream(out);
+            ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
+            for(int i=0; i<list.size(); i++) {
+                String fileName = (String) list.get(i);
+                ZipEntry entry = new ZipEntry(FileUtils.getFileName(fileName));
+                zipOut.putNextEntry(entry);
+                FileInputStream in = null;
+                try {
+                    in = new FileInputStream(fileName);
+                    IOUtils.copyAndCloseInput(in, zipOut);
+                } finally {
+                    IOUtils.closeSilently(in);
+                }
+                zipOut.closeEntry();
+            }
+            zipOut.closeEntry();
+            zipOut.close();
+        } finally {
+            IOUtils.closeSilently(out);
+        }
+    }
+    
 }
 

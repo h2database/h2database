@@ -18,6 +18,7 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
+import org.h2.value.Value;
 
 public class TableView extends Table {
 
@@ -27,12 +28,15 @@ public class TableView extends Table {
     private boolean invalid;
     private Query viewQuery;
     private ViewIndex index;
+    
+    private int test;
+    private boolean recursive;
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session) throws SQLException {
         super(schema, id, name, false);
         this.querySQL = querySQL;
         this.columnNames = columnNames;
-        index = new ViewIndex(this, querySQL, params);
+        index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
 
@@ -77,6 +81,18 @@ public class TableView extends Table {
             tables = new ObjectArray();
             cols = new Column[0];
             invalid = true;
+
+            int testing;
+            if(columnNames != null) {
+                cols = new Column[columnNames.length];
+                for(int i=0; i<columnNames.length; i++) {
+                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
+                }
+                invalid = false;
+index.recursive=true;                
+                recursive = true;
+            }
+            
         }
         setColumns(cols);
     }

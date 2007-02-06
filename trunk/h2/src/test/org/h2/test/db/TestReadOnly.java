@@ -10,8 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
-import org.h2.tools.FileBase;
 
 public class TestReadOnly extends TestBase {
 
@@ -52,7 +52,7 @@ public class TestReadOnly extends TestBase {
     }
     
     private void setReadOnly() throws SQLException {
-        ArrayList list = FileBase.getDatabaseFiles(TestBase.BASE_DIR, "readonly", true);
+        ArrayList list = FileLister.getDatabaseFiles(TestBase.BASE_DIR, "readonly", true);
         for(int i=0; i<list.size(); i++) {
             String fileName = (String) list.get(i);
             File file = new File(fileName);

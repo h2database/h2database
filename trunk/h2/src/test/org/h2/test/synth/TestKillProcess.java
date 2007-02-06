@@ -10,8 +10,8 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
-import org.h2.tools.FileBase;
 
 public class TestKillProcess {
     public static void main(String[] args) throws Exception {
@@ -32,7 +32,7 @@ public class TestKillProcess {
             for(int i=0; ; i++) {
                 long t = System.currentTimeMillis();
                 if(t > time + 1000) {
-                    ArrayList list = FileBase.getDatabaseFiles(BASE_DIR, "kill", true);
+                    ArrayList list = FileLister.getDatabaseFiles(BASE_DIR, "kill", true);
                     System.out.println("inserting... i:"+i+" d:" + d+" files:" + list.size());
                     time = t;
                 }

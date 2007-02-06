@@ -170,7 +170,7 @@ public class TableData extends Table implements RecordReader {
                 }
                 addRowsToIndex(session, buffer, index);
                 if(Constants.CHECK && remaining != 0) {
-                    throw Message.getInternalError("rowcount remaining=" + remaining);
+                    throw Message.getInternalError("rowcount remaining=" + remaining + " " + getName());
                 }
             } catch(SQLException e) {
                 try {

@@ -65,6 +65,7 @@ start cmd /k "java org.h2.test.TestAll synth >testSynth.txt"
 start cmd /k "java org.h2.test.TestAll all >testAll.txt"
 start cmd /k "java org.h2.test.TestAll random >testRandom.txt"
 start cmd /k "java org.h2.test.TestAll btree >testBtree.txt"
+start cmd /k "java org.h2.test.TestAll halt >testHalt.txt"
 
 Test for hot spots:
 java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
@@ -86,7 +87,95 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
         
-        // improve TestHalt
+        // run  TestHalt
+        
+//            SELECT (SELECT true)+1 GROUP BY 1;
+        
+//        DROP TABLE IF EXISTS TESTA, TESTB;
+//        CREATE TABLE TESTA(ID IDENTITY);
+//        CREATE TABLE TESTB(ID IDENTITY);
+//        @LOOP 4 INSERT INTO TESTA() VALUES();
+//        @LOOP 4 INSERT INTO TESTB() VALUES();
+//        SELECT TESTA.ID A, TESTB.ID B FROM TESTA, TESTB ORDER BY TESTA.ID, TESTB.ID;
+        
+//        script.sql /
+//        UPDATE Supplier_Original_Input SET global_duns = parent_duns
+//        INSERT INTO SupplierBase (ID, duns, subscriber, watch_list, name, city, state, country, global_duns, Feed, FeedNo, frequency) SELECT ID, duns, subscriber, watch_list, name,city, state, country,global_duns, Feed, FeedNo,frequency FROM Supplier_Original_Input
+//        number of rows in supplier_original_input is 354704.
+//        time taken for executing the update statement is 700 seconds. 
+        
+//        deebee.tar.gz
+        
+//        WHERE FLAG does not use index, but WHERE FLAG=TRUE does
+//        
+//        drop table test;
+//        CREATE TABLE test (id int, flag BIT NOT NULL);
+//        CREATE INDEX idx_flag ON test(flag);
+//        CREATE INDEX idx_id ON test(id);
+//        insert into test values(1, false), (2, true), (3, false), (4, true);
+//        ALTER TABLE test ALTER COLUMN id SELECTIVITY 100;
+//        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 1;
+//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
+//        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
+//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
+//
+//        ALTER TABLE test ALTER COLUMN id SELECTIVITY 1;
+//        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 100;
+//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
+//        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
+//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
+        
+        
+        
+//        DROP VIEW IF EXISTS TEST_REC;
+//        DROP VIEW IF EXISTS TEST_2;
+//        DROP TABLE IF EXISTS TEST;
+//
+//        CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT, NAME VARCHAR(255));
+//        INSERT INTO TEST VALUES(1, NULL, 'Root');
+//        INSERT INTO TEST VALUES(2, 1, 'Plant');
+//        INSERT INTO TEST VALUES(3, 1, 'Animal');
+//        INSERT INTO TEST VALUES(4, 2, 'Tree');
+//        INSERT INTO TEST VALUES(5, 2, 'Flower');
+//        INSERT INTO TEST VALUES(6, 3, 'Elephant');
+//        INSERT INTO TEST VALUES(7, 3, 'Dog');
+//
+//        CREATE FORCE VIEW TEST_2(ID, PARENT, NAME) AS SELECT ID, PARENT, NAME FROM TEST_REC;
+//
+//        CREATE FORCE VIEW TEST_REC(ID, PARENT, NAME) AS 
+//        SELECT ID, PARENT, NAME FROM TEST T 
+//        WHERE PARENT IS NULL 
+//        UNION ALL
+//        SELECT T.ID, T.PARENT, T.NAME 
+//        FROM TEST T, TEST_2 R 
+//        WHERE 1=0 AND T.PARENT=R.ID;
+//
+//        SELECT * FROM TEST_REC;
+        
+//        DROP VIEW IF EXISTS TEST_REC;
+//        DROP VIEW IF EXISTS TEST_2;
+//        DROP TABLE IF EXISTS TEST;
+//
+//        CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT, NAME VARCHAR(255));
+//        INSERT INTO TEST VALUES(1, NULL, 'Root');
+//        INSERT INTO TEST VALUES(2, 1, 'Plant');
+//        INSERT INTO TEST VALUES(3, 1, 'Animal');
+//        INSERT INTO TEST VALUES(4, 2, 'Tree');
+//        INSERT INTO TEST VALUES(5, 2, 'Flower');
+//        INSERT INTO TEST VALUES(6, 3, 'Elephant');
+//        INSERT INTO TEST VALUES(7, 3, 'Dog');
+//
+//        CREATE VIEW RECURSIVE TEST_REC(ID, PARENT, NAME, LEVEL) AS 
+//        SELECT ID, PARENT, NAME, 0 FROM TEST T 
+//        WHERE PARENT IS NULL 
+//        UNION ALL
+//        SELECT T.ID, T.PARENT, T.NAME, CAST(R.LEVEL AS INT)+1 
+//        FROM TEST T, TEST_REC R 
+//        WHERE T.PARENT=R.ID;
+//
+//        SELECT * FROM TEST_REC;        
+        
+        
         
         // TODO backup : lobs are not backed up
 //        DROP TABLE IF EXISTS TEST;

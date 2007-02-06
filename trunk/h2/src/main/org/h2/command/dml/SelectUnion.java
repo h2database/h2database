@@ -302,4 +302,11 @@ public class SelectUnion extends Query {
         return left.isReadOnly() && right.isReadOnly();
     }
 
+    public Query getLeftQuery() {
+        return left;
+    }
+
+    public Query getRightQuery() {
+        return right;
+    }
 }

@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 
@@ -29,6 +30,10 @@ public abstract class TestHalt extends TestBase {
     protected int operations, flags, value;
     protected Connection conn;
     protected Random random = new Random();
+    private int errorId;
+    private int sequenceId;
+    private static final String DATABASE_NAME = "halt";
+    private static final String TRACE_FILE_NAME = BASE_DIR + "/haltTrace.trace.db";
     
     abstract void testInit() throws Exception;
     abstract void testCheckAfterCrash() throws Exception;
@@ -52,7 +57,7 @@ public abstract class TestHalt extends TestBase {
     
     Connection getConnection() throws Exception {
         Class.forName("org.h2.Driver");
-        return DriverManager.getConnection("jdbc:h2:test", "sa", "sa");
+        return DriverManager.getConnection("jdbc:h2:" + BASE_DIR + "/halt", "sa", "sa");
     }
     
     protected void start(String[] args) throws Exception {
@@ -67,36 +72,40 @@ public abstract class TestHalt extends TestBase {
     }
     
     private void runRandom() throws Exception {
-        log("connecting", null);
         connect();
         try {
-            log("connected, operations:" + operations + " flags:" + flags + " value:" + value, null);
+            traceOperation("connected, operations:" + operations + " flags:" + flags + " value:" + value);
             appStart();
             System.out.println("READY");
             System.out.println("READY");
             System.out.println("READY");
             appRun();
-            log("done", null);
+            traceOperation("done");
         } catch(Exception e) {
-            log("run", e);
+            trace("run", e);
         }
         disconnect();
     }
     
     private void connect() throws Exception {
         try {
+            traceOperation("connecting");
             conn = getConnection();
         } catch(Exception e) {
-            log("connect", e);
+            trace("connect", e);
             e.printStackTrace();
             throw e;
         }
     }
     
-    protected void log(String s, Exception e) {
+    protected void traceOperation(String s) {
+        trace(s, null);
+    }
+    
+    protected void trace(String s, Exception e) {
         FileWriter writer = null;
         try {
-            writer = new FileWriter("log.txt", true);
+            writer = new FileWriter(TRACE_FILE_NAME, true);
             PrintWriter w = new PrintWriter(writer);
             s = dateFormat.format(new Date()) + ": " + s;
             w.println(s);
@@ -111,12 +120,17 @@ public abstract class TestHalt extends TestBase {
     }
     
     private void runTest() throws Exception {
-        DeleteDbFiles.execute(null, "test", true);
-        new File("log.txt").delete();
+        traceOperation("delete database -----------------------------");
+        DeleteDbFiles.execute(BASE_DIR, DATABASE_NAME, true);
+        new File(TRACE_FILE_NAME).delete();
+        
         connect();
         testInit();
         disconnect();
         for(int i=0; i<10; i++) {
+            traceOperation("backing up " + sequenceId);
+            Backup.backupFiles(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null);
+            sequenceId++;
             // int operations = OP_INSERT;
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
             // int flags = FLAG_NODELAY;
@@ -126,7 +140,7 @@ public abstract class TestHalt extends TestBase {
             // String classPath = "-cp .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String classPath = "";
             String command = "java " + classPath + " " + getClass().getName() + " " + operations + " " + flags + " " + value;
-            log("start: " + command);
+            traceOperation("start: " + command);
             Process p = Runtime.getRuntime().exec(command);
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
@@ -135,26 +149,37 @@ public abstract class TestHalt extends TestBase {
             if(s == null) {
                 throw new IOException("No reply from process");
             } else if(s.startsWith("READY")) {
-                log("got reply: " + s);
+                traceOperation("got reply: " + s);
             }
             testWaitAfterAppStart();
             p.destroy();
-            connect();
-            testCheckAfterCrash();
-            disconnect();
+            try {
+                traceOperation("backing up " + sequenceId);
+                Backup.backupFiles(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null);
+                // new File(BASE_DIR + "/haltSeq" + (sequenceId-20) + ".zip").delete();
+                connect();
+                testCheckAfterCrash();
+            } catch(Exception e) {
+                File zip = new File(BASE_DIR + "/haltSeq"+ sequenceId + ".zip");
+                File zipId = new File(BASE_DIR + "/haltSeq" + sequenceId + "-" + errorId + ".zip");
+                zip.renameTo(zipId);
+                printTime("ERROR: " + sequenceId + " " + errorId + " " + e.toString());
+                e.printStackTrace();
+                errorId++;
+            } finally {
+                sequenceId++;
+                disconnect();
+            }
         }
     }
 
     protected void disconnect() {
         try {
+            traceOperation("disconnect");
             conn.close();
         } catch(Exception e) {
-            log("disconnect", e);
+            trace("disconnect", e);
         }
-    }
-
-    private void log(String string) {
-        System.out.println(string);
     }
     
     private static class OutputCatcher extends Thread {

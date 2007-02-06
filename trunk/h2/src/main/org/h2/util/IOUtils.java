@@ -183,7 +183,7 @@ public class IOUtils {
             }
             off += l;
         }
-        return off < 0 ? -1 : off;
+        return off <= 0 ? -1 : off;
     }
 
     public static int readFully(Reader in, char[] buffer, int max) throws IOException {
@@ -202,7 +202,7 @@ public class IOUtils {
             }
             off += l;
         }
-        return off < 0 ? -1 : off;
+        return off <= 0 ? -1 : off;
     }
     
     public static Reader getReader(InputStream in) throws SQLException {

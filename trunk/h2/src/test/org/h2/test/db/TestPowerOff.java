@@ -15,8 +15,8 @@ import java.util.Random;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
-import org.h2.tools.FileBase;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 
@@ -164,7 +164,7 @@ public class TestPowerOff extends TestBase {
              // expected
          }
          boolean deleted = false;
-         ArrayList files = FileBase.getDatabaseFiles(dir, dbName, false);
+         ArrayList files = FileLister.getDatabaseFiles(dir, dbName, false);
          for(int i=0; i<files.size(); i++) {
              String fileName = (String) files.get(i);
              if(fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {

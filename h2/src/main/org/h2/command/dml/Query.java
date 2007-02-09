@@ -131,7 +131,18 @@ public abstract class Query extends Prepared {
                             Expression ec2 = ec.getNonAliasExpression();
                             if(ec2 instanceof ExpressionColumn) {
                                 ExpressionColumn c2 = (ExpressionColumn) ec2;
+                                String ta = exprCol.getSQL(); //  exprCol.getTableAlias();
+                                String tb = c2.getSQL(); //  getTableAlias();
                                 found = col.equals(c2.getColumnName());
+                                if(ta == null || tb == null) {
+                                    if(ta != tb) {
+                                        found = false;
+                                    }
+                                } else {
+                                    if(!ta.equals(tb)) {
+                                        found = false;
+                                    }
+                                }
                             }
                         }
                         if(found) {

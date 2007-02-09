@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE TESTA(ID IDENTITY);
+> ok
+
+CREATE TABLE TESTB(ID IDENTITY);
+> ok
+
+explain SELECT TESTA.ID A, TESTB.ID B FROM TESTA, TESTB ORDER BY TESTA.ID, TESTB.ID;
+> PLAN
+> -------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TESTA.ID AS A, TESTB.ID AS B FROM PUBLIC.TESTA /* PUBLIC.TESTA_TABLE_SCAN */ INNER JOIN PUBLIC.TESTB /* PUBLIC.TESTB_TABLE_SCAN */ ORDER BY 1, 2
+> rows (ordered): 1
+
+DROP TABLE IF EXISTS TESTA, TESTB;
+> ok
+
 CREATE TABLE test (family_name VARCHAR_IGNORECASE(63) NOT NULL);
 > ok
 

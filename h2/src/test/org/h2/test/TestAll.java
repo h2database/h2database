@@ -89,20 +89,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
         // run  TestHalt
         
-//            SELECT (SELECT true)+1 GROUP BY 1;
-        
-//        DROP TABLE IF EXISTS TESTA, TESTB;
-//        CREATE TABLE TESTA(ID IDENTITY);
-//        CREATE TABLE TESTB(ID IDENTITY);
-//        @LOOP 4 INSERT INTO TESTA() VALUES();
-//        @LOOP 4 INSERT INTO TESTB() VALUES();
-//        SELECT TESTA.ID A, TESTB.ID B FROM TESTA, TESTB ORDER BY TESTA.ID, TESTB.ID;
-        
-//        script.sql /
-//        UPDATE Supplier_Original_Input SET global_duns = parent_duns
-//        INSERT INTO SupplierBase (ID, duns, subscriber, watch_list, name, city, state, country, global_duns, Feed, FeedNo, frequency) SELECT ID, duns, subscriber, watch_list, name,city, state, country,global_duns, Feed, FeedNo,frequency FROM Supplier_Original_Input
-//        number of rows in supplier_original_input is 354704.
-//        time taken for executing the update statement is 700 seconds. 
+//        When you run SCRIPT DROP it drops the tables but not the autoincrement values. 
+//        When I try to restore the db I get errors that the already exist. 
+//        The workaround is to drop all objects at the beginning which seems to work fine.
         
 //        deebee.tar.gz
         

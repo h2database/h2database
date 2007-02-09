@@ -37,6 +37,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 <h3>Version 1.0 / 2007-02-TODO</h3><ul>
 <li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
+</li><li>ORDER BY picked the wrong column if the same column name (but with a different table name) 
+	was used twice in the select list.
 </li><li>When a subquery was used in the select list of a query, and GROUP BY was used at the same time,
 	a NullPointerException could occur. Fixed.
 </li><li>ORDER BY did not work when DISTINCT was used at the same timein some situations. Fixed.

@@ -1,4 +1,4 @@
-SELECT (SELECT true)+1 GROUP BY 1;
+select (SELECT true)+1 GROUP BY 1;
 > 2;
 create table FOO (ID int, A number(18, 2));
 insert into FOO (ID, A) values (1, 10.0), (2, 20.0);

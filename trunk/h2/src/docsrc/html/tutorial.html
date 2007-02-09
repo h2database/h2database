@@ -257,7 +257,7 @@ import org.h2.tools.Server;
 ...
 // start the TCP Server with SSL enabled
 String[] args = new String[]{"-ssl", "true"};
-Server server = Server.startTcpServer(args);
+Server server = Server.createTcpServer(args).start();
 ...
 // stop the TCP Server
 server.stop();

@@ -253,6 +253,7 @@ ALTER USER userName RENAME TO newUserName
 ","
 Renames a user.
 The user name is converted to uppercase if it is not quoted (with double quotes).
+After renaming a user the password becomes invalid and needs to be changed as well.
 Admin rights are required to execute this command.
 ","
 ALTER USER TOM RENAME TO THOMAS

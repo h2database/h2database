@@ -7,7 +7,7 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import org.h2.jdbcx.JdbcDataSource;
 
-public class TestXA {
+public class TestXASimple {
     
     int notYetImplemented;
     

@@ -35,15 +35,30 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h2>Change Log</h2>
 
 <h3>Version 1.0 (Current)</h3>
-<h3>Version 1.0 / 2007-02-TODO</h3><ul>
-<li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
+<h3>Version 1.0 / 2007-03-04</h3><ul>
+<li>System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now
+    random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
+</li><li>The precision for linked tables was not correct for some data types, for example VARCHAR. Fixed.
+</li><li>Many problems and bugs in the XA support (package javax.sql) have been fixed.
+</li><li>Now the server tool (org.h2.tools.Server) terminates with an exit code if a problem occured.
+</li><li>The JDBC driver is now loaded if the JdbcDataSource class is loaded.
+</li><li>After renaming a user the password becomes invalid. This is now documented.
+</li><li>XAResource.recover didn't work. Fixed. 
+</li><li>XAResource.recover did throw an exception with the code XAER_OUTSIDE if there
+    was no connection. Now the code is XAER_RMERR.  
+</li><li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
+</li><li>BACKUP TO 'test.zip' now works with encrypted databases and CLOB and BLOB data.
+</li><li>The function CASE WHEN ... didn't convert the returned value to the same data type,
+    resulting in unexpected behavior in many cases. Fixed.
+</li><li>Truncating a table is now allowed if the table references another table 
+    (but still not allowed if the table is references by another table).
 </li><li>ORDER BY picked the wrong column if the same column name (but with a different table name) 
-	was used twice in the select list.
+    was used twice in the select list.
 </li><li>When a subquery was used in the select list of a query, and GROUP BY was used at the same time,
-	a NullPointerException could occur. Fixed.
-</li><li>ORDER BY did not work when DISTINCT was used at the same timein some situations. Fixed.
+    a NullPointerException could occur. Fixed.
+</li><li>ORDER BY did not work when DISTINCT was used at the same time in some situations. Fixed.
 </li><li>When using IN(...) on a case insensitive column (VARCHAR_IGNORECASE), 
-	an incorrect optimization was made and the result was wrong sometimes.
+    an incorrect optimization was made and the result was wrong sometimes.
 </li></ul>
 
 <h3>Version 1.0 / 2007-01-30</h3><ul>
@@ -1540,10 +1555,16 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Improve command line consistency (+/- options, or true false options)
 </li><li>Allow to use the catalog name in statements: [[catalog.]schema.]object
 </li><li>Support curtimestamp (like curtime, curdate)
-</li><li>Support ANALYZE {TABLE|INDEX} tablename COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
+</li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 </li><li>Support Sequoia (Continuent.org)
 </li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
 </li><li>Pluggable tracing system, ThreadPool,  (AvalonDB / deebee / Paul Hammant)
+</li><li>Recursive Queries (see details)
+</li><li>Use index on boolean flag (see details)
+</li><li>Add build for embedded database only
+</li><li>Release locks (shared or exclusive) on demand
+</li><li>Support catalog names
+</li><li>Add object id to metadata tables
 </li></ul>
 
 <h3>Not Planned</h3>

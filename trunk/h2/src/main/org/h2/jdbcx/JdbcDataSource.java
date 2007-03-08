@@ -52,6 +52,10 @@ Serializable, Referenceable  {
     private String password = "";
     private String url = "";
     
+    static {
+        org.h2.Driver.load();
+    }
+    
     public JdbcDataSource() {
         initFactory();
         int id = getNextId(TraceObject.DATA_SOURCE);

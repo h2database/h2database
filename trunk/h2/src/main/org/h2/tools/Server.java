@@ -28,6 +28,7 @@ public class Server implements Runnable {
     
     private String name;
     private Service service;
+    private static final int EXIT_ERROR = 1;
     
     private void showUsage() {
         System.out.println("java "+getClass().getName() + " [options]");
@@ -69,6 +70,7 @@ public class Server implements Runnable {
      * The command line interface for this tool.
      * The options must be split into strings like this: "-baseDir", "/temp/data",...
      * By default, -tcp, -web, -browser and -odbc are started.
+     * If there is a problem starting a service, the program terminates with an exit code of 1.
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -105,10 +107,13 @@ public class Server implements Runnable {
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        new Server().run(args);
+        int exitCode = new Server().run(args);
+        if(exitCode != 0) {
+            System.exit(exitCode);
+        }
     }
 
-    private void run(String[] args) throws SQLException {
+    private int run(String[] args) throws SQLException {
         boolean tcpStart = false, odbcStart = false, webStart = false, ftpStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
@@ -119,7 +124,7 @@ public class Server implements Runnable {
             String a = args[i];
             if(a.equals("-?") || a.equals("-help")) {
                 showUsage();
-                return;
+                return EXIT_ERROR;
             } else if(a.equals("-web")) {
                 startDefaultServers = false;
                 webStart = true;
@@ -145,6 +150,7 @@ public class Server implements Runnable {
                 browserStart = true;
             }
         }
+        int exitCode = 0;
         if(startDefaultServers) {
             tcpStart = true;
             odbcStart = true;
@@ -163,6 +169,7 @@ public class Server implements Runnable {
             } catch(SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
+                exitCode = EXIT_ERROR;
             }
             System.out.println(tcp.getStatus());
         }
@@ -173,6 +180,7 @@ public class Server implements Runnable {
             } catch(SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
+                exitCode = EXIT_ERROR;
             }            
             System.out.println(odbc.getStatus());
         }
@@ -183,6 +191,7 @@ public class Server implements Runnable {
             } catch(SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
+                exitCode = EXIT_ERROR;
             }       
             System.out.println(web.getStatus());
             // start browser anyway (even if the server is already running) 
@@ -199,9 +208,11 @@ public class Server implements Runnable {
             } catch(SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
+                exitCode = EXIT_ERROR;
             }       
             System.out.println(ftp.getStatus());
         }
+        return exitCode;
     }
     
     /**

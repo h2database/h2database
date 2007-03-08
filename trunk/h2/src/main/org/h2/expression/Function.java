@@ -362,7 +362,9 @@ public class Function extends Expression implements FunctionCall {
                 return v0;
             }
             Expression result = v0.getBoolean().booleanValue() ? args[1] : args[2];
-            return result.getValue(session);
+            Value v = result.getValue(session);
+            v = v.convertTo(dataType);
+            return v;
         }
         case COALESCE: {
             for (int i = 0; i < args.length; i++) {

@@ -66,7 +66,6 @@ public class TableLink extends Table {
             long precision = rs.getInt("COLUMN_SIZE");
             int scale = rs.getInt("DECIMAL_DIGITS");
             int type = DataType.convertSQLTypeToValueType(sqlType);
-            precision = Math.max(precision, DataType.getDataType(type).defaultPrecision);
             Column col = new Column(n, type, precision, scale);
             col.setTable(this, i++);
             columnList.add(col);
@@ -87,7 +86,6 @@ public class TableLink extends Table {
                     long precision = rsMeta.getPrecision(i+1);
                     int scale = rsMeta.getScale(i+1);
                     int type = DataType.convertSQLTypeToValueType(sqlType);
-                    precision = Math.max(precision, DataType.getDataType(type).defaultPrecision);
                     Column col = new Column(n, type, precision, scale);
                     col.setTable(this, i++);
                     columnList.add(col);

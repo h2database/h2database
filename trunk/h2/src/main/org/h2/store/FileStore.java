@@ -285,4 +285,8 @@ public class FileStore {
         autoDeleteReference = null;
     }
 
+    public boolean isEncrypted() {
+        return false;
+    }
+
 }

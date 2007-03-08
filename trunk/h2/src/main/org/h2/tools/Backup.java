@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.h2.message.Message;
@@ -195,5 +196,37 @@ public class Backup {
         }
     }
     
+    /**
+     * INTERNAL
+     */
+    public static void restoreFiles(String zipFileName, String directory) throws IOException, SQLException {
+        File file = new File(zipFileName);
+        if(!file.exists()) {
+            throw new IOException("File not found: " + zipFileName);
+        }
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            ZipInputStream zipIn = new ZipInputStream(in);
+            while(true) {
+                ZipEntry entry = zipIn.getNextEntry();
+                if(entry == null) {
+                    break;
+                }
+                String fileName = entry.getName();
+                FileOutputStream out = null;
+                try {
+                    out = new FileOutputStream(new File(directory, fileName));
+                    IOUtils.copy(zipIn, out);
+                } finally {
+                    IOUtils.closeSilently(out);
+                }
+                zipIn.closeEntry();
+            }
+            zipIn.closeEntry();
+            zipIn.close();
+        } finally {
+            IOUtils.closeSilently(in);
+        }
+    }
 }
-

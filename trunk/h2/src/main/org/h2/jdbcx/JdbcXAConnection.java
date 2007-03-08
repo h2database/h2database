@@ -42,13 +42,20 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private JdbcConnection conn;
     private ArrayList listeners = new ArrayList();
     private Xid currentTransaction;
+    private int currentTransactionId;
+    private static int nextTransactionId;
     
-    JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, String password) {
+    static {
+        org.h2.Driver.load();
+    }
+    
+    JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, String password) throws SQLException {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.url = url;
         this.user = user;
         this.password = password;
+        getConnection();
     }
 
     public XAResource getXAResource() throws SQLException {
@@ -128,7 +135,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY ID");
+            ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
             ArrayList list = new ArrayList();
             while(rs.next()) {
                 String tid = rs.getString("TRANSACTION");
@@ -141,8 +148,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
             list.toArray(result);
             return result;
         } catch(SQLException e) {
-            getTrace().debug("throw XAException.XAER_OUTSIDE", e);
-           throw new XAException(XAException.XAER_OUTSIDE);
+            getTrace().debug("throw XAException.XAER_RMERR", e);
+           throw new XAException(XAException.XAER_RMERR);
         } finally {
             JdbcUtils.closeSilently(stat);
         }
@@ -151,28 +158,29 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private void checkOpen() throws XAException {
         if(conn == null) {
             getTrace().debug("conn==null");
-            throw new XAException(XAException.XAER_OUTSIDE);
+            throw new XAException(XAException.XAER_RMERR);
         }
     }
 
     public int prepare(Xid xid) throws XAException {
         debugCode("prepare("+quoteXid(xid)+")");
         checkOpen();
-        if(currentTransaction != xid) {
+        if(!currentTransaction.equals(xid)) {
             getTrace().debug("throw XAException.XAER_INVAL");
             throw new XAException(XAException.XAER_INVAL);
         }
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            stat.execute("PREPARE COMMIT");
+            currentTransactionId = nextTransactionId++;
+            stat.execute("PREPARE COMMIT TX_" + currentTransactionId);
         } catch(SQLException e) {
             throw convertException(e);
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        getTrace().debug("return TMSUCCESS");        
-        return TMSUCCESS;
+        getTrace().debug("return XA_OK");     
+        return XA_OK;
     }
 
     public void forget(Xid xid) throws XAException {
@@ -188,6 +196,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw convertException(e);
         }
         getTrace().debug("rolled back");
+        currentTransaction = null;        
     }
 
     public void end(Xid xid, int flags) throws XAException {
@@ -195,12 +204,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         if(flags == TMSUSPEND) {
             return;
         }
-        if(currentTransaction != xid) {
+        if(!currentTransaction.equals(xid)) {
             getTrace().debug("throw XAException.XAER_OUTSIDE");
             throw new XAException(XAException.XAER_OUTSIDE);
         }
-        getTrace().debug("currentTransaction=null");
-        currentTransaction = null;
     }
     
     private String quoteFlags(int flags) {
@@ -229,6 +236,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         if((flags & XAResource.TMSUSPEND) != 0) {
             buff.append("|XAResource.TMSUSPEND");
         }
+        if ((flags & XAResource.XA_OK) != 0) {
+            buff.append("|XAResource.XA_OK");
+        }
+        if ((flags & XAResource.XA_RDONLY) != 0) {
+            buff.append("|XAResource.XA_RDONLY");
+        }        
         if(buff.length() == 0) {
             buff.append("|XAResource.TMNOFLAGS");
         }
@@ -274,12 +287,21 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
     public void commit(Xid xid, boolean onePhase) throws XAException {
         debugCode("commit("+quoteXid(xid)+", "+onePhase+")");
+        Statement stat = null;
         try {
-            conn.commit();
+            if (onePhase) {
+                conn.commit();
+            } else {
+                stat = conn.createStatement();
+                stat.execute("COMMIT TRANSACTION TX_" + currentTransactionId);
+            }
         } catch(SQLException e) {
             throw convertException(e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
         getTrace().debug("committed");
+        currentTransaction = null;        
     }
 //#endif
 

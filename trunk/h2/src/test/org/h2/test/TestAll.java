@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
+import org.h2.test.jdbc.xa.TestXA;
 import org.h2.test.db.*;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
@@ -86,109 +87,31 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-        
+
+        // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)
+
         // run  TestHalt
         
-//        When you run SCRIPT DROP it drops the tables but not the autoincrement values. 
-//        When I try to restore the db I get errors that the already exist. 
-//        The workaround is to drop all objects at the beginning which seems to work fine.
+        // document backup command
         
-//        deebee.tar.gz
-        
-//        WHERE FLAG does not use index, but WHERE FLAG=TRUE does
-//        
-//        drop table test;
-//        CREATE TABLE test (id int, flag BIT NOT NULL);
-//        CREATE INDEX idx_flag ON test(flag);
-//        CREATE INDEX idx_id ON test(id);
-//        insert into test values(1, false), (2, true), (3, false), (4, true);
-//        ALTER TABLE test ALTER COLUMN id SELECTIVITY 100;
-//        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 1;
-//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
-//        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
-//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
-//
-//        ALTER TABLE test ALTER COLUMN id SELECTIVITY 1;
-//        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 100;
-//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
-//        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
-//        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
-        
-        
-        
-//        DROP VIEW IF EXISTS TEST_REC;
-//        DROP VIEW IF EXISTS TEST_2;
-//        DROP TABLE IF EXISTS TEST;
-//
-//        CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT, NAME VARCHAR(255));
-//        INSERT INTO TEST VALUES(1, NULL, 'Root');
-//        INSERT INTO TEST VALUES(2, 1, 'Plant');
-//        INSERT INTO TEST VALUES(3, 1, 'Animal');
-//        INSERT INTO TEST VALUES(4, 2, 'Tree');
-//        INSERT INTO TEST VALUES(5, 2, 'Flower');
-//        INSERT INTO TEST VALUES(6, 3, 'Elephant');
-//        INSERT INTO TEST VALUES(7, 3, 'Dog');
-//
-//        CREATE FORCE VIEW TEST_2(ID, PARENT, NAME) AS SELECT ID, PARENT, NAME FROM TEST_REC;
-//
-//        CREATE FORCE VIEW TEST_REC(ID, PARENT, NAME) AS 
-//        SELECT ID, PARENT, NAME FROM TEST T 
-//        WHERE PARENT IS NULL 
-//        UNION ALL
-//        SELECT T.ID, T.PARENT, T.NAME 
-//        FROM TEST T, TEST_2 R 
-//        WHERE 1=0 AND T.PARENT=R.ID;
-//
-//        SELECT * FROM TEST_REC;
-        
-//        DROP VIEW IF EXISTS TEST_REC;
-//        DROP VIEW IF EXISTS TEST_2;
-//        DROP TABLE IF EXISTS TEST;
-//
-//        CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT, NAME VARCHAR(255));
-//        INSERT INTO TEST VALUES(1, NULL, 'Root');
-//        INSERT INTO TEST VALUES(2, 1, 'Plant');
-//        INSERT INTO TEST VALUES(3, 1, 'Animal');
-//        INSERT INTO TEST VALUES(4, 2, 'Tree');
-//        INSERT INTO TEST VALUES(5, 2, 'Flower');
-//        INSERT INTO TEST VALUES(6, 3, 'Elephant');
-//        INSERT INTO TEST VALUES(7, 3, 'Dog');
-//
-//        CREATE VIEW RECURSIVE TEST_REC(ID, PARENT, NAME, LEVEL) AS 
-//        SELECT ID, PARENT, NAME, 0 FROM TEST T 
-//        WHERE PARENT IS NULL 
-//        UNION ALL
-//        SELECT T.ID, T.PARENT, T.NAME, CAST(R.LEVEL AS INT)+1 
-//        FROM TEST T, TEST_REC R 
-//        WHERE T.PARENT=R.ID;
-//
-//        SELECT * FROM TEST_REC;        
-        
-        
-        
-        // TODO backup : lobs are not backed up
-//        DROP TABLE IF EXISTS TEST;
-//        CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB);
-//        INSERT INTO TEST VALUES(1, space(10000));
-//        INSERT INTO TEST VALUES(2, 'World');
-        
-//        drop table bar;
-//        drop table foo;
-//        create table FOO(id integer primary key);
-//        create table BAR(fooId integer);
-//        alter table bar add foreign key (fooid) references foo (id);
-//        truncate table bar;
-        
-//        drop table FOO;
-//        create table FOO (ID int, A number(18, 2));
-//        insert into FOO (ID, A) values (1, 10.0), (2, 20.0);
-//        select SUM (CASE when ID=1 then 0 ELSE A END) col0 from Foo;
+        //        WHERE FLAG does not use index, but WHERE FLAG=TRUE does
+        //        drop table test;
+        //        CREATE TABLE test (id int, flag BIT NOT NULL);
+        //        CREATE INDEX idx_flag ON test(flag);
+        //        CREATE INDEX idx_id ON test(id);
+        //        insert into test values(1, false), (2, true), (3, false), (4, true);
+        //        ALTER TABLE test ALTER COLUMN id SELECTIVITY 100;
+        //        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 1;
+        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
+        //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
+        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
+        //
+        //        ALTER TABLE test ALTER COLUMN id SELECTIVITY 1;
+        //        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 100;
+        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
+        //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
+        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
 
-
-        // hot backup: test, test encrypted database
-        // BACKUP: compare sql syntax with other databases
-        // Hot backup (incremental backup, online backup): backup data, log, index? files
-        
         // h2
         // update FOO set a = dateadd('second', 4320000, a);
         // ms sql server
@@ -199,9 +122,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         // update FOO set a = a + interval '4320000 s';
         // oracle
         // update FOO set a = a + INTERVAL '4320000' SECOND;
-        
-        // test backup
-        // backup: lobs, index
         
         // GroovyServlet
 
@@ -527,6 +447,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         new TestStatement().runTest(this);
         new TestTransactionIsolation().runTest(this);
         new TestUpdatableResultSet().runTest(this);
+        new TestXA().runTest(this);
         new TestZloty().runTest(this);
 
         afterTest();

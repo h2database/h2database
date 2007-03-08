@@ -55,23 +55,27 @@ public class IOUtils {
     }
 
     public static long copyAndCloseInput(InputStream in, OutputStream out) throws IOException {
-        long written = 0;
         try {
-            byte[] buffer = new byte[4 * 1024];
-            while(true) {
-                int len = in.read(buffer);
-                if(len < 0) {
-                    break;
-                }
-                out.write(buffer, 0, len);
-                written += len;                
-            }
+            return copy(in, out);
         } finally {
             in.close();
         }
+    }
+
+    public static long copy(InputStream in, OutputStream out) throws IOException {
+        long written = 0;
+        byte[] buffer = new byte[4 * 1024];
+        while(true) {
+            int len = in.read(buffer);
+            if(len < 0) {
+                break;
+            }
+            out.write(buffer, 0, len);
+            written += len;                
+        }
         return written;
     }
-    
+
     public static long copyAndCloseInput(Reader in, Writer out) throws IOException {
         long written = 0;
         try {

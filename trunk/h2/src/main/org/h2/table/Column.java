@@ -29,6 +29,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueUuid;
 
 /**
  * @author Thomas
@@ -215,7 +216,7 @@ public class Column {
     }
 
     public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary) throws SQLException {
-        if(!getAutoIncrement()) {
+        if(!autoIncrement) {
             throw Message.getInternalError();
         }
         if(originalSQL.equals("IDENTITY")) {
@@ -223,7 +224,10 @@ public class Column {
         }
         String sequenceName;
         for(int i=0; ; i++) {
-            sequenceName = "SYSTEM_SEQUENCE_" + i;
+            ValueUuid uuid = ValueUuid.getNewRandom();
+            String s = uuid.getString();
+            s = s.replace('-', '_').toUpperCase();
+            sequenceName = "SYSTEM_SEQUENCE_" + s;
             if(schema.findSequence(sequenceName) == null) {
                 break;
             }

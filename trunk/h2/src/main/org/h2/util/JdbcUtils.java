@@ -9,6 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+//#ifdef JDK14
+import javax.sql.XAConnection;
+//#endif
+
 public class JdbcUtils {
     
     public static void closeSilently(Statement stat) {
@@ -48,5 +52,17 @@ public class JdbcUtils {
 //#endif
         return rs;
     }
+
+//#ifdef JDK14
+    public static void closeSilently(XAConnection conn) {
+        if(conn != null) {
+            try {
+                conn.close();
+            } catch(SQLException e) {
+                // ignore
+            }
+        }
+    }
+//#endif
 
 }

@@ -10,6 +10,45 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(22,
+'New version available: 1.0 / 2007-03-04', '2007-03-04 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br />
+<b>Changes and new functionality:</b>
+<ul>
+<li>System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now
+    random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
+</li><li>Now the server tool (org.h2.tools.Server) terminates with an exit code if a problem occured.
+</li><li>The JDBC driver is now loaded if the JdbcDataSource class is loaded.
+</li><li>After renaming a user the password becomes invalid. This is now documented.
+</li><li>Truncating a table is now allowed if the table references another table 
+    (but still not allowed if the table is references by another table).
+</li>
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>The precision for linked tables was not correct for some data types, for example VARCHAR. Fixed.
+</li><li>Many problems and bugs in the XA support (package javax.sql) have been fixed.
+</li><li>ORDER BY picked the wrong column if the same column name (but with a different table name) 
+    was used twice in the select list.
+</li><li>When a subquery was used in the select list of a query, and GROUP BY was used at the same time,
+    a NullPointerException could occur. Fixed.
+</li><li>ORDER BY did not work when DISTINCT was used at the same time in some situations. Fixed.
+</li><li>When using IN(...) on a case insensitive column (VARCHAR_IGNORECASE), 
+    an incorrect optimization was made and the result was wrong sometimes.
+</li><li>XAResource.recover didn''t work. Fixed. 
+</li><li>XAResource.recover did throw an exception with the code XAER_OUTSIDE if there
+    was no connection. Now the code is XAER_RMERR.  
+</li><li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
+</li><li>BACKUP TO ''test.zip'' now works with encrypted databases and CLOB and BLOB data.
+</li><li>The function CASE WHEN ... didn''t convert the returned value to the same data type,
+    resulting in unexpected behavior in many cases. Fixed.
+</li>
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(21,
 'New version available: 1.0 / 2007-01-30', '2007-01-30 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -537,44 +576,6 @@ INSERT INTO ITEM VALUES(5,
 </li><li>DATEADD didn''t work for milliseconds.
 </li><li>Could not connect to a database that was closing at the same time.
 </li><li>C-style block comments /* */ are not parsed correctly when they contain * or /
-</li></ul>
-For details see also the history. The plans for the next release are:
-<ul>
-<li>Bugfixes, write more tests, more bugfixes, more tests.
-</li><li>Proposal for changed license.
-</li><li>For other plans, see the new ''Roadmap'' part on the web site.
-</li></ul>
-');
-
-INSERT INTO ITEM VALUES(4,
-'New version available: 0.9 Beta / 2006-07-14', '2006-07-14 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>The cache size is now measured in blocks and no longer in rows.
-    Manually setting the cache size is no longer necessary in most cases.
-</li><li>CREATE VIEW now supports a column list: CREATE VIEW TEST_V(A, B) AS ...
-</li><li>New column IS_GENERATED in the metadata tables SEQUENCES and INDEXES.
-</li><li>ResultSetMetaData.isNullable is now implemented.
-</li><li>Optimization: data conversion of constants was not optimized.
-</li><li>Optimization: deterministic subqueries are evaluated only once.
-</li><li>Compatibility: ''T'', ''Y'', ''YES'', ''F'', ''N'', ''NO'' (case insensitive) can now also be converted to boolean.
-</li><li>Compatibility: SUBSTRING(string FROM start FOR length).
-</li><li>Compatibility: TRIM(whitespace FROM string).
-</li><li>LIKE ... ESCAPE: The escape character may now also be an expression.
-</li><li>IF EXISTS / IF NOT EXISTS implemented for the remaining CREATE / DROP statements.
-</li><li>An exception was thrown if a scalar subquery returned no rows. Now NULL is returned.
-</li><li>Objects of unknown type are no longer serialized to a byte array.
-</li><li>Reduced jar file size: The regression tests are no longer included in the jar file.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Issue #123: The connection to the server is lost if an abnormal exception occurs.
-</li><li>Issue #124: Adding a column didn''t work when the table contains a referential integrity check.
-</li><li>Issue #125: Foreign key constraints of local temporary tables are not dropped when the table is dropped.
-</li><li>Issue #126: It is possible to create multiple primary keys for the same table.
-</li><li>A few bugs in the CSV tool have been fixed.
 </li></ul>
 For details see also the history. The plans for the next release are:
 <ul>

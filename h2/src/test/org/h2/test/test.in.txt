@@ -1,4 +1,22 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table FOO(id integer primary key);
+> ok
+
+create table BAR(fooId integer);
+> ok
+
+alter table bar add foreign key (fooId) references foo (id);
+> ok
+
+truncate table bar;
+> ok
+
+truncate table foo;
+> exception
+
+drop table bar, foo;
+> ok
+
 CREATE TABLE TESTA(ID IDENTITY);
 > ok
 
@@ -476,19 +494,16 @@ create domain email as varchar(200) check (position('@' in value) > 1);
 create domain gmail as email default '@gmail.com' check (position('gmail' in value) > 1);
 > ok
 
-create memory table address(id identity, name email, name2 gmail);
+create memory table address(id int primary key, name email, name2 gmail);
 > ok
 
-insert into address(name, name2) values('test@abc', 'test@gmail.com');
+insert into address(id, name, name2) values(1, 'test@abc', 'test@gmail.com');
 > update count: 1
 
-insert into address(name, name2) values('test@abc', 'test@acme');
+insert into address(id, name, name2) values(2, 'test@abc', 'test@acme');
 > exception
 
-insert into address(name, name2) values('test_abc', 'test@gmail');
-> exception
-
-insert into address2(name) values('test_abc'), (null);
+insert into address(id, name, name2) values(3, 'test_abc', 'test@gmail');
 > exception
 
 insert into address2(name) values('test@abc');
@@ -538,7 +553,7 @@ select * from information_schema.domains;
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.ADDRESS
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
 > CREATE DOMAIN EMAIL AS VARCHAR(200) CHECK (POSITION('@', VALUE) > 1)
@@ -548,12 +563,11 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
 > CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
 > CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
-> CREATE MEMORY TABLE PUBLIC.ADDRESS(     ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1),     NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) )
+> CREATE MEMORY TABLE PUBLIC.ADDRESS(     ID INT NOT NULL,     NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1),     NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) )
 > CREATE MEMORY TABLE PUBLIC.TEST(     A VARCHAR(255) DEFAULT '',     B VARCHAR,     C VARCHAR,     D VARCHAR DEFAULT '<empty>' )
 > CREATE PRIMARY KEY ON PUBLIC.ADDRESS(ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 4 BELONGS_TO_TABLE
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> rows: 14
+> rows: 13
 
 drop table test;
 > ok
@@ -1448,7 +1462,7 @@ call (select x from dual where x is null);
 create sequence test_seq;
 > ok
 
-create table test(id identity, parent int);
+create table test(id int primary key, parent int);
 > ok
 
 create index ni on test(parent);
@@ -1469,11 +1483,10 @@ select * from INFORMATION_SCHEMA.INDEXES;
 > rows: 3
 
 select * from INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME     CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
-> ---------------- --------------- ----------------- ------------- --------- ------------ -------
-> SCRIPT           PUBLIC          SYSTEM_SEQUENCE_0 0             1         TRUE
-> SCRIPT           PUBLIC          TEST_SEQ          0             1         FALSE
-> rows: 2
+> SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
+> ---------------- --------------- ------------- ------------- --------- ------------ -------
+> SCRIPT           PUBLIC          TEST_SEQ      0             1         FALSE
+> rows: 1
 
 drop table test;
 > ok
@@ -2274,7 +2287,7 @@ drop table test;
 > ok
 
 --- script drop ---------------------------------------------------------------------------------------------
-create memory table test (id int auto_increment, im_ie varchar(10));
+create memory table test (id int primary key, im_ie varchar(10));
 > ok
 
 create sequence test_seq;
@@ -2282,16 +2295,15 @@ create sequence test_seq;
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     IM_IE VARCHAR(10) )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     IM_IE VARCHAR(10) )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 1 BELONGS_TO_TABLE
 > CREATE SEQUENCE PUBLIC.TEST_SEQ START WITH 1
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > DROP SEQUENCE IF EXISTS PUBLIC.TEST_SEQ
 > DROP TABLE IF EXISTS PUBLIC.TEST
-> rows: 8
+> rows: 7
 
 drop sequence test_seq;
 > ok
@@ -2493,7 +2505,7 @@ CREATE TABLE CHILD(PARENTID INT, FOREIGN KEY(PARENTID) REFERENCES PARENT(ID), NA
 > ok
 
 TRUNCATE TABLE CHILD;
-> exception
+> ok
 
 TRUNCATE TABLE PARENT;
 > exception
@@ -2957,7 +2969,7 @@ DROP TABLE IF EXISTS TEST;
 > ok
 
 --- script ---------------------------------------------------------------------------------------------
-create memory table test(id identity, c clob, b blob);
+create memory table test(id int primary key, c clob, b blob);
 > ok
 
 insert into test values(0, null, null);
@@ -2971,16 +2983,15 @@ insert into test values(2, 'Cafe', X'cafe');
 
 script nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------
 > -- 3 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     C CLOB,     B BLOB )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     C CLOB,     B BLOB )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 3 BELONGS_TO_TABLE
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(0, NULL, NULL)
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(1, '', X'')
 > INSERT INTO PUBLIC.TEST(ID, C, B) VALUES(2, 'Cafe', X'cafe')
-> rows: 8
+> rows: 7
 
 drop table test;
 > ok
@@ -3579,20 +3590,19 @@ DROP TABLE TEST;
 > ok
 
 --- autoIncrement ----------------------------------------------------------------------------------------------
-CREATE MEMORY TABLE TEST(ID IDENTITY PRIMARY KEY, NAME VARCHAR);
+CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST
-> CREATE MEMORY TABLE PUBLIC.TEST(     ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 1 BELONGS_TO_TABLE
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> rows: 5
+> rows: 4
 
-INSERT INTO TEST(NAME) VALUES('Hi'), ('World');
+INSERT INTO TEST(ID, NAME) VALUES(1, 'Hi'), (2, 'World');
 > update count: 2
 
 SELECT * FROM TEST;
@@ -7541,28 +7551,21 @@ create memory table word(word_id integer, name varchar);
 alter table word alter column word_id integer(10) auto_increment;
 > ok
 
-script NOPASSWORDS NOSETTINGS;
-> SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> -- 0 = SELECT COUNT(*) FROM PUBLIC.WORD
-> CREATE MEMORY TABLE PUBLIC.WORD(     WORD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
-> CREATE PRIMARY KEY ON PUBLIC.WORD(WORD_ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 1 BELONGS_TO_TABLE
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> rows: 5
+insert into word(name) values('Hello');
+> update count: 1
 
 alter table word alter column word_id restart with 30872;
 > ok
 
-script NOPASSWORDS NOSETTINGS;
-> SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> -- 0 = SELECT COUNT(*) FROM PUBLIC.WORD
-> CREATE MEMORY TABLE PUBLIC.WORD(     WORD_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_0) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0,     NAME VARCHAR )
-> CREATE PRIMARY KEY ON PUBLIC.WORD(WORD_ID)
-> CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_0 START WITH 30872 BELONGS_TO_TABLE
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
-> rows: 5
+insert into word(name) values('World');
+> update count: 1
+
+select * from word;
+> WORD_ID NAME
+> ------- -----
+> 1       Hello
+> 30872   World
+> rows: 2
 
 drop table word;
 > ok

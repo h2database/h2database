@@ -28,8 +28,6 @@ public class TableView extends Table {
     private boolean invalid;
     private Query viewQuery;
     private ViewIndex index;
-    
-    private int test;
     private boolean recursive;
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session) throws SQLException {
@@ -82,14 +80,13 @@ public class TableView extends Table {
             cols = new Column[0];
             invalid = true;
 
-            int testing;
             if(columnNames != null) {
                 cols = new Column[columnNames.length];
                 for(int i=0; i<columnNames.length; i++) {
                     cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
                 }
                 invalid = false;
-index.recursive=true;                
+                index.setRecursive(true);
                 recursive = true;
             }
             

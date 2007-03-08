@@ -10,6 +10,8 @@ import java.sql.Statement;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
@@ -55,7 +57,10 @@ public class TestDataSource extends TestBase {
             public void connectionErrorOccurred(ConnectionEvent event) {
             }
         });
+        XAResource res = xaConn.getXAResource();
         Connection conn = xaConn.getConnection();
+        Xid[] list = res.recover(XAResource.TMSTARTRSCAN);
+        check(list.length, 0);
         Statement stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");
         conn.close();

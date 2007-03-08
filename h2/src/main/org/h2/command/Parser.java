@@ -3189,8 +3189,6 @@ public class Parser {
         if(readIf("(")) {
             String[] cols = parseColumnList(false);
             command.setColumnNames(cols);
-
-
             if(recursive) {
                 ObjectArray columns = new ObjectArray();
                 for(int i=0; i<cols.length; i++) {
@@ -3200,10 +3198,7 @@ public class Parser {
                 recursiveTable.setTemporary(true);
                 session.addLocalTempTable(recursiveTable);
             }
-            
-            
         }
-        
         String select = StringCache.getNew(sqlCommand.substring(parseIndex));
         read("AS");
         try {

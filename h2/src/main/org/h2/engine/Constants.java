@@ -14,8 +14,8 @@ package org.h2.engine;
  * - Run FindBugs
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
- * - Compiling with JDK 1.3, 1.4, 1.5 and 1.6
  * 
+ * - Compile with JDK 1.3, 1.4, 1.5 and 1.6:
  *   set path=C:\jdk1.3.1_19\bin;%PATH%
  *   set JAVA_HOME=C:\jdk1.3.1_19
  *   ant codeswitch_jdk13
@@ -24,19 +24,12 @@ package org.h2.engine;
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   ant codeswitch_jdk16
  *   ant compile
- *
- *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
- *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0\bin
- *   ant codeswitch_jdk16
- *   ant compile
- *   
  *   ant codeswitch_jdk14
  *   
  * - Change FAQ (next release planned, known bugs)
  * - Check version, change build number in Constants.java and build.xml
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
- * - space#ifdef', space#endif
  * - No TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
  * - Change version(s) in performance.html; use latest versions of other databases
@@ -50,8 +43,8 @@ package org.h2.engine;
  * - PDF (15 min)
  *      - footer
  *      - front page
- *      - tables (optimal size)
- *      - orphan control, page breaks
+ *      - orphan control
+ *      - tables (optimal size), page breaks
  *      - table of contents
  * - Switch off auto-build
  * - ant all
@@ -73,8 +66,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 42;
-    private static final String BUILD = "2007-02-06";
+    public static final int BUILD_ID = 44;
+    private static final String BUILD = "2007-03-04";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

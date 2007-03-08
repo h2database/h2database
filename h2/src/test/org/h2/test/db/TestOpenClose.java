@@ -8,6 +8,7 @@ import java.sql.*;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.tools.Backup;
 
 public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
@@ -18,8 +19,36 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testBackup(false);
+        testBackup(true);
         testCase();
         testReconnectFast();
+    }
+    
+    private void testBackup(boolean encrypt) throws Exception {
+        deleteDb(BASE_DIR, "openClose");
+        String url;
+        if(encrypt) {
+            url = "jdbc:h2:"+BASE_DIR+"/openClose;CIPHER=XTEA";
+        } else {
+            url = "jdbc:h2:"+BASE_DIR+"/openClose";
+        }
+        org.h2.Driver.load();
+        Connection conn = DriverManager.getConnection(url, "sa", "abc def");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(C CLOB)");
+        stat.execute("INSERT INTO TEST VALUES(SPACE(10000))");
+        stat.execute("BACKUP TO '"+BASE_DIR+"/test.zip'");
+        conn.close();
+        deleteDb(BASE_DIR, "openClose");
+        Backup.restoreFiles(BASE_DIR + "/test.zip", BASE_DIR);
+        conn = DriverManager.getConnection(url, "sa", "abc def");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        rs.next();
+        check(rs.getString(1).length(), 10000);
+        checkFalse(rs.next());
+        conn.close();
     }
     
     private void testReconnectFast() throws Exception {

@@ -662,13 +662,13 @@ public class DiskFile implements CacheWriter {
         }
     }
     
-    public synchronized int readDirect(int pos, OutputStream out) throws SQLException {
+    public synchronized int copyDirect(int pos, OutputStream out) throws SQLException {
         try {
             if(pos < 0) {
                 // read the header
                 byte[] buffer = new byte[OFFSET];
                 file.seek(0);
-                file.readFully(buffer, 0, OFFSET);
+                file.readFullyDirect(buffer, 0, OFFSET);
                 out.write(buffer);
                 return 0;
             }
@@ -696,6 +696,11 @@ public class DiskFile implements CacheWriter {
             s.checkCapacity(blockCount * blockSize);
             if(blockCount > 1) {
                 file.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+            }
+            if(file.isEncrypted()) {
+                s.reset();
+                go(pos);
+                file.readFullyDirect(s.getBytes(), 0, blockCount * blockSize);
             }
             out.write(s.getBytes(), 0, blockCount * blockSize);
             return pos + blockCount;

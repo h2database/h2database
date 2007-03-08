@@ -10,6 +10,7 @@ import java.util.HashSet;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -439,7 +440,10 @@ public class TableData extends Table implements RecordReader {
             if(!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
                 continue;
             }
-            return false;
+            ConstraintReferential ref = (ConstraintReferential) c;
+            if(ref.getRefTable() == this) {
+                return false;
+            }
         }
         return true;
     }

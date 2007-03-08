@@ -1,3 +1,9 @@
+create table FOO (ID int, A number(18, 2));
+insert into FOO (ID, A) values (1, 10.0), (2, 20.0);
+select SUM (CASE when ID=1 then 0 ELSE A END) col0 from Foo;
+> 20.00;
+drop table FOO;
+
 select (SELECT true)+1 GROUP BY 1;
 > 2;
 create table FOO (ID int, A number(18, 2));
@@ -20,7 +26,7 @@ select count(*) from A left outer join B on B.AID=A.ID inner join C on C.BID=B.I
 select count(*) from (A left outer join B on B.AID=A.ID) inner join C on C.BID=B.ID where A.id=1;
 > 0;
 drop table a, b, c;
-
+      
 create schema a;
 create table a.test(id int);
 insert into a.test values(1);

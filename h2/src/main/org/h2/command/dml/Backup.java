@@ -72,7 +72,9 @@ public class Backup extends Prepared {
                         backupFile(out, fn);
                         db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
                     }
-                    ArrayList fileList = FileLister.getDatabaseFiles(db.getDatabasePath(), name, true);
+                    String prefix = db.getDatabasePath();
+                    String dir = FileUtils.getParent(prefix);
+                    ArrayList fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for(int i=0; i<fileList.size(); i++) {
                         fn = (String) fileList.get(i);
                         if(fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
@@ -97,7 +99,7 @@ public class Backup extends Prepared {
         int pos = -1;
         int max = file.getReadCount();
         while(true) {
-            pos = file.readDirect(pos, out);
+            pos = file.copyDirect(pos, out);
             if(pos < 0) {
                 break;
             }

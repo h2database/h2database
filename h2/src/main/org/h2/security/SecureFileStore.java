@@ -125,4 +125,8 @@ public class SecureFileStore extends FileStore {
         }
     }
     
+    public boolean isEncrypted() {
+        return true;
+    }
+    
 }

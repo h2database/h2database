@@ -35,9 +35,7 @@ public class ViewIndex extends Index {
     private Value[] lastParameters;
     private long lastEvaluated;
     private LocalResult lastResult;
-    
-    private int todoRecursiveMustBePrivate;
-    public boolean recursive;
+    private boolean recursive;
     private int recurseLevel;
     private LocalResult recursiveResult;
     
@@ -45,12 +43,9 @@ public class ViewIndex extends Index {
         super(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
-        
-        int test;
         this.recursive = recursive;
         columns = new Column[0];
         params = new Parameter[0];
-
     }
     
     public String getPlanSQL() {
@@ -242,6 +237,10 @@ public class ViewIndex extends Index {
 
     public Value findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
+    }
+
+    public void setRecursive(boolean value) {
+        this.recursive = value;
     }     
 
 }

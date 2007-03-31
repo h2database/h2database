@@ -231,10 +231,10 @@
 				<filter token="version" value="${version.name.maven}"/>
 		    </filterset>
 		</copy>
-		<zip destfile="bin/h2-maven-${version.name.maven}.jar" basedir="bin">
+		<jar destfile="bin/h2-${version.name.maven}-bundle.jar" basedir="bin">
 			<include name="pom.xml" />
 			<include name="h2-${version.name.maven}.jar" />
-		</zip>
+		</jar>
 	</target>	
 
 	<target name="mavenUploadLocal" depends="jar">

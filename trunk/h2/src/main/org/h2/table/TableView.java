@@ -25,12 +25,12 @@ public class TableView extends Table {
     private String querySQL;
     private ObjectArray tables;
     private String[] columnNames;
-    private boolean invalid;
     private Query viewQuery;
     private ViewIndex index;
     private boolean recursive;
+    private SQLException createException;
 
-    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session) throws SQLException {
+    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false);
         this.querySQL = querySQL;
         this.columnNames = columnNames;
@@ -68,34 +68,35 @@ public class TableView extends Table {
             }
             cols = new Column[list.size()];
             list.toArray(cols);
-            invalid = false;
+            createException = null;
             if(getId() != 0) {
                 addViewToTables();
             }
             viewQuery = query;
         } catch(SQLException e) {
+            createException = e;
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the database
             tables = new ObjectArray();
             cols = new Column[0];
-            invalid = true;
 
-            if(columnNames != null) {
-                cols = new Column[columnNames.length];
-                for(int i=0; i<columnNames.length; i++) {
-                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
-                }
-                invalid = false;
-                index.setRecursive(true);
-                recursive = true;
-            }
+            int testing;
+//            if(recursive && columnNames != null) {
+//                cols = new Column[columnNames.length];
+//                for(int i=0; i<columnNames.length; i++) {
+//                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
+//                }
+//                index.setRecursive(true);
+//                recursive = true;
+//                createException = null;
+//            }
             
         }
         setColumns(cols);
     }
     
     public boolean getInvalid() {
-        return invalid;
+        return createException != null;
     }
 
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
@@ -196,8 +197,9 @@ public class TableView extends Table {
     }
     
     public Index getScanIndex(Session session) throws SQLException {
-        if(invalid) {
-            throw Message.getSQLException(Message.VIEW_IS_INVALID_1, getSQL());
+        if(createException != null) {
+            String msg = createException.getMessage();
+            throw Message.getSQLException(Message.VIEW_IS_INVALID_2, new String[]{getSQL(), msg}, createException);
         }
         PlanItem item = getBestPlanItem(session, null);
         return item.getIndex();
@@ -221,7 +223,7 @@ public class TableView extends Table {
     }
 
     public long getMaxDataModificationId() {
-        if(invalid) {
+        if(createException != null) {
             throw Message.getInternalError();
         }
         if(viewQuery == null) {

@@ -1,4 +1,58 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table t1(c1 int, c2 int);
+> ok
+
+create table t2(c1 int, c2 int);
+> ok
+
+insert into t1 values(1, null), (2, 2), (3, 3);
+> update count: 3
+
+insert into t2 values(1, 1), (1, 2), (2, null), (3, 3);
+> update count: 4
+
+select * from t2 where c1 not in(select c2 from t1);
+> C1 C2
+> -- --
+> rows: 0
+
+select * from t2 where c1 not in(null, 2, 3);
+> C1 C2
+> -- --
+> rows: 0
+
+select * from t1 where c2 not in(select c1 from t2);
+> C1 C2
+> -- --
+> rows: 0
+
+select * from t1 where not exists(select * from t2 where t1.c2=t2.c1);
+> C1 C2
+> -- ----
+> 1  null
+> rows: 1
+
+drop table t1;
+> ok
+
+drop table t2;
+> ok
+
+create constant abc value 1;
+> ok
+
+call abc;
+> 1
+> -
+> 1
+> rows: 1
+
+drop all objects;
+> ok
+
+call abc;
+> exception
+
 create table FOO(id integer primary key);
 > ok
 

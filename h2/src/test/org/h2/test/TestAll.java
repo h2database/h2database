@@ -87,7 +87,64 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
+        
+// pilar sms
+        
+/*        
+CREATE TABLE T(DATA VARCHAR(10), MYINT INTEGER);
+INSERT INTO T (DATA,MYINT) VALUES (null,1);
+@META select ifnull(t.data, 0), myint from t;
+-- 1 should be VARCHAR
+select ifnull(t.data, 0), myint from t;
+drop table t;
+*/
+        
+/*        
+drop all objects;
+create table parent(id int primary key, parent int);
+insert into parent values(1, null), (2, 1), (3, 1);
+create view recursive test_view(id, parent) as 
+select id, parent from parent
+union all 
+select parent.id, parent.parent from test_view, parent 
+where parent.id = test_view.parent;
+drop view test_view;
+drop table parent;        
+*/
 
+//        Under certain conditions in client/server mode, obtaining text values
+//        of CLOBs becomes very slow (e.g., it could take a minimum of 200 ms
+//        instead of 2 ms). If I change the column type to VARCHAR, the
+//        performance is very fast again.
+//
+//        Between 2006-12-03 and 2006-12-17, you remarked: "Very large BLOB and
+//        CLOB data can now be used with the server and the cluster mode. The
+//        objects will temporarily be buffered on the client side if they are
+//        larger than some size (currently 64 KB)."
+//
+//        I think the issue is now in Transfer.java, as below:
+//        272:            writer.flush();
+//        273:            writeInt(LOB_MAGIC);
+//
+//        I believe the flush() can cause a TCP performance problem in certain
+//        circumstances. The reason is that when flush() occurs, the blob
+//        packets are flushed over the network, then a TCP ACK must be exchanged
+//        from client to server before the separate LOB_MAGIC packet can be sent
+//        from the server to client. This can cause enough latency to degrade
+//        application performance noticeably.
+//
+//        I do not know of a good way to solve this, since you cannot avoid
+//        calling writer.flush(). One "workaround" for some applications is to
+//        convert CLOB to VARCHAR. However, I am currently trying something
+//        different. It works so far for me. My "patch" is:
+//
+//        Transfer.java, at line 267:
+//        java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
+//        public void flush() {} };
+//        Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
+//
+//        James.        
+        
         // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)
 
         // run  TestHalt

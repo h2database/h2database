@@ -734,7 +734,7 @@ public class Parser {
             if(isToken("SELECT") || isToken("FROM")) {
                 Query query = parseQueryWithParams();
                 String querySQL = query.getSQL();
-                table = new TableView(mainSchema, 0, "TEMP_VIEW", querySQL, query.getParameters(), null, session);
+                table = new TableView(mainSchema, 0, "TEMP_VIEW", querySQL, query.getParameters(), null, session, false);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -1798,6 +1798,15 @@ public class Parser {
                 r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
             } else if(readIf(".")) {
                 return readTermObjectDot(name);
+            } else if("CASE".equals(name)) {
+                // CASE must be processed before (, 
+                // otherwise CASE(3) would be a function call, which it is not
+                if(isToken("WHEN")) {
+                    return readWhen(null);
+                } else {
+                    Expression left = readExpression();
+                    return readWhen(left);
+                }
             } else if (readIf("(")) {
                 return readFunction(name);
             } else if("CURRENT".equals(name)) {
@@ -1827,13 +1836,6 @@ public class Parser {
                 String timestamp = currentValue.getString();
                 read();
                 return ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
-            } else if("CASE".equals(name)) {
-                if(isToken("WHEN")) {
-                    return readWhen(null);
-                } else {
-                    Expression left = readExpression();
-                    return readWhen(left);
-                }
             } else {
                 return new ExpressionColumn(database, currentSelect, null, null, name);
             }
@@ -3183,6 +3185,7 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
+        command.setRecursive(recursive);
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());
@@ -3194,7 +3197,8 @@ public class Parser {
                 for(int i=0; i<cols.length; i++) {
                     columns.add(new Column(cols[i], Value.STRING, 0, 0));
                 }
-                recursiveTable = new TableData(getSchema(), viewName, 0, columns, false);
+                int id = database.allocateObjectId(true, true);
+                recursiveTable = new TableData(getSchema(), viewName, id, columns, false);
                 recursiveTable.setTemporary(true);
                 session.addLocalTempTable(recursiveTable);
             }

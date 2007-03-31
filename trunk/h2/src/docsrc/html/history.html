@@ -35,6 +35,21 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h2>Change Log</h2>
 
 <h3>Version 1.0 (Current)</h3>
+
+<h3>Version 1.0 / TODO</h3><ul>
+<li>SQLException.getCause of the now works for JDK 1.4 and higher.
+</li><li>If the index file was deleted, an error was logged in the .trace.db file. This is no longer done.
+</li><li>The Portuguese (Europe) translation is available. Thanks a lot to Antonio Casqueiro!
+</li><li>The error message for invalid views has been improved (the root cause is included in the message now).
+</li><li>IN(SELECT ...) was not working correctly if the subquery returned a NULL value. Fixed.
+</li><li>DROP ALL OBJECTS did not drop constants.
+</li><li>DROP ALL OBJECTS dropped the role PUBLIC, which was wrong. Fixed.
+</li><li>CASE was parsed as a function if the expression was in (). Fixed.
+</li><li>When ORDER BY was used together with DISTINCT, it was required to type the column
+	name exactly in the select list and the order list exactly in the same way. 
+	This is not required any longer.
+</li></ul>
+
 <h3>Version 1.0 / 2007-03-04</h3><ul>
 <li>System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now
     random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
@@ -1311,6 +1326,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
 </li><li>Support CHAR data type (internally use VARCHAR, but report CHAR for JPox)
 </li><li>Recovery for BLOB / CLOB: support functions
+</li><li>Better support large transactions, large updates / deletes: use less memory
+</li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li></ul>
 
 <h3>Priority 2</h3>
@@ -1429,7 +1446,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Max memory rows / max undo log size: use block count / row size not row count
 </li><li>Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
-</li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Implement point-in-time recovery
 </li><li>Memory database: add a feature to keep named database open until 'shutdown'
 </li><li>Harden against 'out of memory attacks' (multi-threading, out of memory in the application)
@@ -1565,6 +1581,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support catalog names
 </li><li>Add object id to metadata tables
+</li><li>Support OUTER UNION
+</li><li>Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
 </li></ul>
 
 <h3>Not Planned</h3>
@@ -1581,7 +1599,8 @@ via PayPal:
 <ul>
 <li>Florent Ramiere, France
 </li><li>Pete Haidinyak, USA
-</li><li>Jun Iyama, USA
+</li><li>Jun Iyama, Japan
+</li><li>Antonio Casqueiro, Portugal
 </li></ul>
 
 </div></td></tr></table></body></html>

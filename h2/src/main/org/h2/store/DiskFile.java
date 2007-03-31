@@ -214,6 +214,10 @@ public class DiskFile implements CacheWriter {
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
             int b2 = in.readInt();
+            if(b2 > fileBlockCount) {
+                database.getTrace(Trace.DATABASE).info("unexpected size " + b2 + " when initializing summary for " +fileName+" expected:" + fileBlockCount);
+                return;
+            }
             stage++;
             for(int i=0, x = 0; i<b2 / 8; i++) {
                 int mask = in.read();

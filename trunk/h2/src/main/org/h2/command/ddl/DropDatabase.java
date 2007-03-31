@@ -71,6 +71,7 @@ public class DropDatabase extends DefineCommand {
         // maybe constraints and triggers on system tables will be allowed in the future
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
+        list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         for(int i=0; i<list.size(); i++) {
             SchemaObject obj = (SchemaObject) list.get(i);
             db.removeSchemaObject(session, obj);
@@ -87,7 +88,11 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllFunctionAliases());
         for(int i=0; i<list.size(); i++) {
             DbObject obj = (DbObject) list.get(i);
-            db.removeDatabaseObject(session, obj);
+            String sql = obj.getCreateSQL();
+            // the role PUBLIC must not be dropped
+            if(sql != null) {
+                db.removeDatabaseObject(session, obj);
+            }
         }
     }
 

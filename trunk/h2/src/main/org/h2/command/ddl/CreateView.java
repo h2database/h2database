@@ -21,6 +21,7 @@
         private String selectSQL;
         private String[] columnNames;
         private String comment;
+        private boolean recursive;
     
         public CreateView(Session session, Schema schema) {
             super(session, schema);
@@ -28,6 +29,10 @@
     
         public void setViewName(String name) {
             viewName = name;
+        }
+        
+        public void setRecursive(boolean recursive) {
+            this.recursive = recursive;
         }
     
         public void setSelect(Query select) {
@@ -52,7 +57,7 @@
             } else {
                 querySQL = select.getSQL();
             }
-            TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, session);
+            TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, session, recursive);
             view.setComment(comment);
             db.addSchemaObject(session, view);
             return 0;

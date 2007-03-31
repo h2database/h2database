@@ -38,14 +38,17 @@ public class WebServer implements Service {
         { "zh_CN", "\u4E2D\u6587"},
         { "ja", "\u65e5\u672c\u8a9e"},
         { "hu", "Magyar"},
-        { "in", "Indonesia"}
+        { "in", "Indonesia"},
+        { "pt_PT", "Portugu\u00eas (Europeu)"},
     };
-
-//    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
-//        java.util.Locale.CHINESE.getDisplayLanguage(
-//        java.util.Locale.CHINESE);
-//       for(int i=0; i<lang.length(); i++)
-//         System.out.println(Integer.toHexString(lang.charAt(i))+" ");    
+    
+/*
+    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
+        java.util.Locale.CHINESE.getDisplayLanguage(
+        java.util.Locale.CHINESE);
+       for(int i=0; i<lang.length(); i++)
+         System.out.println(Integer.toHexString(lang.charAt(i))+" ");    
+*/         
     
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // timeout is 30 min
     private long lastTimeoutCheck;

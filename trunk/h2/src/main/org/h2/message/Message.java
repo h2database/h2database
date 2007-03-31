@@ -320,7 +320,7 @@ public class Message {
     public static final int CANNOT_TRUNCATE_1 = 90106;
     public static final int CANNOT_DROP_2 = 90107;
     public static final int STACK_OVERFLOW = 90108;
-    public static final int VIEW_IS_INVALID_1 = 90109;
+    public static final int VIEW_IS_INVALID_2 = 90109;
     public static final int OVERFLOW_FOR_TYPE_1 = 90110;
     public static final int ERROR_ACCESSING_LINKED_TABLE_1 = 90111;
     public static final int ROW_NOT_FOUND_WHEN_DELETING_1 = 90112;

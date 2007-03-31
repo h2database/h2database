@@ -30,6 +30,9 @@ public class JdbcSQLException extends SQLException {
         super(message + " [" + state + "-" + Constants.BUILD_ID + "]", state, errorCode);
         this.originalMessage = message;
         this.cause = cause;
+//#ifdef JDK14
+        initCause(cause);
+//#endif        
     }
 
     /**
@@ -44,9 +47,13 @@ public class JdbcSQLException extends SQLException {
      */
     public void printStackTrace() {
         super.printStackTrace();
+//#ifdef JDK13    
+/*
         if (cause != null) {
             cause.printStackTrace();
         }
+*/
+//#endif    
         if(getNextException() != null) {
             getNextException().printStackTrace();
         }
@@ -60,9 +67,13 @@ public class JdbcSQLException extends SQLException {
     public void printStackTrace(PrintWriter s) {
         if(s!=null) {
             super.printStackTrace(s);
+//#ifdef JDK13
+/*
             if (cause != null) {
                 cause.printStackTrace(s);
             }
+*/
+//#endif    
             if(getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
@@ -77,9 +88,13 @@ public class JdbcSQLException extends SQLException {
     public void printStackTrace(PrintStream s) {
         if(s!=null) {
             super.printStackTrace(s);
+//#ifdef JDK13
+/*            
             if (cause != null) {
                 cause.printStackTrace(s);
             }
+*/
+//#endif    
             if(getNextException() != null) {
                 getNextException().printStackTrace(s);
             }

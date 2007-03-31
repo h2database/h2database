@@ -1246,7 +1246,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if(len>0 && args[len-1] == null) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, ""+len);
+                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, info.name + ": " + len);
             }
         }
     }

@@ -121,7 +121,10 @@ public abstract class Query extends Prepared {
                             ExpressionColumn c = (ExpressionColumn) ec;
                             found = col.equals(c.getColumnName());
                             if(alias != null && found) {
-                                found = alias.equals(c.getOriginalAliasName());
+                                String ca = c.getOriginalAliasName();
+                                if(ca != null) {
+                                    found = alias.equals(ca);
+                                }
                             }
                         } else if(!(ec instanceof Alias)) {
                             continue;

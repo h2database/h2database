@@ -42,28 +42,33 @@ public class ConditionInSelect extends Condition {
             return l;
         }
         query.setSession(session);
-        LocalResult result = query.query(0);
+        LocalResult rows = query.query(0);
+        boolean hasNull = false;
+        boolean result = all;
         try {
-            boolean valueAll = all;
-            while(result.next()) {
+            while(rows.next()) {
                 boolean value;
-                Value r = result.currentRow()[0];
+                Value r = rows.currentRow()[0];
                 if(r == ValueNull.INSTANCE) {
                     value = false;
+                    hasNull = true;
                 } else {
                     value = Comparison.compareNotNull(database, l, r, compareType);
                 }
                 if(!value && all) {
-                    valueAll = false;
+                    result = false;
                     break;
                 } else if(value && !all) {
-                    valueAll = true;
+                    result = true;
                     break;
                 }
             }
-            return ValueBoolean.get(valueAll);
+            if(!result && hasNull) {
+                return ValueNull.INSTANCE;
+            }            
+            return ValueBoolean.get(result);
         } finally {
-            result.close();
+            rows.close();
         }
     }
 

@@ -33,7 +33,6 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 
-
 /**
  * visibleColumnCount <= distinctColumnCount <= expressionCount
  * Sortable count could include ORDER BY expressions that are not in the select list

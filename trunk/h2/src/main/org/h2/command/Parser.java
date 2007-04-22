@@ -161,6 +161,7 @@ public class Parser {
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ObjectArray indexedParameterList;
+    private int tempViewId;
 
     public Parser(Session session) {
         this.session = session;
@@ -734,7 +735,8 @@ public class Parser {
             if(isToken("SELECT") || isToken("FROM")) {
                 Query query = parseQueryWithParams();
                 String querySQL = query.getSQL();
-                table = new TableView(mainSchema, 0, "TEMP_VIEW", querySQL, query.getParameters(), null, session, false);
+                int id = tempViewId++;
+                table = new TableView(mainSchema, 0, "TEMP_VIEW_" + id, querySQL, query.getParameters(), null, session, false);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -1673,6 +1675,21 @@ public class Parser {
                 function.setParameter(1, space);
             }
             read(")");
+            break;
+        }
+        case Function.TABLE: {
+            int i = 0;
+            ObjectArray columns = new ObjectArray();
+            do {
+                String columnName = readAliasIdentifier();
+                Column column = parseColumn(columnName);
+                columns.add(column);
+                read("=");
+                function.setParameter(i, readExpression());
+                i++;
+            } while(readIf(","));
+            read(")");
+            function.setColumns(columns);
             break;
         }
         default:
@@ -3157,51 +3174,46 @@ public class Parser {
     }
     
     private Query parserWith() throws SQLException {
-//        String tempViewName = readUniqueIdentifier();
-//        if(readIf("(")) {
-//            String[] cols = parseColumnList(false);
-//            command.setColumnNames(cols);
-//
-//
-//            if(recursive) {
-//                ObjectArray columns = new ObjectArray();
-//                for(int i=0; i<cols.length; i++) {
-//                    columns.add(new Column(cols[i], Value.STRING, 0, 0));
-//                }
-//                recursiveTable = new TableData(getSchema(), viewName, 0, columns, false);
-//                recursiveTable.setTemporary(true);
-//                session.addLocalTempTable(recursiveTable);
-//            }
-        return null;
-        
-        
+        String tempViewName = readIdentifierWithSchema();
+        Schema schema = getSchema();
+        TableData recursiveTable;
+        read("(");
+        String[] cols = parseColumnList(false);
+        ObjectArray columns = new ObjectArray();
+        for(int i=0; i<cols.length; i++) {
+            columns.add(new Column(cols[i], Value.STRING, 0, 0));
+        }
+        int id = database.allocateObjectId(true, true);
+        recursiveTable = new TableData(schema, tempViewName, id, columns, false);
+        recursiveTable.setTemporary(true);
+        session.addLocalTempTable(recursiveTable);
+        String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
+        read("AS");
+        Query withQuery = parseSelect();
+        withQuery.prepare();
+        session.removeLocalTempTable(recursiveTable);
+        id = database.allocateObjectId(true, true);
+        TableView view = new TableView(schema, id, tempViewName, querySQL, null, cols, session, true);
+        view.setTemporary(true);
+//        view.setOnCommitDrop(true);
+        session.addLocalTempTable(view);
+        Query query = parseSelect();
+        query.prepare();
+        query.setPrepareAlways(true);
+        // session.removeLocalTempTable(view);
+        return query;
     }
 
     private CreateView parseCreateView(boolean force) throws SQLException {
-        int test;
-        TableData recursiveTable = null;
-        boolean recursive = readIf("RECURSIVE");
-        
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
-        command.setRecursive(recursive);
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());
         if(readIf("(")) {
             String[] cols = parseColumnList(false);
             command.setColumnNames(cols);
-            if(recursive) {
-                ObjectArray columns = new ObjectArray();
-                for(int i=0; i<cols.length; i++) {
-                    columns.add(new Column(cols[i], Value.STRING, 0, 0));
-                }
-                int id = database.allocateObjectId(true, true);
-                recursiveTable = new TableData(getSchema(), viewName, id, columns, false);
-                recursiveTable.setTemporary(true);
-                session.addLocalTempTable(recursiveTable);
-            }
         }
         String select = StringCache.getNew(sqlCommand.substring(parseIndex));
         read("AS");
@@ -3216,11 +3228,6 @@ public class Parser {
                 throw e;
             }
         }
-        
-        if(recursiveTable != null) {
-            session.removeLocalTempTable(recursiveTable);
-        }
-        
         return command;
     }
 
@@ -3756,35 +3763,7 @@ public class Parser {
                 command.setIndex(schema.findIndex(indexName));
             }
             read("REFERENCES");
-            if(readIf("(")) {
-                command.setRefTableName(schema, tableName);
-                cols = parseColumnList(false);
-                command.setRefColumnNames(cols);
-            } else {
-                String refTableName = readIdentifierWithSchema(schema.getName());
-                command.setRefTableName(getSchema(), refTableName);
-                if(readIf("(")) {
-                    cols = parseColumnList(false);
-                    command.setRefColumnNames(cols);
-                }
-            }
-            if(readIf("INDEX")) {
-                String indexName = readIdentifierWithSchema();
-                command.setRefIndex(getSchema().findIndex(indexName));
-            }
-            while(readIf("ON")) {
-                if(readIf("DELETE")) {
-                    command.setDeleteAction(parseAction());
-                } else {
-                    read("UPDATE");
-                    command.setUpdateAction(parseAction());
-                }
-            }
-            if(readIf("NOT")) {
-                read("DEFERRABLE");
-            } else {
-                readIf("DEFERRABLE");
-            }
+            parseReferences(command, schema, tableName);
         } else {
             if(name != null) {
                 throw getSyntaxError();
@@ -3795,6 +3774,39 @@ public class Parser {
         command.setConstraintName(name);
         command.setComment(comment);
         return command;
+    }
+    
+    private void parseReferences(AlterTableAddConstraint command, Schema schema, String tableName) throws SQLException {
+        String[] cols;
+        if(readIf("(")) {
+            command.setRefTableName(schema, tableName);
+            cols = parseColumnList(false);
+            command.setRefColumnNames(cols);
+        } else {
+            String refTableName = readIdentifierWithSchema(schema.getName());
+            command.setRefTableName(getSchema(), refTableName);
+            if(readIf("(")) {
+                cols = parseColumnList(false);
+                command.setRefColumnNames(cols);
+            }
+        }
+        if(readIf("INDEX")) {
+            String indexName = readIdentifierWithSchema();
+            command.setRefIndex(getSchema().findIndex(indexName));
+        }
+        while(readIf("ON")) {
+            if(readIf("DELETE")) {
+                command.setDeleteAction(parseAction());
+            } else {
+                read("UPDATE");
+                command.setUpdateAction(parseAction());
+            }
+        }
+        if(readIf("NOT")) {
+            read("DEFERRABLE");
+        } else {
+            readIf("DEFERRABLE");
+        }
     }
 
     private CreateLinkedTable parseCreateLinkedTable() throws SQLException {
@@ -3869,21 +3881,18 @@ public class Parser {
                             unique.setColumnNames(new String[]{columnName});
                             unique.setTableName(tableName);
                             command.addConstraintCommand(unique);
-                        } else if(readIf("CHECK")) {
+                        }
+                        if(readIf("CHECK")) {
                             Expression expr = readExpression();
                             column.addCheckConstraint(session, expr);
-                        } else if(readIf("REFERENCES")) {
+                        }
+                        if(readIf("REFERENCES")) {
                             AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema);
                             ref.setConstraintName(constraintName);
                             ref.setType(AlterTableAddConstraint.REFERENTIAL);
                             ref.setColumnNames(new String[]{columnName});
                             ref.setTableName(tableName);
-                            String refTableName = readIdentifierWithSchema(schema.getName());
-                            ref.setRefTableName(getSchema(), refTableName);
-                            if(readIf("(")) {
-                                String[] cols = parseColumnList(false);
-                                ref.setRefColumnNames(cols);
-                            }
+                            parseReferences(ref, schema, tableName);
                             command.addConstraintCommand(ref);
                         }
                     }

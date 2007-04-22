@@ -138,6 +138,9 @@ public class Script extends ScriptBase {
             ObjectArray datatypes = db.getAllUserDataTypes();
             for(int i=0; i<datatypes.size(); i++) {
                 UserDataType datatype = (UserDataType) datatypes.get(i);
+                if(drop) {
+                    add(datatype.getDropSQL(), false);
+                }                
                 add(datatype.getCreateSQL(), false);
             }
             ObjectArray constants = db.getAllSchemaObjects(DbObject.CONSTANT);
@@ -148,6 +151,9 @@ public class Script extends ScriptBase {
             ObjectArray functionAliases = db.getAllFunctionAliases();
             for(int i=0; i<functionAliases.size(); i++) {
                 FunctionAlias alias = (FunctionAlias) functionAliases.get(i);
+                if(drop) {
+                    add(alias.getDropSQL(), false);
+                }                
                 add(alias.getCreateSQL(), false);
             }
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
@@ -167,20 +173,15 @@ public class Script extends ScriptBase {
                     // null for metadata tables
                     continue;
                 }
-                String tableType = table.getTableType();
                 if(drop) {
-                    if(Table.VIEW.equals(tableType)) {
-                        add("DROP VIEW IF EXISTS " + table.getSQL(), false);
-                    } else {
-                        add("DROP TABLE IF EXISTS " + table.getSQL(), false);
-                    }
+                    add(table.getDropSQL(), false);
                 }
             }
             ObjectArray sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
             for(int i=0; i<sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
-                if(drop && !sequence.getBelongsToTable()) {
-                    add("DROP SEQUENCE IF EXISTS " + sequence.getSQL(), false);
+                if(drop) {
+                    add(sequence.getDropSQL(), false);
                 }                
                 add(sequence.getCreateSQL(), false);
             }

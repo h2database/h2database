@@ -129,7 +129,7 @@ public abstract class TestHalt extends TestBase {
         disconnect();
         for(int i=0; i<10; i++) {
             traceOperation("backing up " + sequenceId);
-            Backup.backupFiles(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null);
+            Backup.execute(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null, true);
             sequenceId++;
             // int operations = OP_INSERT;
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
@@ -155,7 +155,7 @@ public abstract class TestHalt extends TestBase {
             p.destroy();
             try {
                 traceOperation("backing up " + sequenceId);
-                Backup.backupFiles(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null);
+                Backup.execute(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null, true);
                 // new File(BASE_DIR + "/haltSeq" + (sequenceId-20) + ".zip").delete();
                 connect();
                 testCheckAfterCrash();

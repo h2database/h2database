@@ -27,6 +27,7 @@ public class TestPreparedStatement extends TestBase {
         
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testArray(conn);
         testUUIDGeneratedKeys(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
@@ -42,6 +43,17 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testArray(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("select * from table(x int = ?) order by x");
+        prep.setObject(1, new Object[]{ new BigDecimal("1"), "2" });
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        check(rs.getString(1), "1");
+        rs.next();
+        check(rs.getString(1), "2");
+        checkFalse(rs.next());
     }
     
     private void testUUIDGeneratedKeys(Connection conn) throws Exception {

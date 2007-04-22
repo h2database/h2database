@@ -49,6 +49,7 @@
 			<fileset dir="odbc" includes="*.def,h2odbcTest.exe"/>
 			<fileset dir="docs" includes="**/*"/>
 		</delete>
+		<delete file="src/tools/org/h2/tools/code/CodeSwitch.class"/>
 	</target>
 
 	<target name="codeswitch_prepare">

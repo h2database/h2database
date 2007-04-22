@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -34,6 +35,7 @@ public class TestResultSet extends TestBase {
 
         stat=conn.createStatement();
 
+        testArray();
         testLimitMaxRows();
 
         trace("max rows="+stat.getMaxRows());
@@ -49,7 +51,6 @@ public class TestResultSet extends TestBase {
         testDatetimeWithCalendar();
         testBlob();
         testClob();
-
         testAutoIncrement();
 
         conn.close();
@@ -772,6 +773,44 @@ public class TestResultSet extends TestBase {
         check(rs.getFetchDirection(), ResultSet.FETCH_FORWARD);
         check(rs.getConcurrency(), ResultSet.CONCUR_UPDATABLE);
         rs.next();
+        stat.execute("DROP TABLE TEST");
+    }
+    
+    void testArray() throws Exception {
+        trace("Test ARRAY");
+        ResultSet rs;
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ARRAY)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        prep.setInt(1, 1);
+        prep.setObject(2, new Object[]{new Integer(1), new Integer(2)});
+        prep.execute();
+        prep.setInt(1, 2);
+        prep.setObject(2, new Object[]{new Integer(11), new Integer(12)});
+        prep.execute();
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        check(rs.getInt(1), 1);
+        Object[] list = (Object[]) rs.getObject(2);
+        check(((Integer)list[0]).intValue(), 1);
+        check(((Integer)list[1]).intValue(), 2);
+        Array array = rs.getArray(2);
+        Object[] list2 = (Object[]) array.getArray();
+        check(((Integer)list2[0]).intValue(), 1);
+        check(((Integer)list2[1]).intValue(), 2);
+        list2 = (Object[]) array.getArray(2, 1);
+        check(((Integer)list2[0]).intValue(), 2);
+        rs.next();
+        check(rs.getInt(1), 2);
+        list = (Object[]) rs.getObject(2);
+        check(((Integer)list[0]).intValue(), 11);
+        check(((Integer)list[1]).intValue(), 12);
+        array = rs.getArray(2);
+        list2 = (Object[]) array.getArray();
+        check(((Integer)list2[0]).intValue(), 11);
+        check(((Integer)list2[1]).intValue(), 12);
+        list2 = (Object[]) array.getArray(2, 1);
+        check(((Integer)list2[0]).intValue(), 12);
+        checkFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
 

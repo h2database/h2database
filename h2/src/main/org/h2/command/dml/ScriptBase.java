@@ -38,8 +38,7 @@ public class ScriptBase extends Prepared implements DataHandler {
     private FileInputStream inStream;
     protected OutputStream out;
     protected InputStream in;
-    protected String fileName;
-    
+    protected String fileName;    
     private String compressionAlgorithm;
 
     public ScriptBase(Session session) {
@@ -81,6 +80,7 @@ public class ScriptBase extends Prepared implements DataHandler {
         Database db = session.getDatabase();
         // script files are always in text format
         store = FileStore.open(db, fileName, magic, cipher, key);
+        store.setCheckedWriting(false);
         store.init();
     }
     

@@ -1,4 +1,47 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select (1, 2);
+> 1, 2
+> ------
+> (1, 2)
+> rows: 1
+
+select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by id;
+> ID NAME
+> -- -----
+> 1  Hello
+> 2  World
+> rows (ordered): 2
+
+create table array_test(x array);
+> ok
+
+insert into array_test values((1, 2, 3)), ((2, 3, 4));
+> update count: 2
+
+select * from array_test where x = (1, 2, 3);
+> X
+> ---------
+> (1, 2, 3)
+> rows: 1
+
+drop table array_test;
+> ok
+
+select * from (select 1), (select 2);
+> 1 2
+> - -
+> 1 2
+> rows: 1
+
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR AS LOWER(A));
+> ok
+
+ALTER TABLE TEST DROP COLUMN B;
+> ok
+
+DROP TABLE TEST;
+> ok
+
 create table t1(c1 int, c2 int);
 > ok
 
@@ -92,14 +135,14 @@ CREATE TABLE test (family_name VARCHAR_IGNORECASE(63) NOT NULL);
 INSERT INTO test VALUES('Smith'), ('de Smith'), ('el Smith'), ('von Smith');
 > update count: 4
 
-SELECT * FROM test WHERE family_name IN ('de Smith', 'Smith'); 
+SELECT * FROM test WHERE family_name IN ('de Smith', 'Smith');
 > FAMILY_NAME
 > -----------
 > Smith
 > de Smith
 > rows: 2
 
-SELECT * FROM test WHERE family_name BETWEEN 'D' AND 'T'; 
+SELECT * FROM test WHERE family_name BETWEEN 'D' AND 'T';
 > FAMILY_NAME
 > -----------
 > Smith
@@ -110,7 +153,7 @@ SELECT * FROM test WHERE family_name BETWEEN 'D' AND 'T';
 CREATE INDEX family_name ON test(family_name);
 > ok
 
-SELECT * FROM test WHERE family_name IN ('de Smith', 'Smith'); 
+SELECT * FROM test WHERE family_name IN ('de Smith', 'Smith');
 > FAMILY_NAME
 > -----------
 > Smith
@@ -7430,9 +7473,9 @@ select ifnull(null, '1') x1, ifnull(null, null) xn, ifnull('a', 'b') xa from tes
 > rows: 1
 
 select casewhen(null, '1', '2') xn, casewhen(1>0, 'n', 'y') xy, casewhen(0<1, 'a', 'b') xa from test;
-> XN   XY XA
-> ---- -- --
-> null n  a
+> XN XY XA
+> -- -- --
+> 2  n  a
 > rows: 1
 
 select x, case when x=0 then 'zero' else 'not zero' end y from system_range(0, 2);

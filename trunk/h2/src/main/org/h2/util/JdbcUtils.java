@@ -5,6 +5,7 @@
 package org.h2.util;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,6 +13,8 @@ import java.sql.Statement;
 //#ifdef JDK14
 import javax.sql.XAConnection;
 //#endif
+
+import org.h2.message.Message;
 
 public class JdbcUtils {
     
@@ -64,5 +67,16 @@ public class JdbcUtils {
         }
     }
 //#endif
+
+    public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
+        if(!StringUtils.isNullOrEmpty(driver)) {
+            try {
+                ClassUtils.loadClass(driver);
+            } catch (ClassNotFoundException e) {
+                throw Message.getSQLException(Message.CLASS_NOT_FOUND_1, new String[]{driver}, e);
+            }
+        }
+        return DriverManager.getConnection(url, user, password);
+    }
 
 }

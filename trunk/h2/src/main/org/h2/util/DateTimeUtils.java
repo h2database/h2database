@@ -151,6 +151,7 @@ public class DateTimeUtils {
                 
                 if(s.endsWith("Z")) {
                     s = s.substring(0, s.length()-1);
+                    tz = TimeZone.getTimeZone("UTC");
                 } else {
                     int timezoneStart = s.indexOf('+', s2 + 1);
                     if(timezoneStart < 0) {

@@ -601,4 +601,8 @@ public class StringUtils {
         return buff.append('\"').toString();
     }
 
+    public static boolean isNullOrEmpty(String s) {
+        return s == null || s.length() == 0;
+    }
+
 }

@@ -194,9 +194,9 @@ public class ValueLob extends Value {
         return name;
     }
 
-    private static int getNewObjectId(String path) throws SQLException {
-        int objectId;
-        objectId = 0;
+    private int getNewObjectId(DataHandler handler) throws SQLException {
+        String path = handler.getDatabasePath();
+        int objectId = 0;
         while(true) {
             String dir = getFileNamePrefix(path, objectId);
             String[] list = FileUtils.listFiles(dir);
@@ -204,7 +204,7 @@ public class ValueLob extends Value {
             boolean[] used = new boolean[Constants.LOB_FILES_PER_DIRECTORY];
             for(int i=0; i<list.length; i++) {
                 String name = list[i];
-                if(name.endsWith(".db")) {
+                if(name.endsWith(Constants.SUFFIX_DB_FILE)) {
                     name = name.substring(name.lastIndexOf(File.separatorChar) + 1);
                     String n = name.substring(0, name.indexOf('.'));
                     int id;
@@ -282,7 +282,7 @@ public class ValueLob extends Value {
         this.compression = compressionAlgorithm != null;
         synchronized(handler) {
             if(Constants.LOB_FILES_IN_DIRECTORIES) {
-                objectId = getNewObjectId(handler.getDatabasePath());
+                objectId = getNewObjectId(handler);
                 fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + ".temp.db";
             } else {
                 objectId = handler.allocateObjectId(false, true);
@@ -377,7 +377,7 @@ public class ValueLob extends Value {
         if(linked) {
             ValueLob copy = ValueLob.copy(this);
             if(Constants.LOB_FILES_IN_DIRECTORIES) {
-                copy.objectId = getNewObjectId(handler.getDatabasePath());
+                copy.objectId = getNewObjectId(handler);
             } else {
                 copy.objectId = handler.allocateObjectId(false, true);
             }            

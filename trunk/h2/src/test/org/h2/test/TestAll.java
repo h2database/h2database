@@ -10,6 +10,8 @@ import java.util.Properties;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
+import org.h2.test.cases.TestBlobDir;
+import org.h2.test.cases.TestCalendar;
 import org.h2.test.db.*;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
@@ -87,63 +89,78 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
+
+/*
+drop table people;
+drop table cars;
+create table people (family varchar(1) not null, person
+varchar(1) not null);
+create table cars (family varchar(1) not null, car
+varchar(1) not null);
+insert into people values(1, 1);
+insert into people values(2, 1);
+insert into people values(2, 2);
+insert into people values(3, 1);
+insert into people values(5, 1);
+insert into cars values(2, 1);
+insert into cars values(2, 2);
+insert into cars values(3, 1);
+insert into cars values(3, 2);
+insert into cars values(3, 3);
+insert into cars values(4, 1);
+select family, (select count(car) from cars where cars.family = people.family) as x
+from people group by family; 
+*/        
+// link_table_update.patch.txt
+        // runscript and script: use 'script' parameter as before
+// autocomplete: scroll up on new list
+//        doc array
+
+// www.inventec.ch/chdh
+// www.source-code.biz
         
-// pilar sms
-        
-/*        
-CREATE TABLE T(DATA VARCHAR(10), MYINT INTEGER);
-INSERT INTO T (DATA,MYINT) VALUES (null,1);
-@META select ifnull(t.data, 0), myint from t;
--- 1 should be VARCHAR
-select ifnull(t.data, 0), myint from t;
-drop table t;
-*/
-        
-/*        
+/*
+Pavel Ganelin
+Integrate patches www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
+ */
+
+/*
 drop all objects;
 create table parent(id int primary key, parent int);
 insert into parent values(1, null), (2, 1), (3, 1);
-create view recursive test_view(id, parent) as 
-select id, parent from parent
+with test_view(id, parent) as 
+select id, parent from parent where parent is null
 union all 
 select parent.id, parent.parent from test_view, parent 
-where parent.id = test_view.parent;
+where parent.parent = test_view.id
+select * from test_view;
+with test_view(id, parent) as 
+select id, parent from parent where id = 2 
+union all 
+select parent.id, parent.parent from test_view, parent 
+where parent.parent = test_view.id
+select * from test_view;
 drop view test_view;
-drop table parent;        
-*/
 
-//        Under certain conditions in client/server mode, obtaining text values
-//        of CLOBs becomes very slow (e.g., it could take a minimum of 200 ms
-//        instead of 2 ms). If I change the column type to VARCHAR, the
-//        performance is very fast again.
-//
-//        Between 2006-12-03 and 2006-12-17, you remarked: "Very large BLOB and
-//        CLOB data can now be used with the server and the cluster mode. The
-//        objects will temporarily be buffered on the client side if they are
-//        larger than some size (currently 64 KB)."
-//
-//        I think the issue is now in Transfer.java, as below:
-//        272:            writer.flush();
-//        273:            writeInt(LOB_MAGIC);
-//
-//        I believe the flush() can cause a TCP performance problem in certain
-//        circumstances. The reason is that when flush() occurs, the blob
-//        packets are flushed over the network, then a TCP ACK must be exchanged
-//        from client to server before the separate LOB_MAGIC packet can be sent
-//        from the server to client. This can cause enough latency to degrade
-//        application performance noticeably.
-//
-//        I do not know of a good way to solve this, since you cannot avoid
-//        calling writer.flush(). One "workaround" for some applications is to
-//        convert CLOB to VARCHAR. However, I am currently trying something
-//        different. It works so far for me. My "patch" is:
-//
-//        Transfer.java, at line 267:
-//        java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
-//        public void flush() {} };
-//        Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
-//
-//        James.        
+@LOOP 10 with test_view(id, parent) as 
+select id, parent from parent where id = ? 
+union all 
+select parent.id, parent.parent from test_view, parent 
+where parent.parent = test_view.id
+select * from test_view;
+
+drop table parent;
+*/        
+        
+/*        
+create local temporary table abc(id varchar) on commit drop;
+insert into abc select * from dual;
+create local temporary table abc(id varchar) on commit drop;
+insert into abc select * from dual where 1=0;
+create local temporary table abc(id varchar) on commit drop;
+insert into abc select * from dual;
+drop table abc;        
+*/    
         
         // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)
 
@@ -169,6 +186,102 @@ drop table parent;
         //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
         //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
 
+
+/*
+TODO: get FunctionAlias.java from mail
+Here are the proposed changes to support function overload for variable number of arguments
+Example/Test Case
+public class OverloadFunction extends TestCase {
+   public void testOverload() throws Exception {
+       Class.forName("org.h2.Driver");
+       Connection ca = DriverManager.getConnection("jdbc:h2:mem:");
+       Statement sa = ca.createStatement();
+       sa.execute("CREATE ALIAS foo FOR \"" + this.getClass().getName() + ".foo\"");
+       ResultSet rs1 = sa.executeQuery("SELECT foo('a',2)");
+       rs1.next();
+       assertEquals(2.0, rs1.getDouble(1));
+       ResultSet rs2 = sa.executeQuery("SELECT foo('a',2,3,4)");
+       rs2.next();
+       assertEquals(9.0, rs2.getDouble(1));
+       try {
+           ResultSet rs = sa.executeQuery("SELECT foo()");
+           fail();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+
+       try {
+           ResultSet rs = sa.executeQuery("SELECT foo('a')");
+           fail();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       try {
+           ResultSet rs = sa.executeQuery("SELECT foo(2,'a')");
+           fail();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       try {
+           ResultSet rs = sa.executeQuery("SELECT foo('a',2,3)");
+           fail();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       try {
+           ResultSet rs = sa.executeQuery("SELECT foo('a',2,3,4,5)");
+           fail();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+   }
+   public static double foo(String s, int i) {
+       return i;
+   }
+   public static double foo(String s, int i, double d1, double d2) {
+       return i + d1 + d2;
+   }
+}
+Changes in the Parser
+CODE
+   private JavaFunction readJavaFunction(String name) throws SQLException {
+       FunctionAlias functionAlias = database.findFunctionAlias(name);
+       if (functionAlias == null) {
+           // TODO compatibility: maybe support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
+           throw Message.getSQLException(Message.FUNCTION_NOT_FOUND_1, name);
+       }
+       int paramCount = functionAlias.getParameterCount();
+       int max = functionAlias.getMaxParameterCount();
+       ObjectArray list = new ObjectArray(paramCount);
+       do {
+           if (functionAlias.isAcceptableParameterCount(list.size())) {
+               if (readIf(")"))
+                   break;
+           }
+           if (list.size() == max) {
+               read(")"); // force syntax error for extra argument
+               break;
+           }
+           if (list.size() > 0) {
+               read(",");
+           }
+
+           Expression e = readExpression();
+           list.add(e);
+       } while (true);
+
+       Expression[] args = new Expression[list.size()];
+       for (int i = 0; i < args.length; i++) {
+           args[i] = (Expression) list.get(i);
+       }
+       JavaFunction func = new JavaFunction(functionAlias, args);
+       return func;
+   }
+I also attached FunctionAlias.java file
+Pavel 
+*/            
+        
+        
         // h2
         // update FOO set a = dateadd('second', 4320000, a);
         // ms sql server
@@ -198,6 +311,8 @@ drop table parent;
 //        -- MS SQL Server: 1, 11 (SELECT LEN(C), LEN(C + 'x') FROM TEST)
 //        -- Oracle, Derby: 10, 11
 //        -- PostgreSQL, H2, HSQLDB: 1, 2
+        
+        
         
         // auto-upgrade application:
         // check if new version is available 
@@ -428,24 +543,24 @@ drop table parent;
     }
 
     void testUnit() {
-        new TestBitField().runTest(this);
-        new TestCompress().runTest(this);
-        new TestDataPage().runTest(this);
-        new TestExit().runTest(this);
-        new TestFileLock().runTest(this);
-        new TestIntArray().runTest(this);
-        new TestIntIntHashMap().runTest(this);
-        new TestOverflow().runTest(this);
-        new TestPattern().runTest(this);
-        new TestReader().runTest(this);
-        new TestSampleApps().runTest(this);
-        new TestScriptReader().runTest(this);
-        new TestSecurity().runTest(this);
-        new TestStreams().runTest(this);
-        new TestStringCache().runTest(this);
-        new TestStringUtils().runTest(this);
+//        new TestBitField().runTest(this);
+//        new TestCompress().runTest(this);
+//        new TestDataPage().runTest(this);
+//        new TestExit().runTest(this);
+//        new TestFileLock().runTest(this);
+//        new TestIntArray().runTest(this);
+//        new TestIntIntHashMap().runTest(this);
+//        new TestOverflow().runTest(this);
+//        new TestPattern().runTest(this);
+//        new TestReader().runTest(this);
+//        new TestSampleApps().runTest(this);
+//        new TestScriptReader().runTest(this);
+//        new TestSecurity().runTest(this);
+//        new TestStreams().runTest(this);
+//        new TestStringCache().runTest(this);
+//        new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
-        new TestValueHashMap().runTest(this);
+//        new TestValueHashMap().runTest(this);
     }
 
     void testDatabase() throws Exception {
@@ -453,59 +568,60 @@ drop table parent;
         beforeTest();
 
         // db
-        new TestScriptSimple().runTest(this);
-        new TestScript().runTest(this);
-        new TestAutoRecompile().runTest(this);
-        new TestBatchUpdates().runTest(this);
-        new TestBigDb().runTest(this);
-        new TestBigResult().runTest(this);
-        new TestCache().runTest(this);
-        new TestCases().runTest(this);
-        new TestCheckpoint().runTest(this);
-        new TestCluster().runTest(this);
-        new TestCompatibility().runTest(this);
-        new TestCsv().runTest(this);
-        new TestFunctions().runTest(this);
-        new TestIndex().runTest(this);
-        new TestLinkedTable().runTest(this);
-        new TestListener().runTest(this);
-        new TestLob().runTest(this);
-        new TestLogFile().runTest(this);
-        new TestMemoryUsage().runTest(this);
-        new TestMultiConn().runTest(this);
-        new TestMultiDimension().runTest(this);
-        new TestMultiThread().runTest(this);
-        new TestOpenClose().runTest(this);
-        new TestOptimizations().runTest(this);
-        new TestPowerOff().runTest(this);
-        new TestReadOnly().runTest(this);
-        new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
-        new TestSQLInjection().runTest(this);
-        new TestSequence().runTest(this);
-        new TestSpaceReuse().runTest(this);
-        new TestSpeed().runTest(this);
-        new TestTempTables().runTest(this);
-        new TestTransaction().runTest(this);
-        new TestTriggersConstraints().runTest(this);
-        new TestTwoPhaseCommit().runTest(this);
-
-        // server
-        new TestNestedLoop().runTest(this);
-
-        // jdbc
-        new TestCancel().runTest(this);
-        new TestDataSource().runTest(this);
-        new TestManyJdbcObjects().runTest(this);
-        new TestMetaData().runTest(this);
-        new TestNativeSQL().runTest(this);
-        new TestPreparedStatement().runTest(this);
-        new TestResultSet().runTest(this);
-        new TestStatement().runTest(this);
-        new TestTransactionIsolation().runTest(this);
-        new TestUpdatableResultSet().runTest(this);
-        new TestXA().runTest(this);
-        new TestZloty().runTest(this);
+//        new TestScriptSimple().runTest(this);
+//        new TestScript().runTest(this);
+//        new TestAutoRecompile().runTest(this);
+//        new TestBackup().runTest(this);
+//        new TestBatchUpdates().runTest(this);
+//        new TestBigDb().runTest(this);
+//        new TestBigResult().runTest(this);
+//        new TestCache().runTest(this);
+//        new TestCases().runTest(this);
+//        new TestCheckpoint().runTest(this);
+//        new TestCluster().runTest(this);
+//        new TestCompatibility().runTest(this);
+//        new TestCsv().runTest(this);
+//        new TestFunctions().runTest(this);
+//        new TestIndex().runTest(this);
+//        new TestLinkedTable().runTest(this);
+//        new TestListener().runTest(this);
+//        new TestLob().runTest(this);
+//        new TestLogFile().runTest(this);
+//        new TestMemoryUsage().runTest(this);
+//        new TestMultiConn().runTest(this);
+//        new TestMultiDimension().runTest(this);
+//        new TestMultiThread().runTest(this);
+//        new TestOpenClose().runTest(this);
+//        new TestOptimizations().runTest(this);
+//        new TestPowerOff().runTest(this);
+//        new TestReadOnly().runTest(this);
+//        new TestRights().runTest(this);
+//        new TestRunscript().runTest(this);
+//        new TestSQLInjection().runTest(this);
+//        new TestSequence().runTest(this);
+//        new TestSpaceReuse().runTest(this);
+//        new TestSpeed().runTest(this);
+//        new TestTempTables().runTest(this);
+//        new TestTransaction().runTest(this);
+//        new TestTriggersConstraints().runTest(this);
+//        new TestTwoPhaseCommit().runTest(this);
+//
+//        // server
+//        new TestNestedLoop().runTest(this);
+//
+//        // jdbc
+//        new TestCancel().runTest(this);
+//        new TestDataSource().runTest(this);
+//        new TestManyJdbcObjects().runTest(this);
+//        new TestMetaData().runTest(this);
+//        new TestNativeSQL().runTest(this);
+//        new TestPreparedStatement().runTest(this);
+//        new TestResultSet().runTest(this);
+//        new TestStatement().runTest(this);
+//        new TestTransactionIsolation().runTest(this);
+//        new TestUpdatableResultSet().runTest(this);
+//        new TestXA().runTest(this);
+//        new TestZloty().runTest(this);
 
         afterTest();
     }

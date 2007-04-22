@@ -24,10 +24,10 @@ public class FileStore {
     protected String name;
     protected DataHandler handler;
     private byte[] magic;
-
     private RandomAccessFile file;
     private long filePos;
     private Reference autoDeleteReference;
+    private boolean checkedWriting = true;
 
     public static FileStore open(DataHandler handler, String name, byte[] magic) throws SQLException {
         return open(handler, name, magic, null, null, 0);
@@ -79,9 +79,13 @@ public class FileStore {
     protected void initKey(byte[] salt) {
         // do nothing
     }
+    
+    public void setCheckedWriting(boolean value) {
+        this.checkedWriting = value;
+    }
 
     protected void checkWritingAllowed() throws SQLException {
-        if(handler != null) {
+        if(handler != null && checkedWriting) {
             handler.checkWritingAllowed();
         }
     }
@@ -97,12 +101,14 @@ public class FileStore {
         byte[] salt;
         if(length() < HEADER_LENGTH) {
             // write unencrypted
+            checkedWriting = false;
             writeDirect(magic, 0, len);
             salt = generateSalt();
             writeDirect(salt, 0, len);
             initKey(salt);
             // write (maybe) encrypted
             write(magic, 0, len);
+            checkedWriting = true;
         } else {
             // write unencrypted
             seek(0);

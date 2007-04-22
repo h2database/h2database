@@ -119,6 +119,10 @@ public class FunctionTable extends Table {
     public String getCreateSQL() {
         return null;
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
     public void checkRename() throws SQLException {
         throw Message.getUnsupportedException();

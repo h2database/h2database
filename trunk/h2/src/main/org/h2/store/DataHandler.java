@@ -19,7 +19,6 @@ public interface DataHandler {
     void handleInvalidChecksum() throws SQLException;
     int compareTypeSave(Value a, Value b) throws SQLException;
     int getMaxLengthInplaceLob();
-    
     String getLobCompressionAlgorithm(int type);
     
     // only temporarily, until LOB_FILES_IN_DIRECTORIES is enabled

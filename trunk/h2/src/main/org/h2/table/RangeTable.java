@@ -31,6 +31,10 @@ public class RangeTable extends Table {
         setColumns(cols);
     }
     
+    public String getDropSQL() {
+        return null;
+    }
+    
     public String getCreateSQL() {
         return null;
     } 

@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.h2.jdbc.JdbcConnection;
@@ -560,5 +561,25 @@ public abstract class TestBase {
             check(a.intValue(), b.intValue());
         }
     }    
+    
+    protected void compareDatabases(Statement stat1, Statement stat2) throws Exception {
+        ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
+        ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
+        ArrayList list1 = new ArrayList();
+        ArrayList list2 = new ArrayList();
+        while(rs1.next()) {
+            check(rs2.next());
+            list1.add(rs1.getString(1));
+            list2.add(rs2.getString(1));
+        }
+        for(int i=0; i<list1.size(); i++) {
+            String s = (String)list1.get(i);
+            if(!list2.remove(s)) {
+                error("not found: " + s);
+            }
+        }
+        check(list2.size(), 0);
+        checkFalse(rs2.next());
+    }
     
 }

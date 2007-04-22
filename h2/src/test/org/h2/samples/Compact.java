@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 
-import org.h2.tools.Backup;
+import org.h2.tools.Script;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.RunScript;
 
@@ -30,9 +30,9 @@ public class Compact {
     
     public static void compact(String dir, String dbName, String user, String password) throws Exception {
         String url = "jdbc:h2:" + dir + "/" + dbName;
-        String script = "data/test.sql";
-        Backup.execute(url, user, password, script);
+        String file = "data/test.sql";
+        Script.execute(url, user, password, file);
         DeleteDbFiles.execute(dir, dbName, true);
-        RunScript.execute(url, user, password, script, null, false);
+        RunScript.execute(url, user, password, file, null, false);
     }
 }

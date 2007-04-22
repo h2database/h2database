@@ -1,3 +1,17 @@
+create table test(id int primary key check id>1);
+drop table test;
+create table table1(f1 int not null primary key);
+create table table2(f2 int not null references table1(f1) on delete cascade);
+drop table table2;
+drop table table1;
+create table table1(f1 int not null primary key);
+create table table2(f2 int not null primary key references table1(f1));
+drop table table1;
+drop table table2;
+
+select case when 1=null then 1 else 2 end;
+> 2;
+
 select case (1) when 1 then 1 else 2 end; 
 > 1;
 

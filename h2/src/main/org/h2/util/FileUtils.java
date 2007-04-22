@@ -314,7 +314,7 @@ public class FileUtils {
         return fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_2);
     }
 
-    public static String createTempFile(String name, String suffix, boolean deleteOnExit) throws IOException, SQLException {
+    public static String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException, SQLException {
         name += ".";
         if(isInMemory(name)) {
             for(int i=0;; i++) {
@@ -327,12 +327,18 @@ public class FileUtils {
             }
         }
         String prefix = new File(name).getName();
-        File dir = new File(name).getAbsoluteFile().getParentFile();
-        dir.mkdirs();
+        File dir;
+        if(inTempDir) {
+            dir = null;
+        } else {
+            dir = new File(name).getAbsoluteFile().getParentFile();
+            dir.mkdirs();
+        }
         File f = File.createTempFile(prefix, suffix, dir);
         if(deleteOnExit) {
             f.deleteOnExit();
         }
+        // return f.getPath();
         return f.getCanonicalPath();
     }
 
@@ -344,6 +350,7 @@ public class FileUtils {
     }
 
     public static String[] listFiles(String path) throws SQLException {
+//System.out.println("listFiles: " + path);        
         if(isInMemory(path)) {
             String[] list = new String[memoryFiles.size()];
             MemoryFile[] l = new MemoryFile[memoryFiles.size()];
@@ -353,19 +360,34 @@ public class FileUtils {
             }
             return list;
         }
+        File f = new File(path);
         try {
-            File[] files = new File(path).listFiles();
-            if(files == null) {
+            String[] list = f.list();
+            if(list == null) {
                 return new String[0];
             }
-            String[] list = new String[files.length];
-            for(int i=0; i<files.length; i++) {
-                list[i] = files[i].getCanonicalPath();
+            String base = f.getCanonicalPath() + File.separator;
+            for(int i=0; i<list.length; i++) {
+                list[i] = base + list[i];
             }
             return list;
         } catch (IOException e) {
             throw Message.convert(e);
         }
+        
+//        try {
+//            File[] files = new File(path).listFiles();
+//            if(files == null) {
+//                return new String[0];
+//            }
+//            String[] list = new String[files.length];
+//            for(int i=0; i<files.length; i++) {
+//                list[i] = files[i].getCanonicalPath();
+//            }
+//            return list;
+//        } catch (IOException e) {
+//            throw Message.convert(e);
+//        }
     }
 
     public static boolean isDirectory(String fileName) {

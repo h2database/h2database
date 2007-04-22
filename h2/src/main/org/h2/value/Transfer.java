@@ -262,7 +262,13 @@ public class Transfer {
             }
             writeLong(length);
             Reader reader = v.getReader();
-            Writer writer = new OutputStreamWriter(out, Constants.UTF8);
+            // below, writer.flush needs to be called to ensure the buffer is written
+            // but, this will also flush the output stream, and this slows things down
+            // so construct an output stream that will ignore this chained flush call
+            java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
+                public void flush() {} 
+            };
+            Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
             long written = IOUtils.copyAndCloseInput(reader, writer);
             if(Constants.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);

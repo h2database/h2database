@@ -44,6 +44,17 @@ Deletes rows form a table.
 ","
 DELETE FROM TEST WHERE ID=2
 "
+
+"Commands (DML)","BACKUP","
+BACKUP TO fileNameString
+","
+Backs up the database files to a .zip file.
+Objects are not locked.
+Admin rights are required to execute this command.
+","
+BACKUP TO 'backup.zip'
+"
+
 "Commands (DML)","CALL","
 CALL expression
 ","
@@ -353,6 +364,7 @@ name(driverString, urlString,
 userString, passwordString, originalTableString)
 ","
 Creates a table link to an external table.
+The driver name may be empty if the driver is already loaded.
 The current user owner must have admin rights.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test', 'sa', '', 'TEST')
@@ -1159,7 +1171,7 @@ A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 "
 "Other Grammar","Value","
 string | hexNumber | int | long | decimal | double |
-date | time | timestamp | boolean | bytes | null
+date | time | timestamp | boolean | bytes | array | null
 ","
 A value of any data type, or null
 ","
@@ -1202,7 +1214,7 @@ ID AS VALUE
 intType | booleanType | tinyintType | smallintType | bigintType | identityType |
 decimalType | doubleType | realType | dateType | timeType | timestampType |
 binaryType | otherType | varcharType | varcharIgnorecaseType |
-blobType | clobType | uuidType
+blobType | clobType | uuidType | arrayType
 ","
 A data type definition.
 ","
@@ -1303,6 +1315,7 @@ A boolean value.
 ","
 TRUE
 "
+
 "Other Grammar","Bytes","
 X'hex'
 ","
@@ -1310,6 +1323,15 @@ A binary value. The hex value is not case sensitive.
 ","
 X'01FF'
 "
+
+"Other Grammar","Array","
+( expression [,..] )
+","
+An array of values.
+","
+(1, 2)
+"
+
 "Other Grammar","Null","
 NULL
 ","
@@ -1505,6 +1527,15 @@ Universally unique identifier. This is a 128 bit value.
 Use PreparedStatement.setBytes or setString to store values.
 ","
 UUID
+"
+
+"Data Types","ARRAY Type","
+ARRAY
+","
+An array of values.
+Use a value list (1, 2) or PreparedStatement.setObject(.., new Object[]{..}) to store values.
+","
+ARRAY
 "
 
 "Functions (Aggregate)","AVG","
@@ -2077,7 +2108,7 @@ REPLACE(NAME, ' ')
 SOUNDEX(string): string
 ","
 Returns a four character code representing the sound of a string.
-See also http://www.nara.gov/genealogy/coding.html.
+See also http://www.archives.gov/genealogy/soundex.html.
 ","
 SOUNDEX(NAME)
 "
@@ -2323,6 +2354,22 @@ Returns the year from a timestamp.
 YEAR(CREATED)
 "
 
+"Functions (System)","ARRAY_GET","
+ARRAY_GET(arrayExpression, indexExpression): value
+","
+Returns one element of an array.
+","
+CALL ARRAY_GET(('Hello', 'World'), 2)
+"
+
+"Functions (System)","ARRAY_LENGTH","
+ARRAY_GET(arrayExpression): int
+","
+Returns the length of an array.
+","
+CALL ARRAY_LENGTH(('Hello', 'World'))
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT(): boolean
 ","
@@ -2445,6 +2492,20 @@ Returns the lock timeout of the current session (in milliseconds).
 LOCK_TIMEOUT()
 "
 
+"Functions (System)","LINK_SCHEMA","
+LINK_SCHEMA(targetSchemaString, driverString, urlString, 
+userString, passwordString, sourceSchemaString): resultSet
+","
+Creates table links for all tables in a schema.
+If tables with the same name already exist, they are dropped first.
+The target schema is created automatically if it does not yet exist.
+The driver name may be empty if the driver is already loaded.
+The list of tables linked is returned.
+Admin rights are required to execute this command.
+","
+CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:test2', 'sa', 'sa', 'PUBLIC');
+"
+
 "Functions (System)","MEMORY_FREE","
 MEMORY_FREE(): int
 ","
@@ -2517,6 +2578,14 @@ This id stays the same while the connection is open.
 The database engine may re-use a session id after the connection is closed.
 ","
 CALL SESSION_ID()
+"
+
+"Functions (System)","TABLE","
+TABLE( { name dataType = expression } [,..]): result set
+","
+Returns the result set.
+","
+SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
 "
 
 "Functions (System)","USER","

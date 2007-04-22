@@ -45,12 +45,17 @@ public class TraceSystem {
     private static final int CHECK_SIZE_EACH_WRITES = 128;
     private int checkSize;
     private boolean closed;
+    private boolean manualEnabling = true;
     
     public static void traceThrowable(Throwable e) {
         PrintWriter writer = DriverManager.getLogWriter();
         if(writer != null) {
             e.printStackTrace(writer);
         }
+    }
+    
+    public void setManualEnabling(boolean value) {
+        this.manualEnabling = value;
     }
 
     public TraceSystem(String fileName) {
@@ -121,22 +126,29 @@ public class TraceSystem {
         }
         if (fileName != null) {
             if (l > levelFile) {
-                long time = System.currentTimeMillis();
-                if (time > lastCheck + CHECK_FILE_TIME) {
-                    String checkFile = fileName + Constants.SUFFIX_TRACE_START_FILE;
-                    lastCheck = time;
-                    if (FileUtils.exists(checkFile)) {
-                        levelFile = DEBUG;
-                        try {
-                            FileUtils.delete(checkFile);
-                        } catch (Exception e) {
-                            // the file may be read only
-                        }
-                    }
-                }
+                enableIfRequired();
             }
             if (l <= levelFile) {
                 writeFile(format(module, s), t);
+            }
+        }
+    }
+    
+    private void enableIfRequired() {
+        if(!manualEnabling) {
+            return;
+        }  
+        long time = System.currentTimeMillis();
+        if (time > lastCheck + CHECK_FILE_TIME) {
+            String checkFile = fileName + Constants.SUFFIX_TRACE_START_FILE;
+            lastCheck = time;
+            if (FileUtils.exists(checkFile)) {
+                levelFile = DEBUG;
+                try {
+                    FileUtils.delete(checkFile);
+                } catch (Exception e) {
+                    // the file may be read only
+                }
             }
         }
     }

@@ -39,6 +39,10 @@ public class LinkedIndex extends Index {
 
     public void close(Session session) throws SQLException {
     }
+    
+    private boolean isNull(Value v) {
+        return v == null || v == ValueNull.INSTANCE;
+      }
 
     public void add(Session session, Row row) throws SQLException {
         StringBuffer buff = new StringBuffer("INSERT INTO ");
@@ -50,10 +54,10 @@ public class LinkedIndex extends Index {
                 buff.append(',');
             }
             j++;
-            if(v != null && v != ValueNull.INSTANCE) {
-                buff.append('?');
-            } else {
+            if(isNull(v)) {
                 buff.append("NULL");
+            } else {
+                buff.append('?');
             }
         }
         buff.append(')');
@@ -83,20 +87,25 @@ public class LinkedIndex extends Index {
                 buff.append("AND ");
             }
             buff.append(table.getColumn(i).getSQL());
-            buff.append("=? ");
+            Value v = row.getValue(i);
+            if(isNull(v)) {
+                buff.append(" IS NULL ");
+            } else {
+                buff.append("=? ");
+            }
         }
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
             for(int i=0, j=0; i<row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
-                if(v != null) {
+                if(!isNull(v)) {
                     v.set(prep, j+1);
                     j++;
                 }
             }
-            prep.executeUpdate();
-            rowCount--;
+            int count = prep.executeUpdate();
+            rowCount -= count;
         } catch(SQLException e) {
             throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
         }
@@ -185,7 +194,7 @@ public class LinkedIndex extends Index {
     }
 
     public Value findFirstOrLast(Session session, boolean first) throws SQLException {
-        // TODO optimization: could get the first or last value (in any cases; maybe not optimized)
+        // TODO optimization: could get the first or last value (in any case; maybe not optimized)
         throw Message.getUnsupportedException();
     }    
 

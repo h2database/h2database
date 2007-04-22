@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
@@ -18,14 +20,14 @@ public class TraceObject {
         PREPARED_STATEMENT = 3, RESULT_SET = 4, RESULT_SET_META_DATA = 5,
         SAVEPOINT = 6, SQL_EXCEPTION = 7, STATEMENT = 8, BLOB = 9, CLOB = 10,
         PARAMETER_META_DATA = 11;
-    public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14;
+    public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
     
-    private static int LAST = XID + 1;  
+    private static int LAST = ARRAY + 1;  
     private Trace trace;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {
         "call", "conn", "dbMeta", "prep", "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta",
-        "ds", "xads", "xid"
+        "ds", "xads", "xid", "ar"
     };
     private int type, id;
     
@@ -151,6 +153,31 @@ public class TraceObject {
         return StringUtils.quoteJavaIntArray(s);
     }
     
+    protected String quoteMap(Map map) {
+        if(map == null) {
+            return "null";
+        }
+        if(map.size() == 0) {
+            return "new Map()";
+        }
+        StringBuffer buff = new StringBuffer("new Map() /* ");
+        try {
+            // Map<String, Class>
+            for(Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String key = (String) entry.getKey();
+                buff.append(key);
+                buff.append(':');
+                Class clazz = (Class) entry.getValue();
+                buff.append(clazz.getName());
+            }
+        } catch(Exception e) {
+            buff.append(e.toString()+": "+map.toString());
+        }
+        buff.append("*/");
+        return buff.toString();
+    }
+
     protected SQLException logAndConvert(Throwable e) {
         if(Constants.LOG_ALL_ERRORS)  {
             synchronized(this.getClass()) {

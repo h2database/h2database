@@ -1016,24 +1016,38 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a Array.
+     * Returns the value of the specified column as an Array.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     * @throws SQLException if the column is not found or if the result set is closed
      */
     public Array getArray(int columnIndex) throws SQLException {
         try {
+            int id = getNextId(TraceObject.ARRAY);
+            debugCodeAssign("Clob", TraceObject.ARRAY, id);
             debugCodeCall("getArray", columnIndex);
-            throw Message.getUnsupportedException();
+            Value v = get(columnIndex);
+            return v == ValueNull.INSTANCE ? null : new JdbcArray(session, conn, v, id);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a Array.
+     * Returns the value of the specified column as an Array.
+     *
+     * @param columnName the name of the column label
+     * @return the value
+     * @throws SQLException if the column is not found or if the result set is closed
      */
     public Array getArray(String columnName) throws SQLException {
         try {
+            int id = getNextId(TraceObject.ARRAY);
+            debugCodeAssign("Clob", TraceObject.ARRAY, id);
             debugCodeCall("getArray", columnName);
-            throw Message.getUnsupportedException();
+            Value v = get(columnName);
+            return v == ValueNull.INSTANCE ? null : new JdbcArray(session, conn, v, id);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }

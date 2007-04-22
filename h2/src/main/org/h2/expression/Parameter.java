@@ -11,6 +11,7 @@ import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * @author Thomas
@@ -33,7 +34,12 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public Value getParamValue() throws SQLException {
-        return value == null ? null : value;
+        if(value == null) {
+            // to allow parameters in function tables
+            return ValueNull.INSTANCE;
+        } else {
+            return value;
+        }
     }
 
     public Value getValue(Session session) throws SQLException {

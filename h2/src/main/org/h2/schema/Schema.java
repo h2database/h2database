@@ -45,6 +45,10 @@ public class Schema extends DbObject {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
     public String getCreateSQL() {
         if(system) {

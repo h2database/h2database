@@ -45,6 +45,13 @@ public class Sequence extends SchemaObject {
         this.increment = inc;
     }
     
+    public String getDropSQL() {
+        if(getBelongsToTable()) {
+            return null;
+        }
+        return "DROP SEQUENCE IF EXISTS " + getSQL();
+    }
+    
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }    

@@ -89,7 +89,7 @@ public class JdbcSQLException extends SQLException {
         if(s!=null) {
             super.printStackTrace(s);
 //#ifdef JDK13
-/*            
+/*
             if (cause != null) {
                 cause.printStackTrace(s);
             }

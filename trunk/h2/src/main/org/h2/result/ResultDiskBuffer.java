@@ -32,6 +32,7 @@ class ResultDiskBuffer {
         rowBuff = DataPage.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
         String fileName = session.getDatabase().createTempFile();
         file = session.getDatabase().openFile(fileName, false);
+        file.setCheckedWriting(false);
         file.autoDelete();
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {

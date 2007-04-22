@@ -19,7 +19,6 @@ import java.sql.SQLWarning;
 import java.sql.Savepoint;
 //#endif
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
@@ -34,6 +33,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.util.ClassUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -655,37 +655,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     public void setTypeMap(Map map) throws SQLException {
         try {
             debugCode("setTypeMap("+quoteMap(map)+");");
-            if(map != null && map.size()>0) {
-                throw Message.getUnsupportedException();
-            }
+            checkMap(map);
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
-    }
-
-    private String quoteMap(Map map) {
-        if(map == null) {
-            return "null";
-        }
-        if(map.size() == 0) {
-            return "new Map()";
-        }
-        StringBuffer buff = new StringBuffer("new Map() /* ");
-        try {
-            // Map<String, Class>
-            for(Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                String key = (String) entry.getKey();
-                buff.append(key);
-                buff.append(':');
-                Class clazz = (Class) entry.getValue();
-                buff.append(clazz.getName());
-            }
-        } catch(Exception e) {
-            buff.append(e.toString()+": "+map.toString());
-        }
-        buff.append("*/");
-        return buff.toString();
     }
 
     /**
@@ -946,7 +919,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (ci.isRemote()) {
                 session = new SessionRemote().createSession(ci);
             } else {
-                SessionInterface si = (SessionInterface) Class.forName("org.h2.engine.Session").newInstance();
+                SessionInterface si = (SessionInterface) ClassUtils.loadClass("org.h2.engine.Session").newInstance();
                 session = si.createSession(ci);
             }
             trace = session.getTrace();
@@ -1454,6 +1427,12 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         Value v = ValueLob.createBlob(x, length, session.getDataHandler());
         return v;
+    }
+    
+    private void checkMap(Map map) throws SQLException {
+        if(map != null && map.size()>0) {
+            throw Message.getUnsupportedException();
+        }
     }
     
 }

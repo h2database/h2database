@@ -44,6 +44,10 @@ public abstract class Index extends SchemaObject {
             }
         }
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
     public SQLException getDuplicateKeyException() {
         StringBuffer buff = new StringBuffer();

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -26,14 +27,17 @@ import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.LinkSchema;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -89,7 +93,8 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203,
             COALESCE = 204, NULLIF = 205, CASE = 206, NEXTVAL = 207, CURRVAL = 208,
             ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211, MEMORY_FREE = 212,
-            MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217;
+            MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
+            LINK_SCHEMA = 218, TABLE = 219;
 
     private static final int VAR_ARGS = -1;
 
@@ -100,6 +105,7 @@ public class Function extends Expression implements FunctionCall {
     private ObjectArray varArgs;
     private int dataType, scale;
     private long precision;
+    private Column[] columnList;
     private Database database;
 
     private static HashMap datePart;
@@ -126,7 +132,7 @@ public class Function extends Expression implements FunctionCall {
         datePart.put("MS", new Integer(Calendar.MILLISECOND));
         datePart.put("MILLISECOND", new Integer(Calendar.MILLISECOND));
     }
-
+    
     static {
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
         char number = 0;
@@ -271,13 +277,15 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.NULL);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.NULL, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false);
         addFunctionNotConst("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
         addFunctionNotConst("MEMORY_USED", MEMORY_USED, 0, Value.INT);
         addFunctionNotConst("LOCK_MODE", LOCK_MODE, 0, Value.INT);
         addFunctionNotConst("SCHEMA", SCHEMA, 0, Value.STRING);
         addFunctionNotConst("SESSION_ID", SESSION_ID, 0, Value.INT);
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
+        addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
+        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
@@ -343,25 +351,36 @@ public class Function extends Expression implements FunctionCall {
     public Value getValue(Session session) throws SQLException {
         return getValueWithArgs(session, args);
     }
+    
+    private Value getNullOrValue(Session session, Expression[] x, int i) throws SQLException {
+        if (i < x.length) {
+            Expression e = x[i];
+            if(e != null) {
+                return e.getValue(session);
+            }
+        }
+        return null;
+    }
 
     public Value getValueWithArgs(Session session, Expression[] args) throws SQLException {
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {
-                Expression e = args[i];
-                if (e != null && e.getValue(session) == ValueNull.INSTANCE) {
+                if (getNullOrValue(session, args, i) == ValueNull.INSTANCE) {
                     return ValueNull.INSTANCE;
                 }
             }
         }
-        Value v0 = args.length < 1 || args[0] == null ? null : args[0].getValue(session);
+        Value v0 = getNullOrValue(session, args, 0);
         switch (info.type) {
         case IFNULL:
             return v0 == ValueNull.INSTANCE ? args[1].getValue(session) : v0;
         case CASEWHEN: {
-            if(v0 == ValueNull.INSTANCE) {
-                return v0;
+            Expression result;
+            if(v0 == ValueNull.INSTANCE || !v0.getBoolean().booleanValue()) {
+                result = args[2];
+            } else {
+                result = args[1];
             }
-            Expression result = v0.getBoolean().booleanValue() ? args[1] : args[2];
             Value v = result.getValue(session);
             v = v.convertTo(dataType);
             return v;
@@ -408,9 +427,11 @@ public class Function extends Expression implements FunctionCall {
         default:
             // ok
         }
-        Value v1 = args.length < 2 || args[1] == null ? null : args[1].getValue(session);
-        Value v2 = args.length < 3 || args[2] == null ? null : args[2].getValue(session);
-        Value v3 = args.length < 4 || args[3] == null ? null : args[3].getValue(session);
+        Value v1 = getNullOrValue(session, args, 1);
+        Value v2 = getNullOrValue(session, args, 2);
+        Value v3 = getNullOrValue(session, args, 3);
+        Value v4 = getNullOrValue(session, args, 4);
+        Value v5 = getNullOrValue(session, args, 5);
         switch (info.type) {
         case ABS:
             return v0.getSignum() > 0 ? v0 : v0.negate();
@@ -752,7 +773,16 @@ public class Function extends Expression implements FunctionCall {
             ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
             return vr;
         }
+        case LINK_SCHEMA: {
+            session.getUser().checkAdmin();
+            Connection conn = session.createConnection(false);
+            ResultSet rs = LinkSchema.linkSchema(conn, v0.getString(), v1.getString(), v2.getString(), v3.getString(), v4.getString(), v5.getString());
+            return ValueResultSet.get(rs);
+        }
+        case TABLE:
+            return getTable(session, args, false);
         case CSVWRITE: {
+            session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
             String charset = v2 == null ? null : v2.getString();
             String fieldSeparatorWrite = v3 == null ? null : v3.getString();
@@ -760,8 +790,8 @@ public class Function extends Expression implements FunctionCall {
             if(fieldSeparatorWrite != null) {
                 csv.setFieldSeparatorWrite(fieldSeparatorWrite);
             }
-            csv.write(conn, v0.getString(), v1.getString(), charset);
-            return ValueNull.INSTANCE;
+            int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
+            return ValueInt.get(rows);
         }
         case MEMORY_FREE:
             session.getUser().checkAdmin();
@@ -1188,6 +1218,8 @@ public class Function extends Expression implements FunctionCall {
             int min=0, max=Integer.MAX_VALUE;
             switch (info.type) {
             case COALESCE:
+            case CSVREAD:
+            case TABLE:
                 min = 1;
                 break;
             case NOW:
@@ -1211,11 +1243,6 @@ public class Function extends Expression implements FunctionCall {
                 break;
             case CASE:
             case CONCAT:
-                min = 2;
-                break;
-            case CSVREAD:
-                min = 1;
-                break;
             case CSVWRITE:
                 min = 2;
                 break;
@@ -1274,6 +1301,8 @@ public class Function extends Expression implements FunctionCall {
         }
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
+        case IFNULL:
+        case NULLIF:
         case COALESCE: {
             dataType = Value.STRING;
             scale = 0;
@@ -1304,14 +1333,23 @@ public class Function extends Expression implements FunctionCall {
         case ROUND:
         case TRUNCATE:
         case POWER:
+        case ARRAY_GET:
             dataType = p0.getType();
             scale = p0.getScale();
             precision = p0.getPrecision();
+            if(dataType == Value.NULL) {
+                dataType = Value.INT;
+                precision = ValueInt.PRECISION;
+                scale = 0;
+            }
             break;
         default:
             dataType = info.dataType;
-            scale = 0;
             precision = 0;
+            scale = 0;
+        }
+        if(Constants.CHECK && dataType == Value.NULL) {
+            throw Message.getInternalError("type NULL: " + getSQL());
         }
         if(allConst) {
             return ValueExpression.get(getValue(session));
@@ -1392,7 +1430,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public ValueResultSet getValueForColumnList(Session session, Expression[] args) throws SQLException {
-        if(info.type == CSVREAD) {
+        switch(info.type) {
+        case CSVREAD: {
             String fileName = args[0].getValue(session).getString();
             if(fileName == null) {
                 throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, "fileName");
@@ -1410,6 +1449,10 @@ public class Function extends Expression implements FunctionCall {
             ResultSet rs = csv.read(fileName, columns, charset);
             ValueResultSet vr = ValueResultSet.getCopy(rs, 0);
             return vr;
+        }
+        case TABLE: {
+            return getTable(session, args, true);
+        }
         }
         return (ValueResultSet)getValueWithArgs(session, args);
     }
@@ -1437,6 +1480,59 @@ public class Function extends Expression implements FunctionCall {
             cost += args[i].getCost();
         }
         return cost;
+    }
+    
+    public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList) throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        int len = columnList.length;
+        for(int i=0; i<len; i++) {
+            Column c = columnList[i];
+            String columnName = c.getName();
+            int dataType = DataType.convertTypeToSQLType(c.getType());
+            int precision = MathUtils.convertLongToInt(c.getPrecision());
+            int scale = c.getScale();
+            rs.addColumn(columnName, dataType, precision, scale);
+        }
+        if(!onlyColumnList) {
+            Value[][] list = new Value[args.length][];
+            int rowCount = 0;
+            for(int i=0; i<len; i++) {
+                Value v = args[i].getValue(session);
+                if(v == ValueNull.INSTANCE) {
+                    list[i] = new Value[0];
+                } else {
+                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
+                    Value[] l = array.getList();
+                    list[i] = l;
+                    rowCount = Math.max(rowCount, l.length);
+                }
+            }
+            for(int row = 0; row < rowCount; row++) {
+                Object[] r = new Object[len];
+                for(int j=0; j<len; j++) {
+                    Value[] l = list[j];
+                    Value v;
+                    if(l.length <= row) {
+                        v = ValueNull.INSTANCE;
+                    } else {
+                        Column c = columnList[j];
+                        v = l[row];
+                        v = v.convertTo(c.getType());
+                        v = v.convertPrecision(c.getPrecision());
+                        v = v.convertScale(true, c.getScale());
+                    }
+                    r[j] = v.getObject();
+                }
+                rs.addRow(r);
+            }
+        }
+        ValueResultSet vr = ValueResultSet.get(rs);
+        return vr;
+    }
+
+    public void setColumns(ObjectArray columns) {
+        this.columnList = new Column[columns.size()];
+        columns.toArray(columnList);
     }
 
 }

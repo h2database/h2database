@@ -4,54 +4,42 @@
  */
 package org.h2.tools;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.h2.message.Message;
 import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
-import org.h2.util.StringUtils;
 
-/**
- * Creates a backup of a database by extracting the schema and data into a SQL script file.
+/*
+ * Backs up a H2 database by creating a .zip file from the database files.
  * 
  * @author Thomas
- *
  */
 public class Backup {
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()
-                + " -url <url> -user <user> [-password <pwd>] [-script <file>] [-options <option> ...]");
+                + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
     }
-
+    
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-user", "sa",... 
+     * The options must be split into strings like this: "-db", "test",... 
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * </li><li>-url jdbc:h2:... (database URL)
-     * </li><li>-user username
-     * </li><li>-password password
-     * </li><li>-script filename (default file name is backup.sql)
-     * </li><li>-options to specify a list of options (only for H2)
+     * </li><li>-file filename (the default is backup.zip)
+     * </li><li>-dir directory (the default is the current directory)
+     * </li><li>-db databaseName (all databases if no name is specified)
+     * </li><li>-quiet does not print progress information
      * </li></ul>
      * 
      * @param args the command line arguments
@@ -60,113 +48,42 @@ public class Backup {
     public static void main(String[] args) throws SQLException {
         new Backup().run(args);
     }
-
+    
     private void run(String[] args) throws SQLException {
-        String url = null;
-        String user = null;
-        String password = "";
-        String script = "backup.sql";
-        String options1 = null, options2 = null;
+        String zipFileName = "backup.zip";
+        String dir = ".";
+        String db = null;
+        boolean quiet = false;
         for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-url")) {
-                url = args[++i];
-            } else if(args[i].equals("-user")) {
-                user = args[++i];
-            } else if(args[i].equals("-password")) {
-                password = args[++i];
-            } else if(args[i].equals("-script")) {
-                script = args[++i];
-            } else if(args[i].equals("-options")) {
-                StringBuffer buff1 = new StringBuffer();
-                StringBuffer buff2 = new StringBuffer();
-                i++;
-                for(; i<args.length; i++) {
-                    String a = args[i];
-                    String upper = StringUtils.toUpperEnglish(a);
-                    if(upper.startsWith("NO") || upper.equals("DROP")) {
-                        buff1.append(' ');
-                        buff1.append(args[i]);
-                    } else {
-                        buff2.append(' ');
-                        buff2.append(args[i]);
-                    }
-                }
-                options1 = buff1.toString();
-                options2 = buff2.toString();
+            if(args[i].equals("-dir")) {
+                dir = args[++i];
+            } else if(args[i].equals("-db")) {
+                db = args[++i];
+            } else if(args[i].equals("-quiet")) {
+                quiet = true;
             } else {
                 showUsage();
                 return;
             }
         }
-        if(url==null || user==null || script == null) {
-            showUsage();
-            return;
-        }        
-        if(options1 != null) {
-            executeScript(url, user, password, script, options1, options2);
-        } else {       
-            execute(url, user, password, script);
-        }
+        Backup.execute(zipFileName, dir, db, quiet);
     }
-    
+
     /**
-     * INTERNAL
-     */
-    public static void executeScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
-        Connection conn = null;
-        Statement stat = null;
-        try {
-            org.h2.Driver.load();
-            conn = DriverManager.getConnection(url, user, password);
-            stat = conn.createStatement();
-            String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
-            stat.execute(sql);
-        } catch(Exception e) {
-            throw Message.convert(e);
-        } finally {
-            JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
-        }
-    }
-    
-    /**
-     * Backs up a database to a file.
+     * Backs up database files.
      * 
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @param script the script file
+     * @param zipFileName the name of the backup file
+     * @param directory the directory name
+     * @param db the database name (null for all databases)
+     * @param quiet don't print progress information
      * @throws SQLException
-     */
-    public static void execute(String url, String user, String password, String script) throws SQLException {
-        Connection conn = null;
-        Statement stat = null;        
-        FileWriter fileWriter = null;
-        try {
-            org.h2.Driver.load();
-            conn = DriverManager.getConnection(url, user, password);
-            stat = conn.createStatement();
-            fileWriter = new FileWriter(script);
-            PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
-            ResultSet rs = stat.executeQuery("SCRIPT");
-            while(rs.next()) {
-                String s = rs.getString(1);
-                writer.println(s + ";");
-            }
-            writer.close();
-        } catch(Exception e) {
-            throw Message.convert(e);
-        } finally {
-            JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
-            IOUtils.closeSilently(fileWriter);
+     */    
+    public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+        ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
+        if (list.size() == 0 && !quiet) {
+            System.out.println("No database files found");
+            return;
         }
-    }
-    
-    /**
-     * INTERNAL
-     */
-    public static void backupFiles(String zipFileName, String directory, String db) throws IOException, SQLException {
         File file = new File(zipFileName);
         if(file.exists()) {
             file.delete();
@@ -175,7 +92,6 @@ public class Backup {
         try {
             out = new FileOutputStream(file);
             ZipOutputStream zipOut = new ZipOutputStream(out);
-            ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
             for(int i=0; i<list.size(); i++) {
                 String fileName = (String) list.get(i);
                 ZipEntry entry = new ZipEntry(FileUtils.getFileName(fileName));
@@ -188,45 +104,17 @@ public class Backup {
                     IOUtils.closeSilently(in);
                 }
                 zipOut.closeEntry();
+                if (!quiet) {
+                    System.out.println("processed: " + fileName);
+                }                
             }
             zipOut.closeEntry();
             zipOut.close();
+        } catch(IOException e) {
+            throw Message.convert(e);
         } finally {
             IOUtils.closeSilently(out);
         }
     }
-    
-    /**
-     * INTERNAL
-     */
-    public static void restoreFiles(String zipFileName, String directory) throws IOException, SQLException {
-        File file = new File(zipFileName);
-        if(!file.exists()) {
-            throw new IOException("File not found: " + zipFileName);
-        }
-        FileInputStream in = null;
-        try {
-            in = new FileInputStream(file);
-            ZipInputStream zipIn = new ZipInputStream(in);
-            while(true) {
-                ZipEntry entry = zipIn.getNextEntry();
-                if(entry == null) {
-                    break;
-                }
-                String fileName = entry.getName();
-                FileOutputStream out = null;
-                try {
-                    out = new FileOutputStream(new File(directory, fileName));
-                    IOUtils.copy(zipIn, out);
-                } finally {
-                    IOUtils.closeSilently(out);
-                }
-                zipIn.closeEntry();
-            }
-            zipIn.closeEntry();
-            zipIn.close();
-        } finally {
-            IOUtils.closeSilently(in);
-        }
-    }
+
 }

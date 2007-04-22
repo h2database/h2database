@@ -9,6 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -47,11 +48,13 @@ public class Csv implements SimpleRowSource {
      * @param fileName
      * @param rs the result set
      * @param charset the charset or null to use UTF-8
+     * @return the number of rows written
      * @throws SQLException
      */
-    public void write(String fileName, ResultSet rs, String charset) throws SQLException {
+    public int write(String fileName, ResultSet rs, String charset) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         init(fileName, charset);
+        int rows = 0;
         try {
             initWrite();
             int columnCount = meta.getColumnCount();
@@ -65,12 +68,15 @@ public class Csv implements SimpleRowSource {
                     row[i] = rs.getString(i + 1);
                 }
                 writeRow(row);
+                rows++;
             }
-            close();
+            return rows;
         } catch(IOException e) {
             throw convertException("IOException writing file " + fileName, e);
+        } finally {
+            close();
+            JdbcUtils.closeSilently(rs);
         }
-        rs.close();
     }
     
     /**
@@ -80,13 +86,15 @@ public class Csv implements SimpleRowSource {
      * @param fileName the file name
      * @param sql the query
      * @param charset the charset or null to use UTF-8
+     * @return the number of rows written
      * @throws SQLException
      */
-    public void write(Connection conn, String fileName, String sql, String charset) throws SQLException {
+    public int write(Connection conn, String fileName, String sql, String charset) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(sql);
-        write(fileName, rs, charset);
+        int rows = write(fileName, rs, charset);
         stat.close();
+        return rows;
     }
 
     /**

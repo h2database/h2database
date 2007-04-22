@@ -21,6 +21,7 @@ import java.util.Iterator;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ClassUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
@@ -89,7 +90,7 @@ public class RunScript {
             } else if (args[i].equals("-driver")) {
                 String driver = args[++i];
                 try {
-                    Class.forName(driver);
+                    ClassUtils.loadClass(driver);
                 } catch (ClassNotFoundException e) {
                     throw Message.convert(e);
                 }

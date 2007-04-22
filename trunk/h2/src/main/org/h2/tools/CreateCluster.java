@@ -104,7 +104,7 @@ public class CreateCluster {
             // cannot change the data while it is restoring the second database. But there is currently no exclusive mode.
             
             String scriptFile = "backup.sql";
-            Backup.execute(urlSource, user, password, scriptFile);
+            Script.execute(urlSource, user, password, scriptFile);
             RunScript.execute(urlTarget, user, password, scriptFile, null, false);
             new File(scriptFile).delete();
             

@@ -209,8 +209,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public byte getByte(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.byteValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            o = Byte.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).byteValue();
     }
 
     /**
@@ -219,8 +222,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public double getDouble(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.doubleValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            return Double.parseDouble(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).doubleValue();
     }
 
     /**
@@ -229,8 +235,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public float getFloat(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.floatValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            return Float.parseFloat(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).floatValue();
     }
 
     /**
@@ -239,8 +248,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public int getInt(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.intValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            o = Integer.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).intValue();
     }
 
     /**
@@ -249,8 +261,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public long getLong(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.longValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            o = Long.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).longValue();
     }
 
     /**
@@ -259,8 +274,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public short getShort(int columnIndex) throws SQLException {
-        Number v = (Number) get(columnIndex);
-        return v == null ? 0 : v.shortValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Number)) {
+            o = Short.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number)o).shortValue();
     }
 
     /**
@@ -269,8 +287,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public boolean getBoolean(int columnIndex) throws SQLException {
-        Boolean v = (Boolean) get(columnIndex);
-        return v == null ? false : v.booleanValue();
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof Boolean)) {
+            o = Boolean.valueOf(o.toString());
+        }
+        return o == null ? false : ((Boolean)o).booleanValue();
     }
 
     /**
@@ -307,8 +328,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public byte getByte(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.byteValue();
+        return getByte(findColumn(columnName));
     }
 
     /**
@@ -317,8 +337,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public double getDouble(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.doubleValue();
+        return getDouble(findColumn(columnName));
     }
 
     /**
@@ -327,8 +346,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public float getFloat(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.floatValue();
+        return getFloat(findColumn(columnName));
     }
 
     /**
@@ -353,8 +371,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public int getInt(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.intValue();
+        return getInt(findColumn(columnName));
     }
 
     /**
@@ -363,8 +380,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public long getLong(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.longValue();
+        return getLong(findColumn(columnName));
     }
 
     /**
@@ -373,8 +389,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public short getShort(String columnName) throws SQLException {
-        Number v = (Number) get(columnName);
-        return v == null ? 0 : v.shortValue();
+        return getShort(findColumn(columnName));
     }
 
     /**
@@ -383,8 +398,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public boolean getBoolean(String columnName) throws SQLException {
-        Boolean v = (Boolean) get(columnName);
-        return v == null ? false : v.booleanValue();
+        return getBoolean(findColumn(columnName));
     }
 
     /**
@@ -393,7 +407,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public byte[] getBytes(String columnName) throws SQLException {
-        return (byte[]) get(columnName);
+        return getBytes(findColumn(columnName));
     }
 
     /**
@@ -402,7 +416,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-        return (BigDecimal) get(columnIndex);
+        Object o = get(columnIndex);
+        if(o != null && !(o instanceof BigDecimal)) {
+            o = new BigDecimal(o.toString());
+        }
+        return (BigDecimal)o;
     }
 
     /**
@@ -465,7 +483,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Object getObject(String columnName) throws SQLException {
-        return get(columnName);
+        return getObject(findColumn(columnName));
     }
 
     /**
@@ -474,8 +492,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public String getString(String columnName) throws SQLException {
-        Object o = get(columnName);
-        return o == null ? null : o.toString();
+        return getString(findColumn(columnName));
     }
 
     /**
@@ -484,7 +501,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public BigDecimal getBigDecimal(String columnName) throws SQLException {
-        return (BigDecimal) get(columnName);
+        return getBigDecimal(findColumn(columnName));
     }
 
     /**
@@ -493,7 +510,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Date getDate(String columnName) throws SQLException {
-        return (Date) get(columnName);
+        return getDate(findColumn(columnName));
     }
 
     /**
@@ -502,7 +519,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Time getTime(String columnName) throws SQLException {
-        return (Time) get(columnName);
+        return getTime(findColumn(columnName));
     }
 
     /**
@@ -511,7 +528,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Timestamp getTimestamp(String columnName) throws SQLException {
-        return (Timestamp) get(columnName);
+        return getTimestamp(findColumn(columnName));
     }
 
     // ---- result set meta data ---------------------------------------------
@@ -1202,16 +1219,12 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return new SQLException("Feature not supported", "HYC00");
     }
 
-    private Object get(String columnName) throws SQLException {
-        return get(findColumn(columnName));
-    }
-
     private void checkColumnIndex(int columnIndex) throws SQLException {
         if (columnIndex < 0 || columnIndex >= columns.size()) {
             throw new SQLException("Invalid column index " + (columnIndex + 1), "90009");
         }
     }
-
+    
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
             throw new SQLException("No data is available", "02000");

@@ -108,6 +108,8 @@ public abstract class DbObject {
 
     public abstract String getCreateSQLForCopy(Table table, String quotedName);
     public abstract String getCreateSQL();
+    public abstract String getDropSQL();
+    
     public abstract int getType();
     public abstract void removeChildrenAndResources(Session session) throws SQLException;
     public abstract void checkRename() throws SQLException;

@@ -22,6 +22,10 @@ public class UserDataType extends DbObject {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
+    
+    public String getDropSQL() {
+        return "DROP DOMAIN IF EXISTS " + getSQL();
+    }
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();

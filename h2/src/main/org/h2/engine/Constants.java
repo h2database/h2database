@@ -27,7 +27,7 @@ package org.h2.engine;
  *   ant codeswitch_jdk14
  *   
  * - Change FAQ (next release planned, known bugs)
- * - Check version, change build number in Constants.java and build.xml
+ * - Check version, change build number in Constants.java and ant-build.properties
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
  * - No TODO in the docs
@@ -66,8 +66,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 44;
-    private static final String BUILD = "2007-03-04";
+    public static final int BUILD_ID = 45;
+    private static final String BUILD = "2007-03-20";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -106,6 +106,7 @@ public class Constants {
 
     public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 1 << 8;
 
+    public static final String SUFFIX_DB_FILE = ".db";
     public static final String SUFFIX_DATA_FILE = ".data.db";
     public static final String SUFFIX_LOG_FILE = ".log.db";
     public static final String SUFFIX_INDEX_FILE = ".index.db";

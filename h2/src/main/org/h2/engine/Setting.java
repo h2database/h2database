@@ -38,6 +38,10 @@ public class Setting extends DbObject {
         throw Message.getInternalError();
     }
     
+    public String getDropSQL() {
+        return null;
+    }
+    
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("SET ");

@@ -69,6 +69,10 @@ public class Right extends DbObject {
         return grantee;
     } 
     
+    public String getDropSQL() {
+        return null;
+    }
+    
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuffer buff = new StringBuffer();
         buff.append("GRANT ");

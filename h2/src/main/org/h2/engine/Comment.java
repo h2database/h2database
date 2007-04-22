@@ -56,6 +56,10 @@ public class Comment extends DbObject {
             return "type" + type;
         }
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();

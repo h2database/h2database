@@ -105,6 +105,10 @@ public class FunctionAlias extends DbObject {
         throw Message.getInternalError();
     }
 
+    public String getDropSQL() {
+        return "DROP ALIAS IF EXISTS " + getSQL();
+    }
+    
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE ALIAS ");

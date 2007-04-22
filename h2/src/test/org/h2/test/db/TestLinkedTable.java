@@ -12,6 +12,35 @@ import org.h2.test.TestBase;
 public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
+        testLinkSchema();
+        testLinkTable();
+    }
+    
+    private void testLinkSchema() throws Exception {
+        deleteDb("linked1");
+        deleteDb("linked2");
+        Class.forName("org.h2.Driver");
+
+        Connection conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST1(ID INT PRIMARY KEY)");
+        
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        Statement stat2 = conn2.createStatement();
+        String link = "CALL LINK_SCHEMA('LINKED', '', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'PUBLIC')";
+        stat2.execute(link);
+        stat2.executeQuery("SELECT * FROM LINKED.TEST1");
+        
+        stat.execute("CREATE TABLE TEST2(ID INT PRIMARY KEY)");
+        stat2.execute(link);
+        stat2.executeQuery("SELECT * FROM LINKED.TEST1");
+        stat2.executeQuery("SELECT * FROM LINKED.TEST2");
+        
+        conn.close();
+        conn2.close();
+    }
+    
+    private void testLinkTable() throws Exception {
         deleteDb("linked1");
         deleteDb("linked2");
         Class.forName("org.h2.Driver");

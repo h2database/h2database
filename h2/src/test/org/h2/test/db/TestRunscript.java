@@ -5,10 +5,8 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
@@ -25,7 +23,6 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     private void test(boolean password) throws Exception {
-
         deleteDb("runscript");
         Connection conn1, conn2;
         Statement stat1, stat2;
@@ -80,26 +77,6 @@ public class TestRunscript extends TestBase implements Trigger {
 
         conn1.close();
         conn2.close();
-    }
-
-    private void compareDatabases(Statement stat1, Statement stat2) throws Exception {
-        ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
-        ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
-        ArrayList list1 = new ArrayList();
-        ArrayList list2 = new ArrayList();
-        while(rs1.next()) {
-            check(rs2.next());
-            list1.add(rs1.getString(1));
-            list2.add(rs2.getString(1));
-        }
-        for(int i=0; i<list1.size(); i++) {
-            String s = (String)list1.get(i);
-            if(!list2.remove(s)) {
-                error("not found: " + s);
-            }
-        }
-        check(list2.size(), 0);
-        checkFalse(rs2.next());
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName) {

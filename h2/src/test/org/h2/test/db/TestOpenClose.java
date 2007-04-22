@@ -4,11 +4,16 @@
  */
 package org.h2.test.db;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
-import org.h2.tools.Backup;
+import org.h2.tools.Restore;
 
 public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
@@ -41,7 +46,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         stat.execute("BACKUP TO '"+BASE_DIR+"/test.zip'");
         conn.close();
         deleteDb(BASE_DIR, "openClose");
-        Backup.restoreFiles(BASE_DIR + "/test.zip", BASE_DIR);
+        Restore.execute(BASE_DIR + "/test.zip", BASE_DIR, null, true);
         conn = DriverManager.getConnection(url, "sa", "abc def");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");

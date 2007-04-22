@@ -161,6 +161,10 @@ public class TriggerObject extends SchemaObject {
     public boolean getNoWait() {
         return noWait;
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuffer buff = new StringBuffer();

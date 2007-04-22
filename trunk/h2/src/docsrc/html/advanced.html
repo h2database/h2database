@@ -629,6 +629,14 @@ Therefore, the block cipher modes of operation is CBC (Cipher-block chaining), b
 is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns
 in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits
 are not propagated to flipped plaintext bits in the next block.
+</p><p>
+Database encryption is meant for securing the database while it is not in use (stolen laptop and so on).
+It is not meant for cases where the attacker has access to files while the database is in use. 
+When he has write access, he can for example replace pieces of files with pieces of older versions 
+and manipulate data like this.
+</p><p>
+File encryption slows down the performance of the database engine. Compared to unencrypted mode, 
+database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
 </p>
 
 <h3>SSL/TLS Connections</h3>

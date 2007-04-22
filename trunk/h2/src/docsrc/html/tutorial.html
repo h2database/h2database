@@ -282,7 +282,7 @@ To stop remote server, remote connections must be enabled on the server.
 <h2>Using Hibernate</h2>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect, 
 or the native H2 Dialect that is available in the file src/tools/org/h2/tools/hibernate/H2Dialect.txt.
-This dialect will be integrated into Hibernate, but until this is done you need to copy the file
+The H2 dialect is included in newer version of Hibernate. For versions where the dialect is missing, you need to copy the file
 into the folder src\org\hibernate\dialect (Hibernate 3.1), rename it to H2Dialect.java and re-compile hibernate.
 
 <br /><a name="web_applications"></a>

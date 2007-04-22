@@ -36,8 +36,43 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / TODO</h3><ul>
-<li>SQLException.getCause of the now works for JDK 1.4 and higher.
+<h3>Version 1.0 / 2007-04-20 (TODO)</h3><ul>
+</li><li>New function TABLE to define ad-hoc (temporary) tables in a query. 
+    This also solves problems with variable-size IN(...) queries: 
+    instead of SELECT * FROM TEST WHERE ID IN(?, ?, ...) you can now write:
+    SELECT * FROM TABLE(ID INT=?) X, TEST WHERE X.ID=TEST.ID
+    In this case, the index is used.
+</li><li>New data type ARRAY. Actually it was there before, but is now documented 
+    and better tested (however it must still be considered experimental).
+    The java.sql.Array implementation is incomplete, but setObject(1, new Object[]{...})
+    and getObject(..) can be used. New functions ARRAY_GET and ARRAY_LENGTH.
+</li><li>SimpleResultSet now has some basic data type conversion features.
+</li><li>When using JDK 1.5 or later, and switching on h2.lobFilesInDirectories, 
+    the performance for creating LOBs was bad. This has been fixed, however
+    creating lots of LOBs it is still faster when the setting is switched off.
+</li><li>A problem with multiple unnamed dynamic tables (FROM (SELECT...)) has been fixed.
+</li><li>Appending 'Z' to a timestamp did not have an effect. Now it is interpreted as +00:00 (GMT).
+</li><li>The BACKUP command is better tested and documented.
+    This means hot backup (online backup) is now possible.
+</li><li>The old 'Backup' tool is now called 'Script' (as the SQL statement).
+</li><li>For the tools RunScript and Script, the parameter 'script' has been renamed to 'file'.
+</li><li>There are new 'Backup' and 'Restore' tools that work with database files directly.
+</li><li>The complete syntax for referential and check constraints is now supported 
+    when written as part of the column definition, behind PRIMARY KEY.
+</li><li>CASE WHEN ... returned the wrong result when the condition evaluated to NULL.
+</li><li>The new function LINK_SCHEMA simplifies linking all tables of a schema.
+</li><li>SCRIPT DROP now also drops aliases (Java functions) if they exist.
+</li><li>For encrypted databases, the trace option can no longer be enabled manually by creating a file.
+</li><li>For linked tables, NULL in the unique key is now supported.
+</li><li>For read-only databases, temp files are now created in the default temp directory instead
+    of the database directory.
+</li><li>Sending CLOB data was slow in some systems when using the server version. Fixed.
+</li><li>CSVWRITE now returns the number of rows written.
+</li><li>The data type of NULLIF was NULL if the first expression was a column. Now the data type is set correctly.
+</li><li>Indexes (and other related objects) for local temporary tables where not dropped 
+    when the session was closed. Fixed.
+</li><li>ALTER TABLE did not work for tables with computed columns.
+</li><li>SQLException.getCause of the now works for JDK 1.4 and higher.
 </li><li>If the index file was deleted, an error was logged in the .trace.db file. This is no longer done.
 </li><li>The Portuguese (Europe) translation is available. Thanks a lot to Antonio Casqueiro!
 </li><li>The error message for invalid views has been improved (the root cause is included in the message now).
@@ -46,8 +81,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>DROP ALL OBJECTS dropped the role PUBLIC, which was wrong. Fixed.
 </li><li>CASE was parsed as a function if the expression was in (). Fixed.
 </li><li>When ORDER BY was used together with DISTINCT, it was required to type the column
-	name exactly in the select list and the order list exactly in the same way. 
-	This is not required any longer.
+    name exactly in the select list and the order list exactly in the same way. 
+    This is not required any longer.
 </li></ul>
 
 <h3>Version 1.0 / 2007-03-04</h3><ul>
@@ -1297,8 +1332,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Priority 1</h3>
 <ul>
-<li>Hot backup (incremental backup, online backup)
-</li><li>More tests with MULTI_THREADED=1
+<li>More tests with MULTI_THREADED=1
 </li><li>Improve performance for create table (if this is possible)
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Document how to use H2 with PHP (generic database API)
@@ -1328,12 +1362,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Recovery for BLOB / CLOB: support functions
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
+</li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
 </li></ul>
 
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Connection pool manager
+</li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Support VALUES(1), (2); SELECT * FROM (VALUES (1), (1), (1), (1), (2)) AS myTable (c1) (Derby)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
@@ -1351,7 +1387,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 </li><li>Document how to view / scan a big trace file (less)
-</li><li>Set the database in an 'exclusive' mode
 </li><li>Implement, test, document XAConnection and so on
 </li><li>Web site: meta keywords, description, get rid of frame set
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
@@ -1386,7 +1421,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Read only databases with log file (fast open with summary)
 </li><li>Option for Java functions: 'constant' to allow early evaluation when all parameters are constant
 </li><li>Improve trace option: add calendar, streams, objects,... try/catch
-</li><li>Automatic collection of statistics (ANALYZE)
+</li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Procedural language
 </li><li>Maybe include JTidy. Check license
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
@@ -1545,7 +1580,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
 </li><li>Public interface for functions (not public static)
-</li><li>Index usage for IN(...), IN_ARRAY(..), and IN_ARRAY_RANGES(..); support ARRAY in JDBC API (variable size)
+</li><li>Index usage for IN(...), IN ARRAY(?), and IN ARRAY RANGES(?, ?); support ARRAY in JDBC API (variable size)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 </li><li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
@@ -1583,6 +1618,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Add object id to metadata tables
 </li><li>Support OUTER UNION
 </li><li>Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
+</li><li>Implement a command line SQL utility similar to HenPlus: http://henplus.sourceforge.net
+</li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
+</li><li>Build script for the embedded functionality only (h2embedded.jar)
+</li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
+</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
+</li><li>Support using a unique index for IS NULL (including linked tables)
+</li><li>Support linked tables to the current database
+</li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li></ul>
 
 <h3>Not Planned</h3>

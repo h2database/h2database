@@ -229,10 +229,13 @@ It looks like the development of this database has stopped. The last release was
         <td>Open source implementation of the Java Content Repository API (JCR).</td>     
     </tr><tr>
         <td><a href="http://incubator.apache.org/openjpa">Apache OpenJPA</a></td>
-        <td>Open source implementation of the Java Persistence API.</td>     
+        <td>Open source implementation of the Java Persistence API (JPA).</td>     
     </tr><tr>
         <td><a href="http://bmarks-portlet.sourceforge.net">Bookmarks Portlet</a></td>
         <td>JSR168 compliant bookmarks management portlet application.</td>
+    </tr><tr>
+        <td><a href="http://www.dbsolo.com">DB Solo</a></td>
+        <td>SQL query tool.</td>
     </tr><tr>
         <td><a href="http://www.minq.se/products/dbvis">DbVisualizer</a></td>
         <td>Database tool.</td>
@@ -244,13 +247,13 @@ It looks like the development of this database has stopped. The last release was
         <td>Fun-to-play games with a simple interface.</td>
     </tr><tr>
         <td><a href="http://hibernate.org">Hibernate</a></td>
-        <td>Relational Persistence for Idiomatic Java (O-R Mapping Tool)</td>
+        <td>Relational persistence for idiomatic Java (O-R mapping tool)</td>
     </tr><tr>
         <td><a href="http://jamwiki.org">JAMWiki</a></td>
         <td>Java-based Wiki engine.</td>
     </tr><tr>
         <td><a href="http://www.jpox.org">JPOX</a></td>
-        <td>Java Persistent Objects</td>
+        <td>Java persistent objects</td>
     </tr><tr>
         <td><a href="http://luntbuild.javaforge.com">Luntbuild</a></td>
         <td>Build automation and management tool</td>
@@ -262,10 +265,10 @@ It looks like the development of this database has stopped. The last release was
         <td>Open source database benchmark.</td>
     </tr><tr>
         <td><a href="http://www.shellbook.com">Shellbook</a></td>
-        <td>Desktop Publishing application.</td>
+        <td>Desktop publishing application.</td>
     </tr><tr>
         <td><a href="http://sql-workbench.net">SQL Workbench/J</a></td>
-        <td>Free DBMS-independent SQL Tool.</td>     
+        <td>Free DBMS-independent SQL tool.</td>     
     </tr><tr>
         <td><a href="http://www.squirrelsql.org">SQuirreL SQL Client</a></td>
         <td>Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.</td>
@@ -274,7 +277,7 @@ It looks like the development of this database has stopped. The last release was
         <td>Tool to copy data from one database to another.</td>
     </tr><tr>
         <td><a href="http://www.streamcruncher.com">StreamCruncher</a></td>
-        <td>Event (Stream) Processing Kernel.</td>     
+        <td>Event (stream) processing kernel.</td>     
     </tr><tr>
         <td><a href="http://www.webofweb.net">Web of Web</a></td>
         <td>Collaborative and realtime interactive media platform for the web.</td>
@@ -912,6 +915,7 @@ the database connection is open). You only need to create a special file in the 
 where the database files are stored.
 The database engine checks every 4 seconds if this file exists (only while executing a statement).
 The file name is the database name plus '.trace.db.start'. 
+This feature is disabled if the database is encrypted.
 </p><p>
 Example: if a database is called 'test', then the file to start tracing is 'test.trace.db.start'.
 The database engine tries to delete this file when it detects it.

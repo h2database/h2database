@@ -26,7 +26,6 @@ import org.h2.store.LogSystem;
 import org.h2.store.UndoLog;
 import org.h2.store.UndoLogRecord;
 import org.h2.table.Table;
-import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
@@ -88,8 +87,8 @@ public class Session implements SessionInterface {
         }
     }
 
-    public void addLocalTempTable(TableData table) throws SQLException {
-        cleanTempTables();
+    public void addLocalTempTable(Table table) throws SQLException {
+        cleanTempTables(false);
         if(localTempTables == null) {
             localTempTables = new HashMap();
         }
@@ -195,7 +194,8 @@ public class Session implements SessionInterface {
         }
         if(undoLog.size() > 0) {
             undoLog.clear();
-            cleanTempTables();
+            // do not clean the temp tables if the last command was a create/drop
+            cleanTempTables(false);
         }
         if(unlinkSet != null && unlinkSet.size() > 0) {
             // need to flush the log file, because we can't unlink lobs if the commit record is not written
@@ -219,7 +219,7 @@ public class Session implements SessionInterface {
         if(locks.size() > 0 || needCommit) {
             logSystem.commit(this);
         }
-        cleanTempTables();
+        cleanTempTables(false);
         unlockAll();
     }
 
@@ -252,6 +252,7 @@ public class Session implements SessionInterface {
     public void close() throws SQLException {
         if(database != null) {
             try {
+                cleanTempTables(true);
                 database.removeSession(this);
             } finally {
                 database = null;
@@ -295,13 +296,13 @@ public class Session implements SessionInterface {
         locks.clear();
         savepoints = null;
     }
-
-    private void cleanTempTables() throws SQLException {
+    
+    private void cleanTempTables(boolean closeSession) throws SQLException {
         if(localTempTables != null && localTempTables.size()>0) {
             ObjectArray list = new ObjectArray(localTempTables.values());
             for(int i=0; i<list.size(); i++) {
-                TableData table = (TableData) list.get(i);
-                if(table.isOnCommitDrop()) {
+                Table table = (Table) list.get(i);
+                if(closeSession || table.isOnCommitDrop()) {
                     table.setModified();
                     localTempTables.remove(table.getName());
                     table.removeChildrenAndResources(this);

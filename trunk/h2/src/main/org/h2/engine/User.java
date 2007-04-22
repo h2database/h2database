@@ -58,6 +58,10 @@ public class User extends RightOwner {
         return getCreateSQL(true, false);
     }
     
+    public String getDropSQL() {
+        return null;
+    }
+    
     public void checkRight(Table table, int rightMask) throws SQLException {
         if(rightMask != Right.SELECT  && !systemUser) {
             database.checkWritingAllowed();

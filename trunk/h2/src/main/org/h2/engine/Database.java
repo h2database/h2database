@@ -45,6 +45,7 @@ import org.h2.tools.DeleteDbFiles;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.CacheLRU;
+import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MemoryFile;
@@ -291,16 +292,10 @@ public class Database implements DataHandler {
     }
 
     public FileStore openFile(String name, boolean mustExist) throws SQLException {
-        return openFile(name, false, mustExist);
-    }
-
-    public FileStore openFile(String name, boolean notEncrypted, boolean mustExist) throws SQLException {
-        String c = notEncrypted ? null : cipher;
-        byte[] h = notEncrypted ? null : filePasswordHash;
         if(mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(Message.FILE_CORRUPTED_1, name);
         }
-        FileStore store = FileStore.open(this, name, getMagic(), c, h);
+        FileStore store = FileStore.open(this, name, getMagic(), cipher, filePasswordHash);
         try {
             store.init();
         } catch(SQLException e) {
@@ -416,6 +411,9 @@ public class Database implements DataHandler {
                 traceSystem = new TraceSystem(null);
             } else {
                 traceSystem = new TraceSystem(databaseName+Constants.SUFFIX_TRACE_FILE);
+            }
+            if(cipher != null) {
+                traceSystem.setManualEnabling(false);
             }
             traceSystem.setLevelFile(traceLevelFile);
             traceSystem.setLevelSystemOut(traceLevelSystemOut);
@@ -1007,7 +1005,8 @@ public class Database implements DataHandler {
 
     public String createTempFile() throws SQLException {
         try {
-            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true);
+            boolean inTempDir = readOnly;
+            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, inTempDir);
         } catch (IOException e) {
             throw Message.convert(e);
         }
@@ -1220,7 +1219,7 @@ public class Database implements DataHandler {
     }
     
     public Class loadClass(String className) throws ClassNotFoundException {
-        return Class.forName(className);
+        return ClassUtils.loadClass(className);
     }
 
     public void setEventListener(String className) throws SQLException {

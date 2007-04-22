@@ -178,7 +178,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             if(traceLevelFile != null) {
                 int level = Integer.parseInt(traceLevelFile);
                 String prefix = getTraceFilePrefix(databaseName);
-                String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false);
+                String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
                 traceSystem.setFileName(file);
                 traceSystem.setLevelFile(level);
             }
@@ -323,7 +323,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public String createTempFile() throws SQLException {
         try {
-            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true);
+            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, false);
         } catch (IOException e) {
             throw Message.convert(e);
         }
@@ -367,6 +367,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         } else {
             store = FileStore.open(this, name, magic, cipher, fileEncryptionKey, 0);
         }
+        store.setCheckedWriting(false);
         try {
             store.init();
         } catch(SQLException e) {

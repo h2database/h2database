@@ -24,6 +24,10 @@ public class Role extends RightOwner {
         throw Message.getInternalError();
     }
     
+    public String getDropSQL() {
+        return null;
+    }
+    
     public String getCreateSQL() {
         if(system) {
             return null;

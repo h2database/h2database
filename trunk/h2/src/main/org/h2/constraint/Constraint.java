@@ -53,5 +53,9 @@ public abstract class Constraint extends SchemaObject {
     public Table getRefTable() {
         return table;
     }
+    
+    public String getDropSQL() {
+        return null;
+    }
 
 }

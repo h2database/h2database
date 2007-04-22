@@ -443,6 +443,10 @@ public class MetaTable extends Table {
         return cols;
     }
 
+    public String getDropSQL() {
+        return null;
+    }
+
     public String getCreateSQL() {
         return null;
     }

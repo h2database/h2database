@@ -49,6 +49,7 @@ public abstract class Table extends SchemaObject {
     private ObjectArray sequences;
     private ObjectArray views;
     private boolean checkForeignKeyConstraints = true;
+    private boolean onCommitDrop, onCommitTruncate;
 
     public Table(Schema schema, int id, String name, boolean persistent) {
         super(schema, id, name, Trace.TABLE);
@@ -442,6 +443,22 @@ public abstract class Table extends SchemaObject {
             }
         }
         return null;
+    }
+    
+    public boolean isOnCommitDrop() {
+        return onCommitDrop;
+    }
+
+    public void setOnCommitDrop(boolean onCommitDrop) {
+        this.onCommitDrop = onCommitDrop;
+    }
+
+    public boolean isOnCommitTruncate() {
+        return onCommitTruncate;
+    }
+
+    public void setOnCommitTruncate(boolean onCommitTruncate) {
+        this.onCommitTruncate = onCommitTruncate;
     }
 
 }

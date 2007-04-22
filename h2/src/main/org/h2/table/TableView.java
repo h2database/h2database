@@ -34,6 +34,7 @@ public class TableView extends Table {
         super(schema, id, name, false);
         this.querySQL = querySQL;
         this.columnNames = columnNames;
+        this.recursive = recursive;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
@@ -80,16 +81,16 @@ public class TableView extends Table {
             tables = new ObjectArray();
             cols = new Column[0];
 
-            int testing;
-//            if(recursive && columnNames != null) {
-//                cols = new Column[columnNames.length];
-//                for(int i=0; i<columnNames.length; i++) {
-//                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
-//                }
-//                index.setRecursive(true);
-//                recursive = true;
-//                createException = null;
-//            }
+            int needToTestRecursiveQueries;
+            if(recursive && columnNames != null) {
+                cols = new Column[columnNames.length];
+                for(int i=0; i<columnNames.length; i++) {
+                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
+                }
+                index.setRecursive(true);
+                recursive = true;
+                createException = null;
+            }
             
         }
         setColumns(cols);
@@ -104,6 +105,10 @@ public class TableView extends Table {
         item.cost = index.getCost(session, masks);
         item.setIndex(index);
         return item;
+    }
+    
+    public String getDropSQL() {
+        return "DROP VIEW IF EXISTS " + getSQL();
     }
 
     public String getCreateSQL() {

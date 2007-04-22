@@ -508,11 +508,7 @@ public class AppThread extends WebServerThread {
         session.put("user", user);
         try {
             Connection conn = server.getAppServer().getConnection(driver, url, user, password);
-            try {
-                conn.close();
-            } catch(SQLException e2) {
-                // TODO log error
-            }
+            JdbcUtils.closeSilently(conn);
             session.put("error", "${text.login.testSuccessful}");
             return "index.jsp";
         } catch(Exception e) {

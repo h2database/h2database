@@ -43,7 +43,6 @@ public class TableData extends Table implements RecordReader {
     private HashSet lockShared = new HashSet();
     private Trace traceLock;
     private boolean globalTemporary;
-    private boolean onCommitDrop, onCommitTruncate;
     private ObjectArray indexes = new ObjectArray();
     private long lastModificationId;
 
@@ -337,6 +336,10 @@ public class TableData extends Table implements RecordReader {
             traceLock.debug(session.getId()+" "+(exclusive?"xlock":"slock") + " " + s+" "+getName());
         }
     }
+    
+    public String getDropSQL() {
+        return "DROP TABLE IF EXISTS " + getSQL();
+    }
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
@@ -458,22 +461,6 @@ public class TableData extends Table implements RecordReader {
 
     public boolean getGlobalTemporary() {
         return globalTemporary;
-    }
-
-    public boolean isOnCommitDrop() {
-        return onCommitDrop;
-    }
-
-    public void setOnCommitDrop(boolean onCommitDrop) {
-        this.onCommitDrop = onCommitDrop;
-    }
-
-    public boolean isOnCommitTruncate() {
-        return onCommitTruncate;
-    }
-
-    public void setOnCommitTruncate(boolean onCommitTruncate) {
-        this.onCommitTruncate = onCommitTruncate;
     }
 
     public long getMaxDataModificationId() {

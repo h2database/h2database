@@ -16,6 +16,13 @@ import org.h2.util.FileUtils;
 
 public class FileLister {
     
+    public static String getDatabaseNameFromFileName(String fileName) {
+        if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+            return fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+        }
+        return null;
+    }
+    
     /**
      * Get the list of database files.
      * 

@@ -17,6 +17,7 @@ import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.FileUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 
 public class AppServer {
@@ -208,6 +209,7 @@ public class AppServer {
         user = user.trim();
         password = password.trim();
         org.h2.Driver.load();
+        JdbcUtils.getConnection(driver, url, user, password);
         Class.forName(driver);
 //            try {
 //                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();

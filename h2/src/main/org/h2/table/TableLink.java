@@ -6,7 +6,6 @@ package org.h2.table;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -45,12 +44,7 @@ public class TableLink extends Table {
         this.user = user;
         this.password = password;
         this.originalTable = originalTable;
-        try {
-            database.loadClass(driver);
-        } catch(ClassNotFoundException e) {
-            throw Message.getSQLException(Message.CLASS_NOT_FOUND_1, new String[]{driver}, e);
-        }
-        conn = DriverManager.getConnection(url, user, password);
+        conn = JdbcUtils.getConnection(driver, url, user, password);
         DatabaseMetaData meta = conn.getMetaData();
         boolean storesLowerCase = meta.storesLowerCaseIdentifiers();
         ResultSet rs = meta.getColumns(null, null, originalTable, null);
@@ -160,6 +154,10 @@ public class TableLink extends Table {
         list.toArray(cols);
         Index index = new LinkedIndex(this, 0, cols, indexType);
         indexes.add(index);
+    }
+    
+    public String getDropSQL() {
+        return "DROP TABLE IF EXISTS " + getSQL();
     }
 
     public String getCreateSQL() {

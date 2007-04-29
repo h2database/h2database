@@ -90,56 +90,34 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();
 
-/*
-drop table people;
-drop table cars;
-create table people (family varchar(1) not null, person
-varchar(1) not null);
-create table cars (family varchar(1) not null, car
-varchar(1) not null);
-insert into people values(1, 1);
-insert into people values(2, 1);
-insert into people values(2, 2);
-insert into people values(3, 1);
-insert into people values(5, 1);
-insert into cars values(2, 1);
-insert into cars values(2, 2);
-insert into cars values(3, 1);
-insert into cars values(3, 2);
-insert into cars values(3, 3);
-insert into cars values(4, 1);
-select family, (select count(car) from cars where cars.family = people.family) as x
-from people group by family; 
-*/        
-// link_table_update.patch.txt
-        // runscript and script: use 'script' parameter as before
-// autocomplete: scroll up on new list
-//        doc array
+/*        
+how to make -baseDir work for H2 Console?
+*/
 
-// www.inventec.ch/chdh
-// www.source-code.biz
-        
 /*
 Pavel Ganelin
 Integrate patches www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
- */
+*/
 
 /*
 drop all objects;
 create table parent(id int primary key, parent int);
 insert into parent values(1, null), (2, 1), (3, 1);
+
 with test_view(id, parent) as 
 select id, parent from parent where parent is null
 union all 
 select parent.id, parent.parent from test_view, parent 
 where parent.parent = test_view.id
 select * from test_view;
+
 with test_view(id, parent) as 
 select id, parent from parent where id = 2 
 union all 
 select parent.id, parent.parent from test_view, parent 
 where parent.parent = test_view.id
 select * from test_view;
+
 drop view test_view;
 
 @LOOP 10 with test_view(id, parent) as 
@@ -166,8 +144,6 @@ drop table abc;
 
         // run  TestHalt
         
-        // document backup command
-        
         //        WHERE FLAG does not use index, but WHERE FLAG=TRUE does
         //        drop table test;
         //        CREATE TABLE test (id int, flag BIT NOT NULL);
@@ -186,101 +162,11 @@ drop table abc;
         //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
         //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
 
-
 /*
-TODO: get FunctionAlias.java from mail
-Here are the proposed changes to support function overload for variable number of arguments
-Example/Test Case
-public class OverloadFunction extends TestCase {
-   public void testOverload() throws Exception {
-       Class.forName("org.h2.Driver");
-       Connection ca = DriverManager.getConnection("jdbc:h2:mem:");
-       Statement sa = ca.createStatement();
-       sa.execute("CREATE ALIAS foo FOR \"" + this.getClass().getName() + ".foo\"");
-       ResultSet rs1 = sa.executeQuery("SELECT foo('a',2)");
-       rs1.next();
-       assertEquals(2.0, rs1.getDouble(1));
-       ResultSet rs2 = sa.executeQuery("SELECT foo('a',2,3,4)");
-       rs2.next();
-       assertEquals(9.0, rs2.getDouble(1));
-       try {
-           ResultSet rs = sa.executeQuery("SELECT foo()");
-           fail();
-       } catch (SQLException e) {
-           e.printStackTrace();
-       }
+Automate real power off test
+ */
 
-       try {
-           ResultSet rs = sa.executeQuery("SELECT foo('a')");
-           fail();
-       } catch (SQLException e) {
-           e.printStackTrace();
-       }
-       try {
-           ResultSet rs = sa.executeQuery("SELECT foo(2,'a')");
-           fail();
-       } catch (SQLException e) {
-           e.printStackTrace();
-       }
-       try {
-           ResultSet rs = sa.executeQuery("SELECT foo('a',2,3)");
-           fail();
-       } catch (SQLException e) {
-           e.printStackTrace();
-       }
-       try {
-           ResultSet rs = sa.executeQuery("SELECT foo('a',2,3,4,5)");
-           fail();
-       } catch (SQLException e) {
-           e.printStackTrace();
-       }
-   }
-   public static double foo(String s, int i) {
-       return i;
-   }
-   public static double foo(String s, int i, double d1, double d2) {
-       return i + d1 + d2;
-   }
-}
-Changes in the Parser
-CODE
-   private JavaFunction readJavaFunction(String name) throws SQLException {
-       FunctionAlias functionAlias = database.findFunctionAlias(name);
-       if (functionAlias == null) {
-           // TODO compatibility: maybe support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
-           throw Message.getSQLException(Message.FUNCTION_NOT_FOUND_1, name);
-       }
-       int paramCount = functionAlias.getParameterCount();
-       int max = functionAlias.getMaxParameterCount();
-       ObjectArray list = new ObjectArray(paramCount);
-       do {
-           if (functionAlias.isAcceptableParameterCount(list.size())) {
-               if (readIf(")"))
-                   break;
-           }
-           if (list.size() == max) {
-               read(")"); // force syntax error for extra argument
-               break;
-           }
-           if (list.size() > 0) {
-               read(",");
-           }
 
-           Expression e = readExpression();
-           list.add(e);
-       } while (true);
-
-       Expression[] args = new Expression[list.size()];
-       for (int i = 0; i < args.length; i++) {
-           args[i] = (Expression) list.get(i);
-       }
-       JavaFunction func = new JavaFunction(functionAlias, args);
-       return func;
-   }
-I also attached FunctionAlias.java file
-Pavel 
-*/            
-        
         
         // h2
         // update FOO set a = dateadd('second', 4320000, a);
@@ -312,8 +198,6 @@ Pavel
 //        -- Oracle, Derby: 10, 11
 //        -- PostgreSQL, H2, HSQLDB: 1, 2
         
-        
-        
         // auto-upgrade application:
         // check if new version is available 
         // (option: digital signature)
@@ -338,7 +222,7 @@ Pavel
         // long running test with the same database
         // repeatable test with a very big database (making backups of the database files)
         
-        // the conversion is done automatically when the new engine connects.  
+        // data conversion should be done automatically when the new engine connects.  
         
         if(args.length>0) {
             if("crash".equals(args[0])) {
@@ -543,24 +427,24 @@ Pavel
     }
 
     void testUnit() {
-//        new TestBitField().runTest(this);
-//        new TestCompress().runTest(this);
-//        new TestDataPage().runTest(this);
-//        new TestExit().runTest(this);
-//        new TestFileLock().runTest(this);
-//        new TestIntArray().runTest(this);
-//        new TestIntIntHashMap().runTest(this);
-//        new TestOverflow().runTest(this);
-//        new TestPattern().runTest(this);
-//        new TestReader().runTest(this);
-//        new TestSampleApps().runTest(this);
-//        new TestScriptReader().runTest(this);
-//        new TestSecurity().runTest(this);
-//        new TestStreams().runTest(this);
-//        new TestStringCache().runTest(this);
-//        new TestStringUtils().runTest(this);
+        new TestBitField().runTest(this);
+        new TestCompress().runTest(this);
+        new TestDataPage().runTest(this);
+        new TestExit().runTest(this);
+        new TestFileLock().runTest(this);
+        new TestIntArray().runTest(this);
+        new TestIntIntHashMap().runTest(this);
+        new TestOverflow().runTest(this);
+        new TestPattern().runTest(this);
+        new TestReader().runTest(this);
+        new TestSampleApps().runTest(this);
+        new TestScriptReader().runTest(this);
+        new TestSecurity().runTest(this);
+        new TestStreams().runTest(this);
+        new TestStringCache().runTest(this);
+        new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
-//        new TestValueHashMap().runTest(this);
+        new TestValueHashMap().runTest(this);
     }
 
     void testDatabase() throws Exception {
@@ -568,60 +452,60 @@ Pavel
         beforeTest();
 
         // db
-//        new TestScriptSimple().runTest(this);
-//        new TestScript().runTest(this);
-//        new TestAutoRecompile().runTest(this);
-//        new TestBackup().runTest(this);
-//        new TestBatchUpdates().runTest(this);
-//        new TestBigDb().runTest(this);
-//        new TestBigResult().runTest(this);
-//        new TestCache().runTest(this);
-//        new TestCases().runTest(this);
-//        new TestCheckpoint().runTest(this);
-//        new TestCluster().runTest(this);
-//        new TestCompatibility().runTest(this);
-//        new TestCsv().runTest(this);
-//        new TestFunctions().runTest(this);
-//        new TestIndex().runTest(this);
-//        new TestLinkedTable().runTest(this);
-//        new TestListener().runTest(this);
-//        new TestLob().runTest(this);
-//        new TestLogFile().runTest(this);
-//        new TestMemoryUsage().runTest(this);
-//        new TestMultiConn().runTest(this);
-//        new TestMultiDimension().runTest(this);
-//        new TestMultiThread().runTest(this);
-//        new TestOpenClose().runTest(this);
-//        new TestOptimizations().runTest(this);
-//        new TestPowerOff().runTest(this);
-//        new TestReadOnly().runTest(this);
-//        new TestRights().runTest(this);
-//        new TestRunscript().runTest(this);
-//        new TestSQLInjection().runTest(this);
-//        new TestSequence().runTest(this);
-//        new TestSpaceReuse().runTest(this);
-//        new TestSpeed().runTest(this);
-//        new TestTempTables().runTest(this);
-//        new TestTransaction().runTest(this);
-//        new TestTriggersConstraints().runTest(this);
-//        new TestTwoPhaseCommit().runTest(this);
-//
-//        // server
-//        new TestNestedLoop().runTest(this);
-//
-//        // jdbc
-//        new TestCancel().runTest(this);
-//        new TestDataSource().runTest(this);
-//        new TestManyJdbcObjects().runTest(this);
-//        new TestMetaData().runTest(this);
-//        new TestNativeSQL().runTest(this);
-//        new TestPreparedStatement().runTest(this);
-//        new TestResultSet().runTest(this);
-//        new TestStatement().runTest(this);
-//        new TestTransactionIsolation().runTest(this);
-//        new TestUpdatableResultSet().runTest(this);
-//        new TestXA().runTest(this);
-//        new TestZloty().runTest(this);
+        new TestScriptSimple().runTest(this);
+        new TestScript().runTest(this);
+        new TestAutoRecompile().runTest(this);
+        new TestBackup().runTest(this);
+        new TestBatchUpdates().runTest(this);
+        new TestBigDb().runTest(this);
+        new TestBigResult().runTest(this);
+        new TestCache().runTest(this);
+        new TestCases().runTest(this);
+        new TestCheckpoint().runTest(this);
+        new TestCluster().runTest(this);
+        new TestCompatibility().runTest(this);
+        new TestCsv().runTest(this);
+        new TestFunctions().runTest(this);
+        new TestIndex().runTest(this);
+        new TestLinkedTable().runTest(this);
+        new TestListener().runTest(this);
+        new TestLob().runTest(this);
+        new TestLogFile().runTest(this);
+        new TestMemoryUsage().runTest(this);
+        new TestMultiConn().runTest(this);
+        new TestMultiDimension().runTest(this);
+        new TestMultiThread().runTest(this);
+        new TestOpenClose().runTest(this);
+        new TestOptimizations().runTest(this);
+        new TestPowerOff().runTest(this);
+        new TestReadOnly().runTest(this);
+        new TestRights().runTest(this);
+        new TestRunscript().runTest(this);
+        new TestSQLInjection().runTest(this);
+        new TestSequence().runTest(this);
+        new TestSpaceReuse().runTest(this);
+        new TestSpeed().runTest(this);
+        new TestTempTables().runTest(this);
+        new TestTransaction().runTest(this);
+        new TestTriggersConstraints().runTest(this);
+        new TestTwoPhaseCommit().runTest(this);
+
+        // server
+        new TestNestedLoop().runTest(this);
+
+        // jdbc
+        new TestCancel().runTest(this);
+        new TestDataSource().runTest(this);
+        new TestManyJdbcObjects().runTest(this);
+        new TestMetaData().runTest(this);
+        new TestNativeSQL().runTest(this);
+        new TestPreparedStatement().runTest(this);
+        new TestResultSet().runTest(this);
+        new TestStatement().runTest(this);
+        new TestTransactionIsolation().runTest(this);
+        new TestUpdatableResultSet().runTest(this);
+        new TestXA().runTest(this);
+        new TestZloty().runTest(this);
 
         afterTest();
     }

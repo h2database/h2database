@@ -27,7 +27,7 @@ public class Script {
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()
-                + " -url <url> -user <user> [-password <pwd>] [-file <filename>] [-options <option> ...]");
+                + " -url <url> -user <user> [-password <pwd>] [-script <filename>] [-options <option> ...]");
     }
 
     /**
@@ -39,7 +39,7 @@ public class Script {
      * </li><li>-url jdbc:h2:... (database URL)
      * </li><li>-user username
      * </li><li>-password password
-     * </li><li>-file filename (default file name is backup.sql)
+     * </li><li>-script filename (default file name is backup.sql)
      * </li><li>-options to specify a list of options (only for H2)
      * </li></ul>
      * 
@@ -63,7 +63,7 @@ public class Script {
                 user = args[++i];
             } else if(args[i].equals("-password")) {
                 password = args[++i];
-            } else if(args[i].equals("-file")) {
+            } else if(args[i].equals("-script")) {
                 file = args[++i];
             } else if(args[i].equals("-options")) {
                 StringBuffer buff1 = new StringBuffer();

@@ -359,6 +359,8 @@ function showList(s) {
     } else {
         showOutput('');
     }
+    // scroll to the top left
+    top.h2result.scrollTo(0, 0);
 }
 
 function retrieveList(s) {

@@ -58,6 +58,8 @@ public class AppServer {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
             } else  if("-webAllowOthers".equals(args[i])) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+            // } else if("-baseDir".equals(args[i])) {
+            //    String baseDir = args[++i];
             }
         }
         // TODO gcj: don't load drivers in case of GCJ

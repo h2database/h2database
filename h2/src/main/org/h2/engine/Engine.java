@@ -34,7 +34,12 @@ public class Engine {
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
         // may not remove properties here, otherwise they are lost if it is required to call it twice
         String name = ci.getName();
-        Database database = (Database) databases.get(name);
+        Database database;
+        if(ci.isUnnamed()) {
+            database = null;
+        } else {
+            database = (Database) databases.get(name);
+        }
         User user = null;
         boolean opened = false;
         if(database == null) {
@@ -50,7 +55,9 @@ public class Engine {
                 user.setUserPasswordHash(ci.getUserPasswordHash());
                 database.setMasterUser(user);
             }
-            databases.put(name, database);
+            if(!ci.isUnnamed()) {
+                databases.put(name, database);
+            }
         }
         synchronized(database) {
             if(database.isClosing()) {

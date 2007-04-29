@@ -249,7 +249,7 @@ public class Column {
 
     public void prepareExpression(Session session) throws SQLException {
         if(defaultExpression != null) {
-            computeTableFilter = new TableFilter(session, table, null, false);
+            computeTableFilter = new TableFilter(session, table, null, false, null);
             defaultExpression.mapColumns(computeTableFilter, 0);
             defaultExpression = defaultExpression.optimize(session);
         }

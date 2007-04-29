@@ -309,4 +309,9 @@ public class SelectUnion extends Query {
     public Query getRightQuery() {
         return right;
     }
+
+    public void updateAggregate(Session session) throws SQLException {
+        left.updateAggregate(session);
+        right.updateAggregate(session);
+    }
 }

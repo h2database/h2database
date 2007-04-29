@@ -293,7 +293,7 @@ public class Database implements DataHandler {
 
     public FileStore openFile(String name, boolean mustExist) throws SQLException {
         if(mustExist && !FileUtils.exists(name)) {
-            throw Message.getSQLException(Message.FILE_CORRUPTED_1, name);
+            throw Message.getSQLException(Message.FILE_NOT_FOUND_1, name);
         }
         FileStore store = FileStore.open(this, name, getMagic(), cipher, filePasswordHash);
         try {

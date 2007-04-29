@@ -32,17 +32,14 @@ public class ExpressionColumn extends Expression {
     private int queryLevel;
     private Column column;
     private boolean evaluatable;
-    private Select select;
 
     public ExpressionColumn(Database database, Select select, Column column) {
         this.database = database;
-        this.select = select;
         this.column = column;
     }
 
     public ExpressionColumn(Database database, Select select, String schemaName, String tableAlias, String columnName) {
         this.database = database;
-        this.select = select;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
@@ -114,10 +111,15 @@ public class ExpressionColumn extends Expression {
 
     public void updateAggregate(Session session) throws SQLException {
         Value now = resolver.getValue(column);
+        Select select = resolver.getSelect();
         if(select == null) {
             throw Message.getSQLException(Message.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         HashMap values = select.getCurrentGroup();
+        if(values == null) {
+            // this is a different level (the enclosing query)
+            return;
+        }
         Value v = (Value)values.get(this);
         if(v==null) {
             values.put(this, now);
@@ -131,6 +133,7 @@ public class ExpressionColumn extends Expression {
     public Value getValue(Session session) throws SQLException {
         // TODO refactor: simplify check if really part of an aggregated value / detection of 
         // usage of non-grouped by columns without aggregate function
+        Select select = resolver.getSelect();
         if(select != null) {
             HashMap values = select.getCurrentGroup();
             if(values != null) {

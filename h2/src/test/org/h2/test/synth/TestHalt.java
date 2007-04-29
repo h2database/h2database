@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Random;
 
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
@@ -291,6 +292,12 @@ public abstract class TestHalt extends TestBase {
             buff.append('a' + random.nextInt(20));
         }
         return buff.toString();
+    }
+    
+    public TestBase init(TestAll conf) throws Exception {
+        super.init(conf);
+        BASE_DIR = "dataHalt";
+        return this;
     }
 
 }

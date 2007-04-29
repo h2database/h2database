@@ -679,6 +679,20 @@ public class Select extends Query {
             }
         }
     }
+    
+    public void updateAggregate(Session session) throws SQLException {
+        for(int i=0; i<expressions.size(); i++) {
+            Expression e = (Expression) expressions.get(i);
+            e.updateAggregate(session);
+        }
+        if(condition != null) {
+            condition.updateAggregate(session);
+        }
+        if(having != null) {
+            having.updateAggregate(session);
+        }
+    }
+
 
     public boolean isEverything(ExpressionVisitor visitor) {
         if(visitor.type == ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID) {

@@ -119,6 +119,10 @@ public class Aggregate extends Expression {
 //            on.updateAggregate();
 //        }
         HashMap group = select.getCurrentGroup();
+        if(group == null) {
+            // this is a different level (the enclosing query)
+            return;
+        }
         AggregateData data = (AggregateData) group.get(this);
         if(data == null) {
             data = new AggregateData(type);

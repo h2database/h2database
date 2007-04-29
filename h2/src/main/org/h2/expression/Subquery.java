@@ -83,8 +83,8 @@ public class Subquery extends Expression {
         return "(" + query.getPlan() +")";
     }
 
-    public void updateAggregate(Session session) {
-        // TODO exists: is it possible that the subquery contains related aggregates? probably not
+    public void updateAggregate(Session session) throws SQLException {
+        query.updateAggregate(session);
     }
 
     private Expression getExpression() {

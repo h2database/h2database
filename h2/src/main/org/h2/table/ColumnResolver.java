@@ -4,6 +4,7 @@
  */
 package org.h2.table;
 
+import org.h2.command.dml.Select;
 import org.h2.value.Value;
 
 public interface ColumnResolver {
@@ -13,5 +14,6 @@ public interface ColumnResolver {
     String getSchemaName();
     Value getValue(Column column);
     TableFilter getTableFilter();
+    Select getSelect();
 
 }

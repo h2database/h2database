@@ -580,7 +580,7 @@ public class Parser {
                 alias = readAliasIdentifier();
             }
         }
-        TableFilter filter = new TableFilter(session, table, alias, rightsChecked);
+        TableFilter filter = new TableFilter(session, table, alias, rightsChecked, currentSelect);
         return filter;
     }
 
@@ -775,7 +775,7 @@ public class Parser {
                 alias = readAliasIdentifier();
             }
         }
-        TableFilter filter = new TableFilter(session, table, alias, rightsChecked);
+        TableFilter filter = new TableFilter(session, table, alias, rightsChecked, currentSelect);
         return filter;
     }
 
@@ -1297,7 +1297,7 @@ public class Parser {
                 // select without FROM: convert to SELECT ... FROM SYSTEM_RANGE(1,1)
                 Schema main = database.findSchema(Constants.SCHEMA_MAIN);
                 Table dual = new RangeTable(main, 1, 1);
-                TableFilter filter = new TableFilter(session, dual, null, rightsChecked);
+                TableFilter filter = new TableFilter(session, dual, null, rightsChecked, currentSelect);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);

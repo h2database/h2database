@@ -74,13 +74,13 @@ public class Server implements Runnable {
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
-     * </li><li>-web (start the Web Server)
+     * </li><li>-web (start the Web Server / H2 Console application)
      * </li><li>-tcp (start the TCP Server)
      * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
      * </li><li>-odbc (start the ODBC Server)
      * </li><li>-browser (start a browser and open a page to connect to the Web Server)
      * </li><li>-log [true|false] (enable or disable logging)
-     * </li><li>-baseDir {directory} (sets the base directory for database files)
+     * </li><li>-baseDir {directory} (sets the base directory for database files; not for H2 Console)
      * </li><li>-ifExists [true|false] (only existing databases may be opened)
      * </li><li>-ftp (start the FTP Server)
      * </li></ul>

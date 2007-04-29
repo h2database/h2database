@@ -8,6 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+
+import org.h2.test.TestAll;
+import org.h2.test.TestBase;
+import org.h2.test.db.TestScript;
 
 public class TestHaltApp extends TestHalt {
     
@@ -128,5 +133,5 @@ public class TestHaltApp extends TestHalt {
         traceOperation("rollback");
         conn.rollback();
     }
-
+    
 }

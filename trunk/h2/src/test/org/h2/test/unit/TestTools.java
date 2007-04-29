@@ -44,9 +44,9 @@ public class TestTools extends TestBase {
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
-        Script.main(new String[]{"-url", url, "-user", user, "-password", password, "-file", fileName, "-options", "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
+        Script.main(new String[]{"-url", url, "-user", user, "-password", password, "-script", fileName, "-options", "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
         DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
-        RunScript.main(new String[]{"-url", url, "-user", user, "-password", password, "-file", fileName, "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
+        RunScript.main(new String[]{"-url", url, "-user", user, "-password", password, "-script", fileName, "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
         conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         checkFalse(rs.next());

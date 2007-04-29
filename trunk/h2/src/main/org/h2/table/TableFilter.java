@@ -6,6 +6,7 @@ package org.h2.table;
 
 import java.sql.SQLException;
 
+import org.h2.command.dml.Select;
 import org.h2.engine.Constants;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -33,6 +34,7 @@ public class TableFilter implements ColumnResolver {
     private Cursor cursor;
     private int scanCount;
     private boolean used; // used in the plan
+    private Select select;
 
     // conditions that can be used for direct index lookup (start or end)
     private ObjectArray indexConditions = new ObjectArray();
@@ -53,11 +55,16 @@ public class TableFilter implements ColumnResolver {
     private Expression fullCondition;
     private boolean rightsChecked;
 
-    public TableFilter(Session session, Table table, String alias, boolean rightsChecked) {
+    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) {
         this.session = session;
         this.table = table;
         this.alias = alias;
         this.rightsChecked = rightsChecked;
+        this.select = select;
+    }
+    
+    public Select getSelect() {
+        return select;
     }
 
     public Session getSession() {

@@ -36,7 +36,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / 2007-04-20 (TODO)</h3><ul>
+<h3>Version 1.0 / 2007-04-20 (Build 45) TODO</h3><ul>
+<li>Unnamed private in-memory database (jdbc:h2:mem:) were not 'private' as documented. Fixed.
+</li><li>Autocomplete in the Console application: now the result frame scrolls to the top when the list is updated.
+</li><li>GROUP BY expressions did not work correctly in subqueries. Fixed.
 </li><li>New function TABLE to define ad-hoc (temporary) tables in a query. 
     This also solves problems with variable-size IN(...) queries: 
     instead of SELECT * FROM TEST WHERE ID IN(?, ?, ...) you can now write:
@@ -55,7 +58,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>The BACKUP command is better tested and documented.
     This means hot backup (online backup) is now possible.
 </li><li>The old 'Backup' tool is now called 'Script' (as the SQL statement).
-</li><li>For the tools RunScript and Script, the parameter 'script' has been renamed to 'file'.
 </li><li>There are new 'Backup' and 'Restore' tools that work with database files directly.
 </li><li>The complete syntax for referential and check constraints is now supported 
     when written as part of the column definition, behind PRIMARY KEY.
@@ -85,7 +87,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     This is not required any longer.
 </li></ul>
 
-<h3>Version 1.0 / 2007-03-04</h3><ul>
+<h3>Version 1.0 / 2007-03-04 (Build 44)</h3><ul>
 <li>System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now
     random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
 </li><li>The precision for linked tables was not correct for some data types, for example VARCHAR. Fixed.
@@ -111,7 +113,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     an incorrect optimization was made and the result was wrong sometimes.
 </li></ul>
 
-<h3>Version 1.0 / 2007-01-30</h3><ul>
+<h3>Version 1.0 / 2007-01-30 (Build 41)</h3><ul>
 <li>Experimental online backup feature using the SQL statement BACKUP TO 'fileName'. 
     This creates a backup in the form of a zip file. Unlike the SCRIPT TO command, the data tables are not locked.
 </li><li>When using the server mode, temporary files for large LOB values are now deleted when the result set is closed.
@@ -133,7 +135,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>The forum subscriptions (the emails sent from the forum) now works.
 </li></ul>
 
-<h3>Version 1.0 / 2007-01-17</h3><ul>
+<h3>Version 1.0 / 2007-01-17 (Build 40)</h3><ul>
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds). 
     Thanks a lot to Martina Nissler for finding this problem!
 </li><li>The Console is now translated to Japanese thanks to IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp)
@@ -155,7 +157,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed.
 </li></ul>
 
-<h3>Version 1.0 / 2007-01-02</h3><ul>
+<h3>Version 1.0 / 2007-01-02 (Build 36)</h3><ul>
 <li>It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
 </li><li>Prepared statements with non-constant functions such as CURRENT_TIMESTAMP() did not get re-evaluated if the result of the function changed. Fixed.
 </li><li>The (relative or absolute) directory where the script files are stored or read can now be changed using the system property h2.scriptDirectory
@@ -174,7 +176,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     To create the maven artifacts yourself, use 'ant mavenUploadLocal' and 'ant mavenBuildCentral'.
 </li></ul>
 
-<h3>Version 1.0 / 2006-12-17</h3><ul>
+<h3>Version 1.0 / 2006-12-17 (Build 34)</h3><ul>
 <li>Can be compiled with JDK 1.6. However, only very few of the JDBC 4.0 features are implemented so far.
 </li><li>The unit test of OpenJPA works now.
 </li><li>Unfortunately, the Hibernate dialect has changed due to a change in the meta data in the last release
@@ -200,7 +202,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support for indexed parameters in PreparedStatements: update test set name=?2 where id=?1
 </li></ul>
 
-<h3>Version 1.0 / 2006-12-03</h3><ul>
+<h3>Version 1.0 / 2006-12-03 (Build 32)</h3><ul>
 <li>The SQL statement COMMENT did not work as expected. Many bugs have been fixed in this area.
     If you already have comments in the database, it is recommended to backup and restore the database,
     using the Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
@@ -229,7 +231,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     (jdbc:columnlist:connection instead of jdbc:default:connection).
 </li></ul>
 
-<h3>Version 1.0 / 2006-11-20</h3><ul>
+<h3>Version 1.0 / 2006-11-20 (Build 31)</h3><ul>
 <li>SCRIPT: New option BLOCKSIZE to split BLOB and CLOB data into separate blocks, to avoid OutOfMemory problems.
 </li><li>When using the READ_COMMITTED isolation level, a transaction now waits until there are no write locks
     when trying to read data. However, it still does not add a read lock.
@@ -265,7 +267,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>The built-in FTP server can now access a virtual directory stored in a database.
 </li></ul>
 
-<h3>Version 1.0 / 2006-11-03</h3><ul>
+<h3>Version 1.0 / 2006-11-03 (Build 30)</h3><ul>
 <li>
     Two simple full text search implementations (Lucene and native) are now included. 
     This is work in progress, and currently undocumented.
@@ -325,7 +327,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     JDBC 4.0 driver auto discovery: When using JDK 1.6, Class.forName("org.h2.Driver") is no longer required.
 </li></ul>
 
-<h3>Version 1.0 / 2006-10-10</h3><ul>
+<h3>Version 1.0 / 2006-10-10 (Build 28)</h3><ul>
 <li>
     Redundant () in a IN subquery is now supported: where id in ((select id from test))
 </li><li>
@@ -353,7 +355,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Could not re-connect to a database when ALLOW_LITERALS or COMPRESS_LOB was set. Fixed.
 </li></ul>
 
-<h3>Version 1.0 / 2006-09-24</h3><ul>
+<h3>Version 1.0 / 2006-09-24 (Build 27)</h3><ul>
 <li>
     New LOCK_MODE 3 (READ_COMMITTED). Table level locking, but only when writing (no read locks).
 </li><li>
@@ -422,7 +424,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Backup and Runscript tools now support options (H2 only)
 </li></ul>
 
-<h3>Version 1.0 / 2006-09-10</h3><ul>
+<h3>Version 1.0 / 2006-09-10 (Build 26)</h3><ul>
 <li>
     Updated the performance test so that Firebird can be tested as well.
 </li><li>
@@ -474,7 +476,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     ORDER BY an expression didn't work when using GROUP BY at the same time.
 </li></ul>
 
-<h3>Version 1.0 / 2006-08-31</h3><ul>
+<h3>Version 1.0 / 2006-08-31 (Build 25)</h3><ul>
 <li>
     In some situations, wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
 </li><li>
@@ -512,7 +514,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Outer join: There where some incompatibilities with PostgreSQL and MySQL with more complex outer joins. Fixed.
 </li></ul>
 
-<h3>Version 0.9 / 2006-08-23</h3><ul>
+<h3>Version 0.9 / 2006-08-23 (Build 23)</h3><ul>
 <li>
     Bugfix for LIKE: If collation was set (SET COLLATION ...), it was ignored when using LIKE. Fixed.
 </li><li>
@@ -547,7 +549,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Date and time constants outside the valid range (February 31 and so on) are no longer accepted.
 </li></ul>
 
-<h3>Version 0.9 / 2006-08-14</h3><ul>
+<h3>Version 0.9 / 2006-08-14 (Build 21)</h3><ul>
 <li>
     SET LOG 0 didn't work (except if the log level was set to some other value before). Fixed.
 </li><li>
@@ -576,7 +578,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     It was not possible to cancel a select statement with a (temporary) view. Fixed.
 </li></ul>
 
-<h3>Version 0.9 / 2006-07-29</h3><ul>
+<h3>Version 0.9 / 2006-07-29 (Build 18)</h3><ul>
 <li>
     ParameterMetaData is now implemented (mainly to support getParameterCount).
 </li><li>
@@ -624,7 +626,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     C-style block comments /* */ are not parsed correctly when they contain * or /
 </li></ul>
 
-<h3>Version 0.9 / 2006-07-14</h3><ul>
+<h3>Version 0.9 / 2006-07-14 (Build 16)</h3><ul>
 <li>
     The regression tests are no longer included in the jar file. This reduces the size by about 200 KB.
 </li><li>
@@ -678,7 +680,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     DatabaseMetaData.getTypeInfo: BIGINT was returning AUTO_INCREMENT=TRUE, which is wrong. Fixed.
 </li></ul>
 
-<h3>Version 0.9 / 2006-07-01</h3><ul>
+<h3>Version 0.9 / 2006-07-01 (Build 14)</h3><ul>
 <li>
     After dropping constraints and altering a table sometimes the database could not be opened. Fixed.
 </li><li>
@@ -766,7 +768,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Documented ALTER TABLE DROP COLUMN. The functionality was there already, but the documentation not.
 </li></ul>
 
-<h3>Version 0.9 / 2006-06-02</h3><ul>
+<h3>Version 0.9 / 2006-06-02 (Build 10)</h3><ul>
 <li>
     Removed the GCJ h2-server.exe from download. It was not stable on Windows.
 </li><li>
@@ -1136,174 +1138,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Improved parser performance and memory usage.
 </li></ul>
 
-<h3>Version 0.9 / 2006-03-08</h3><ul>
-<li>
-    Bugfix for table level locking. Sometimes a Java-level deadlock occurred when a connection was not closed.
-</li><li>
-    Implemented the SHUTDOWN statement to close the database.
-</li><li>
-    CURRENT_TIMESTAMP now also supports an optional precision argument.
-</li><li>
-    Web Console: Improved support for MySQL, PostgreSQL, HSQLDB.
-</li><li>
-    Automatically create the directory if it does not exist when creating a database.
-</li><li>
-    Optimization for constant temporary views as in
-    SELECT SUM(B.X+A.X) FROM SYSTEM_RANGE(1, 10000) B,
-    (SELECT SUM(X) X FROM SYSTEM_RANGE(1, 10000)) A
-</li><li>
-    Implemented the aggregate functions STDDEV_POP, STDDEV_SAMP, VAR_POP, VAR_SAMP. Implemented AVG(DISTINCT...).
-</li><li>
-    Implemented GROUP_CONCAT. Similar to XMLAGG, but can be used for other text data (CSV, JSON) as well.
-</li><li>
-    Fix for file_lock. The documentation and implementation did not match, and
-    the sleep gap was done even when using socket locking, making file locking with sockets
-    slower than required.
-</li><li>
-    Security (TCP and ODBC Server): Connections made from other computers are now not allowed by default for security reasons.
-    This feature already existed for the web server.
-    Added two new settings (tcpAllowOthers and odbcAllowOthers)
-</li><li>
-    Improved performance for queries in the server mode.
-</li><li>
-    Improved the startup time for large databases using a 'summary' file.
-    The data in this file is redundant, but improves startup time.
-</li><li>
-    Implemented a benchmark test suite for single connection performance test.
-</li><li>
-    A primary key is now created automatically for identity / autoincrement columns.
-</li><li>
-    SET ASSERT, a new setting to switch off assertions.
-</li><li>
-    Hibernate dialect for Hibernate 3.1.
-</li><li>
-    A new locking mode (level 2: table level locking with garbage collection).
-</li></ul>
-
-<h3>Version 0.9 / 2006-02-17</h3><ul>
-<li>
-    The SQL syntax in the docs is now cross-linked
-</li><li>
-    Written a parser for the BNF in the help file.
-    Written a test to run random statements based on this BNF.
-</li><li>
-    Support function syntax: POSITION(pattern IN text).
-</li><li>
-    Support for list syntax: select * from test where (id, name)=(1, 'Hi'). This is experimental only.
-    It should only be used for compatibility, as indexes are not used in this case currently.
-    This is currently undocumented, until indexes are used.
-</li><li>
-    Function CONCAT now supports a variable number of arguments.
-</li><li>
-    Support for MySQL syntax: LAST_INSERT_ID() as an alias for IDENTITY()
-</li><li>
-    Support for Oracle syntax: DUAL table, sequence.NEXTVAL / CURRVAL.
-    Function NVL as alias for COALESCE.
-    Function INSTR as alias for LOCATE. Support for SYSTIMESTAMP and SYSTIME.
-    Function ROWNUM
-</li><li>
-    Implemented a ROWNUM() function, but only supported for simple queries.
-</li><li>
-    Implemented local temporary tables.
-</li><li>
-    Implemented short version of constraints in CREATE TABLE:
-    CREATE TABLE TEST(ID INT UNIQUE, NAME VARCHAR CHECK LENGTH(NAME)>3).
-</li><li>
-    Implemented function NEXTVAL and CURRVAL for sequences (PostgreSQL compatibility).
-</li><li>
-    Bugfix for special cases of subqueries containing group by.
-</li><li>
-    Multi-dimension (spatial index) support: This is done without supporting R-Tree indexes.
-    Instead, a function to map multi-dimensional data to a scalar (using a space filling curve) is implemented.
-</li><li>
-    Computed Columns: Support for MS SQL Server style computed columns. with computed columns,
-    it is very simple to emulate functional indexes (sometimes called function-based indexes).
-</li><li>
-    Locking: Added the SQL statement SET LOCK_MODE to disable table level locking.
-    This is to improve compatibility with HSQLDB.
-</li><li>
-    Schema / Catalog: Improved compatibility with HSQLDB, now use a default schema called 'PUBLIC'.
-</li></ul>
-
-<h3>Version 0.9 / 2006-02-05</h3><ul>
-<li>
-    Implemented function EXTRACT
-</li><li>
-    Parser: bugfix for reading numbers like 1e-1
-</li><li>
-    BLOB/CLOB: implemented Blob and Clob classes with 'read' functionality.
-</li><li>
-    Function TRIM: other characters than space can be removed now.
-</li><li>
-    Implemented CASE WHEN, ANY, ALL
-</li><li>
-    Referential integrity: Deleting rows in the parent table was sometimes not possible, fixed.
-</li><li>
-    Data compression: Implemented data compressions functions.
-</li><li>
-    Large database: the database size was limited to 2 GB due to a bug. Fixed.
-    Improved the recovery performance. Added a progress function to the database event listener.
-    Renamed exception listener to database event listener. Added functionality to set
-    the listener at startup (to display the progress of opening / recovering a database).
-</li><li>
-    Quoted keywords as identifiers: It was not possible to connect to the database again when
-    a (quoted) keyword was used as a table / column name. Fixed.
-</li><li>
-    Compatibility: DATE, TIME and TIMESTAMP can now be used as identifiers (for example, table and column names).
-    They are only keywords if followed by a string, like in TIME '10:20:40'.
-</li><li>
-    Compatibility: PostgreSQL and MySQL round 0.5 to 1 when converting to integer, HSQLDB and
-    other Java databases do not. Added this to the compatibility settings. The default is to behave like HSQLDB.
-</li><li>
-    Synthetic tests: Utils / BitField threw java.lang.ArrayIndexOutOfBoundsException in some situations.
-    Parser: DATE / TIME / TIMESTAMP constants where not parser correctly in some situations.
-    Object ID assignment didn't always work correctly for indexes if other objects where dropped before.
-    Generated constraint names where not in all cases unique. If creating a unique index failed due to
-    primary key violation, some data remained in the database file, leading to problems later.
-</li><li>
-    Storage: In some situations when creating many tables, the error 'double allocation' appeared. Fixed.
-</li><li>
-    Auto-Increment column: It was possible to drop a sequence that belongs to a table
-    (auto increment column) after reconnecting. Fixed.
-</li><li>
-    Auto-Increment column: It was possible to drop a sequence that belongs to a table
-    (auto increment column) after reconnecting. Fixed. ALTER TABLE ADD COLUMN didn't
-    work correctly on a table with auto-increment column,
-</li><li>
-    Default values: If a subquery was used as a default value (do other database support this?),
-    it was executed in the wrong session context after reconnecting.
-</li></ul>
-
-<h3>Version 0.9 / 2006-01-26</h3><ul>
-<li>
-    Autoincrement: There was a problem with IDENTITY columns, the inserted value was not stored in the session, and
-    so the IDENTITY() function didn't work after reconnect.
-</li><li>
-    Storage: Simplified handling of deleted records. This also improves the performance of DROP TABLE.
-</li><li>
-    Encrypted files: Fixed a bug with file.setLength if the new size is smaller than before.
-</li><li>
-    Server mode: Fixed a problem with very big strings (larger than 64 KB).
-</li><li>
-    Identity columns: when a manual value was inserted that was higher than the current
-    sequence value, the sequence was not updated to the higher value. Fixed.
-</li><li>
-    Added a setting for the maximum number of rows (in a result set) that are kept in-memory
-    (MAX_MEMORY_ROWS). Increased the default from 1000 to 10000.
-</li><li>
-    Bug: Sometimes log records where not written completely when using the binary storage format. Fixed.
-</li><li>
-    Performance: now sorting the records by file position before writing.
-    This improves the performance of closing the database in some situations.
-</li><li>
-    Two-Phase-Commit is implemented. However, the XA API is not yet implemented.
-</li><li>
-    Bug: Recovery didn't work correctly if the database was not properly closed twice in a row
-    (reason: the checksum for rolled back records was not updated in the log file).
-</li><li>
-    Bug: Renaming a table and then reconnect didn't work.
-</li></ul>
-
 <h3>Version 0.9 / 2005-12-13</h3><ul>
 <li>
     First public release.
@@ -1340,8 +1174,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>MVCC (Multi Version Concurrency Control)
 </li><li>Server side cursors
 </li><li>Row level locking
+</li><li>Read-only databases inside a jar (splitting large files to speed up random access)
 </li><li>System table: open sessions and locks of a database
-</li><li>System table / function: cache usage
 </li><li>Function in management db: open connections and databases of a (TCP) server
 </li><li>Fix right outer joins
 </li><li>Full outer joins
@@ -1350,16 +1184,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Shutdown compact
 </li><li>Optimization of distinct with index: select distinct name from test
 </li><li>RECOVER=1 automatically if a problem opening
-</li><li>Performance Test: executed statements must match, why sometimes a little more
 </li><li>Forum: email notification doesn't work? test or disable or document
 </li><li>Document server mode, embedded mode, web app mode, dual mode (server+embedded)
 </li><li>Stop the server: close all open databases first
-</li><li>Read-only databases inside a jar
 </li><li>SET variable { TO | = } { value | 'value' | DEFAULT }
 </li><li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
 </li><li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
 </li><li>Support CHAR data type (internally use VARCHAR, but report CHAR for JPox)
-</li><li>Recovery for BLOB / CLOB: support functions
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
@@ -1368,37 +1199,33 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>System table / function: cache usage
 </li><li>Connection pool manager
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Add a migration guide (list differences between databases)
-</li><li>Support VALUES(1), (2); SELECT * FROM (VALUES (1), (1), (1), (1), (2)) AS myTable (c1) (Derby)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
 </li><li>Start / stop server with database URL
-</li><li># is the start of a single line comment (MySQL) but date quote (Access). Mode specific
-</li><li>Run benchmarks with JDK 1.5, JDK 1.6, Server
 </li><li>Rebuild index functionality (other than delete the index file)
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
-</li><li>Test hibernate slow startup? Derby faster? derby faster prepared statements?
 </li><li>Feature: a setting to delete the the log or not (for backup)
-</li><li>Test WithSun ASPE1_4; JEE Sun AS PE1.4
+</li><li>Test with Sun ASPE1_4; JEE Sun AS PE1.4
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
-</li><li>Document how to view / scan a big trace file (less)
+</li><li>Find a tool to view a text file >100 MB, with find, page up and down (like less)
 </li><li>Implement, test, document XAConnection and so on
 </li><li>Web site: meta keywords, description, get rid of frame set
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
-</li><li>CHECK: find out what makes CHECK=TRUE slow, then: fast, no check, slow
+</li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 </li><li>Improve recovery: improve code for log recovery problems (less try/catch)
 </li><li>Log linear hash index changes, fast open / close
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
-</li><li>Faster hash function for strings, byte arrays, big decimal
 </li><li>Suggestion: include jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
-</li><li>Performance / server mode: delay prepare? use UDP?
-</li><li>Version check: javascript in the docs / web console and maybe in the library
+</li><li>Performance / server mode: use UDP optionally?
+</li><li>Version check: docs / web console (using javascript), and maybe in the library (using TCP/IP)
 </li><li>Aggregates: support MEDIAN
 </li><li>Web server classloader: override findResource / getResourceFrom
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
@@ -1406,53 +1233,39 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Count index range query (count(*) where id between 10 and 20)
 </li><li>Eclipse plugin
 </li><li>iReport to support H2
-</li><li>Implement CallableStatement
+</li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
-</li><li>Run inside servlet
+</li><li>Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 </li><li>Make the jar more modular
-</li><li>Document obfuscator usage
 </li><li>Drop with restrict (currently cascade is the default)
-</li><li>Document ConvertTraceToJava in javadoc and features
-</li><li>Document limitation (line length) of find "**" test.trace.db > Trace.java
-</li><li>Tiny XML parser (ignoring unneeded stuff)
-</li><li>JSON parser
-</li><li>Read only databases with log file (fast open with summary)
-</li><li>Option for Java functions: 'constant' to allow early evaluation when all parameters are constant
-</li><li>Improve trace option: add calendar, streams, objects,... try/catch
+</li><li>JSON parser and functions
+</li><li>Option for Java functions: constant/isDeterministic to allow early evaluation when all parameters are constant
 </li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Procedural language
-</li><li>Maybe include JTidy. Check license
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
-</li><li>Column level privileges
 </li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
-</li><li>Document shrinking jar file using http://proguard.sourceforge.net/
 </li><li>Document, implement tool for long running transactions using user defined compensation statements
-</li><li>Support SET TABLE DUAL READONLY;
+</li><li>Support SET TABLE DUAL READONLY
 </li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>Setting for MAX_QUERY_TIME (default no limit?)
-</li><li>GCJ: is there a problem with updatable result sets?
+</li><li>GCJ: what is the state now?
 </li><li>Convert large byte[]/Strings to streams in the JDBC API (asap).
 </li><li>Use Janino to convert Java to C++
 </li><li>Reduce disk space usage (Derby uses less disk space?)
-</li><li>Fast conversion from LOB (stream) to byte array / String
-</li><li>When converting to BLOB/CLOB (with setBytes / setString, or using SQL statement), use stream
-</li><li>Support for user defined constants (to avoid using text or number literals; compile time safety)
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see  http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
-</li><li>Log compression
+</li><li>Optimization: Log compression
 </li><li>Allow editing NULL values in the Console
-</li><li>RunScript / RUNSCRIPT: progress meter and "suspend/resume" capability
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn)
     SELECT * FROM TEST T, P2C(T.A, T.R)
-</li><li>Custom class loader to reload functions on demand
+    </li><li>Custom class loader to reload functions on demand
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>Close all files when closing the database (including LOB files that are open on the client side)
 </li><li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
 </li><li>Implement Statement.cancel for server connections
-</li><li>Should not throw a NullPointerException when closing the connection while an operation is running (TestCases.testDisconnect)
-</li><li>Profiler option or profiling tool to find long running and often repeated queries
+</li><li>Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
 </li><li>Function to read/write a file from/to LOB
 </li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
 </li><li>Performance test: read the data (getString) and use column names to get the data
@@ -1466,43 +1279,36 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
-</li><li>Support a property isDeterministic for Java functions
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 </li><li>http://www.jpackage.org
 </li><li>Version column (number/sequence and timestamp based)
-</li><li>Optimize getGeneratedKey: (include last identity after each execute).
+</li><li>Optimize getGeneratedKey: send last identity after each execute (server).
 </li><li>Clustering: recovery needs to becomes fully automatic.
 </li><li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 </li><li>Support home directory as ~ in database URL (jdbc:h2:file:~/.dir/db)
-</li><li>Document EXISTS and so on, provide more samples.
-</li><li>Modular build (multiple independent jars).
 </li><li>Better space re-use in the files after deleting data (shrink the files)
 </li><li>Max memory rows / max undo log size: use block count / row size not row count
 </li><li>Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
 </li><li>Implement point-in-time recovery
 </li><li>Memory database: add a feature to keep named database open until 'shutdown'
-</li><li>Harden against 'out of memory attacks' (multi-threading, out of memory in the application)
 </li><li>Use the directory of the first script as the default directory for any scripts run inside that script
 </li><li>Include the version name in the jar file name
 </li><li>Optimize IN(...), IN(select), ID=? OR ID=?: create temp table and use join
-</li><li>Set Default Schema (SET search_path TO foo, ALTER USER test SET search_path TO bar,foo)
 </li><li>LIKE: improved version for larger texts (currently using naive search)
-</li><li>LOBs: support streaming for SCRIPT / RUNSCRIPT
 </li><li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
-</li><li>LOBs: support streaming in server mode and cluster mode, and when using PreparedStatement.set with large values
-</li><li>Backup / Restore of BLOBs needs to be improved
-</li><li>The Backup tool should work with other databases as well
+</li><li>The Script tool should work with other databases as well
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
-</li><li>Throw an exception is thrown when the application calls getInt on a Long.
+</li><li>Throw an exception when the application calls getInt on a Long (optional)
 </li><li>Default date format for input and output (local date constants)
 </li><li>Cache collation keys for performance
 </li><li>Convert OR condition to UNION or IN if possible
 </li><li>ValueInt.convertToString and so on (remove Value.convertTo)
 </li><li>Support custom Collators
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
+
 </li><li>Clustering: Reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: When a database is back alive, automatically synchronize with the master
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
@@ -1588,7 +1394,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Document FTP server, including -ftpTask option to execute / kill remote processes
 </li><li>Add jdbcx to the javadocs
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Add TPC-B style benchmark: download/tpcb_current.pdf
 </li><li>Delay reading the row if data is not required
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>User defined aggregate functions
@@ -1626,6 +1431,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support using a unique index for IS NULL (including linked tables)
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
+</li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
+</li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
+</li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
+</li><li>Optimizations: Faster hash function for strings, byte arrays, big decimal
+</li><li>Improve trace feature: add replay functionality
+</li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
+</li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 </li></ul>
 
 <h3>Not Planned</h3>

@@ -1,4 +1,29 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table people (family varchar(1) not null, person varchar(1) not null);
+> ok
+
+create table cars (family varchar(1) not null, car varchar(1) not null);
+> ok
+
+insert into people values(1, 1), (2, 1), (2, 2), (3, 1), (5, 1);
+> update count: 5
+
+insert into cars values(2, 1), (2, 2), (3, 1), (3, 2), (3, 3), (4, 1);
+> update count: 6
+
+select family, (select count(car) from cars where cars.family = people.family) as x
+from people group by family order by family; 
+> FAMILY X
+> ------ -
+> 1      0
+> 2      2
+> 3      3
+> 5      0
+> rows (ordered): 4
+
+drop table people, cars;
+> ok
+
 select (1, 2);
 > 1, 2
 > ------

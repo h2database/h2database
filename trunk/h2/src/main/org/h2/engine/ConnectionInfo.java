@@ -32,6 +32,7 @@ public class ConnectionInfo {
     private boolean remote;
     private boolean ssl;
     private boolean persistent;
+    private boolean unnamed;
 
     static {
         ObjectArray list = SetTypes.getSettings();
@@ -84,6 +85,9 @@ public class ConnectionInfo {
             name = name.substring("ssl:".length());
         } else if(name.startsWith("mem:")) {
             persistent = false;
+            if(name.equals("mem:")) {
+                unnamed = true;
+            }
         } else if(name.startsWith("file:")) {
             name = name.substring("file:".length());
             persistent = true;
@@ -117,6 +121,10 @@ public class ConnectionInfo {
 
     public boolean isPersistent() {
         return persistent;
+    }
+    
+    public boolean isUnnamed() {
+        return unnamed;
     }
 
     private void readProperties(Properties info) throws SQLException {

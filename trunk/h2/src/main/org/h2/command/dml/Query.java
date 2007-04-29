@@ -216,4 +216,6 @@ public abstract class Query extends Prepared {
         return isEverything(visitor);
     }
 
+    public abstract void updateAggregate(Session session) throws SQLException;
+
 }

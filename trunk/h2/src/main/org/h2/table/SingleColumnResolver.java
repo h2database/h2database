@@ -4,6 +4,7 @@
  */
 package org.h2.table;
 
+import org.h2.command.dml.Select;
 import org.h2.value.Value;
 
 public class SingleColumnResolver implements ColumnResolver {
@@ -36,6 +37,10 @@ public class SingleColumnResolver implements ColumnResolver {
     }
 
     public TableFilter getTableFilter() {
+        return null;
+    }
+
+    public Select getSelect() {
         return null;
     }
 

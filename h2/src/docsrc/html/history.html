@@ -36,7 +36,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / 2007-04-20 (Build 45) TODO</h3><ul>
+<h3>Version 1.0 / 2007-04-29 (Build 46)</h3><ul>
 <li>Unnamed private in-memory database (jdbc:h2:mem:) were not 'private' as documented. Fixed.
 </li><li>Autocomplete in the Console application: now the result frame scrolls to the top when the list is updated.
 </li><li>GROUP BY expressions did not work correctly in subqueries. Fixed.
@@ -1166,7 +1166,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Priority 1</h3>
 <ul>
-<li>More tests with MULTI_THREADED=1
+<li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
+</li><li>More tests with MULTI_THREADED=1
 </li><li>Improve performance for create table (if this is possible)
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Document how to use H2 with PHP (generic database API)
@@ -1183,7 +1184,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Shutdown compact
 </li><li>Optimization of distinct with index: select distinct name from test
-</li><li>RECOVER=1 automatically if a problem opening
 </li><li>Forum: email notification doesn't work? test or disable or document
 </li><li>Document server mode, embedded mode, web app mode, dual mode (server+embedded)
 </li><li>Stop the server: close all open databases first

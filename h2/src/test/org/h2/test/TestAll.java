@@ -10,8 +10,6 @@ import java.util.Properties;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
-import org.h2.test.cases.TestBlobDir;
-import org.h2.test.cases.TestCalendar;
 import org.h2.test.db.*;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
@@ -88,8 +86,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
     public static void main(String[] args) throws Exception {
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
-        test.printSystem();
-
+        test.printSystem();       
+        
 /*        
 how to make -baseDir work for H2 Console?
 */
@@ -98,6 +96,13 @@ how to make -baseDir work for H2 Console?
 Pavel Ganelin
 Integrate patches www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
 */
+        
+/*
+Fix Quickstart
+h2.linkedTableUpdates to send update statements instead of delete-insert pairs
+Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
+Automate power off tests
+*/        
 
 /*
 drop all objects;
@@ -105,27 +110,22 @@ create table parent(id int primary key, parent int);
 insert into parent values(1, null), (2, 1), (3, 1);
 
 with test_view(id, parent) as 
-select id, parent from parent where parent is null
+select id, parent from parent where id = ? 
 union all 
 select parent.id, parent.parent from test_view, parent 
 where parent.parent = test_view.id
-select * from test_view;
+select * from test_view {1: 1};
+
+drop view test_view;
 
 with test_view(id, parent) as 
-select id, parent from parent where id = 2 
+select id, parent from parent where id = 1 
 union all 
 select parent.id, parent.parent from test_view, parent 
 where parent.parent = test_view.id
 select * from test_view;
 
 drop view test_view;
-
-@LOOP 10 with test_view(id, parent) as 
-select id, parent from parent where id = ? 
-union all 
-select parent.id, parent.parent from test_view, parent 
-where parent.parent = test_view.id
-select * from test_view;
 
 drop table parent;
 */        

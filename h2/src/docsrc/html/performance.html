@@ -22,7 +22,8 @@ Performance
 <h2>Performance Comparison</h2>
 
 In most cases H2 is a lot faster than all other
-(open source and not open source) database engines:
+(open source and not open source) database engines. 
+Please note this is mostly a single connection benchmark run on one computer.
 
 <h3>Embedded</h3>
 <table border="1" class="bar">
@@ -131,12 +132,14 @@ SQLite was not tested because the JDBC driver doesn't support transactions.
 <h3>About this Benchmark</h3>
 
 <h4>Number of Connections</h4>
-This is a single-connection benchmark.
+This is mostly a single-connection benchmark. 
+BenchB uses multiple connections, the other tests one connection.
 
 <h4>Real-World Tests</h4>
 Good benchmarks emulate real-world use cases. This benchmark includes 3 test cases:
 A simple test case with one table and many small updates / deletes.
 BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org).
+BenchB is similar to the TPC-B test, using multiple connections (one thread per connection).
 BenchC is similar to the TPC-C test, but single connection / single threaded.
 
 <h4>Comparing Embedded with Server Databases</h4>

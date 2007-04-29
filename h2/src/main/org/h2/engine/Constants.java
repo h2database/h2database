@@ -49,7 +49,7 @@ package org.h2.engine;
  * - Switch off auto-build
  * - ant all
  * - Make sure odbc files are the
- * - Make sure the pdf file is there
+ * - Copy the pdf file to h2/docs
  * - Make sure the build files are removed
  * - ant zip
  * - Windows installer (nsis)
@@ -66,8 +66,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 45;
-    private static final String BUILD = "2007-03-20";
+    public static final int BUILD_ID = 46;
+    private static final String BUILD = "2007-04-29";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

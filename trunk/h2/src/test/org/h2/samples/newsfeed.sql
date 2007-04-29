@@ -10,6 +10,70 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(23,
+'New version available: 1.0 / 2007-04-29', '2007-04-29 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br />
+<b>Changes and new functionality:</b>
+<ul>
+<li>New function TABLE to define ad-hoc (temporary) tables in a query. 
+    This also solves problems with variable-size IN(...) queries: 
+    instead of SELECT * FROM TEST WHERE ID IN(?, ?, ...) you can now write:
+    SELECT * FROM TABLE(ID INT=?) X, TEST WHERE X.ID=TEST.ID
+    In this case, the index is used.
+</li><li>New data type ARRAY. Actually it was there before, but is now documented 
+    and better tested (however it must still be considered experimental).
+    The java.sql.Array implementation is incomplete, but setObject(1, new Object[]{...})
+    and getObject(..) can be used. New functions ARRAY_GET and ARRAY_LENGTH.
+</li><li>Autocomplete in the Console application: now the result frame scrolls to the top when the list is updated.
+</li><li>SimpleResultSet now has some basic data type conversion features.
+</li><li>The BACKUP command is better tested and documented.
+    This means hot backup (online backup) is now possible.
+</li><li>The old ''Backup'' tool is now called ''Script'' (as the SQL statement).
+</li><li>There are new ''Backup'' and ''Restore'' tools that work with database files directly.
+</li><li>The new function LINK_SCHEMA simplifies linking all tables of a schema.
+</li><li>SCRIPT DROP now also drops aliases (Java functions) if they exist.
+</li><li>For encrypted databases, the trace option can no longer be enabled manually by creating a file.
+</li><li>For linked tables, NULL in the unique key is now supported.
+</li><li>For read-only databases, temp files are now created in the default temp directory instead
+    of the database directory.
+</li><li>CSVWRITE now returns the number of rows written.
+</li><li>The Portuguese (Europe) translation is available. Thanks a lot to Antonio Casqueiro!
+</li><li>The error message for invalid views has been improved (the root cause is included in the message now).
+</li><li>SQLException.getCause of the now works for JDK 1.4 and higher.
+</li>
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>Unnamed private in-memory database (jdbc:h2:mem:) were not ''private'' as documented. Fixed.
+</li><li>GROUP BY expressions did not work correctly in subqueries. Fixed.
+</li><li>When using JDK 1.5 or later, and switching on h2.lobFilesInDirectories, 
+    the performance for creating LOBs was bad. This has been fixed, however
+    creating lots of LOBs it is still faster when the setting is switched off.
+</li><li>A problem with multiple unnamed dynamic tables (FROM (SELECT...)) has been fixed.
+</li><li>Appending ''Z'' to a timestamp did not have an effect. Now it is interpreted as +00:00 (GMT).
+</li><li>The complete syntax for referential and check constraints is now supported 
+    when written as part of the column definition, behind PRIMARY KEY.
+</li><li>CASE WHEN ... returned the wrong result when the condition evaluated to NULL.
+</li><li>Sending CLOB data was slow in some systems when using the server version. Fixed.
+</li><li>The data type of NULLIF was NULL if the first expression was a column. Now the data type is set correctly.
+</li><li>Indexes (and other related objects) for local temporary tables where not dropped 
+    when the session was closed. Fixed.
+</li><li>ALTER TABLE did not work for tables with computed columns.
+</li><li>If the index file was deleted, an error was logged in the .trace.db file. This is no longer done.
+</li><li>IN(SELECT ...) was not working correctly if the subquery returned a NULL value. Fixed.
+</li><li>DROP ALL OBJECTS did not drop constants.
+</li><li>DROP ALL OBJECTS dropped the role PUBLIC, which was wrong. Fixed.
+</li><li>CASE was parsed as a function if the expression was in (). Fixed.
+</li><li>When ORDER BY was used together with DISTINCT, it was required to type the column
+    name exactly in the select list and the order list exactly in the same way. 
+    This is not required any longer.
+</li>
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(22,
 'New version available: 1.0 / 2007-03-04', '2007-03-04 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -539,45 +603,6 @@ INSERT INTO ITEM VALUES(6,
 For details see also the history. The next release is planned for 2006-08-28.
 If everything goes fine this will be 1.0 final (there might be a release candidate or two before this date).
 The plans for the next release are:
-<ul>
-<li>Bugfixes, write more tests, more bugfixes, more tests.
-</li><li>Proposal for changed license.
-</li><li>For other plans, see the new ''Roadmap'' part on the web site.
-</li></ul>
-');
-
-INSERT INTO ITEM VALUES(5,
-'New version available: 0.9 Beta / 2006-07-29', '2006-07-30 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>ParameterMetaData is now implemented
-</li><li>Experimental auto-complete functionality in the H2 Console.
-  Does not yet work for all cases.
-  Press [Ctrl]+[Space] to activate, and [Esc] to deactivate it.
-</li><li>1.0/3.0 is now 0.33333... and not 0.3 as before.
-  The scale of a DECIMAL division is adjusted automatically (up to current scale + 25).
-</li><li>''SELECT * FROM TEST'' can now be written as ''FROM TEST SELECT *''
-</li><li>New parameter schemaName in Trigger.init.
-</li><li>New method DatabaseEventListener.init to pass the database URL.
-</li><li>    Opening a database that was not closed previously is now faster
-    (specially if using a database URL of the form jdbc:h2:test;LOG=2)
-</li><li>Improved performance for Statement.getGeneratedKeys
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>SCRIPT: The system generated indexes are not any more included in the script file.
-    Also, the drop statements for generated sequences are not included in the script any longer.
-</li><li>Bugfix: IN(NULL) didn''t return NULL in every case. Fixed.
-</li><li>Bugfix: DATEDIFF didn''t work correctly for hour, minute and second if one of the dates was before 1970.
-</li><li>SELECT EXCEPT (or MINUS) did not work for some cases. Fixed.
-</li><li>DATEDIFF now returns a BIGINT and not an INT
-</li><li>DATEADD didn''t work for milliseconds.
-</li><li>Could not connect to a database that was closing at the same time.
-</li><li>C-style block comments /* */ are not parsed correctly when they contain * or /
-</li></ul>
-For details see also the history. The plans for the next release are:
 <ul>
 <li>Bugfixes, write more tests, more bugfixes, more tests.
 </li><li>Proposal for changed license.

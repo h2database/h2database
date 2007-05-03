@@ -36,6 +36,15 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
+<h3>Version 1.0 / 2007-TODO</h3><ul>
+<li>Linked tables can now emit UPDATE statements if 'EMIT UPDATES' is specified in the CREATE LINKED
+	TABLE statement.  So far, updating a row always deleted the old row and then inserted the new row.
+</li><li>In the last release, the H2 Console opened two connection when logging into a database, 
+	and only closed one connection when logging out. Fixed.
+</li><li>New functions LEAST and GREATEST to get the smallest or largest value from a list.
+</li>
+</ul>
+
 <h3>Version 1.0 / 2007-04-29 (Build 46)</h3><ul>
 <li>Unnamed private in-memory database (jdbc:h2:mem:) were not 'private' as documented. Fixed.
 </li><li>Autocomplete in the Console application: now the result frame scrolls to the top when the list is updated.

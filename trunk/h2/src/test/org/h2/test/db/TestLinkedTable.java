@@ -13,7 +13,47 @@ public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
         testLinkSchema();
+        testLinkEmitUpdates();
         testLinkTable();
+    }
+    
+    private void testLinkEmitUpdates() throws Exception {
+        deleteDb("linked1");
+        deleteDb("linked2");
+        Class.forName("org.h2.Driver");
+
+        Connection conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        Statement stat2 = conn2.createStatement();
+        String link = "CREATE LINKED TABLE TEST_LINK_U('', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST') EMIT UPDATES";
+        stat2.execute(link);
+        link = "CREATE LINKED TABLE TEST_LINK_DI('', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST')";
+        stat2.execute(link);
+        stat2.executeUpdate("INSERT INTO TEST_LINK_U VALUES(1, 'Hello')");
+        stat2.executeUpdate("INSERT INTO TEST_LINK_DI VALUES(2, 'World')");
+        try {
+            stat2.executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
+            error("unexpected success");
+        } catch(SQLException e) {
+            checkNotGeneralException(e);
+        }
+        stat2.executeUpdate("UPDATE TEST_LINK_DI SET ID=ID+1");
+        stat2.executeUpdate("UPDATE TEST_LINK_U SET NAME=NAME || ID");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        check(rs.getInt(1), 2);
+        check(rs.getString(2), "Hello2");
+        rs.next();
+        check(rs.getInt(1), 3);
+        check(rs.getString(2), "World3");
+        checkFalse(rs.next());
+        
+        conn.close();
+        conn2.close();
     }
     
     private void testLinkSchema() throws Exception {

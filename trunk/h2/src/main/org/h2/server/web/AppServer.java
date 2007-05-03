@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -211,8 +210,6 @@ public class AppServer {
         user = user.trim();
         password = password.trim();
         org.h2.Driver.load();
-        JdbcUtils.getConnection(driver, url, user, password);
-        Class.forName(driver);
 //            try {
 //                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
 //                Properties p = new Properties();
@@ -222,7 +219,7 @@ public class AppServer {
 //            } catch(ClassNotFoundException e2) {
 //                throw e2;
 //            }
-        return DriverManager.getConnection(url, user, password);
+        return JdbcUtils.getConnection(driver, url, user, password);
     }
 
 }

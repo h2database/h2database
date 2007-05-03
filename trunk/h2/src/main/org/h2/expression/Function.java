@@ -94,7 +94,7 @@ public class Function extends Expression implements FunctionCall {
             COALESCE = 204, NULLIF = 205, CASE = 206, NEXTVAL = 207, CURRVAL = 208,
             ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211, MEMORY_FREE = 212,
             MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, TABLE = 219;
+            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221;
 
     private static final int VAR_ARGS = -1;
 
@@ -286,6 +286,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
         addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
+        addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
@@ -393,6 +395,27 @@ public class Function extends Expression implements FunctionCall {
                 }
             }
             return v0;
+        }
+        case GREATEST:
+        case LEAST: {
+            Value result = ValueNull.INSTANCE;
+            for (int i = 0; i < args.length; i++) {
+                Value v = i==0 ? v0 : args[i].getValue(session);
+                if (!(v == ValueNull.INSTANCE)) {
+                    v = v.convertTo(dataType);
+                    if(result == ValueNull.INSTANCE) {
+                        result = v;
+                    } else {
+                        int comp = database.compareTypeSave(result, v);
+                        if(info.type == GREATEST && comp < 0 ) {
+                            result = v;
+                        } else if(info.type == LEAST && comp > 0 ) {
+                            result = v;
+                        }
+                    }
+                }
+            }
+            return result;
         }
         case CASE: {
             // TODO function CASE: document & implement functionality
@@ -1220,6 +1243,8 @@ public class Function extends Expression implements FunctionCall {
             case COALESCE:
             case CSVREAD:
             case TABLE:
+            case LEAST:
+            case GREATEST:
                 min = 1;
                 break;
             case NOW:
@@ -1303,7 +1328,9 @@ public class Function extends Expression implements FunctionCall {
         switch (info.type) {
         case IFNULL:
         case NULLIF:
-        case COALESCE: {
+        case COALESCE:
+        case LEAST: 
+        case GREATEST: {
             dataType = Value.STRING;
             scale = 0;
             precision = 0;

@@ -86,7 +86,7 @@ public class Insert extends Prepared {
                 table.fireBeforeRow(session, null, newRow);
                 table.lock(session, true);
                 table.addRow(session, newRow);
-                session.log(new UndoLogRecord(table, UndoLogRecord.INSERT, newRow));
+                session.log(table, UndoLogRecord.INSERT, newRow);
                 table.fireAfter(session);
                 table.fireAfterRow(session, null, newRow);
                 count++;
@@ -111,7 +111,7 @@ public class Insert extends Prepared {
                 table.validateConvertUpdateSequence(session, newRow);
                 table.fireBeforeRow(session, null, newRow);
                 table.addRow(session, newRow);
-                session.log(new UndoLogRecord(table, UndoLogRecord.INSERT, newRow));
+                session.log(table, UndoLogRecord.INSERT, newRow);
                 table.fireAfterRow(session, null, newRow);
             }
             rows.close();

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 
+import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -20,6 +21,7 @@ import org.h2.index.LinkedIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.store.UndoLogRecord;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
@@ -35,15 +37,18 @@ public class TableLink extends Table {
     private Connection conn;
     private HashMap prepared = new HashMap();
     private ObjectArray indexes = new ObjectArray();
+    private boolean emitUpdates;
+    private LinkedIndex linkedIndex;
 
     public TableLink(Schema schema, int id, String name, String driver, String url, 
-            String user, String password, String originalTable) throws SQLException {
+            String user, String password, String originalTable, boolean emitUpdates) throws SQLException {
         super(schema, id, name, false);
         this.driver = driver;
         this.url = url;
         this.user = user;
         this.password = password;
         this.originalTable = originalTable;
+        this.emitUpdates = emitUpdates;
         conn = JdbcUtils.getConnection(driver, url, user, password);
         DatabaseMetaData meta = conn.getMetaData();
         boolean storesLowerCase = meta.storesLowerCaseIdentifiers();
@@ -94,8 +99,8 @@ public class TableLink extends Table {
         Column[] cols = new Column[columnList.size()];
         columnList.toArray(cols);
         setColumns(cols);
-        Index index = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
-        indexes.add(index);
+        linkedIndex = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
+        indexes.add(linkedIndex);
         rs = meta.getPrimaryKeys(null, null, originalTable);
         String pkName = "";
         ObjectArray list;
@@ -179,6 +184,9 @@ public class TableLink extends Table {
         buff.append(", ");
         buff.append(StringUtils.quoteStringSQL(originalTable));
         buff.append(")");
+        if(emitUpdates) {
+            buff.append(" EMIT UPDATES");
+        }
         return buff.toString();
     }
 
@@ -195,7 +203,7 @@ public class TableLink extends Table {
     }    
 
     public Index getScanIndex(Session session) {
-        return (Index) indexes.get(0);
+        return linkedIndex;
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
@@ -293,5 +301,25 @@ public class TableLink extends Table {
         }
         return null;
     }    
+    
+    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows) throws SQLException {
+        boolean deleteInsert;
+        if(emitUpdates) {
+            for (int i = 0; i < oldRows.size(); i++) {
+                session.checkCancelled();
+                Row oldRow = (Row) oldRows.get(i);
+                Row newRow = (Row) newRows.get(i);
+                linkedIndex.update(session, oldRow, newRow);
+                session.log(this, UndoLogRecord.DELETE, oldRow);
+                session.log(this, UndoLogRecord.INSERT, newRow);
+            }
+            deleteInsert = false;
+        } else {
+            deleteInsert = true;
+        }
+        if(deleteInsert) {
+            super.updateRows(prepared, session, oldRows, newRows);
+        }
+    }
     
 }

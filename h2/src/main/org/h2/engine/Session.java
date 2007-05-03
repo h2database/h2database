@@ -19,6 +19,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
@@ -268,8 +269,12 @@ public class Session implements SessionInterface {
         }
         locks.add(table);
     }
+    
+    public void log(Table table, short type, Row row) throws SQLException {
+        log(new UndoLogRecord(table, type, row));
+    }
 
-    public void log(UndoLogRecord log) throws SQLException {
+    private void log(UndoLogRecord log) throws SQLException {
         // called _after_ the row was inserted successfully into the table,
         // otherwise rollback will try to rollback a not-inserted row
         if(Constants.CHECK) {

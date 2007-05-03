@@ -7,6 +7,7 @@ package org.h2.table;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -24,6 +25,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.store.UndoLogRecord;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -125,6 +127,23 @@ public abstract class Table extends SchemaObject {
     public abstract ObjectArray getIndexes();
     public abstract boolean isLockedExclusively();
     public abstract long getMaxDataModificationId();
+    
+    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows) throws SQLException {
+        // remove the old rows
+        for (int i = 0; i < oldRows.size(); i++) {
+            prepared.checkCancelled();
+            Row o = (Row) oldRows.get(i);
+            removeRow(session, o);
+            session.log(this, UndoLogRecord.DELETE, o);
+        }
+        // add the new rows
+        for (int i=0; i < newRows.size(); i++) {
+            prepared.checkCancelled();
+            Row n = (Row) newRows.get(i);
+            addRow(session, n);
+            session.log(this, UndoLogRecord.INSERT, n);
+        }
+    }
 
     public void removeChildrenAndResources(Session session) throws SQLException {        
         while(views != null && views.size() > 0) {

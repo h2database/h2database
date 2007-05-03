@@ -78,39 +78,6 @@ public class LinkedIndex extends Index {
         }
     }
 
-    public void remove(Session session, Row row) throws SQLException {
-        StringBuffer buff = new StringBuffer("DELETE FROM ");
-        buff.append(originalTable);
-        buff.append(" WHERE ");
-        for(int i=0; i<row.getColumnCount(); i++) {
-            if(i>0) {
-                buff.append("AND ");
-            }
-            buff.append(table.getColumn(i).getSQL());
-            Value v = row.getValue(i);
-            if(isNull(v)) {
-                buff.append(" IS NULL ");
-            } else {
-                buff.append("=? ");
-            }
-        }
-        String sql = buff.toString();
-        try {
-            PreparedStatement prep = link.getPreparedStatement(sql);
-            for(int i=0, j=0; i<row.getColumnCount(); i++) {
-                Value v = row.getValue(i);
-                if(!isNull(v)) {
-                    v.set(prep, j+1);
-                    j++;
-                }
-            }
-            int count = prep.executeUpdate();
-            rowCount -= count;
-        } catch(SQLException e) {
-            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
-        }
-    }
-
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         StringBuffer buff = new StringBuffer();
         for(int i=0; first != null && i<first.getColumnCount(); i++) {
@@ -196,6 +163,82 @@ public class LinkedIndex extends Index {
     public Value findFirstOrLast(Session session, boolean first) throws SQLException {
         // TODO optimization: could get the first or last value (in any case; maybe not optimized)
         throw Message.getUnsupportedException();
-    }    
+    }
+    
+    public void remove(Session session, Row row) throws SQLException {
+        StringBuffer buff = new StringBuffer("DELETE FROM ");
+        buff.append(originalTable);
+        buff.append(" WHERE ");
+        for(int i=0; i<row.getColumnCount(); i++) {
+            if(i>0) {
+                buff.append("AND ");
+            }
+            buff.append(table.getColumn(i).getSQL());
+            Value v = row.getValue(i);
+            if(isNull(v)) {
+                buff.append(" IS NULL ");
+            } else {
+                buff.append("=? ");
+            }
+        }
+        String sql = buff.toString();
+        try {
+            PreparedStatement prep = link.getPreparedStatement(sql);
+            for(int i=0, j=0; i<row.getColumnCount(); i++) {
+                Value v = row.getValue(i);
+                if(!isNull(v)) {
+                    v.set(prep, j+1);
+                    j++;
+                }
+            }
+            int count = prep.executeUpdate();
+            rowCount -= count;
+        } catch(SQLException e) {
+            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+        }
+    }
+    
+    public void update(Session session, Row oldRow, Row newRow) throws SQLException {
+        StringBuffer buff = new StringBuffer("UPDATE ");
+        buff.append(originalTable).append(" SET ");
+        for (int i = 0; i < newRow.getColumnCount(); i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(table.getColumn(i).getSQL()).append("=?");
+        }
+        buff.append(" WHERE ");
+        for(int i=0; i<oldRow.getColumnCount(); i++) {
+            if(i>0) {
+                buff.append("AND ");
+            }
+            buff.append(table.getColumn(i).getSQL());
+            Value v = oldRow.getValue(i);
+            if(isNull(v)) {
+                buff.append(" IS NULL ");
+            } else {
+                buff.append("=? ");
+            }
+        }
+        String sql = buff.toString();
+        try {
+            int j = 1;
+            PreparedStatement prep = link.getPreparedStatement(sql);
+            for (int i=0; i<newRow.getColumnCount(); i++) {
+                newRow.getValue(i).set(prep, j);
+                j++;
+            }
+            for(int i=0; i<oldRow.getColumnCount(); i++) {
+                Value v = oldRow.getValue(i);
+                if(!isNull(v)) {
+                    v.set(prep, j);
+                    j++;
+                }
+            }
+            prep.executeUpdate();
+        } catch(SQLException e) {
+            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+        }
+    }
 
 }

@@ -112,7 +112,7 @@ public abstract class Prepared {
         return null;
     }
     
-    protected void checkCancelled() throws SQLException {
+    public void checkCancelled() throws SQLException {
         // TODO strange code: probably checkCancelled should always be called on the session. fix & test after release 1.0
         if(command != null) {
             command.checkCancelled();

@@ -46,7 +46,7 @@ import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
-import org.h2.command.dml.Backup;
+import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExplainPlan;
@@ -54,8 +54,8 @@ import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.RunScript;
-import org.h2.command.dml.Script;
+import org.h2.command.dml.RunScriptCommand;
+import org.h2.command.dml.ScriptCommand;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.command.dml.SelectUnion;
@@ -429,7 +429,7 @@ public class Parser {
     }
     
     private Prepared parseBackup() throws SQLException {
-        Backup command = new Backup(session);
+        BackupCommand command = new BackupCommand(session);
         read("TO");
         command.setFileName(readString());
         return command;
@@ -3488,8 +3488,8 @@ public class Parser {
         return command;
     }
 
-    private RunScript parseRunScript() throws SQLException {
-        RunScript command = new RunScript(session);
+    private RunScriptCommand parseRunScript() throws SQLException {
+        RunScriptCommand command = new RunScriptCommand(session);
         read("FROM");
         command.setFileName(readString());
         if(readIf("COMPRESSION")) {
@@ -3507,8 +3507,8 @@ public class Parser {
         return command;
     }
 
-    private Script parseScript() throws SQLException {
-        Script command = new Script(session);
+    private ScriptCommand parseScript() throws SQLException {
+        ScriptCommand command = new ScriptCommand(session);
         boolean data = true, passwords = true, settings = true, dropTables = false;
         if(readIf("NODATA")) {
             data = false;
@@ -3828,6 +3828,10 @@ public class Parser {
         read(",");
         command.setOriginalTable(readString());
         read(")");
+        if(readIf("EMIT")) {
+            read("UPDATES");
+            command.setEmitUpdates(true);
+        }
         return command;
     }
 

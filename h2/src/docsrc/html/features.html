@@ -90,27 +90,27 @@ Features
 
 <h3>SQL Support</h3>
 <ul>
-<li>Compatibility modes for HSQLDB, MySQL and PostgreSQL
-</li><li>Support for multiple schemas, information schema
+<li>Support for multiple schemas, information schema
 </li><li>Referential integrity / foreign key constraints with cascade, check constraints
 </li><li>Inner and outer joins, subqueries, read only views and inline views
 </li><li>Triggers and Java functions / stored procedures
 </li><li>Many built-in functions, including XML and lossless data compression
-</li><li>Wide range of data types including large objects (BLOB/CLOB)
+</li><li>Wide range of data types including large objects (BLOB/CLOB) and arrays
 </li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
 </li><li>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
-</li><li>Collation support, Users, Roles
+</li><li>Collation support, users, roles
+</li><li>Compatibility modes for HSQLDB, MySQL and PostgreSQL
 </li></ul>
 
 <h3>Security Features</h3>
 <ul>
-<li>User password authenticated uses SHA-256 and salt
+<li>Includes a solution for the SQL injection problem
+</li><li>User password authenticated uses SHA-256 and salt
 </li><li>User passwords are never transmitted in plain text over the network (even when using insecure connections)
 </li><li>All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
 </li><li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
 </li><li>The built-in web server supports connections over SSL/TLS
 </li><li>Passwords can be sent to the database using char arrays instead of Strings
-</li><li>Includes a solution for the SQL injection problem
 </li></ul>
 
 <h3>Other Features and Tools</h3>
@@ -118,7 +118,7 @@ Features
 <li>Small footprint (smaller than 1 MB), low memory requirements
 </li><li>Multiple index types (b-tree, tree, hash, linear hash)
 </li><li>Support for multi-dimensional indexes
-</li><li>CSV file support
+</li><li>CSV (comma separated values) file support
 </li><li>Support for linked tables, and a built-in virtual 'range' table
 </li><li>EXPLAIN PLAN support, sophisticated trace options
 </li><li>Database closing can be delayed or disabled to improve the performance

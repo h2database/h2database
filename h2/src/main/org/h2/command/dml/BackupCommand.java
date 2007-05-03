@@ -26,11 +26,11 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 
-public class Backup extends Prepared {
+public class BackupCommand extends Prepared {
     
     private String fileName;
     
-    public Backup(Session session) {
+    public BackupCommand(Session session) {
         super(session);
     }
     

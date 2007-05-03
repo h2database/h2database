@@ -66,7 +66,7 @@ public class Delete extends Prepared {
             checkCancelled();
             Row row = (Row) rows.get(i);
             table.removeRow(session, row);
-            session.log(new UndoLogRecord(table, UndoLogRecord.DELETE, row));
+            session.log(table, UndoLogRecord.DELETE, row);
         }
         if(table.fireRow()) {
             for (int i = 0; i < rows.size(); i++) {

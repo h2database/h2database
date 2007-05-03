@@ -53,7 +53,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 
-public class Script extends ScriptBase {
+public class ScriptCommand extends ScriptBase {
 
     private boolean passwords;
     private boolean data;
@@ -67,7 +67,7 @@ public class Script extends ScriptBase {
     private int lobBlockSize = Integer.MAX_VALUE;
     private static final String TEMP_LOB_FILENAME = "system_temp_lob.db";
 
-    public Script(Session session) {
+    public ScriptCommand(Session session) {
         super(session);
     }
 

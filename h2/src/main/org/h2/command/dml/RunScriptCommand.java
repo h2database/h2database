@@ -15,11 +15,11 @@ import org.h2.message.Message;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
-public class RunScript extends ScriptBase {
+public class RunScriptCommand extends ScriptBase {
     
     private String charset = StringUtils.getDefaultCharset();
 
-    public RunScript(Session session) {
+    public RunScriptCommand(Session session) {
         super(session);
     }
     

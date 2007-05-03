@@ -166,7 +166,7 @@ public class Merge extends Prepared {
             table.fireBeforeRow(session, null, row);
             table.lock(session, true);
             table.addRow(session, row);
-            session.log(new UndoLogRecord(table, UndoLogRecord.INSERT, row));
+            session.log(table, UndoLogRecord.INSERT, row);
             table.fireAfter(session);
             table.fireAfterRow(session, null, row);
         } else if(count != 1) {

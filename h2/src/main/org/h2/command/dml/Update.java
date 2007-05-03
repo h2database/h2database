@@ -12,7 +12,6 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.result.Row;
-import org.h2.store.UndoLogRecord;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -72,7 +71,6 @@ public class Update extends Prepared {
             setCurrentRowNumber(oldRows.size()+1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 Row oldRow = tableFilter.get();
-                oldRows.add(oldRow);
                 Row newRow = table.getTemplateRow();
                 for (int i = 0; i < columnCount; i++) {
                     Expression newExpr = expressions[i];
@@ -86,6 +84,7 @@ public class Update extends Prepared {
                     newRow.setValue(i, newValue);
                 }
                 table.validateConvertUpdateSequence(session, newRow);
+                oldRows.add(oldRow);
                 newRows.add(newRow);
             }
         }
@@ -101,20 +100,7 @@ public class Update extends Prepared {
                 table.fireBeforeRow(session, o, n);
             }
         }
-        // remove the old rows
-        for (int i = 0; i < oldRows.size(); i++) {
-            checkCancelled();
-            Row o = (Row) oldRows.get(i);
-            table.removeRow(session, o);
-            session.log(new UndoLogRecord(table, UndoLogRecord.DELETE, o));
-        }
-        // add the new rows
-        for (int i=0; i < newRows.size(); i++) {
-            checkCancelled();
-            Row n = (Row) newRows.get(i);
-            table.addRow(session, n);
-            session.log(new UndoLogRecord(table, UndoLogRecord.INSERT, n));
-        }
+        table.updateRows(this, session, oldRows, newRows);
         if(table.fireRow()) {
             for (int i=0; i < newRows.size(); i++) {
                 checkCancelled();
@@ -126,7 +112,7 @@ public class Update extends Prepared {
         table.fireAfter(session);
         return newRows.size();
     }
-
+    
     public String getPlan() {
         StringBuffer buff = new StringBuffer();
         buff.append("UPDATE ");

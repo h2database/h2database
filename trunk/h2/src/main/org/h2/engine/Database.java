@@ -1013,13 +1013,13 @@ public class Database implements DataHandler {
     }
 
     private void reserveLobFileObjectIds() throws SQLException {
-        String prefix = FileUtils.normalize(databaseName);
+        String prefix = FileUtils.normalize(databaseName) + ".";
         String path = FileUtils.getParent(databaseName);
         String[] list = FileUtils.listFiles(path);
         for(int i=0; i<list.length; i++) {
             String name = list[i];
             if(name.endsWith(Constants.SUFFIX_LOB_FILE) && FileUtils.fileStartsWith(name, prefix)) {
-                name = name.substring(prefix.length() + 1);
+                name = name.substring(prefix.length());
                 name = name.substring(0, name.length() - Constants.SUFFIX_LOB_FILE.length());
                 int dot = name.indexOf('.');
                 if(dot >= 0) {

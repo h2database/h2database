@@ -90,6 +90,6 @@ public class ValueDate extends Value {
 
     protected boolean isEqual(Value v) {
         return v instanceof ValueDate && value.equals(((ValueDate)v).value);
-    }    
+    }
 
 }

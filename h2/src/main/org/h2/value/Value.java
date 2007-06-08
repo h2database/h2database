@@ -38,9 +38,9 @@ public abstract class Value {
     public static final int NULL = 0, BOOLEAN = 1, BYTE = 2, SHORT = 3, INT = 4, LONG = 5, DECIMAL = 6;
     public static final int DOUBLE = 7, FLOAT = 8, TIME = 9, DATE = 10, TIMESTAMP = 11, BYTES = 12;
     public static final int STRING = 13, STRING_IGNORECASE = 14, BLOB = 15, CLOB = 16;
-    public static final int ARRAY = 17, RESULT_SET = 18, JAVA_OBJECT = 19, UUID = 20;
+    public static final int ARRAY = 17, RESULT_SET = 18, JAVA_OBJECT = 19, UUID = 20, STRING_FIXED = 21;
 
-    public static final int TYPE_COUNT = UUID + 1;
+    public static final int TYPE_COUNT = STRING_FIXED + 1;
 
     private static WeakReference weakCache = new WeakReference(null);
     // private static int cacheCleaner = 0;
@@ -49,9 +49,73 @@ public abstract class Value {
     // private static Value[] cache = new Value[Constants.OBJECT_CACHE_SIZE];
 
     private static final BigDecimal MAX_LONG_DECIMAL = new BigDecimal("" + Long.MAX_VALUE);
-
     private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
 
+    public static int getOrder(int type) {
+        switch(type) {
+        case UNKNOWN: 
+            return 1;
+        case NULL: 
+            return 2;
+        case STRING: 
+            return 10;
+        case CLOB: 
+            return 11;
+        case STRING_FIXED:
+            return 12;
+        case STRING_IGNORECASE: 
+            return 13;
+        case BOOLEAN:
+            return 20;
+        case BYTE:
+            return 21;
+        case SHORT:
+            return 22;
+        case INT:
+            return 23;
+        case LONG:
+            return 24;
+        case DECIMAL:
+            return 25;
+        case FLOAT:
+            return 26;
+        case DOUBLE:
+            return 27;
+        case TIME:
+            return 30;
+        case DATE:
+            return 31;
+        case TIMESTAMP:
+            return 32;
+        case BYTES:
+            return 40;
+        case BLOB:
+            return 41;
+        case UUID:
+            return 42;
+        case JAVA_OBJECT:
+            return 43;
+        case ARRAY:
+            return 50;
+        case RESULT_SET:
+            return 51;
+        default:
+            throw Message.getInternalError("type:"+type);
+        }
+    }    
+    
+    public static int getHigherOrder(int t1, int t2) throws SQLException {
+        if(t1 == t2) {
+            if(t1 == Value.UNKNOWN) {
+                throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, "?, ?");
+            }
+            return t1;
+        }
+        int o1 = getOrder(t1);
+        int o2 = getOrder(t2);
+        return o1 > o2 ? t1 : t2;
+    }
+    
     static Value cache(Value v) {
         if (Constants.OBJECT_CACHE) {
             Value[] cache = (Value[]) weakCache.get();
@@ -81,7 +145,6 @@ public abstract class Value {
     public abstract long getPrecision();
     public abstract int getDisplaySize();
     public abstract String getString() throws SQLException;
-//    public abstract String getJavaString();
     protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
     protected abstract boolean isEqual(Value v);
     public abstract Object getObject() throws SQLException;
@@ -181,33 +244,6 @@ public abstract class Value {
 
     public Value multiply(Value v) throws SQLException {
         throw Message.getUnsupportedException();
-    }
-
-    public static int getHigherOrder(int t1, int t2) throws SQLException {
-        if(t1 == t2) {
-            if(t1 == Value.UNKNOWN) {
-                throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, "?, ?");
-            }
-            return t1;
-        }
-        int type = Math.max(t1, t2);
-        switch(type) {
-        case Value.STRING:
-        case Value.STRING_IGNORECASE: {
-            int b = Math.min(t1, t2);
-            switch(b) {
-            case Value.BLOB:
-            case Value.BYTES:
-            case Value.DATE:
-            case Value.JAVA_OBJECT:
-            case Value.TIME:
-            case Value.TIMESTAMP:
-            case Value.UUID:
-                return b;
-            }
-        }
-        }
-        return type;
     }
 
     public Value convertTo(int type) throws SQLException {
@@ -482,6 +518,8 @@ public abstract class Value {
                 return ValueString.get(s);
             case STRING_IGNORECASE:
                 return ValueStringIgnoreCase.get(s);
+            case STRING_FIXED:
+                return ValueStringFixed.get(s);
             case DOUBLE:
                 return ValueDouble.get(Double.parseDouble(s.trim()));
             case FLOAT:
@@ -615,6 +653,6 @@ public abstract class Value {
     }
     
     public void close() throws SQLException {
-    }    
+    }
 
 }

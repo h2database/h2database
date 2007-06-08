@@ -124,6 +124,6 @@ public class ValueShort extends Value {
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueShort && value == ((ValueShort)v).value;
-    }    
+    }
 
 }

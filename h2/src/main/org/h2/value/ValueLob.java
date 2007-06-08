@@ -288,7 +288,7 @@ public class ValueLob extends Value {
                 objectId = handler.allocateObjectId(false, true);
                 fileName = handler.createTempFile();
             }
-            tempFile = handler.openFile(fileName, false);
+            tempFile = handler.openFile(fileName, "rw", false);
             tempFile.autoDelete();
         }
         FileStoreOutputStream out = new FileStoreOutputStream(tempFile, handler, compressionAlgorithm);
@@ -360,7 +360,7 @@ public class ValueLob extends Value {
                 }
                 deleteFile(handler, temp);
                 renameFile(handler, fileName, temp);
-                tempFile = FileStore.open(handler, temp, null);
+                tempFile = FileStore.open(handler, temp, "rw", null);
                 tempFile.autoDelete();
                 tempFile.closeSilently();
                 fileName = temp;
@@ -491,7 +491,7 @@ public class ValueLob extends Value {
         if (fileName == null) {
             return new ByteArrayInputStream(small);
         }
-        FileStore store = handler.openFile(fileName, true);
+        FileStore store = handler.openFile(fileName, "r", true);
         return new BufferedInputStream(new FileStoreInputStream(store, handler, compression), Constants.IO_BUFFER_SIZE);
     }
 

@@ -38,6 +38,7 @@ public class LogSystem {
     private ObjectArray inDoubtTransactions;
     private boolean disabled;
     private int keepFiles;
+    private boolean closed;
 
     public LogSystem(Database database, String fileNamePrefix, boolean readOnly) throws SQLException {
         this.database = database;
@@ -110,10 +111,13 @@ public class LogSystem {
     }
 
     public void close() throws SQLException {
-        if (database == null || readOnly) {
+        if(database == null || readOnly) {
             return;
         }
         synchronized (database) {
+            if(closed) {
+                return;
+            }
             // TODO refactor flushing and closing files when we know what to do exactly
             SQLException closeException = null;
             try {
@@ -140,7 +144,7 @@ public class LogSystem {
                     }
                 }
             }
-            database = null;
+            closed = true;
             if (closeException != null) {
                 throw closeException;
             }
@@ -157,10 +161,13 @@ public class LogSystem {
     }
 
     public boolean recover() throws SQLException {
-        if (database == null) {
+        if(database == null) {
             return false;
         }
         synchronized (database) {
+            if(closed) {
+                return false;
+            }
             undo = new ObjectArray();
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile log = (LogFile) activeLogs.get(i);
@@ -290,10 +297,13 @@ public class LogSystem {
     }
 
     public void prepareCommit(Session session, String transaction) throws SQLException {
-        if (database == null || readOnly) {
+        if(database == null || readOnly) {
             return;
         }
         synchronized (database) {
+            if(closed) {
+                return;
+            }
             currentLog.prepareCommit(session, transaction);
         }
     }
@@ -303,6 +313,9 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
+            if(closed) {
+                return;
+            }
             currentLog.commit(session);
             session.setAllCommitted();
         }
@@ -313,15 +326,21 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
+            if(closed) {
+                return;
+            }
             currentLog.flush();
         }
     }
 
     public void addTruncate(Session session, DiskFile file, int storageId, int recordId, int blockCount) throws SQLException {
-        if (database == null || disabled) {
+        if(database == null) {
             return;
         }
         synchronized (database) {
+            if(disabled || closed) {
+                return;
+            }
             database.checkWritingAllowed();
             if (!file.isDataFile()) {
                 storageId = -storageId;
@@ -334,10 +353,13 @@ public class LogSystem {
     }
 
     public void add(Session session, DiskFile file, Record record) throws SQLException {
-        if (database == null || disabled) {
+        if(database == null) {
             return;
-        }
+        }        
         synchronized (database) {
+            if(disabled || closed) {
+                return;
+            }            
             database.checkWritingAllowed();
             int storageId = record.getStorageId();
             if (!file.isDataFile()) {
@@ -355,10 +377,13 @@ public class LogSystem {
     }
 
     public void checkpoint() throws SQLException {
-        if (database == null || readOnly || disabled) {
+        if(readOnly || database == null) {
             return;
         }
         synchronized (database) {
+            if(closed || disabled) {
+                return;
+            }
             flushAndCloseUnused();
             currentLog = new LogFile(this, currentLog.getId() + 1, fileNamePrefix);
             activeLogs.add(currentLog);
@@ -376,9 +401,6 @@ public class LogSystem {
     }
 
     private void writeSummary() throws SQLException {
-        if (database == null || readOnly || disabled) {
-            return;
-        }
         byte[] summary;
         DiskFile file;
         file = database.getDataFile();
@@ -415,6 +437,9 @@ public class LogSystem {
     }
 
     public void sync() throws SQLException {
+        if(database == null || readOnly) {
+            return;
+        }
         synchronized (database) {
             if (currentLog != null) {
                 currentLog.flush();

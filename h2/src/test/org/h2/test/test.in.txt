@@ -1,4 +1,71 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table d(d double, r real);
+> ok
+
+insert into d values(1.1234567890123456789, 1.1234567890123456789);
+> update count: 1
+
+select r+d, r+r, d+d from d;
+> R + D             R + R     D + D
+> ----------------- --------- ------------------
+> 2.246913624759111 2.2469137 2.2469135780246914
+> rows: 1
+
+drop table d;
+> ok
+
+create table test(id int, c char(5), v varchar(5));
+> ok
+
+insert into test values(1, 'a', 'a');
+> update count: 1
+
+insert into test values(2, 'a ', 'a ');
+> update count: 1
+
+insert into test values(3, 'abcde      ', 'abcde');
+> update count: 1
+
+select distinct length(c) from test order by length(c);
+> LENGTH(C)
+> ---------
+> 1
+> 5
+> rows (ordered): 2
+
+select id, c, v, length(c), length(v) from test order by id;
+> ID C     V     LENGTH(C) LENGTH(V)
+> -- ----- ----- --------- ---------
+> 1  a     a     1         1
+> 2  a     a     1         2
+> 3  abcde abcde 5         5
+> rows (ordered): 3
+
+select id from test where c='a' order by id;
+> ID
+> --
+> 1
+> 2
+> rows (ordered): 2
+
+select id from test where c='a ' order by id;
+> ID
+> --
+> 1
+> 2
+> rows (ordered): 2
+
+select id from test where c=v order by id;
+> ID
+> --
+> 1
+> 2
+> 3
+> rows (ordered): 3
+
+drop table test;
+> ok
+
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), C INT);
 > ok
 
@@ -28,7 +95,7 @@ insert into cars values(2, 1), (2, 2), (3, 1), (3, 2), (3, 3), (4, 1);
 > update count: 6
 
 select family, (select count(car) from cars where cars.family = people.family) as x
-from people group by family order by family; 
+from people group by family order by family;
 > FAMILY X
 > ------ -
 > 1      0
@@ -215,8 +282,8 @@ script nopasswords nosettings blocksize 10;
 > ------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST
 > CALL SYSTEM_COMBINE_BLOB(-1)
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.Script.combineBlob"
-> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.Script.combineClob"
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob"
+> CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob"
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     DATA CLOB )
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID)
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))
@@ -4373,8 +4440,8 @@ SELECT * FROM V_UNION WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN: ID = 1 */ WHERE ID = 1
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_1: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_1: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
@@ -4388,8 +4455,8 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2: ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_1: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_1: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
@@ -4402,8 +4469,8 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES: ID = 1 */ WHERE ID = 1
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_1: ID = CAST(?1 AS INTEGER) ++/ WHERE ID = CAST(?1 AS INTEGER)) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_2: ID = CAST(?1 AS INTEGER) ++/ WHERE CLASSES.ID = CAST(?1 AS INTEGER)): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 DROP VIEW V_UNION;
@@ -4510,10 +4577,10 @@ CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE STORAGE_TYPE SQL                                                                                                                                                              REMARKS
-> ------------- ------------ ---------- ---------- ------------ ---------------------------------------------------------------------------------------------------------------------------------------------------------------- -------
-> SCRIPT        PUBLIC       TEST_ALL   VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID
-> SCRIPT        PUBLIC       TEST_A_SUB VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE STORAGE_TYPE SQL                                                                                                                                                              REMARKS ID
+> ------------- ------------ ---------- ---------- ------------ ---------------------------------------------------------------------------------------------------------------------------------------------------------------- ------- ---
+> SCRIPT        PUBLIC       TEST_ALL   VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID         513
+> SCRIPT        PUBLIC       TEST_A_SUB VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2                                                                                       515
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;

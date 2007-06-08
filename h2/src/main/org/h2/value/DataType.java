@@ -7,6 +7,7 @@ package org.h2.value;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -37,7 +38,7 @@ public class DataType {
     public String jdbc;
 
     // how closely the data type maps to the corresponding JDBC SQL type (low is best)
-    public int order;
+    public int sqlTypePos;
 
     public int maxPrecision;
     public int minScale, maxScale;
@@ -51,8 +52,12 @@ public class DataType {
     public int defaultScale;
     public boolean hidden;
     
+    // for operations that include different types, convert both to the higher order
+    public int order;
+    
     // JDK 1.3 compatibility: Types.BOOLEAN
     public static final int TYPE_BOOLEAN = 16;
+    
     // JDK 1.3 compatibility: Types.DATALINK
     public static final int TYPE_DATALINK = 70;
 
@@ -64,10 +69,27 @@ public class DataType {
         if(TYPE_DATALINK != Types.DATALINK) {
             new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
         }
+        
 //#endif
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
                 new String[]{"NULL"}
+        );
+        add(Value.STRING, Types.VARCHAR, "String",
+                createString(true),
+                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE", "CHARACTER VARYING"}
+        );
+        add(Value.STRING, Types.LONGVARCHAR, "String",
+                createString(true),
+                new String[]{"LONGVARCHAR"}
+        );
+        add(Value.STRING_FIXED, Types.CHAR, "String",
+                createString(true),
+                new String[]{"CHAR", "CHARACTER", "NCHAR"}
+        );
+        add(Value.STRING_IGNORECASE, Types.VARCHAR, "String",
+                createString(false),
+                new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BOOLEAN, DataType.TYPE_BOOLEAN, "Boolean",
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION, 0, false, false),
@@ -103,6 +125,10 @@ public class DataType {
                 new String[]{"NUMERIC", "NUMBER"}
                 // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
+        add(Value.FLOAT, Types.REAL, "Float",
+                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, false, false),
+                new String[] {"REAL", "FLOAT4"}
+        );
         add(Value.DOUBLE, Types.DOUBLE, "Double",
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, false, false),
                 new String[] { "DOUBLE", "DOUBLE PRECISION" }
@@ -111,10 +137,6 @@ public class DataType {
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, false, false),
                 new String[] {"FLOAT", "FLOAT8" }
                 // TODO value: show min and max values, E format if supported
-        );
-        add(Value.FLOAT, Types.REAL, "Float",
-                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, false, false),
-                new String[] {"REAL", "FLOAT4"}
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0),
@@ -139,33 +161,17 @@ public class DataType {
                 createString(false),
                 new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
         );
-        add(Value.UUID, Types.BINARY, "Bytes",
-                createString(false),
-                new String[]{"UUID"}
-        );
         add(Value.BYTES, Types.LONGVARBINARY, "Bytes",
                 createString(false),
                 new String[]{"LONGVARBINARY"}
         );
+        add(Value.UUID, Types.BINARY, "Bytes",
+                createString(false),
+                new String[]{"UUID"}
+        );
         add(Value.JAVA_OBJECT, Types.OTHER, "Object",
                 createString(false),
                 new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
-        );
-        add(Value.STRING, Types.VARCHAR, "String",
-                createString(true),
-                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE"}
-        );
-        add(Value.STRING, Types.LONGVARCHAR, "String",
-                createString(true),
-                new String[]{"LONGVARCHAR"}
-        );
-        add(Value.STRING, Types.CHAR, "String",
-                createString(true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR"}
-        );
-        add(Value.STRING_IGNORECASE, Types.VARCHAR, "String",
-                createString(false),
-                new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BLOB, Types.BLOB, "Bytes",
                 createString(false),
@@ -182,6 +188,18 @@ public class DataType {
                 dataType,
                 new String[]{"ARRAY"}
         );
+        dataType = new DataType();
+        add(Value.RESULT_SET, 0, "ResultSet",
+                dataType,
+                new String[]{"RESULT_SET"}
+        );
+        for(int i=0; i<typesByValueType.length; i++) {
+            DataType dt = typesByValueType[i];
+            if(dt == null) {
+                throw Message.getInternalError("unmapped type " + i);
+            }
+            Value.getOrder(i);
+        }
         // TODO data types: try to support other types as well (longvarchar for odbc/access,...) - maybe map them to regular types?
     }
 
@@ -209,7 +227,7 @@ public class DataType {
             for(int j=0; j<types.size(); j++) {
                 DataType t2 = (DataType) types.get(j);
                 if(t2.sqlType == dt.sqlType) {
-                    dt.order++;
+                    dt.sqlTypePos++;
                 }
             }
             typesByName.put(dt.name, dt);
@@ -338,7 +356,16 @@ public class DataType {
             v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueShort.get(value);
             break;
         }
-        case Value.STRING_IGNORECASE:
+        case Value.STRING_IGNORECASE: {
+            String s = rs.getString(columnIndex);
+            v = (s == null) ? (Value)ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
+            break;
+        }
+        case Value.STRING_FIXED: {
+            String s = rs.getString(columnIndex);
+            v = (s == null) ? (Value)ValueNull.INSTANCE : ValueStringFixed.get(s);
+            break;
+        }
         case Value.STRING: {
             String s = rs.getString(columnIndex);
             v = (s == null) ? (Value)ValueNull.INSTANCE : ValueString.get(s);
@@ -365,6 +392,22 @@ public class DataType {
         case Value.JAVA_OBJECT: {
             byte[] buff = rs.getBytes(columnIndex);
             v = buff==null ? (Value)ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
+            break;
+        }
+        case Value.ARRAY: {
+            Array array = rs.getArray(columnIndex);
+            if(array == null) {
+                return ValueNull.INSTANCE;
+            }
+            Object[] list = (Object[])array.getArray();
+            if(list == null) {
+                return ValueNull.INSTANCE;
+            }
+            Value[] values = new Value[list.length];
+            for(int i=0; i<list.length; i++) {
+                values[i] = DataType.convertToValue(session, list[i], Value.NULL);
+            }
+            v = array ==null ? (Value)ValueNull.INSTANCE : ValueArray.get(values);
             break;
         }
         default:
@@ -398,6 +441,7 @@ public class DataType {
             return byte[].class.getName(); // "[B", not "byte[]";
         case Value.STRING:
         case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
             return String.class.getName(); // "java.lang.String";
         case Value.BLOB:
             return java.sql.Blob.class.getName(); // "java.sql.Blob";
@@ -430,8 +474,9 @@ public class DataType {
 
     public static int convertSQLTypeToValueType(int sqlType) throws SQLException {
         switch(sqlType) {
-        case Types.VARCHAR:
         case Types.CHAR:
+            return Value.STRING_FIXED;
+        case Types.VARCHAR:
         case Types.LONGVARCHAR:
             return Value.STRING;
         case Types.NUMERIC:

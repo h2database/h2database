@@ -124,6 +124,6 @@ public class ValueByte extends Value {
 
     protected boolean isEqual(Value v) {
         return v instanceof ValueByte && value == ((ValueByte)v).value;
-    }    
+    } 
 
 }

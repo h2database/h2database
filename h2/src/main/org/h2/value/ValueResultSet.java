@@ -106,6 +106,6 @@ public class ValueResultSet extends Value {
 
     public String getSQL() {
         return "";
-    }
+    }       
 
 }

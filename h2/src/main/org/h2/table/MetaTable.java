@@ -87,7 +87,8 @@ public class MetaTable extends Table {
                     // extensions
                     "STORAGE_TYPE",
                     "SQL",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -534,7 +535,8 @@ public class MetaTable extends Table {
                         table.getTableType(), // TABLE_TYPE
                         storageType, // STORAGE_TYPE
                         table.getCreateSQL(), // SQL
-                        replaceNullWithEmpty(table.getComment()) // REMARKS
+                        replaceNullWithEmpty(table.getComment()), // REMARKS
+                        "" + table.getId() // ID
                 });
             }
             break;
@@ -696,7 +698,7 @@ public class MetaTable extends Table {
                         String.valueOf(t.minScale), // MINIMUM_SCALE
                         String.valueOf(t.maxScale), // MAXIMUM_SCALE
                         t.decimal ? "10" : null, // RADIX
-                        String.valueOf(t.order), // POS
+                        String.valueOf(t.sqlTypePos), // POS
                         String.valueOf(t.caseSensitive), // CASE_SENSITIVE
                         "" + DatabaseMetaData.typeNullable, // NULLABLE
                         "" + DatabaseMetaData.typeSearchable // SEARCHABLE
@@ -1216,7 +1218,7 @@ public class MetaTable extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public int getRowCount() {
+    public long getRowCount() {
         throw Message.getInternalError();
     }
 

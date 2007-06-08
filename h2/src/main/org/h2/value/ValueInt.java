@@ -148,6 +148,6 @@ public class ValueInt extends Value {
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueInt && value == ((ValueInt)v).value;
-    }    
+    }
 
 }

@@ -387,17 +387,21 @@ public class TableFilter implements ColumnResolver {
             buff.append(alias);
         }
         buff.append(" /* ");
-        buff.append(index.getPlanSQL());
+        StringBuffer planBuff = new StringBuffer();
+        planBuff.append(index.getPlanSQL());
         if(indexConditions.size() > 0) {
-            buff.append(": ");
+            planBuff.append(": ");
             for (int i = 0; i < indexConditions.size(); i++) {
                 IndexCondition condition = (IndexCondition) indexConditions.get(i);
                 if(i>0) {
-                    buff.append(" AND ");
+                    planBuff.append(" AND ");
                 }
-                buff.append(condition.getSQL());
+                planBuff.append(condition.getSQL());
             }
         }
+        String plan = planBuff.toString();
+        plan = StringUtils.quoteRemarkSQL(plan);
+        buff.append(plan);
         buff.append(" */");
         if(joinCondition != null) {
             buff.append(" ON ");
@@ -405,7 +409,9 @@ public class TableFilter implements ColumnResolver {
         }
         if(filterCondition != null) {
             buff.append(" /* WHERE ");
-            buff.append(StringUtils.unEnclose(filterCondition.getSQL()));
+            String condition = StringUtils.unEnclose(filterCondition.getSQL());
+            condition = StringUtils.quoteRemarkSQL(condition);
+            buff.append(condition);
             buff.append("*/");
         }
         return buff.toString();

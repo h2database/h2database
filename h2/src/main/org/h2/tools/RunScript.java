@@ -200,7 +200,9 @@ public class RunScript {
                 }
             } else {
                 try {
-                    stat.execute(sql);
+                    if(sql.trim().length()>0) {
+                        stat.execute(sql);
+                    }
                 } catch (SQLException e) {
                     if (continueOnError) {
                         e.printStackTrace();

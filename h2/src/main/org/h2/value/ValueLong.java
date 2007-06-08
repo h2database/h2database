@@ -179,6 +179,6 @@ public class ValueLong extends Value {
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueLong && value == ((ValueLong)v).value;
-    }    
+    }
 
 }

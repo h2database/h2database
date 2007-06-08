@@ -250,7 +250,7 @@ public abstract class Table extends SchemaObject {
         ObjectArray indexes = getIndexes();               
         for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            int cost = index.getCost(masks);
+            long cost = index.getCost(masks);
             if (cost < item.cost) {
                 item.cost = cost;
                 item.setIndex(index);
@@ -432,7 +432,7 @@ public abstract class Table extends SchemaObject {
     
     public abstract boolean canGetRowCount();
     public abstract boolean canDrop();
-    public abstract int getRowCount() throws SQLException;
+    public abstract long getRowCount() throws SQLException;
 
     public boolean getGlobalTemporary() {
         return false;

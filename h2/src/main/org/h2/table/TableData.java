@@ -29,6 +29,7 @@ import org.h2.schema.Schema;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
 import org.h2.store.RecordReader;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -38,7 +39,7 @@ import org.h2.value.Value;
  */
 public class TableData extends Table implements RecordReader {
     private ScanIndex scanIndex;
-    private int rowCount;
+    private long rowCount;
     private Session lockExclusive;
     private HashSet lockShared = new HashSet();
     private Trace traceLock;
@@ -76,7 +77,7 @@ public class TableData extends Table implements RecordReader {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
                 if(Constants.CHECK) {
-                    int rc = index.getRowCount();
+                    long rc = index.getRowCount();
                     if(rc != rowCount+1) {
                         throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
                     }
@@ -89,7 +90,7 @@ public class TableData extends Table implements RecordReader {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
                     if(Constants.CHECK) {
-                        int rc = index.getRowCount();
+                        long rc = index.getRowCount();
                         if(rc != rowCount) {
                             throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
                         }
@@ -152,14 +153,16 @@ public class TableData extends Table implements RecordReader {
         if(index.needRebuild()) {
             try {
                 Index scan = getScanIndex(session);
-                int remaining = scan.getRowCount();
-                int total = remaining;
+                long remaining = scan.getRowCount();
+                long total = remaining;
                 Cursor cursor = scan.find(session, null, null);
-                int i = 0;
+                long i = 0;
                 int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
                 ObjectArray buffer = new ObjectArray(bufferSize);
                 while (cursor.next()) {
-                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName(), i++, total);
+                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName(), 
+                            MathUtils.convertLongToInt(i++), 
+                            MathUtils.convertLongToInt(total));
                     Row row = cursor.get();
                     // index.add(session, row);
                     buffer.add(row);
@@ -234,7 +237,7 @@ public class TableData extends Table implements RecordReader {
         return true;
     }
 
-    public int getRowCount() {
+    public long getRowCount() {
         return rowCount;
     }
 
@@ -244,7 +247,7 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);
             if(Constants.CHECK) {
-                int rc = index.getRowCount();
+                long rc = index.getRowCount();
                 if(rc != rowCount-1) {
                     throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
                 }
@@ -259,7 +262,7 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.truncate(session);
             if(Constants.CHECK) {
-                int rc = index.getRowCount();
+                long rc = index.getRowCount();
                 if(rc != 0) {
                     throw Message.getInternalError("rowCount expected 0 got "+rc);
                 }

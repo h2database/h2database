@@ -276,6 +276,7 @@ public class Column {
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:
+            case Value.STRING_FIXED:
                 buff.append("(");
                 buff.append(precision);
                 buff.append(")");

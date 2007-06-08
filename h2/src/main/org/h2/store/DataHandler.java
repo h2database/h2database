@@ -11,7 +11,7 @@ import org.h2.value.Value;
 public interface DataHandler {
     boolean getTextStorage();
     String getDatabasePath();
-    FileStore openFile(String name, boolean mustExist) throws SQLException;
+    FileStore openFile(String name, String mode, boolean mustExist) throws SQLException;
     int getChecksum(byte[] data, int start, int end);
     void checkPowerOff() throws SQLException;
     void checkWritingAllowed() throws SQLException;

@@ -84,9 +84,8 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public int getRowCount() throws SQLException {
-        // TODO document system_range: count(*) for system_range could be wrong (long to int conversion)
-        return (int)(max - min);
+    public long getRowCount() throws SQLException {
+        return max - min;
     }
 
     public String getTableType() {

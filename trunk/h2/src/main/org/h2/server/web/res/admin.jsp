@@ -115,9 +115,10 @@ Initial Developer: H2 Group
             </tr>
         </c:forEach>
     </table>
-    <p>
-        <a href="adminShutdown.do?jsessionid=${sessionId}">${text.adminShutdown}</a> 
-    </p>
-    
     </form>
+    <p>
+	    <form name="shutdown" method="post" action="/adminShutdown.do?jsessionid=${sessionId}">
+	    	<input type="submit" class="button" value="${text.adminShutdown}" />
+	    </form>
+    </p>
 </body></html>

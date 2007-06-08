@@ -93,16 +93,23 @@ abstract class WebServerThread extends Thread {
                 // TODO web: support errors
                 String mimeType;
                 boolean cache;
-                if(file.endsWith(".ico")) {
+                int index = file.lastIndexOf('.');
+                String suffix;
+                if(index >= 0) {
+                    suffix = file.substring(index+1);
+                } else {
+                    suffix = "";
+                }
+                if(suffix.equals("ico")) {
                     mimeType = "image/x-icon";
                     cache=true;
-                } else if(file.endsWith(".gif")) {
+                } else if(suffix.equals("gif")) {
                     mimeType = "image/gif";
                     cache=true;
-                } else if(file.endsWith(".css")) {
+                } else if(suffix.equals("css")) {
                     cache=true;
                     mimeType = "text/css";
-                } else if(file.endsWith(".html") || file.endsWith(".do") || file.endsWith(".jsp")) {
+                } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
                     cache=false;
                     mimeType = "text/html";
                     if (session == null) {
@@ -111,7 +118,7 @@ abstract class WebServerThread extends Thread {
                             file = "index.do";
                         }
                     }
-                } else if(file.endsWith(".js")) {
+                } else if(suffix.equals("js")) {
                     cache=true;
                     mimeType = "text/javascript";
                 } else {

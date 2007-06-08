@@ -960,6 +960,11 @@ public class AppThread extends WebServerThread {
             }
             time = System.currentTimeMillis() - time;
             buff.append(getResultSet(sql, rs, metadata, edit, time, allowEdit));
+//            SQLWarning warning = stat.getWarnings();
+//            if(warning != null) {
+//                buff.append("<br />Warning:<br />");
+//                buff.append(getStackTrace(id, warning));
+//            }
             if(!edit) {
                 stat.close();
             }

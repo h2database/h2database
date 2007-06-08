@@ -37,7 +37,20 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>Linked tables can now emit UPDATE statements if 'EMIT UPDATES' is specified in the CREATE LINKED
+<li>In many situations, views did not use an index if they could have. Fixed. Also the explain plan for views works now.
+</li><li>The table id (important for LOB files) is now included in INFORMATION_SCHEMA.TABLES.
+</li><li>When using DISTINCT, ORDER BY a function works now as long as it is in the column list.
+</li><li>Support for the data type CHAR. The difference to VARCHAR is: trailing spaces are ignored. This 
+	data type is supported for compatibility with other databases and older applications.
+</li><li>The aggregate function COUNT(...) now returns a long instead of an int.
+</li><li>The 'ordering' of data types was not always correct, for example an operation involving REAL and DOUBLE produced a result of type REAL. Fixed.
+</li><li>CSV tool: If the same instance was used for reading and writing, the tool wrote the column names twice. Fixed.
+</li><li>Compatibility: Support for the data type notation CHARACTER VARYING
+</li><li>Can now ORDER BY -1 (meaning order by first column, descending), and ORDER BY ? (parameterized column number).
+</li><li>Databases with invalid linked tables (for example, because the target database is not accessible) can now be opened. 
+	Old table links don't work however.
+</li><li>There was a small memory leak in the trace module. One object per opened connection was kept in a hash map.
+</li><li>Linked tables can now emit UPDATE statements if 'EMIT UPDATES' is specified in the CREATE LINKED
 	TABLE statement.  So far, updating a row always deleted the old row and then inserted the new row.
 </li><li>In the last release, the H2 Console opened two connection when logging into a database, 
 	and only closed one connection when logging out. Fixed.
@@ -1160,7 +1173,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Improve test code coverage
 </li><li>More fuzz tests
 </li><li>Test very large databases and LOBs (up to 256 GB)
-</li><li>Test Multi-Threaded in-memory db access
+</li><li>Test multi-threaded in-memory db access
 </li></ul>
 
 <h3>In Version 1.1</h3>
@@ -1199,10 +1212,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>SET variable { TO | = } { value | 'value' | DEFAULT }
 </li><li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
 </li><li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
-</li><li>Support CHAR data type (internally use VARCHAR, but report CHAR for JPox)
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
+</li><li>Allow editing NULL values in the Console
 </li></ul>
 
 <h3>Priority 2</h3>
@@ -1265,7 +1278,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Reduce disk space usage (Derby uses less disk space?)
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see  http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 </li><li>Optimization: Log compression
-</li><li>Allow editing NULL values in the Console
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn)
     SELECT * FROM TEST T, P2C(T.A, T.R)
@@ -1447,6 +1459,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Improve trace feature: add replay functionality
 </li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 </li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
+</li><li>Benchmark: add a graph to show how databases scale (performance/database size)
+</li><li>Implement a SQLData interface to map your data over to a custom object
+</li><li>Extend H2 Console to run tools (show command line as well)
+</li><li>Make DDL (Data Definition) operations transactional
+</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CACHE, CYCLE
+</li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
+</li><li>Support multiple directories (on different hard drives) for the same database
 </li></ul>
 
 <h3>Not Planned</h3>

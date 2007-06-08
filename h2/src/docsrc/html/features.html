@@ -264,6 +264,12 @@ It looks like the development of this database has stopped. The last release was
         <td><a href="http://www.polepos.org">PolePosition</a></td>
         <td>Open source database benchmark.</td>
     </tr><tr>
+        <td><a href="http://scriptella.javaforge.com">Scriptella</a></td>
+        <td>ETL (Extract-Transform-Load) and script execution tool.</td>
+    </tr><tr>
+        <td><a href="http://semmle.com">SemmleCode</a></td>
+        <td>Eclipse plugin to help you improve software quality.</td>
+    </tr><tr>
         <td><a href="http://www.shellbook.com">Shellbook</a></td>
         <td>Desktop publishing application.</td>
     </tr><tr>
@@ -278,6 +284,9 @@ It looks like the development of this database has stopped. The last release was
     </tr><tr>
         <td><a href="http://www.streamcruncher.com">StreamCruncher</a></td>
         <td>Event (stream) processing kernel.</td>     
+    </tr><tr>
+        <td><a href="http://www.tamava.com">Tamava</a></td>
+        <td>Newsgroups Reader.</td>     
     </tr><tr>
         <td><a href="http://www.webofweb.net">Web of Web</a></td>
         <td>Collaborative and realtime interactive media platform for the web.</td>
@@ -452,10 +461,13 @@ This means the database to be opened is private. In this case, the database URL 
 <code>jdbc:h2:mem:</code> Opening two connections within the same virtual machine
 means opening two different (private) databases.
 </p><p>
-Some times multiple connections to the same memory-only database are required.
-In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code>
+Sometimes multiple connections to the same memory-only database are required.
+In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code>.
+Accessing the same database in this way only works within the same virtual machine and 
+class loader environment.
 </p><p>
-It is also possible to open a memory-only database remotely using TCP/IP or SSL/TLS.
+It is also possible to access a memory-only database remotely 
+(or from multiple processes in the same machine) using TCP/IP or SSL/TLS.
 An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>
 (using private database remotely is also possible).
 </p>

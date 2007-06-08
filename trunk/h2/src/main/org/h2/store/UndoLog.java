@@ -72,7 +72,7 @@ public class UndoLog {
         if(memoryUndo > database.getMaxMemoryUndo() && database.isPersistent()) {
             if(file == null) {
                 String fileName = database.createTempFile();
-                file = database.openFile(fileName, false);
+                file = database.openFile(fileName, "rw", false);
                 file.autoDelete();
                 file.seek(FileStore.HEADER_LENGTH);
                 rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);

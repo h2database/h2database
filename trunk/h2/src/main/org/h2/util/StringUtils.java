@@ -605,4 +605,22 @@ public class StringUtils {
         return s == null || s.length() == 0;
     }
 
+    public static String quoteRemarkSQL(String sql) {
+        while(true) {
+            int idx = sql.indexOf("*/");
+            if(idx < 0) {
+                break;
+            }
+            sql = sql.substring(0, idx) + "++/" + sql.substring(idx + 2);
+        }
+        while(true) {
+            int idx = sql.indexOf("/*");
+            if(idx < 0) {
+                break;
+            }
+            sql = sql.substring(0, idx) + "/++" + sql.substring(idx + 2);
+        }
+        return sql;
+    }
+
 }

@@ -137,6 +137,15 @@ class Database {
             } finally {
                 JdbcUtils.closeSilently(stat);
             }
+        } else if(url.startsWith("jdbc:hsqldb:")) {
+            // HSQLDB: use a WRITE_DELAY of 1 second
+            Statement stat = null;
+            try {
+                stat = conn.createStatement();
+                stat.execute("SET WRITE_DELAY 1");
+            } finally {
+                JdbcUtils.closeSilently(stat);
+            }
         }
         return conn;
     }

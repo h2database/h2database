@@ -29,27 +29,27 @@ public class FileStore {
     private Reference autoDeleteReference;
     private boolean checkedWriting = true;
 
-    public static FileStore open(DataHandler handler, String name, byte[] magic) throws SQLException {
-        return open(handler, name, magic, null, null, 0);
+    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
+        return open(handler, name, mode, magic, null, null, 0);
     }
 
-    public static FileStore open(DataHandler handler, String name, byte[] magic, String cipher, byte[] key) throws SQLException {
-        return open(handler, name, magic, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
+    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key) throws SQLException {
+        return open(handler, name, mode, magic, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
     }
     
-    public static FileStore open(DataHandler handler, String name, byte[] magic, String cipher, byte[] key, int keyIterations) throws SQLException {
+    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key, int keyIterations) throws SQLException {
         FileStore store;
         if(FileUtils.isInMemory(name)) {
             store = new MemoryFileStore(handler, name, magic);
         } else if(cipher == null) {
-            store = new FileStore(handler, name, magic);
+            store = new FileStore(handler, name, mode, magic);
         } else {
-            store = new SecureFileStore(handler, name, magic, cipher, key, keyIterations);
+            store = new SecureFileStore(handler, name, mode, magic, cipher, key, keyIterations);
         }
         return store;
     }
 
-    protected FileStore(DataHandler handler, String name, byte[] magic) throws SQLException {
+    protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         this.handler = handler;
         this.name = name;
         this.magic = magic;
@@ -59,8 +59,7 @@ public class FileStore {
             if(f.exists() && !f.canWrite()) {
                 file = FileUtils.openRandomAccessFile(name, "r");
             } else {
-                // file = new RandomAccessFile(name, "rws");
-                file = FileUtils.openRandomAccessFile(name, "rw");
+                file = FileUtils.openRandomAccessFile(name, mode);
             }
         } catch(IOException e) {
             throw Message.convert(e);

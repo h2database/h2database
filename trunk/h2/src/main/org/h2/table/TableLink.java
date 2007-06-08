@@ -39,9 +39,10 @@ public class TableLink extends Table {
     private ObjectArray indexes = new ObjectArray();
     private boolean emitUpdates;
     private LinkedIndex linkedIndex;
+    private SQLException connectException;
 
     public TableLink(Schema schema, int id, String name, String driver, String url, 
-            String user, String password, String originalTable, boolean emitUpdates) throws SQLException {
+            String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
         super(schema, id, name, false);
         this.driver = driver;
         this.url = url;
@@ -49,6 +50,21 @@ public class TableLink extends Table {
         this.password = password;
         this.originalTable = originalTable;
         this.emitUpdates = emitUpdates;
+        try {
+            connect();
+        } catch(SQLException e) {
+            connectException = e;
+            if(!force) {
+                throw e;
+            }
+            Column[] cols = new Column[0];
+            setColumns(cols);
+            linkedIndex = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
+            indexes.add(linkedIndex);
+        }
+    }
+    
+    private void connect() throws SQLException {
         conn = JdbcUtils.getConnection(driver, url, user, password);
         DatabaseMetaData meta = conn.getMetaData();
         boolean storesLowerCase = meta.storesLowerCaseIdentifiers();
@@ -99,6 +115,7 @@ public class TableLink extends Table {
         Column[] cols = new Column[columnList.size()];
         columnList.toArray(cols);
         setColumns(cols);
+        int id = getId();
         linkedIndex = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
         rs = meta.getPrimaryKeys(null, null, originalTable);
@@ -167,7 +184,7 @@ public class TableLink extends Table {
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
-        buff.append("CREATE LINKED TABLE ");
+        buff.append("CREATE FORCE LINKED TABLE ");
         buff.append(getSQL());
         if(comment != null) {
             buff.append(" COMMENT ");
@@ -224,11 +241,11 @@ public class TableLink extends Table {
         }
     }
 
-    public int getRowCount() throws SQLException {
+    public long getRowCount() throws SQLException {
         PreparedStatement prep = getPreparedStatement("SELECT COUNT(*) FROM "+originalTable);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        int count = rs.getInt(1);
+        long count = rs.getLong(1);
         rs.close();
         return count;
     }
@@ -238,6 +255,9 @@ public class TableLink extends Table {
     }
 
     public PreparedStatement getPreparedStatement(String sql) throws SQLException {
+        if(conn == null) {
+            throw connectException;
+        }
         PreparedStatement prep = (PreparedStatement) prepared.get(sql);
         if(prep==null) {
             prep = conn.prepareStatement(sql);

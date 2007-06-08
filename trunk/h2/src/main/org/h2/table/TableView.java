@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -17,6 +18,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.ObjectArray;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -28,7 +30,7 @@ public class TableView extends Table {
     private Query viewQuery;
     private ViewIndex index;
     private boolean recursive;
-    private SQLException createException;
+    private SQLException createException; 
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false);
@@ -103,7 +105,14 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
-        item.setIndex(index);
+        
+        Index i2 = new ViewIndex(this, index, session, masks);
+        item.setIndex(i2);
+
+        int testing;
+//        item.setIndex(index);
+        
+        
         return item;
     }
     
@@ -176,7 +185,7 @@ public class TableView extends Table {
         throw Message.getUnsupportedException();
     }
     
-    public int getRowCount() {
+    public long getRowCount() {
         throw Message.getInternalError();
     }
 

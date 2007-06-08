@@ -29,6 +29,7 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
+import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -199,6 +200,7 @@ public abstract class DataPage {
         }
         case Value.STRING:
         case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
             writeString(v.getString());
             break;
         case Value.DOUBLE:
@@ -261,6 +263,7 @@ public abstract class DataPage {
             return 1 + getIntLen();
         case Value.STRING:
         case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
         case Value.DECIMAL:
             return 1 + getStringLen(v.getString());
         case Value.JAVA_OBJECT:
@@ -353,6 +356,8 @@ public abstract class DataPage {
             return ValueString.get(readString());
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
+        case Value.STRING_FIXED:
+            return ValueStringFixed.get(readString());
         case Value.DOUBLE:
             return ValueDouble.get(Double.longBitsToDouble(readLong()));
         case Value.FLOAT:

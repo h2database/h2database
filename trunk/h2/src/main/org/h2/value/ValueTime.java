@@ -85,6 +85,6 @@ public class ValueTime extends Value {
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueTime && value.equals(((ValueTime)v).value);
-    }    
-
+    }
+    
 }

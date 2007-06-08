@@ -239,6 +239,7 @@ public class Transfer {
             break;
         case Value.STRING:
         case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
             writeString(v.getString());
             break;
         case Value.BLOB: {
@@ -354,6 +355,8 @@ public class Transfer {
             return ValueString.get(readString());
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
+        case Value.STRING_FIXED:
+            return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
             ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());

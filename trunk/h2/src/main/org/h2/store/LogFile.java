@@ -59,7 +59,7 @@ public class LogFile {
         this.id = id;
         this.fileNamePrefix = fileNamePrefix;
         fileName = getFileName();
-        file = log.getDatabase().openFile(fileName, false);
+        file = log.getDatabase().openFile(fileName, database.getWriteModeLog(), false);
         rowBuff = log.getRowBuffer();
         buffer = new byte[BUFFER_SIZE];
         unwritten = new ObjectArray();
@@ -333,6 +333,8 @@ public class LogFile {
             if(file == null) {
                 throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
             }
+int testing            ;
+//System.out.println("flush " + file.length() + " pos:"+file.getFilePointer()+" len:"+bufferPos);            
             file.write(buffer, 0, bufferPos);
             for(int i=0; i<unwritten.size(); i++) {
                 Record r = (Record) unwritten.get(i);

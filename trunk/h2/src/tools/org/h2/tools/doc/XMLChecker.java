@@ -88,7 +88,7 @@ public class XMLChecker {
     }    
 
     private static void checkXML(String xml, boolean html) throws Exception {
-        String lastElement = null;
+        // String lastElement = null;
         // <li>: replace <li>([^\r]*[^<]*) with <li>$1</li>
         // use this for html file, for example if <li> is not closed
         String[] noClose = new String[]{};
@@ -107,9 +107,6 @@ public class XMLChecker {
                     rootElement = true;
                 }
                 String name = parser.getName();
-                if(html && name.equals("table") && lastElement.trim().length() > 0) {
-                    throw new Exception("Test before table: " + lastElement);
-                }
                 for(int i=0; html && i<noClose.length; i++) {
                     if(name.equals(noClose[i])) {
                         name = null;
@@ -134,7 +131,7 @@ public class XMLChecker {
                     throw new Exception("Unclosed element " + pop + " at " + parser.getRemaining());
                 }
             } else if(event == XMLParser.CHARACTERS) {
-                lastElement = parser.getText();
+                // lastElement = parser.getText();
             } else if(event == XMLParser.DTD) {
             } else if(event == XMLParser.COMMENT) {
             } else {

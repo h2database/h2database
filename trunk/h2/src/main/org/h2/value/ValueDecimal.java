@@ -177,6 +177,6 @@ public class ValueDecimal extends Value {
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueDecimal && value.equals(((ValueDecimal)v).value);
-    }    
+    }
 
 }

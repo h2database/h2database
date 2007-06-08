@@ -138,9 +138,9 @@ public class ChangePassword {
         byte[] magic = Database.getMagic(textStorage);
         FileStore in;
         if(decrypt == null) {
-            in = FileStore.open(null, fileName, magic);
+            in = FileStore.open(null, fileName, "r", magic);
         } else {
-            in = FileStore.open(null, fileName, magic, cipher, decrypt);
+            in = FileStore.open(null, fileName, "r", magic, cipher, decrypt);
         }
         in.init();
         copy(fileName, textStorage, in, encrypt);
@@ -152,9 +152,9 @@ public class ChangePassword {
         byte[] magic = Database.getMagic(textStorage);
         FileStore out;
         if(key == null) {
-            out = FileStore.open(null, temp, magic);
+            out = FileStore.open(null, temp, "rw", magic);
         } else {
-            out = FileStore.open(null, temp, magic, cipher, key);
+            out = FileStore.open(null, temp, "rw", magic, cipher, key);
         }
         out.init();
         byte[] buffer = new byte[4 * 1024];

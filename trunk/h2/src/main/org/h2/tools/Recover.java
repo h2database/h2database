@@ -133,7 +133,7 @@ public class Recover implements DataHandler {
         databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length());
         textStorage = Database.isTextStorage(fileName, false);
         byte[] magic = Database.getMagic(textStorage);
-        FileStore store = FileStore.open(null, fileName, magic);
+        FileStore store = FileStore.open(null, fileName, "rw", magic);
         long length = store.length();
         int offset = FileStore.HEADER_LENGTH;
         int blockSize = DiskFile.BLOCK_SIZE;
@@ -311,7 +311,7 @@ public class Recover implements DataHandler {
             out = new FileOutputStream(n);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, magic);
+            store = FileStore.open(null, fileName, "r", magic);
             store.init();
             in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
@@ -393,7 +393,7 @@ public class Recover implements DataHandler {
             writer = getWriter(fileName, ".txt");
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, magic);
+            store = FileStore.open(null, fileName, "r", magic);
             long length = store.length();
             writer.println("// length: " + length);
             int offset = FileStore.HEADER_LENGTH;
@@ -549,7 +549,7 @@ public class Recover implements DataHandler {
             writer = getWriter(fileName, ".txt");
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, magic);
+            store = FileStore.open(null, fileName, "r", magic);
             long length = store.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
@@ -627,7 +627,7 @@ public class Recover implements DataHandler {
             HashMap tableMap = new HashMap();
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, magic);
+            store = FileStore.open(null, fileName, "r", magic);
             long length = store.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
@@ -812,7 +812,7 @@ public class Recover implements DataHandler {
     /**
      * INTERNAL
      */
-    public FileStore openFile(String name, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return null;
     }
 

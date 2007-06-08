@@ -59,12 +59,14 @@ public class DiskFile implements CacheWriter {
     private ObjectArray redoBuffer;
     private int redoBufferSize;
     private int readCount, writeCount;
+    private String mode;
 
-    public DiskFile(Database database, String fileName, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
+    public DiskFile(Database database, String fileName, String mode, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
         reset();
         this.database = database;
         this.log = database.getLog();
         this.fileName = fileName;
+        this.mode = mode;
         this.dataFile = dataFile;
         this.logChanges = logChanges;
         String cacheType = database.getCacheType();
@@ -81,7 +83,7 @@ public class DiskFile implements CacheWriter {
         freeBlock.updateChecksum();
         try {
             if(FileUtils.exists(fileName)) {
-                file = database.openFile(fileName, true);
+                file = database.openFile(fileName, mode, true);
                 long length = file.length();
                 database.notifyFileSize(length);
                 int blocks = (int)((length - OFFSET) / BLOCK_SIZE);
@@ -118,7 +120,7 @@ public class DiskFile implements CacheWriter {
 
     private void create() throws SQLException {
         try {
-            file =  database.openFile(fileName, false);
+            file =  database.openFile(fileName, mode, false);
             DataPage header = DataPage.create(database, OFFSET);
             file.seek(FileStore.HEADER_LENGTH);
             header.fill(OFFSET);

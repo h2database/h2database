@@ -27,11 +27,29 @@ public class TestMemoryUsage extends TestBase {
     
     public void test() throws Exception {
         deleteDb("memoryUsage");
+        testReconnectOften();
+        deleteDb("memoryUsage");
         reconnect();
         insertUpdateSelectDelete();
         reconnect();
         insertUpdateSelectDelete();
         conn.close();
+    }
+    
+    private void testReconnectOften() throws Exception {
+        int len = getSize(1, 2000);
+        Connection conn1 = getConnection("memoryUsage");
+        printTimeMemory("start", 0);       
+        long time = System.currentTimeMillis();
+        for(int i=0; i<len; i++) {
+            Connection conn2 = getConnection("memoryUsage");
+            conn2.close();
+            if(i % 10000 == 0) {
+                printTimeMemory("connect", System.currentTimeMillis()-time);       
+            }            
+        }
+        printTimeMemory("connect", System.currentTimeMillis()-time);        
+        conn1.close();
     }
     
     void insertUpdateSelectDelete() throws Exception {

@@ -193,19 +193,6 @@ public class Csv implements SimpleRowSource {
                 throw e;
             }
         }
-        if(columnNames != null) {
-            writeHeader();            
-        }
-    }
-    
-    private void writeHeader() {
-        for(int i=0; i<columnNames.length; i++) {
-            if(i>0) {
-                writer.print(fieldSeparatorWrite);
-            }
-            writer.print(columnNames[i]);
-        }
-        writer.println();
     }
     
     private void writeRow(String[] values) {
@@ -501,8 +488,7 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Reset the position (before the first row).
-     * This is not supported at this time, and this methods throws a SQLException
+     * INTERNAL
      */
     public void reset() throws SQLException {
         throw new SQLException("Method is not supported", "CSV");

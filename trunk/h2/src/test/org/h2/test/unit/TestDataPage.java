@@ -93,7 +93,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         return null;
     }
 
-    public FileStore openFile(String name, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return null;
     }
 

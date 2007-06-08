@@ -31,6 +31,8 @@ Advanced Topics
     ODBC Driver</a><br />
 <a href="#acid">
     ACID</a><br />
+<a href="#durability">
+    Durability</a><br />  
 <a href="#using_recover_tool">
     Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
@@ -327,12 +329,10 @@ To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uni
 In the DBMS world, ACID stands for Atomicity, Consistency, Isolation, and Durability.
 <ul>
 <li>Atomicity: Transactions must be atomic, that means either all tasks of a transaction are performed, or none.
-</li><li>Consistency: Only operations that comply with the defined constraints are allowed.
+</li><li>Consistency: All operations must comply with the defined constraints.
 </li><li>Isolation: Transactions must be completely isolated from each other.
-</li><li>Durability: Transaction committed to the database will not be lost.
+</li><li>Durability: Committed transaction will not be lost.
 </li></ul>
-This database also supports these properties by default, except durability, which can only
-be guaranteed by other means (battery, clustering).
 
 <h3>Atomicity</h3>
 Transactions in this database are always atomic.
@@ -342,19 +342,55 @@ This database is always in a consistent state.
 Referential integrity rules are always enforced.
 
 <h3>Isolation</h3>
-Currently, only the transaction isolation level 'serializable' is supported.
-In many database, this rule is often relaxed to provide better performance,
-by supporting other transaction isolation levels.
+For H2, the default isolation level is 'serializable', which means complete isolation. 
+The default transaction isolation level for many other databases is 'read committed'. 
+This provides better performance, but also means that transactions are not completely isolated.
+H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
 
 <h3>Durability</h3>
-<p>
 This database does not guarantee that all committed transactions survive a power failure.
-If durability is required even in case of power failure, some sort of uninterruptible power supply (UPS) is required
-(like using a laptop, or a battery pack). If durability is required even in case of hardware failure,
-the clustering mode of this database should be used.
-</p><p>
-To achieve durability, it would be required to flush all file buffers (including system buffers) to hard disk for each commit.
-In Java, there are two ways how this can be achieved:
+Other databases (such as Derby) claim they can guarantee it, in reality they can't.
+Testing shows that all databases sometimes lose transactions on power failure (for details, see Durability below).
+Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. 
+If durability is required for all possible cases of hardware failure, clustering should be used, 
+such as the H2 clustering mode.
+
+<br /><a name="durability"></a>
+<h2>Durability</h2>
+<p>
+Complete durability means all committed transaction survive a power failure.
+Some databases claim they can guarantee complete durability, but such claims are wrong.
+A durability test was run against H2, HSQLDB, PostgreSQL, and Derby.
+All of those databases sometimes lost committed transactions.
+The durability test is included in the H2 download, see org.h2.test.poweroff.Test. 
+</p>
+
+<h3>Ways to (Not) Achive Durability</h3>
+Making sure that committed transaction are not lost is more complicated than it seems first.
+To guarantee complete durability, a database must ensure that the log record is on the hard drive
+before the commit call returns. To do that, databases use different methods. One 
+is to use the 'synchronous write' option when opening a file. In Java, RandomAccessFile
+supports the opening modes "rws" and "rwd":
+</p>
+<ul>
+<li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
+</li><li>rwd: Every update to the file's content is written synchronously to the underlying storage device. 
+</li>
+</ul>
+<p>
+This feature is used by Derby and PostgreSQL.
+When running a test with one of those modes (see org.h2.test.poweroff.TestWrite), around 50 thousand write operations per second are made.
+Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second.
+However, this feature does not force changes to disk, because it does not flush hard drive buffers.
+The test updates the same byte in the file again and again. If the hard drive was able to write at a rate of 50 thousand 
+operations per second, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM
+(revolutions per minute). There are no such hard drives. The hard drive used for the test is slower than 7000 RPM, 
+or about 116 revolutions per second. And because there is an overhead, 
+the maximum write rate must be lower than 116 operations per second.
+</p>
+<p>
+ There is a way to flush hard disk buffers, and therefore force data to disk: calling fsync() in the operating system. 
+ In Java, there are two ways to call fsync: 
 </p>
 <ul>
 <li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
@@ -363,44 +399,29 @@ have been written to the physical medium.
 </li><li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
 to be written to the storage device that contains it.
 </li></ul>
-There is one related option, but it does not force changes to disk: RandomAccessFile(.., "rws" / "rwd"):
-<ul>
-<li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
-</li><li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
-</li></ul>
 <p>
-A simple power-off test using two computers (they communicate over the network, and one the power
-is switched off on one computer) shows that the data is not always persisted to the hard drive,
-even when calling FileDescriptor.sync() or FileChannel.force().
-The reason for this is that most hard drives do not obey the fsync() function.
-For more information, see 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252&amp;tid=198&amp;tid=128).
-The test was made with this database, as well as with PostgreSQL, Derby, and HSQLDB.
-None of those databases was able to guarantee complete transaction durability.
-</p><p>
-The test also shows that when calling FileDescriptor.sync() or FileChannel.force() after each file operation,
-only around 30 file operations per second can be made. That means, the fastest possible Java database
-that calls one of those functions can reach a maximum of around 30 committed
-transactions per second.
-Without calling these functions, around 400000 file operations per second are possible
-when using RandomAccessFile(..,"rw"), and around 2700 when using
-RandomAccessFile(.., "rws"/"rwd").
-</p><p>
-That means that when using one of those functions, the performance goes down to at most
-30 committed transactions per second, and even then there is no guarantee that transactions are durable.
-These are the reasons that this database does not guarantee durability of transaction by default.
-The database calls FileDescriptor.sync() when executing the SQL statement CHECKPOINT SYNC.
-But by default, this database uses an asynchronous commit.
+By default, the MySQL database uses this feature. When using one of those methods, only around 60 write operations 
+per second can be achieved, which is consistent with the RPM rate of the hard drive used.
+Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), 
+data is not always persisted to the hard drive, because most hard drives do not obey
+fsync(): see 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252&tid=198&tid=128. 
 </p>
+<p>
+Currently, the only way to achieve complete durability is disabling the write cache of the operating system,
+using a hard drive that actually obeys the fsync() method, and using the methods FileDescriptor.sync() 
+or FileChannel.force(). The maximum number of transactions is then around 60 per second.
+</p>
+
 <h3>Running the Durability Test</h3>
 To test the durability / non-durability of this and other databases, you can use the test application
 in the package org.h2.test.poweroff. Two computers with network connection are required to run this test.
-One computer acts as the listener, the test application is run on the other computer.
+One computer just listens, while the test application is run (and power is cut) on the other computer.
 The computer with the listener application opens a TCP/IP port and listens for an incoming connection.
 The second computer first connects to the listener, and then created the databases and starts inserting
 records. The connection is set to 'autocommit', which means after each inserted record a commit is performed
 automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully.
 The listener computer displays the last inserted record number every 10 seconds. Now, the power needs
-to be switched off manually while the test is still running. Now you can restart the computer, and
+to be switched off manually while the test is running. Then restart the computer, and
 run the application again. You will find out that in most cases, none of the databases contains all the
 records that the listener computer knows about. For details, please consult the source code of the
 listener and test application.

@@ -78,6 +78,8 @@ The open/close time is almost fixed, because of the file locking protocol: The e
 
 <h4>HSQLDB</h4>
 Version 1.8.0.5 was used for the test.
+Cached tables are used in this test (hsqldb.default_table_type=cached),
+and the write delay is 1 second (SET WRITE_DELAY 1).
 HSQLDB is fast when using simple operations.
 HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer.
 One query where HSQLDB is slow is a two-table join:
@@ -91,7 +93,8 @@ A disadvantage in HSQLDB is the slow startup / shutdown time (currently not list
 The reason is, a backup of the database is created whenever the database is opened or closed.
 
 <h4>Derby</h4>
-Version 10.2.1.6 was used for the test.
+Version 10.2.1.6 was used for the test. The cache size is set to 8192 pages by calling 
+CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192').
 Derby is clearly the slowest embedded database in this test.
 This seems to be a structural problem,
 because all operations are really slow. It will not be easy for the developers of
@@ -102,7 +105,7 @@ Version 8.1.4 was used for the test.
 The following options where changed in postgresql.conf:
 fsync = off, commit_delay = 1000.
 PostgreSQL is run in server mode. It looks like the base performance is slower than
-MySQL, but the reason could be the network layer.
+MySQL, the reason could be the network layer.
 The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
 
 <h4>MySQL</h4>
@@ -182,7 +185,8 @@ think about the effect. Many database suggest to 'batch' operations when possibl
 This benchmark switches off autocommit when loading the data, and calls commit after each 1000
 inserts. However many applications need 'short' transactions at runtime (a commit after each update).
 This benchmark commits after each update / delete in the simple benchmark, and after each
-business transaction in the other benchmarks.
+business transaction in the other benchmarks. For databases that support delayed commits, 
+a delay of one second is used.
 
 <h4>Using Prepared Statements</h4>
 Wherever possible, the test cases use prepared statements.

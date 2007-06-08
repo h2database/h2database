@@ -29,6 +29,9 @@ public class DbSchema {
         ArrayList list = new ArrayList();
         while(rs.next()) {
             DbTableOrView table = new DbTableOrView(this, rs);
+            if(contents.isOracle && table.name.indexOf('$') > 0) {
+                continue;
+            }
             list.add(table);
         }
         rs.close();

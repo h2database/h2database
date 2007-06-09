@@ -30,7 +30,7 @@ public class ViewIndex extends Index {
     private ObjectArray originalParameters;
     private Parameter[] params;
     
-    private SmallLRUCache costCache = new SmallLRUCache(Constants.VIEW_COST_CACHE_SIZE);
+    private SmallLRUCache costCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
     
     private Value[] lastParameters;
     private long lastEvaluated;
@@ -38,6 +38,8 @@ public class ViewIndex extends Index {
     private boolean recursive;
     private int recurseLevel;
     private LocalResult recursiveResult;
+    
+    private String planSQL;
     
     public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
         super(view, 0, null, null, IndexType.createNonUnique(false));
@@ -48,8 +50,24 @@ public class ViewIndex extends Index {
         params = new Parameter[0];
     }
     
+    public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
+        super(view, 0, null, null, IndexType.createNonUnique(false));
+        this.querySQL = index.querySQL;
+        this.originalParameters = index.originalParameters;
+        this.recursive = index.recursive;
+        columns = new Column[0];
+        params = new Parameter[0];
+        planSQL =  getQuerySQL(session, masks);
+    }
+
     public String getPlanSQL() {
-        return querySQL;
+        int testing;
+//        return sessionQuery.getPlanSQL();
+//        Query query = (Query)session.prepare(querySQL, true);
+        
+        
+//        return query.getPlanSQL();
+        return planSQL;
     }
 
     public void close(Session session) throws SQLException {
@@ -82,10 +100,38 @@ public class ViewIndex extends Index {
         double cost;
     }
     
-    public double getCost(Session session, int[] masks) throws SQLException {
-        if(recursive) {
-            return 10;
+    private String getQuerySQL(Session session, int[] masks) throws SQLException {
+        if(masks == null) {
+            return querySQL;
         }
+        Query query = (Query)session.prepare(querySQL, true);
+        IntArray paramIndex = new IntArray();
+        for(int i=0; i<masks.length; i++) {
+            int mask = masks[i];
+            if(mask == 0) {
+                continue;
+            }
+            paramIndex.add(i);
+        }
+        int len = paramIndex.size();
+        columns = new Column[len];
+        params = new Parameter[len];
+        for(int i=0; i<len; i++) {
+            int idx = paramIndex.get(i);
+            Column col = table.getColumn(idx);
+            columns[i] = col;
+            Parameter param = new Parameter(i);
+            params[i] = param;
+            int mask = masks[idx];
+            int comparisonType = getComparisonType(mask);
+            query.addGlobalCondition(param, idx, comparisonType);
+        }
+        String sql = query.getPlanSQL();
+        query = (Query)session.prepare(sql, true);
+        return query.getPlanSQL();
+    }
+    
+    public double getCost(Session session, int[] masks) throws SQLException {
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
         CostElement cachedCost = (CostElement) costCache.get(masksArray);
         if(cachedCost != null) {
@@ -123,7 +169,11 @@ public class ViewIndex extends Index {
             if(recursive) {
                 return 10;
             }
-            String sql = query.getSQL();
+            
+            int testing;
+//            String sql = query.getSQL();
+            String sql = query.getPlanSQL();
+            
             query = (Query)session.prepare(sql);
         }
         double cost = query.getCost();
@@ -198,8 +248,15 @@ public class ViewIndex extends Index {
                 }
             }
         }
-        query.setSession(session);
-        LocalResult result = query.query(0);
+        
+        String sql = query.getPlanSQL();
+        Query q2 = (Query)session.prepare(sql);
+        LocalResult result = q2.query(0);
+        
+        int testing2;
+//        query.setSession(session);
+//        LocalResult result = query.query(0);
+        
         if(canReuse) {
             lastResult = result;
             lastParameters = params;
@@ -208,11 +265,11 @@ public class ViewIndex extends Index {
         return new ViewCursor(table, result);
     }
     
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         if(masks != null) {
             throw Message.getUnsupportedException();
         }
-        return Integer.MAX_VALUE;
+        return Long.MAX_VALUE;
     }
 
     public void remove(Session session) throws SQLException {

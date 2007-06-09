@@ -15,11 +15,12 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 public class AggregateData {
     private int aggregateType;
-    private int count;
+    private long count;
     private ValueHashMap distinctValues;
     private Value value;
     private double sum, vpn;
@@ -149,7 +150,7 @@ public class AggregateData {
         }
         case Aggregate.COUNT:
         case Aggregate.COUNT_ALL:
-            v = ValueInt.get(count);
+            v = ValueLong.get(count);
             break;
         case Aggregate.SUM:
         case Aggregate.MIN:
@@ -199,12 +200,12 @@ public class AggregateData {
         return v == null ? ValueNull.INSTANCE : v;
     }
     
-    private Value divide(Value a, int count) throws SQLException {
+    private Value divide(Value a, long count) throws SQLException {
         if(count == 0) {
             return ValueNull.INSTANCE;
         }
-        int type = Value.getHigherOrder(a.getType(), Value.INT);
-        Value b = ValueInt.get(count).convertTo(type);
+        int type = Value.getHigherOrder(a.getType(), Value.LONG);
+        Value b = ValueLong.get(count).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;
     }

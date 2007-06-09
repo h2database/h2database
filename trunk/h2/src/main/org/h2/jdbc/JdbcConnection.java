@@ -15,9 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
-//#ifdef JDK14
 import java.sql.Savepoint;
-//#endif
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
@@ -239,25 +237,28 @@ public class JdbcConnection extends TraceObject implements Connection {
             if(executingStatement != null) {
                 executingStatement.cancel();
             }
-            if (session != null && !session.isClosed()) {
-                try {
-                    rollbackInternal();
-                    commit = closeAndSetNull(commit);
-                    rollback = closeAndSetNull(rollback);
-                    setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
-                    setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
-                    getAutoCommit = closeAndSetNull(getAutoCommit);
-                    getReadOnly = closeAndSetNull(getReadOnly);
-                    getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
-                    getLockMode = closeAndSetNull(getLockMode);
-                    setLockMode = closeAndSetNull(setLockMode);
-                } finally {
+            if (session == null) {
+                return;
+            }
+            try {
+                if (!session.isClosed()) {
                     try {
-                        session.close();
+                        rollbackInternal();
+                        commit = closeAndSetNull(commit);
+                        rollback = closeAndSetNull(rollback);
+                        setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
+                        setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
+                        getAutoCommit = closeAndSetNull(getAutoCommit);
+                        getReadOnly = closeAndSetNull(getReadOnly);
+                        getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
+                        getLockMode = closeAndSetNull(getLockMode);
+                        setLockMode = closeAndSetNull(setLockMode);
                     } finally {
-                        session = null;
+                        session.close();
                     }
                 }
+            } finally {
+                session = null;
             }
         } catch(Throwable e) {
             throw logAndConvert(e);

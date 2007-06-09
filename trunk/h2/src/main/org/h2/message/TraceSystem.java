@@ -11,10 +11,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 import org.h2.engine.Constants;
 import org.h2.util.FileUtils;
+import org.h2.util.SmallLRUCache;
 
 /**
  * It is possible to write after close was called, but that means for each write the 
@@ -38,7 +38,7 @@ public class TraceSystem {
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
     private long lastCheck;
-    private HashMap traces;
+    private SmallLRUCache traces;
     private SimpleDateFormat dateFormat;
     private FileWriter fileWriter;
     private PrintWriter printWriter;
@@ -60,7 +60,7 @@ public class TraceSystem {
 
     public TraceSystem(String fileName) {
         this.fileName = fileName;
-        traces = new HashMap();
+        traces = new SmallLRUCache(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
         if(fileName != null) {
             try {

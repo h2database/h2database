@@ -138,7 +138,7 @@ public class LinkedIndex extends Index {
         }
     }
 
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET);
     }
 

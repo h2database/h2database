@@ -28,7 +28,7 @@ public class ParameterRemote implements ParameterInterface {
     
     public void checkSet() throws SQLException {
         if (value == null) {
-            throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, String.valueOf(index + 1));
+            throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 

@@ -28,6 +28,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
@@ -151,7 +152,7 @@ public class Aggregate extends Expression {
             switch(type) {
             case COUNT_ALL:
                 Table table = select.getTopTableFilter().getTable();
-                return ValueInt.get(table.getRowCount());
+                return ValueLong.get(table.getRowCount());
             case MIN:
             case MAX:
                 boolean first = type == MIN;
@@ -261,6 +262,10 @@ public class Aggregate extends Expression {
             break;
         case COUNT_ALL:
         case COUNT:
+            dataType = Value.LONG;
+            scale = 0;
+            precision = 0;
+            break;            
         case SELECTIVITY:
             dataType = Value.INT;
             scale = 0;

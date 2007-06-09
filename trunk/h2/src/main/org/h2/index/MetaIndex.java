@@ -48,7 +48,7 @@ public class MetaIndex extends Index {
         return new MetaCursor(rows);
     }
     
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         if(scan) {
             return 10000;
         }

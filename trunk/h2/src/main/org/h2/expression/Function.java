@@ -833,7 +833,7 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    Sequence getSequence(Session session, Value v0, Value v1) throws SQLException {
+    private Sequence getSequence(Session session, Value v0, Value v1) throws SQLException {
         String schemaName, sequenceName;
         if(v1 == null) {
             schemaName = session.getCurrentSchemaName();

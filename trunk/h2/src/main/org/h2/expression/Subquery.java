@@ -80,7 +80,7 @@ public class Subquery extends Expression {
     }
 
     public String getSQL() {
-        return "(" + query.getPlan() +")";
+        return "(" + query.getPlanSQL() +")";
     }
 
     public void updateAggregate(Session session) throws SQLException {

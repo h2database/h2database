@@ -68,14 +68,14 @@ public class TraceObject {
         if(!trace.debug()) {
             return;
         }
-        trace.debugCode(className + " " + toString() + " = ");
+        trace.debugCode(className + " " + PREFIX[type] + id + " = ");
     }
     
     protected void infoCodeAssign(String className, int type, int id) {
         if(!trace.info()) {
             return;
         }
-        trace.infoCode(className + " " + toString() + " = ");
+        trace.infoCode(className + " " + PREFIX[type] + id + " = ");
     }    
     
     protected void debugCodeCall(String text) {

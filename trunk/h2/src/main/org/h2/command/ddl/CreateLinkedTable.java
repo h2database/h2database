@@ -24,6 +24,7 @@ public class CreateLinkedTable extends SchemaCommand {
     private boolean ifNotExists;
     private String comment;
     private boolean emitUpdates;
+    private boolean force;
 
     public CreateLinkedTable(Session session, Schema schema) {
         super(session, schema);
@@ -69,7 +70,7 @@ public class CreateLinkedTable extends SchemaCommand {
                     tableName);
         }
         int id = getObjectId(false, true);
-        TableLink table = new TableLink(getSchema(), id, tableName, driver, url, user, password, originalTable, emitUpdates);
+        TableLink table = new TableLink(getSchema(), id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
         table.setComment(comment);
         db.addSchemaObject(session, table);
         return 0;
@@ -81,6 +82,10 @@ public class CreateLinkedTable extends SchemaCommand {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
     }
 
 }

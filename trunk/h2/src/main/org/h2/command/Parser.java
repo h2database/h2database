@@ -1130,8 +1130,10 @@ public class Parser {
                 SelectOrderBy order = new SelectOrderBy();
                 Expression expr = readExpression();
                 if(canBeNumber && expr instanceof ValueExpression && expr.getType() == Value.INT) {
-                    int i = expr.getValue(null).getInt();
-                    order.column = i-1;
+                    order.columnIndexExpr = expr;
+                } else if(expr instanceof Parameter) {
+                    recompileAlways = true;
+                    order.columnIndexExpr = expr;
                 } else {
                     order.expression = expr;
                 }
@@ -2706,11 +2708,11 @@ public class Parser {
             long start = 1, increment = 1;
             if(readIf("(")) {
                 read("START");
-                read("WITH");
+                readIf("WITH");
                 start = readLong();
                 readIf(",");
                 if(readIf("INCREMENT")) {
-                    read("BY");
+                    readIf("BY");
                     increment = readLong();
                 }
                 read(")");
@@ -2771,6 +2773,10 @@ public class Parser {
         } else if(readIf("DOUBLE")) {
             if(readIf("PRECISION")) {
                 original += " PRECISION";
+            }
+        } else if(readIf("CHARACTER")) {
+            if(readIf("VARYING")) {
+                original += " VARYING";
             }
         } else {
             regular = true;
@@ -2874,7 +2880,7 @@ public class Parser {
             read("TABLE");
             return parseCreateTable(false, false, false);
         } else if(readIf("LINKED")) {
-            return parseCreateLinkedTable();
+            return parseCreateLinkedTable(force);
         } else if (readIf("CACHED")) {
             read("TABLE");
             return parseCreateTable(false, false, true);
@@ -3038,12 +3044,12 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         command.setSequenceName(sequenceName);
         if(readIf("START")) {
-            read("WITH");
+            readIf("WITH");
             long start = readLong();
             command.setStartWith(start);
         }
         if(readIf("INCREMENT")) {
-            read("BY");
+            readIf("BY");
             long increment = readLong();
             command.setIncrement(increment);
         }
@@ -3437,6 +3443,12 @@ public class Parser {
         } else if(readIf("DB_CLOSE_ON_EXIT")) {
             read();
             return new NoOperation(session);
+        } else if(readIf("WRITE_MODE_LOG")) {
+            read();
+            return new NoOperation(session);
+        } else if(readIf("WRITE_MODE_DATA")) {
+            read();
+            return new NoOperation(session);
         } else if(readIf("RECOVER")) {
             read();
             return new NoOperation(session);            
@@ -3809,11 +3821,12 @@ public class Parser {
         }
     }
 
-    private CreateLinkedTable parseCreateLinkedTable() throws SQLException {
+    private CreateLinkedTable parseCreateLinkedTable(boolean force) throws SQLException {
         read("TABLE");
         boolean ifNotExists = readIfNoExists();
         String tableName = readIdentifierWithSchema();
         CreateLinkedTable command = new CreateLinkedTable(session, getSchema());
+        command.setForce(force);
         command.setIfNotExists(ifNotExists);
         command.setTableName(tableName);
         command.setComment(readCommentIf());

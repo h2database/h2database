@@ -79,7 +79,7 @@ public class Delete extends Prepared {
         return rows.size();
     }
 
-    public String getPlan() {
+    public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("DELETE FROM ");
         buff.append(tableFilter.getPlanSQL(false));

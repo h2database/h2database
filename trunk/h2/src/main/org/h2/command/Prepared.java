@@ -107,8 +107,8 @@ public abstract class Prepared {
         objectId = 0;
         return id;
     }
-    
-    public String getPlan() {
+
+    public String getPlanSQL() {
         return null;
     }
     

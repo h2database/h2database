@@ -14,6 +14,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.SortOrder;
@@ -21,6 +22,8 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 
 public abstract class Query extends Prepared {
     
@@ -95,80 +98,118 @@ public abstract class Query extends Prepared {
         lastLimit = limit;
         return lastResult;
     }
-
-    protected SortOrder initOrder(ObjectArray expressions, ObjectArray orderList, int visible, boolean mustBeInResult) throws SQLException {
+    
+    protected void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible, boolean mustBeInResult) throws SQLException {
+        for(int i=0; i<orderList.size(); i++) {
+            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            Expression e = o.expression;
+            if(e == null) {
+                continue;
+            }
+            // special case: SELECT 1 AS A FROM DUAL ORDER BY A
+            // (oracle supports it, but only in order by, not in group by and not in having): 
+            // SELECT 1 AS A FROM DUAL ORDER BY -A
+            boolean isAlias = false;
+            int idx = expressions.size();
+            if(e instanceof ExpressionColumn) {
+                ExpressionColumn exprCol = (ExpressionColumn)e;
+                String alias = exprCol.getOriginalAliasName();
+                String col = exprCol.getOriginalColumnName();
+                for(int j=0; j<visible; j++) {
+                    boolean found = false;
+                    Expression ec = (Expression) expressions.get(j);
+                    if(ec instanceof ExpressionColumn) {
+                        ExpressionColumn c = (ExpressionColumn) ec;
+                        found = col.equals(c.getColumnName());
+                        if(alias != null && found) {
+                            String ca = c.getOriginalAliasName();
+                            if(ca != null) {
+                                found = alias.equals(ca);
+                            }
+                        }
+                    } else if(!(ec instanceof Alias)) {
+                        continue;
+                    } else if(col.equals(ec.getAlias())) {
+                        found = true;
+                    } else {
+                        Expression ec2 = ec.getNonAliasExpression();
+                        if(ec2 instanceof ExpressionColumn) {
+                            ExpressionColumn c2 = (ExpressionColumn) ec2;
+                            String ta = exprCol.getSQL(); //  exprCol.getTableAlias();
+                            String tb = c2.getSQL(); //  getTableAlias();
+                            found = col.equals(c2.getColumnName());
+                            if(ta == null || tb == null) {
+                                if(ta != tb) {
+                                    found = false;
+                                }
+                            } else {
+                                if(!ta.equals(tb)) {
+                                    found = false;
+                                }
+                            }
+                        }
+                    }
+                    if(found) {
+                        idx = j;
+                        isAlias = true;
+                        break;
+                    }
+                }
+            } else {
+                String s = e.getSQL();
+                for(int j=0; j<expressionSQL.size(); j++) {
+                    String s2 = (String) expressionSQL.get(j);
+                    if(s2.equals(s)) {
+                        idx = j;
+                        isAlias = true;
+                        break;
+                    }
+                }
+            }
+            if(!isAlias) {
+                if(mustBeInResult) {
+                    throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                }            
+                expressions.add(e);
+            }
+            o.expression = null;
+            o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
+        }
+    }
+    
+    public SortOrder prepareOrder(ObjectArray expressions, ObjectArray orderList) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         int originalLength = expressions.size();
         for(int i=0; i<orderList.size(); i++) {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);
             int idx;
+            boolean reverse = false;
             if(o.expression != null) {
-                Expression e = o.expression;
-                // special case: SELECT 1 AS A FROM DUAL ORDER BY A
-                // (oracle supports it, but only in order by, not in group by and not in having): 
-                // SELECT 1 AS A FROM DUAL ORDER BY -A
-                boolean isAlias = false;
-                idx = expressions.size();
-                if(e instanceof ExpressionColumn) {
-                    ExpressionColumn exprCol = (ExpressionColumn)e;
-                    String alias = exprCol.getOriginalAliasName();
-                    String col = exprCol.getOriginalColumnName();
-                    for(int j=0; j<visible; j++) {
-                        boolean found = false;
-                        Expression ec = (Expression) expressions.get(j);
-                        if(ec instanceof ExpressionColumn) {
-                            ExpressionColumn c = (ExpressionColumn) ec;
-                            found = col.equals(c.getColumnName());
-                            if(alias != null && found) {
-                                String ca = c.getOriginalAliasName();
-                                if(ca != null) {
-                                    found = alias.equals(ca);
-                                }
-                            }
-                        } else if(!(ec instanceof Alias)) {
-                            continue;
-                        } else if(col.equals(ec.getAlias())) {
-                            found = true;
-                        } else {
-                            Expression ec2 = ec.getNonAliasExpression();
-                            if(ec2 instanceof ExpressionColumn) {
-                                ExpressionColumn c2 = (ExpressionColumn) ec2;
-                                String ta = exprCol.getSQL(); //  exprCol.getTableAlias();
-                                String tb = c2.getSQL(); //  getTableAlias();
-                                found = col.equals(c2.getColumnName());
-                                if(ta == null || tb == null) {
-                                    if(ta != tb) {
-                                        found = false;
-                                    }
-                                } else {
-                                    if(!ta.equals(tb)) {
-                                        found = false;
-                                    }
-                                }
-                            }
-                        }
-                        if(found) {
-                            idx = j;
-                            isAlias = true;
-                            break;
-                        }
-                    }
-                }
-                if(!isAlias) {
-                    if(mustBeInResult) {
-                        throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT, e.getSQL());
-                    }            
-                    expressions.add(e);
-                }
+                throw Message.getInternalError();
+            }
+            Expression expr = o.columnIndexExpr;
+            Value v = expr.getValue(null);
+            if(v == ValueNull.INSTANCE) {
+                // parameter not yet set - order by first column
+                idx = 0;
             } else {
-                idx = o.column;
-                if(idx >= originalLength) {
+                idx = v.getInt();
+                if(idx < 0) {
+                    reverse = true;
+                    idx = -idx;
+                }
+                idx -= 1;
+                if(idx < 0 || idx >= originalLength) {
                     throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT, "index " + idx);
                 }
             }
             index[i] = idx;
-            int type = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
+            boolean desc = o.descending;
+            if(reverse) {
+                desc = !desc;
+            }
+            int type = desc ? SortOrder.DESCENDING : SortOrder.ASCENDING;
             if(o.nullsFirst) {
                 type += SortOrder.NULLS_FIRST;
             } else if(o.nullsLast) {

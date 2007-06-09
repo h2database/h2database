@@ -174,7 +174,7 @@ public class Merge extends Prepared {
         }
     }
 
-    public String getPlan() {
+    public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("MERGE INTO ");
         buff.append(table.getSQL());
@@ -219,7 +219,7 @@ public class Merge extends Prepared {
                 buff.append(')');
             }
         } else {
-            buff.append(query.getPlan());
+            buff.append(query.getPlanSQL());
         }
         return buff.toString();
     }

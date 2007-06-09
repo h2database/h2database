@@ -20,14 +20,17 @@ import org.h2.util.TempFileDeleter;
 public class FileStore {
 
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;
+    private static final byte[] EMPTY = new byte[16 * 1024];
 
     protected String name;
     protected DataHandler handler;
     private byte[] magic;
     private RandomAccessFile file;
     private long filePos;
+    private long fileLength;
     private Reference autoDeleteReference;
     private boolean checkedWriting = true;
+    private boolean synchronousMode;
 
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         return open(handler, name, mode, magic, null, null, 0);
@@ -60,7 +63,11 @@ public class FileStore {
                 file = FileUtils.openRandomAccessFile(name, "r");
             } else {
                 file = FileUtils.openRandomAccessFile(name, mode);
+                if(mode.length() > 2) {
+                    synchronousMode = true;
+                }
             }
+            fileLength = file.length();
         } catch(IOException e) {
             throw Message.convert(e);
         }
@@ -175,7 +182,7 @@ public class FileStore {
         filePos += len;
     }
 
-    public void seek(long pos) throws SQLException {
+    public void seek(long pos) throws SQLException {     
         if(Constants.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned seek "+name+" pos "+pos);
         }
@@ -216,6 +223,7 @@ public class FileStore {
             }
         }
         filePos += len;
+        fileLength = Math.max(filePos, fileLength);
     }
 
     private boolean freeUpDiskSpace() throws SQLException {
@@ -233,7 +241,23 @@ public class FileStore {
         checkPowerOff();
         checkWritingAllowed();
         try {
-            FileUtils.setLength(file, newLength);
+            if(synchronousMode && newLength > fileLength) {
+                long pos = filePos;
+                file.seek(fileLength);
+                byte[] empty = EMPTY;
+                while(true) {
+                    int p = (int) Math.min(newLength - fileLength, EMPTY.length);
+                    if(p <= 0) {
+                        break;
+                    }
+                    file.write(empty, 0, p);
+                    fileLength += p;
+                }
+                file.seek(pos);
+            } else {
+                FileUtils.setLength(file, newLength);
+            }
+            fileLength = newLength;
         } catch (IOException e) {
             if(freeUpDiskSpace()) {
                 try {
@@ -249,12 +273,20 @@ public class FileStore {
 
     public long length() throws SQLException {
         try {
-            if(Constants.CHECK && file.length() % Constants.FILE_BLOCK_SIZE != 0) {
-                long newLength = file.length() + Constants.FILE_BLOCK_SIZE - (file.length() % Constants.FILE_BLOCK_SIZE);
-                FileUtils.setLength(file, newLength);
-                throw Message.getInternalError("unaligned file length "+name+" len "+file.length());
+            long len = fileLength;
+            if(Constants.CHECK2) {
+                len = file.length();
+                if(len != fileLength) {
+                    throw Message.getInternalError("file "+name+" length "+len+" expected " + fileLength);
+                }
             }
-            return file.length();
+            if(Constants.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
+                long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
+                FileUtils.setLength(file, newLength);
+                fileLength = newLength;
+                throw Message.getInternalError("unaligned file length "+name+" len "+len);
+            }
+            return len;
         } catch (IOException e) {
             throw Message.convert(e);
         }

@@ -90,16 +90,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-H2 CSV update
-
-TestWriteFile
-
-D:\pictures\2007-email
-ftp://192.168.0.100:8021/
-
-christmas lights tests
-
-ftp: problem with multithreading?
 
 News: add H2 Database News 
 Email Subscription: If you like to get informed by email about new releases,
@@ -107,26 +97,24 @@ subscribe here. The email addresses of members are only used in this context.
 Usually, only one mail every few weeks will be sent.
 Email: 
 
+improve error message:
+Table TEST not found. Possible reasons: typo; the table is in another database or schema; case mismatch (use double quotes) [42S02-46]
+
+h2\src\docsrc\html\images\SQLInjection.txt
+
+document rws / rwd
+
+christmas lights tests
+
+D:\pictures\2007-email
+
+ftp: problem with multithreading?
+
 send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide, 
 MySQL, PostgreSQL
 
 http://semmle.com/
 try out, find bugs
-
-DROP TABLE TEST;
-CREATE TABLE TEST(ID INT);
-@LOOP 10000 INSERT INTO TEST VALUES(?);
--- derby: 5828, 5735
-
--- jdbc:h2:test;write_mode_log=rws;write_delay=0
--- h2: 15172
-
-
-DatDb:
-insert a varchar ('xxxx...m...') into a binary column is not legal, so I changed:
-CREATE  TABLE "+tableName+" (fname varchar(80) primary key, gendate bigint, dat binary)
-to:
-CREATE  TABLE "+tableName+" (fname varchar(80) primary key, gendate bigint, dat varchar)
 
 Session sess1 = DBConnection.openSession();
 //Wenn Die Transaction erst nach sess2.close() gestartet wird, dann funktioniert es
@@ -144,82 +132,6 @@ t.commit();
 sess1.close();
 download/trace*.log
 
-DatDb test
-
-Short answer:
-
-This database does not guarantee that all committed transactions survive a power failure.
-While other databases (such as Derby) claim they can guarantee it, in reality they can't.
-Testing shows that all databases lose transactions on power failure sometimes.
-Where this is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. 
-If durability is required for all possible cases of hardware failure, clustering should be used, 
-such as the H2 clustering mode.
-
-Long answer:
-
-Making sure that committed transaction are not lost is more complicated than it seems first.
-To guarantee complete durability, a database must ensure that the log record is on the hard drive
-before the commit call returns. To do that, different approaches are possible. The first option
-is to use the 'synchronous write' option when opening a file. In Java, RandomAccessFile
-supports the opening modes "rws" and "rwd":
-
-
-Around 1000 write operations per second are possible when using one of those modes. 
-You can get the exact number for your system by running the test org.h2.test.poweroff.TestWrite.
-This feature is used by Derby and PostgreSQL.
-However, this alone does not force changes to disk, because it does not flush the operating system and hard drive buffers.
-Even 7800 RPM hard drives can spin at 130 rounds per second only.
-There are other ways force data to disk:
-
-FileDescriptor.sync(). 
-    The documentation says that this will force all system buffers to synchronize with the underlying device. 
-    Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor have been written to the physical medium.
-FileChannel.force() (since JDK 1.4). 
-    This method is supposed to force any updates to this channel's file to be written to the storage device that contains it. 
-
-The test was made with this database, as well as with PostgreSQL, Derby, and HSQLDB. 
-None of those databases was able to guarantee complete transaction durability.
-
-To test the durability / non-durability of this and other databases, you can use the test application in the package 
-org.h2.test.poweroff. Two computers with network connection are required to run this test. 
-One computer acts as the listener, the test application is run on the other computer. 
-The computer with the listener application opens a TCP/IP port and listens for an incoming connection. 
-The second computer first connects to the listener, and then created the databases and starts inserting records. 
-The connection is set to 'autocommit', which means after each inserted record a commit is performed automatically. 
-Afterwards, the test computer notifies the listener that this record was inserted successfully. 
-The listener computer displays the last inserted record number every 10 seconds. 
-Now, the power needs to be switched off manually while the test is still running. 
-Now you can restart the computer, and run the application again. 
-You will find out that in most cases, none of the databases contains all the records that the listener computer knows about. 
-For details, please consult the source code of the listener and test application. 
-
-
-
-
-The test was made using two computers, with computer A
-writing to disk and then sending the transaction id over the network to computer B. After some time, 
-the power is switched off on computer A. After switching on computer A again, some committed 
-transactions where lost.  
-
-
-
-
-It is not enough to just send the write request to 
-the operating system, because the write cache may be enabled (which is the default for Windows XP).
-Unfortunetly, it is also not enough to flush the buffers (fsync), because regular hard drives do not obey 
-this command. The only way to guarantee durability, according to a test, is to wait about one second
-before returning from a commit call. This would mean the maximum number of transactions is 1 per second.
-All databases tested achive a much higher transaction rate, which means all databases take some shortcuts.
-
-
-H2 does not guarantee durability, and while other databases (such as Derby) claim they guarantee it,
-in reality none of the tested databases achieve complete durability
-
-There are multiple ways to 
-
-
-With regular hard drives, trying to 
-Durability means that 
 
 Mail P2P 
 

@@ -333,8 +333,6 @@ public class LogFile {
             if(file == null) {
                 throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
             }
-int testing            ;
-//System.out.println("flush " + file.length() + " pos:"+file.getFilePointer()+" len:"+bufferPos);            
             file.write(buffer, 0, bufferPos);
             for(int i=0; i<unwritten.size(); i++) {
                 Record r = (Record) unwritten.get(i);

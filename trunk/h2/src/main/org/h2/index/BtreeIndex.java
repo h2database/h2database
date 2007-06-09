@@ -18,7 +18,6 @@ import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.table.Column;
 import org.h2.table.TableData;
-import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;

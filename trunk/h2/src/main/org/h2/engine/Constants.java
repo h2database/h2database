@@ -58,6 +58,7 @@ package org.h2.engine;
  * - TestSystemExit
  * - Test with hibernate
  * - Scan for viruses
+ * - Newsletter: send to h2database-news@googlegroups.com (http://groups.google.com/group/h2database-news)
  * - newsletter: prepare, send (always send to BCC!!)
  * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
  * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
@@ -200,7 +201,7 @@ public class Constants {
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
     
-    public static final int VIEW_COST_CACHE_SIZE = 64;
+    public static final int VIEW_INDEX_CACHE_SIZE = 64;
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
     

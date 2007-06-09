@@ -356,16 +356,16 @@ public class SessionRemote implements SessionInterface, DataHandler {
         throw Message.getSQLException(Message.FILE_CORRUPTED_1, "wrong checksum");
     }
 
-    public FileStore openFile(String name, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         if(mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(Message.FILE_CORRUPTED_1, name);
         }
         FileStore store;
         byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();
         if(cipher == null) {
-            store = FileStore.open(this, name, magic);
+            store = FileStore.open(this, name, mode, magic);
         } else {
-            store = FileStore.open(this, name, magic, cipher, fileEncryptionKey, 0);
+            store = FileStore.open(this, name, mode, magic, cipher, fileEncryptionKey, 0);
         }
         store.setCheckedWriting(false);
         try {

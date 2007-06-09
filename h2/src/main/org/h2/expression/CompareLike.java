@@ -136,7 +136,7 @@ public class CompareLike extends Condition {
             return;
         }
         int dataType = l.getColumn().getType();
-        if(dataType != Value.STRING && dataType != Value.STRING_IGNORECASE) {
+        if(dataType != Value.STRING && dataType != Value.STRING_IGNORECASE  && dataType != Value.STRING_FIXED) {
             // column is not a varchar - can't use the index
             return;
         }

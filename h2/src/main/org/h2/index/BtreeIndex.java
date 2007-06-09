@@ -18,6 +18,7 @@ import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.table.Column;
 import org.h2.table.TableData;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -198,7 +199,7 @@ public class BtreeIndex extends Index implements RecordReader {
         }
     }
 
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount());
     }
 

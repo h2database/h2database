@@ -50,7 +50,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         this.tableData = table;
         // TODO linear hash: currently, changes are not logged
         String name = database.getName()+"."+id+Constants.SUFFIX_HASH_FILE;
-        diskFile = new DiskFile(database, name, false, false, Constants.DEFAULT_CACHE_SIZE_LINEAR_INDEX);
+        diskFile = new DiskFile(database, name, "rw", false, false, Constants.DEFAULT_CACHE_SIZE_LINEAR_INDEX);
         diskFile.init();
         bucketSize = 4 * DiskFile.BLOCK_SIZE - diskFile.getRecordOverhead();
         blocksPerBucket = 4;
@@ -487,13 +487,13 @@ public class LinearHashIndex extends Index implements RecordReader {
         return new LinearHashCursor(tableData.getRow(key));
     }
 
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
             Column column = columns[i];
             int index = column.getColumnId();
             int mask = masks[index];
             if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
-                return Integer.MAX_VALUE;
+                return Long.MAX_VALUE;
             }
         }
         return 100;

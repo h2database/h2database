@@ -120,13 +120,13 @@ public class HashIndex extends Index {
         return new HashCursor(result);
     }
 
-    public int getCost(int[] masks) {
+    public long getCost(int[] masks) {
         for (int i = 0; i < columns.length; i++) {
             Column column = columns[i];
             int index = column.getColumnId();
             int mask = masks[index];
             if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
-                return Integer.MAX_VALUE;
+                return Long.MAX_VALUE;
             }
         }
         return 2;

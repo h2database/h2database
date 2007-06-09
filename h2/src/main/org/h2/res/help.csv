@@ -1087,14 +1087,18 @@ A natural join is an inner join, where the condition is automatically on the col
 ","
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
+
 "Other Grammar","Order","
 {int | expression} [ASC | DESC]
 [NULLS {FIRST | LAST}]
 ","
-Groups the result by the column or expression.
+Sorts the result by the given column number, or by an expression. 
+If the expression is a single parameter, then the value is interpreted
+as a column number. Negative column numbers reverse the sort order.
 ","
 NAME DESC NULLS LAST
 "
+
 "Other Grammar","Expression","
 andCondition [OR andCondition]
 ","
@@ -1218,7 +1222,7 @@ ID AS VALUE
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType |
 decimalType | doubleType | realType | dateType | timeType | timestampType |
-binaryType | otherType | varcharType | varcharIgnorecaseType |
+binaryType | otherType | varcharType | varcharIgnorecaseType | charType
 blobType | clobType | uuidType | arrayType
 ","
 A data type definition.
@@ -1484,8 +1488,8 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{VARCHAR | CHAR | CHARACTER | LONGVARCHAR |
-VARCHAR2 | NCHAR | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
+{VARCHAR | LONGVARCHAR |
+VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 [( precisionInt )]
 ","
 Unicode String. Use two single quotes ('') to create a quote.
@@ -1503,6 +1507,19 @@ There is no maximum precision. The maximum size is the memory available.
 For large text data CLOB should be used.
 ","
 VARCHAR_IGNORECASE
+"
+
+"Data Types","CHAR Type","
+{CHAR | CHARACTER | NCHAR}
+[( precisionInt )]
+","
+This type is supported for compatibility with other databases and older applications.
+The difference to VARCHAR is that trailing spaces are ignored.
+Unicode String. Use two single quotes ('') to create a quote.
+There is no maximum precision. The maximum size is the memory available.
+For large text data CLOB should be used.
+","
+CHAR(10)
 "
 
 "Data Types","BLOB Type","

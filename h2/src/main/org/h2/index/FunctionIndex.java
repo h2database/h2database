@@ -46,11 +46,11 @@ public class FunctionIndex extends Index {
         return new FunctionCursor(result);
     }
 
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         if(masks != null) {
             throw Message.getUnsupportedException();
         }
-        return Integer.MAX_VALUE;
+        return Long.MAX_VALUE;
     }
 
     public void remove(Session session) throws SQLException {

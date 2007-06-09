@@ -242,7 +242,7 @@ public class Message {
     public static final int IO_EXCEPTION_1 = 90028;
     public static final int NOT_ON_UPDATABLE_ROW = 90029;
     public static final int FILE_CORRUPTED_1 = 90030;
-    public static final int CONNECTION_NOT_CLOSED = 90031;
+
     public static final int USER_NOT_FOUND_1 = 90032;
     public static final int USER_ALREADY_EXISTS_1 = 90033;
     public static final int LOG_FILE_ERROR_1 = 90034;

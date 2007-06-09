@@ -293,7 +293,7 @@ public class TreeIndex extends Index {
         }
     }
 
-    public int getCost(int[] masks) throws SQLException {
+    public long getCost(int[] masks) throws SQLException {
         return getCostRangeIndex(masks, tableData.getRowCount());
     }
 

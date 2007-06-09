@@ -142,8 +142,8 @@ public class ScanIndex extends Index {
         return new ScanCursor(this);
     }
 
-    public int getCost(int[] masks) throws SQLException {
-        int cost = tableData.getRowCount() + Constants.COST_ROW_OFFSET;
+    public long getCost(int[] masks) throws SQLException {
+        long cost = tableData.getRowCount() + Constants.COST_ROW_OFFSET;
         if(storage != null) {
             cost *= 10;
         }

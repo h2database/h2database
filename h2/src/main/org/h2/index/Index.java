@@ -30,7 +30,7 @@ public abstract class Index extends SchemaObject {
     protected Table table;
     public IndexType indexType;
     public static final int EMPTY_HEAD = -1;
-    protected int rowCount;
+    protected long rowCount;
 
     public Index(Table table, int id, String name, Column[] columns, IndexType indexType) {
         super(table.getSchema(), id, name, Trace.INDEX);
@@ -74,24 +74,24 @@ public abstract class Index extends SchemaObject {
     public abstract void add(Session session, Row row) throws SQLException;
     public abstract void remove(Session session, Row row) throws SQLException;
     public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
-    public abstract int getCost(int[] masks) throws SQLException;
+    public abstract long getCost(int[] masks) throws SQLException;
     public abstract void remove(Session session) throws SQLException;
     public abstract void truncate(Session session) throws SQLException;
     public abstract boolean canGetFirstOrLast(boolean first);
     public abstract Value findFirstOrLast(Session session, boolean first) throws SQLException;
     public abstract boolean needRebuild();
 
-    public int getRowCount() {
+    public long getRowCount() {
         return rowCount;
     }
 
-    public int getLookupCost(int rowCount) {
+    public int getLookupCost(long rowCount) {
         return 2;
     }
 
-    public int getCostRangeIndex(int[] masks, int rowCount) throws SQLException {
+    public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
         rowCount += Constants.COST_ROW_OFFSET;
-        int cost = rowCount;
+        long cost = rowCount;
         int totalSelectivity = 0;
         for (int i = 0; masks != null && i < columns.length; i++) {
             Column column = columns[i];
@@ -103,11 +103,11 @@ public abstract class Index extends SchemaObject {
                     break;
                 }
                 totalSelectivity = 100 - ((100-totalSelectivity) * (100-column.getSelectivity()) / 100);
-                int distinctRows = rowCount * totalSelectivity / 100;
+                long distinctRows = rowCount * totalSelectivity / 100;
                 if(distinctRows <= 0) {
                     distinctRows = 1;
                 }
-                int rowsSelected = rowCount / distinctRows;
+                long rowsSelected = rowCount / distinctRows;
                 if(rowsSelected < 1) {
                     rowsSelected = 1;
                 }

@@ -83,10 +83,10 @@ public class ConditionInSelect extends Condition {
         if(left == ValueExpression.NULL) {
             return left;
         }
+        query.prepare();
         if(query.getColumnCount() != 1) {
             throw Message.getSQLException(Message.SUBQUERY_IS_NOT_SINGLE_COLUMN);
-        }
-        query.prepare();
+        }        
         // Can not optimize IN(SELECT...): the data may change
         // However, could transform to an inner join
         return this;
@@ -101,7 +101,7 @@ public class ConditionInSelect extends Condition {
         StringBuffer buff = new StringBuffer("(");
         buff.append(left.getSQL());
         buff.append(" IN(");
-        buff.append(query.getPlan());
+        buff.append(query.getPlanSQL());
         buff.append("))");
         return buff.toString();
     }

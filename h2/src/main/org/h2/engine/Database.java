@@ -135,6 +135,7 @@ public class Database implements DataHandler {
     private String cacheType;
     private boolean indexSummaryValid = true;
     private Object lobSyncObject = new Object();
+    private String writeModeLog, writeModeData;
 
     public static void setInitialPowerOffCount(int count) {
         initialPowerOffCount = count;
@@ -291,11 +292,11 @@ public class Database implements DataHandler {
         return traceSystem.getTrace(module);
     }
 
-    public FileStore openFile(String name, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         if(mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(Message.FILE_NOT_FOUND_1, name);
         }
-        FileStore store = FileStore.open(this, name, getMagic(), cipher, filePasswordHash);
+        FileStore store = FileStore.open(this, name, mode, getMagic(), cipher, filePasswordHash);
         try {
             store.init();
         } catch(SQLException e) {
@@ -312,11 +313,11 @@ public class Database implements DataHandler {
     }
 
     private void openFileData() throws SQLException {
-        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, true, true, Constants.DEFAULT_CACHE_SIZE);
+        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, writeModeData, true, true, Constants.DEFAULT_CACHE_SIZE);
     }
 
     private void openFileIndex() throws SQLException {
-        fileIndex = new DiskFile(this, databaseName+Constants.SUFFIX_INDEX_FILE, false, logIndexChanges, Constants.DEFAULT_CACHE_SIZE_INDEX);
+        fileIndex = new DiskFile(this, databaseName+Constants.SUFFIX_INDEX_FILE, "rw", false, logIndexChanges, Constants.DEFAULT_CACHE_SIZE_INDEX);
     }
 
     public DataPage getDataPage() {
@@ -348,6 +349,8 @@ public class Database implements DataHandler {
         this.databaseShortName = parseDatabaseShortName();
         this.cipher = cipher;
         String lockMethodName = ci.removeProperty("FILE_LOCK", null);
+        this.writeModeLog = ci.removeProperty("WRITE_MODE_LOG", "rw").toLowerCase();
+        this.writeModeData = ci.removeProperty("WRITE_MODE_DATA", "rw").toLowerCase();
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.textStorage = ci.getTextStorage();
         this.databaseURL = ci.getURL();
@@ -522,7 +525,7 @@ public class Database implements DataHandler {
         removeUnusedStorages();
         systemSession.commit();
         if(!readOnly) {
-            emergencyReserve = openFile(createTempFile(), false);
+            emergencyReserve = openFile(createTempFile(), "rw", false);
             emergencyReserve.autoDelete();
             emergencyReserve.setLength(Constants.EMERGENCY_SPACE_INITIAL);
         }
@@ -1485,6 +1488,10 @@ public class Database implements DataHandler {
 
     public Object getLobSyncObject() {
         return lobSyncObject;
+    }
+
+    public String getWriteModeLog() {
+        return writeModeLog;
     }
 
 }

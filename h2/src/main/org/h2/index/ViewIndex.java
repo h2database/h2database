@@ -61,12 +61,6 @@ public class ViewIndex extends Index {
     }
 
     public String getPlanSQL() {
-        int testing;
-//        return sessionQuery.getPlanSQL();
-//        Query query = (Query)session.prepare(querySQL, true);
-        
-        
-//        return query.getPlanSQL();
         return planSQL;
     }
 
@@ -250,7 +244,14 @@ public class ViewIndex extends Index {
         }
         
         String sql = query.getPlanSQL();
-        Query q2 = (Query)session.prepare(sql);
+        Query q2 = (Query)session.prepare(sql, true);
+        ObjectArray a2 = q2.getParameters();
+        for(int i=0; i<a2.size(); i++) {
+            Parameter param = (Parameter) originalParameters.get(i);
+            Value value = param.getParamValue();
+            Parameter p = (Parameter) a2.get(i);
+            p.setValue(value);
+        }
         LocalResult result = q2.query(0);
         
         int testing2;

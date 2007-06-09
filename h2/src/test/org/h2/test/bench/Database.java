@@ -133,7 +133,8 @@ class Database {
             Statement stat = null;
             try {
                 stat = conn.createStatement();
-                stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192')");
+                // stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageCacheSize', '64')");
+                // stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192')");
             } finally {
                 JdbcUtils.closeSilently(stat);
             }

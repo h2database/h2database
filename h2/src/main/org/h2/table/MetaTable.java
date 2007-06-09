@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.Collator;
 import java.util.Locale;
+import java.util.Properties;
 
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -644,15 +645,33 @@ public class MetaTable extends Table {
                         value
                 });
             }
+            add(rows, new String[]{"info.BUILD_ID", "" + Constants.BUILD_ID});
+            add(rows, new String[]{"info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR});
+            add(rows, new String[]{"info.VERSION_MINOR", "" + Constants.VERSION_MINOR});
+            add(rows, new String[]{"info.VERSION", "" + Constants.getVersion()});
+            if(session.getUser().getAdmin()) {            
+                Properties prop = System.getProperties();
+                String[] settings = new String[]{
+                        "java.runtime.version", 
+                        "java.vm.name", "java.vendor",
+                        "os.name", "os.arch", "os.version", "sun.os.patch.level", 
+                        "file.separator", "path.separator", "line.separator", 
+                        "user.country", "user.language", "user.variant", "file.encoding"
+                };
+                for(int i=0; i<settings.length; i++) {
+                    String s = settings[i];
+                    add(rows, new String[]{"property." + s, prop.getProperty(s, "")});
+                }
+            }
             add(rows, new String[]{"MODE", Mode.getCurrentMode().getName()});
             DiskFile dataFile = database.getDataFile();
             if(dataFile != null) {
                 add(rows, new String[]{"CACHE_TYPE", dataFile.getCache().getTypeName()});
                 if(session.getUser().getAdmin()) {
-                    add(rows, new String[]{"FILE_DISK_WRITE", "" + dataFile.getWriteCount()});
-                    add(rows, new String[]{"FILE_DISK_READ", "" + dataFile.getReadCount()});
-                    add(rows, new String[]{"FILE_INDEX_WRITE", "" + database.getIndexFile().getWriteCount()});
-                    add(rows, new String[]{"FILE_INDEX_READ", "" + database.getIndexFile().getReadCount()});
+                    add(rows, new String[]{"info.FILE_DISK_WRITE", "" + dataFile.getWriteCount()});
+                    add(rows, new String[]{"info.FILE_DISK_READ", "" + dataFile.getReadCount()});
+                    add(rows, new String[]{"info.FILE_INDEX_WRITE", "" + database.getIndexFile().getWriteCount()});
+                    add(rows, new String[]{"info.FILE_INDEX_READ", "" + database.getIndexFile().getReadCount()});
                 }
             }
             add(rows, new String[]{"h2.check", "" + Constants.CHECK});

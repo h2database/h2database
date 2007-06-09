@@ -4576,11 +4576,11 @@ SELECT * FROM TEST_ALL WHERE AID>=2;
 CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME TABLE_TYPE STORAGE_TYPE SQL                                                                                                                                                              REMARKS ID
-> ------------- ------------ ---------- ---------- ------------ ---------------------------------------------------------------------------------------------------------------------------------------------------------------- ------- ---
-> SCRIPT        PUBLIC       TEST_ALL   VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID         513
-> SCRIPT        PUBLIC       TEST_A_SUB VIEW       MEMORY       CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2                                                                                       515
+SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
+> TABLE_NAME SQL
+> ---------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID
+> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;

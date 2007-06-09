@@ -37,7 +37,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>In many situations, views did not use an index if they could have. Fixed. Also the explain plan for views works now.
+<li>After calling SHUTDOWN and closing the connection and a superfluous error message appeared in the trace file. Fixed.
+</li><li>In many situations, views did not use an index if they could have. Fixed. Also the explain plan for views works now.
 </li><li>The table id (important for LOB files) is now included in INFORMATION_SCHEMA.TABLES.
 </li><li>When using DISTINCT, ORDER BY a function works now as long as it is in the column list.
 </li><li>Support for the data type CHAR. The difference to VARCHAR is: trailing spaces are ignored. This 

@@ -152,7 +152,7 @@ public class SelectUnion extends Query {
         result.done();
         return result;
     }
-    
+
     public void init() throws SQLException {
         if(Constants.CHECK && checkInit) {
             throw Message.getInternalError();
@@ -188,7 +188,8 @@ public class SelectUnion extends Query {
             expressions.add(e);
         }
         if(orderList != null) {
-            sort = initOrder(expressions, orderList, getColumnCount(), true);
+            initOrder(expressions, null, orderList, getColumnCount(), true);
+            sort = prepareOrder(expressions, orderList);
             orderList = null;
         }
     }
@@ -249,10 +250,10 @@ public class SelectUnion extends Query {
         }
     }
     
-    public String getPlan() {
+    public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append('(');
-        buff.append(left.getPlan());
+        buff.append(left.getPlanSQL());
         buff.append(") ");
         switch(unionType) {
         case UNION_ALL:
@@ -271,7 +272,7 @@ public class SelectUnion extends Query {
             throw Message.getInternalError("type="+unionType);
         }
         buff.append('(');
-        buff.append(right.getPlan());
+        buff.append(right.getPlanSQL());
         buff.append(')');        
         Expression[] exprList = new Expression[expressions.size()];
         expressions.toArray(exprList);

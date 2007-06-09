@@ -113,7 +113,7 @@ public class Update extends Prepared {
         return newRows.size();
     }
     
-    public String getPlan() {
+    public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("UPDATE ");
         buff.append(tableFilter.getPlanSQL(false));

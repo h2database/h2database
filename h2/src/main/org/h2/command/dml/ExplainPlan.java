@@ -39,7 +39,7 @@ public class ExplainPlan extends Prepared {
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), null, column);
         expressions.add(expr);
         result = new LocalResult(session, expressions, 1);
-        String plan = command.getPlan();
+        String plan = command.getPlanSQL();
         add(plan);
         result.done();
         return result;

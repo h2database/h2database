@@ -11,7 +11,7 @@ import org.h2.expression.Expression;
  */
 public class SelectOrderBy {
     public Expression expression;
-    public int column;
+    public Expression columnIndexExpr;
     public boolean descending;
     public boolean nullsFirst;
     public boolean nullsLast;

@@ -120,7 +120,7 @@ public class Insert extends Prepared {
         return count;
     }
 
-    public String getPlan() {
+    public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO ");
         buff.append(table.getSQL());
@@ -154,7 +154,7 @@ public class Insert extends Prepared {
                 buff.append(')');
             }
         } else {
-            buff.append(query.getPlan());
+            buff.append(query.getPlanSQL());
         }
         return buff.toString();
     }

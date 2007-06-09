@@ -79,7 +79,7 @@ public class ScriptBase extends Prepared implements DataHandler {
         byte[] magic = Database.getMagic(true);
         Database db = session.getDatabase();
         // script files are always in text format
-        store = FileStore.open(db, fileName, magic, cipher, key);
+        store = FileStore.open(db, fileName, "rw", magic, cipher, key);
         store.setCheckedWriting(false);
         store.init();
     }
@@ -153,7 +153,7 @@ public class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public FileStore openFile(String name, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return null;
     }
 

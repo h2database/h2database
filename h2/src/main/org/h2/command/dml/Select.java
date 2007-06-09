@@ -207,7 +207,7 @@ public class Select extends Query {
         for(int i=0; i<indexes.length; i++) {
             int idx = indexes[i];
             if(idx < 0 || idx >= expressions.size()) {
-                throw Message.getInvalidValueException("order by", ""+idx);
+                throw Message.getInvalidValueException("" + (idx+1), "ORDER BY");
             }
             Expression expr = (Expression) expressions.get(idx);
             expr = expr.getNonAliasExpression();
@@ -384,12 +384,22 @@ public class Select extends Query {
         checkInit = true;
         expandColumnList();
         visibleColumnCount = expressions.size();
+        ObjectArray expressionSQL;
+        if(orderList != null || group != null) {
+            expressionSQL = new ObjectArray();
+            for(int i=0; i<expressions.size(); i++) {
+                Expression expr = (Expression) expressions.get(i);
+                expr = expr.getNonAliasExpression();
+                String sql = expr.getSQL();
+                expressionSQL.add(sql);
+            }
+        } else {
+            expressionSQL = null;
+        }
         if(orderList != null) {
-            sort = initOrder(expressions, orderList, visibleColumnCount, distinct);
-            orderList = null;
+            initOrder(expressions, expressionSQL, orderList, visibleColumnCount, distinct);
         }
         distinctColumnCount = expressions.size();
-
         if(having != null) {
             expressions.add(having);
             havingIndex = expressions.size()-1;
@@ -401,13 +411,6 @@ public class Select extends Query {
         // first visible columns, then order by, then having, and then group by at the end
         if(group != null) {
             groupIndex = new int[group.size()];
-            ObjectArray expressionSQL = new ObjectArray();
-            for(int i=0; i<expressions.size(); i++) {
-                Expression expr = (Expression) expressions.get(i);
-                expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL();
-                expressionSQL.add(sql);
-            }
             for(int i=0; i<group.size(); i++) {
                 Expression expr = (Expression) group.get(i);
                 String sql = expr.getSQL();
@@ -455,6 +458,10 @@ public class Select extends Query {
             throw Message.getInternalError("already prepared");
         }
         isPrepared = true;
+        if(orderList != null) {
+            sort = prepareOrder(expressions, orderList);
+            orderList = null;
+        }
         for(int i=0; i<expressions.size(); i++) {
             Expression e = (Expression) expressions.get(i);
             expressions.set(i, e.optimize(session));
@@ -535,7 +542,7 @@ public class Select extends Query {
         return cost;
     }
 
-    public String getPlan() {
+    public String getPlanSQL() {
         if(topTableFilter == null) {
             return sql;
         }
@@ -663,6 +670,7 @@ public class Select extends Query {
 
     public void addGlobalCondition(Expression expr, int columnId, int comparisonType) throws SQLException {
         Expression col = (Expression)expressions.get(columnId);
+        col = col.getNonAliasExpression();
         Expression comp = new Comparison(session, comparisonType, col, expr);
         comp = comp.optimize(session);
         if(isGroupQuery) {

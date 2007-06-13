@@ -32,7 +32,7 @@ public class FileStoreInputStream extends InputStream {
                 fillBuffer();
             }
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, store.name);
         }
     }
 

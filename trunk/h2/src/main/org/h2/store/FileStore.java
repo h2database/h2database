@@ -69,7 +69,7 @@ public class FileStore {
             }
             fileLength = file.length();
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, "name: " + name +" mode: " + mode);
         }
     }
 
@@ -177,7 +177,7 @@ public class FileStore {
         try {
             file.readFully(b, off, len);
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, name);
         }
         filePos += len;
     }
@@ -192,7 +192,7 @@ public class FileStore {
                 filePos = pos;
             }
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, name);
         }
     }
 
@@ -216,10 +216,10 @@ public class FileStore {
                 try {
                     file.write(b, off, len);
                 } catch (IOException e2) {
-                    throw Message.convert(e2);
+                    throw Message.convertIOException(e2, name);
                 }
             } else {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, name);
             }
         }
         filePos += len;
@@ -263,10 +263,10 @@ public class FileStore {
                 try {
                     FileUtils.setLength(file, newLength);
                 } catch (IOException e2) {
-                    throw Message.convert(e2);
+                    throw Message.convertIOException(e2, name);
                 }
             } else {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, name);
             }
         }
     }
@@ -288,7 +288,7 @@ public class FileStore {
             }
             return len;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, name);
         }
     }
 
@@ -299,7 +299,7 @@ public class FileStore {
                     throw Message.getInternalError();
                 }
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, name);
             }
         }
         return filePos;

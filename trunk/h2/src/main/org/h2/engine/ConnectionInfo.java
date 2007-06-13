@@ -43,7 +43,7 @@ public class ConnectionInfo {
         String[] connectionTime = new String[]{
                 "PASSWORD", "USER", "STORAGE", "FILE_LOCK", "CIPHER", "DB_CLOSE_ON_EXIT",
                 "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", "RECOVER", "CREATE", "CACHE_TYPE",
-                "WRITE_MODE_LOG", "WRITE_MODE_DATA"
+                "ACCESS_MODE_LOG", "ACCESS_MODE_DATA"
         };
         for(int i=0; i<connectionTime.length; i++) {
             String key = connectionTime[i];

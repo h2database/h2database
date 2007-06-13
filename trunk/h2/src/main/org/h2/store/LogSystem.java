@@ -39,10 +39,12 @@ public class LogSystem {
     private boolean disabled;
     private int keepFiles;
     private boolean closed;
+    private String accessMode;
 
-    public LogSystem(Database database, String fileNamePrefix, boolean readOnly) throws SQLException {
+    public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode) throws SQLException {
         this.database = database;
         this.readOnly = readOnly;
+        this.accessMode = accessMode;
         if (database == null || readOnly) {
             return;
         }
@@ -463,6 +465,10 @@ public class LogSystem {
 
     public synchronized void updateKeepFiles(int incrementDecrement) {
         keepFiles += incrementDecrement;
+    }
+
+    String getAccessMode() {
+        return accessMode;
     }
 
 }

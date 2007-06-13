@@ -119,16 +119,12 @@ public class DiskFile implements CacheWriter {
     }
 
     private void create() throws SQLException {
-        try {
-            file =  database.openFile(fileName, mode, false);
-            DataPage header = DataPage.create(database, OFFSET);
-            file.seek(FileStore.HEADER_LENGTH);
-            header.fill(OFFSET);
-            header.updateChecksum();
-            file.write(header.getBytes(), 0, OFFSET);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+        file =  database.openFile(fileName, mode, false);
+        DataPage header = DataPage.create(database, OFFSET);
+        file.seek(FileStore.HEADER_LENGTH);
+        header.fill(OFFSET);
+        header.updateChecksum();
+        file.write(header.getBytes(), 0, OFFSET);
     }
 
     private void freeUnusedPages() throws SQLException {
@@ -275,43 +271,39 @@ public class DiskFile implements CacheWriter {
                 s.setRecordCount(0);
             }
         }
-        try {
-            int blockHeaderLen = Math.max(Constants.FILE_BLOCK_SIZE, 2 * rowBuff.getIntLen());
-            byte[] buff = new byte[blockHeaderLen];
-            DataPage s = DataPage.create(database, buff);
-            long time = 0;
-            for (int i = 0; i < fileBlockCount;) {
-                long t2 = System.currentTimeMillis();
-                if(t2 > time + 10) {
-                    time = t2;
-                    database.setProgress(DatabaseEventListener.STATE_SCAN_FILE, this.fileName, i, fileBlockCount);
-                }
-                go(i);
-                file.readFully(buff, 0, blockHeaderLen);
-                s.reset();
-                int blockCount = s.readInt();
-                if(Constants.CHECK && blockCount < 0) {
+        int blockHeaderLen = Math.max(Constants.FILE_BLOCK_SIZE, 2 * rowBuff.getIntLen());
+        byte[] buff = new byte[blockHeaderLen];
+        DataPage s = DataPage.create(database, buff);
+        long time = 0;
+        for (int i = 0; i < fileBlockCount;) {
+            long t2 = System.currentTimeMillis();
+            if(t2 > time + 10) {
+                time = t2;
+                database.setProgress(DatabaseEventListener.STATE_SCAN_FILE, this.fileName, i, fileBlockCount);
+            }
+            go(i);
+            file.readFully(buff, 0, blockHeaderLen);
+            s.reset();
+            int blockCount = s.readInt();
+            if(Constants.CHECK && blockCount < 0) {
+                throw Message.getInternalError();
+            }
+            if(blockCount == 0) {
+                setUnused(i, 1);
+                i++;
+            } else {
+                int id = s.readInt();
+                if(Constants.CHECK && id < 0) {
                     throw Message.getInternalError();
                 }
-                if(blockCount == 0) {
-                    setUnused(i, 1);
-                    i++;
-                } else {
-                    int id = s.readInt();
-                    if(Constants.CHECK && id < 0) {
-                        throw Message.getInternalError();
-                    }
-                    Storage storage = database.getStorage(id, this);
-                    setBlockOwner(storage, i, blockCount, true);
-                    storage.incrementRecordCount();
-                    i += blockCount;
-                }
+                Storage storage = database.getStorage(id, this);
+                setBlockOwner(storage, i, blockCount, true);
+                storage.incrementRecordCount();
+                i += blockCount;
             }
-            database.setProgress(DatabaseEventListener.STATE_SCAN_FILE, this.fileName, fileBlockCount, fileBlockCount);
-            init = true;
-        } catch (Exception e) {
-            throw Message.convert(e);
         }
+        database.setProgress(DatabaseEventListener.STATE_SCAN_FILE, this.fileName, fileBlockCount, fileBlockCount);
+        init = true;
     }
 
     synchronized void flush() throws SQLException {
@@ -565,8 +557,8 @@ public class DiskFile implements CacheWriter {
             cache.clear();
             file.close();
             FileUtils.delete(fileName);
-        } catch (Exception e) {
-            throw Message.convert(e);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, fileName);
         } finally {
             file = null;
             fileName = null;
@@ -590,22 +582,18 @@ public class DiskFile implements CacheWriter {
         writeCount++;
         Record record = (Record) obj;
         synchronized(this) {
-            try {
-                int blockCount = record.getBlockCount();
-                record.prepareWrite();
-                go(record.getPos());
-                DataPage buff = rowBuff;
-                buff.reset();
-                buff.checkCapacity(blockCount * BLOCK_SIZE);
-                buff.writeInt(blockCount);
-                buff.writeInt(record.getStorageId());
-                record.write(buff);
-                buff.fill(blockCount * BLOCK_SIZE);
-                buff.updateChecksum();
-                file.write(buff.getBytes(), 0, buff.length());
-            } catch (Exception e) {
-                throw Message.convert(e);
-            }
+            int blockCount = record.getBlockCount();
+            record.prepareWrite();
+            go(record.getPos());
+            DataPage buff = rowBuff;
+            buff.reset();
+            buff.checkCapacity(blockCount * BLOCK_SIZE);
+            buff.writeInt(blockCount);
+            buff.writeInt(record.getStorageId());
+            record.write(buff);
+            buff.fill(blockCount * BLOCK_SIZE);
+            buff.updateChecksum();
+            file.write(buff.getBytes(), 0, buff.length());
         }
         record.setChanged(false);
     }
@@ -618,54 +606,42 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized void updateRecord(Session session, Record record) throws SQLException {
-        try {
-            record.setChanged(true);
-            int pos = record.getPos();
-            Record old = (Record) cache.update(pos, record);
-            if(Constants.CHECK) {
-                if(old != null) {
-                    if(old!=record) {
-                        database.checkPowerOff();
-                        throw Message.getInternalError("old != record old="+old+" new="+record);
-                    }
-                    int blockCount = record.getBlockCount();
-                    for(int i=0; i<blockCount; i++) {
-                        if(deleted.get(i + pos)) {
-                            throw Message.getInternalError("update marked as deleted: " + (i+pos));
-                        }
+        record.setChanged(true);
+        int pos = record.getPos();
+        Record old = (Record) cache.update(pos, record);
+        if(Constants.CHECK) {
+            if(old != null) {
+                if(old!=record) {
+                    database.checkPowerOff();
+                    throw Message.getInternalError("old != record old="+old+" new="+record);
+                }
+                int blockCount = record.getBlockCount();
+                for(int i=0; i<blockCount; i++) {
+                    if(deleted.get(i + pos)) {
+                        throw Message.getInternalError("update marked as deleted: " + (i+pos));
                     }
                 }
             }
-            if(logChanges) {
-                log.add(session, this, record);
-            }
-        } catch (Exception e) {
-            throw Message.convert(e);
+        }
+        if(logChanges) {
+            log.add(session, this, record);
         }
     }
 
     synchronized void writeDirectDeleted(int recordId, int blockCount) throws SQLException {
         synchronized(this) {
-            try {
-                go(recordId);
-                for(int i=0; i<blockCount; i++) {
-                    file.write(freeBlock.getBytes(), 0, freeBlock.length());
-                }
-                free(recordId, blockCount);
-            } catch (Exception e) {
-                throw Message.convert(e);
+            go(recordId);
+            for(int i=0; i<blockCount; i++) {
+                file.write(freeBlock.getBytes(), 0, freeBlock.length());
             }
+            free(recordId, blockCount);
         }
     }
 
     synchronized void writeDirect(Storage storage, int pos, byte[] data, int offset) throws SQLException {
-        try {
-            go(pos);
-            file.write(data, offset, BLOCK_SIZE);
-            setBlockOwner(storage, pos, 1, true);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
+        go(pos);
+        file.write(data, offset, BLOCK_SIZE);
+        setBlockOwner(storage, pos, 1, true);
     }
     
     public synchronized int copyDirect(int pos, OutputStream out) throws SQLException {
@@ -710,8 +686,8 @@ public class DiskFile implements CacheWriter {
             }
             out.write(s.getBytes(), 0, blockCount * blockSize);
             return pos + blockCount;
-        } catch (Exception e) {
-            throw Message.convert(e);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, fileName);
         } 
     }
 

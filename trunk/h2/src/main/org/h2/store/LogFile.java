@@ -59,7 +59,7 @@ public class LogFile {
         this.id = id;
         this.fileNamePrefix = fileNamePrefix;
         fileName = getFileName();
-        file = log.getDatabase().openFile(fileName, database.getWriteModeLog(), false);
+        file = log.getDatabase().openFile(fileName, log.getAccessMode(), false);
         rowBuff = log.getRowBuffer();
         buffer = new byte[BUFFER_SIZE];
         unwritten = new ObjectArray();
@@ -366,7 +366,7 @@ public class LogFile {
                 }
             } catch (IOException e) {
                 if(closeException == null) {
-                    closeException = Message.convert(e);
+                    closeException = Message.convertIOException(e, fileName);
                 }
             }
             file = null;

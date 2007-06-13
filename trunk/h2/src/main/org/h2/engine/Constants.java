@@ -67,8 +67,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 46;
-    private static final String BUILD = "2007-04-29";
+    public static final int BUILD_ID = 47;
+    private static final String BUILD = "2007-06-13";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -244,6 +244,7 @@ public class Constants {
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
+    public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

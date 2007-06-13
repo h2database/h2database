@@ -120,7 +120,7 @@ public class ResultRemote implements ResultInterface {
                 session.traceOperation("RESULT_RESET", id);
                 transfer.writeInt(SessionRemote.RESULT_RESET).writeInt(id).flush();
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, null);
             }
         }
     }
@@ -236,7 +236,7 @@ public class ResultRemote implements ResultInterface {
                     return null;
                 }
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, null);
             }
         }
     }

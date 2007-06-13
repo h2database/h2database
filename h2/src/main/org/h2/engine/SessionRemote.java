@@ -325,7 +325,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         try {
             return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, false);
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, databaseName);
         }
     }
 

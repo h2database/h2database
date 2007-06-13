@@ -157,7 +157,9 @@ public class FileLock {
     private void lockFile() throws SQLException {
         method = FILE;
         properties = new Properties();
-        String random = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(RANDOM_BYTES));
+        byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
+        System.out.println("lockFile 2b" + fileName);
+        String random = ByteUtils.convertBytesToString(bytes);
         properties.setProperty("id", Long.toHexString(System.currentTimeMillis())+random);
         if (!FileUtils.createNewFile(fileName)) {
             waitUntilOld();

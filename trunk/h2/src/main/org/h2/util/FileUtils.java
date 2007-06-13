@@ -94,11 +94,12 @@ public class FileUtils {
     }
 
     private static void freeMemoryAndFinalize() {
-        long mem = Runtime.getRuntime().freeMemory();
+        Runtime rt = Runtime.getRuntime();
+        long mem = rt.freeMemory();
         for(int i=0; i<16; i++) {
-            System.gc();
-            long now = Runtime.getRuntime().freeMemory();
-            Runtime.getRuntime().runFinalization();
+            rt.gc();
+            long now = rt.freeMemory();
+            rt.runFinalization();
             if(now == mem) {
                 break;
             }
@@ -124,7 +125,7 @@ public class FileUtils {
         if(newFile.exists()) {
             throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
         }
-        for(int i=0; i<16; i++) {
+        for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
             boolean ok = oldFile.renameTo(newFile);
             if(ok) {
                 return;
@@ -175,7 +176,7 @@ public class FileUtils {
                 return;
             }
             File dir = new File(parent);
-            for(int i=0; i<16; i++) {
+            for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
                 if(dir.exists() || dir.mkdirs()) {
                     return;
                 }
@@ -195,7 +196,7 @@ public class FileUtils {
             return true;
         }
         File file = new File(fileName);
-        for(int i=0; i<8; i++) {
+        for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
             try {
                 return file.createNewFile();
             } catch (IOException e) {
@@ -216,7 +217,7 @@ public class FileUtils {
         }
         File file = new File(fileName);
         if(file.exists()) {
-            for(int i=0; i<16; i++) {
+            for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
                 boolean ok = file.delete();
                 if(ok) {
                     return;
@@ -233,7 +234,7 @@ public class FileUtils {
         }
         try {
             // sleep at most 256 ms
-            long sleep = (long)i * (long)i;
+            long sleep = Math.min(256, i * i);
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             // ignore
@@ -267,7 +268,7 @@ public class FileUtils {
         try {
             return f.getCanonicalPath();
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, fileName);
         }
     }
 
@@ -350,7 +351,6 @@ public class FileUtils {
     }
 
     public static String[] listFiles(String path) throws SQLException {
-//System.out.println("listFiles: " + path);        
         if(isInMemory(path)) {
             String[] list = new String[memoryFiles.size()];
             MemoryFile[] l = new MemoryFile[memoryFiles.size()];
@@ -372,7 +372,7 @@ public class FileUtils {
             }
             return list;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, path);
         }
         
 //        try {
@@ -399,6 +399,9 @@ public class FileUtils {
     }
 
     public static void copy(String original, String copy) throws SQLException {
+        int todoTestDidNotClose;
+//System.out.println("###COPY### " + original + " " + copy);
+//new Error("").printStackTrace();
         FileOutputStream out = null;
         FileInputStream in = null;
         try {
@@ -413,9 +416,10 @@ public class FileUtils {
                 out.write(buffer, 0, len);
             }
         } catch(IOException e) {
+            throw Message.convertIOException(e, "original: " + original + " copy: " + copy);
+        } finally {
             IOUtils.closeSilently(in);
             IOUtils.closeSilently(out);
-            throw Message.convert(e);
         }
     }
 

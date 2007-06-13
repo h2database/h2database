@@ -263,7 +263,7 @@ public class CompressTool {
             }
             return out;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -295,7 +295,7 @@ public class CompressTool {
             }
             return in;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 

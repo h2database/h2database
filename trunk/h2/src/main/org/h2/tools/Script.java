@@ -6,6 +6,7 @@ package org.h2.tools;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -110,8 +111,6 @@ public class Script {
             stat = conn.createStatement();
             String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
             stat.execute(sql);
-        } catch(Exception e) {
-            throw Message.convert(e);
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);
@@ -143,8 +142,8 @@ public class Script {
                 writer.println(s + ";");
             }
             writer.close();
-        } catch(Exception e) {
-            throw Message.convert(e);
+        } catch(IOException e) {
+            throw Message.convertIOException(e, fileName);
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);

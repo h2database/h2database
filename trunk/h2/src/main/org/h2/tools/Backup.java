@@ -80,8 +80,10 @@ public class Backup {
      */    
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
-        if (list.size() == 0 && !quiet) {
-            System.out.println("No database files found");
+        if (list.size() == 0) {
+            if(!quiet) {
+                System.out.println("No database files found");
+            }
             return;
         }
         File file = new File(zipFileName);
@@ -111,7 +113,7 @@ public class Backup {
             zipOut.closeEntry();
             zipOut.close();
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, zipFileName);
         } finally {
             IOUtils.closeSilently(out);
         }

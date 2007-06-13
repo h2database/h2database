@@ -232,8 +232,6 @@ public class RunScript {
             stat = conn.createStatement();
             String sql = "RUNSCRIPT FROM '" + fileName + "' " + options;
             stat.execute(sql);
-        } catch (Exception e) {
-            throw Message.convert(e);
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);
@@ -264,8 +262,8 @@ public class RunScript {
             } finally {
                 conn.close();
             }
-        } catch (Exception e) {
-            throw Message.convert(e);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, fileName);
         }
     }
 

@@ -52,7 +52,7 @@ public class NetUtils {
         } catch(BindException be) {
             throw Message.getSQLException(Message.EXCEPTION_OPENING_PORT_1, new String[]{""+port}, be);
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }
     }
 

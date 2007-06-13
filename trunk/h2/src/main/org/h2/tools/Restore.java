@@ -158,7 +158,7 @@ public class Restore {
             zipIn.closeEntry();
             zipIn.close();
         } catch(IOException e) {
-            throw Message.convert(e);            
+            throw Message.convertIOException(e, zipFileName);            
         } finally {
             IOUtils.closeSilently(in);
         }

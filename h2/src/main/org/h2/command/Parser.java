@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
+import java.util.HashSet;
 
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSequence;
@@ -406,7 +407,6 @@ public class Parser {
             }
         }
         if(c==null) {
-            //return new ParserInt(session).parse(sql);
             throw getSyntaxError();
         }
         setSQL(c, null, start);
@@ -604,10 +604,12 @@ public class Parser {
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
-            if(readIf("ASC")) {
-                // ignore
-            } else {
-                readIf("DESC");
+            if(ascDesc) {
+                if(readIf("ASC")) {
+                    // ignore
+                } else {
+                    readIf("DESC");
+                }
             }
         } while(readIf(","));
         read(")");
@@ -618,9 +620,13 @@ public class Parser {
 
     private Column[] parseColumnList(Table table) throws SQLException {
         ObjectArray columns = new ObjectArray();
+        HashSet set = new HashSet();
         if(!readIf(")")) {
             do {
                 Column column = table.getColumn(readColumnIdentifier());
+                if(!set.add(column)) {
+                    throw Message.getSQLException(Message.DUPLICATE_COLUMN_NAME_1, column.getSQL());
+                }
                 columns.add(column);
             } while(readIf(","));
             read(")");

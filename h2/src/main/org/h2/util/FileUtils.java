@@ -399,9 +399,6 @@ public class FileUtils {
     }
 
     public static void copy(String original, String copy) throws SQLException {
-        int todoTestDidNotClose;
-//System.out.println("###COPY### " + original + " " + copy);
-//new Error("").printStackTrace();
         FileOutputStream out = null;
         FileInputStream in = null;
         try {

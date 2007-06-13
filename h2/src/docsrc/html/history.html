@@ -37,7 +37,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>For most IOExceptions now the file name is included in the error message.
+<li>In INSERT and MERGE statements, each column may only be specified once now.
+</li><li>For most IOExceptions now the file name is included in the error message.
 </li><li>A java.util.Date object is now converted to a TIMESTAMP in the JDBC API. Previously it was converted to a DATE.
 </li><li>After calling SHUTDOWN and closing the connection and a superfluous error message appeared in the trace file. Fixed.
 </li><li>In many situations, views did not use an index if they could have. Fixed. Also the explain plan for views works now.
@@ -1181,7 +1182,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>In Version 1.1</h3>
 <ul>
-<li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
+<li>ALTER TABLE on a table with a LOB could result in 'Cannot delete file' on some systems. Fixed.
+</li><li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
 </li><li>Enable and document optimizations, LOB files in directories
 </li><li>Special methods for DataPage.writeByte / writeShort and so on
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)

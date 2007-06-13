@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
-import org.h2.message.Message;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -95,9 +94,11 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();       
 
         
-        
+        int testing;
         Constants.MAX_FILE_RETRY = 1;
 /*
+ 
+MAX_FILE_RETRY to information.schema.settings
 
 Before you ask support:
 Query is slow

@@ -35,6 +35,11 @@ public class Indexer {
     private static final int MAX_RELATIONS = 20;
 
     public static void main(String[] args) throws Exception {
+        new Indexer().run(args);
+    }
+    
+    void run(String[] args) throws Exception {
+        System.out.println(getClass().getName());
         String dir = "docs";
         String destDir = "docs/html";
         for(int i=0; i<args.length; i++) {
@@ -44,12 +49,9 @@ public class Indexer {
                 destDir = args[++i];
             }
         }
-        Indexer app = new Indexer();
         File file = new File(dir);
         System.out.println("indexing " + file.getCanonicalPath());
-//        File file = new File("C:\\Programs\\selfhtml81");
-//      File file = new File("C:\\Programme\\selfhtml81");
-        app.setNoIndex(new String[] {
+        setNoIndex(new String[] {
                 "index.html",
                 "html/header.html",
                 "html/search.html",
@@ -63,19 +65,19 @@ public class Indexer {
                 "javadoc/overview-summary.html",
                 "javadoc/serialized-form.html"
         });
-        app.output = new PrintWriter(new FileWriter(destDir + "/index.js"));
-        app.readPages("", file, 0);
-        app.output.println("var pages=new Array();");
-        app.output.println("var ref=new Array();");
-        app.output.println("function Page(title, file) { this.title=title; this.file=file; }");
-        app.output.println("function load() {");
-        app.sortWords();
-        app.removeOverflowRelations();
-        app.sortPages();
-        app.listPages();
-        app.listWords();
-        app.output.println("}");
-        app.output.close();
+        output = new PrintWriter(new FileWriter(destDir + "/index.js"));
+        readPages("", file, 0);
+        output.println("var pages=new Array();");
+        output.println("var ref=new Array();");
+        output.println("function Page(title, file) { this.title=title; this.file=file; }");
+        output.println("function load() {");
+        sortWords();
+        removeOverflowRelations();
+        sortPages();
+        listPages();
+        listWords();
+        output.println("}");
+        output.close();
     }
     
     private void setNoIndex(String[] strings) {

@@ -7,6 +7,8 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.engine.Constants;
+import org.h2.message.Message;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -20,6 +22,7 @@ import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestMulti;
 import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestSynth;
+import org.h2.test.synth.TestTimer;
 import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
@@ -68,6 +71,9 @@ start cmd /k "java org.h2.test.TestAll random >testRandom.txt"
 start cmd /k "java org.h2.test.TestAll btree >testBtree.txt"
 start cmd /k "java org.h2.test.TestAll halt >testHalt.txt"
 
+
+java org.h2.test.TestAll timer
+
 Test for hot spots:
 java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
 java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2:test;TRACE_LEVEL_FILE=3;LOG=2;MAX_LOG_SIZE=1000;DATABASE_EVENT_LISTENER='org.h2.samples.ShowProgress' -user sa -script test.sql
@@ -88,23 +94,32 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();       
 
+        
+        
+        Constants.MAX_FILE_RETRY = 1;
 /*
 
+Before you ask support:
+Query is slow
+- Run ANALYSE (see documentation for details)
 
-News: add H2 Database News 
-Email Subscription: If you like to get informed by email about new releases,
-subscribe here. The email addresses of members are only used in this context.
-Usually, only one mail every few weeks will be sent.
-Email: 
+Negative dictionary:
+Please note that
 
-improve error message:
-Table TEST not found. Possible reasons: typo; the table is in another database or schema; case mismatch (use double quotes) [42S02-46]
+timer test
 
+PostgreSQL:
+--SET search_path = public, pg_catalog;
+--id serial NOT NULL,
+
+Mail http://sf.net/projects/samooha
+
+java.lang.Exception: query was too quick; result: 0 time:968
+        at org.h2.test.TestBase.logError(TestBase.java:220)
+        at org.h2.test.db.TestCases$1.run(TestCases.java:170)
+        at java.lang.Thread.run(Thread.java:595)
+        
 h2\src\docsrc\html\images\SQLInjection.txt
-
-document rws / rwd
-
-christmas lights tests
 
 D:\pictures\2007-email
 
@@ -115,23 +130,6 @@ MySQL, PostgreSQL
 
 http://semmle.com/
 try out, find bugs
-
-Session sess1 = DBConnection.openSession();
-//Wenn Die Transaction erst nach sess2.close() gestartet wird, dann funktioniert es
-Transaction t = sess1.beginTransaction();
-Session sess2 = DBConnection.openSession();
-//Wenn um den query eine Transaction gelegt wird, funktioniert es auch
-// Transaction t2 = sess2.beginTransaction(); 
-System.out.println("Number of animals " + sess2.createCriteria(Animal.class).list().size());
-// t2.commit();
-sess2.close();
-Animal a = new Animal();
-sess1.save(a);
-sess1.flush();
-t.commit();
-sess1.close();
-download/trace*.log
-
 
 Mail P2P 
 
@@ -174,7 +172,8 @@ I will add this to the todo list.
 
 Docs: Fix Quickstart
 
-Dave Brewster (dbrewster at guidewire dot com): currency: Add a setting to allow BigDecimal extensions
+Dave Brewster (dbrewster at guidewire dot com): currency: 
+Add a setting to allow BigDecimal extensions
 
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 
@@ -195,6 +194,8 @@ CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
     [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
     [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
 http://db.apache.org/ddlutils/ (write a H2 driver)   
+
+ant docs doesn't work
 */        
 
 /*
@@ -365,6 +366,8 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
                 new TestMulti().runTest(test);
             } else if("halt".equals(args[0])) {
                 new TestHaltApp().runTest(test);
+            } else if("timer".equals(args[0])) {
+                new TestTimer().runTest(test);
             }
         } else {
             test.runTests();
@@ -389,8 +392,6 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 //        new TestSpeed().runTest(this);
 //        new TestSpeed().runTest(this);
 //        new TestSpeed().runTest(this);
-
-
 
 //        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = diskUndo = false;
 //        traceLevelFile = throttle = 0;

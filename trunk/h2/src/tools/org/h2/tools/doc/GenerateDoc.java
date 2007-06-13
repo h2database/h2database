@@ -17,7 +17,6 @@ import java.util.HashMap;
 
 import org.h2.bnf.Bnf;
 import org.h2.server.web.PageParser;
-import org.h2.tools.indexer.Indexer;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -35,6 +34,7 @@ public class GenerateDoc {
     Bnf bnf;
 
     void run(String[] args) throws Exception {
+        System.out.println(getClass().getName());
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-in")) {
                 inDir = args[++i];
@@ -42,13 +42,10 @@ public class GenerateDoc {
                 outDir = args[++i];
             }
         }
-        
         Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:.");
+        conn = DriverManager.getConnection("jdbc:h2:mem:");
         new File(outDir).mkdirs();
-        
         bnf = Bnf.getInstance(null);
-
         map("commands", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Commands%' ORDER BY ID");
         map("commandsDML", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DML)' ORDER BY ID");
         map("commandsDDL", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DDL)' ORDER BY ID");
@@ -61,14 +58,10 @@ public class GenerateDoc {
         map("functionsSystem", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (System)' ORDER BY ID");
         map("functionsAll", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
         map("dataTypes", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Data Types%' ORDER BY SECTION, ID");
-        
         process("grammar");
         process("functions");
         process("datatypes");
-        
         conn.close();
-        
-        Indexer.main(new String[0]);
     }
     
     void process(String fileName) throws Exception {

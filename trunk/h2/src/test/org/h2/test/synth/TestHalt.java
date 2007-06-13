@@ -34,7 +34,8 @@ public abstract class TestHalt extends TestBase {
     private int errorId;
     private int sequenceId;
     private static final String DATABASE_NAME = "halt";
-    private static final String TRACE_FILE_NAME = BASE_DIR + "/haltTrace.trace.db";
+    static final String DIR = "dataHalt";
+    private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
     
     abstract void testInit() throws Exception;
     abstract void testCheckAfterCrash() throws Exception;
@@ -106,7 +107,9 @@ public abstract class TestHalt extends TestBase {
     protected void trace(String s, Exception e) {
         FileWriter writer = null;
         try {
-            writer = new FileWriter(TRACE_FILE_NAME, true);
+            File f = new File(BASE_DIR + "/" + TRACE_FILE_NAME);
+            f.getParentFile().mkdirs();
+            writer = new FileWriter(f, true);
             PrintWriter w = new PrintWriter(writer);
             s = dateFormat.format(new Date()) + ": " + s;
             w.println(s);
@@ -123,7 +126,7 @@ public abstract class TestHalt extends TestBase {
     private void runTest() throws Exception {
         traceOperation("delete database -----------------------------");
         DeleteDbFiles.execute(BASE_DIR, DATABASE_NAME, true);
-        new File(TRACE_FILE_NAME).delete();
+        new File(BASE_DIR + "/" + TRACE_FILE_NAME).delete();
         
         connect();
         testInit();
@@ -148,7 +151,7 @@ public abstract class TestHalt extends TestBase {
             catcher.start();
             String s = catcher.readLine(5000);
             if(s == null) {
-                throw new IOException("No reply from process");
+                throw new IOException("No reply from process, command: " + command);
             } else if(s.startsWith("READY")) {
                 traceOperation("got reply: " + s);
             }
@@ -296,7 +299,7 @@ public abstract class TestHalt extends TestBase {
     
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        BASE_DIR = "dataHalt";
+        BASE_DIR = DIR;
         return this;
     }
 

@@ -166,7 +166,7 @@ public class RandomGen {
         buff.append('-');
         buff.append(getInt(12) + 1);
         buff.append('-');
-        buff.append(getInt(29) + 1);
+        buff.append(getInt(28) + 1);
         buff.append(' ');
         buff.append(getInt(24));
         buff.append(':');

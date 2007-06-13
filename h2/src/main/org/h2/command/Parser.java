@@ -3443,10 +3443,10 @@ public class Parser {
         } else if(readIf("DB_CLOSE_ON_EXIT")) {
             read();
             return new NoOperation(session);
-        } else if(readIf("WRITE_MODE_LOG")) {
+        } else if(readIf("ACCESS_MODE_LOG")) {
             read();
             return new NoOperation(session);
-        } else if(readIf("WRITE_MODE_DATA")) {
+        } else if(readIf("ACCESS_MODE_DATA")) {
             read();
             return new NoOperation(session);
         } else if(readIf("RECOVER")) {

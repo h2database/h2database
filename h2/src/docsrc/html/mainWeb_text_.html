@@ -106,19 +106,21 @@ Welcome to H2, the free SQL database. The main feature of H2 are:
         <tr><td style="border: 0px; background-color: #eee;">
             <h3>News</h3>
             <p>
-            <b>Email Subscription</b>: If you like to get informed by email about new releases, <br />
-            subscribe here. The email addresses of members are only used in this context.<br />
-            Usually, only one mail every few weeks will be sent.
-            </p>
-            <form name="newsletter" method="post" action="php/newsletter.php">
-            Email: <input type="email" name="email" size="30" onKeyDown="newsletter.spam.value='false';"/>
-            <input type="hidden" name="spam" value="true" size="30"/>
-            <input type="hidden" name="text" value="subscribe"/>
-            <input type="submit" value="Submit"/>
-            <br /><br />
             <b>Newsfeeds:</b> Two are available: 
             <a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">Full text (Atom)</a>
             and <a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">Header only (RSS)</a>.
+            </p>
+            <form name="newsletter" method="post" action="php/newsletter.php">
+                <b>Email Newsletter</b>: Subscribe to 
+                <a href="http://groups.google.com/group/h2database-news/subscribe">
+                H2 Database News (Google account required)</a><br />
+                to get informed about new releases. 
+                Your email address is only used in this context.<br />
+                If you don't want a Google account, there is a manually maintained list as well:  <br />
+                Email: <input type="email" name="email" size="30" onKeyDown="newsletter.spam.value='false';"/>
+                    <input type="hidden" name="spam" value="true" size="30"/>
+                    <input type="hidden" name="text" value="subscribe"/>
+                    <input type="submit" value="Submit"/>
             </form>
         </td></tr>
     </table>

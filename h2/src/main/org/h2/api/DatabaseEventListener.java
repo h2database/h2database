@@ -27,7 +27,11 @@ public interface DatabaseEventListener extends EventListener {
     void init(String url);
 
     /**
-     * This method is called if the disk space is very low.
+     * This method is called if the disk space is very low. 
+     * One strategy is to inform the user and wait for it to clean up disk space.
+     * Another strategy is to send an email to the administrator in this method and
+     * then throw a SQLException. The database should not be accessed from
+     * within this method (even to close it).
      *
      * @param stillAvailable the estimated space that is still available, in bytes
      * @throws SQLException if the operation should be cancelled

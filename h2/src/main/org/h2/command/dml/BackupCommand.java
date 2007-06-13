@@ -88,7 +88,7 @@ public class BackupCommand extends Prepared {
                 log.updateKeepFiles(-1);
             }
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, fileName);
         }
     }
     

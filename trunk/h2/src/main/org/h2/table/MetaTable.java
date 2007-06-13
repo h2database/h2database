@@ -697,6 +697,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
             add(rows, new String[]{"h2.clientTraceDirectory", Constants.CLIENT_TRACE_DIRECTORY});
             add(rows, new String[]{"h2.scriptDirectory", Constants.SCRIPT_DIRECTORY});
+            add(rows, new String[]{"h2.maxFileRetry", "" + Constants.MAX_FILE_RETRY});
             break;
         }
         case TYPE_INFO: {

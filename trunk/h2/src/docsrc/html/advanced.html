@@ -31,8 +31,8 @@ Advanced Topics
     ODBC Driver</a><br />
 <a href="#acid">
     ACID</a><br />
-<a href="#durability">
-    Durability</a><br />  
+<a href="#durability_problems">
+    Durability Problems</a><br />  
 <a href="#using_recover_tool">
     Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
@@ -326,11 +326,11 @@ To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uni
 
 <br /><a name="acid"></a>
 <h2>ACID</h2>
-In the DBMS world, ACID stands for Atomicity, Consistency, Isolation, and Durability.
+In the database world, ACID stands for:
 <ul>
-<li>Atomicity: Transactions must be atomic, that means either all tasks of a transaction are performed, or none.
+<li>Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
 </li><li>Consistency: All operations must comply with the defined constraints.
-</li><li>Isolation: Transactions must be completely isolated from each other.
+</li><li>Isolation: Transactions must be isolated from each other.
 </li><li>Durability: Committed transaction will not be lost.
 </li></ul>
 
@@ -349,67 +349,75 @@ H2 supports the transaction isolation levels 'serializable', 'read committed', a
 
 <h3>Durability</h3>
 This database does not guarantee that all committed transactions survive a power failure.
-Other databases (such as Derby) claim they can guarantee it, in reality they can't.
-Testing shows that all databases sometimes lose transactions on power failure (for details, see Durability below).
+Tests show that all databases sometimes lose transactions on power failure (for details, see below).
 Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. 
 If durability is required for all possible cases of hardware failure, clustering should be used, 
 such as the H2 clustering mode.
 
-<br /><a name="durability"></a>
-<h2>Durability</h2>
+<br /><a name="durability_problems"></a>
+<h2>Durability Problems</h2>
 <p>
 Complete durability means all committed transaction survive a power failure.
-Some databases claim they can guarantee complete durability, but such claims are wrong.
+Some databases claim they can guarantee durability, but such claims are wrong.
 A durability test was run against H2, HSQLDB, PostgreSQL, and Derby.
-All of those databases sometimes lost committed transactions.
-The durability test is included in the H2 download, see org.h2.test.poweroff.Test. 
+All of those databases sometimes lose committed transactions.
+The test is included in the H2 download, see org.h2.test.poweroff.Test. 
 </p>
 
-<h3>Ways to (Not) Achive Durability</h3>
+<h3>Ways to (Not) Achieve Durability</h3>
+<p>
 Making sure that committed transaction are not lost is more complicated than it seems first.
 To guarantee complete durability, a database must ensure that the log record is on the hard drive
 before the commit call returns. To do that, databases use different methods. One 
-is to use the 'synchronous write' option when opening a file. In Java, RandomAccessFile
-supports the opening modes "rws" and "rwd":
+is to use the 'synchronous write' file access mode. In Java, RandomAccessFile
+supports the modes "rws" and "rwd":
 </p>
 <ul>
-<li>rws: Every update to the file's content or metadata is written synchronously to the underlying storage device.
-</li><li>rwd: Every update to the file's content is written synchronously to the underlying storage device. 
-</li>
+<li>rwd: Every update to the file's content is written synchronously to the underlying storage device. 
+</li><li>rws: In addition to rwd, every update to the metadata is written synchronously.</li>
 </ul>
 <p>
-This feature is used by Derby and PostgreSQL.
-When running a test with one of those modes (see org.h2.test.poweroff.TestWrite), around 50 thousand write operations per second are made.
+This feature is used by Derby.
+A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second.
 Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second.
-However, this feature does not force changes to disk, because it does not flush hard drive buffers.
-The test updates the same byte in the file again and again. If the hard drive was able to write at a rate of 50 thousand 
-operations per second, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM
-(revolutions per minute). There are no such hard drives. The hard drive used for the test is slower than 7000 RPM, 
-or about 116 revolutions per second. And because there is an overhead, 
-the maximum write rate must be lower than 116 operations per second.
+This feature does not force changes to disk because it does not flush all buffers.
+The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, 
+then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM
+(revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, 
+or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
 </p>
 <p>
- There is a way to flush hard disk buffers, and therefore force data to disk: calling fsync() in the operating system. 
- In Java, there are two ways to call fsync: 
+Buffers can be flushed by calling the function fsync. There are two ways to do that in Java:
 </p>
 <ul>
-<li>FileDescriptor.sync(). The documentation says that this will force all system buffers to synchronize with the underlying device.
+<li>FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device.
 Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor
 have been written to the physical medium.
 </li><li>FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file
 to be written to the storage device that contains it.
 </li></ul>
 <p>
-By default, the MySQL database uses this feature. When using one of those methods, only around 60 write operations 
+By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations 
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
 Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), 
 data is not always persisted to the hard drive, because most hard drives do not obey
-fsync(): see 'Your Hard Drive Lies to You' http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252&tid=198&tid=128. 
+fsync(): see 'Your Hard Drive Lies to You' at http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252.
+In Mac OS X fsync does not flush hard drive buffers:
+http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html.
+So the situation is confusing, and tests prove there is a problem.
 </p>
 <p>
-Currently, the only way to achieve complete durability is disabling the write cache of the operating system,
-using a hard drive that actually obeys the fsync() method, and using the methods FileDescriptor.sync() 
-or FileChannel.force(). The maximum number of transactions is then around 60 per second.
+Trying to flush hard drive buffers hard, and if you do the performance is very bad.
+First you need to make sure that the hard drive actually flushes all buffers.
+Tests show that this can not be done in a reliable way.
+Then the maximum number of transactions is around 60 per second.
+Because of those reasons, the default behavior of H2 is to delay writing committed transactions.
+</p>
+<p>
+In H2, after a power failure, a bit more than one second of committed transactions may be lost.
+To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC.
+Most other databases support commit delay as well. 
+In the performance comparison, commit delay was used for all databases that support it.
 </p>
 
 <h3>Running the Durability Test</h3>
@@ -420,11 +428,10 @@ The computer with the listener application opens a TCP/IP port and listens for a
 The second computer first connects to the listener, and then created the databases and starts inserting
 records. The connection is set to 'autocommit', which means after each inserted record a commit is performed
 automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully.
-The listener computer displays the last inserted record number every 10 seconds. Now, the power needs
-to be switched off manually while the test is running. Then restart the computer, and
-run the application again. You will find out that in most cases, none of the databases contains all the
-records that the listener computer knows about. For details, please consult the source code of the
-listener and test application.
+The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power 
+manually, then restart the computer, and run the application again. You will find out that in most cases, 
+none of the databases contains all the records that the listener computer knows about. For details, please 
+consult the source code of the listener and test application.
 
 <br /><a name="using_recover_tool"></a>
 <h2>Using the Recover Tool</h2>

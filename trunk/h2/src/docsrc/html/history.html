@@ -37,24 +37,26 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>After calling SHUTDOWN and closing the connection and a superfluous error message appeared in the trace file. Fixed.
+<li>For most IOExceptions now the file name is included in the error message.
+</li><li>A java.util.Date object is now converted to a TIMESTAMP in the JDBC API. Previously it was converted to a DATE.
+</li><li>After calling SHUTDOWN and closing the connection and a superfluous error message appeared in the trace file. Fixed.
 </li><li>In many situations, views did not use an index if they could have. Fixed. Also the explain plan for views works now.
 </li><li>The table id (important for LOB files) is now included in INFORMATION_SCHEMA.TABLES.
 </li><li>When using DISTINCT, ORDER BY a function works now as long as it is in the column list.
 </li><li>Support for the data type CHAR. The difference to VARCHAR is: trailing spaces are ignored. This 
-	data type is supported for compatibility with other databases and older applications.
+    data type is supported for compatibility with other databases and older applications.
 </li><li>The aggregate function COUNT(...) now returns a long instead of an int.
 </li><li>The 'ordering' of data types was not always correct, for example an operation involving REAL and DOUBLE produced a result of type REAL. Fixed.
 </li><li>CSV tool: If the same instance was used for reading and writing, the tool wrote the column names twice. Fixed.
 </li><li>Compatibility: Support for the data type notation CHARACTER VARYING
 </li><li>Can now ORDER BY -1 (meaning order by first column, descending), and ORDER BY ? (parameterized column number).
 </li><li>Databases with invalid linked tables (for example, because the target database is not accessible) can now be opened. 
-	Old table links don't work however.
+    Old table links don't work however.
 </li><li>There was a small memory leak in the trace module. One object per opened connection was kept in a hash map.
 </li><li>Linked tables can now emit UPDATE statements if 'EMIT UPDATES' is specified in the CREATE LINKED
-	TABLE statement.  So far, updating a row always deleted the old row and then inserted the new row.
+    TABLE statement.  So far, updating a row always deleted the old row and then inserted the new row.
 </li><li>In the last release, the H2 Console opened two connection when logging into a database, 
-	and only closed one connection when logging out. Fixed.
+    and only closed one connection when logging out. Fixed.
 </li><li>New functions LEAST and GREATEST to get the smallest or largest value from a list.
 </li>
 </ul>

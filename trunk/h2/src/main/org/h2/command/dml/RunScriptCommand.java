@@ -40,7 +40,7 @@ public class RunScriptCommand extends ScriptBase {
             }
             reader.close();
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         } finally {
             closeIO();
         }

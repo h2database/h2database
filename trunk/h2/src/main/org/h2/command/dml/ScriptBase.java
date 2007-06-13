@@ -97,7 +97,7 @@ public class ScriptBase extends Prepared implements DataHandler {
             try {
                 outStream = FileUtils.openFileOutputStream(new File(fileName));
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, fileName);
             }
             out = new BufferedOutputStream(outStream, Constants.IO_BUFFER_SIZE);
             out = CompressTool.wrapOutputStream(out, compressionAlgorithm, Constants.SCRIPT_SQL);
@@ -115,7 +115,7 @@ public class ScriptBase extends Prepared implements DataHandler {
             try {
                 inStream = new FileInputStream(fileName);
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, fileName);
             }
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, Constants.SCRIPT_SQL);

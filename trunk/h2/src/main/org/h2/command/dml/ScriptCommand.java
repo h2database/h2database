@@ -282,7 +282,7 @@ public class ScriptCommand extends ScriptBase {
             }            
             closeIO();
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, fileName);
         } finally {
             closeIO();
         }

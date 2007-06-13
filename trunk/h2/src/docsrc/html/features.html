@@ -34,6 +34,8 @@ Features
     Closing the Database</a><br />
 <a href="#log_index_changes">
     Log Index Changes</a><br />
+<a href="#custom_access_mode">
+    Custom File Access Mode</a><br />
 <a href="#multiple_connections">
     Multiple Connections</a><br />
 <a href="#database_file_layout">
@@ -436,6 +438,12 @@ This is achieved using different database URLs. The settings in the URLs are not
   </td>
 </tr>
 <tr>
+  <td>Custom File Access Mode</td>
+  <td>
+    jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
+  </td>
+</tr>
+<tr>
   <td>Changing Other Settings</td>
   <td>
     jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
@@ -596,6 +604,20 @@ Adding <code>setting=value</code> at the end of an URL is the
 same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of settings supported by this database please see the
 SQL grammar documentation.
+
+<br /><a name="custom_access_mode"></a>
+<h2>Custom File Access Mode</h2>
+Usually, the database opens log, data and index files with the access mode 'rw', meaning
+read-write (except for read only databases, where the mode 'r' is used).
+Also supported are 'rws' and 'rwd'.
+The access mode used for log files is set via ACCESS_MODE_LOG; for
+data and index files use ACCESS_MODE_DATA.
+These settings must be specified in the database URL:
+<pre>
+String url = "jdbc:h2:test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
+</pre>
+For more information see <a href="advanced.html#durability_problems">Durability Problems</a>.
+On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
 
 <br /><a name="multiple_connections"></a>
 <h2>Multiple Connections</h2>

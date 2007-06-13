@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 import org.h2.test.TestBase;
@@ -27,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
         
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testDate(conn);
         testArray(conn);
         testUUIDGeneratedKeys(conn);
         testSetObject(conn);
@@ -93,6 +95,16 @@ public class TestPreparedStatement extends TestBase {
         check(((Integer)o).intValue(), 103);
         checkFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testDate(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Timestamp ts = Timestamp.valueOf("2001-02-03 04:05:06");
+        prep.setObject(1, new java.util.Date(ts.getTime()));
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Timestamp ts2 = rs.getTimestamp(1);
+        check(ts.toString(), ts2.toString());
     }
 
     private void testPreparedSubquery(Connection conn) throws Exception {
@@ -457,7 +469,7 @@ public class TestPreparedStatement extends TestBase {
         check(rs.getObject(11).toString(), "04:05:06");
         check(rs.getObject(11).equals(java.sql.Time.valueOf("04:05:06")));
         check(rs.getObject(12).equals(java.sql.Timestamp.valueOf("2001-02-03 04:05:06.123456789")));
-        check(rs.getObject(13).equals(java.sql.Date.valueOf("2001-02-03")));
+        check(rs.getObject(13).equals(java.sql.Timestamp.valueOf("2001-02-03 00:00:00")));
         check((byte[])rs.getObject(14), new byte[]{10, 20, 30});
         check(rs.getObject(15).equals(new Character('a')));
         check(rs.getObject(16).equals(java.sql.Date.valueOf("2001-01-02")));

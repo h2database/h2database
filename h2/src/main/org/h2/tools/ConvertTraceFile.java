@@ -61,7 +61,7 @@ public class ConvertTraceFile {
         try {
             convertFile(traceFile, javaClass, script);
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, traceFile);
         }
     }
     

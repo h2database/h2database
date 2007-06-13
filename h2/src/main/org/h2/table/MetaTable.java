@@ -726,8 +726,9 @@ public class MetaTable extends Table {
             break;
         }
         case HELP: {
+            String resource = "/org/h2/res/help.csv";
             try {
-                byte[] data = Resources.get("/org/h2/res/help.csv");
+                byte[] data = Resources.get(resource);
                 Reader reader = new InputStreamReader(new ByteArrayInputStream(data));
                 ResultSet rs = Csv.getInstance().read(reader, null);
                 for(int i=0; rs.next(); i++) {
@@ -741,7 +742,7 @@ public class MetaTable extends Table {
                     });
                 }
             } catch (IOException e) {
-                throw Message.convert(e);
+                throw Message.convertIOException(e, resource);
             }
             break;
         }

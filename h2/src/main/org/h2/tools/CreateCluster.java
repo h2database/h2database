@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.message.Message;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -87,17 +86,20 @@ public class CreateCluster {
         Statement stat = null;
         try {
             org.h2.Driver.load();
-            
-            
             // use cluster='' so connecting is possible even if the cluster is enabled
             conn = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
             conn.close();
+            boolean exists;
             try {
                 conn = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE", user, password);
                 conn.close();
-                throw new Exception("Target database must not yet exist. Please delete it first");
+                exists = true;
             } catch(SQLException e) {
                 // database does not exists - ok
+                exists = false;
+            }
+            if(exists) {
+                throw new SQLException("Target database must not yet exist. Please delete it first");
             }
             
             // TODO cluster: need to open the database in exclusive mode, so that other applications
@@ -116,8 +118,6 @@ public class CreateCluster {
             conn = DriverManager.getConnection(urlTarget, user, password);
             stat = conn.createStatement();
             stat.executeUpdate("SET CLUSTER '" + serverlist + "'");
-        } catch(Exception e) {
-            throw Message.convert(e);
         } finally {
             JdbcUtils.closeSilently(conn);
             JdbcUtils.closeSilently(stat);

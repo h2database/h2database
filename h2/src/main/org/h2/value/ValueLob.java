@@ -134,7 +134,7 @@ public class ValueLob extends Value {
             lob.createFromReader(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -172,7 +172,7 @@ public class ValueLob extends Value {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -267,7 +267,7 @@ public class ValueLob extends Value {
             lob.createFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -317,7 +317,7 @@ public class ValueLob extends Value {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -434,7 +434,7 @@ public class ValueLob extends Value {
                 return ByteUtils.convertBytesToString(buff);
             }
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, fileName);
         }
     }
 
@@ -450,16 +450,21 @@ public class ValueLob extends Value {
         try {
             return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, fileName);
         }
     }
 
     public int hashCode() {
         if (hash == 0) {
-            try {
-                hash = ByteUtils.getByteArrayHash(getBytes());
-            } catch(SQLException e) {
-                // TODO hash code for lob: should not ignore exception
+            if(precision > 4096) {
+                int todoTestThis;
+                return (int)(precision ^ (precision >> 32));
+            } else {
+                try {
+                    hash = ByteUtils.getByteArrayHash(getBytes());
+                } catch(SQLException e) {
+                    // TODO hash code for lob: should not ignore exception
+                }
             }
         }
         return hash;

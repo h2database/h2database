@@ -15,6 +15,8 @@ public class RandomUtils {
     static {
         try {
             secureRandom = SecureRandom.getInstance("SHA1PRNG");
+            byte[] seed = secureRandom.generateSeed(64);
+            secureRandom.setSeed(seed);
             random = new Random(secureRandom.nextLong());
         } catch (NoSuchAlgorithmException e) {
             // random is null if the algorithm is not found

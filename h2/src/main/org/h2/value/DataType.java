@@ -613,7 +613,7 @@ public class DataType {
         } else if(x instanceof Timestamp) {
             return ValueTimestamp.get((Timestamp)x);
         } else if(x instanceof java.util.Date) {
-            return ValueDate.get(new Date(((java.util.Date)x).getTime()));
+            return ValueTimestamp.get(new Timestamp(((java.util.Date)x).getTime()));
         } else if(x instanceof java.io.Reader) {
             return ValueLob.createClob((java.io.Reader)x, -1, session.getDataHandler());
         } else if(x instanceof java.sql.Clob) {

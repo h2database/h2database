@@ -177,7 +177,7 @@ public class ChangePassword {
             in.close();
             out.close();
         } catch(IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
         FileUtils.delete(fileName);
         FileUtils.rename(temp, fileName);

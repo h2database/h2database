@@ -25,7 +25,7 @@ public class ScriptReader {
         try {
             return reader.read();
         } catch (IOException e) {
-            throw Message.convert(e);
+            throw Message.convertIOException(e, null);
         }
     }
     

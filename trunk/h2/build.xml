@@ -118,7 +118,6 @@
 	</target>
 
 	<target name="docs" depends="clean,javadoc,compile">
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="**/*"/>
 		<copy todir="docs">
 			<fileset dir="src/docsrc" includes="index.html"/>
 			<fileset dir="src/docsrc" includes="html/*" excludes="**/*.jsp" />

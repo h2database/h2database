@@ -93,13 +93,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();       
 
-        
-        int testing;
-        Constants.MAX_FILE_RETRY = 1;
 /*
  
-MAX_FILE_RETRY to information.schema.settings
-
 Before you ask support:
 Query is slow
 - Run ANALYSE (see documentation for details)

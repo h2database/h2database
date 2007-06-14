@@ -456,15 +456,14 @@ public class ValueLob extends Value {
 
     public int hashCode() {
         if (hash == 0) {
-            if(precision > 4096) {
-                int todoTestThis;
-                return (int)(precision ^ (precision >> 32));
-            } else {
-                try {
-                    hash = ByteUtils.getByteArrayHash(getBytes());
-                } catch(SQLException e) {
-                    // TODO hash code for lob: should not ignore exception
-                }
+            int todo;
+//            if(precision > 4096) {
+//                return (int)(precision ^ (precision >> 32));
+//            }
+            try {
+                hash = ByteUtils.getByteArrayHash(getBytes());
+            } catch(SQLException e) {
+                // TODO hash code for lob: should not ignore exception
             }
         }
         return hash;

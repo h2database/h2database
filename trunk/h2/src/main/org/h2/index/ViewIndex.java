@@ -254,7 +254,7 @@ public class ViewIndex extends Index {
         }
         LocalResult result = q2.query(0);
         
-        int testing2;
+        int test;
 //        query.setSession(session);
 //        LocalResult result = query.query(0);
         

@@ -8,6 +8,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -29,7 +30,7 @@ public class Csv implements SimpleRowSource {
     private String fileName;
     private InputStream in;
     private Reader reader;
-    private FileOutputStream out;
+    private OutputStream out;
     private PrintWriter writer;
     private int back;
     private boolean endOfLine, endOfFile;
@@ -43,20 +44,10 @@ public class Csv implements SimpleRowSource {
         return new Csv();
     }    
     
-    /**
-     * Writes the result set to a file in the CSV format.
-     * @param fileName
-     * @param rs the result set
-     * @param charset the charset or null to use UTF-8
-     * @return the number of rows written
-     * @throws SQLException
-     */
-    public int write(String fileName, ResultSet rs, String charset) throws SQLException {
-        ResultSetMetaData meta = rs.getMetaData();
-        init(fileName, charset);
-        int rows = 0;
+    private int writeResultSet(ResultSet rs) throws SQLException {
         try {
-            initWrite();
+            ResultSetMetaData meta = rs.getMetaData();
+            int rows = 0;
             int columnCount = meta.getColumnCount();
             String[] row = new String[columnCount];
             for(int i=0; i<columnCount; i++) {
@@ -71,11 +62,39 @@ public class Csv implements SimpleRowSource {
                 rows++;
             }
             return rows;
-        } catch(IOException e) {
-            throw convertException("IOException writing file " + fileName, e);
         } finally {
             close();
             JdbcUtils.closeSilently(rs);
+        }
+    }
+    
+    /**
+     * Writes the result set to a file in the CSV format.
+     * @param writer the writer
+     * @param rs the result set
+     * @return the number of rows written
+     * @throws SQLException, IOException
+     */
+    public int write(Writer writer, ResultSet rs) throws SQLException, IOException {
+        this.writer = new PrintWriter(writer);
+        return writeResultSet(rs);
+    }
+    
+    /**
+     * Writes the result set to a file in the CSV format.
+     * @param fileName the name of the csv file
+     * @param rs the result set
+     * @param charset the charset or null to use UTF-8
+     * @return the number of rows written
+     * @throws SQLException
+     */
+    public int write(String fileName, ResultSet rs, String charset) throws SQLException {
+        init(fileName, charset);
+        try {
+            initWrite();
+            return writeResultSet(rs);
+        } catch(IOException e) {
+            throw convertException("IOException writing " + fileName, e);
         }
     }
     
@@ -112,16 +131,9 @@ public class Csv implements SimpleRowSource {
     public ResultSet read(String fileName, String[] colNames, String charset) throws SQLException {
         init(fileName, charset);
         try {
-            columnNames = colNames;
-            initRead();
-            SimpleResultSet result = new SimpleResultSet(this);
-            makeColumnNamesUnique();
-            for(int i=0; i<columnNames.length; i++) {
-                result.addColumn(columnNames[i], Types.VARCHAR, 255, 0);
-            }
-            return result;
+            return readResultSet(colNames);
         } catch(IOException e) {
-            throw convertException("IOException reading file " + fileName, e);
+            throw convertException("IOException reading " + fileName, e);
         }
     }
     
@@ -134,23 +146,23 @@ public class Csv implements SimpleRowSource {
      * @param reader the reader
      * @param colNames or null if the column names should be read from the CSV file
      * @return the result set
-     * @throws SQLException
+     * @throws SQLException, IOException
      */
-    public ResultSet read(Reader reader, String[] colNames) throws SQLException {
+    public ResultSet read(Reader reader, String[] colNames) throws SQLException, IOException {
         init(null, null);
-        try {
-            this.columnNames = colNames;
-            this.reader = reader;
-            initRead();
-            SimpleResultSet result = new SimpleResultSet(this);
-            makeColumnNamesUnique();
-            for(int i=0; i<columnNames.length; i++) {
-                result.addColumn(columnNames[i], Types.VARCHAR, 255, 0);
-            }
-            return result;
-        } catch(IOException e) {
-            throw convertException("IOException", e);
+        this.reader = reader;
+        return readResultSet(colNames);
+    }
+    
+    private ResultSet readResultSet(String[] colNames) throws SQLException, IOException {
+        this.columnNames = colNames;
+        initRead();
+        SimpleResultSet result = new SimpleResultSet(this);
+        makeColumnNamesUnique();
+        for(int i=0; i<columnNames.length; i++) {
+            result.addColumn(columnNames[i], Types.VARCHAR, 255, 0);
         }
+        return result;
     }
     
     private void makeColumnNamesUnique() {
@@ -243,7 +255,7 @@ public class Csv implements SimpleRowSource {
     private void initRead() throws IOException {
         if(reader == null) {
             try {
-                in = new FileInputStream(fileName);
+                in = FileUtils.openFileInputStream(fileName);
                 BufferedInputStream i = new BufferedInputStream(in, bufferSize);
                 reader = new InputStreamReader(i, charset);
                 // TODO what is faster, 1, 2, 1+2

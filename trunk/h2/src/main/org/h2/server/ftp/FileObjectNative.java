@@ -5,18 +5,19 @@
 package org.h2.server.ftp;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.SQLException;
 
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 
 public class FileObjectNative implements FileObject {
     private File file;
     
     static FileObjectNative get(String name) {
+        name = FileUtils.translateFileName(name);
         return new FileObjectNative(new File(name));
     }
     
@@ -78,12 +79,16 @@ public class FileObjectNative implements FileObject {
     }
 
     public void write(InputStream in) throws IOException {
-        FileOutputStream out = new FileOutputStream(file);
-        IOUtils.copyAndClose(in, out);
+        try {
+            OutputStream out = FileUtils.openFileOutputStream(file.getAbsolutePath());
+            IOUtils.copyAndClose(in, out);
+        } catch(SQLException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
     public void read(long skip, OutputStream out) throws IOException {
-        InputStream in = new FileInputStream(file);
+        InputStream in = FileUtils.openFileInputStream(file.getAbsolutePath());
         IOUtils.skipFully(in, skip);
         IOUtils.copyAndClose(in, out);
     }

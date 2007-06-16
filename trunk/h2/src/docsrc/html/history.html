@@ -37,7 +37,24 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>In INSERT and MERGE statements, each column may only be specified once now.
+<li>File names starting with ~ are now in the user directory (Java system property user.home)
+</li><li>New Console starter application uses the JDK 1.6 system tray functionality if available,
+	or a simple AWT frame for other platforms. To try it out, execute
+	java org.h2.tools.Console. Feedback is welcome. 
+	This console starter application is not the default yet, 
+	but the plan is to remove the SysTray tool in the future.
+</li><li>New method Csv.write(Writer writer, ResultSet rs)
+</li><li>If a Reader or InputStream of a LOB is not closed, the LOB can not be deleted (embedded mode only). 
+	The exception is typically 'Error while renaming file'). As a workaround, set the system property 
+	'h2.lobCloseBetweenReads' to true to close the LOB files between read operations. 
+	However this slows down reading.
+</li><li>Server mode: the server stack trace was included in SQLException messages. Fixed.
+</li><li>Views support has been partially re-implemented. Views are up to 6 times faster. 
+	Compared to regular queries, only 20% overhead. Because this is a bigger change,
+	it is not enabled by default. To enable it, set the system property 'h2.indexNew' to true
+	(java -Dh2.indexNew=true ..., or in source code Constants.INDEX_NEW = true).
+	If no problems are found, this will be enabled by default in the next release.
+</li><li>In INSERT and MERGE statements, each column may only be specified once now.
 </li><li>For most IOExceptions now the file name is included in the error message.
 </li><li>A java.util.Date object is now converted to a TIMESTAMP in the JDBC API. Previously it was converted to a DATE.
 </li><li>After calling SHUTDOWN and closing the connection and a superfluous error message appeared in the trace file. Fixed.
@@ -1312,7 +1329,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Clustering: recovery needs to becomes fully automatic.
 </li><li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
-</li><li>Support home directory as ~ in database URL (jdbc:h2:file:~/.dir/db)
 </li><li>Better space re-use in the files after deleting data (shrink the files)
 </li><li>Max memory rows / max undo log size: use block count / row size not row count
 </li><li>Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)

@@ -8,11 +8,13 @@ import java.sql.SQLException;
 
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
+import org.h2.index.ViewIndexNew;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -26,7 +28,8 @@ public class TableView extends Table {
     private ObjectArray tables;
     private String[] columnNames;
     private Query viewQuery;
-    private ViewIndex index;
+    private ViewIndex indexOld;
+    private ViewIndexNew indexNew;
     private boolean recursive;
     private SQLException createException; 
 
@@ -35,7 +38,12 @@ public class TableView extends Table {
         this.querySQL = querySQL;
         this.columnNames = columnNames;
         this.recursive = recursive;
-        index = new ViewIndex(this, querySQL, params, recursive);
+        int todoRemoveIndexOld;
+        if(Constants.INDEX_NEW) {
+            indexNew = new ViewIndexNew(this, querySQL, params, recursive);
+        } else {
+            indexOld = new ViewIndex(this, querySQL, params, recursive);
+        }
         initColumnsAndTables(session);
     }
 
@@ -87,7 +95,11 @@ public class TableView extends Table {
                 for(int i=0; i<columnNames.length; i++) {
                     cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
                 }
-                index.setRecursive(true);
+                if(Constants.INDEX_NEW) {
+                    indexNew.setRecursive(true);
+                } else {
+                    indexOld.setRecursive(true);
+                }
                 recursive = true;
                 createException = null;
             }
@@ -102,15 +114,15 @@ public class TableView extends Table {
 
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks);
-        
-        Index i2 = new ViewIndex(this, index, session, masks);
+        Index i2;
+        if(Constants.INDEX_NEW) {
+            item.cost = indexNew.getCost(session, masks);
+            i2 = new ViewIndexNew(this, indexNew, session, masks);
+        } else {
+            item.cost = indexOld.getCost(session, masks);
+            i2 = new ViewIndex(this, indexOld, session, masks);
+        }
         item.setIndex(i2);
-
-        int testing;
-//        item.setIndex(index);
-        
-        
         return item;
     }
     
@@ -204,7 +216,8 @@ public class TableView extends Table {
         removeViewFromTables();
         super.removeChildrenAndResources(session);
         querySQL = null;
-        index = null;
+        indexNew = null;
+        indexOld = null;
         invalidate();
     }
     

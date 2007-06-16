@@ -4,7 +4,6 @@
  */
 package org.h2.store;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.ref.Reference;
@@ -31,6 +30,7 @@ public class FileStore {
     private Reference autoDeleteReference;
     private boolean checkedWriting = true;
     private boolean synchronousMode;
+    private String mode;
 
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         return open(handler, name, mode, magic, null, null, 0);
@@ -56,16 +56,17 @@ public class FileStore {
         this.handler = handler;
         this.name = name;
         this.magic = magic;
+        this.mode = mode;
         try {
             FileUtils.createDirs(name);
-            File f = new File(name);
-            if(f.exists() && !f.canWrite()) {
-                file = FileUtils.openRandomAccessFile(name, "r");
-            } else {
-                file = FileUtils.openRandomAccessFile(name, mode);
-                if(mode.length() > 2) {
-                    synchronousMode = true;
-                }
+//            File f = new File(name);
+            if(FileUtils.exists(name) && !FileUtils.canWrite(name)) {
+                mode = "r";
+                this.mode = mode;
+            }
+            file = FileUtils.openRandomAccessFile(name, mode);
+            if(mode.length() > 2) {
+                synchronousMode = true;
             }
             fileLength = file.length();
         } catch(IOException e) {
@@ -324,6 +325,18 @@ public class FileStore {
 
     public boolean isEncrypted() {
         return false;
+    }
+    
+    public void closeFile() throws IOException {
+        file.close();
+        file = null;
+    }
+
+    public void openFile() throws IOException {
+        if(file == null) {
+            file = FileUtils.openRandomAccessFile(name, mode);
+            file.seek(filePos);
+        }
     }
 
 }

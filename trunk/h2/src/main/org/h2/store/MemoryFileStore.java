@@ -4,6 +4,7 @@
  */
 package org.h2.store;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 import org.h2.util.FileUtils;
@@ -49,6 +50,12 @@ public class MemoryFileStore extends FileStore {
     public void write(byte[] b, int off, int len) throws SQLException {
         checkPowerOff();
         memFile.write(b, off, len);
+    }    
+    
+    public void closeFile() throws IOException {
+    }
+
+    public void openFile() throws IOException {
     }    
 
 }

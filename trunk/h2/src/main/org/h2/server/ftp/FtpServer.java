@@ -7,7 +7,6 @@ package org.h2.server.ftp;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +23,7 @@ import java.util.Properties;
 
 import org.h2.engine.Constants;
 import org.h2.server.Service;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -155,7 +155,7 @@ public class FtpServer implements Service {
             if("-ftpPort".equals(args[i])) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if("-ftpDir".equals(args[i])) {
-                root = args[++i];
+                root = FileUtils.translateFileName(args[++i]);
             } else if("-ftpRead".equals(args[i])) {
                 readUserName = args[++i];
             } else if("-ftpWrite".equals(args[i])) {
@@ -273,8 +273,8 @@ public class FtpServer implements Service {
         private void openOutput() {
             if(outFile != null) {
                 try {
-                    this.out = new FileOutputStream(outFile);
-                } catch(IOException e) {
+                    this.out = FileUtils.openFileOutputStream(outFile);
+                } catch(Exception e) {
                     // ignore
                 }
                 outFile = null;

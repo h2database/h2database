@@ -7,7 +7,6 @@ package org.h2.test.db;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
@@ -36,7 +35,6 @@ public class TestCsv extends TestBase {
         checkFalse(rs.next());
         new File(BASE_DIR+"/test.csv").delete();
         
-        int testing;
 //        PreparedStatement prep = conn.prepareStatement("select * from csvread(?, null, ?, ?)");
 //        prep.setString(1, BASE_DIR+"/test.csv");
 //        prep.setString(2, "utf-8");

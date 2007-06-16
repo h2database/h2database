@@ -4,10 +4,8 @@
  */
 package org.h2.server.web;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,15 +113,15 @@ public class AppServer {
         connInfoMap.remove(name);
     }
 
-    private File getPropertiesFile() {
+    private String getPropertiesFileName() {
         // store the properties in the user directory
         return FileUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
     }
 
     Properties loadProperties() {
-        File file = getPropertiesFile();
+        String fileName = getPropertiesFileName();
         try {
-            return FileUtils.loadProperties(file);
+            return FileUtils.loadProperties(fileName);
         } catch(IOException e) {
             // TODO log exception
             return new Properties();
@@ -194,10 +192,10 @@ public class AppServer {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            FileOutputStream out = new FileOutputStream(getPropertiesFile());
+            OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName());
             prop.store(out, Constants.SERVER_PROPERTIES_TITLE);
             out.close();
-        } catch(IOException e) {
+        } catch(Exception e) {
             TraceSystem.traceThrowable(e);
         }
     }

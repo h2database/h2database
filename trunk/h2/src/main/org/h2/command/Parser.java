@@ -2814,7 +2814,7 @@ public class Parser {
         scale = scale == -1 ? dataType.defaultScale : scale;
         if(dataType.supportsPrecision || dataType.supportsScale) {
             if(readIf("(")) {
-                precision = getPositiveInt();
+                precision = readLong();
                 if(readIf("K")) {
                     precision *= 1024;
                 } else if(readIf("M")) {
@@ -2822,8 +2822,8 @@ public class Parser {
                 } else if(readIf("G")) {
                     precision *= 1024 * 1024 * 1024;
                 }
-                if(precision > Integer.MAX_VALUE) {
-                    precision = Integer.MAX_VALUE;
+                if(precision > Long.MAX_VALUE) {
+                    precision = Long.MAX_VALUE;
                 }
                 original += "(" + precision;
                 // oracle syntax

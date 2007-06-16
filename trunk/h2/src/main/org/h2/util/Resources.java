@@ -62,7 +62,7 @@ public class Resources {
             }
             String name = "/" + packageName.replace('.', '/') + "/res/" + f.getName();
             // System.out.println(name+": "+f.length());
-            FileInputStream in = new FileInputStream(f);
+            InputStream in = new FileInputStream(f);
             byte[] buffer = IOUtils.readBytesAndClose(in, 0);
             String s = ByteUtils.convertToBinString(buffer);
             out.print("        Resources.add(" + StringUtils.quoteJavaString(name) + ", ");

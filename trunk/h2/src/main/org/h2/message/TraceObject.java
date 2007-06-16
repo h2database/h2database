@@ -4,15 +4,16 @@
  */
 package org.h2.message;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.h2.engine.Constants;
+import org.h2.util.FileUtils;
 import org.h2.util.StringUtils;
 
 public class TraceObject {
@@ -183,7 +184,7 @@ public class TraceObject {
             synchronized(this.getClass()) {
                 // e.printStackTrace();
                 try {
-                    FileWriter writer = new FileWriter(Constants.LOG_ALL_ERRORS_FILE,  true);
+                    Writer writer = FileUtils.openFileWriter(Constants.LOG_ALL_ERRORS_FILE,  true);
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

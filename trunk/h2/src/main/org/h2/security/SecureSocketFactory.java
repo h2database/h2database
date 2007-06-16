@@ -13,9 +13,8 @@ import java.sql.SQLException;
 //#ifdef JDK14
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -189,23 +188,24 @@ public class SecureSocketFactory {
     private void setKeystore() throws IOException, SQLException {        
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
-            File file = FileUtils.getFileInUserHome(KEYSTORE);
+            String fileName = FileUtils.getFileInUserHome(KEYSTORE);
             byte[] data = getKeyStoreBytes(getKeyStore(KEYSTORE_PASSWORD), KEYSTORE_PASSWORD);
             boolean needWrite = true;
-            if (file.exists() && file.length() == data.length) {
+            if (FileUtils.exists(fileName) && FileUtils.length(fileName) == data.length) {
                 // don't need to overwrite the file if it did not change
-                FileInputStream fin = new FileInputStream(file);
+                InputStream fin = FileUtils.openFileInputStream(fileName);
                 byte[] now = IOUtils.readBytesAndClose(fin, 0);
                 if (now != null && ByteUtils.compareNotNull(data, now) == 0) {
                     needWrite = false;
                 }
             }
             if (needWrite) {
-                FileOutputStream out = new FileOutputStream(file);
+                OutputStream out = FileUtils.openFileOutputStream(fileName);
                 out.write(data);
                 out.close();
             }
-            System.setProperty(KEYSTORE_KEY, file.getAbsolutePath());
+            String absolutePath = FileUtils.getAbsolutePath(fileName);
+            System.setProperty(KEYSTORE_KEY, absolutePath);
         }
         if (p.getProperty(KEYSTORE_PASSWORD_KEY) == null) {
             System.setProperty(KEYSTORE_PASSWORD_KEY, KEYSTORE_PASSWORD);

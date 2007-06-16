@@ -7,9 +7,11 @@ package org.h2.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Properties;
@@ -34,6 +36,7 @@ public class FileUtils {
     // TODO gcj: use our own UTF-8 encoder
 
     public static RandomAccessFile openRandomAccessFile(String fileName, String mode) throws IOException {
+        fileName = translateFileName(fileName);
         try {
             return new RandomAccessFile(fileName, mode);
         } catch(IOException e) {
@@ -67,6 +70,7 @@ public class FileUtils {
     }
 
     public static FileWriter openFileWriter(String fileName, boolean append) throws IOException {
+        fileName = translateFileName(fileName);
         try {
             return new FileWriter(fileName, append);
         } catch(IOException e) {
@@ -76,6 +80,7 @@ public class FileUtils {
     }
 
     public static boolean fileStartsWith(String fileName, String prefix) {
+        fileName = translateFileName(fileName);
         if(isCaseInsensitiveFileSystem) {
             fileName = StringUtils.toUpperEnglish(fileName);
             prefix = StringUtils.toUpperEnglish(prefix);
@@ -83,13 +88,20 @@ public class FileUtils {
         return fileName.startsWith(prefix);
     }
 
-    public static FileOutputStream openFileOutputStream(File file) throws IOException, SQLException {
+    public static FileInputStream openFileInputStream(String fileName) throws IOException {
+        fileName = translateFileName(fileName);
+        return new FileInputStream(fileName);
+    }
+
+    public static FileOutputStream openFileOutputStream(String fileName) throws IOException, SQLException {
+        fileName = translateFileName(fileName);
         try {
+            File file = new File(fileName);
             FileUtils.createDirs(file.getAbsolutePath());
-            return new FileOutputStream(file);
+            return new FileOutputStream(fileName);
         } catch(IOException e) {
             freeMemoryAndFinalize();
-            return new FileOutputStream(file);
+            return new FileOutputStream(fileName);
         }
     }
 
@@ -108,6 +120,8 @@ public class FileUtils {
     }
 
     public static void rename(String oldName, String newName) throws SQLException {
+        oldName = translateFileName(oldName);
+        newName = translateFileName(newName);
         if(isInMemory(oldName)) {
             MemoryFile f = getMemoryFile(oldName);
             f.setName(newName);
@@ -135,8 +149,10 @@ public class FileUtils {
         throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
     }
 
-    public static synchronized Properties loadProperties(File file) throws IOException {
+    public static synchronized Properties loadProperties(String fileName) throws IOException {
+        fileName = translateFileName(fileName);
         Properties prop = new Properties();
+        File file = new File(fileName);
         if(file.exists()) {
             FileInputStream in = new FileInputStream(file);
             try {
@@ -169,6 +185,7 @@ public class FileUtils {
     }
 
     public static void createDirs(String fileName) throws SQLException {
+        fileName = translateFileName(fileName);
         File f = new File(fileName);
         if(!f.exists()) {
             String parent = f.getParent();
@@ -187,6 +204,7 @@ public class FileUtils {
     }
 
     public static boolean createNewFile(String fileName) throws SQLException {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             if(exists(fileName)) {
                 return false;
@@ -211,6 +229,7 @@ public class FileUtils {
     }
 
     public static void delete(String fileName) throws SQLException {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             memoryFiles.remove(fileName);
             return;
@@ -242,6 +261,7 @@ public class FileUtils {
     }
 
     public static String getFileName(String name) throws SQLException {
+        name = translateFileName(name);
         String separator = System.getProperty("file.separator");
         String path = getParent(name) + separator;
         String fullFileName = normalize(name);
@@ -252,15 +272,17 @@ public class FileUtils {
         return fileName;
     }
 
-    public static File getFileInUserHome(String filename) {
+    public static String getFileInUserHome(String fileName) {
         String userDir = System.getProperty("user.home");
         if(userDir == null) {
-            return new File(filename);
+            return fileName;
         }
-        return new File(userDir, filename);
+        File file = new File(userDir, fileName);
+        return file.getAbsolutePath();
     }
 
     public static String normalize(String fileName) throws SQLException {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             return fileName;
         }
@@ -273,6 +295,7 @@ public class FileUtils {
     }
 
     public static void tryDelete(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             memoryFiles.remove(fileName);
             return;
@@ -281,6 +304,7 @@ public class FileUtils {
     }
 
     public static boolean isReadOnly(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             return false;
         }
@@ -289,6 +313,7 @@ public class FileUtils {
     }
 
     public static boolean exists(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             return memoryFiles.get(fileName) != null;
         }
@@ -305,6 +330,7 @@ public class FileUtils {
     }
 
     public static long length(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             return getMemoryFile(fileName).length();
         }
@@ -316,6 +342,7 @@ public class FileUtils {
     }
 
     public static String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException, SQLException {
+        name = translateFileName(name);
         name += ".";
         if(isInMemory(name)) {
             for(int i=0;; i++) {
@@ -344,6 +371,7 @@ public class FileUtils {
     }
 
     public static String getParent(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             return MEMORY_PREFIX;
         }
@@ -351,6 +379,7 @@ public class FileUtils {
     }
 
     public static String[] listFiles(String path) throws SQLException {
+        path = translateFileName(path);
         if(isInMemory(path)) {
             String[] list = new String[memoryFiles.size()];
             MemoryFile[] l = new MemoryFile[memoryFiles.size()];
@@ -391,6 +420,7 @@ public class FileUtils {
     }
 
     public static boolean isDirectory(String fileName) {
+        fileName = translateFileName(fileName);
         if(isInMemory(fileName)) {
             // TODO inmemory: currently doesn't support directories
             return false;
@@ -399,11 +429,13 @@ public class FileUtils {
     }
 
     public static void copy(String original, String copy) throws SQLException {
+        original = translateFileName(original);
+        copy = translateFileName(copy);
         FileOutputStream out = null;
         FileInputStream in = null;
         try {
-            out = openFileOutputStream(new File(copy));
-            in = new FileInputStream(new File(original));
+            out = openFileOutputStream(copy);
+            in = openFileInputStream(original);
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while(true) {
                 int len = in.read(buffer);
@@ -421,6 +453,7 @@ public class FileUtils {
     }
 
     public static void deleteRecursive(String fileName) throws SQLException {
+        fileName = translateFileName(fileName);        
         if(FileUtils.isDirectory(fileName)) {
             String[] list = FileUtils.listFiles(fileName);
             for(int i=0; list != null && i<list.length; i++) {
@@ -428,6 +461,41 @@ public class FileUtils {
             }
         }
         FileUtils.delete(fileName);
+    }
+
+    public static String translateFileName(String fileName) {
+        if(fileName.startsWith("~")) {
+            String userDir = System.getProperty("user.home");
+            fileName = userDir + fileName.substring(1);
+        }
+        return fileName;
+    }
+
+    public static boolean isAbsolute(String fileName) {
+        fileName = translateFileName(fileName);        
+        File file = new File(fileName);
+        return file.isAbsolute();
+    }
+
+    public static String getAbsolutePath(String fileName) {
+        fileName = translateFileName(fileName);        
+        File parent = new File(fileName).getAbsoluteFile();
+        return parent.getAbsolutePath();    
+    }
+
+    public static long getLastModified(String fileName) {
+        fileName = translateFileName(fileName);     
+        return new File(fileName).lastModified();
+    }
+
+    public static Reader openFileReader(String fileName) throws IOException {
+        fileName = translateFileName(fileName);     
+        return new FileReader(fileName);
+    }
+
+    public static boolean canWrite(String fileName) {
+        fileName = translateFileName(fileName);     
+        return new File(fileName).canWrite();
     }
     
 }

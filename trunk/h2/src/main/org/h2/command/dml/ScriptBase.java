@@ -6,9 +6,6 @@ package org.h2.command.dml;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,8 +31,8 @@ public class ScriptBase extends Prepared implements DataHandler {
     private String cipher;
     private byte[] key;
     private FileStore store;
-    private FileOutputStream outStream;
-    private FileInputStream inStream;
+    private OutputStream outStream;
+    private InputStream inStream;
     protected OutputStream out;
     protected InputStream in;
     protected String fileName;    
@@ -95,7 +92,7 @@ public class ScriptBase extends Prepared implements DataHandler {
             out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
         } else {
             try {
-                outStream = FileUtils.openFileOutputStream(new File(fileName));
+                outStream = FileUtils.openFileOutputStream(fileName);
             } catch (IOException e) {
                 throw Message.convertIOException(e, fileName);
             }
@@ -110,10 +107,10 @@ public class ScriptBase extends Prepared implements DataHandler {
         }
         if(isEncrypted()) {
             initStore();
-            in = new FileStoreInputStream(store, this, compressionAlgorithm != null);
+            in = new FileStoreInputStream(store, this, compressionAlgorithm != null, false);
         } else {
             try {
-                inStream = new FileInputStream(fileName);
+                inStream = FileUtils.openFileInputStream(fileName);
             } catch (IOException e) {
                 throw Message.convertIOException(e, fileName);
             }

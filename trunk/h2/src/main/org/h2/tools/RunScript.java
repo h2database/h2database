@@ -5,8 +5,6 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,6 +20,7 @@ import java.util.Iterator;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.ClassUtils;
+import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
@@ -155,8 +154,8 @@ public class RunScript {
     }
 
     private static void execute(Connection conn, HashMap threadMap, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
-        InputStream in = new FileInputStream(fileName);
-        String path = new File(fileName).getAbsoluteFile().getParent();
+        InputStream in = FileUtils.openFileInputStream(fileName);
+        String path = FileUtils.getParent(fileName);
         try {
             BufferedInputStream bin = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
             InputStreamReader reader = new InputStreamReader(bin, charsetName);
@@ -177,8 +176,8 @@ public class RunScript {
             sql = sql.trim();
             if (sql.startsWith("@") && StringUtils.toUpperEnglish(sql).startsWith("@INCLUDE")) {
                 sql = sql.substring("@INCLUDE".length()).trim();
-                if(!new File(sql).isAbsolute()) {
-                    sql = path + File.separator + sql;
+                if(!FileUtils.isAbsolute(sql)) {
+                    sql = path + "/" + sql;
                 }
                 execute(conn, threadMap, sql, continueOnError, charsetName);
             } else if (MULTI_THREAD && sql.startsWith("/*")) {

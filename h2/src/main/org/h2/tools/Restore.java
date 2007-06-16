@@ -4,16 +4,16 @@
  */
 package org.h2.tools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.h2.message.Message;
 import org.h2.store.FileLister;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 
 /*
@@ -67,10 +67,10 @@ public class Restore {
         Restore.execute(zipFileName, dir, db, quiet);
     }
     
-    private static String getOriginalDbName(File file, String db) throws IOException {
-        FileInputStream in = null;
+    private static String getOriginalDbName(String fileName, String db) throws IOException {
+        InputStream in = null;
         try {        
-            in = new FileInputStream(file);
+            in = FileUtils.openFileInputStream(fileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
@@ -79,9 +79,9 @@ public class Restore {
                 if(entry == null) {
                     break;
                 }
-                String fileName = entry.getName();
+                String entryName = entry.getName();
                 zipIn.closeEntry();
-                String name = FileLister.getDatabaseNameFromFileName(fileName);
+                String name = FileLister.getDatabaseNameFromFileName(entryName);
                 if(name != null) {
                     if(db.equals(name)) {
                         originalDbName = name;
@@ -116,20 +116,19 @@ public class Restore {
      * @throws SQLException
      */    
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        FileInputStream in = null;
+        InputStream in = null;
         try {
-            File file = new File(zipFileName);
-            if(!file.exists()) {
+            if(!FileUtils.exists(zipFileName)) {
                 throw new IOException("File not found: " + zipFileName);
             }
             String originalDbName = null;            
             if(db != null) {
-                originalDbName = getOriginalDbName(file, db);
+                originalDbName = getOriginalDbName(zipFileName, db);
                 if(originalDbName == null) {
                     throw new IOException("No database named " + db + " found");
                 }
             }
-            in = new FileInputStream(file);
+            in = FileUtils.openFileInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             while(true) {
                 ZipEntry entry = zipIn.getNextEntry();
@@ -145,9 +144,9 @@ public class Restore {
                     copy = true;
                 }
                 if(copy) {
-                    FileOutputStream out = null;
+                    OutputStream out = null;
                     try {
-                        out = new FileOutputStream(new File(directory, fileName));
+                        out = FileUtils.openFileOutputStream(directory + "/" + fileName);
                         IOUtils.copy(zipIn, out);
                     } finally {
                         IOUtils.closeSilently(out);

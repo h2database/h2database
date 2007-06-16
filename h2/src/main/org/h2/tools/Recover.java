@@ -8,10 +8,9 @@ import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -274,7 +273,7 @@ public class Recover implements DataHandler {
         fileName = fileName.substring(0, fileName.length()-3);
         String outputFile = fileName + suffix;
         System.out.println("Created file: " + outputFile);
-        return new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+        return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
     }
     
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {
@@ -302,18 +301,18 @@ public class Recover implements DataHandler {
     }
     
     private void dumpLob(String fileName, boolean lobCompression) {
-        FileOutputStream out = null;
+        OutputStream out = null;
         FileStore store = null;
         int size = 0;
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
-            out = new FileOutputStream(n);
+            out = FileUtils.openFileOutputStream(n);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, "r", magic);
             store.init();
-            in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression));
+            in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression, false));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
             while(true) {
                 int l = in.read(buffer);

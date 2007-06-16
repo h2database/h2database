@@ -4,9 +4,8 @@
  */
 package org.h2.store;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.BindException;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -107,16 +106,14 @@ public class FileLock {
 
     void save() throws SQLException {
         try {
-            File file = new File(fileName);
-            // TODO file: delegate to FileUtils
-            FileOutputStream out = FileUtils.openFileOutputStream(file);
+            OutputStream out = FileUtils.openFileOutputStream(fileName);
             try {
                 properties.setProperty("method", String.valueOf(method));
                 properties.store(out, MAGIC);
             } finally {
                 out.close();
             }
-            lastWrite = file.lastModified();
+            lastWrite = FileUtils.getLastModified(fileName);
             trace.debug("save " + properties);
         } catch(IOException e) {
             throw getException(e);
@@ -125,7 +122,7 @@ public class FileLock {
 
     private Properties load() throws SQLException {
         try {
-            Properties p2 = FileUtils.loadProperties(new File(fileName));
+            Properties p2 = FileUtils.loadProperties(fileName);
             trace.debug("load " + p2);
             return p2;
         } catch(IOException e) {
@@ -134,9 +131,8 @@ public class FileLock {
     }
 
     private void waitUntilOld() throws SQLException {
-        File file = new File(fileName);
         for(int i=0; i<10; i++) {
-            long last = file.lastModified();
+            long last = FileUtils.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if(dist < -TIME_GRANULARITY) {
                 throw error("Lock file modified in the future: dist=" + dist);
@@ -185,11 +181,10 @@ public class FileLock {
         Thread watchdog = new Thread(new Runnable() {
             public void run() {
                 try {
-                    File file = new File(fileName);
                     while (fileName != null) {
                         // trace.debug("watchdog check");
                         try {
-                            if (!file.exists() || file.lastModified() != lastWrite) {
+                            if (!FileUtils.exists(fileName) || FileUtils.getLastModified(fileName) != lastWrite) {
                                 save();
                             }
                             Thread.sleep(sleep);
@@ -220,8 +215,7 @@ public class FileLock {
         }
         if (!FileUtils.createNewFile(fileName)) {
             waitUntilOld();
-            File file = new File(fileName);
-            long read = file.lastModified();
+            long read = FileUtils.getLastModified(fileName);
             Properties p2 = load();
             String m2 = p2.getProperty("method", SOCKET);
             if (m2.equals(FILE)) {
@@ -255,7 +249,7 @@ public class FileLock {
                     throw error("IOException");
                 }
             }
-            if (read != file.lastModified()) {
+            if (read != FileUtils.getLastModified(fileName)) {
                 throw error("Concurrent update");
             }
             FileUtils.delete(fileName);

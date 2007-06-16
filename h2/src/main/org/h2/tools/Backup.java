@@ -4,10 +4,9 @@
  */
 package org.h2.tools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
@@ -86,21 +85,21 @@ public class Backup {
             }
             return;
         }
-        File file = new File(zipFileName);
-        if(file.exists()) {
-            file.delete();
+        zipFileName = FileUtils.translateFileName(zipFileName);
+        if(FileUtils.exists(zipFileName)) {
+            FileUtils.delete(zipFileName);
         }
-        FileOutputStream out = null;
+        OutputStream out = null;
         try {
-            out = new FileOutputStream(file);
+            out = FileUtils.openFileOutputStream(zipFileName);
             ZipOutputStream zipOut = new ZipOutputStream(out);
             for(int i=0; i<list.size(); i++) {
                 String fileName = (String) list.get(i);
                 ZipEntry entry = new ZipEntry(FileUtils.getFileName(fileName));
                 zipOut.putNextEntry(entry);
-                FileInputStream in = null;
+                InputStream in = null;
                 try {
-                    in = new FileInputStream(fileName);
+                    in = FileUtils.openFileInputStream(fileName);
                     IOUtils.copyAndCloseInput(in, zipOut);
                 } finally {
                     IOUtils.closeSilently(in);

@@ -3,14 +3,13 @@
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
+import org.h2.util.FileUtils;
 
 /**
  * Convert a trace file to a java class.
@@ -73,9 +72,9 @@ public class ConvertTraceFile {
      * @throws IOException
      */
     private void convertFile(String traceFileName, String javaClassName, String script) throws IOException {
-        LineNumberReader reader = new LineNumberReader(new FileReader(traceFileName));
-        PrintWriter javaWriter = new PrintWriter(new FileWriter(javaClassName + ".java"));
-        PrintWriter scriptWriter = new PrintWriter(new FileWriter(script));
+        LineNumberReader reader = new LineNumberReader(FileUtils.openFileReader(traceFileName));
+        PrintWriter javaWriter = new PrintWriter(FileUtils.openFileWriter(javaClassName + ".java", false));
+        PrintWriter scriptWriter = new PrintWriter(FileUtils.openFileWriter(script, false));
         javaWriter.println("import java.io.*;");
         javaWriter.println("import java.sql.*;");
         javaWriter.println("import java.math.*;");

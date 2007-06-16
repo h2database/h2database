@@ -16,11 +16,14 @@ public class FileStoreInputStream extends InputStream {
 
     private FileStore store;
     private DataPage page;
-    private int remaining;
+    private int remainingInBuffer;
     private CompressTool compress;
+    private boolean endOfFile;
+    private boolean alwaysClose;
     
-    public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression) throws SQLException {
+    public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) throws SQLException {
         this.store = store;
+        this.alwaysClose = alwaysClose;
         if(compression) {
             compress = CompressTool.getInstance();
         }
@@ -37,7 +40,7 @@ public class FileStoreInputStream extends InputStream {
     }
 
     public int available() {
-        return remaining <= 0 ? 0 : remaining;
+        return remainingInBuffer <= 0 ? 0 : remainingInBuffer;
     }
     
     public int read(byte[] buff) throws IOException {
@@ -63,21 +66,22 @@ public class FileStoreInputStream extends InputStream {
     
     public int readBlock(byte[] buff, int off, int len) throws IOException {
         fillBuffer();
-        if(store == null) {
+        if(endOfFile) {
             return -1;
         }
-        int l = Math.min(remaining, len);
+        int l = Math.min(remainingInBuffer, len);
         page.read(buff, off, l);
-        remaining -= l;
+        remainingInBuffer -= l;
         return l;
     }
     
     private void fillBuffer() throws IOException {
-        if(remaining > 0 || store==null) {
+        if(remainingInBuffer > 0 || endOfFile) {
             return;
         }
         page.reset();
         try {
+            store.openFile();
             if(store.length() == store.getFilePointer()) {
                 close();
                 return;
@@ -87,18 +91,18 @@ public class FileStoreInputStream extends InputStream {
             throw Message.convertToIOException(e);
         }
         page.reset();
-        remaining = page.readInt();
-        if(remaining<0) {
+        remainingInBuffer = page.readInt();
+        if(remainingInBuffer<0) {
             close();
             return;
         }
-        page.checkCapacity(remaining);
+        page.checkCapacity(remainingInBuffer);
         // get the length to read
         if(compress != null) {
             page.checkCapacity(page.getIntLen());
             page.readInt();
         }
-        page.setPos(page.length() + remaining);
+        page.setPos(page.length() + remainingInBuffer);
         page.fillAligned();
         int len = page.length() - Constants.FILE_BLOCK_SIZE;
         page.reset();
@@ -109,15 +113,18 @@ public class FileStoreInputStream extends InputStream {
             page.readInt();
             if(compress != null) {
                 int uncompressed = page.readInt();
-                byte[] buff = new byte[remaining];
-                page.read(buff, 0, remaining);
+                byte[] buff = new byte[remainingInBuffer];
+                page.read(buff, 0, remainingInBuffer);
                 page.reset();
                 page.checkCapacity(uncompressed);
                 compress.expand(buff, page.getBytes(), 0);
-                remaining = uncompressed;
+                remainingInBuffer = uncompressed;
             }
         } catch(SQLException e) {
             throw Message.convertToIOException(e);
+        }
+        if(alwaysClose) {
+            store.closeFile();
         }
     }
     
@@ -125,6 +132,7 @@ public class FileStoreInputStream extends InputStream {
         if(store != null) {
             try {
                 store.close();
+                endOfFile = true;
             } finally {
                 store = null;
             }
@@ -134,7 +142,7 @@ public class FileStoreInputStream extends InputStream {
     protected void finalize() {
         if (!Constants.RUN_FINALIZE) {
             return;
-        }        
+        }    
         try {
             close();
         } catch(IOException e) {
@@ -144,11 +152,11 @@ public class FileStoreInputStream extends InputStream {
     
     public int read() throws IOException {
         fillBuffer();
-        if(store == null) {
+        if(endOfFile) {
             return -1;
         }
         int i = page.readByte() & 0xff;
-        remaining--;
+        remainingInBuffer--;
         return i;
     }
 

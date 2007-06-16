@@ -17,6 +17,7 @@ import org.h2.engine.Engine;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.Parameter;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultColumn;
@@ -128,9 +129,15 @@ public class TcpServerThread implements Runnable {
             StringWriter writer = new StringWriter();
             e.printStackTrace(new PrintWriter(writer));
             String trace = writer.toString();
+            String message;
+            if(e instanceof JdbcSQLException) {
+                message = ((JdbcSQLException) e).getOriginalMessage();
+            } else {
+                message = e.getMessage();
+            }
             transfer.writeInt(SessionRemote.STATUS_ERROR).
                 writeString(s.getSQLState()).
-                writeString(e.getMessage()).
+                writeString(message).
                 writeInt(s.getErrorCode()).
                 writeString(trace).
                 flush();

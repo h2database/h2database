@@ -4,9 +4,9 @@
  */
 package org.h2.command.dml;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
@@ -52,7 +52,7 @@ public class BackupCommand extends Prepared {
         try {
             String name = db.getName();
             name = FileUtils.getFileName(name);
-            FileOutputStream zip = new FileOutputStream(fileName);
+            OutputStream zip = FileUtils.openFileOutputStream(fileName);
             ZipOutputStream out = new ZipOutputStream(zip);
             LogSystem log = db.getLog();
             try {
@@ -110,7 +110,7 @@ public class BackupCommand extends Prepared {
     
     private void backupFile(ZipOutputStream out, String fn) throws SQLException, IOException {
         out.putNextEntry(new ZipEntry(FileUtils.getFileName(fn)));
-        FileInputStream in = new FileInputStream(fn);
+        InputStream in = FileUtils.openFileInputStream(fn);
         IOUtils.copyAndCloseInput(in, out);
         out.closeEntry();
     }

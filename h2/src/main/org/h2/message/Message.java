@@ -62,7 +62,7 @@ public class Message {
     public static JdbcSQLException getSQLException(int errorCode, String[] param, Throwable cause) {
         String sqlstate = getState(errorCode);
         String message = translate(sqlstate, param);
-        return new JdbcSQLException(message, sqlstate, errorCode, cause);
+        return new JdbcSQLException(message, sqlstate, errorCode, cause, null);
     }
 
     public static SQLException getSyntaxError(String sql, int index) {
@@ -345,9 +345,13 @@ public class Message {
         }
         if(e instanceof JdbcSQLException) {
             JdbcSQLException j = (JdbcSQLException) e;
-            return new JdbcSQLException(j.getOriginalMessage()+"; SQL statement: "+sql, j.getSQLState(), j.getErrorCode(), j);
+            return new JdbcSQLException(j.getOriginalMessage()+"; SQL statement: "+sql, 
+                    j.getSQLState(), 
+                    j.getErrorCode(), j, null);
         } else {
-            return new JdbcSQLException(e.getMessage()+"; SQL statement: "+sql, e.getSQLState(), e.getErrorCode(), e);
+            return new JdbcSQLException(e.getMessage()+"; SQL statement: "+sql, 
+                    e.getSQLState(), 
+                    e.getErrorCode(), e, null);
         }
     }
 

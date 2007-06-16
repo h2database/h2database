@@ -4,11 +4,12 @@
  */
 package org.h2.tools;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -108,7 +109,7 @@ public class CreateCluster {
             String scriptFile = "backup.sql";
             Script.execute(urlSource, user, password, scriptFile);
             RunScript.execute(urlTarget, user, password, scriptFile, null, false);
-            new File(scriptFile).delete();
+            FileUtils.delete(scriptFile);
             
             // set the cluster to the serverlist on both databases
             conn = DriverManager.getConnection(urlSource, user, password);

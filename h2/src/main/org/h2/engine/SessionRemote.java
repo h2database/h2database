@@ -286,8 +286,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             String message = transfer.readString();
             int errorCode = transfer.readInt();
             String trace = transfer.readString();
-            message = message + "\n" + trace;
-            throw new JdbcSQLException(message, sqlstate, errorCode, null);
+            throw new JdbcSQLException(message, sqlstate, errorCode, null, trace);
         } else if(status == STATUS_CLOSED) {
             transferList = null;
         }

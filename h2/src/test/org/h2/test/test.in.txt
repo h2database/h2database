@@ -824,9 +824,9 @@ create memory table a(k10 blob(10k), m20 blob(20m), g30 clob(30g));
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------
 > -- 0 = SELECT COUNT(*) FROM PUBLIC.A
-> CREATE MEMORY TABLE PUBLIC.A(     K10 BLOB(10240),     M20 BLOB(20971520),     G30 CLOB(2147483647) )
+> CREATE MEMORY TABLE PUBLIC.A(     K10 BLOB(10240),     M20 BLOB(20971520),     G30 CLOB(32212254720) )
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > DROP TABLE IF EXISTS PUBLIC.A
 > rows: 4

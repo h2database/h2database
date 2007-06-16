@@ -33,6 +33,7 @@ public class FileLister {
      * @throws SQLException
      */
     public static ArrayList getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
+        dir = FileUtils.translateFileName(dir);
         ArrayList files = new ArrayList();
         if(dir == null || dir.equals("")) {
             dir = ".";

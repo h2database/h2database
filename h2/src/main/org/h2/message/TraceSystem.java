@@ -4,9 +4,9 @@
  */
 package org.h2.message;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -40,7 +40,7 @@ public class TraceSystem {
     private long lastCheck;
     private SmallLRUCache traces;
     private SimpleDateFormat dateFormat;
-    private FileWriter fileWriter;
+    private Writer fileWriter;
     private PrintWriter printWriter;
     private static final int CHECK_SIZE_EACH_WRITES = 128;
     private int checkSize;

@@ -15,10 +15,12 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -33,6 +35,7 @@ public class TestLob extends TestBase {
         if(config.memory) {
             return;
         }
+        testLobNoClose();
         testLobTransactions(10);
         testLobTransactions(10000);
         testLobRollbackStop();
@@ -51,6 +54,38 @@ public class TestLob extends TestBase {
         testJavaObject();
     }
     
+    private void testLobNoClose() throws Exception {
+        if(config.logMode == 0 || config.networked) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
+        ResultSet rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
+        rs.next();
+        Constants.LOB_CLOSE_BETWEEN_READS = true;
+        Reader in = rs.getCharacterStream(1);
+        in.read();
+        conn.createStatement().execute("DELETE FROM TEST");
+        Constants.LOB_CLOSE_BETWEEN_READS = false;
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
+        rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
+        rs.next();
+        in = rs.getCharacterStream(1);
+        in.read();
+        conn.setAutoCommit(false);
+        try {
+            conn.createStatement().execute("DELETE FROM TEST");
+            conn.commit();
+            error("Error expected");
+        } catch(SQLException e) {
+            checkNotGeneralException(e);
+        }
+        conn.rollback();
+        conn.close();
+    }
+
     private void testLobTransactions(int spaceLen) throws Exception {
         if(config.logMode == 0) {
             return;

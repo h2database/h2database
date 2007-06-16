@@ -7,7 +7,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.engine.Constants;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -59,7 +58,7 @@ public class TestAll {
 /*
 
 Random test:
-
+ 
 cd bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"
@@ -91,22 +90,15 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
     public static void main(String[] args) throws Exception {
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
-        test.printSystem();       
-
+        test.printSystem();      
+        
 /*
- 
-Before you ask support:
-Query is slow
-- Run ANALYSE (see documentation for details)
 
-Negative dictionary:
-Please note that
+Set h2.indexNew to false
 
-timer test
+testHalt
 
-PostgreSQL:
---SET search_path = public, pg_catalog;
---id serial NOT NULL,
+support ~ dir
 
 Mail http://sf.net/projects/samooha
 
@@ -119,7 +111,7 @@ h2\src\docsrc\html\images\SQLInjection.txt
 
 D:\pictures\2007-email
 
-ftp: problem with multithreading?
+ftp server: problem with multithreading?
 
 send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide, 
 MySQL, PostgreSQL
@@ -128,38 +120,6 @@ http://semmle.com/
 try out, find bugs
 
 Mail P2P 
-
-DROP TABLE TEST;
-DROP VIEW TEST_VIEW;
-CREATE TABLE TEST(ID INT PRIMARY KEY);
-@LOOP 1000 INSERT INTO TEST VALUES(?);
-CREATE VIEW TEST_VIEW AS SELECT * FROM TEST;
-EXPLAIN SELECT * FROM TEST_VIEW WHERE ID=10;
-@LOOP 1000 SELECT * FROM TEST_VIEW WHERE ID=?;
-@LOOP 1000 SELECT * FROM TEST WHERE ID=?;
-
-DROP TABLE TEST;
-DROP VIEW TEST_VIEW;
-CREATE TABLE TEST(
-  PERSON_ID INT PRIMARY KEY, 
-  NAME VARCHAR, 
-  LOWER_NAME VARCHAR AS LOWER(NAME)
-);
-CREATE INDEX IDX_NAME ON TEST(LOWER_NAME);
-EXPLAIN SELECT * FROM TEST WHERE LOWER_NAME LIKE '%';
-EXPLAIN SELECT * FROM TEST WHERE LOWER_NAME LIKE '%' ORDER BY LOWER_NAME;
-CREATE VIEW TEST_VIEW AS SELECT * FROM TEST;
-EXPLAIN SELECT * FROM TEST_VIEW WHERE LOWER_NAME LIKE '%';
-EXPLAIN SELECT * FROM TEST_VIEW WHERE LOWER_NAME LIKE '%' ORDER BY LOWER_NAME;
-
-DROP TABLE TEST;
-DROP VIEW TEST_VIEW;
-CREATE TABLE TEST(ID INT PRIMARY KEY);
-@LOOP 1000 INSERT INTO TEST VALUES(?);
-CREATE VIEW TEST_VIEW AS SELECT * FROM TEST;
-EXPLAIN SELECT * FROM TEST_VIEW WHERE ID=10;
-@LOOP 1000 SELECT * FROM TEST_VIEW WHERE ID=?;
-@LOOP 1000 SELECT * FROM TEST WHERE ID=?;
 
 Currently there is no such feature, however it is quite simple to add a user defined function 
 READ_TEXT(fileName String) returning a CLOB. The performance would probably not be optimal, 
@@ -173,25 +133,37 @@ Add a setting to allow BigDecimal extensions
 
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 
-Improve ACID documentation (durability problem)
-
 Improve LOB in directories performance
 
 Improve documentation for MAX_LENGTH_INPLACE_LOB
 
 Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
+
 Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
+
 Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
+
 Automate real power off tests
+
 how to make -baseDir work for H2 Console?
+
 Maybe add a little bit AdSense
+
 Custom Captcha for the forum, to protect against spam bots (required for Google Code?)
+
+http://db.apache.org/ddlutils/ (write a H2 driver)   
+
+Negative dictionary:
+Please note that
+
+timer test
+
+PostgreSQL compatibility:
+--SET search_path = public, pg_catalog;
+--id serial NOT NULL,
 CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
     [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
     [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
-http://db.apache.org/ddlutils/ (write a H2 driver)   
-
-ant docs doesn't work
 */        
 
 /*
@@ -260,7 +232,6 @@ SELECT ID AS A FROM TEST GROUP BY ID HAVING A>0;
 SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 -- Yes: MySQL, HSQLDB
 -- Fail: Oracle, MS SQL Server, PostgreSQL, H2, Derby
-
 */    
         
         // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)

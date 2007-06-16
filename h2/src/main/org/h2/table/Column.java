@@ -277,9 +277,11 @@ public class Column {
             case Value.STRING:
             case Value.STRING_IGNORECASE:
             case Value.STRING_FIXED:
-                buff.append("(");
-                buff.append(precision);
-                buff.append(")");
+                if(precision < Integer.MAX_VALUE) {
+                    buff.append("(");
+                    buff.append(precision);
+                    buff.append(")");
+                }
                 break;
             }
         }

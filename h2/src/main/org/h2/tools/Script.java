@@ -5,9 +5,9 @@
 package org.h2.tools;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.message.Message;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -129,12 +130,12 @@ public class Script {
     public static void execute(String url, String user, String password, String fileName) throws SQLException {
         Connection conn = null;
         Statement stat = null;        
-        FileWriter fileWriter = null;
+        Writer fileWriter = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
-            fileWriter = new FileWriter(fileName);
+            fileWriter = FileUtils.openFileWriter(fileName, false);
             PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
             ResultSet rs = stat.executeQuery("SCRIPT");
             while(rs.next()) {

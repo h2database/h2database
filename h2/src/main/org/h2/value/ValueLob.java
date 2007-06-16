@@ -456,10 +456,10 @@ public class ValueLob extends Value {
 
     public int hashCode() {
         if (hash == 0) {
-            int todo;
-//            if(precision > 4096) {
-//                return (int)(precision ^ (precision >> 32));
-//            }
+            if(precision > 4096) {
+                // TODO: should calculate the hash code when saving, and store it in the data file
+                return (int)(precision ^ (precision >> 32));
+            }
             try {
                 hash = ByteUtils.getByteArrayHash(getBytes());
             } catch(SQLException e) {
@@ -496,7 +496,8 @@ public class ValueLob extends Value {
             return new ByteArrayInputStream(small);
         }
         FileStore store = handler.openFile(fileName, "r", true);
-        return new BufferedInputStream(new FileStoreInputStream(store, handler, compression), Constants.IO_BUFFER_SIZE);
+        boolean alwaysClose = Constants.LOB_CLOSE_BETWEEN_READS;
+        return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose), Constants.IO_BUFFER_SIZE);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

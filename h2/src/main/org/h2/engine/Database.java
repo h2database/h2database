@@ -4,9 +4,8 @@
  */
 package org.h2.engine;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -161,7 +160,7 @@ public class Database implements DataHandler {
                 MemoryFile file = FileUtils.getMemoryFile(fileName);
                 magic = file.getMagic();
             } else {
-                FileInputStream fin = new FileInputStream(fileName);
+                InputStream fin = FileUtils.openFileInputStream(fileName);
                 magic = IOUtils.readBytesAndClose(fin, magicBinary.length);
             }
             if(ByteUtils.compareNotNull(magic, magicText) == 0) {
@@ -1372,8 +1371,7 @@ public class Database implements DataHandler {
 
     public String getDatabasePath() {
         if(persistent) {
-            File parent = new File(databaseName).getAbsoluteFile();
-            return parent.getAbsolutePath();
+            return FileUtils.getAbsolutePath(databaseName);
         } else {
             return null;
         }

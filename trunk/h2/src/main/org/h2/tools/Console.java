@@ -8,6 +8,7 @@ import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -26,8 +27,6 @@ import java.awt.event.WindowEvent;
 import java.io.InputStream;
 import java.sql.SQLException;
 
-import org.h2.message.Message;
-import org.h2.tools.Server;
 import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
 
@@ -39,7 +38,8 @@ import org.h2.util.StartBrowser;
  */
 public class Console implements ActionListener, MouseListener {
 
-    private static final Font FONT = new Font("Dialog", Font.PLAIN, 11);
+    private Font font;
+    private Image icon;
     private Server web;
 
     /**
@@ -57,27 +57,48 @@ public class Console implements ActionListener, MouseListener {
         try {
             web = Server.createWebServer(args);
             web.start();
-            Server.createTcpServer(args).start();
-            Server.createOdbcServer(args).start();
         } catch (SQLException e) {
-            if (e.getErrorCode() == Message.EXCEPTION_OPENING_PORT_1) {
-                System.out.println("Port is in use, maybe another server server already running on " + web.getURL());
-            } else {
-                e.printStackTrace();
-            }
+        	if(web == null) {
+        		e.printStackTrace();
+        	} else {
+            	System.out.println(web.getStatus());
+        	}
+        }
+    	Server tcp = null, odbc = null;
+        try {
+        	tcp = Server.createTcpServer(args);
+        	tcp.start();
+        } catch(SQLException e) {
+        	if(tcp == null) {
+        		e.printStackTrace();
+        	} else {
+            	System.out.println(tcp.getStatus());
+        	}
         }
         try {
-            InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
-            Image image = null;
-            if(in != null) {
-                byte[] imageData = IOUtils.readBytesAndClose(in, -1);
-                image = Toolkit.getDefaultToolkit().createImage(imageData);
-            }
-            if(!createTrayIcon(image)) {
-                showWindow(image);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        	odbc = Server.createOdbcServer(args);
+        	odbc.start();
+        } catch(SQLException e) {
+        	if(odbc == null) {
+        		e.printStackTrace();
+        	} else {
+            	System.out.println(odbc.getStatus());
+        	}
+        }
+        if(!GraphicsEnvironment.isHeadless()) {
+        	font = new Font("Dialog", Font.PLAIN, 11);
+	        try {
+	            InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
+	            if(in != null) {
+	                byte[] imageData = IOUtils.readBytesAndClose(in, -1);
+	                icon = Toolkit.getDefaultToolkit().createImage(imageData);
+	            }
+	            if(!createTrayIcon()) {
+	                showWindow();
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
         }
         // start browser anyway (even if the server is already running)
         // because some people don't look at the output,
@@ -88,7 +109,7 @@ public class Console implements ActionListener, MouseListener {
         }
     }
 
-    private boolean createTrayIcon(Image image) {
+    private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
             Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
@@ -103,33 +124,38 @@ public class Console implements ActionListener, MouseListener {
             MenuItem itemConsole = new MenuItem("H2 Console");
             itemConsole.setActionCommand("console");
             itemConsole.addActionListener(this);
-            itemConsole.setFont(FONT);
+            itemConsole.setFont(font);
             menuConsole.add(itemConsole);
+            MenuItem itemStatus = new MenuItem("Status");
+            itemConsole.setActionCommand("status");
+            itemConsole.addActionListener(this);
+            itemConsole.setFont(font);
+            menuConsole.add(itemStatus);
             MenuItem itemExit = new MenuItem("Exit");
-            itemExit.setFont(FONT);
+            itemExit.setFont(font);
             itemExit.setActionCommand("exit");
             itemExit.addActionListener(this);
             menuConsole.add(itemExit);
 
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            Object icon = Class.forName("java.awt.TrayIcon").
+            Object trayIcon = Class.forName("java.awt.TrayIcon").
                 getConstructor(new Class[] { Image.class, String.class, PopupMenu.class }).
-                newInstance(new Object[] { image, "H2 Database Engine", menuConsole });
+                newInstance(new Object[] { icon, "H2 Database Engine", menuConsole });
 
             // SystemTray tray = SystemTray.getSystemTray();
             Object tray = Class.forName("java.awt.SystemTray").
                 getMethod("getSystemTray", new Class[0]).
                 invoke(null, new Object[0]);
 
-            // icon.addMouseListener(this);
-            icon.getClass().
+            // trayIcon.addMouseListener(this);
+            trayIcon.getClass().
                  getMethod("addMouseListener", new Class[]{MouseListener.class}).
-                 invoke(icon, new Object[]{this});
+                 invoke(trayIcon, new Object[]{this});
              
-             //             tray.add(icon);
+             // tray.add(icon);
              tray.getClass().
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
-                invoke(tray, new Object[] { icon });
+                invoke(tray, new Object[] { trayIcon });
              
              return true;
         } catch (Exception e) {
@@ -137,15 +163,15 @@ public class Console implements ActionListener, MouseListener {
         }
     }
 
-    private void showWindow(Image image) {
+    private void showWindow() {
         Frame frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
                 System.exit(0);
             }
         });
-        if(image != null) {
-            frame.setIconImage(image);
+        if(icon != null) {
+            frame.setIconImage(icon);
         }
         frame.setResizable(false);
         frame.setBackground(SystemColor.control);
@@ -161,14 +187,14 @@ public class Console implements ActionListener, MouseListener {
         c.insets.bottom = 2;
 
         Label label = new Label("H2 Console URL:", Label.LEFT);
-        label.setFont(FONT);
+        label.setFont(font);
         c.anchor = GridBagConstraints.WEST;
         c.gridwidth = GridBagConstraints.EAST;
         frame.add(label, c);
 
         TextField text = new TextField();
         text.setEditable(false);
-        text.setFont(FONT);
+        text.setFont(font);
         text.setText(web.getURL());
         text.setFocusable(false);
         c.anchor = GridBagConstraints.EAST;
@@ -184,7 +210,7 @@ public class Console implements ActionListener, MouseListener {
         startBrowser.setFocusable(false);
         startBrowser.setActionCommand("console");
         startBrowser.addActionListener(this);
-        startBrowser.setFont(FONT);
+        startBrowser.setFont(font);
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
         frame.add(startBrowser, c);
@@ -200,10 +226,13 @@ public class Console implements ActionListener, MouseListener {
      * INTERNAL
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals("exit")) {
+    	String command = e.getActionCommand();
+        if ("exit".equals(command)) {
             System.exit(0);
-        } else if (e.getActionCommand().equals("console")) {
+        } else if ("console".equals(command)) {
             startBrowser();
+        } else if ("status".equals(command)) {
+            showWindow();
         }
     }
 

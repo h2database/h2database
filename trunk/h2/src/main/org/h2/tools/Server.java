@@ -271,7 +271,7 @@ public class Server implements Runnable {
         }
     }
     
-    private String getStatus() {
+    String getStatus() {
         StringBuffer buff = new StringBuffer();
         if(isRunning()) {
              buff.append(service.getType());

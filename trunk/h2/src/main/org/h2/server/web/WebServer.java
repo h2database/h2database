@@ -132,8 +132,10 @@ public class WebServer implements Service {
         // TODO web: support using a different properties file
         appServer = new AppServer(args);
         SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-        startDateTime = format.format(new Date());
+    	synchronized(format) {
+        	format.setTimeZone(TimeZone.getTimeZone("GMT"));
+    		startDateTime = format.format(new Date());
+        }
         trace(startDateTime);
         for(int i=0; i<LANGUAGES.length; i++) {
             languages.add(LANGUAGES[i][0]);

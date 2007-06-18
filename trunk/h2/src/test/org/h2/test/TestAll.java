@@ -93,22 +93,11 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
-Newletter, newsfeed hochladen
-
-SimpleDateFormat must be synchronized externally
-
-call cast(null as null)
-
-h2 console: headless mode
 h2 console system tray: menu item to open window
 
 Set h2.indexNew to false
 
-16 > 2007-06-17 
-
 testHalt
-
-support ~ dir
 
 Mail http://sf.net/projects/samooha
 

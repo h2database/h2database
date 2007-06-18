@@ -379,7 +379,9 @@ public class StringUtils {
      */
     public static String formatDateTime(Date date, String format, String locale, String timezone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
-        return dateFormat.format(date);
+        synchronized(dateFormat) {
+        	return dateFormat.format(date);
+        }
     }
 
     /**
@@ -388,7 +390,9 @@ public class StringUtils {
     public static Date parseDateTime(String date, String format, String locale, String timezone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
         try {
-            return dateFormat.parse(date);
+            synchronized(dateFormat) {
+            	return dateFormat.parse(date);
+            }
         } catch(ParseException e) {
             throw Message.getSQLException(Message.PARSE_ERROR_1, date);
         }
@@ -396,6 +400,8 @@ public class StringUtils {
 
     private static SimpleDateFormat getDateFormat(String format, String locale, String timezone) throws SQLException {
         try {
+        	// currently, a new instance is create for each call
+        	// however, could cache the last few instances
             SimpleDateFormat df;
             if(locale == null) {
                 df = new SimpleDateFormat(format);

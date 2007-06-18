@@ -4,6 +4,7 @@
  */
 package org.h2.tools;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -146,7 +147,7 @@ public class Restore {
                 if(copy) {
                     OutputStream out = null;
                     try {
-                        out = FileUtils.openFileOutputStream(directory + "/" + fileName);
+                        out = FileUtils.openFileOutputStream(directory + File.separator + fileName);
                         IOUtils.copy(zipIn, out);
                     } finally {
                         IOUtils.closeSilently(out);

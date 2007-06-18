@@ -678,6 +678,7 @@ ALL: All literals are allowed (default).
 This setting is persistent.
 Admin rights are required to execute this command.
 See also CREATE CONSTANT.
+This setting can be appended to the database URL: jdbc:h2:test;ALLOW_LITERALS=NONE
 ","
 SET ALLOW_LITERALS NONE
 "
@@ -690,6 +691,7 @@ Sets the assertion mode.
 1: assertions are switched on (default)
 This setting is not persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;ASSERT=0
 ","
 SET ASSERT 0
 "
@@ -698,6 +700,7 @@ SET ASSERT 0
 SET AUTOCOMMIT {TRUE | ON | FALSE | OFF}
 ","
 Switches auto commit on or off.
+This setting can be appended to the database URL: jdbc:h2:test;AUTOCOMMIT=OFF
 ","
 SET AUTOCOMMIT OFF
 "
@@ -709,6 +712,7 @@ Sets the size of the cache.
 A cache entry contains about 128 bytes. The default value is 32768.
 This setting is persistent and affects all connections as there is only one cache per database.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;CACHE_SIZE=8192
 ","
 SET CACHE_SIZE 1000
 "
@@ -760,10 +764,12 @@ An empty string ('') means no listener should be used.
 This setting is not persistent.
 Admin rights are required to execute this command,
 except if it is set when opening the database
-(in this case it is reset just after opening the database)
+(in this case it is reset just after opening the database).
+This setting can be appended to the database URL: jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'
 ","
 SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
+
 "Commands (Other)","SET DB_CLOSE_DELAY","
 SET DB_CLOSE_DELAY int
 ","
@@ -775,9 +781,11 @@ Other values: the number of seconds the database is left open after closing the 
 If the application exits normally or System.exit is called, the database is closed immediately, even if a delay is set.
 This setting is persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;DB_CLOSE_DELAY=-1
 ","
 SET DB_CLOSE_DELAY -1
 "
+
 "Commands (Other)","SET DEFAULT_LOCK_TIMEOUT","
 SET DEFAULT LOCK_TIMEOUT int
 ","
@@ -826,6 +834,7 @@ Sets the lock mode.
 3: Table level locking, but only when writing (no read locks). Also known as READ_COMMITTED.
 This setting is not persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
 ","
 SET LOCK_MODE 2
 "
@@ -835,6 +844,7 @@ SET LOCK_TIMEOUT int
 ","
 Sets the lock timeout (in milliseconds) for the current session.
 The default value for this setting is 1000 (one second).
+This setting can be appended to the database URL: jdbc:h2:test;LOCK_TIMEOUT=10000
 ","
 SET LOCK_TIMEOUT 1000
 "
@@ -850,6 +860,7 @@ Logging can be disabled to improve the performance when durability is not import
 Warning: It may not be possible to recover the database if logging is disabled and the application terminates abnormally.
 If logging of index changes is enabled, opening a database that was crashed becomes faster because the indexes don't need to be rebuilt.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;LOG=2
 ","
 SET LOG 0
 "
@@ -913,6 +924,7 @@ Changes to another database mode.
 Admin rights are required to execute this command.
 This is a global setting, which means it is not possible to open multiple databases
 with different modes at the same time in the same virtual machine.
+This setting can be appended to the database URL: jdbc:h2:test;MODE=MYSQL
 ","
 SET MODE HSQLDB
 "
@@ -927,6 +939,7 @@ This is a global setting, which means it is not possible to open multiple databa
 with different modes at the same time in the same virtual machine.
 This setting is not persistent, however the value is kept until the virtual machine exits
 or it is changed.
+This setting can be appended to the database URL: jdbc:h2:test;MULTI_THREADED=1
 ","
 SET MULTI_THREADED 1
 "
@@ -938,6 +951,7 @@ Enabled (1) or disabled (0) the result reuse optimization.
 If enabled, subqueries and views used as subqueries are only re-run if the data in one of the tables was changed.
 This option is enabled by default.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
 "
@@ -966,6 +980,7 @@ SET SCHEMA schemaName
 Changes the default schema of the current connection.
 The default schema is used in statements where no schema is set explicitly.
 The default schema for new connections is PUBLIC.
+This setting can be appended to the database URL: jdbc:h2:test;SCHEMA=ABC
 ","
 SET SCHEMA INFORMATION_SCHEMA
 "
@@ -976,6 +991,7 @@ SET THROTTLE int
 Sets the throttle for the current connection.
 The value is the number of milliseconds delay after each 50 ms.
 The default value is 0 (throttling disabled).
+This setting can be appended to the database URL: jdbc:h2:test;THROTTLE=50
 ","
 SET THROTTLE 200
 "
@@ -987,9 +1003,11 @@ Sets the trace level for file the file or system out stream.
 Levels: 0=off, 1=error, 2=info, 3=debug.
 This setting is persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
+
 "Commands (Other)","SET TRACE_MAX_FILE_SIZE","
 SET TRACE_MAX_FILE_SIZE int
 ","
@@ -999,18 +1017,22 @@ If another .old file exists, it is deleted.
 The default max size is 16 MB.
 This setting is persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;TRACE_MAX_FILE_SIZE=3
 ","
 SET TRACE_MAX_FILE_SIZE 10
 "
+
 "Commands (Other)","SET WRITE_DELAY","
 SET WRITE_DELAY int
 ","
 Set the maximum delay between a commit and flushing the log, in milliseconds.
 This setting is persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;WRITE_DELAY=0
 ","
 SET WRITE_DELAY 2000
 "
+
 "Commands (Other)","SHUTDOWN","
 SHUTDOWN [IMMEDIATELY|COMPACT|SCRIPT]
 ","
@@ -1026,6 +1048,7 @@ Admin rights are required to execute this command.
 ","
 SHUTDOWN
 "
+
 "Other Grammar","Comments","
 -- anythingUntilEndOfLine
 | // anythingUntilEndOfLine
@@ -1037,6 +1060,7 @@ Block comments cannot be nested, but can be multiple lines long.
 ","
 // This is a comment
 "
+
 "Other Grammar","Select Part","
 [TOP term] [DISTINCT | ALL] selectExpression [,...]
 ","
@@ -1044,6 +1068,7 @@ The SELECT part of a query.
 ","
 DISTINCT *
 "
+
 "Other Grammar","From Part","
 tableExpression [,...]
 ","
@@ -1051,6 +1076,7 @@ The FROM part of a query.
 ","
 FROM TEST
 "
+
 "Other Grammar","Constraint","
 PRIMARY KEY [HASH] (columnName [,...])
 | [CONSTRAINT newConstraintName] {

@@ -395,7 +395,10 @@ public class FileUtils {
             if(list == null) {
                 return new String[0];
             }
-            String base = f.getCanonicalPath() + File.separator;
+            String base = f.getCanonicalPath();
+            if(!base.endsWith(File.separator)) {
+            	base += File.separator;
+            }
             for(int i=0; i<list.length; i++) {
                 list[i] = base + list[i];
             }

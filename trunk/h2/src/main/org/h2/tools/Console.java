@@ -31,11 +31,24 @@ import org.h2.tools.Server;
 import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
 
+/**
+ * This tool starts the H2 Console (web-) server, as well as the TCP and ODBC server.
+ * For JDK 1.6, a system tray icon is created, for platforms that support it.
+ * Otherwise, a small window opens.
+ * 
+ */
 public class Console implements ActionListener, MouseListener {
 
     private static final Font FONT = new Font("Dialog", Font.PLAIN, 11);
     private Server web;
 
+    /**
+     * The command line interface for this tool.
+     * The command line options are the same as in the Server tool.
+     * 
+     * @param args the command line arguments
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         new Console().run(args);
     }
@@ -54,7 +67,15 @@ public class Console implements ActionListener, MouseListener {
             }
         }
         try {
-            createMenu();
+            InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
+            Image image = null;
+            if(in != null) {
+                byte[] imageData = IOUtils.readBytesAndClose(in, -1);
+                image = Toolkit.getDefaultToolkit().createImage(imageData);
+            }
+            if(!createTrayIcon(image)) {
+                showWindow(image);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,32 +88,29 @@ public class Console implements ActionListener, MouseListener {
         }
     }
 
-    private void createMenu() throws Exception {
-        InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
-        byte[] imageData = IOUtils.readBytesAndClose(in, -1);
-        Image image = Toolkit.getDefaultToolkit().createImage(imageData);
-        PopupMenu menuConsole = new PopupMenu();
-        MenuItem itemConsole = new MenuItem("H2 Console");
-        itemConsole.setActionCommand("console");
-        itemConsole.addActionListener(this);
-        itemConsole.setFont(FONT);
-        menuConsole.add(itemConsole);
-        MenuItem itemExit = new MenuItem("Exit");
-        itemExit.setFont(FONT);
-        itemExit.setActionCommand("exit");
-        itemExit.addActionListener(this);
-        menuConsole.add(itemExit);
-
-        boolean showWindow;
+    private boolean createTrayIcon(Image image) {
         try {
             // SystemTray.isSupported();
             Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
                 getMethod("isSupported", new Class[0]).
                 invoke(null, new Object[0]);
+            
             if(!supported.booleanValue()) {
-                showWindow = true;
+                return false;
             }
             
+            PopupMenu menuConsole = new PopupMenu();
+            MenuItem itemConsole = new MenuItem("H2 Console");
+            itemConsole.setActionCommand("console");
+            itemConsole.addActionListener(this);
+            itemConsole.setFont(FONT);
+            menuConsole.add(itemConsole);
+            MenuItem itemExit = new MenuItem("Exit");
+            itemExit.setFont(FONT);
+            itemExit.setActionCommand("exit");
+            itemExit.addActionListener(this);
+            menuConsole.add(itemExit);
+
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
             Object icon = Class.forName("java.awt.TrayIcon").
                 getConstructor(new Class[] { Image.class, String.class, PopupMenu.class }).
@@ -113,24 +131,22 @@ public class Console implements ActionListener, MouseListener {
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
                 invoke(tray, new Object[] { icon });
              
-             showWindow = false;
+             return true;
         } catch (Exception e) {
-            showWindow = true;
-        }
-        if(showWindow) {
-            showWindow(image);
+            return false;
         }
     }
 
     private void showWindow(Image image) {
-        
         Frame frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
                 System.exit(0);
             }
         });
-        frame.setIconImage(image);
+        if(image != null) {
+            frame.setIconImage(image);
+        }
         frame.setResizable(false);
         frame.setBackground(SystemColor.control);
         
@@ -180,6 +196,9 @@ public class Console implements ActionListener, MouseListener {
         frame.setVisible(true);
     }
 
+    /**
+     * INTERNAL
+     */
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("exit")) {
             System.exit(0);
@@ -194,21 +213,36 @@ public class Console implements ActionListener, MouseListener {
         }
     }
 
+    /**
+     * INTERNAL
+     */
     public void mouseClicked(MouseEvent e) {
         if(e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
         }
     }
 
+    /**
+     * INTERNAL
+     */
     public void mouseEntered(MouseEvent e) {
     }
 
+    /**
+     * INTERNAL
+     */
     public void mouseExited(MouseEvent e) {
     }
 
+    /**
+     * INTERNAL
+     */
     public void mousePressed(MouseEvent e) {
     }
 
+    /**
+     * INTERNAL
+     */
     public void mouseReleased(MouseEvent e) {
     }
 

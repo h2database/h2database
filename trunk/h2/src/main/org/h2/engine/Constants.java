@@ -28,6 +28,7 @@ package org.h2.engine;
  *   
  * - Change FAQ (next release planned, known bugs)
  * - Check version, change build number in Constants.java and ant-build.properties
+ * - Maybe increase TCP_DRIVER_VERSION
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
  * - No TODO in the docs
@@ -35,7 +36,6 @@ package org.h2.engine;
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
- *   (remove 2*executed statement)
  *
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all javadoc files are in the index
@@ -67,15 +67,15 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 48;
-    private static final String BUILD = "2007-06-14";
+    public static final int BUILD_ID = 50;
+    private static final String BUILD = "2007-06-17";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
     public static final int FILE_BLOCK_SIZE = 16;
     public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
-    public static final int TCP_DRIVER_VERSION = 3;
+    public static final int TCP_DRIVER_VERSION = 4;
 
     public static final int VERSION_JDBC_MAJOR = 3;
     public static final int VERSION_JDBC_MINOR = 0;

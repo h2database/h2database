@@ -18,7 +18,7 @@ Initial Developer: H2 Group
 
 </head>
 <body style="margin: 20px">
-    <form name="adminLogin" method="post" action="/admin.do?jsessionid=${sessionId}">
+    <form name="adminLogin" method="post" action="admin.do?jsessionid=${sessionId}">
         <table class="login" cellspacing="0" cellpadding="0">
             <tr class="login">
                 <th class="login">${text.adminLogin}</th>
@@ -34,7 +34,7 @@ Initial Developer: H2 Group
                 <td class="login">
                     <input type="submit" class="button" value="${text.adminLoginOk}" />
                     &nbsp;
-                    <input type="button" class="button" value="${text.adminLoginCancel}" onclick="javascript:document.adminLogin.action='/index.do?jsessionid=${sessionId}';submit()" />
+                    <input type="button" class="button" value="${text.adminLoginCancel}" onclick="javascript:document.adminLogin.action='index.do?jsessionid=${sessionId}';submit()" />
                     <br />
                     <br />
                 </td>

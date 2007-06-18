@@ -1094,7 +1094,7 @@ public class AppThread extends WebServerThread {
         StringBuffer buff = new StringBuffer();
         if(edit) {
             buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" "
-                    + "action=\"/editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">");
+                    + "action=\"editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">");
             buff.append("<input type=\"hidden\" name=\"op\" value=\"1\" />");
             buff.append("<input type=\"hidden\" name=\"row\" value=\"\" />");
             buff.append("<table cellspacing=0 cellpadding=0 id=\"editTable\">");
@@ -1209,7 +1209,7 @@ public class AppThread extends WebServerThread {
         buff.append(time);
         buff.append(" ms)");
         if(!edit && isUpdatable && allowEdit) {
-            buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"/query.do?jsessionid=${sessionId}\" target=\"h2result\">");
+            buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">");
             buff.append("<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />");
             buff.append("<input type=\"hidden\" name=\"sql\" value=\"@EDIT " + PageParser.escapeHtml(sql) +"\" />");
             buff.append("</form>");

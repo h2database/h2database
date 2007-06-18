@@ -30,6 +30,12 @@ abstract class WebServerThread extends Thread {
         this.socket = socket;
     }
     
+    void setSession(WebServerSession session, Properties attributes) {
+    	int todoRefactor;
+    	this.session = session;
+    	this.attributes = attributes;
+    }
+    
     abstract String process(String file);
 
     protected String getComboBox(String[] elements, String selected) {

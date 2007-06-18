@@ -14,7 +14,7 @@ Initial Developer: H2 Group
     </script>
 </head>
 <body style="margin: 20px">
-    <form name="login" method="post" action="/login.do?jsessionid=${sessionId}" id="login">
+    <form name="login" method="post" action="login.do?jsessionid=${sessionId}" id="login">
     <p>                    <select name="language" size="1"
                         onchange="javascript:document.location='index.do?jsessionid=${sessionId}&amp;language='+login.language.value;"
                     >
@@ -44,8 +44,8 @@ Initial Developer: H2 Group
                 <td class="login">${text.login.settingName}:</td>
                 <td class="login">
                     <input type="text" name="name" value="${name}" style="width:200px;" />
-                    <input type="button" class="button" value="${text.login.save}" onclick="javascript:document.login.action='/settingSave.do?jsessionid=${sessionId}';submit()" />
-                    <input type="button" class="button" value="${text.login.remove}" onclick="javascript:document.login.action='/settingRemove.do?jsessionid=${sessionId}';submit()" />
+                    <input type="button" class="button" value="${text.login.save}" onclick="javascript:document.login.action='settingSave.do?jsessionid=${sessionId}';submit()" />
+                    <input type="button" class="button" value="${text.login.remove}" onclick="javascript:document.login.action='settingRemove.do?jsessionid=${sessionId}';submit()" />
                 </td>
             </tr>
             <tr class="login">
@@ -74,7 +74,7 @@ Initial Developer: H2 Group
                 <td class="login">
                     <input type="submit" class="button" value="${text.login.connect}" />
                     &nbsp;
-                    <input type="button" class="button" value="${text.login.testConnection}" onclick="javascript:document.login.action='/test.do?jsessionid=${sessionId}';submit()" />
+                    <input type="button" class="button" value="${text.login.testConnection}" onclick="javascript:document.login.action='test.do?jsessionid=${sessionId}';submit()" />
                     <br />
                     <br />
                 </td>

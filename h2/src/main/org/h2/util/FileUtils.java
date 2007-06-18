@@ -464,7 +464,7 @@ public class FileUtils {
     }
 
     public static String translateFileName(String fileName) {
-        if(fileName.startsWith("~")) {
+        if(fileName != null && fileName.startsWith("~")) {
             String userDir = System.getProperty("user.home");
             fileName = userDir + fileName.substring(1);
         }

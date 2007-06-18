@@ -110,6 +110,11 @@ public class JdbcSQLException extends SQLException {
         return cause;
     }
     
+    /**
+     * Returns the class name, the message, and in the server mode, the stack trace of the server
+     * 
+     * @return the string representation
+     */    
     public String toString() {
         if(trace == null) {
             return super.toString();

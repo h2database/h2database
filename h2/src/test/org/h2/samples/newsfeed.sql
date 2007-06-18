@@ -10,6 +10,86 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(24,
+'New version available: 1.0 / 2007-06-17', '2007-06-17 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br />
+<b>Changes and new functionality:</b>
+<ul>
+<li>New Console starter application uses the JDK 1.6 system tray 
+functionality if available, or a simple AWT frame for other platforms. 
+To try it out, execute java org.h2.tools.Console. Feedback is welcome. 
+This console starter application is not the default yet, 
+but the plan is to remove the SysTray tool in the future.
+</li><li>If a Reader or InputStream of a LOB is not closed, 
+the LOB can not be deleted (embedded mode only). The exception is 
+typically ''Error while renaming file''). As a workaround, set the 
+system property ''h2.lobCloseBetweenReads'' to true to close the LOB 
+files between read operations. However this slows down reading.
+</li><li>Views support has been partially re-implemented. 
+Views are up to 6 times faster. Compared to regular queries, only 
+20% overhead. Because this is a bigger change, it is not enabled 
+by default. To enable it, set the system property ''h2.indexNew'' 
+to true (java -Dh2.indexNew=true ..., or in source code 
+Constants.INDEX_NEW = true). If no problems are found, this will 
+be enabled by default in the next release.
+</li><li>Support for the data type CHAR. The difference to 
+VARCHAR is: trailing spaces are ignored. This data type is supported 
+for compatibility with other databases and older applications.
+</li><li>Compatibility: Support for the data type notation 
+CHARACTER VARYING.
+</li><li>File names starting with ~ are now in the user directory 
+(Java system property user.home)
+</li><li>Can now ORDER BY -1 (meaning order by first column, 
+descending), and ORDER BY ? (parameterized column number).
+</li><li>Linked tables can now emit UPDATE statements if 
+''EMIT UPDATES'' is specified in the CREATE LINKED TABLE statement. 
+So far, updating a row always deleted the old row and then inserted 
+the new row.
+</li><li>New functions LEAST and GREATEST to get the smallest or 
+largest value from a list.
+</li><li>For most IOExceptions now the file name is included in 
+the error message.
+</li><li>New method Csv.write(Writer writer, ResultSet rs)
+</li><li>The table id (important for LOB files) is now included in 
+INFORMATION_SCHEMA.TABLES.
+</li><li>The aggregate function COUNT(...) now returns a long 
+instead of an int.
+</li>
+</ul>
+<b>Bugfixes:</b>
+<ul>
+<li>In the last release, the H2 Console opened two connection 
+when logging into a database, and only closed one connection 
+when logging out. Fixed.
+</li><li>In many situations, views did not use an index if they 
+could have. Fixed. Also the explain plan for views works now.
+</li><li>Server mode: the server stack trace was included in 
+SQLException messages. Fixed.
+</li><li>Databases with invalid linked tables (for example, because 
+the target database is not accessible) can now be opened. Old 
+table links don''t work however.
+</li><li>In INSERT and MERGE statements, each column may 
+only be specified once now.
+</li><li>A java.util.Date object is now converted to a TIMESTAMP 
+in the JDBC API. Previously it was converted to a DATE.
+</li><li>After calling SHUTDOWN and closing the connection and 
+a superfluous error message appeared in the trace file. Fixed.
+</li><li>When using DISTINCT, ORDER BY a function works now 
+as long as it is in the column list.
+</li><li>The ''ordering'' of data types was not always correct, 
+for example an operation involving REAL and DOUBLE produced 
+a result of type REAL. Fixed.
+</li><li>CSV tool: If the same instance was used for reading 
+and writing, the tool wrote the column names twice. Fixed.
+</li><li>There was a small memory leak in the trace module. 
+One object per opened connection was kept in a hash map.
+</li>
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(23,
 'New version available: 1.0 / 2007-04-29', '2007-04-29 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -573,40 +653,6 @@ The plans for the next release (RC 2) are:
 <li>Change the license to MPL.
 </li><li>Write more tests, bugfixes.
 </li><li>For plans after release 1.0, see the new ''Roadmap'' page on the web site.
-</li></ul>
-');
-
-INSERT INTO ITEM VALUES(6,
-'New version available: 0.9 Beta / 2006-08-14', '2006-08-14 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Autocomplete support in the H2 Console.
-    Three levels: Off, Normal (default; table and column names), Full (complete SQL grammar).
-    Schemas and quoted identifiers are not yet supported.
-    There are some browser issues, but everything should work in Firefox.
-    Please report any incompatibilities, problems and usability issues.
-</li><li>Source code to support H2 in Resin is included.
-    For the complete patch, see http://forum.caucho.com/node/61
-</li><li>Space is better re-used after deleting many records.
-</li><li>Umlauts and chinese characters are now supported in identifier names.
-</li><li>Performance optimization for outer join with comparison with constants in the where clause.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>SET LOG 0 didn''t work. Fixed.
-</li><li>Fixed a problem when comparing BIGINT values with constants.
-</li><li>Fixed NULL handling where there is a NULL value in the list.
-</li><li>It is now possible to cancel a select statement with a (temporary) view.
-</li></ul>
-For details see also the history. The next release is planned for 2006-08-28.
-If everything goes fine this will be 1.0 final (there might be a release candidate or two before this date).
-The plans for the next release are:
-<ul>
-<li>Bugfixes, write more tests, more bugfixes, more tests.
-</li><li>Proposal for changed license.
-</li><li>For other plans, see the new ''Roadmap'' part on the web site.
 </li></ul>
 ');
 

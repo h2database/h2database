@@ -103,6 +103,7 @@
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/systray" destdir="bin" debug="true"/>
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/**/*"/>
+			<fileset dir="src/main" includes="**/*.png"/>
 			<fileset dir="src/systray" includes="**/*.ico"/>
 			<fileset dir="src/installer" includes="*.bat"/>
 			<fileset dir="src/test" includes="**/*.txt"/>

@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -684,7 +683,9 @@ public class Function extends Expression implements FunctionCall {
         case DATEDIFF:
             return ValueLong.get(datediff(v0.getString(), v1.getTimestampNoCopy(), v2.getTimestampNoCopy()));
         case DAYNAME:
-            return ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
+        	synchronized(FORMAT_DAYNAME) {
+        		return ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
+        	}
         case DAYOFMONTH:
             return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
         case DAYOFWEEK:
@@ -698,7 +699,9 @@ public class Function extends Expression implements FunctionCall {
         case MONTH:
             return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
         case MONTHNAME:
-            return ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
+        	synchronized(FORMAT_MONTHNAME) {
+        		return ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
+        	}
         case QUARTER:
             return ValueInt.get((getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
         case SECOND:
@@ -1374,9 +1377,6 @@ public class Function extends Expression implements FunctionCall {
             dataType = info.dataType;
             precision = 0;
             scale = 0;
-        }
-        if(Constants.CHECK && dataType == Value.NULL) {
-            throw Message.getInternalError("type NULL: " + getSQL());
         }
         if(allConst) {
             return ValueExpression.get(getValue(session));

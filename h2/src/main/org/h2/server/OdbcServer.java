@@ -69,7 +69,7 @@ public class OdbcServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = "tcp://localhost:" + port;
+        url = "odbc://localhost:" + port;
     }
 
     public String getURL() {

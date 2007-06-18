@@ -98,18 +98,26 @@ public class FtpServer implements Service {
         buff.append(size);
         buff.append(' ');
         Date now = new Date(), mod = new Date(f.lastModified());
+        String date;
         if(mod.after(now) || Math.abs((now.getTime() - mod.getTime())/1000/60/60/24) > 180) {
-            buff.append(dateFormatOld.format(mod));
+        	synchronized(dateFormatOld) {
+        		date = dateFormatOld.format(mod);
+        	}
         } else {
-            buff.append(dateFormatNew.format(mod));
+        	synchronized(dateFormatNew) {
+        		date = dateFormatNew.format(mod);
+        	}
         }
+        buff.append(date);
         buff.append(' ');
         buff.append(f.getName());
         buff.append("\r\n");
     }
 
     String formatLastModified(FileObject file) {
-        return dateFormat.format(new Date(file.lastModified()));
+    	synchronized(dateFormat) {
+    		return dateFormat.format(new Date(file.lastModified()));
+    	}
     }     
     
     FileObject getFile(String path) {

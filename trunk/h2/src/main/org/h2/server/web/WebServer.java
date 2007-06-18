@@ -40,6 +40,7 @@ public class WebServer implements Service {
         { "hu", "Magyar"},
         { "in", "Indonesia"},
         { "pt_PT", "Portugu\u00eas (Europeu)"},
+        { "pl", "Polski"},
     };
     
 /*
@@ -108,7 +109,7 @@ public class WebServer implements Service {
         return session;
     }
 
-    WebServerSession createNewSession(Socket socket) {
+    WebServerSession createNewSession(String hostname) {
         String newId;
         do {
             newId = generateSessionId();
@@ -116,7 +117,7 @@ public class WebServer implements Service {
         WebServerSession session = new AppSession(this);
         session.put("sessionId", newId);
         //session.put("ip", socket.getInetAddress().getCanonicalHostName());
-        session.put("ip", socket.getInetAddress().getHostName());
+        session.put("ip", hostname);
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
         // always read the english translation, to that untranslated text appears at least in english

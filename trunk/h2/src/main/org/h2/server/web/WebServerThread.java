@@ -32,7 +32,7 @@ abstract class WebServerThread extends Thread {
     
     abstract String process(String file);
 
-    protected String getCombobox(String[] elements, String selected) {
+    protected String getComboBox(String[] elements, String selected) {
         StringBuffer buff = new StringBuffer();
         for(int i=0; i<elements.length; i++) {
             String value = elements[i];
@@ -49,7 +49,7 @@ abstract class WebServerThread extends Thread {
         return buff.toString();
     }
 
-    protected String getCombobox(String[][] elements, String selected) {
+    protected String getComboBox(String[][] elements, String selected) {
         StringBuffer buff = new StringBuffer();
         for(int i=0; i<elements.length; i++) {
             String[] n = elements[i];
@@ -113,7 +113,8 @@ abstract class WebServerThread extends Thread {
                     cache=false;
                     mimeType = "text/html";
                     if (session == null) {
-                        session = server.createNewSession(socket);
+                    	String hostname = socket.getInetAddress().getHostName();
+                        session = server.createNewSession(hostname);
                         if (!file.equals("notAllowed.jsp")) {
                             file = "index.do";
                         }

@@ -5,6 +5,7 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -177,7 +178,7 @@ public class RunScript {
             if (sql.startsWith("@") && StringUtils.toUpperEnglish(sql).startsWith("@INCLUDE")) {
                 sql = sql.substring("@INCLUDE".length()).trim();
                 if(!FileUtils.isAbsolute(sql)) {
-                    sql = path + "/" + sql;
+                    sql = path + File.separator + sql;
                 }
                 execute(conn, threadMap, sql, continueOnError, charsetName);
             } else if (MULTI_THREAD && sql.startsWith("/*")) {

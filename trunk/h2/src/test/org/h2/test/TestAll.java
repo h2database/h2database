@@ -163,6 +163,8 @@ PostgreSQL compatibility:
 CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
     [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
     [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
+    
+support translated exceptions (english + translated)
 */        
 
 /*

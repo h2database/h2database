@@ -10,7 +10,7 @@ Initial Developer: H2 Group
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 </head>
 <body  bgcolor="#FF00FF"  class="toolbar">
-    <form name="header" method="post" action="/header.jsp?jsessionid=${sessionId}">
+    <form name="header" method="post" action="header.jsp?jsessionid=${sessionId}">
     <table class="toolbar" cellspacing="0" cellpadding="0"><tr class="toolbar"><td class="toolbar"
     ><a href="logout.do?jsessionid=${sessionId}" target="_top"
     ><img src="icon_disconnect.gif"

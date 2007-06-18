@@ -25,7 +25,7 @@ Initial Developer: H2 Group
         <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a> 
     </p>
     <hr />
-    <form name="admin" method="post" action="/adminSave.do?jsessionid=${sessionId}">
+    <form name="admin" method="post" action="adminSave.do?jsessionid=${sessionId}">
     <h3>
         ${text.adminAllow}
     </h3>
@@ -117,7 +117,7 @@ Initial Developer: H2 Group
     </table>
     </form>
     <p>
-        <form name="shutdown" method="post" action="/adminShutdown.do?jsessionid=${sessionId}">
+        <form name="shutdown" method="post" action="adminShutdown.do?jsessionid=${sessionId}">
             <input type="submit" class="button" value="${text.adminShutdown}" />
         </form>
     </p>

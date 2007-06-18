@@ -364,7 +364,7 @@ function showList(s) {
 }
 
 function retrieveList(s) {
-    sendAsyncRequest('/autoCompleteList.do?jsessionid=${sessionId}&query=' + encodeURIComponent(s));
+    sendAsyncRequest('autoCompleteList.do?jsessionid=${sessionId}&query=' + encodeURIComponent(s));
 }
 
 function addEvent(element, eventType, fn) {
@@ -425,7 +425,7 @@ function processAsyncResponse() {
 </script>
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
-        <form name="h2query" method="post" action="/query.do?jsessionid=${sessionId}" target="h2result">
+        <form name="h2query" method="post" action="query.do?jsessionid=${sessionId}" target="h2result">
             <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;" />
             <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
             ${text.toolbar.sqlStatement}:

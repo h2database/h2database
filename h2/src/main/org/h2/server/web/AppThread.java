@@ -47,7 +47,7 @@ public class AppThread extends WebServerThread {
         super(socket, server);
         setName("H2 Console thread");
     }
-
+    
     AppSession getAppSession() {
         return (AppSession)session;
     }
@@ -221,13 +221,13 @@ public class AppThread extends WebServerThread {
         } else {
             language = (String) session.get("language");
         }
-        session.put("languageCombo", getCombobox(languageArray, language));
+        session.put("languageCombo", getComboBox(languageArray, language));
         String[] settingNames = server.getAppServer().getSettingNames();
         String setting = attributes.getProperty("setting");
         if(setting == null && settingNames.length>0) {
             setting = settingNames[0];
         }
-        String combobox = getCombobox(settingNames, setting);
+        String combobox = getComboBox(settingNames, setting);
         session.put("settingsList", combobox);
         ConnectionInfo info = server.getAppServer().getSetting(setting);
         if(info == null) {

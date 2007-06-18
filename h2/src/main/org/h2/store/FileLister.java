@@ -4,6 +4,7 @@
  */
 package org.h2.store;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -38,7 +39,7 @@ public class FileLister {
         if(dir == null || dir.equals("")) {
             dir = ".";
         }
-        String start = db == null ? null : FileUtils.normalize(dir + "/" + db);
+        String start = db == null ? null : FileUtils.normalize(dir + File.separator + db);
         String[] list = FileUtils.listFiles(dir);
         for(int i=0; list!=null && i<list.length; i++) {
             String f = list[i];

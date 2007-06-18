@@ -41,9 +41,10 @@ public class ConnectionInfo {
         }
         // TODO document these settings
         String[] connectionTime = new String[]{
-                "PASSWORD", "USER", "STORAGE", "FILE_LOCK", "CIPHER", "DB_CLOSE_ON_EXIT",
-                "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", "RECOVER", "CREATE", "CACHE_TYPE",
-                "ACCESS_MODE_LOG", "ACCESS_MODE_DATA"
+        		"ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", 
+        		"CIPHER", "CREATE", "CACHE_TYPE",
+                "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", 
+                "PASSWORD", "RECOVER", "STORAGE", "USER"
         };
         for(int i=0; i<connectionTime.length; i++) {
             String key = connectionTime[i];

@@ -42,10 +42,13 @@ import org.h2.util.StringUtils;
 public class AppThread extends WebServerThread {
 
     // TODO web: support online data editing like http://numsum.com/
+	
+	private boolean allowShutdown;
 
-    AppThread(Socket socket, WebServer server) {
+    AppThread(Socket socket, WebServer server, boolean allowShutdown) {
         super(socket, server);
         setName("H2 Console thread");
+        this.allowShutdown = allowShutdown;
     }
     
     AppSession getAppSession() {
@@ -203,7 +206,9 @@ public class AppThread extends WebServerThread {
     }
 
     private String adminShutdown() {
-        System.exit(0);
+    	if(allowShutdown) {
+    		System.exit(0);
+    	}
         return "admin.jsp";
     }
 

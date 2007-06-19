@@ -23,21 +23,6 @@ import org.h2.message.Message;
 
 public class StringUtils {
 
-    // TODO hack for gcj
-//#GCJHACK private static final Class[] gcjClasses =  {
-//#GCJHACK gnu.gcj.convert.Input_ASCII.class,
-//#GCJHACK gnu.gcj.convert.Input_UTF8.class,
-//#GCJHACK gnu.gcj.convert.Input_8859_1.class,
-//#GCJHACK gnu.gcj.convert.Output_ASCII.class,
-//#GCJHACK gnu.gcj.convert.Output_UTF8.class,
-//#GCJHACK gnu.gcj.convert.UnicodeToBytes.class,
-//#GCJHACK gnu.gcj.convert.BytesToUnicode.class,
-//#GCJHACK gnu.java.locale.Calendar.class,
-//#GCJHACK gnu.java.locale.LocaleInformation.class,
-//#GCJHACK gnu.java.locale.LocaleInformation_de.class,
-//#GCJHACK java.util.GregorianCalendar.class,
-//#GCJHACK };
-
     public static boolean equals(String a, String b) {
         if(a==null) {
             return b==null;

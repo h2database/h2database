@@ -558,7 +558,7 @@ public class DataType {
         } else if(Timestamp.class.isAssignableFrom(x)) {
             return Value.TIMESTAMP;
         } else if(java.util.Date.class.isAssignableFrom(x)) {
-            return Value.DATE;
+            return Value.TIMESTAMP;
         } else if(java.io.Reader.class.isAssignableFrom(x)) {
             return Value.CLOB;
         } else if(java.sql.Clob.class.isAssignableFrom(x)) {

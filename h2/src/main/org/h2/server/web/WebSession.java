@@ -9,13 +9,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.h2.bnf.Bnf;
 import org.h2.message.TraceSystem;
 
-public class AppSession extends WebServerSession {
+public class WebSession {
+    long lastAccess;
+    HashMap map = new HashMap();
+    Locale locale;
+    WebServer server;
+    
     private static final int MAX_HISTORY = 1000;
     private ArrayList commandHistory = new ArrayList();
     
@@ -31,8 +38,23 @@ public class AppSession extends WebServerSession {
     Statement executingStatement;
     ResultSet result;
     
-    AppSession(WebServer server) {
-        super(server);
+    WebSession(WebServer server) {
+        this.server = server;
+    }
+    
+    public void put(String key, Object value) {
+        map.put(key, value);
+    }
+    
+    public Object get(String key) {
+        if("sessions".equals(key)) {
+            return server.getSessions();
+        }
+        return map.get(key);
+    }
+
+    public void remove(String key) {
+        map.remove(key);
     }
 
     public Bnf getBnf() {
@@ -98,8 +120,16 @@ public class AppSession extends WebServerSession {
         return commandHistory;
     }
     
+    public HashMap getMainInfo() {
+    	int todoRefactorMergeWithGetInfo;
+        HashMap m = new HashMap();
+        m.putAll(map);
+        m.put("lastAccess", new Timestamp(lastAccess).toString());
+        return m;
+    }
+    
     public HashMap getInfo() {
-        HashMap m = super.getInfo();
+        HashMap m = getMainInfo();
         try {
             m.put("url", conn == null ? "not connected" : conn.getMetaData().getURL());
             m.put("user", conn == null ? "-" : conn.getMetaData().getUserName());
@@ -132,5 +162,5 @@ public class AppSession extends WebServerSession {
     public DbContents getContents() {
         return contents;
     }
-    
+
 }

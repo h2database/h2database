@@ -158,7 +158,7 @@ public class WebServer implements Service {
         try {
             while (serverSocket != null) {
                 Socket s = serverSocket.accept();
-                WebServerThread c = new AppThread(s, this);
+                WebServerThread c = new AppThread(s, this, true);
                 c.start();
             }
         } catch (Exception e) {

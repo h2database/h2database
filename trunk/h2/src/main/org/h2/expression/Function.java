@@ -958,9 +958,6 @@ public class Function extends Expression implements FunctionCall {
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, count);
-        // TODO gcj: required so that the millis are calculated?
-        calendar.get(Calendar.YEAR);
-        calendar.get(Calendar.HOUR_OF_DAY);
         long t = calendar.getTime().getTime();
         Timestamp ts = new Timestamp(t);
         ts.setNanos(ts.getNanos() + nanos);

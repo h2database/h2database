@@ -133,8 +133,6 @@ public class SecureSocketFactory {
             // See also: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561 (1.4.2 cannot read keystore written with 1.4.1)
             // --- generated code start ---
             
-            // GCJ hack
-            //KeyStore store = KeyStore.getInstance("JKS");
             KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
             
             store.load(null, password.toCharArray());

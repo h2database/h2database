@@ -4,6 +4,10 @@
  */
 package org.h2.server.web;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -22,10 +26,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
 import org.h2.bnf.Bnf;
+import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -35,24 +42,276 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
-/**
- * @author Thomas
- */
-
-public class AppThread extends WebServerThread {
+class WebThread extends Thread {
+    protected WebServer server;
+    protected WebSession session;
+    protected Properties attributes;
+    protected Socket socket;
+    
+    private InputStream input;
+    private String ifModifiedSince;
 
     // TODO web: support online data editing like http://numsum.com/
-	
-	private boolean allowShutdown;
 
-    AppThread(Socket socket, WebServer server, boolean allowShutdown) {
-        super(socket, server);
+	WebThread(Socket socket, WebServer server) {
+        this.server = server;
+        this.socket = socket;
         setName("H2 Console thread");
-        this.allowShutdown = allowShutdown;
+    }
+
+    void setSession(WebSession session, Properties attributes) {
+    	int todoRefactor;
+    	this.session = session;
+    	this.attributes = attributes;
     }
     
-    AppSession getAppSession() {
-        return (AppSession)session;
+    protected String getComboBox(String[] elements, String selected) {
+        StringBuffer buff = new StringBuffer();
+        for(int i=0; i<elements.length; i++) {
+            String value = elements[i];
+            buff.append("<option value=\"");
+            buff.append(PageParser.escapeHtml(value));
+            buff.append("\"");
+            if(value.equals(selected)) {
+                buff.append(" selected");
+            }
+            buff.append(">");
+            buff.append(PageParser.escapeHtml(value));
+            buff.append("</option>");
+        }
+        return buff.toString();
+    }
+
+    protected String getComboBox(String[][] elements, String selected) {
+        StringBuffer buff = new StringBuffer();
+        for(int i=0; i<elements.length; i++) {
+            String[] n = elements[i];
+            buff.append("<option value=\"");
+            buff.append(PageParser.escapeHtml(n[0]));
+            buff.append("\"");
+            if(n[0].equals(selected)) {
+                buff.append(" selected");
+            }
+            buff.append(">");
+            buff.append(PageParser.escapeHtml(n[1]));
+            buff.append("</option>");
+        }
+        return buff.toString();
+    }
+
+    public void run() {
+        try {
+            input = socket.getInputStream();
+            String head = readHeaderLine();
+            if(head.startsWith("GET ") || head.startsWith("POST ")) {
+                int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
+                String file = head.substring(begin+1, end).trim();
+                if(file.length() == 0) {
+                    file = "index.do";
+                }
+                if(!allow()) {
+                    file = "notAllowed.jsp";
+                }
+                server.trace(head + " :" + file);
+                attributes = new Properties();
+                int paramIndex = file.indexOf("?");
+                session = null;
+                if(paramIndex >= 0) {
+                    String attrib = file.substring(paramIndex+1);
+                    parseAttributes(attrib);
+                    String sessionId = attributes.getProperty("jsessionid");
+                    file = file.substring(0, paramIndex);
+                    session = server.getSession(sessionId);
+                }
+                // TODO web: support errors
+                String mimeType;
+                boolean cache;
+                int index = file.lastIndexOf('.');
+                String suffix;
+                if(index >= 0) {
+                    suffix = file.substring(index+1);
+                } else {
+                    suffix = "";
+                }
+                if(suffix.equals("ico")) {
+                    mimeType = "image/x-icon";
+                    cache=true;
+                } else if(suffix.equals("gif")) {
+                    mimeType = "image/gif";
+                    cache=true;
+                } else if(suffix.equals("css")) {
+                    cache=true;
+                    mimeType = "text/css";
+                } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
+                    cache=false;
+                    mimeType = "text/html";
+                    if (session == null) {
+                    	String hostname = socket.getInetAddress().getHostName();
+                        session = server.createNewSession(hostname);
+                        if (!file.equals("notAllowed.jsp")) {
+                            file = "index.do";
+                        }
+                    }
+                } else if(suffix.equals("js")) {
+                    cache=true;
+                    mimeType = "text/javascript";
+                } else {
+                    cache = false;
+                    mimeType = "text/html";
+                    file = "error.jsp";
+                    server.trace("unknown mime type, file "+file);
+                }
+                server.trace("mimeType="+mimeType);                
+                parseHeader();
+                server.trace(file);
+                if(file.endsWith(".do")) {
+                    file = process(file);
+                }
+                String message;
+                byte[] bytes;
+                if(cache && ifModifiedSince!=null && ifModifiedSince.equals(server.getStartDateTime())) {
+                    bytes = null;
+                    message = "HTTP/1.1 304 Not Modified\n";
+                } else {
+                    bytes = server.getFile(file);
+                    if(bytes == null) {
+                        message = "HTTP/1.0 404 Not Found\n";
+                        bytes = StringUtils.utf8Encode("File not found: "+file);
+                    } else {
+                        if(session != null && file.endsWith(".jsp")) {
+                            bytes = StringUtils.utf8Encode(fill(StringUtils.utf8Decode(bytes)));
+                        }
+                        message = "HTTP/1.1 200 OK\n";
+                        message += "Content-Type: "+mimeType+"\n";
+                        if(!cache) {
+                            message += "Cache-Control: no-cache\n";
+                        } else {
+                            message += "Cache-Control: max-age=10\n";
+                            message += "Last-Modified: "+server.getStartDateTime()+"\n";
+                        }
+                    }
+                }
+                message += "\n";
+                server.trace(message);
+                DataOutputStream output;
+                output = new DataOutputStream(
+                        new BufferedOutputStream(socket.getOutputStream()));
+                output.write(message.getBytes());
+                if(bytes!=null) {
+                    output.write(bytes);
+                }
+                output.flush();
+                output.close();
+                output.close();
+                socket.close();
+                return;
+            }
+        } catch (Exception e) {
+            TraceSystem.traceThrowable(e);
+        }
+    }
+
+    private String readHeaderLine() throws IOException {
+        StringBuffer buff=new StringBuffer();
+        while (true) {
+            int i = input.read();
+            if (i == -1) {
+                throw new IOException("Unexpected EOF");
+            } else if (i == '\r' && input.read()=='\n') {
+                return buff.length() > 0 ? buff.toString() : null;
+            } else {
+                buff.append((char)i);
+            }
+        }
+    }
+
+    private void parseAttributes(String s) throws Exception {
+        server.trace("data="+s);
+        while(s != null) {
+            int idx = s.indexOf('=');
+            if(idx>=0) {
+                String property = s.substring(0, idx);
+                s = s.substring(idx+1);
+                idx = s.indexOf('&');
+                String value;
+                if(idx >= 0) {
+                    value = s.substring(0, idx);
+                    s = s.substring(idx+1);
+                } else {
+                    value = s;
+                }
+                // TODO compatibility problem with JDK 1.3
+                //String attr = URLDecoder.decode(value, "UTF-8");
+                // String attr = URLDecoder.decode(value);
+                String attr = StringUtils.urlDecode(value);
+                attributes.put(property, attr);
+            } else {
+                break;
+            }
+        }
+        server.trace(attributes.toString());
+    }
+
+    private void parseHeader() throws Exception {
+        server.trace("parseHeader");
+        int len = 0;
+        ifModifiedSince = null;
+        while(true) {
+            String line = readHeaderLine();
+            if(line == null) {
+                break;
+            }
+            server.trace(" "+line);
+            String lower = StringUtils.toLowerEnglish(line);
+            if(lower.startsWith("if-modified-since")) {
+                ifModifiedSince = line.substring(line.indexOf(':')+1).trim();
+            } else if(lower.startsWith("content-length")) {
+                len = Integer.parseInt(line.substring(line.indexOf(':')+1).trim());
+                server.trace("len="+len);
+            } else if(lower.startsWith("accept-language")) {
+                if(session != null) {
+                    Locale locale = session.locale;
+                    if(locale == null) {
+                        String languages = line.substring(line.indexOf(':')+1).trim();
+                        StringTokenizer tokenizer = new StringTokenizer(languages, ",;");
+                        while(tokenizer.hasMoreTokens()) {
+                            String token = tokenizer.nextToken();
+                            if(!token.startsWith("q=")) {
+                                if(server.supportsLanguage(token)) {
+                                    int dash = token.indexOf('-');
+                                    if(dash >= 0) {
+                                        String language = token.substring(0, dash);
+                                        String country = token.substring(dash+1);
+                                        locale = new Locale(language, country);
+                                    } else {
+                                        locale = new Locale(token, "");
+                                    }
+                                    session.locale = locale;
+                                    String language = locale.getLanguage();
+                                    session.put("language", language);
+                                    server.readTranslations(session, language);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if(line.trim().length()==0) {
+                break;
+            }
+        }
+        if(session != null && len > 0) {
+            byte[] bytes = new byte[len];
+            for (int pos = 0; pos < len;) {
+                pos += input.read(bytes, pos, len - pos);
+            }
+            String s = new String(bytes);
+            parseAttributes(s);
+        }
+    }
+    
+    private String fill(String page) {
+        return PageParser.parse(server, page, session.map);
     }
 
     String process(String file) {
@@ -130,7 +389,7 @@ public class AppThread extends WebServerThread {
                 if(sql.trim().length()>0 && Character.isLowerCase(sql.trim().charAt(0))) {
                     lowercase = true;
                 }
-                Bnf bnf = getAppSession().getBnf();
+                Bnf bnf = session.getBnf();
                 if(bnf == null) {
                     return "autoCompleteList.jsp";
                 }
@@ -184,21 +443,19 @@ public class AppThread extends WebServerThread {
     }
 
     private String admin() {
-        AppServer app = server.getAppServer();
-        session.put("port", ""+app.getPort());
-        session.put("allowOthers", ""+app.getAllowOthers());
-        session.put("ssl", String.valueOf(app.getSSL()));
+        session.put("port", ""+server.getPort());
+        session.put("allowOthers", ""+server.getAllowOthers());
+        session.put("ssl", String.valueOf(server.getSSL()));
         session.put("sessions", server.getSessions());
         return "admin.jsp";
     }
 
     private String adminSave() {
-        AppServer app = server.getAppServer();
         try {
-            app.setPort(MathUtils.decodeInt((String)attributes.get("port")));
-            app.setAllowOthers(Boolean.valueOf((String)attributes.get("allowOthers")).booleanValue());
-            app.setSSL(Boolean.valueOf((String)attributes.get("ssl")).booleanValue());
-            app.saveSettings();
+            server.setPort(MathUtils.decodeInt((String)attributes.get("port")));
+            server.setAllowOthers(Boolean.valueOf((String)attributes.get("allowOthers")).booleanValue());
+            server.setSSL(Boolean.valueOf((String)attributes.get("ssl")).booleanValue());
+            server.saveSettings();
         } catch(Exception e) {
             server.trace(e.toString());
         }
@@ -206,7 +463,7 @@ public class AppThread extends WebServerThread {
     }
 
     private String adminShutdown() {
-    	if(allowShutdown) {
+    	if(server.getAllowShutdown()) {
     		System.exit(0);
     	}
         return "admin.jsp";
@@ -227,14 +484,14 @@ public class AppThread extends WebServerThread {
             language = (String) session.get("language");
         }
         session.put("languageCombo", getComboBox(languageArray, language));
-        String[] settingNames = server.getAppServer().getSettingNames();
+        String[] settingNames = server.getSettingNames();
         String setting = attributes.getProperty("setting");
         if(setting == null && settingNames.length>0) {
             setting = settingNames[0];
         }
         String combobox = getComboBox(settingNames, setting);
         session.put("settingsList", combobox);
-        ConnectionInfo info = server.getAppServer().getSetting(setting);
+        ConnectionInfo info = server.getSetting(setting);
         if(info == null) {
             info = new ConnectionInfo();
         }
@@ -248,7 +505,7 @@ public class AppThread extends WebServerThread {
 
     private String getHistory() {
         int id = Integer.parseInt(attributes.getProperty("id"));
-        String sql = getAppSession().getCommand(id);
+        String sql = session.getCommand(id);
         session.put("query", PageParser.escapeHtmlNoBreak(sql));
         return "query.jsp";
     }
@@ -330,9 +587,8 @@ public class AppThread extends WebServerThread {
         if(schema == null) {
             return treeIndex;
         }
-        AppSession app = getAppSession();
-        Connection conn = getAppSession().getConnection();
-        DatabaseMetaData meta = app.getMetaData();
+        Connection conn = session.getConnection();
+        DatabaseMetaData meta = session.getMetaData();
         int level = mainSchema ? 0 : 1;
         String indentation = ", "+level+", "+(level+1)+", ";
         String indentNode = ", "+(level+1)+", "+(level+1)+", ";
@@ -404,13 +660,12 @@ public class AppThread extends WebServerThread {
     }
 
     private String tables() {
-        AppSession app = getAppSession();
-        DbContents contents = app.getContents();
+        DbContents contents = session.getContents();
         try {
-            contents.readContents(app.getMetaData());
-            app.loadBnf();
-            Connection conn = app.getConnection();
-            DatabaseMetaData meta = app.getMetaData();
+            contents.readContents(session.getMetaData());
+            session.loadBnf();
+            Connection conn = session.getConnection();
+            DatabaseMetaData meta = session.getMetaData();
             boolean isH2 = contents.isH2;
 
             StringBuffer buff = new StringBuffer();
@@ -512,7 +767,7 @@ public class AppThread extends WebServerThread {
         session.put("url", url);
         session.put("user", user);
         try {
-            Connection conn = server.getAppServer().getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password);
             JdbcUtils.closeSilently(conn);
             session.put("error", "${text.login.testSuccessful}");
             return "index.jsp";
@@ -536,9 +791,8 @@ public class AppThread extends WebServerThread {
         String user = attributes.getProperty("user", "");
         String password = attributes.getProperty("password", "");
         try {
-            Connection conn = server.getAppServer().getConnection(driver, url, user, password);
-            AppSession appSession = getAppSession();
-            appSession.setConnection(conn);
+            Connection conn = server.getConnection(driver, url, user, password);
+            session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);
             session.put("autoCommit", "checked");
@@ -555,8 +809,8 @@ public class AppThread extends WebServerThread {
 
     private String logout() {
         try {
-            Connection conn = getAppSession().getConnection();
-            getAppSession().setConnection(null);
+            Connection conn = session.getConnection();
+            session.setConnection(null);
             session.remove("conn");
             session.remove("result");
             session.remove("tables");
@@ -573,7 +827,7 @@ public class AppThread extends WebServerThread {
     private String query() {
         String sql = attributes.getProperty("sql").trim();
         try {
-            Connection conn = getAppSession().getConnection();
+            Connection conn = session.getConnection();
             String result;
             if(sql.equals("@AUTOCOMMIT TRUE")) {
                 conn.setAutoCommit(true);
@@ -626,7 +880,7 @@ public class AppThread extends WebServerThread {
     }
 
     private String editResult() {
-        ResultSet rs = getAppSession().result;
+        ResultSet rs = session.result;
         int row = Integer.parseInt(attributes.getProperty("row"));
         int op = Integer.parseInt(attributes.getProperty("op"));
         String result = "", error="";
@@ -658,7 +912,7 @@ public class AppThread extends WebServerThread {
             error = formatAsError(e.getMessage());
         }
         String sql = "@EDIT " + (String) session.get("resultSetSQL");
-        Connection conn = getAppSession().getConnection();
+        Connection conn = session.getConnection();
         result = error + getResult(conn, -1, sql, true) + result;
         session.put("result", result);
         return "result.jsp";
@@ -904,7 +1158,7 @@ public class AppThread extends WebServerThread {
             boolean generatedKeys = false;
             boolean edit = false;
             if(sql.equals("@CANCEL")) {
-                stat = getAppSession().executingStatement;
+                stat = session.executingStatement;
                 if(stat != null) {
                     stat.cancel();
                     buff.append("${text.result.statementWasCancelled}");
@@ -942,9 +1196,9 @@ public class AppThread extends WebServerThread {
             } else {
                 int maxrows = getMaxrows();
                 stat.setMaxRows(maxrows);
-                getAppSession().executingStatement = stat;
+                session.executingStatement = stat;
                 boolean isResultSet = stat.execute(sql);
-                getAppSession().addCommand(sql);
+                session.addCommand(sql);
                 if(generatedKeys) {
                     rs = null;
 //#ifdef JDK14
@@ -977,7 +1231,7 @@ public class AppThread extends WebServerThread {
         } catch(Exception e) {
             return getStackTrace(id, e);
         } finally {
-            getAppSession().executingStatement = null;
+            session.executingStatement = null;
         }
     }
 
@@ -1038,7 +1292,7 @@ public class AppThread extends WebServerThread {
                         prep.setInt(j + 1,  i);
                     }
                 }
-                if(getAppSession().getContents().isSQLite) {
+                if(session.getContents().isSQLite) {
                     // SQLite currently throws an exception on prep.execute()
                     prep.executeUpdate();
                 } else {
@@ -1075,7 +1329,7 @@ public class AppThread extends WebServerThread {
 
     private String getHistoryString() {
         StringBuffer buff = new StringBuffer();
-        ArrayList history = getAppSession().getCommands();
+        ArrayList history = session.getCommands();
         buff.append("<table cellspacing=0 cellpadding=0>");
         buff.append("<tr><th></th><th>Command</th></tr>");
         for(int i=history.size()-1; i>=0; i--) {
@@ -1178,11 +1432,11 @@ public class AppThread extends WebServerThread {
         }
         boolean isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
         if(edit) {
-            ResultSet old = getAppSession().result;
+            ResultSet old = session.result;
             if(old != null) {
                 old.close();
             }
-            getAppSession().result = rs;
+            session.result = rs;
         } else {
             rs.close();
         }
@@ -1228,28 +1482,28 @@ public class AppThread extends WebServerThread {
         info.driver = attributes.getProperty("driver", "");
         info.url = attributes.getProperty("url", "");
         info.user = attributes.getProperty("user", "");
-        server.getAppServer().updateSetting(info);
+        server.updateSetting(info);
         attributes.put("setting", info.name);
-        server.getAppServer().saveSettings();
+        server.saveSettings();
         return "index.do";
     }
 
     private String settingRemove() {
         String setting = attributes.getProperty("name", "");
-        server.getAppServer().removeSetting(setting);
-        ArrayList settings = server.getAppServer().getSettings();
+        server.removeSetting(setting);
+        ArrayList settings = server.getSettings();
         if(settings.size() > 0) {
             attributes.put("setting", settings.get(0));
         }
-        server.getAppServer().saveSettings();
+        server.saveSettings();
         return "index.do";
     }
 
     boolean allow() {
-        if(server.getAppServer().getAllowOthers()) {
+        if(server.getAllowOthers()) {
             return true;
         }
         return NetUtils.isLoopbackAddress(socket);
     }
-
+    
 }

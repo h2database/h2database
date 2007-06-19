@@ -33,8 +33,6 @@ public class DateTimeUtils {
     public static Time cloneAndNormalizeTime(Time value) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(value);
-        // TODO gcj: required so that the millis are calculated?
-        cal.get(Calendar.HOUR_OF_DAY);
         cal.set(1970, 0, 1);
         return new Time(cal.getTime().getTime());        
     }
@@ -42,8 +40,6 @@ public class DateTimeUtils {
     public static Date cloneAndNormalizeDate(Date value) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(value);
-        // TODO gcj: required so that the millis are calculated?
-        cal.get(Calendar.YEAR);        
         cal.set(Calendar.MILLISECOND, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MINUTE, 0);

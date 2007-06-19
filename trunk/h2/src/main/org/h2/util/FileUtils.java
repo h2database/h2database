@@ -33,8 +33,6 @@ public class FileUtils {
     // TODO detection of 'case in sensitive filesystem' could maybe implemented using some other means
     private static final boolean isCaseInsensitiveFileSystem = (File.separatorChar == '\\');
 
-    // TODO gcj: use our own UTF-8 encoder
-
     public static RandomAccessFile openRandomAccessFile(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
         try {
@@ -222,10 +220,7 @@ public class FileUtils {
                 wait(i);
             }
         }
-        // TODO GCJ: it seems gcj throws 'CreateFile failed' if the file already exists?!
         return false;
-        // TODO is this message used elsewhere?
-        // throw Message.getSQLException(Message.FILE_CREATION_FAILED_1, fileName);
     }
 
     public static void delete(String fileName) throws SQLException {

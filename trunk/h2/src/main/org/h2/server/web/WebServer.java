@@ -6,8 +6,10 @@ package org.h2.server.web;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,9 +20,13 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.util.ByteUtils;
+import org.h2.util.FileUtils;
+import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
@@ -43,6 +49,29 @@ public class WebServer implements Service {
         { "pl", "Polski"},
     };
     
+    private static final String[] GENERIC = new String[] {
+        "Generic Firebird Server|org.firebirdsql.jdbc.FBDriver|jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
+        "Generic OneDollarDB|in.co.daffodil.db.jdbc.DaffodilDBDriver|jdbc:daffodilDB_embedded:school;path=C:/temp;create=true|sa",
+        "Generic DB2|COM.ibm.db2.jdbc.net.DB2Driver|jdbc:db2://<host>/<db>|" ,
+        "Generic Oracle|oracle.jdbc.driver.OracleDriver|jdbc:oracle:thin:@<host>:1521:<instance>|scott" ,
+        "Generic PostgreSQL|org.postgresql.Driver|jdbc:postgresql:<db>|" ,
+        "Generic MS SQL Server|com.microsoft.jdbc.sqlserver.SQLServerDriver|jdbc:Microsoft:sqlserver://localhost:1433;DatabaseName=sqlexpress|sa",
+        "Generic MS SQL Server 2005|com.microsoft.sqlserver.jdbc.SQLServerDriver|jdbc:sqlserver://localhost;DatabaseName=test|sa",
+        "Generic MySQL|com.mysql.jdbc.Driver|jdbc:mysql://<host>:<port>/<db>|" ,
+        "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
+        "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|jdbc:derby://localhost:1527/test;create=true|sa",
+        "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
+        "Generic H2|org.h2.Driver|jdbc:h2:test|sa",
+    };
+
+    // private URLClassLoader urlClassLoader;
+    private String driverList;
+    private static int ticker;
+    private int port;
+    private boolean allowOthers;
+    private boolean ssl;
+    private HashMap connInfoMap = new HashMap();
+    
 /*
     String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
         java.util.Locale.CHINESE.getDisplayLanguage(
@@ -56,11 +85,9 @@ public class WebServer implements Service {
     private HashMap sessions = new HashMap();
     private HashSet languages = new HashSet();
     private String startDateTime;
-    private AppServer appServer;
     private ServerSocket serverSocket;
-    private boolean ssl;
-    private int port;
     private String url;
+    private boolean allowShutdown;
 
     byte[] getFile(String file) throws IOException {
         trace("getFile <"+file+">");
@@ -83,17 +110,13 @@ public class WebServer implements Service {
         return ByteUtils.convertBytesToString(buff);
     }
 
-    AppServer getAppServer() {
-        return appServer;
-    }
-
-    WebServerSession getSession(String sessionId) {
+    WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
         if(lastTimeoutCheck + SESSION_TIMEOUT < now) {
             Object[] list = sessions.keySet().toArray();
             for(int i=0; i<list.length; i++) {
                 String id = (String) list[i];
-                WebServerSession session = (WebServerSession)sessions.get(id);
+                WebSession session = (WebSession)sessions.get(id);
                 Long last = (Long) session.get("lastAccess");
                 if(last != null && last.longValue() + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
@@ -102,19 +125,19 @@ public class WebServer implements Service {
             }
             lastTimeoutCheck = now;
         }
-        WebServerSession session = (WebServerSession)sessions.get(sessionId);
+        WebSession session = (WebSession)sessions.get(sessionId);
         if(session != null) {
             session.lastAccess = System.currentTimeMillis();
         }
         return session;
     }
 
-    WebServerSession createNewSession(String hostname) {
+    WebSession createNewSession(String hostname) {
         String newId;
         do {
             newId = generateSessionId();
         } while(sessions.get(newId) != null);
-        WebServerSession session = new AppSession(this);
+        WebSession session = new WebSession(this);
         session.put("sessionId", newId);
         //session.put("ip", socket.getInetAddress().getCanonicalHostName());
         session.put("ip", hostname);
@@ -131,8 +154,35 @@ public class WebServer implements Service {
 
     public void init(String[] args) throws Exception {
         // TODO web: support using a different properties file
-        appServer = new AppServer(args);
-        SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
+        Properties prop = loadProperties();
+        driverList = prop.getProperty("drivers");
+        port = FileUtils.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
+        ssl = FileUtils.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
+        allowOthers = FileUtils.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
+        for(int i=0; args != null && i<args.length; i++) {
+            if("-webPort".equals(args[i])) {
+                port = MathUtils.decodeInt(args[++i]);
+            } else  if("-webSSL".equals(args[i])) {
+                ssl = Boolean.valueOf(args[++i]).booleanValue();
+            } else  if("-webAllowOthers".equals(args[i])) {
+                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+            // } else if("-baseDir".equals(args[i])) {
+            //    String baseDir = args[++i];
+            }
+        }
+//            if(driverList != null) {
+//                try {
+//                    String[] drivers = StringUtils.arraySplit(driverList, ',', false);
+//                    URL[] urls = new URL[drivers.length];
+//                    for(int i=0; i<drivers.length; i++) {
+//                        urls[i] = new URL(drivers[i]);
+//                    }
+//                    urlClassLoader = URLClassLoader.newInstance(urls);
+//                } catch (MalformedURLException e) {
+//                    TraceSystem.traceThrowable(e);
+//                }
+//            }
+    	SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
     	synchronized(format) {
         	format.setTimeZone(TimeZone.getTimeZone("GMT"));
     		startDateTime = format.format(new Date());
@@ -140,10 +190,7 @@ public class WebServer implements Service {
         trace(startDateTime);
         for(int i=0; i<LANGUAGES.length; i++) {
             languages.add(LANGUAGES[i][0]);
-        }
-        port = appServer.getPort();
-        ssl = appServer.getSSL();
-        url = (ssl?"https":"http") + "://localhost:"+port;
+        }        url = (ssl?"https":"http") + "://localhost:"+port;
     }
     
     public String getURL() {
@@ -158,7 +205,7 @@ public class WebServer implements Service {
         try {
             while (serverSocket != null) {
                 Socket s = serverSocket.accept();
-                WebServerThread c = new AppThread(s, this, true);
+                WebThread c = new WebThread(s, this);
                 c.start();
             }
         } catch (Exception e) {
@@ -196,7 +243,7 @@ public class WebServer implements Service {
         return languages.contains(language);
     }
 
-    public void readTranslations(WebServerSession session, String language) {
+    public void readTranslations(WebSession session, String language) {
         Properties text = new Properties();
         try {
             trace("translation: "+language);
@@ -216,18 +263,164 @@ public class WebServer implements Service {
     public ArrayList getSessions() {
         ArrayList list = new ArrayList(sessions.values());
         for(int i=0; i<list.size(); i++) {
-            WebServerSession s = (WebServerSession) list.get(i);
+            WebSession s = (WebSession) list.get(i);
             list.set(i, s.getInfo());
         }
         return list;
     }
 
-    public boolean getAllowOthers() {
-        return appServer.getAllowOthers();
-    }
-
     public String getType() {
         return "Web";
     }
+    
+    void setAllowOthers(boolean b) {
+        allowOthers = b;
+    }
+    
+    public boolean getAllowOthers() {
+    	return allowOthers;
+    }
+
+    void setSSL(boolean b) {
+        ssl = b;
+    }
+
+    void setPort(int port) {
+        this.port = port;
+    }
+
+    boolean getSSL() {
+        return ssl;
+    }
+
+    int getPort() {
+        return port;
+    }
+
+    ConnectionInfo getSetting(String name) {
+        return (ConnectionInfo)connInfoMap.get(name);
+    }
+
+    void updateSetting(ConnectionInfo info) {
+        connInfoMap.put(info.name, info);
+        info.lastAccess = ticker++;
+    }
+
+    void removeSetting(String name) {
+        connInfoMap.remove(name);
+    }
+
+    private String getPropertiesFileName() {
+        // store the properties in the user directory
+        return FileUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
+    }
+
+    Properties loadProperties() {
+        String fileName = getPropertiesFileName();
+        try {
+            return FileUtils.loadProperties(fileName);
+        } catch(IOException e) {
+            // TODO log exception
+            return new Properties();
+        }
+    }
+
+    String[] getSettingNames() {
+        ArrayList list = getSettings();
+        String[] names = new String[list.size()];
+        for(int i=0; i<list.size(); i++) {
+            names[i] = ((ConnectionInfo)list.get(i)).name;
+        }
+        return names;
+    }
+
+    synchronized ArrayList getSettings() {
+        ArrayList settings = new ArrayList();
+        if(connInfoMap.size() == 0) {
+            Properties prop = loadProperties();
+            if(prop.size() == 0) {
+                for(int i=0; i<GENERIC.length; i++) {
+                    ConnectionInfo info = new ConnectionInfo(GENERIC[i]);
+                    settings.add(info);
+                    updateSetting(info);
+                }
+            } else {
+                for(int i=0; ; i++) {
+                    String data = prop.getProperty(String.valueOf(i));
+                    if(data == null) {
+                        break;
+                    }
+                    ConnectionInfo info = new ConnectionInfo(data);
+                    settings.add(info);
+                    updateSetting(info);
+                }
+            }
+        } else {
+            settings.addAll(connInfoMap.values());
+        }
+        sortConnectionInfo(settings);
+        return settings;
+    }
+
+    void sortConnectionInfo(ArrayList list) {
+          for (int i = 1, j; i < list.size(); i++) {
+              ConnectionInfo t = (ConnectionInfo) list.get(i);
+              for (j = i - 1; j >= 0 && (((ConnectionInfo)list.get(j)).lastAccess < t.lastAccess); j--) {
+                  list.set(j + 1, list.get(j));
+              }
+              list.set(j + 1, t);
+          }
+    }
+
+    synchronized void saveSettings() {
+        try {
+            Properties prop = new Properties();
+            if(driverList != null) {
+                prop.setProperty("drivers", driverList);
+            }
+            prop.setProperty("webPort", String.valueOf(port));
+            prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
+            prop.setProperty("webSSL", String.valueOf(ssl));
+            ArrayList settings = getSettings();
+            int len = settings.size();
+            for(int i=0; i<len; i++) {
+                ConnectionInfo info = (ConnectionInfo) settings.get(i);
+                if(info != null) {
+                    prop.setProperty(String.valueOf(len - i - 1), info.getString());
+                }
+            }
+            OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName());
+            prop.store(out, Constants.SERVER_PROPERTIES_TITLE);
+            out.close();
+        } catch(Exception e) {
+            TraceSystem.traceThrowable(e);
+        }
+    }
+
+    Connection getConnection(String driver, String url, String user, String password) throws Exception {
+        driver = driver.trim();
+        url = url.trim();
+        user = user.trim();
+        password = password.trim();
+        org.h2.Driver.load();
+//            try {
+//                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
+//                Properties p = new Properties();
+//                p.setProperty("user", user);
+//                p.setProperty("password", password);
+//                return dr.connect(url, p);
+//            } catch(ClassNotFoundException e2) {
+//                throw e2;
+//            }
+        return JdbcUtils.getConnection(driver, url, user, password);
+    }
+
+	public void setAllowShutdown(boolean b) {
+		this.allowShutdown = b;
+	}
+
+	boolean getAllowShutdown() {
+		return allowShutdown;
+	}
 
 }

@@ -1,9 +1,10 @@
-package org.h2.tools.servlet;
+package org.h2.server.web;
 
 import javax.servlet.*;
 import java.sql.*;
 
 public class DbStarter implements ServletContextListener {
+	
     private Connection conn;
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {

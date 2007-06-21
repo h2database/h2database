@@ -93,6 +93,23 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
+set new console to be the default (still support old)
+
+set new index mechanism to be the default (still support old)
+
+add test case:
+create table test1(id int);
+insert into test1 values(1);
+insert into test1 values(1);
+insert into test1 values(2);
+insert into test1 values(3);
+select sum(C0) from (
+  select count(*) AS C0 from (select distinct * from
+test1) as temp
+)
+
+todo: challenge response authentication
+
 h2 console system tray: menu item to open window
 
 Set h2.indexNew to false

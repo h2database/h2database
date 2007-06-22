@@ -22,71 +22,67 @@ import javax.servlet.http.HttpServletResponse;
 import org.h2.util.StringUtils;
 
 public class WebServlet extends HttpServlet {
-	
-	private static final long serialVersionUID = 9171446624885086692L;
-	private WebServer server;
-	
-	private void testLog(String s) {
-		int todoRefactorSimplify;
-		int todoRemoveTestLogMethod;
-		int todoTestWithTomcat;
-		int todoTestWithJetty;
-		System.out.println(s);
-	}
-	
-	public void init() throws ServletException {
-		ServletConfig config = getServletConfig();
-		Enumeration en = config.getInitParameterNames();
-		ArrayList list = new ArrayList();
-		while(en.hasMoreElements()) {
-			String name = (String) en.nextElement();
-			String value = config.getInitParameter(name);
-			if(!name.startsWith("-")) {
-				name = "-" + name;
-			}
-			list.add(name);
-			list.add(value);
-		}
-		String[] args = new String[list.size()];
-		list.toArray(args);
-		server = new WebServer();
-		server.setAllowShutdown(false);
-		try {
-			server.init(args);
-		} catch(Exception e) {
-			throw new ServletException("Init failed", e);
-		}
-	}
-	
-	public void destroy() {
-	}
-	
+    
+    private static final long serialVersionUID = 9171446624885086692L;
+    private WebServer server;
+
+    private int todoRefactorRemoveDuplicateCode;
+    private int todoRemoveSystem_out;
+    private int todoTestWithTomcat;
+    private int todoTestWithJetty;
+
+    public void init() throws ServletException {
+        ServletConfig config = getServletConfig();
+        Enumeration en = config.getInitParameterNames();
+        ArrayList list = new ArrayList();
+        while(en.hasMoreElements()) {
+            String name = (String) en.nextElement();
+            String value = config.getInitParameter(name);
+            if(!name.startsWith("-")) {
+                name = "-" + name;
+            }
+            list.add(name);
+            list.add(value);
+        }
+        String[] args = new String[list.size()];
+        list.toArray(args);
+        server = new WebServer();
+        server.setAllowShutdown(false);
+        try {
+            server.init(args);
+        } catch(Exception e) {
+            throw new ServletException("Init failed", e);
+        }
+    }
+    
+    public void destroy() {
+    }
+    
     boolean allow(HttpServletRequest req) {
         if(server.getAllowOthers()) {
             return true;
         }
-		String addr = req.getRemoteAddr();
-		InetAddress address;
-		try {
-			address = InetAddress.getByName(addr);
-		} catch (UnknownHostException e) {
-			return false;
-		}
-		return address.isLoopbackAddress();
+        String addr = req.getRemoteAddr();
+        InetAddress address;
+        try {
+            address = InetAddress.getByName(addr);
+        } catch (UnknownHostException e) {
+            return false;
+        }
+        return address.isLoopbackAddress();
     }
-	
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String file = req.getPathInfo();
-        trace("get " + file);
+    
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String file = req.getPathInfo();
         if(file == null) {
-        	resp.sendRedirect(req.getRequestURI() + "/");
-        	return;
+            resp.sendRedirect(req.getRequestURI() + "/");
+            return;
         } else if(file.startsWith("/")) {
-        	file = file.substring(1);
+            file = file.substring(1);
         }
         if(file.length() == 0) {
             file = "index.do";
-        }		
+        }        
         if(!allow(req)) {
             file = "notAllowed.jsp";
         }
@@ -94,22 +90,21 @@ public class WebServlet extends HttpServlet {
         Properties attributes = new Properties();
         Enumeration en = req.getAttributeNames();
         while(en.hasMoreElements()) {
-        	String name = (String) en.nextElement();
-        	String value = (String) req.getAttribute(name);
-        	attributes.put(name, value);
+            String name = (String) en.nextElement();
+            String value = (String) req.getAttribute(name);
+            attributes.put(name, value);
         }
         en = req.getParameterNames();
         while(en.hasMoreElements()) {
-        	String name = (String) en.nextElement();
-        	String value = (String) req.getParameter(name);
-        	attributes.put(name, value);
+            String name = (String) en.nextElement();
+            String value = req.getParameter(name);
+            attributes.put(name, value);
         }
         WebSession session = null;
         String sessionId = attributes.getProperty("jsessionid");
         if(sessionId != null) {
             session = server.getSession(sessionId);
         }
-        int todoSupportCache;
         String mimeType;
         boolean cache;
         int index = file.lastIndexOf('.');
@@ -129,18 +124,18 @@ public class WebServlet extends HttpServlet {
             cache=true;
             mimeType = "text/css";
         } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
-            cache=false;
+            cache = false;
             mimeType = "text/html";
             if (session == null) {
-            	int todoTest;
-            	String hostname = req.getRemoteHost();
+                int todoTest;
+                String hostname = req.getRemoteHost();
                 session = server.createNewSession(hostname);
                 if (!file.equals("notAllowed.jsp")) {
                     file = "index.do";
                 }
             }
         } else if(suffix.equals("js")) {
-            cache=true;
+            cache = true;
             mimeType = "text/javascript";
         } else {
             cache = false;
@@ -151,36 +146,35 @@ public class WebServlet extends HttpServlet {
         server.trace("mimeType="+mimeType);                
         // parseHeader();
         String ifModifiedSince = req.getHeader("if-modified-since");
-        testLog("@ifmod=" + ifModifiedSince);
         server.trace(file);
         WebThread app = new WebThread(null, server);
         
         if(file.endsWith(".do")) {
-        	app.setSession(session, attributes);
+            app.setSession(session, attributes);
             file = app.process(file);
         }
         if(cache && server.getStartDateTime().equals(ifModifiedSince)) {
-        	resp.sendError(HttpServletResponse.SC_NOT_MODIFIED);
-            bytes = null;
+            resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            return;
         } else {
-        	bytes = server.getFile(file);
+            bytes = server.getFile(file);
         }
         if(bytes == null) {
-        	resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-        	try {
-        		bytes = StringUtils.utf8Encode("File not found: "+file);
-        	} catch(SQLException e) {
-        		int todoNotIgnore;
-        	}
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            try {
+                bytes = StringUtils.utf8Encode("File not found: "+file);
+            } catch(SQLException e) {
+                int todoNotIgnore;
+            }
         } else {
             if(session != null && file.endsWith(".jsp")) {
-            	String page = StringUtils.utf8Decode(bytes);
-            	page = PageParser.parse(server, page, session.map);
-            	try {
+                String page = StringUtils.utf8Decode(bytes);
+                page = PageParser.parse(server, page, session.map);
+                try {
                     bytes = StringUtils.utf8Encode(page);
-            	} catch(SQLException e) {
-            		int todoNotIgnore;
-            	}
+                } catch(SQLException e) {
+                    int todoNotIgnore;
+                }
             }
             resp.setContentType(mimeType);
             if(!cache) {
@@ -194,14 +188,9 @@ public class WebServlet extends HttpServlet {
             ServletOutputStream out = resp.getOutputStream();
             out.write(bytes);
         }
-	}
-	
-	private void trace(String s) {
-		int todo;
-		System.out.println("## " + s);
-	}
+    }
 
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		doGet(req, resp);
-	}
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doGet(req, resp);
+    }
 }

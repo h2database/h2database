@@ -273,7 +273,7 @@
 	</target>
 	
 	<target name="warConsole" depends="compileServlet, jar">
-		<war destfile="bin/h2console.war" webxml="src/tools/WEB-INF/web.xml">
+		<war destfile="bin/h2console.war" webxml="src/tools/WEB-INF/web.xml" basedir="src/tools/WEB-INF" includes="console.html">
 			<lib file="bin/h2.jar" />
 		</war>
 	</target>

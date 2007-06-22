@@ -37,9 +37,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
+<li>The H2 Console can now be run as a standalone web application, or it can be embedded as a servlet into any
+	existing web application. To build the 'H2 Console' web application, execute 'ant warConsole'.
+	See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
+</li><li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
 </li><li>The Polish translation is available. Thanks a lot to Tomek!
 </li><li>Windows service: the CLASSPATH was not included when starting the service. Fixed.
+</li>
 </ul>
 
 <h3>Version 1.0 / 2007-06-17 (Build 50)</h3><ul>

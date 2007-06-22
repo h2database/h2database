@@ -1,15 +1,19 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.server.web;
 
 import javax.servlet.*;
 import java.sql.*;
 
 public class DbStarter implements ServletContextListener {
-	
+    
     private Connection conn;
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         try {
-            Class.forName("org.h2.Driver");
+            org.h2.Driver.load();
             // You can also get the setting from a context-param in web.xml:
             ServletContext servletContext = servletContextEvent.getServletContext();
             // String url = servletContext.getInitParameter("db.url");

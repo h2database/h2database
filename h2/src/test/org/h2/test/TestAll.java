@@ -93,6 +93,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
+"com.mysql.jdbc.NotUpdatable: Result Set not updatable.This result set must come from a statement that was created with a result set type of ResultSet.CONCUR_UPDATABLE, the query must select only one table, and must select all primary keys from that table. See the JDBC 2.1 API Specification, section 5.6 for more details."
+
 set new console to be the default (still support old)
 
 set new index mechanism to be the default (still support old)

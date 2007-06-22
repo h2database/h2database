@@ -314,48 +314,15 @@ bad if they don't get closed).
 The server mode is similar, but it allows you to run the server in another process. 
 
 <h3>Using a Servlet Listener to Start and Stop a Database</h3>
-Add the following to the web.xml file (after context-param and before filter):
+Add the h2.jar file your web application, and
+add the following snippet to your web.xml file (after context-param and before filter):
 <pre>
 &lt;listener>
-   &lt;listener-class>db.Starter&lt;/listener-class>
+   &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
 &lt;/listener>
 </pre>
 
-Add the following Starter class:
-<pre>
-package org.h2.tools.servlet;
-
-import javax.servlet.*;
-import java.sql.*;
-
-public class DbStarter implements ServletContextListener {
-    private Connection conn;
-
-    public void contextInitialized(ServletContextEvent servletContextEvent) {
-        try {
-            Class.forName("org.h2.Driver");
-            // You can also get the setting from a context-param in web.xml:
-            // ServletContext servletContext = servletContextEvent.getServletContext();
-            // String url = servletContext.getInitParameter("db.url");
-            conn = DriverManager.getConnection("jdbc:h2:test", "sa", "");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public Connection getConnection() {
-        return conn;
-    }
-
-    public void contextDestroyed(ServletContextEvent servletContextEvent) {
-        try {
-            conn.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-</pre>
+For details on how to access the database, see the code DbStarter.java
 
 <br /><a name="csv"></a>
 <h2>CSV (Comma Separated Values) Support</h2>

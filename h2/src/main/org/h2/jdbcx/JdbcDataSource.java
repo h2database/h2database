@@ -139,7 +139,6 @@ Serializable, Referenceable  {
         this.user = user;
     }
     
-
     public Reference getReference() throws NamingException {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();

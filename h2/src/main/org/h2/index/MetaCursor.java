@@ -30,9 +30,9 @@ public class MetaCursor implements Cursor {
         return current;
     }
     
-	public SearchRow getSearchRow() throws SQLException {
-		return current;
-	}
+    public SearchRow getSearchRow() throws SQLException {
+        return current;
+    }
     
     public int getPos() {
         throw Message.getInternalError();

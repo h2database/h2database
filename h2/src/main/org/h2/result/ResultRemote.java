@@ -192,13 +192,6 @@ public class ResultRemote implements ResultInterface {
         }
     }
 
-//    public void finalize() {
-//        if(!Constants.RUN_FINALIZE) {
-//            return;
-//        }        
-//        close();
-//    }
-
     private Value[] fetchRow(boolean sendFetch) throws SQLException {
         synchronized (session) {
             session.checkClosed();

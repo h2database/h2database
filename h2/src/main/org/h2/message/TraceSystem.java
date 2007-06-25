@@ -114,9 +114,9 @@ public class TraceSystem {
     }
 
     private String format(String module, String s) {
-    	synchronized(dateFormat) {
-    		return dateFormat.format(new Date()) + module + ": " + s;
-    	}
+        synchronized(dateFormat) {
+            return dateFormat.format(new Date()) + module + ": " + s;
+        }
     }
 
     void write(int l, String module, String s, Throwable t) {

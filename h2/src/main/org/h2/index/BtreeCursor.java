@@ -49,19 +49,19 @@ public class BtreeCursor implements Cursor {
     }
 
     void setCurrentRow(SearchRow searchRow) throws SQLException {
-    	this.currentSearchRow = searchRow;
-    	currentRow = null;
+        this.currentSearchRow = searchRow;
+        currentRow = null;
     }
     
     public Row get() throws SQLException {
-    	if(currentRow == null && currentSearchRow != null) {
-    		currentRow = index.getRow(currentSearchRow.getPos());
-    	}
-		return currentRow;
+        if(currentRow == null && currentSearchRow != null) {
+            currentRow = index.getRow(currentSearchRow.getPos());
+        }
+        return currentRow;
     }
 
     public SearchRow getSearchRow() throws SQLException {
-    	return currentSearchRow;
+        return currentSearchRow;
     }
 
     public int getPos() {
@@ -76,8 +76,8 @@ public class BtreeCursor implements Cursor {
         top.page.next(this, top.position);
         if(currentSearchRow != null && last != null) {
             if (index.compareRows(currentSearchRow, last) > 0) {
-            	currentSearchRow = null;
-            	currentRow = null;
+                currentSearchRow = null;
+                currentRow = null;
             }
         }
         return currentSearchRow != null;

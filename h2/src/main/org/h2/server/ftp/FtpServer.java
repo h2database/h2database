@@ -100,13 +100,13 @@ public class FtpServer implements Service {
         Date now = new Date(), mod = new Date(f.lastModified());
         String date;
         if(mod.after(now) || Math.abs((now.getTime() - mod.getTime())/1000/60/60/24) > 180) {
-        	synchronized(dateFormatOld) {
-        		date = dateFormatOld.format(mod);
-        	}
+            synchronized(dateFormatOld) {
+                date = dateFormatOld.format(mod);
+            }
         } else {
-        	synchronized(dateFormatNew) {
-        		date = dateFormatNew.format(mod);
-        	}
+            synchronized(dateFormatNew) {
+                date = dateFormatNew.format(mod);
+            }
         }
         buff.append(date);
         buff.append(' ');
@@ -115,9 +115,9 @@ public class FtpServer implements Service {
     }
 
     String formatLastModified(FileObject file) {
-    	synchronized(dateFormat) {
-    		return dateFormat.format(new Date(file.lastModified()));
-    	}
+        synchronized(dateFormat) {
+            return dateFormat.format(new Date(file.lastModified()));
+        }
     }     
     
     FileObject getFile(String path) {

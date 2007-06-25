@@ -138,11 +138,11 @@ public class ViewIndex extends Index {
         }
         int len;
         if(first != null) {
-        	len = first.getColumnCount();
+            len = first.getColumnCount();
         } else if(last != null) {
-        	len = last.getColumnCount();
+            len = last.getColumnCount();
         } else {
-        	len = 0;
+            len = 0;
         }
         for(int i=0; i < len; i++) {
             if(first != null) {

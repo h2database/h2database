@@ -53,16 +53,16 @@ class WebThread extends Thread {
 
     // TODO web: support online data editing like http://numsum.com/
 
-	WebThread(Socket socket, WebServer server) {
+    WebThread(Socket socket, WebServer server) {
         this.server = server;
         this.socket = socket;
         setName("H2 Console thread");
     }
 
     void setSession(WebSession session, Properties attributes) {
-    	int todoRefactor;
-    	this.session = session;
-    	this.attributes = attributes;
+        int todoRefactor;
+        this.session = session;
+        this.attributes = attributes;
     }
     
     protected String getComboBox(String[] elements, String selected) {
@@ -146,7 +146,7 @@ class WebThread extends Thread {
                     cache=false;
                     mimeType = "text/html";
                     if (session == null) {
-                    	String hostname = socket.getInetAddress().getHostName();
+                        String hostname = socket.getInetAddress().getHostName();
                         session = server.createNewSession(hostname);
                         if (!file.equals("notAllowed.jsp")) {
                             file = "index.do";
@@ -463,9 +463,9 @@ class WebThread extends Thread {
     }
 
     private String adminShutdown() {
-    	if(server.getAllowShutdown()) {
-    		System.exit(0);
-    	}
+        if(server.getAllowShutdown()) {
+            System.exit(0);
+        }
         return "admin.jsp";
     }
 

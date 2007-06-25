@@ -58,47 +58,47 @@ public class Console implements ActionListener, MouseListener {
             web = Server.createWebServer(args);
             web.start();
         } catch (SQLException e) {
-        	if(web == null) {
-        		e.printStackTrace();
-        	} else {
-            	System.out.println(web.getStatus());
-        	}
+            if(web == null) {
+                e.printStackTrace();
+            } else {
+                System.out.println(web.getStatus());
+            }
         }
-    	Server tcp = null, odbc = null;
+        Server tcp = null, odbc = null;
         try {
-        	tcp = Server.createTcpServer(args);
-        	tcp.start();
+            tcp = Server.createTcpServer(args);
+            tcp.start();
         } catch(SQLException e) {
-        	if(tcp == null) {
-        		e.printStackTrace();
-        	} else {
-            	System.out.println(tcp.getStatus());
-        	}
+            if(tcp == null) {
+                e.printStackTrace();
+            } else {
+                System.out.println(tcp.getStatus());
+            }
         }
         try {
-        	odbc = Server.createOdbcServer(args);
-        	odbc.start();
+            odbc = Server.createOdbcServer(args);
+            odbc.start();
         } catch(SQLException e) {
-        	if(odbc == null) {
-        		e.printStackTrace();
-        	} else {
-            	System.out.println(odbc.getStatus());
-        	}
+            if(odbc == null) {
+                e.printStackTrace();
+            } else {
+                System.out.println(odbc.getStatus());
+            }
         }
         if(!GraphicsEnvironment.isHeadless()) {
-        	font = new Font("Dialog", Font.PLAIN, 11);
-	        try {
-	            InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
-	            if(in != null) {
-	                byte[] imageData = IOUtils.readBytesAndClose(in, -1);
-	                icon = Toolkit.getDefaultToolkit().createImage(imageData);
-	            }
-	            if(!createTrayIcon()) {
-	                showWindow(true);
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+            font = new Font("Dialog", Font.PLAIN, 11);
+            try {
+                InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
+                if(in != null) {
+                    byte[] imageData = IOUtils.readBytesAndClose(in, -1);
+                    icon = Toolkit.getDefaultToolkit().createImage(imageData);
+                }
+                if(!createTrayIcon()) {
+                    showWindow(true);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         // start browser anyway (even if the server is already running)
         // because some people don't look at the output,
@@ -167,11 +167,11 @@ public class Console implements ActionListener, MouseListener {
         final Frame frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
-            	if(exit) {
-            		System.exit(0);
-            	} else {
-            		frame.dispose();
-            	}
+                if(exit) {
+                    System.exit(0);
+                } else {
+                    frame.dispose();
+                }
             }
         });
         if(icon != null) {
@@ -230,7 +230,7 @@ public class Console implements ActionListener, MouseListener {
      * INTERNAL
      */
     public void actionPerformed(ActionEvent e) {
-    	String command = e.getActionCommand();
+        String command = e.getActionCommand();
         if ("exit".equals(command)) {
             System.exit(0);
         } else if ("console".equals(command)) {

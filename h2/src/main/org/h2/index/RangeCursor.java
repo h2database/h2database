@@ -29,9 +29,9 @@ public class RangeCursor implements Cursor {
         return currentRow;
     }
     
-	public SearchRow getSearchRow() throws SQLException {
-		return currentRow;
-	}
+    public SearchRow getSearchRow() throws SQLException {
+        return currentRow;
+    }
 
     public int getPos() {
         throw Message.getInternalError();

@@ -181,13 +181,6 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-//    public void finalize() {
-//        if(!Constants.RUN_FINALIZE) {
-//            return;
-//        }        
-//        close();
-//    }
-
     public void cancel() {
         // TODO server: support cancel
     }

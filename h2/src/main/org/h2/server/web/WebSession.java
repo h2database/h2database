@@ -121,7 +121,7 @@ public class WebSession {
     }
     
     public HashMap getMainInfo() {
-    	int todoRefactorMergeWithGetInfo;
+        int todoRefactorMergeWithGetInfo;
         HashMap m = new HashMap();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());

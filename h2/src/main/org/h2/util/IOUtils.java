@@ -27,6 +27,7 @@ public class IOUtils {
     public static void closeSilently(OutputStream out) {
         if(out != null) {
             try {
+                trace("closeSilently", null, out);
                 out.close();
             } catch(IOException e) {
                 // ignore
@@ -97,6 +98,7 @@ public class IOUtils {
     public static void closeSilently(InputStream in) {
         if(in != null) {
             try {
+                trace("closeSilently", null, in);
                 in.close();
             } catch(IOException e) {
                 // ignore
@@ -240,5 +242,11 @@ public class IOUtils {
             throw Message.convert(e);
         }
     }
+    
+    private static void trace(String method, String fileName, Object o) {
+        if(Constants.TRACE_IO) {
+            System.out.println("IOUtils." + method + " " + fileName + " " + o);
+        }
+    }    
 
 }

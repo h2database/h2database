@@ -41,8 +41,8 @@ public class ConnectionInfo {
         }
         // TODO document these settings
         String[] connectionTime = new String[]{
-        		"ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", 
-        		"CIPHER", "CREATE", "CACHE_TYPE",
+                "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", 
+                "CIPHER", "CREATE", "CACHE_TYPE",
                 "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", 
                 "PASSWORD", "RECOVER", "STORAGE", "USER"
         };

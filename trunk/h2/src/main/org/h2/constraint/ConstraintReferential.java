@@ -283,11 +283,11 @@ public class ConstraintReferential extends Constraint {
         Cursor cursor = index.find(session, check, check);
         while(cursor.next()) {
             SearchRow found;
-        	if(Constants.INDEX_LOOKUP_NEW) {
-        		found = cursor.getSearchRow();
-        	} else {
-        		found = cursor.get();
-        	}
+            if(Constants.INDEX_LOOKUP_NEW) {
+                found = cursor.getSearchRow();
+            } else {
+                found = cursor.get();
+            }
             Column[] cols = index.getColumns();
             boolean allEqual = true;
             for(int i=0; i<columns.length && i<cols.length; i++) {

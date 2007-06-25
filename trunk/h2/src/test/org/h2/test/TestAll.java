@@ -93,10 +93,41 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
+
+runscript from 'C:\download\backup.sql';
+
+alter table download_link add html_ltarget_ord INTEGER(10) default 0;
+alter table navigation_link add html_ltarget_ord INTEGER(10) default 0;
+alter table web_link add html_ltarget_ord INTEGER(10) default 0;
+ALTER TABLE navigation_page_content DROP COLUMN parent_type_id;
+ALTER TABLE entity_info DROP COLUMN parent_type_id;
+ALTER TABLE navigation_point_content DROP COLUMN parent_type_id;
+ALTER TABLE paragraph_proxy DROP COLUMN parent_type_id;
+ALTER TABLE patch DROP COLUMN parent_type_id;
+ALTER TABLE page_content DROP COLUMN parent_type_id;
+ALTER TABLE image_gallery_image_usage_ref DROP COLUMN ref_image_gallery;
+ALTER TABLE navigation_page_content_reference DROP COLUMN ref_element_provider;
+ALTER TABLE paragraph_proxy DROP COLUMN ref_page_content;
+alter table navigation_page_content_reference add contained BOOLEAN(1) default false;
+update navigation_page_content_reference set contained=true where state=7;
+alter table navigation_page_content add contained BOOLEAN(1) default false;
+update navigation_page_content set contained=true where state=7;
+alter table navigation_point_content add contained BOOLEAN(1) default false;
+update navigation_point_content set contained=true where state=7;
+alter table weblica_link add contained BOOLEAN(1) default false;
+update weblica_link set contained=true where state=7;
+alter table image_usage add contained BOOLEAN(1) default false;
+update image_usage set contained=true where state=7; 
+alter table paragraph_proxy add contained BOOLEAN(1) default false;
+
+
+
+
+
+
+
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
-
-backup.sql / lob file problem
 
 Change documentation and default database for H2 Console: jdbc:h2:~/test
 
@@ -158,9 +189,7 @@ support translated exceptions (english + translated)
 
 select * from H2.PUBLIC.ORDERS
 
-Wäre es nicht besser, unabhängig von DB_CLOSE_DELAY eine Datenbank offen
-zu halten, solange dafür offene PooledConnections vorhanden sind?        
-
+keep db open (independent of DB_CLOSE_DELAY) while a PooledConnections exists.
 
 */        
 

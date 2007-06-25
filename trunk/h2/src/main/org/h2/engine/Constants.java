@@ -67,8 +67,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 50;
-    private static final String BUILD = "2007-06-17";
+    public static final int BUILD_ID = 51;
+    private static final String BUILD = "2007-06-25";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -246,7 +246,8 @@ public class Constants {
     public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
     public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
     public static boolean INDEX_OLD = getBooleanSetting("h2.indexOld", false);
-	public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
+    public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
+    public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

@@ -24,14 +24,14 @@ public class SimpleRowValue implements SearchRow {
         return pos;
     }
     public Value getValue(int idx) {
-    	return idx == index ? data : null;
+        return idx == index ? data : null;
     }
     public void setPos(int pos) {
         this.pos = pos;
     }
     
     public void setValue(int idx, Value v) {
-    	index = idx;
+        index = idx;
         data = v;
     }
 

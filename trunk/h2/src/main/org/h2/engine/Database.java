@@ -838,20 +838,20 @@ public class Database implements DataHandler {
             log = null;
         }
         closeFiles();
-    	if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
-    		// everything already closed (maybe in checkPowerOff)
-    		// don't delete temp files in this case because 
-    		// the database could be open now (even from within another process)
-    		return;
-    	}
+        if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
+            // everything already closed (maybe in checkPowerOff)
+            // don't delete temp files in this case because 
+            // the database could be open now (even from within another process)
+            return;
+        }
         deleteOldTempFiles();
         if(systemSession != null) {
             systemSession.close();
             systemSession = null;
         }
         if(lock != null) {
-	        lock.unlock();
-	        lock = null;
+            lock.unlock();
+            lock = null;
         }
     }
 

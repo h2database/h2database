@@ -245,7 +245,7 @@ public class TableFilter implements ColumnResolver {
             } else {
                 scanCount++;
                 if(cursor.next()) {
-                	currentSearchRow = cursor.getSearchRow();
+                    currentSearchRow = cursor.getSearchRow();
                     current = null;
                     // cursor.get();
                     state = FOUND;
@@ -301,9 +301,9 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Row get() throws SQLException {
-    	if(current == null && currentSearchRow != null) {
-    		current = cursor.get();
-    	}
+        if(current == null && currentSearchRow != null) {
+            current = cursor.get();
+        }
         return current;
     }
 
@@ -515,29 +515,29 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Value getValue(Column column) throws SQLException {
-    	if(Constants.INDEX_LOOKUP_NEW) {
-        	if(currentSearchRow == null) {
-    			return null;
-        	}
-        	int columnId = column.getColumnId();
-	    	if(current == null) {
-	    		Value v = currentSearchRow.getValue(columnId);
-		    	if(v != null) {
-		    		return v;
-		    	}	    		
-	    		current = cursor.get();
-	    	}
-    		return current.getValue(columnId);
-    	} else {
-        	if(currentSearchRow == null) {
-    			return null;
-        	}
-	    	if(current == null) {
-	    		current = cursor.get();
-	    	}
-        	int columnId = column.getColumnId();
-    		return current.getValue(columnId);
-    	}
+        if(Constants.INDEX_LOOKUP_NEW) {
+            if(currentSearchRow == null) {
+                return null;
+            }
+            int columnId = column.getColumnId();
+            if(current == null) {
+                Value v = currentSearchRow.getValue(columnId);
+                if(v != null) {
+                    return v;
+                }                
+                current = cursor.get();
+            }
+            return current.getValue(columnId);
+        } else {
+            if(currentSearchRow == null) {
+                return null;
+            }
+            if(current == null) {
+                current = cursor.get();
+            }
+            int columnId = column.getColumnId();
+            return current.getValue(columnId);
+        }
     }
 
     public TableFilter getTableFilter() {

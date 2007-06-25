@@ -38,11 +38,11 @@ Initial Developer: H2 Group
     <!--
     
     <security-constraint>
-		<web-resource-collection>
+        <web-resource-collection>
             <web-resource-name>H2 Console</web-resource-name>
             <url-pattern>/console/*</url-pattern>
         </web-resource-collection>
-		<auth-constraint>
+        <auth-constraint>
             <role-name>admin</role-name>
         </auth-constraint>
     </security-constraint>

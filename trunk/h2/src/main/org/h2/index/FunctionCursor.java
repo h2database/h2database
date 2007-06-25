@@ -24,9 +24,9 @@ public class FunctionCursor implements Cursor {
         return row;
     }
     
-	public SearchRow getSearchRow() throws SQLException {
-		return row;
-	}
+    public SearchRow getSearchRow() throws SQLException {
+        return row;
+    }
 
     public int getPos() {
         throw Message.getInternalError();

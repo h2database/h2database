@@ -36,7 +36,9 @@ public class FileUtils {
     public static RandomAccessFile openRandomAccessFile(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
         try {
-            return new RandomAccessFile(fileName, mode);
+            RandomAccessFile file = new RandomAccessFile(fileName, mode);
+            trace("openRandomAccessFile", fileName, file);
+            return file;
         } catch(IOException e) {
             freeMemoryAndFinalize();
             return new RandomAccessFile(fileName, mode);
@@ -45,6 +47,7 @@ public class FileUtils {
 
     public static void setLength(RandomAccessFile file, long newLength) throws IOException {
         try {
+            trace("setLength", null, file);
             file.setLength(newLength);
         } catch(IOException e) {
             long length = file.length();
@@ -88,7 +91,9 @@ public class FileUtils {
 
     public static FileInputStream openFileInputStream(String fileName) throws IOException {
         fileName = translateFileName(fileName);
-        return new FileInputStream(fileName);
+        FileInputStream in = new FileInputStream(fileName);
+        trace("openFileInputStream", fileName, in);
+        return in;
     }
 
     public static FileOutputStream openFileOutputStream(String fileName) throws IOException, SQLException {
@@ -96,7 +101,9 @@ public class FileUtils {
         try {
             File file = new File(fileName);
             FileUtils.createDirs(file.getAbsolutePath());
-            return new FileOutputStream(fileName);
+            FileOutputStream out = new FileOutputStream(fileName);
+            trace("openFileOutputStream", fileName, out);
+            return out;            
         } catch(IOException e) {
             freeMemoryAndFinalize();
             return new FileOutputStream(fileName);
@@ -104,6 +111,7 @@ public class FileUtils {
     }
 
     private static void freeMemoryAndFinalize() {
+        trace("freeMemoryAndFinalize", null, null);
         Runtime rt = Runtime.getRuntime();
         long mem = rt.freeMemory();
         for(int i=0; i<16; i++) {
@@ -138,6 +146,7 @@ public class FileUtils {
             throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"}, null);
         }
         for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+            trace("rename", oldName + " >" + newName, null);
             boolean ok = oldFile.renameTo(newFile);
             if(ok) {
                 return;
@@ -232,6 +241,7 @@ public class FileUtils {
         File file = new File(fileName);
         if(file.exists()) {
             for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+                trace("delete", fileName, null);
                 boolean ok = file.delete();
                 if(ok) {
                     return;
@@ -295,6 +305,7 @@ public class FileUtils {
             memoryFiles.remove(fileName);
             return;
         }
+        trace("tryDelete", fileName, null);
         new File(fileName).delete();
     }
 
@@ -392,7 +403,7 @@ public class FileUtils {
             }
             String base = f.getCanonicalPath();
             if(!base.endsWith(File.separator)) {
-            	base += File.separator;
+                base += File.separator;
             }
             for(int i=0; i<list.length; i++) {
                 list[i] = base + list[i];
@@ -482,4 +493,10 @@ public class FileUtils {
         return new File(fileName).canWrite();
     }
     
+    private static void trace(String method, String fileName, Object o) {
+        if(Constants.TRACE_IO) {
+            System.out.println("FileUtils." + method + " " + fileName + " " + o);
+        }
+    }
+
 }

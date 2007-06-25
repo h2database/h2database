@@ -182,10 +182,10 @@ public class WebServer implements Service {
 //                    TraceSystem.traceThrowable(e);
 //                }
 //            }
-    	SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-    	synchronized(format) {
-        	format.setTimeZone(TimeZone.getTimeZone("GMT"));
-    		startDateTime = format.format(new Date());
+        SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
+        synchronized(format) {
+            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            startDateTime = format.format(new Date());
         }
         trace(startDateTime);
         for(int i=0; i<LANGUAGES.length; i++) {
@@ -278,7 +278,7 @@ public class WebServer implements Service {
     }
     
     public boolean getAllowOthers() {
-    	return allowOthers;
+        return allowOthers;
     }
 
     void setSSL(boolean b) {
@@ -415,12 +415,12 @@ public class WebServer implements Service {
         return JdbcUtils.getConnection(driver, url, user, password);
     }
 
-	public void setAllowShutdown(boolean b) {
-		this.allowShutdown = b;
-	}
+    public void setAllowShutdown(boolean b) {
+        this.allowShutdown = b;
+    }
 
-	boolean getAllowShutdown() {
-		return allowShutdown;
-	}
+    boolean getAllowShutdown() {
+        return allowShutdown;
+    }
 
 }

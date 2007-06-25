@@ -38,19 +38,19 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
 <li>If SHUTDOWN IMMEDIATELY was called, then the connection was not closed and the database
-	opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
+    opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
 </li><li>The new view implementation is now enabled by default. 
-	To use the old implementation, set the system property 'h2.indexOld' to true 
-	(java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
+    To use the old implementation, set the system property 'h2.indexOld' to true 
+    (java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
     If no problems are found, the old implementation will be removed in the next release.
     The old implementation does not work with multi-level nested temporary views
     (select * from (select * from (select * from test))).
 </li><li>The new view implementation did not work with &lt; and &lt;= comparison. Fixed.
 </li><li>Both view implementations did not work with multiple levels of nested temporary views (FROM (SELECT...)). Fixed.
 </li><li>The H2 Console can now be run as a standalone web application, 
-	or it can be embedded as a servlet into any existing web application. To build the 
-	'H2 Console' web application, execute 'ant warConsole'.
-	See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
+    or it can be embedded as a servlet into any existing web application. To build the 
+    'H2 Console' web application, execute 'ant warConsole'.
+    See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
 </li><li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
 </li><li>The Polish translation is available. Thanks a lot to Tomek!
 </li><li>Windows service: the CLASSPATH was not included when starting the service. Fixed.
@@ -1096,6 +1096,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
+</li><li>GROUP BY and DISTINCT: support large groups (buffer to disk), do not keep large sets in memory
 </li></ul>
 
 <h3>Not Planned</h3>

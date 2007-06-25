@@ -24,9 +24,9 @@ public class HashCursor implements Cursor {
         return row;
     }
     
-	public SearchRow getSearchRow() throws SQLException {
-		return row;
-	}
+    public SearchRow getSearchRow() throws SQLException {
+        return row;
+    }
     
     public int getPos() {
         return row == null ? -1 : row.getPos();

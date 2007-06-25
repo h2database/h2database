@@ -137,6 +137,7 @@ public class FileStore {
     public void close() throws IOException {
         if(file != null) {
             try {
+                trace("close", name, file);
                 file.close();
             } finally {
                 file = null;
@@ -145,12 +146,10 @@ public class FileStore {
     }
     
     public void closeSilently() {
-        if(file != null) {
-            try {
-                file.close();
-            } catch(IOException e) {
-                file = null;
-            }
+        try {
+            close();
+        } catch(IOException e) {
+            // ignore
         }
     }    
 
@@ -307,6 +306,7 @@ public class FileStore {
 
     public void sync() {
         try {
+            
             file.getFD().sync();
         } catch(IOException e) {
             // TODO log exception
@@ -337,5 +337,11 @@ public class FileStore {
             file.seek(filePos);
         }
     }
+    
+    private static void trace(String method, String fileName, Object o) {
+        if(Constants.TRACE_IO) {
+            System.out.println("FileStore." + method + " " + fileName + " " + o);
+        }
+    }        
 
 }

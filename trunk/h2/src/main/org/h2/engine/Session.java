@@ -469,7 +469,7 @@ public class Session implements SessionInterface {
     }
     
     public String getNextTempViewName() {
-    	return "TEMP_VIEW_" + tempViewIndex++;
+        return "TEMP_VIEW_" + tempViewIndex++;
     }
 
 }

@@ -94,7 +94,7 @@ public class Console implements ActionListener, MouseListener {
 	                icon = Toolkit.getDefaultToolkit().createImage(imageData);
 	            }
 	            if(!createTrayIcon()) {
-	                showWindow();
+	                showWindow(true);
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
@@ -127,9 +127,9 @@ public class Console implements ActionListener, MouseListener {
             itemConsole.setFont(font);
             menuConsole.add(itemConsole);
             MenuItem itemStatus = new MenuItem("Status");
-            itemConsole.setActionCommand("status");
-            itemConsole.addActionListener(this);
-            itemConsole.setFont(font);
+            itemStatus.setActionCommand("status");
+            itemStatus.addActionListener(this);
+            itemStatus.setFont(font);
             menuConsole.add(itemStatus);
             MenuItem itemExit = new MenuItem("Exit");
             itemExit.setFont(font);
@@ -163,11 +163,15 @@ public class Console implements ActionListener, MouseListener {
         }
     }
 
-    private void showWindow() {
-        Frame frame = new Frame("H2 Console");
+    private void showWindow(final boolean exit) {
+        final Frame frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
-                System.exit(0);
+            	if(exit) {
+            		System.exit(0);
+            	} else {
+            		frame.dispose();
+            	}
             }
         });
         if(icon != null) {
@@ -232,7 +236,7 @@ public class Console implements ActionListener, MouseListener {
         } else if ("console".equals(command)) {
             startBrowser();
         } else if ("status".equals(command)) {
-            showWindow();
+            showWindow(false);
         }
     }
 

@@ -57,7 +57,7 @@ public class GrantRevoke extends DefineCommand {
     
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(roleNames != null) {
             for(int i=0; i<roleNames.size(); i++) {

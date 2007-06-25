@@ -2799,7 +2799,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private UpdatableRow getUpdatableRow() throws SQLException {
         UpdatableRow row = new UpdatableRow(conn, result, session);
         if(!row.isUpdatable()) {
-            throw Message.getSQLException(Message.NOT_ON_UPDATABLE_ROW);
+            throw Message.getSQLException(Message.RESULT_SET_NOT_UPDATABLE);
         }
         return row;
     }

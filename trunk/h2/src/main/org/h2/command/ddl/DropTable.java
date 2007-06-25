@@ -79,7 +79,7 @@ public class DropTable extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         prepareDrop();
         executeDrop();
         return 0;

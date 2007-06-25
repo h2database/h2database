@@ -39,11 +39,8 @@ public class Session implements SessionInterface {
     private int id;
     private Database database;
     private ObjectArray locks = new ObjectArray();
-    // TODO big transactions: rollback log should be a sorted result set,
-    // so that big transactions are possible (delete or update huge tables)
     private UndoLog undoLog;
     private boolean autoCommit = true;
-    // TODO function RANDOM: use a own implementation, making it system independent
     private Random random;
     private LogSystem logSystem;
     private int lockTimeout;
@@ -62,6 +59,9 @@ public class Session implements SessionInterface {
     private HashSet unlinkSet;
     private int tempViewIndex;
 
+    public Session() {
+    }
+
     public Table findLocalTempTable(String name) {
         Table t = null;
         if(t == null && localTempTables != null) {
@@ -76,17 +76,6 @@ public class Session implements SessionInterface {
         }
         ObjectArray list = new ObjectArray(localTempTables.values());
         return list;
-    }
-
-    public String getNewLocalTempTransactionTableName() {
-        // TODO this is current not used
-        String name = Constants.TEMP_TABLE_TRANSACTION_PREFIX;
-        for(int i=0; ; i++) {
-            String n = name + i;
-            if(findLocalTempTable(n) == null) {
-                return n;
-            }
-        }
     }
 
     public void addLocalTempTable(Table table) throws SQLException {
@@ -131,10 +120,6 @@ public class Session implements SessionInterface {
 
     public void setLockTimeout(int lockTimeout) {
         this.lockTimeout = lockTimeout;
-    }
-
-    public Session() {
-
     }
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
@@ -188,13 +173,15 @@ public class Session implements SessionInterface {
         }
     }
 
-    public void commit() throws SQLException {
+    public void commit(boolean ddl) throws SQLException {
         if(containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop table and so on)
             logSystem.commit(this);
         }
         if(undoLog.size() > 0) {
             undoLog.clear();
+        }
+        if(!ddl) {
             // do not clean the temp tables if the last command was a create/drop
             cleanTempTables(false);
         }

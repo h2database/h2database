@@ -57,7 +57,7 @@ public class CreateIndex extends SchemaCommand {
 
     public int update() throws SQLException {
         // TODO cancel: may support for index creation
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         boolean persistent = db.isPersistent();
         Table table = getSchema().getTableOrView(session, tableName);

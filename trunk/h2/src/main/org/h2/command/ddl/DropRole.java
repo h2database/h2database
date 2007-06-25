@@ -27,7 +27,7 @@ public class DropRole extends DefineCommand {
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(roleName.equals(Constants.PUBLIC_ROLE_NAME)) {
             throw Message.getSQLException(Message.ROLE_CAN_NOT_BE_DROPPED_1, roleName);

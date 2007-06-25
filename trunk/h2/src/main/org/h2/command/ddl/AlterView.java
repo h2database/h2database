@@ -23,7 +23,7 @@ public class AlterView extends DefineCommand {
     }
     
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         session.getUser().checkRight(view, Right.ALL);
         view.recompile(session);
         return 0;

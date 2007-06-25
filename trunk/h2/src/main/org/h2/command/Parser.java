@@ -742,11 +742,7 @@ public class Parser {
                 String querySQL = query.getSQL();
                 String tempViewName = session.getNextTempViewName();
                 table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, session, false);
-                
-int testing;                
                 table.setOnCommitDrop(true);
-//this.recompileAlways = true;
-                
                 session.addLocalTempTable(table);
                 read(")");
             } else {

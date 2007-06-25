@@ -41,7 +41,7 @@
     
         public int update() throws SQLException {
             // TODO rights: what rights are required to create a view?        
-            session.commit();
+            session.commit(true);
             Database db = session.getDatabase();
             if(getSchema().findTableOrView(session, viewName)!=null) {
                 if (ifNotExists) {

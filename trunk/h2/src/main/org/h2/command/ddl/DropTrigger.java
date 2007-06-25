@@ -32,7 +32,7 @@ public class DropTrigger extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         TriggerObject trigger = getSchema().findTrigger(triggerName);
         if(trigger == null) {

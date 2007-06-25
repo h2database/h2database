@@ -59,7 +59,7 @@ public class CreateLinkedTable extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
         if(getSchema().findTableOrView(session, tableName)!=null) {

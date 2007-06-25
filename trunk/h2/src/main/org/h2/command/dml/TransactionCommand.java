@@ -52,7 +52,7 @@ public class TransactionCommand extends Prepared {
             session.setAutoCommit(false);
             break;
         case COMMIT:
-            session.commit();
+            session.commit(false);
             break;
         case ROLLBACK:
             session.rollback();
@@ -93,7 +93,7 @@ public class TransactionCommand extends Prepared {
             break;
         case SHUTDOWN: {
             session.getUser().checkAdmin();
-            session.commit();
+            session.commit(false);
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();

@@ -81,7 +81,7 @@ public class CreateTable extends SchemaCommand {
 
     public int update() throws SQLException {
         // TODO rights: what rights are required to create a table?
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(!db.isPersistent()) {
             persistent = false;

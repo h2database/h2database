@@ -698,7 +698,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.clientTraceDirectory", Constants.CLIENT_TRACE_DIRECTORY});
             add(rows, new String[]{"h2.scriptDirectory", Constants.SCRIPT_DIRECTORY});
             add(rows, new String[]{"h2.maxFileRetry", "" + Constants.MAX_FILE_RETRY});
-            add(rows, new String[]{"h2.lobAlwaysClose", "" + Constants.LOB_CLOSE_BETWEEN_READS});
+            add(rows, new String[]{"h2.lobCloseBetweenReads", "" + Constants.LOB_CLOSE_BETWEEN_READS});
             break;
         }
         case TYPE_INFO: {

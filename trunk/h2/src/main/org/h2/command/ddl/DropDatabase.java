@@ -36,7 +36,7 @@ public class DropDatabase extends DefineCommand {
         
     private void dropAllObjects() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         ObjectArray list;
         // TODO local temp tables are not removed

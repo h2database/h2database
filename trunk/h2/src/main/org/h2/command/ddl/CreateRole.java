@@ -30,7 +30,7 @@ public class CreateRole extends DefineCommand {
     
     public int update() throws SQLException {
         session.getUser().checkAdmin();        
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(db.findUser(roleName)!=null) {
             if (ifNotExists) {

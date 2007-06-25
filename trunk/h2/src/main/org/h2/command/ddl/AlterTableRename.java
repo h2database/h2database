@@ -35,7 +35,7 @@ public class AlterTableRename extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(getSchema().findTableOrView(session, newTableName) != null || newTableName.equals(oldTable.getName())) {
             throw Message.getSQLException(Message.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);

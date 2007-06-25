@@ -1,3 +1,9 @@
+create table test1(id int);
+insert into test1 values(1), (1), (2), (3);
+select sum(C0) from (select count(*) AS C0 from (select distinct * from test1) as temp);
+> 3;
+drop table test1;
+
 create table test(id int primary key check id>1);
 drop table test;
 create table table1(f1 int not null primary key);

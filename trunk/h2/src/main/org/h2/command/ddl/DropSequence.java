@@ -32,7 +32,7 @@ public class DropSequence extends SchemaCommand {
     public int update() throws SQLException {
         // TODO rights: what are the rights required for a sequence?
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         Sequence sequence = getSchema().findSequence(sequenceName);
         if(sequence == null) {

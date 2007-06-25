@@ -27,7 +27,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Constraint constraint = getSchema().getConstraint(constraintName);
         session.getUser().checkRight(constraint.getTable(), Right.ALL);
         session.getUser().checkRight(constraint.getRefTable(), Right.ALL);

@@ -140,7 +140,7 @@ Section "All"
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR\bin"
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\H2 Console.lnk" "javaw" "-cp $\"$INSTDIR\bin\h2.jar;%H2DRIVERS%;%CLASSPATH%$\" org.h2.SysTray" "$INSTDIR\src\installer\favicon.ico" 0 SW_SHOWMINIMIZED "" "Start the Console"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\H2 Console.lnk" "javaw" "-cp $\"$INSTDIR\bin\h2.jar;%H2DRIVERS%;%CLASSPATH%$\" org.h2.tools.Console" "$INSTDIR\src\installer\favicon.ico" 0 SW_SHOWMINIMIZED "" "Start the Console"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\H2 Console (Command Line).lnk" "cmd" "/c h2.bat" "$INSTDIR\src\installer\favicon.ico" 0 SW_SHOWMINIMIZED "" "Start the Console from command line (using h2.bat)"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\H2 Documentation.lnk" "$INSTDIR\docs\index.html"
 ;  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"

@@ -95,10 +95,9 @@ public abstract class Command implements CommandInterface {
     private void stop() throws SQLException {
         session.setCurrentCommand(null);
         if (!isTransactional()) {
-            // meta data changes need to commit in any case
-            session.commit();
+            session.commit(true);
         } else if (session.getAutoCommit()) {
-            session.commit();
+            session.commit(false);
         }
         if (trace.info()) {
             long time = System.currentTimeMillis() - startTime;

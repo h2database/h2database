@@ -22,7 +22,7 @@ public class DropFunctionAlias extends DefineCommand {
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         FunctionAlias functionAlias = db.findFunctionAlias(aliasName);
         if(functionAlias == null) {

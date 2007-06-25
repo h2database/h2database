@@ -37,7 +37,7 @@ public class CreateUserDataType extends DefineCommand {
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
         if(db.findUserDataType(typeName)!=null) {

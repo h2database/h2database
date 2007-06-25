@@ -56,7 +56,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }    
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();

@@ -31,7 +31,7 @@ public class AlterIndexRename extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(getSchema().findIndex(newIndexName) != null || newIndexName.equals(oldIndex.getName())) {
             throw Message.getSQLException(Message.INDEX_ALREADY_EXISTS_1, newIndexName);

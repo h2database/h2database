@@ -26,7 +26,7 @@ public class DropSchema extends DefineCommand {
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         Schema schema = db.findSchema(schemaName);
         if(schema == null) {

@@ -96,7 +96,7 @@ public class Sequence extends SchemaObject {
                 value = realValue;
             }
         }
-        s.commit();
+        s.commit(false);
     }
 
     public void close() throws SQLException {

@@ -33,7 +33,7 @@ public class CreateSequence extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(getSchema().findSequence(sequenceName)!=null) {
             if (ifNotExists) {

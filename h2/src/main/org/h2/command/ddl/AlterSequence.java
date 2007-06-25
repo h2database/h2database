@@ -42,7 +42,7 @@ public class AlterSequence extends DefineCommand {
 
     public int update() throws SQLException {
         // TODO rights: what are the rights required for a sequence?
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(newStart) {
             sequence.setStartValue(start);

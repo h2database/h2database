@@ -46,6 +46,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     The old implementation does not work with multi-level nested temporary views
     (select * from (select * from (select * from test))).
 </li><li>The new view implementation did not work with &lt; and &lt;= comparison. Fixed.
+</li><li>Both view implementations did not work with multiple levels of nested temporary views (FROM (SELECT...)). Fixed.
 </li><li>The H2 Console can now be run as a standalone web application, 
 	or it can be embedded as a servlet into any existing web application. To build the 
 	'H2 Console' web application, execute 'ant warConsole'.
@@ -1029,7 +1030,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Option to globally disable / enable referential integrity checks
 </li><li>Support ISO 8601 timestamp / date / time with timezone
 </li><li>Support TRANSFORM / PIVOT as in MS Access
-</li><li>ALTER SEQUENCE ... RENAME TO ... (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
+</li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 </li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
@@ -1094,6 +1095,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 
+</li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 </li></ul>
 
 <h3>Not Planned</h3>

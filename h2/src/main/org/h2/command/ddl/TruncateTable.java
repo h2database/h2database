@@ -25,7 +25,7 @@ public class TruncateTable extends SchemaCommand {
     }
     
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Table table = getSchema().getTableOrView(session, tableName);
         if(!table.canTruncate()) {
             throw Message.getSQLException(Message.CANNOT_TRUNCATE_1, tableName);

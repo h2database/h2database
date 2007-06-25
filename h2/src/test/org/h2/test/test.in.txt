@@ -1,4 +1,21 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table t1 (i int);
+> ok
+
+create table t2 (i int);
+> ok
+
+create table t3 (i int);
+> ok
+
+select a.i from t1 a inner join (select a.i from t2 a inner join (select i from t3) b on a.i=b.i) b on a.i=b.i;
+> I
+> -
+> rows: 0
+
+drop table t1, t2, t3;
+> ok
+
 create table d(d double, r real);
 > ok
 

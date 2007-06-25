@@ -63,7 +63,7 @@ public class AlterUser extends DefineCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         switch(type) {
         case SET_PASSWORD:

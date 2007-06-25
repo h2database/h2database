@@ -31,7 +31,7 @@ public class DropConstant extends SchemaCommand {
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         Constant constant = getSchema().findConstant(constantName);
         if(constant == null) {

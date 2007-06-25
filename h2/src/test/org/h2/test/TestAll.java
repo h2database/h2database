@@ -93,64 +93,12 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
-create local temporary table a(id int) on commit drop;
-select * from a;
-create local temporary table b(id int) on commit drop;
-select * from a;
-select * from b;
-commit;
+make sure INDEX_LOOKUP_NEW = is true by default.
+Test Console (batch, javaw, different platforms)
 
-dropping session temp views doesn't work, why?
-create table t1 (i int);
-create table t2 (i int);
-create table t3 (i int);
-select a.i from t1 a inner join (select a.i from t2 a inner join (select i from t3) b on a.i=b.i) b on a.i=b.i;
-SELECT A.I FROM T2 A INNER JOIN TEMP_VIEW_0 B WHERE (A.I = B.I) AND (A.I = 1)
+backup.sql / lob file problem
 
-
-create table t1 (i int);
-create table t2 (i int);
-create table t3 (i int);
-
-select a.i
-  from t1 a
-     inner join (
-        select a.i
-           from t2 a
-              inner join (
-                 select i
-                    from t3) b on a.i=b.i
-        ) b on a.i=b.i;
-        
-Wäre es nicht besser, unabhängig von DB_CLOSE_DELAY eine Datenbank offen
-zu halten, solange dafür offene PooledConnections vorhanden sind?        
-        
 Change documentation and default database for H2 Console: jdbc:h2:~/test
-
-public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", false);
-
-"com.mysql.jdbc.NotUpdatable: Result Set not updatable.This result set must come from a statement that was created with a result set type of ResultSet.CONCUR_UPDATABLE, the query must select only one table, and must select all primary keys from that table. See the JDBC 2.1 API Specification, section 5.6 for more details."
-
-set new console to be the default (still support old)
-
-set new index mechanism to be the default (still support old)
-
-add test case:
-create table test1(id int);
-insert into test1 values(1);
-insert into test1 values(1);
-insert into test1 values(2);
-insert into test1 values(3);
-select sum(C0) from (
-  select count(*) AS C0 from (select distinct * from
-test1) as temp
-)
-
-todo: challenge response authentication
-
-h2 console system tray: menu item to open window
-
-Set h2.indexNew to false
 
 testHalt
 
@@ -172,8 +120,6 @@ MySQL, PostgreSQL
 
 http://semmle.com/
 try out, find bugs
-
-Mail P2P 
 
 Currently there is no such feature, however it is quite simple to add a user defined function 
 READ_TEXT(fileName String) returning a CLOB. The performance would probably not be optimal, 
@@ -201,10 +147,6 @@ Automate real power off tests
 
 how to make -baseDir work for H2 Console?
 
-Maybe add a little bit AdSense
-
-Custom Captcha for the forum, to protect against spam bots (required for Google Code?)
-
 http://db.apache.org/ddlutils/ (write a H2 driver)   
 
 Negative dictionary:
@@ -212,14 +154,14 @@ Please note that
 
 timer test
 
-PostgreSQL compatibility:
---SET search_path = public, pg_catalog;
---id serial NOT NULL,
-CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
-    [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
-    [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
-    
 support translated exceptions (english + translated)
+
+select * from H2.PUBLIC.ORDERS
+
+Wäre es nicht besser, unabhängig von DB_CLOSE_DELAY eine Datenbank offen
+zu halten, solange dafür offene PooledConnections vorhanden sind?        
+
+
 */        
 
 /*

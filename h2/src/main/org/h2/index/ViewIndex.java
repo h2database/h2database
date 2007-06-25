@@ -42,11 +42,6 @@ public class ViewIndex extends Index {
     
     public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
         super(view, 0, null, null, IndexType.createNonUnique(false));
-int testing;
-if(index == null) {
-	System.out.println("top");
-}
-        
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;
         this.recursive = index.recursive;

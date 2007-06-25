@@ -22,7 +22,7 @@ public class CreateFunctionAlias extends DefineCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         if(db.findFunctionAlias(aliasName) != null) {

@@ -37,7 +37,7 @@ public class DropIndex extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         Index index = getSchema().findIndex(indexName);
         if(index == null) {

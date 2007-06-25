@@ -156,7 +156,6 @@ public class Constants {
     public static final String PUBLIC_ROLE_NAME = "PUBLIC";
 
     public static final String TEMP_TABLE_PREFIX = "TEMP_TABLE_";
-    public static final String TEMP_TABLE_TRANSACTION_PREFIX = "TEMP_TRANS_TABLE_";
 
     public static final int BIG_DECIMAL_SCALE_MAX = 100000;
 

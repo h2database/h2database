@@ -522,7 +522,7 @@ public class Database implements DataHandler {
         addDefaultSetting(SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         removeUnusedStorages();
-        systemSession.commit();
+        systemSession.commit(true);
         if(!readOnly) {
             emergencyReserve = openFile(createTempFile(), "rw", false);
             emergencyReserve.autoDelete();
@@ -832,22 +832,18 @@ public class Database implements DataHandler {
     }
 
     private void closeOpenFilesAndUnlock() throws SQLException {
-
-    	int testing;
-    	if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
-    		// everything already closed (maybe in checkPowerOff)
-    		// don't delete temp files in this case because 
-    		// the database could be open now (even from within another process)
-    		System.out.println("lock = null!");
-//    		return;
-    	}
-    	
         if (log != null) {
             stopWriter();
             log.close();
             log = null;
         }
         closeFiles();
+    	if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
+    		// everything already closed (maybe in checkPowerOff)
+    		// don't delete temp files in this case because 
+    		// the database could be open now (even from within another process)
+    		return;
+    	}
         deleteOldTempFiles();
         if(systemSession != null) {
             systemSession.close();
@@ -1175,7 +1171,7 @@ public class Database implements DataHandler {
     public void setMasterUser(User user) throws SQLException {
         synchronized(this) {
             addDatabaseObject(systemSession, user);
-            systemSession.commit();
+            systemSession.commit(true);
         }
     }
 

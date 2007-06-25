@@ -74,7 +74,7 @@ public class CreateTrigger extends SchemaCommand {
 
     public int update() throws SQLException {
         // TODO rights: what rights are required to create a trigger?
-        session.commit();
+        session.commit(true);
         Database db = session.getDatabase();
         if(getSchema().findTrigger(triggerName)!=null) {
             if (ifNotExists) {

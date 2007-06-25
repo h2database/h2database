@@ -56,7 +56,7 @@ public class RunScriptCommand extends ScriptBase {
                 command.update();
             }
             if(session.getAutoCommit()) {
-                session.commit();
+                session.commit(false);
             }
         } catch(SQLException e) {
             throw Message.addSQL(e, sql);

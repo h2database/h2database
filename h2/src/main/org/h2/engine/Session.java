@@ -60,6 +60,7 @@ public class Session implements SessionInterface {
     private String currentSchemaName;
     private String traceModuleName;
     private HashSet unlinkSet;
+    private int tempViewIndex;
 
     public Table findLocalTempTable(String name) {
         Table t = null;
@@ -89,7 +90,6 @@ public class Session implements SessionInterface {
     }
 
     public void addLocalTempTable(Table table) throws SQLException {
-        cleanTempTables(false);
         if(localTempTables == null) {
             localTempTables = new HashMap();
         }
@@ -479,6 +479,10 @@ public class Session implements SessionInterface {
         if(unlinkSet != null) {
             unlinkSet.remove(v);
         }
+    }
+    
+    public String getNextTempViewName() {
+    	return "TEMP_VIEW_" + tempViewIndex++;
     }
 
 }

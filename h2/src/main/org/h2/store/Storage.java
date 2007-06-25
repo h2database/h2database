@@ -247,11 +247,11 @@ public class Storage {
         this.recordCount = recordCount;
     }
 
-    public void addPage(int i) {
+    void addPage(int i) {
         pages.addValueSorted(i);
     }
 
-    public void removePage(int i) {
+    void removePage(int i) {
         pages.removeValue(i);
     }
 

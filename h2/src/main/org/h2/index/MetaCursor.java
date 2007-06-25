@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.util.ObjectArray;
 
 
@@ -28,6 +29,10 @@ public class MetaCursor implements Cursor {
     public Row get() {
         return current;
     }
+    
+	public SearchRow getSearchRow() throws SQLException {
+		return current;
+	}
     
     public int getPos() {
         throw Message.getInternalError();

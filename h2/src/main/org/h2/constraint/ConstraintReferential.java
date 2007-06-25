@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
@@ -281,7 +282,12 @@ public class ConstraintReferential extends Constraint {
     private boolean found(Session session, Index index, SearchRow check) throws SQLException {
         Cursor cursor = index.find(session, check, check);
         while(cursor.next()) {
-            Row found = cursor.get();
+            SearchRow found;
+        	if(Constants.INDEX_LOOKUP_NEW) {
+        		found = cursor.getSearchRow();
+        	} else {
+        		found = cursor.get();
+        	}
             Column[] cols = index.getColumns();
             boolean allEqual = true;
             for(int i=0; i<columns.length && i<cols.length; i++) {

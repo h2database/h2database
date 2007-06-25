@@ -44,6 +44,7 @@ public class TableFilter implements ColumnResolver {
 
     // the complete join condition
     private Expression joinCondition;
+    private SearchRow currentSearchRow;
     private Row current;
     private int state;
     
@@ -244,7 +245,9 @@ public class TableFilter implements ColumnResolver {
             } else {
                 scanCount++;
                 if(cursor.next()) {
-                    current = cursor.get();
+                	currentSearchRow = cursor.getSearchRow();
+                    current = null;
+                    // cursor.get();
                     state = FOUND;
                 } else {
                     state = AFTER_LAST;
@@ -255,6 +258,7 @@ public class TableFilter implements ColumnResolver {
                 if(outerJoin && !foundOne) {
                     state = NULL_ROW;
                     current = table.getNullRow();
+                    currentSearchRow = current;
                 } else {
                     break;
                 }
@@ -296,13 +300,17 @@ public class TableFilter implements ColumnResolver {
         return Boolean.TRUE.equals(condition.getBooleanValue(session));
     }
 
-    public Row get() {
+    public Row get() throws SQLException {
+    	if(current == null && currentSearchRow != null) {
+    		current = cursor.get();
+    	}
         return current;
     }
 
     public void set(Row current) {
         // this is currently only used so that check constraints work - to set the current (new) row
         this.current = current;
+        this.currentSearchRow = current;
     }
 
     public String getTableAlias() {
@@ -506,8 +514,30 @@ public class TableFilter implements ColumnResolver {
         return table.getColumns();
     }
 
-    public Value getValue(Column column) {
-        return current == null ? null : current.getValue(column.getColumnId());
+    public Value getValue(Column column) throws SQLException {
+    	if(Constants.INDEX_LOOKUP_NEW) {
+        	if(currentSearchRow == null) {
+    			return null;
+        	}
+        	int columnId = column.getColumnId();
+	    	if(current == null) {
+	    		Value v = currentSearchRow.getValue(columnId);
+		    	if(v != null) {
+		    		return v;
+		    	}	    		
+	    		current = cursor.get();
+	    	}
+    		return current.getValue(columnId);
+    	} else {
+        	if(currentSearchRow == null) {
+    			return null;
+        	}
+	    	if(current == null) {
+	    		current = cursor.get();
+	    	}
+        	int columnId = column.getColumnId();
+    		return current.getValue(columnId);
+    	}
     }
 
     public TableFilter getTableFilter() {

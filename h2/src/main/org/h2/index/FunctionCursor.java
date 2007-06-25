@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 
 public class FunctionCursor implements Cursor {
     
@@ -23,6 +24,10 @@ public class FunctionCursor implements Cursor {
         return row;
     }
     
+	public SearchRow getSearchRow() throws SQLException {
+		return row;
+	}
+
     public int getPos() {
         throw Message.getInternalError();
     }

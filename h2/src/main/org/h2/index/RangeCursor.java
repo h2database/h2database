@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -27,6 +28,10 @@ public class RangeCursor implements Cursor {
     public Row get() {
         return currentRow;
     }
+    
+	public SearchRow getSearchRow() throws SQLException {
+		return currentRow;
+	}
 
     public int getPos() {
         throw Message.getInternalError();

@@ -832,6 +832,16 @@ public class Database implements DataHandler {
     }
 
     private void closeOpenFilesAndUnlock() throws SQLException {
+
+    	int testing;
+    	if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
+    		// everything already closed (maybe in checkPowerOff)
+    		// don't delete temp files in this case because 
+    		// the database could be open now (even from within another process)
+    		System.out.println("lock = null!");
+//    		return;
+    	}
+    	
         if (log != null) {
             stopWriter();
             log.close();
@@ -843,9 +853,9 @@ public class Database implements DataHandler {
             systemSession.close();
             systemSession = null;
         }
-        if (lock != null) {
-            lock.unlock();
-            lock = null;
+        if(lock != null) {
+	        lock.unlock();
+	        lock = null;
         }
     }
 

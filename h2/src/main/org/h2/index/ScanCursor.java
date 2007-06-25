@@ -7,6 +7,7 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 
 
 /**
@@ -24,7 +25,11 @@ public class ScanCursor implements Cursor {
     public Row get() {
         return row;
     }
-    
+
+    public SearchRow getSearchRow() {
+        return row;
+    }
+
     public int getPos() {
         return row == null ? -1 : row.getPos();
     }

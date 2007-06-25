@@ -37,8 +37,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>The H2 Console can now be run as a standalone web application, or it can be embedded as a servlet into any
-	existing web application. To build the 'H2 Console' web application, execute 'ant warConsole'.
+<li>If SHUTDOWN IMMEDIATELY was called, then the connection was not closed and the database
+	opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
+</li><li>The new view implementation is now enabled by default. 
+	To use the old implementation, set the system property 'h2.indexOld' to true 
+	(java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
+    If no problems are found, the old implementation will be removed in the next release.
+    The old implementation does not work with multi-level nested temporary views
+    (select * from (select * from (select * from test))).
+</li><li>The new view implementation did not work with &lt; and &lt;= comparison. Fixed.
+</li><li>The H2 Console can now be run as a standalone web application, 
+	or it can be embedded as a servlet into any existing web application. To build the 
+	'H2 Console' web application, execute 'ant warConsole'.
 	See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
 </li><li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
 </li><li>The Polish translation is available. Thanks a lot to Tomek!
@@ -192,7 +202,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds). 
     Thanks a lot to Martina Nissler for finding this problem!
 </li><li>The Console is now translated to Japanese thanks to IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp)
-</li><li>The database engine can now be compiled with JDK 1.3 using ant codeswitch_jdk13. 
+</li><li>The database engine can now be compiled with JDK 1.3 using ant codeswitch. 
     There are still some limitations, and the ant script to build the jar does not work yet.
 </li><li>Fixed a problem where data in the log file was not written to the data file (recovery failure) after a crash, 
     if an index was deleted previously.
@@ -220,7 +230,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 </li><li>If a CLOB or BLOB was deleted in a transaction and the database crashed before the transaction was committed or rolled back,
     the object was lost if it was large. Fixed.
-</li><li>Now using ant-build.properties. The jdk is automatically updated when using ant codeswitch_...
+</li><li>Now using ant-build.properties. The jdk is automatically updated when using ant codeswitch...
 </li><li>Cluster: Now the server can detect if a query is read-only, and in this case the result is only read from the first cluster node.
     However, there is currently no load balancing made to avoid problems with transactions / locking.
 </li><li>Many settings are now initialized from system properties and can be changed on the command line without having
@@ -777,420 +787,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     New functions: MEMORY_FREE() and MEMORY_USED().
 </li></ul>
 
-<h3>Version 0.9 / 2006-06-16</h3><ul>
-<li>
-    Implemented distributing lob files into directories, and only keep up to 255 files in one directory.
-    However this is disabled by default; it will be enabled the next time the file format changes
-    (maybe not before 1.1). It can be enabled by the application by setting
-    Constants.LOB_FILES_IN_DIRECTORIES = true;
-</li><li>
-    If a connection is closed while there is still an operation running, this operation is stopped (like when calling Statement.cancel).
-</li><li>
-    Issue #115: If three or more threads / connections are used, sometimes lock timeout exceptions can occur when they should not. Solved.
-</li><li>
-    Calling Server.start...Server now doesn't return until the server socket is ready to accept connections.
-</li><li>
-    Issue #112: Two threads could not open the same database at the same time. Solved.
-    This was only a problem when the database was opened in a non-standard was, without using DriverManager.getConnection.
-</li><li>
-    Implemented DROP TRIGGER.
-</li><li>
-    Issue #113: Drop is now restricted: can only drop sequences / functions / tables if nothing depends on them.
-</li><li>
-    Issue #114: Support large index data size. Before, there was a limit of around 1000 bytes per row.
-</li><li>
-    Blob.getLength() and Clob.getLength() are now fast operations and don't read the whole object any longer.
-</li><li>
-    Issue #111: The catalog name in the DatabaseMetaData calls and Connection.getCatalog was lowercase;
-    some applications may not work because they expect it to be uppercase.
-</li><li>
-    Issue #110: PreparedStatement.setCharacterStream(int parameterIndex, Reader reader, int length) and
-    ResultSet.updateCharacterStream(...) didn't work correctly for 'length' larger than 0 and using Unicode characters
-    higher than 127 (or 0). The number of UTF-8 bytes where counted instead of the number of characters.
-</li><li>
-    The catalog name is now uppercase, to conform the JDBC standard for DatabaseMetaData.storesUpperCaseIdentifiers().
-</li><li>
-    Creating or opening a small encrypted database is now a lot faster.
-</li><li>
-    New functions FORMATDATETIME and PARSEDATETIME.
-</li><li>
-    New XML encoding functions (XMLATTR, XMLNODE, XMLCOMMENT, XMLCDATA, XMLSTARTDOC, XMLTEXT).
-</li><li>
-    Performance: improved opening of a large databases (about 3 times faster now for 500 MB databases).
-</li><li>
-    Documented ALTER TABLE DROP COLUMN. The functionality was there already, but the documentation not.
-</li></ul>
-
-<h3>Version 0.9 / 2006-06-02 (Build 10)</h3><ul>
-<li>
-    Removed the GCJ h2-server.exe from download. It was not stable on Windows.
-</li><li>
-    Issue #109: ALTER TABLE ADD COLUMN can make the database unusable if the original table contained a IDENTITY column.
-</li><li>
-    New option to disable automatic closing of a database when the virtual machine exits.
-    Database URL: jdbc:h2:test;db_close_on_exit=false
-</li><li>
-    New event: DatabaseEventListener.closingDatabase() is called before closing the database.
-</li><li>
-    Connection.getCatalog() now returns the database name (CALL DATABASE()).
-    This name is also used in all system tables and DatabaseMetaData calls where applicable.
-</li><li>
-    The function DATABASE() now return the short name of the database (without path),
-    and 'Unnamed' for anonymous in-memory databases.
-</li><li>
-    Issue #108: There is a concurrency problem when multi threads access the same database at the same time,
-    and one is closing the connection and the other is executing CHECKPOINT at the exact the same time. Fixed.
-</li><li>
-    Statements containing LIKE are now re-compiled when executed. Depending on the data,
-    an index on the column is used or not.
-</li><li>
-    Issue# 107: When executing scripts that contained inserts with many columns, an OutOfMemory error could occur.
-    The problem was usage of shared Strings (String.substring). Now each String value is copied if required, releasing memory.
-</li><li>
-    Issue #106: SET commands where not persisted if they where the first DDL commands for a connection. Fixed.
-</li><li>
-    Issue #105: RUNSCRIPT (the command) didn't commit after each command if autocommit was on, therefore
-    large scripts run out of memory. Now it automatically commits.
-</li><li>
-    Automatic starting of a web browser for Mac OS X should work now.
-</li><li>
-    Starting the server is not a bit more intuitive. Just setting the -baseDir option for example will still start all servers.
-    By default, -tcp, -web, -browser and -odbc are started.
-</li><li>
-    Issue #104: A HAVING condition on a column that was not in the GROUP BY list didn't work correctly in all cases. Fixed.
-</li><li>
-    ORDER BY now uses an index if possible. Queries with LIMIT with ORDER BY are faster when the index can be used.
-</li><li>
-    New option '-ifExists' for the TCP and ODBC server to disallow creating new databases remotely.
-</li><li>
-    Shutdown of a TCP Server: Can now specify a password (tcpPassword). Passwords used at startup and
-    shutdown must match to shutdown. Uses a management database now for each server / port.
-    New option tcpShutdownForce (default is false) to kill the server without waiting for other connections to close.
-</li><li>
-    Issue #103: Shutdown of a TCP Server from command line didn't always work.
-</li></ul>
-
-<h3>Version 0.9 / 2006-05-14</h3><ul>
-<li>
-    New functions: CSVREAD and CSVWRITE to access CSV (comma separated values) files.
-</li><li>
-    Locking: the synchronization was too restrictive, locking out the connection holding a lock
-    when another connection tried to lock the same object. Fixed.
-</li><li>
-    Outer Join: currently, the table order of outer joins is kept, the tables are evaluated left to right
-    (with the exception of right outer join tables). This is a temporary solution only to solve problems
-    with join conditions.
-</li><li>
-    Bugfix for SCRIPT: the rights where created before the objects. Fixed.
-</li><li>
-    Implemented function LOCK_TIMEOUT().
-</li><li>
-    Compatibility with DBPool: Support 'holdability' in the Connection methods (however the value it is currently ignored).
-</li><li>
-    Connection.setTypeMap does not throw an exception any more if the type map is empty (null or 0 size).
-</li><li>
-    Issue #102: INSTR('123456','34') should return 2.
-</li><li>
-    Issue #101: A big result set with order by on a column or value that is not in the result list didn't work. Fixed.
-</li><li>
-    Referential integrity: cascade didn't work for more than one level when it was self-referencing. Fixed.
-</li><li>
-    New parameter charsetName in RunScript.execute.
-    New option CHARSET in the RUNSCRIPT command.
-</li><li>
-    A backslash in the database URL (database name) didn't work, fixed. But a backslash in the settings part of the URL
-    is used as an escape for ';', that means database URLs of the form jdbc:h2:test;SETTING=a\;b\;c
-    are possible (but hopefully this is never required).
-</li><li>
-    Added an interface SimpleRowSource so that an application / tool can create a dynamic result set
-    that produces rows on demand (for streaming result sets).
-</li><li>
-    Foreign key constraints with different data types on the references / referencing column did not work. Fixed.
-</li><li>
-    Fixed a problems that lead to a database (index file) corruption when killing the process.
-    Added a test case.
-</li><li>
-    If a user has SELECT privileges for a view, he can now retrieve the data even if he does not have
-    privileges for the underlying table(s).
-</li><li>
-    New system table INFORMATION_SCHEMA.CONSTRAINT that returns information about constraints
-    (mainly for check and unique constraints; for referential constraints see CROSS_REFERENCES).
-</li><li>
-    Alter table alter column: the data type of a column could not be changed, and columns could not be dropped
-    if there was a constraint on the table. Now the data type can always be changed.
-    Alter table drop column: now the column can be dropped if it is not part of a constraint.
-</li><li>
-    Views can now be 'invalid', for example if the table does not exist.
-    New syntax CREATE FORCE VIEW.
-    New column STATUS (invalid / valid) in INFORMATION_SCHEMA.VIEWS table.
-    New SQL statement ALTER VIEW viewName RECOMPILE.
-</li><li>
-    Issue #100: Altering a table with a self-referencing constraint didn't work. Fixed.
-</li><li>
-    Support for IDENTITY(start, increment) as in CREATE TABLE TEST(ID BIGINT NOT NULL IDENTITY(10, 5));
-</li><li>
-    Recovery did not always work correctly when the log file was switched.
-    Added tests for this use case.
-</li><li>
-    Bugfix for CREATE ROLE IF NOT EXISTS X.
-</li><li>
-    Removed support for LZMA. It was slow, and code coverage could not run.
-    If somebody needs this algorithm, it is better to add an open compression API.
-</li><li>
-    Starting a server took 1 second before, now it takes only about 100 ms.
-</li><li>
-    Server mode: If a parameter was not set in a prepared statement when using the server mode,
-    the connection to the server broke. Fixed.
-</li><li>
-    Referential integrity: If there was a unique index with fewer columns than the foreign key on the child table,
-    it did not work. Fixed.
-</li><li>
-    Javadoc / Doclet: ResultSet.getBytes was documented to return byte instead of byte[]. Fixed.
-</li><li>
-    New setting RECOVER in the database URL (jdbc:h2:test;RECOVER=1) to open corrupted databases
-    (wrong checksum, corrupted index file or summary).
-</li><li>
-    Bugfix: In server mode, big scrollable result sets didn't work. Fixed.
-</li><li>
-    MERGE: instead of delete-insert, now use update-[insert]. This solves problems with foreign key constraints.
-</li><li>
-    Bugfix for LIKE: A null pointer exception was thrown for WHERE NAME LIKE CAST(? AS VARCHAR).
-</li><li>
-    Join optimization: expressions are now evaluated as early as possible, avoiding unnecessary lookups.
-</li><li>
-    ResultSetMetaData.isAutoIncrement is implemented.
-</li><li>
-    SCRIPT: STRINGENCODE instead of STRINGDECODE was used. The implementation
-    of STRINGDECODE was not correct for Unicode characters > 127. Fixed.
-</li><li>
-    Documentation: [[NOT] NULL] instead of [NOT [NULL]]
-</li><li>
-    Because of the REAL support, databases are not compatible with the old version.
-    Backup (with the old version), replace 'STRINGENCODE' in the script with
-    'STRINGDECODE', and restore is required to upgrade to the new version.
-</li><li>
-    Support for REAL data type (Java 'float'; so far the DOUBLE type was used internally).
-</li></ul>
-
-<h3>Version 0.9 / 2006-04-20</h3><ul>
-<li>
-    Performance improvement for AND, OR, IFNULL, CASEWHEN, CASE, COALESCE and ARRAY_GET:
-    only the necessary parameters / operators are evaluated.
-</li><li>
-    Bugfix for CASEWHEN: data type of return value was not evaluated, and this was a problem
-    when using prepared statements like this: WHERE CASEWHEN(ID &lt; 10, A, B)=?
-</li><li>
-    New function DATABASE_PATH to retrieve the path and file name of a database.
-</li><li>
-    Made the code more modular. New ant target: jarClient to compile the JDBC driver and the classes used
-    to remotely connect to a H2 server.
-</li><li>
-    JdbcDataSourceFactory constructor is now public.
-</li><li>
-    SET THROTTLE allows to throttle down the resource usage of a connection.
-    After each 50ms, the session sleeps for the specified amount of time.
-</li><li>
-    ALTER TABLE ALTER COLUMN for a table that was referenced by another table didn't work. Fixed.
-</li><li>
-    If index log is disabled (the default), index changes are flushed automatically each second
-    if the index was not changed. Like this index rebuilding is only required
-    (after a unexpected program termination, like power off) for indexes that
-    where recently changed.
-</li><li>
-    Bugfix: ids of large objects (LOBs) are now correctly reserved when opening the database.
-    This improves the performance when using many LOBs.
-</li><li>
-    Replaced log_index=1 with log=2. There are 3 log options now: 0 (disabled), 1 (default), and 2 (log index changes as well).
-</li><li>
-    Got rid of the summary (.sum.db) file. The data is now stored in the log file instead.
-</li><li>
-    If the application stopped without closing all connections (for example calling System.exit),
-    some committed transactions may have not been written to disk. Fixed.
-</li><li>
-    Bugfix if index changes where logged (default is off): not all changes where logged, in some situations recovery would not work fast
-    (but no data loss as the indexes can be rebuilt; just slower database opening). Fixed.
-</li><li>
-    DatabaseMetaData.getTypeInfo: compatibility with HSQLDB improved.
-</li><li>
-    Parser: quoted keywords where not allowed as table or column names. Fixed.
-</li><li>
-    An exception was thrown in FileStoreInputStream when reading 0 bytes. But this is allowed according to the specs.
-</li><li>
-    Performance of LIMIT was slow when the result set was very big and the number of rows was small. Fixed
-</li><li>
-    The RunScript tool (org.h2.tools.RunScript) now uses the same algorithm to parse scripts.
-</li><li>
-    Bugfix: it was allowed to use jdbc:h2:test;database_event_listener=Test,
-    but only for the first connection. Now, the class name must be quoted in all cases:
-    jdbc:h2:test;database_event_listener='Test'
-</li><li>
-    Implemented SET LOG 0 to disable logging for improved performance (about twice as fast).
-</li><li>
-    Implemented TRUNCATE TABLE.
-</li><li>
-    SCRIPT: New option 'DROP' to drop tables and views before creating them.
-</li><li>
-    Chinese translation updates.
-</li><li>
-    It was not possible to create views on system tables. Fixed.
-</li><li>
-    If a database can't be opened because there is a bug in the startup information
-    (which is basically the SQL script of CREATE statements), then the database can now be opened
-    by specifying a database event listener.
-</li><li>
-    Parser / MySQL compatibility: in the last release, for MySQL compatibility, this syntax was supported:
-    CREATE TABLE TEST(ID INT, INDEX(ID), KEY(ID));
-    But that means INDEX and KEY can't be used as column names.
-    Changed the parser so that this syntax is only supported in MySQL mode.
-</li><li>
-    Optimizer: now chose a plan with index even if there are no or only a few rows in a table.
-    To avoid doing a table scan when no rows are in the table at prepare time, and many rows at execution time.
-    Using a row count offset of 1000.
-</li><li>
-    MERGE: new SQL command to insert or update a row. Sometimes this is called UPSERT for update or insert.
-    The grammar is a lot simpler than what Oracle supports.
-</li><li>
-    SCRIPT: now the CREATE INDEX statements are after the INSERT statements, to improve performance.
-</li><li>
-    Console: Bugfix for newline in a view definition.
-</li><li>
-    Bugfix for CONCAT with more than 2 parameters.
-</li></ul>
-
-<h3>Version 0.9 / 2006-04-09</h3><ul>
-<li>
-    Bugfix for VARCHAR_IGNORECASE.
-</li><li>
-    Open database: Improved the performance for opening a database if it was not closed correctly before
-    (due to abnormal program termination or power failure).
-</li><li>
-    Compact database: Added a sample application and documented how to do this.
-</li><li>
-    Bugfix: the SCRIPT command created insert statements for views. Removed.
-</li><li>
-    Implemented a way to shutdown a TCP server.
-    From command line, run: java org.h2.tools.Server -tcpShutdown tcp://localhost:9092
-</li><li>
-    LOG_INDEX: new option in the database URL to log changes to the index file. This is allows fast recovery
-    from system crash for big databases. Sample URL: jdbc:h2:test;LOG_INDEX=1
-</li><li>
-    Bugfix: using a low MAX_MEMORY_ROWS didn't work for GROUP BY queries with more groups. Fixed.
-</li><li>
-    Improved the trigger API (provide a Connection to the Java function) and added a sample application.
-</li><li>
-    Support setting parameters in the statement:
-    INSERT INTO TEST VALUES(?, ?) {1: 5000, 2: 'This is a test'}.
-    However, this feature is not documented yet as it's not clear if this is the final syntax.
-    Currently, used in the trace feature to create sql script files instead of Java class files
-    (in many cases, the classes just get too big and can't be compiled).
-</li><li>
-    Support multiline statement in RUNSCRIPT.
-</li><li>
-    Improved parser performance. Re-parsing of statements is avoided now if the database schema didn't change.
-    This should improve the performance for Hibernate, when many CREATE / DROP statements are executed.
-</li><li>
-    Performance improvement for LIMIT when using simple queries without ORDER BY.
-</li><li>
-    Improve compression ratio and performance for LZF.
-</li><li>
-    Improve performance for Connection.getReadOnly() (Hibernate calls it a lot).
-</li><li>
-    Server mode: Increased the socket buffer size to 64 KB. This should help performance
-    for medium size and bigger result sets. May thanks to James Devenish again!
-</li><li>
-    Support for IPv6 addresses in JDBC URLs. RFC 2732 format is '[a:b:c:d:e:f:g:h]' or '[a:b:c:d:e:f:g:h]:port'.
-    May thanks to James Devenish
-</li><li>
-    Bugfix for Linked Tables: The table definition was not stored correctly (with ''driver'' instead of 'driver' and so on). Fixed.
-    This was found by 'junheng'
-</li><li>
-    Chinese localization of the H2 Console.
-</li><li>
-    Bugfix: The connection was automatically closed sometimes when using a function with a connection parameter.
-</li><li>
-    Bugfix in the Console: Auto-refresh of the object list for DROP / ALTER / CREATE statements, updatable result sets.
-</li><li>
-    Improved support for MySQL syntax: ` is the same as ", except that the identifiers are converter to upper case.
-    Added support for special cases of MySQL CREATE TABLE syntax.
-</li><li>
-    Java Functions: functions can now return ResultSet.
-    The SQL statement CALL GET_RESULT_SET(123)
-    then returns the result set created by the function.
-    Implemented a simple result set / result set meta data class that can be used
-    to create result sets in an application from scratch.
-</li><li>
-    Web Server: the command line options where ignored. Fixed.
-    Renamed the options 'httpAllowOthers', 'httpPort', 'httpSSL' to 'web...'.
-</li><li>
-    Oracle compatibility: CASE...END [CASE] (the last word is new).
-    Oracle compatibility: Date addition/subtraction: SYSDATE+1, (SYSDATE-1)-SYSDATE and so on.
-    Limited support for old Oracle outer join syntax (single column outer join, (+) must be on the far right).
-    This works:
-    CREATE TABLE Customers(CustomerID int); CREATE TABLE Orders(CustomerID int);
-    INSERT INTO Customers VALUES(1), (2), (3);  INSERT INTO Orders VALUES(1), (3);
-    SELECT * FROM Customers LEFT OUTER JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
-    SELECT * FROM Customers, Orders WHERE Customers.CustomerID = Orders.CustomerID(+);
-</li></ul>
-
-<h3>Version 0.9 / 2006-04-23</h3><ul>
-<li>
-    Improved Hibernate Dialect for SQuirreL DB Copy.
-</li><li>
-    Support for UPDATE TEST SET (column [,...])=(select | expr [,...]').
-    For Compiere compatibility.
-</li><li>
-    Bugfixes for SCRIPT: write sequences before tables; write CLOB and BLOB data.
-</li><li>
-    Added PolePosition benchmark results.
-</li><li>
-    Bugfix in the server implementation: free up the memory. The new implementation does not rely on finalizers
-    any more. Removed finalizers, this improves the performance.
-</li><li>
-    Implemented CROSS JOIN and NATURAL JOIN.
-</li><li>
-    New keywords for join syntax: CROSS, NATURAL, FULL. However full outer join is not supported yet.
-</li><li>
-    Improved documentation of the tools (Server port and so on).
-</li><li>
-    The schema name of constraints is now automatically set to the table.
-</li><li>
-    Compatibility for Derby style column level constraints.
-</li><li>
-    New command ANALYZE to update the selectivity statistics.
-    New command ALTER TABLE ALTER COLUMN SELECTIVITY to manually set the selectivity of a column.
-</li><li>
-    Allow a java.sql.Connection parameter in the Java function (as in HSQLDB).
-</li><li>
-    Optimizer improvements.
-</li><li>
-    Implemented SET DB_CLOSE_DELAY numberOfSeconds to be able to delay, or disable
-    (-1) closing the database. Default is still 0 (close database when closing the last connection).
-</li><li>
-    After finding that HSQLDB was faster in the PolePosition test, and unsuccessful tries to
-    improve the performance of H2 even more, the reason is finally found: H2 always closed
-    the database when closing the last connection, but HSQLDB leaves the database open.
-    This also explains OutOfMemory problems when testing multiple databases with PolePosition.
-    But leaving the database open is a useful feature for some applications.
-</li><li>
-    New system table CROSS_REFERENCES.
-    Implemented DatabaseMetaData.getImportedKeys, getExportedKeys, getCrossReferences.
-</li><li>
-    Performance improvements in the binary tree and other places.
-</li><li>
-    A new aggregate function SELECTIVITY is implemented. It calculates the selectivity of a column
-    by counting the distinct rows, but only up to 10000 values are kept in memory.
-    SELECT SELECTIVITY(ID), SELECTIVITY(NAME) FROM TEST LIMIT 1 SAMPLE_SIZE 10000 scans only 10000 rows.
-</li><li>
-    A new option SAMPLE_SIZE is added to the LIMIT clause to specify the number of rows to scan for a aggregated
-    query.
-</li><li>
-    Bugfixes for temporary tables. Implemented ON COMMIT DROP / DELETE ROWS, but
-    not documented because it is only here for compatibility, and I would advise against using it
-    because it is not available in most databases.
-</li><li>
-    Improved parser performance and memory usage.
-</li></ul>
-
 <h3>Version 0.9 / 2005-12-13</h3><ul>
 <li>
     First public release.
@@ -1497,6 +1093,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CACHE, CYCLE
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
+</li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 
 </li></ul>
 
 <h3>Not Planned</h3>

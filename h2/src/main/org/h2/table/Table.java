@@ -299,10 +299,12 @@ public abstract class Table extends SchemaObject {
     }
     
     private void remove(ObjectArray list, DbObject obj) {
-        int i = list.indexOf(obj);
-        if(i>=0) {
-            list.remove(i);
-        }
+    	if(list != null) {
+	        int i = list.indexOf(obj);
+	        if(i>=0) {
+	            list.remove(i);
+	        }
+    	}
     }
 
     public void removeIndex(Index index) {

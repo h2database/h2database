@@ -93,6 +93,42 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
+create local temporary table a(id int) on commit drop;
+select * from a;
+create local temporary table b(id int) on commit drop;
+select * from a;
+select * from b;
+commit;
+
+dropping session temp views doesn't work, why?
+create table t1 (i int);
+create table t2 (i int);
+create table t3 (i int);
+select a.i from t1 a inner join (select a.i from t2 a inner join (select i from t3) b on a.i=b.i) b on a.i=b.i;
+SELECT A.I FROM T2 A INNER JOIN TEMP_VIEW_0 B WHERE (A.I = B.I) AND (A.I = 1)
+
+
+create table t1 (i int);
+create table t2 (i int);
+create table t3 (i int);
+
+select a.i
+  from t1 a
+     inner join (
+        select a.i
+           from t2 a
+              inner join (
+                 select i
+                    from t3) b on a.i=b.i
+        ) b on a.i=b.i;
+        
+Wäre es nicht besser, unabhängig von DB_CLOSE_DELAY eine Datenbank offen
+zu halten, solange dafür offene PooledConnections vorhanden sind?        
+        
+Change documentation and default database for H2 Console: jdbc:h2:~/test
+
+public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", false);
+
 "com.mysql.jdbc.NotUpdatable: Result Set not updatable.This result set must come from a statement that was created with a result set type of ResultSet.CONCUR_UPDATABLE, the query must select only one table, and must select all primary keys from that table. See the JDBC 2.1 API Specification, section 5.6 for more details."
 
 set new console to be the default (still support old)

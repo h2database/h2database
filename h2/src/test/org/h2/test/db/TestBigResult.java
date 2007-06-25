@@ -13,8 +13,8 @@ public class TestBigResult extends TestBase {
         if(config.memory) {
             return;
         }
-        testLimitBufferedResult();
         testOrderGroup();
+        testLimitBufferedResult();
     }
     
     private void testLimitBufferedResult() throws Exception {

@@ -59,7 +59,6 @@ public class FileStore {
         this.mode = mode;
         try {
             FileUtils.createDirs(name);
-//            File f = new File(name);
             if(FileUtils.exists(name) && !FileUtils.canWrite(name)) {
                 mode = "r";
                 this.mode = mode;

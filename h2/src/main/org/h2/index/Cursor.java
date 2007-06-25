@@ -7,6 +7,7 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 
 
 public interface Cursor {
@@ -14,6 +15,7 @@ public interface Cursor {
     int POS_NO_ROW = -1;
 
     Row get() throws SQLException;
+    SearchRow getSearchRow() throws SQLException;
     int getPos();
     boolean next() throws SQLException;
 

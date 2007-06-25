@@ -132,10 +132,10 @@ public class FileUtils {
             throw Message.getInternalError("rename file old=new");
         }
         if(!oldFile.exists()) {
-            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName + " (not found)", newName}, null);
         }            
         if(newFile.exists()) {
-            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"}, null);
         }
         for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
             boolean ok = oldFile.renameTo(newFile);
@@ -401,20 +401,6 @@ public class FileUtils {
         } catch (IOException e) {
             throw Message.convertIOException(e, path);
         }
-        
-//        try {
-//            File[] files = new File(path).listFiles();
-//            if(files == null) {
-//                return new String[0];
-//            }
-//            String[] list = new String[files.length];
-//            for(int i=0; i<files.length; i++) {
-//                list[i] = files[i].getCanonicalPath();
-//            }
-//            return list;
-//        } catch (IOException e) {
-//            throw Message.convert(e);
-//        }
     }
 
     public static boolean isDirectory(String fileName) {

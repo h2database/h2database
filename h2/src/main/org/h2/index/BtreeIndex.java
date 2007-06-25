@@ -183,7 +183,7 @@ public class BtreeIndex extends Index implements RecordReader {
         } else {
             BtreeCursor cursor = new BtreeCursor(this, last);
             if (!root.findFirst(cursor, first)) {
-                cursor.setCurrentRow(Cursor.POS_NO_ROW);
+                cursor.setCurrentRow(null);
             }
             return cursor;
         }

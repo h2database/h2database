@@ -13,8 +13,8 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.ViewIndexOld;
 import org.h2.index.ViewIndex;
-import org.h2.index.ViewIndexNew;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -28,8 +28,8 @@ public class TableView extends Table {
     private ObjectArray tables;
     private String[] columnNames;
     private Query viewQuery;
-    private ViewIndex indexOld;
-    private ViewIndexNew indexNew;
+    private ViewIndexOld indexOld;
+    private ViewIndex indexNew;
     private boolean recursive;
     private SQLException createException; 
 
@@ -39,10 +39,10 @@ public class TableView extends Table {
         this.columnNames = columnNames;
         this.recursive = recursive;
         int todoRemoveIndexOld;
-        if(Constants.INDEX_NEW) {
-            indexNew = new ViewIndexNew(this, querySQL, params, recursive);
+        if(Constants.INDEX_OLD) {
+            indexOld = new ViewIndexOld(this, querySQL, params, recursive);
         } else {
-            indexOld = new ViewIndex(this, querySQL, params, recursive);
+            indexNew = new ViewIndex(this, querySQL, params, recursive);
         }
         initColumnsAndTables(session);
     }
@@ -95,10 +95,10 @@ public class TableView extends Table {
                 for(int i=0; i<columnNames.length; i++) {
                     cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
                 }
-                if(Constants.INDEX_NEW) {
-                    indexNew.setRecursive(true);
-                } else {
+                if(Constants.INDEX_OLD) {
                     indexOld.setRecursive(true);
+                } else {
+                    indexNew.setRecursive(true);
                 }
                 recursive = true;
                 createException = null;
@@ -115,12 +115,12 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         Index i2;
-        if(Constants.INDEX_NEW) {
-            item.cost = indexNew.getCost(session, masks);
-            i2 = new ViewIndexNew(this, indexNew, session, masks);
-        } else {
+        if(Constants.INDEX_OLD) {
             item.cost = indexOld.getCost(session, masks);
-            i2 = new ViewIndex(this, indexOld, session, masks);
+            i2 = new ViewIndexOld(this, indexOld, session, masks);
+        } else {
+            item.cost = indexNew.getCost(session, masks);
+            i2 = new ViewIndex(this, indexNew, session, masks);
         }
         item.setIndex(i2);
         return item;

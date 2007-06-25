@@ -228,7 +228,7 @@ INSERT INTO ITEM VALUES(20,
 <ul>
 <li>The Console is now translated to Japanese thanks to 
     IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp).
-</li><li>The database engine can now be compiled with JDK 1.3 using ant codeswitch_jdk13. 
+</li><li>The database engine can now be compiled with JDK 1.3 using ant codeswitch. 
     There are still some limitations, and the ant script to build the jar does not work yet.
 </li><li>SCRIPT NODATA now writes the row count for each table.
 </li><li>Timestamps with timezone information (Z or +/-hh:mm) and dates before year 1 
@@ -273,7 +273,7 @@ INSERT INTO ITEM VALUES(19,
     longer the application directory. This can be changed using the system 
     property h2.clientTraceDirectory.
 </li><li>Build: Now using ant-build.properties. The JDK is automatically updated 
-    when using ant codeswitch_...
+    when using ant codeswitch...
 </li><li>Cluster: Now the server can detect if a query is read-only, and in this 
     case the result is only read from the first cluster node. However, there 
     is currently no load balancing made to avoid problems with transactions 

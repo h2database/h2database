@@ -96,25 +96,6 @@ public class ValueLob extends Value {
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
     }
 
-//    public static ValueLob createClobFromReader(Reader in, long length) throws SQLException {
-//        try {
-//            String s = IOUtils.readStringAndClose(in, (int)length);
-//            byte[] buff = StringUtils.utf8Encode(s);
-//            return new ValueLob(CLOB, buff);
-//        } catch (IOException e) {
-//            throw Message.convert(e);
-//        }
-//    }
-
-//    public static ValueLob createBlobFromInputStream(InputStream in, long length) throws SQLException {
-//        try {
-//            byte[] buff = IOUtils.readBytesAndClose(in, (int)length);
-//            return new ValueLob(BLOB, buff);
-//        } catch (IOException e) {
-//            throw Message.convert(e);
-//        }
-//    }
-
     public static ValueLob createClob(Reader in, long length, DataHandler handler) throws SQLException {
         try {
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
@@ -532,11 +513,6 @@ public class ValueLob extends Value {
     public byte[] getSmall() {
         return small;
     }
-
-//    public String getJavaString() {
-//        // TODO value: maybe use another trick (at least the size should be ok?)
-//        return StringUtils.quoteJavaString(getSQL());
-//    }
 
     public int getDisplaySize() {
         // TODO display size of lob?

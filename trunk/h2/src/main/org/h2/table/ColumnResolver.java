@@ -4,6 +4,8 @@
  */
 package org.h2.table;
 
+import java.sql.SQLException;
+
 import org.h2.command.dml.Select;
 import org.h2.value.Value;
 
@@ -12,7 +14,7 @@ public interface ColumnResolver {
     String getTableAlias();
     Column[] getColumns();
     String getSchemaName();
-    Value getValue(Column column);
+    Value getValue(Column column) throws SQLException;
     TableFilter getTableFilter();
     Select getSelect();
 

@@ -28,6 +28,10 @@ public class TreeCursor implements Cursor {
         return node == null ? null : node.row;
     }
     
+    public SearchRow getSearchRow() {
+        return get();
+    }
+    
     public int getPos() {
         return node == null ? -1 : node.row.getPos();
     }

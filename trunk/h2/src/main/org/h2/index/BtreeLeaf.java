@@ -160,7 +160,7 @@ public class BtreeLeaf extends BtreePage {
         }
         cursor.push(this, l);
         SearchRow row = (SearchRow) pageData.get(l);
-        cursor.setCurrentRow(row.getPos());
+        cursor.setCurrentRow(row);
         return true;
     }
 
@@ -168,7 +168,7 @@ public class BtreeLeaf extends BtreePage {
         i++;
         if (i < pageData.size()) {
             SearchRow r = (SearchRow) pageData.get(i);
-            cursor.setCurrentRow(r.getPos());
+            cursor.setCurrentRow(r);
             cursor.setStackPosition(i);
             return;
         }
@@ -186,13 +186,13 @@ public class BtreeLeaf extends BtreePage {
         }
         cursor.push(this, 0);
         SearchRow row = (SearchRow) pageData.get(0);
-        cursor.setCurrentRow(row.getPos());
+        cursor.setCurrentRow(row);
     }
 
     private void nextUpper(BtreeCursor cursor) throws SQLException  {
         BtreePosition upper = cursor.pop();
         if (upper == null) {
-            cursor.setCurrentRow(Cursor.POS_NO_ROW);
+            cursor.setCurrentRow(null);
         } else {
             cursor.push(upper.page, upper.position);
             upper.page.next(cursor, upper.position);

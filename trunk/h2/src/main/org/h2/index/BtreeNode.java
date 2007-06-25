@@ -268,7 +268,7 @@ public class BtreeNode extends BtreePage {
         cursor.pop();
         BtreePosition upper = cursor.pop();
         if (upper == null) {
-            cursor.setCurrentRow(Cursor.POS_NO_ROW);
+            cursor.setCurrentRow(null);
         } else {
             cursor.push(upper.page, upper.position);
             upper.page.next(cursor, upper.position);

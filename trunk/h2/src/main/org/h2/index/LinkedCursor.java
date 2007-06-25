@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.value.DataType;
@@ -35,6 +36,10 @@ public class LinkedCursor implements Cursor {
     public Row get() {
         return current;
     }
+    
+	public SearchRow getSearchRow() throws SQLException {
+		return current;
+	}
     
     public int getPos() {
         throw Message.getInternalError();

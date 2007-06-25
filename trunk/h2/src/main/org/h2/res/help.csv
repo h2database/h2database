@@ -1273,8 +1273,8 @@ A
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
-Quoted names are case sensitive, and can contain spaces.
-There is no maximum name length.
+Quoted names are case sensitive, and can contain spaces. There is no maximum name length.
+Two double quotes can be used to create a single double quote inside an identifier.
 ","
 ""FirstName""
 "
@@ -1284,7 +1284,7 @@ There is no maximum name length.
 A string starts and ends with a single quote.
 Two single quotes can be used to create a single quote inside a string.
 ","
-'Jon''s car'
+'John''s car'
 "
 "Other Grammar","Int","
 [- | +] digit [...]

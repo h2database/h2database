@@ -162,7 +162,6 @@ public class Parser {
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ObjectArray indexedParameterList;
-    private int tempViewId;
 
     public Parser(Session session) {
         this.session = session;
@@ -741,8 +740,14 @@ public class Parser {
             if(isToken("SELECT") || isToken("FROM")) {
                 Query query = parseQueryWithParams();
                 String querySQL = query.getSQL();
-                int id = tempViewId++;
-                table = new TableView(mainSchema, 0, "TEMP_VIEW_" + id, querySQL, query.getParameters(), null, session, false);
+                String tempViewName = session.getNextTempViewName();
+                table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, session, false);
+                
+int testing;                
+                table.setOnCommitDrop(true);
+//this.recompileAlways = true;
+                
+                session.addLocalTempTable(table);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);

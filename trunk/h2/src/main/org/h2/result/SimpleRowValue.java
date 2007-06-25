@@ -9,6 +9,7 @@ import org.h2.value.Value;
 public class SimpleRowValue implements SearchRow {
     
     private int pos;
+    private int index;
     private int virtualColumnCount;
     private Value data;
     
@@ -22,14 +23,15 @@ public class SimpleRowValue implements SearchRow {
     public int getPos() {
         return pos;
     }
-    public Value getValue(int index) {
-        return data;
+    public Value getValue(int idx) {
+    	return idx == index ? data : null;
     }
     public void setPos(int pos) {
         this.pos = pos;
     }
     
     public void setValue(int idx, Value v) {
+    	index = idx;
         data = v;
     }
 

@@ -18,13 +18,13 @@ package org.h2.engine;
  * - Compile with JDK 1.3, 1.4, 1.5 and 1.6:
  *   set path=C:\jdk1.3.1_19\bin;%PATH%
  *   set JAVA_HOME=C:\jdk1.3.1_19
- *   ant codeswitch_jdk13
+ *   ant codeswitchJdk13
  *   ant compile
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
- *   ant codeswitch_jdk16
+ *   ant codeswitchJdk16
  *   ant compile
- *   ant codeswitch_jdk14
+ *   ant codeswitchJdk14
  *   
  * - Change FAQ (next release planned, known bugs)
  * - Check version, change build number in Constants.java and ant-build.properties
@@ -245,8 +245,9 @@ public class Constants {
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
     public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
-    public static boolean INDEX_NEW = getBooleanSetting("h2.indexNew", false);
     public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
+    public static boolean INDEX_OLD = getBooleanSetting("h2.indexOld", false);
+	public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

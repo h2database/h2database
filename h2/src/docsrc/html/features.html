@@ -466,6 +466,8 @@ The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt
 The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working 
 directory is used as a starting point. The case sensitivity of the path and database name depend on the 
 operating system, however it is suggested to use lowercase letters only.
+The database name must be at least three characters long (a limitation of File.createTempFile).
+To point to the user directory, use ~/, as in: jdbc:h2:~/test.
 
 <h3>Memory-Only Databases</h3>
 <p>

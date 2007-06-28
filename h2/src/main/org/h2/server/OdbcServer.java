@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
@@ -31,6 +32,7 @@ public class OdbcServer implements Service {
     private String url;
     private boolean allowOthers;
     private boolean ifExists;
+    private Thread listenerThread;
 
     boolean getLog() {
         return log;
@@ -88,7 +90,8 @@ public class OdbcServer implements Service {
     }
 
     public void listen() {
-        String threadName = Thread.currentThread().getName();
+        listenerThread = Thread.currentThread();
+        String threadName = listenerThread.getName();
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
@@ -123,6 +126,13 @@ public class OdbcServer implements Service {
                     e.printStackTrace();
                 }
                 serverSocket = null;
+            }
+            if(listenerThread != null) {
+                try {
+                    listenerThread.join(1000);
+                } catch (InterruptedException e) {
+                    TraceSystem.traceThrowable(e);
+                }
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?

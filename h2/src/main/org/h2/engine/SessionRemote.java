@@ -172,7 +172,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
         databaseName = name.substring(idx + 1);
         String server = name.substring(0, idx);
-        traceSystem = new TraceSystem(null);
+        traceSystem = new TraceSystem(null, false);
         try {
             String traceLevelFile = ci.getProperty(SetTypes.TRACE_LEVEL_FILE, null);
             if(traceLevelFile != null) {

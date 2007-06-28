@@ -68,10 +68,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
     public void close() throws SQLException {
         debugCodeCall("close");
         try {
-        	closeConnection(conn);
+            closeConnection(conn);
             closeConnection(connSentinel);
         } finally {
-        	conn = null;
+            conn = null;
             connSentinel = null;
         }
     }
@@ -94,8 +94,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         if(conn != null) {
-        	closeConnection(conn);
-        	conn = null;
+            closeConnection(conn);
+            conn = null;
         }
         conn = openConnection();
         conn.setJdbcConnectionListener(this);

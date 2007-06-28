@@ -335,7 +335,7 @@ public class Message {
         if(e instanceof JdbcSQLException) {
             JdbcSQLException j = (JdbcSQLException) e;
             if(j.getSQL() != null) {
-            	return j;
+                return j;
             }
             return new JdbcSQLException(j.getOriginalMessage(), j.getSQL(), 
                     j.getSQLState(), 

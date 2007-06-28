@@ -132,7 +132,7 @@ public class TcpServerThread implements Runnable {
             String message;
             String sql;
             if(e instanceof JdbcSQLException) {
-            	JdbcSQLException j = (JdbcSQLException) e;
+                JdbcSQLException j = (JdbcSQLException) e;
                 message = j.getOriginalMessage();
                 sql = j.getSQL();
             } else {

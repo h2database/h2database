@@ -69,7 +69,7 @@ public class ShowProgress implements DatabaseEventListener {
     }
 
     public void exceptionThrown(SQLException e, String sql) {
-    	System.out.println("Error executing " + sql);
+        System.out.println("Error executing " + sql);
         e.printStackTrace();
     }
 

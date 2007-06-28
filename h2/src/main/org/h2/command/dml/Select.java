@@ -279,7 +279,7 @@ public class Select extends Query {
                     Expression expr = (Expression) expressions.get(i);
 int testing;
 if(expr == null) {
-	System.out.println("stop");
+    System.out.println("stop");
 }
                     row[i] = expr.getValue(session);
                 }
@@ -591,8 +591,8 @@ if(expr == null) {
             }
         }
         if(having != null) {
-        	// could be set after addGlobalCondition
-        	// in this case the query is not run directly, just getPlanSQL is called
+            // could be set after addGlobalCondition
+            // in this case the query is not run directly, just getPlanSQL is called
             Expression h = having;
             buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
         } else if(havingIndex >= 0) {
@@ -683,10 +683,10 @@ if(expr == null) {
         Expression comp = new Comparison(session, comparisonType, col, expr);
         comp = comp.optimize(session);
         if(isGroupQuery) {
-        	if(havingIndex >= 0) {
+            if(havingIndex >= 0) {
                 having = (Expression) expressions.get(havingIndex);
-        	}
-        	if(having == null) {
+            }
+            if(having == null) {
                 having = comp;
             } else {
                 having = new ConditionAndOr(ConditionAndOr.AND, having, comp);

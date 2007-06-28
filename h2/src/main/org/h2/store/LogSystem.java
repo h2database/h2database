@@ -220,7 +220,7 @@ public class LogSystem {
             String s = list[i];
             LogFile l = null;
             try {
-            	l = LogFile.openIfLogFile(this, fileNamePrefix, s);
+                l = LogFile.openIfLogFile(this, fileNamePrefix, s);
             } catch(SQLException e) {
                 database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
                 // this can happen if the system crashes just after creating a new file (before writing the header)

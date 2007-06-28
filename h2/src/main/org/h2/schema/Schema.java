@@ -254,11 +254,11 @@ public class Schema extends DbObject {
     }
     
     public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent) throws SQLException {
-		return new TableData(this, tempName, id, newColumns, persistent);
-	}
+        return new TableData(this, tempName, id, newColumns, persistent);
+    }
 
-	public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
-		return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
-	}    
+    public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+        return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+    }    
 
 }

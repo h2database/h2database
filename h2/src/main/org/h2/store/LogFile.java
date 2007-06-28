@@ -83,7 +83,7 @@ public class LogFile {
         }
         String s = fileName.substring(fileNamePrefix.length()+1, fileName.length()-Constants.SUFFIX_LOG_FILE.length());
         int id = Integer.parseInt(s);
-    	return new LogFile(log, id, fileNamePrefix);
+        return new LogFile(log, id, fileNamePrefix);
     }
     
     public String getFileName() {

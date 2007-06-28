@@ -222,7 +222,7 @@ public abstract class TestBase {
         System.out.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
         e.printStackTrace();
         try {
-            TraceSystem ts = new TraceSystem(null);
+            TraceSystem ts = new TraceSystem(null, false);
             FileLock lock = new FileLock(ts, 1000);
             lock.lock("error.lock", false);
             FileWriter fw = new FileWriter("ERROR.txt", true);

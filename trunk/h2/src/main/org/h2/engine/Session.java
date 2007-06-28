@@ -317,7 +317,7 @@ public class Session implements SessionInterface {
             traceModuleName = Trace.JDBC + "[" + id + "]";
         }
         if(database == null) {
-            return new TraceSystem(null).getTrace(traceModuleName);
+            return new TraceSystem(null, false).getTrace(traceModuleName);
         }
         return database.getTrace(traceModuleName);
     }

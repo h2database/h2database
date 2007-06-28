@@ -44,6 +44,7 @@ public class TcpServer implements Service {
     private Connection managementDb;
     private String managementPassword = "";
     private static HashMap servers = new HashMap();
+    private Thread listenerThread;
     
     public static String getManagementDbName(int port) {
         return "mem:" + Constants.MANAGEMENT_DB_PREFIX + port;
@@ -118,7 +119,8 @@ public class TcpServer implements Service {
     }
     
     public void listen() {
-        String threadName = Thread.currentThread().getName();
+        listenerThread = Thread.currentThread();
+        String threadName = listenerThread.getName();
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
@@ -162,6 +164,13 @@ public class TcpServer implements Service {
                     TraceSystem.traceThrowable(e);
                 }
                 serverSocket = null;
+            }
+            if(listenerThread != null) {
+                try {
+                    listenerThread.join(1000);
+                } catch (InterruptedException e) {
+                    TraceSystem.traceThrowable(e);
+                }
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?

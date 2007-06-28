@@ -92,23 +92,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();      
+        
 /*
-
-The database name must be at least 3 characters
-jdbc:h2:te
-
-        traceSystem.setLevelFile(TraceSystem.ERROR);
- 
-because of temp file limitations, database names with less than 3 characters are not supported
-
-add test case:
-prepare: select * from (select * from (select * from dual) a) b;
-select * from dual;
-execute prepared
-
-add test case:
-try to create a view without access rights
-try to create a view with a subquery without access right
 
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
@@ -177,18 +162,16 @@ Please note that
 
 support translated exceptions (translated, then english at the end, for Hibernate compatibility)
 
-keep db open as long as there are PooledConnections
-
 make static member variables final (this helps find forgotten initializers)
 
 Merge more from diff.zip (Pavel Ganelin)
 
-keep db open (independent of DB_CLOSE_DELAY) while a PooledConnections exists.
-
-
 */        
 
 /*
+
+complete recursive views:
+
 drop all objects;
 create table parent(id int primary key, parent int);
 insert into parent values(1, null), (2, 1), (3, 1);
@@ -215,13 +198,6 @@ drop table parent;
 */        
         
 /*        
-create local temporary table abc(id varchar) on commit drop;
-insert into abc select * from dual;
-create local temporary table abc(id varchar) on commit drop;
-insert into abc select * from dual where 1=0;
-create local temporary table abc(id varchar) on commit drop;
-insert into abc select * from dual;
-drop table abc;      
 
   DROP TABLE TEST;
 CREATE TABLE TEST(ID INT);

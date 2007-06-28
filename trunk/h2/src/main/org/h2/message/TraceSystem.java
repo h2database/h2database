@@ -46,6 +46,7 @@ public class TraceSystem {
     private int checkSize;
     private boolean closed;
     private boolean manualEnabling = true;
+    private boolean writingErrorLogged;
     
     public static void traceThrowable(Throwable e) {
         PrintWriter writer = DriverManager.getLogWriter();
@@ -58,11 +59,11 @@ public class TraceSystem {
         this.manualEnabling = value;
     }
 
-    public TraceSystem(String fileName) {
+    public TraceSystem(String fileName, boolean init) {
         this.fileName = fileName;
         traces = new SmallLRUCache(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
-        if(fileName != null) {
+        if(fileName != null && init) {
             try {
                 openWriter();
             } catch(Exception e) {
@@ -185,6 +186,10 @@ public class TraceSystem {
     }
     
     private void logWritingError(Exception e) {
+        if(writingErrorLogged) {
+            return;
+        }
+        writingErrorLogged = true;
         // TODO translate trace messages
         SQLException se = Message.getSQLException(Message.LOG_FILE_ERROR_1, new String[] { fileName }, e);
         // print this error only once
@@ -193,7 +198,7 @@ public class TraceSystem {
         se.printStackTrace();
     }
     
-    private boolean openWriter() throws IOException {
+    private boolean openWriter() {
         if(printWriter == null) {
             try {
                 FileUtils.createDirs(fileName);
@@ -203,7 +208,8 @@ public class TraceSystem {
                 }
                 fileWriter = FileUtils.openFileWriter(fileName, true);
                 printWriter = new PrintWriter(fileWriter, true);
-            } catch(SQLException e) {
+            } catch(Exception e) {
+                logWritingError(e);
                 return false;
             }
         }

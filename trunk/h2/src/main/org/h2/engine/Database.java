@@ -410,9 +410,9 @@ public class Database implements DataHandler {
         dummy = DataPage.create(this, 0);
         if(persistent) {
             if(readOnly || FileUtils.isInMemory(databaseName)) {
-                traceSystem = new TraceSystem(null);
+                traceSystem = new TraceSystem(null, false);
             } else {
-                traceSystem = new TraceSystem(databaseName+Constants.SUFFIX_TRACE_FILE);
+                traceSystem = new TraceSystem(databaseName+Constants.SUFFIX_TRACE_FILE, true);
             }
             if(cipher != null) {
                 traceSystem.setManualEnabling(false);
@@ -447,7 +447,7 @@ public class Database implements DataHandler {
             reserveLobFileObjectIds();
             writer = WriterThread.create(this, writeDelay);
         } else {
-            traceSystem = new TraceSystem(null);
+            traceSystem = new TraceSystem(null, false);
             log = new LogSystem(null, null, false, null);
         }
         systemUser = new User(this, 0, Constants.DBA_NAME, true);

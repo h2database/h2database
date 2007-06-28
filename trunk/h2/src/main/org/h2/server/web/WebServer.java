@@ -88,6 +88,7 @@ public class WebServer implements Service {
     private ServerSocket serverSocket;
     private String url;
     private boolean allowShutdown;
+    private Thread listenerThread;
 
     byte[] getFile(String file) throws IOException {
         trace("getFile <"+file+">");
@@ -202,6 +203,7 @@ public class WebServer implements Service {
     }
     
     public void listen() {
+        this.listenerThread = Thread.currentThread();
         try {
             while (serverSocket != null) {
                 Socket s = serverSocket.accept();
@@ -233,6 +235,13 @@ public class WebServer implements Service {
             // TODO log exception
         }
         serverSocket = null;
+        if(listenerThread != null) {
+            try {
+                listenerThread.join(1000);
+            } catch (InterruptedException e) {
+                TraceSystem.traceThrowable(e);
+            }
+        }
     }
 
     void trace(String s) {

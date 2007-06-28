@@ -37,25 +37,27 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>PooledConnection.getConnection took a long time if only one connection was open at any time. Fixed.
+<li>The default trace level for JdbcDataSourceFactory was DEBUG, so when using data sources a trace file
+    was always created. Now the default trace level is ERROR, and the file is only created if necessary.
+</li><li>PooledConnection.getConnection took a long time if only one connection was open at any time. Fixed.
 </li><li>Referential integrity violation: Two different SQL states are now used for missing parent / existing child.
 </li><li>DatabaseEventListener.exceptionThrown has a new parameter: SQL
 </li><li>For compatibility reasons, the catalog name can now be used in queries: SELECT * FROM TESTDB.PUBLIC.TEST
 </li><li>If SHUTDOWN IMMEDIATELY was called, then the connection was not closed and the database
-	opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
+    opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
 </li><li>The new view implementation is now enabled by default. 
-	To use the old implementation, set the system property 'h2.indexOld' to true 
-	(java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
+    To use the old implementation, set the system property 'h2.indexOld' to true 
+    (java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
     If no problems are found, the old implementation will be removed in the next release.
     The old implementation does not work with multi-level nested temporary views
     (select * from (select * from (select * from test))).
 </li><li>The new view implementation did not work with &lt; and &lt;= comparison, 
-	and did not allow conditions on aggregates or grouped columns (HAVING). Fixed.. Fixed.
+    and did not allow conditions on aggregates or grouped columns (HAVING). Fixed.. Fixed.
 </li><li>Both view implementations did not work with multiple levels of nested temporary views (FROM (SELECT...)). Fixed.
 </li><li>The H2 Console can now be run as a standalone web application, 
-	or it can be embedded as a servlet into any existing web application. To build the 
-	'H2 Console' web application, execute 'ant warConsole'.
-	See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
+    or it can be embedded as a servlet into any existing web application. To build the 
+    'H2 Console' web application, execute 'ant warConsole'.
+    See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
 </li><li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
 </li><li>The Polish translation is available. Thanks a lot to Tomek!
 </li><li>Windows service: the CLASSPATH was not included when starting the service. Fixed.
@@ -833,7 +835,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Row level locking
 </li><li>Read-only databases inside a jar (splitting large files to speed up random access)
 </li><li>System table: open sessions and locks of a database
-</li><li>Function in management db: open connections and databases of a (TCP) server
+</li><li>Function in management db: list open connections and databases of a (TCP) server
 </li><li>Fix right outer joins
 </li><li>Full outer joins
 </li><li>Long running queries / errors / trace system table

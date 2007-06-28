@@ -39,6 +39,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
 //#ifdef JDK14
     private JdbcDataSourceFactory factory;
     private String url, user, password;
+    private JdbcConnection connSentinel;
     private JdbcConnection conn;
     private ArrayList listeners = new ArrayList();
     private Xid currentTransaction;
@@ -55,7 +56,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
         this.url = url;
         this.user = user;
         this.password = password;
-        getConnection();
+        connSentinel = openConnection();
+        getConnection();        
     }
 
     public XAResource getXAResource() throws SQLException {
@@ -65,19 +67,37 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
     public void close() throws SQLException {
         debugCodeCall("close");
+        try {
+        	closeConnection(conn);
+            closeConnection(connSentinel);
+        } finally {
+        	conn = null;
+            connSentinel = null;
+        }
+    }
+    
+    private void closeConnection(JdbcConnection conn) throws SQLException {
         if(conn != null) {
             conn.closeConnection();
-            conn = null;
         }
+    }
+    
+    private JdbcConnection openConnection() throws SQLException {
+        Properties info = new Properties();
+        info.setProperty("user", user);
+        info.setProperty("password", password);
+        JdbcConnection conn = new JdbcConnection(url, info);
+        conn.setJdbcConnectionListener(this);
+        return conn;
     }
 
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
-        close();
-        Properties info = new Properties();
-        info.setProperty("user", user);
-        info.setProperty("password", password);
-        conn = new JdbcConnection(url, info);
+        if(conn != null) {
+        	closeConnection(conn);
+        	conn = null;
+        }
+        conn = openConnection();
         conn.setJdbcConnectionListener(this);
         return conn;
     }

@@ -47,7 +47,7 @@ public abstract class TestHalt extends TestBase {
         for(int i=0;; i++) {
             operations = OP_INSERT | i;
             flags = i >> 4;
-            // flags = FLAG_NODELAY | FLAG_LOBS;
+//             flags |= FLAG_NO_DELAY; //  | FLAG_LOBS;
             try {
                 runTest();
             } catch(Throwable t) {

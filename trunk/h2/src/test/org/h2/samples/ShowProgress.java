@@ -68,7 +68,8 @@ public class ShowProgress implements DatabaseEventListener {
         System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
     }
 
-    public void exceptionThrown(SQLException e) {
+    public void exceptionThrown(SQLException e, String sql) {
+    	System.out.println("Error executing " + sql);
         e.printStackTrace();
     }
 

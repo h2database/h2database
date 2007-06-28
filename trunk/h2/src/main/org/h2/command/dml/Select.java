@@ -277,6 +277,10 @@ public class Select extends Query {
                 Value[] row = new Value[columnCount];
                 for (int i = 0; i < columnCount; i++) {
                     Expression expr = (Expression) expressions.get(i);
+int testing;
+if(expr == null) {
+	System.out.println("stop");
+}
                     row[i] = expr.getValue(session);
                 }
                 result.addRow(row);
@@ -586,7 +590,12 @@ public class Select extends Query {
                 buff.append(StringUtils.unEnclose(g.getSQL()));
             }
         }
-        if(havingIndex >= 0) {
+        if(having != null) {
+        	// could be set after addGlobalCondition
+        	// in this case the query is not run directly, just getPlanSQL is called
+            Expression h = having;
+            buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
+        } else if(havingIndex >= 0) {
             Expression h = exprList[havingIndex];
             buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
         }
@@ -674,7 +683,10 @@ public class Select extends Query {
         Expression comp = new Comparison(session, comparisonType, col, expr);
         comp = comp.optimize(session);
         if(isGroupQuery) {
-            if(having == null) {
+        	if(havingIndex >= 0) {
+                having = (Expression) expressions.get(havingIndex);
+        	}
+        	if(having == null) {
                 having = comp;
             } else {
                 having = new ConditionAndOr(ConditionAndOr.AND, having, comp);

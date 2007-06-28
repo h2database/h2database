@@ -65,10 +65,10 @@ public class MetaRecord {
             command.setHeadPos(headPos);
             command.update();
         } catch(Throwable e) {
-            SQLException s = Message.convert(e);
+            SQLException s = Message.addSQL(Message.convert(e), sql);
             db.getTrace(Trace.DATABASE).error(sql, s);
             if(listener != null) {
-                listener.exceptionThrown(s);
+                listener.exceptionThrown(s, sql);
                 // continue startup in this case
             } else {
                 throw s;

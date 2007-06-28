@@ -4,6 +4,8 @@
  */
 package org.h2.engine;
 
+import org.h2.message.TraceSystem;
+
 /*
  * Coding rules:
  * - boolean CHECK = x > boolean CHECK = Database.CHECK
@@ -246,8 +248,9 @@ public class Constants {
     public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
     public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
     public static boolean INDEX_OLD = getBooleanSetting("h2.indexOld", false);
-    public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
+	public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
+	public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
 
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

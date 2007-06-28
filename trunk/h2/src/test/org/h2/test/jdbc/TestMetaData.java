@@ -388,11 +388,11 @@ public class TestMetaData extends TestBase {
         checkFalse(meta.supportsANSI92IntermediateSQL());
         checkFalse(meta.supportsANSI92FullSQL());
         check(meta.supportsBatchUpdates());
-        checkFalse(meta.supportsCatalogsInDataManipulation());
-        checkFalse(meta.supportsCatalogsInIndexDefinitions());
-        checkFalse(meta.supportsCatalogsInPrivilegeDefinitions());
+        check(meta.supportsCatalogsInDataManipulation());
+        check(meta.supportsCatalogsInIndexDefinitions());
+        check(meta.supportsCatalogsInPrivilegeDefinitions());
         checkFalse(meta.supportsCatalogsInProcedureCalls());
-        checkFalse(meta.supportsCatalogsInTableDefinitions());
+        check(meta.supportsCatalogsInTableDefinitions());
         check(meta.supportsColumnAliasing());
         check(meta.supportsConvert());
         check(meta.supportsConvert(Types.INTEGER, Types.VARCHAR));

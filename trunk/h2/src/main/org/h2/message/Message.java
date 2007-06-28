@@ -62,7 +62,7 @@ public class Message {
     public static JdbcSQLException getSQLException(int errorCode, String[] param, Throwable cause) {
         String sqlstate = getState(errorCode);
         String message = translate(sqlstate, param);
-        return new JdbcSQLException(message, sqlstate, errorCode, cause, null);
+        return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
     }
 
     public static SQLException getSyntaxError(String sql, int index) {
@@ -119,7 +119,7 @@ public class Message {
         case NO_DATA_AVAILABLE: return "02000";
 
         // 07: dynamic SQL error
-        case INVALID_PARAMETER_COUNT_1: return "07001";
+        case INVALID_PARAMETER_COUNT_2: return "07001";
 
         // 08: connection exception
         case ERROR_OPENING_DATABASE: return "08000";
@@ -127,17 +127,6 @@ public class Message {
 
         // 21: cardinality violation
         case COLUMN_COUNT_DOES_NOT_MATCH: return "21S02";
-
-        // 22: data exception
-        case NUMERIC_VALUE_OUT_OF_RANGE: return "22003";
-        case DIVISION_BY_ZERO_1: return "22012";
-        case LIKE_ESCAPE_ERROR_1: return "22025";
-
-        // 23: integrity constraint violation
-        case CHECK_CONSTRAINT_VIOLATED_1: return "23000";
-        case DUPLICATE_KEY_1: return "23001"; // integrity constraint violation
-
-        // 3B: savepoint exception
 
         // 42: syntax error or access rule violation
         case SYNTAX_ERROR_1: return "42000";
@@ -154,7 +143,7 @@ public class Message {
 
         // HZ: remote database access
 
-        //
+        // HY
         case GENERAL_ERROR_1: return "HY000";
         case UNKNOWN_DATA_TYPE_1: return "HY004";
 
@@ -169,7 +158,7 @@ public class Message {
     public static final int NO_DATA_AVAILABLE = 2000;
 
     // 07: dynamic SQL error
-    public static final int INVALID_PARAMETER_COUNT_1 = 7001;
+    public static final int INVALID_PARAMETER_COUNT_2 = 7001;
 
     // 08: connection exception
     public static final int ERROR_OPENING_DATABASE = 8000;
@@ -185,8 +174,10 @@ public class Message {
 
     // 23: integrity constraint violation
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23000;
-    public static final int DUPLICATE_KEY_1 = 23001; // integrity constraint violation
-
+    public static final int DUPLICATE_KEY_1 = 23001; 
+    public static final int REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1 = 23002;
+    public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23003;
+    
     // 3B: savepoint exception
 
     // 42: syntax error or access rule violation
@@ -341,16 +332,16 @@ public class Message {
     public static final int RESULT_SET_NOT_UPDATABLE = 90127;
 
     public static SQLException addSQL(SQLException e, String sql) {
-        if(e.getMessage().indexOf("SQL")>=0) {
-            return e;
-        }
         if(e instanceof JdbcSQLException) {
             JdbcSQLException j = (JdbcSQLException) e;
-            return new JdbcSQLException(j.getOriginalMessage()+"; SQL statement: "+sql, 
+            if(j.getSQL() != null) {
+            	return j;
+            }
+            return new JdbcSQLException(j.getOriginalMessage(), j.getSQL(), 
                     j.getSQLState(), 
                     j.getErrorCode(), j, null);
         } else {
-            return new JdbcSQLException(e.getMessage()+"; SQL statement: "+sql, 
+            return new JdbcSQLException(e.getMessage(), sql, 
                     e.getSQLState(), 
                     e.getErrorCode(), e, null);
         }

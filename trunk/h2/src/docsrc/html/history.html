@@ -37,20 +37,25 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>If SHUTDOWN IMMEDIATELY was called, then the connection was not closed and the database
-    opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
+<li>PooledConnection.getConnection took a long time if only one connection was open at any time. Fixed.
+</li><li>Referential integrity violation: Two different SQL states are now used for missing parent / existing child.
+</li><li>DatabaseEventListener.exceptionThrown has a new parameter: SQL
+</li><li>For compatibility reasons, the catalog name can now be used in queries: SELECT * FROM TESTDB.PUBLIC.TEST
+</li><li>If SHUTDOWN IMMEDIATELY was called, then the connection was not closed and the database
+	opened from somebody else at the same time, in some cases this could result in errors with LOB files. Fixed.
 </li><li>The new view implementation is now enabled by default. 
-    To use the old implementation, set the system property 'h2.indexOld' to true 
-    (java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
+	To use the old implementation, set the system property 'h2.indexOld' to true 
+	(java -Dh2.indexOld=true ..., or in source code Constants.INDEX_OLD = true).
     If no problems are found, the old implementation will be removed in the next release.
     The old implementation does not work with multi-level nested temporary views
     (select * from (select * from (select * from test))).
-</li><li>The new view implementation did not work with &lt; and &lt;= comparison. Fixed.
+</li><li>The new view implementation did not work with &lt; and &lt;= comparison, 
+	and did not allow conditions on aggregates or grouped columns (HAVING). Fixed.. Fixed.
 </li><li>Both view implementations did not work with multiple levels of nested temporary views (FROM (SELECT...)). Fixed.
 </li><li>The H2 Console can now be run as a standalone web application, 
-    or it can be embedded as a servlet into any existing web application. To build the 
-    'H2 Console' web application, execute 'ant warConsole'.
-    See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
+	or it can be embedded as a servlet into any existing web application. To build the 
+	'H2 Console' web application, execute 'ant warConsole'.
+	See src/tools/org/h2/server/web and src/tools/WEB-INF for details.
 </li><li>Deleting database files didn't work for Windows if the database was on the root directory of a drive.
 </li><li>The Polish translation is available. Thanks a lot to Tomek!
 </li><li>Windows service: the CLASSPATH was not included when starting the service. Fixed.
@@ -878,6 +883,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Performance / server mode: use UDP optionally?
 </li><li>Version check: docs / web console (using javascript), and maybe in the library (using TCP/IP)
 </li><li>Aggregates: support MEDIAN
+</li><li>Option to globally disable / enable referential integrity checks
 </li><li>Web server classloader: override findResource / getResourceFrom
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
@@ -1027,7 +1033,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support ARRAY data type
 </li><li>Implement more JDBC 4.0 features
 </li><li>H2 Console: implement a servlet to allow simple web app integration
-</li><li>Option to globally disable / enable referential integrity checks
 </li><li>Support ISO 8601 timestamp / date / time with timezone
 </li><li>Support TRANSFORM / PIVOT as in MS Access
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)

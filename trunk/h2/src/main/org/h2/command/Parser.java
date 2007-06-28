@@ -152,6 +152,7 @@ public class Parser {
     private char[] sqlCommandChars;
     private int lastParseIndex;
     private int parseIndex;
+    private Prepared prepared;
     private Prepared currentPrepared;
     private Select currentSelect;
     private Session session;
@@ -191,12 +192,12 @@ public class Parser {
         try {
             Prepared p = parse(sql);
             p.prepare();
-            Command c = new CommandContainer(this, p);
+            Command c = new CommandContainer(this, sql, p);
             p.setCommand(c);
             if (isToken(";")) {
                 String remaining = originalSQL.substring(parseIndex);
                 if(remaining.trim().length()!=0) {
-                    CommandList list = new CommandList(this, c, remaining);
+                    CommandList list = new CommandList(this, sql, c, remaining);
         //            list.addCommand(c);
         //            do {
         //                c = parseCommand();
@@ -243,6 +244,7 @@ public class Parser {
         int start = lastParseIndex;
         currentSelect = null;
         currentPrepared = null;
+        prepared = null;
         Prepared c = null;
         recompileAlways = false;
         indexedParameterList = null;
@@ -740,10 +742,18 @@ public class Parser {
             if(isToken("SELECT") || isToken("FROM")) {
                 Query query = parseQueryWithParams();
                 String querySQL = query.getSQL();
-                String tempViewName = session.getNextTempViewName();
-                table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, session, false);
-                table.setOnCommitDrop(true);
-                session.addLocalTempTable(table);
+                Session s;
+                if(prepared != null && prepared instanceof CreateView) {
+                	s = database.getSystemSession();
+                } else {
+                	s = session;
+                }
+                String tempViewName = s.getNextTempViewName();
+                table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s, false);
+            	if(s != database.getSystemSession()) {
+            		table.setOnCommitDrop(true);
+            	}
+            	s.addLocalTempTable(table);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -2051,6 +2061,15 @@ public class Parser {
             s = currentToken;
             read();
         }
+        if (".".equals(currentToken) && schemaName.equals(database.getShortName())) {
+        	read(".");
+        	schemaName = s;
+            if (currentTokenType != IDENTIFIER) {
+                throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+            }
+            s = currentToken;
+            read();
+        }
         return s;
     }
 
@@ -3197,7 +3216,7 @@ public class Parser {
             columns.add(new Column(cols[i], Value.STRING, 0, 0));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = new TableData(schema, tempViewName, id, columns, false);
+        recursiveTable = schema.createTable(tempViewName, id, columns, false);
         recursiveTable.setTemporary(true);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
@@ -3221,6 +3240,7 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
+        this.prepared = command;
         command.setViewName(viewName);
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());

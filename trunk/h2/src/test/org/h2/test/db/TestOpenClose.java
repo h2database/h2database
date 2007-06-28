@@ -137,8 +137,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         throw new SQLException("unexpected");
     }
 
-    public void exceptionThrown(SQLException e) {
-        throw new Error("unexpected: " + e);
+    public void exceptionThrown(SQLException e, String sql) {
+        throw new Error("unexpected: " + e + " sql: " + sql);
     }
 
     public void setProgress(int state, String name, int current, int max) {

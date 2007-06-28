@@ -1,4 +1,18 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table script.public.x(a int);
+> ok
+
+select * from script.PUBLIC.x;
+> A
+> -
+> rows: 0
+
+create index script.public.idx on script.public.x(a);
+> ok
+
+drop table script.public.x;
+> ok
+
 create table t1 (i int);
 > ok
 

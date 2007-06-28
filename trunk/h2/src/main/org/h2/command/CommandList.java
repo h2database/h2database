@@ -16,8 +16,8 @@ public class CommandList extends Command {
     
     // TODO lock if possible!
     
-    public CommandList(Parser parser, Command c, String remaining) {
-        super(parser);
+    public CommandList(Parser parser, String sql, Command c, String remaining) {
+        super(parser, sql);
         this.command = c;
         this.remaining = remaining;
     }

@@ -18,6 +18,8 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.table.TableData;
+import org.h2.table.TableLink;
 import org.h2.util.ObjectArray;
 
 public class Schema extends DbObject {
@@ -250,5 +252,13 @@ public class Schema extends DbObject {
         }
         map.remove(objName);
     }
+    
+    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent) throws SQLException {
+		return new TableData(this, tempName, id, newColumns, persistent);
+	}
+
+	public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+		return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+	}    
 
 }

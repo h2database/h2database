@@ -241,7 +241,7 @@ public class Csv implements SimpleRowSource {
                 return data;
             }
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(data.length());
         for(int i=0; i<data.length(); i++) {
             char ch = data.charAt(i);
             if(ch == fieldDelimiter || ch == escapeCharacter) {
@@ -405,7 +405,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private String unEscape(String s) {
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(s.length());
         int start = 0;
         while(true) {
             int idx = s.indexOf(escapeCharacter, start);

@@ -223,7 +223,7 @@ public class StringUtils {
         if(array == null) {
             return "null";
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(5 * array.length);
         buff.append("new String[]{");
         for(int i=0; i<array.length; i++) {
             if(i>0) {
@@ -339,7 +339,7 @@ public class StringUtils {
     }
 
     public static String arrayCombine(String[] list, char separatorChar) {
-        StringBuffer buff=new StringBuffer();
+        StringBuffer buff=new StringBuffer(5 * list.length);
         for(int i=0;i<list.length;i++) {
             if(i>0) {
                 buff.append(separatorChar);
@@ -581,7 +581,8 @@ public class StringUtils {
     }
 
     public static String quoteIdentifier(String s) {
-        StringBuffer buff = new StringBuffer("\"");
+        StringBuffer buff = new StringBuffer(s.length() + 2);
+        buff.append('\"');
         for(int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
             if(c == '"') {

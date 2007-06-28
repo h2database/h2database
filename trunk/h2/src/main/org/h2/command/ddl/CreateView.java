@@ -57,7 +57,8 @@
             } else {
                 querySQL = select.getSQL();
             }
-            TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, session, recursive);
+            Session s = db.getSystemSession();
+            TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, s, recursive);
             view.setComment(comment);
             db.addSchemaObject(session, view);
             return 0;

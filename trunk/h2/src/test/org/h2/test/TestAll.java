@@ -7,6 +7,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.message.TraceSystem;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -93,45 +94,36 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 /*
 
+The database name must be at least 3 characters
+jdbc:h2:te
 
-runscript from 'C:\download\backup.sql';
+        traceSystem.setLevelFile(TraceSystem.ERROR);
+ 
+because of temp file limitations, database names with less than 3 characters are not supported
 
-alter table download_link add html_ltarget_ord INTEGER(10) default 0;
-alter table navigation_link add html_ltarget_ord INTEGER(10) default 0;
-alter table web_link add html_ltarget_ord INTEGER(10) default 0;
-ALTER TABLE navigation_page_content DROP COLUMN parent_type_id;
-ALTER TABLE entity_info DROP COLUMN parent_type_id;
-ALTER TABLE navigation_point_content DROP COLUMN parent_type_id;
-ALTER TABLE paragraph_proxy DROP COLUMN parent_type_id;
-ALTER TABLE patch DROP COLUMN parent_type_id;
-ALTER TABLE page_content DROP COLUMN parent_type_id;
-ALTER TABLE image_gallery_image_usage_ref DROP COLUMN ref_image_gallery;
-ALTER TABLE navigation_page_content_reference DROP COLUMN ref_element_provider;
-ALTER TABLE paragraph_proxy DROP COLUMN ref_page_content;
-alter table navigation_page_content_reference add contained BOOLEAN(1) default false;
-update navigation_page_content_reference set contained=true where state=7;
-alter table navigation_page_content add contained BOOLEAN(1) default false;
-update navigation_page_content set contained=true where state=7;
-alter table navigation_point_content add contained BOOLEAN(1) default false;
-update navigation_point_content set contained=true where state=7;
-alter table weblica_link add contained BOOLEAN(1) default false;
-update weblica_link set contained=true where state=7;
-alter table image_usage add contained BOOLEAN(1) default false;
-update image_usage set contained=true where state=7; 
-alter table paragraph_proxy add contained BOOLEAN(1) default false;
+add test case:
+prepare: select * from (select * from (select * from dual) a) b;
+select * from dual;
+execute prepared
 
-
-
-
-
-
+add test case:
+try to create a view without access rights
+try to create a view with a subquery without access right
 
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
-
-Change documentation and default database for H2 Console: jdbc:h2:~/test
+test with openoffice (metadata changes)
 
 testHalt
+java org.h2.test.TestAll halt 
+
+>testHalt.txt
+
+timer test
+
+backup.sql / lob file problem
+
+Change documentation and default database for H2 Console: jdbc:h2:~/test
 
 Mail http://sf.net/projects/samooha
 
@@ -152,9 +144,8 @@ MySQL, PostgreSQL
 http://semmle.com/
 try out, find bugs
 
-Currently there is no such feature, however it is quite simple to add a user defined function 
-READ_TEXT(fileName String) returning a CLOB. The performance would probably not be optimal, 
-but it should work. I am not sure if this will read the CLOB in memory however. 
+READ_TEXT(fileName String) returning a CLOB. 
+I am not sure if this will read the CLOB in memory however. 
 I will add this to the todo list.
 
 Docs: Fix Quickstart
@@ -176,20 +167,24 @@ Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
 
 Automate real power off tests
 
-how to make -baseDir work for H2 Console?
+how to make -baseDir work for H2 Console (embedded mode)?
+-Dh2.baseDir=x {$baseDir}/...
 
 http://db.apache.org/ddlutils/ (write a H2 driver)   
 
 Negative dictionary:
 Please note that
 
-timer test
+support translated exceptions (translated, then english at the end, for Hibernate compatibility)
 
-support translated exceptions (english + translated)
+keep db open as long as there are PooledConnections
 
-select * from H2.PUBLIC.ORDERS
+make static member variables final (this helps find forgotten initializers)
+
+Merge more from diff.zip (Pavel Ganelin)
 
 keep db open (independent of DB_CLOSE_DELAY) while a PooledConnections exists.
+
 
 */        
 
@@ -260,7 +255,6 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 -- Yes: MySQL, HSQLDB
 -- Fail: Oracle, MS SQL Server, PostgreSQL, H2, Derby
 */    
-        
         // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)
 
         // run  TestHalt

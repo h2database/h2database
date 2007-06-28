@@ -16,8 +16,8 @@ public class CommandContainer extends Command {
     
     private Prepared prepared;
     
-    CommandContainer(Parser parser, Prepared prepared) {
-        super(parser);
+    CommandContainer(Parser parser, String sql, Prepared prepared) {
+        super(parser, sql);
         prepared.setCommand(this);
         this.prepared = prepared;
     }

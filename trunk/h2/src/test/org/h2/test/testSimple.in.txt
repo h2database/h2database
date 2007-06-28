@@ -1,3 +1,18 @@
+create table test_table(column_a integer);
+insert into test_table values(1);
+create view test_view AS SELECT * FROM (SELECT DISTINCT * FROM test_table) AS subquery;
+select * FROM test_view;
+> 1;
+drop view test_view;
+drop table test_table;
+
+CREATE TABLE TEST(ID INT);
+INSERT INTO TEST VALUES(1);
+CREATE VIEW TEST_VIEW AS SELECT COUNT(ID) X FROM TEST;
+explain SELECT * FROM TEST_VIEW WHERE X>1;
+DROP VIEW TEST_VIEW;
+DROP TABLE TEST;
+
 create table test1(id int);
 insert into test1 values(1), (1), (2), (3);
 select sum(C0) from (select count(*) AS C0 from (select distinct * from test1) as temp);

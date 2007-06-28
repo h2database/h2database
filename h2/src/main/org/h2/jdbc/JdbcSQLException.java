@@ -16,9 +16,10 @@ import org.h2.engine.Constants;
 public class JdbcSQLException extends SQLException {
 
     private static final long serialVersionUID = -8200821788226954151L;
-    private Throwable cause;
-    private String originalMessage;
-    private String trace;
+    private final String originalMessage;
+    private final String sql;
+    private final Throwable cause;
+    private final String trace;
 
     /**
      * Creates a SQLException a message, sqlstate and cause.
@@ -27,14 +28,24 @@ public class JdbcSQLException extends SQLException {
      * @param state the SQL state
      * @param cause the exception that was the reason for this exception
      */
-    public JdbcSQLException(String message, String state, int errorCode, Throwable cause, String trace) {
-        super(message + " [" + state + "-" + Constants.BUILD_ID + "]", state, errorCode);
+    public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String trace) {
+        super(buildMessage(message, sql, state), state, errorCode);
         this.originalMessage = message;
+        this.sql = sql;
         this.cause = cause;
         this.trace = trace;
 //#ifdef JDK14
         initCause(cause);
 //#endif        
+    }
+    
+    private static String buildMessage(String message, String sql, String state) {
+    	StringBuffer buff = new StringBuffer(message);
+    	if(sql != null) {
+    		buff.append("; SQL statement: ");
+    		buff.append(sql);
+    	}
+    	return message + " [" + state + "-" + Constants.BUILD_ID + "]";
     }
 
     /**
@@ -108,6 +119,15 @@ public class JdbcSQLException extends SQLException {
      */
     public Throwable getOriginalCause() {
         return cause;
+    }
+    
+    /**
+     * Returns the SQL statement.
+     * 
+     * @return the SQL statement
+     */        
+    public String getSQL() {
+    	return sql;
     }
     
     /**

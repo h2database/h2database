@@ -5,6 +5,7 @@
 package org.h2.util;
 
 public class ClassUtils {
+	
     public static Class loadClass(String className) throws ClassNotFoundException {
         // TODO support special syntax to load classes using another classloader
         return Class.forName(className);

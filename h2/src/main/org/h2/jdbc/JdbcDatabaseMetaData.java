@@ -1713,11 +1713,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether the catalog name in INSERT, UPDATE, DELETE is supported.
      *
-     * @return false
+     * @return true
      */
     public boolean supportsCatalogsInDataManipulation() {
         debugCodeCall("supportsCatalogsInDataManipulation");
-        return false;
+        return true;
     }
 
     /**
@@ -1733,31 +1733,31 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether the catalog name in CREATE TABLE is supported.
      *
-     * @return false
+     * @return true
       */
     public boolean supportsCatalogsInTableDefinitions() {
         debugCodeCall("supportsCatalogsInTableDefinitions");
-        return false;
+        return true;
     }
 
     /**
      * Returns whether the catalog name in CREATE INDEX is supported.
      *
-     * @return false
+     * @return true
      */
     public boolean supportsCatalogsInIndexDefinitions() {
         debugCodeCall("supportsCatalogsInIndexDefinitions");
-        return false;
+        return true;
     }
 
     /**
      * Returns whether the catalog name in GRANT is supported.
      *
-     * @return false
+     * @return true
      */
     public boolean supportsCatalogsInPrivilegeDefinitions() {
         debugCodeCall("supportsCatalogsInPrivilegeDefinitions");
-        return false;
+        return true;
     }
 
     /**

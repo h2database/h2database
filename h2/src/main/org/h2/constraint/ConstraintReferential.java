@@ -275,7 +275,7 @@ public class ConstraintReferential extends Constraint {
             check.setValue(refIdx, v.convertTo(refCol.getType()));
         }
         if(!found(session, refIndex, check)) {
-            throw Message.getSQLException(Message.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
+            throw Message.getSQLException(Message.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, getShortDescription());
         }
     }
     
@@ -339,7 +339,7 @@ public class ConstraintReferential extends Constraint {
             check.setValue(idx, v);
         }        
         if(found(session, index, check)) {
-            throw Message.getSQLException(Message.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
+            throw Message.getSQLException(Message.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, getShortDescription());
         }
     }
     

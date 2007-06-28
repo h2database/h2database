@@ -130,14 +130,19 @@ public class TcpServerThread implements Runnable {
             e.printStackTrace(new PrintWriter(writer));
             String trace = writer.toString();
             String message;
+            String sql;
             if(e instanceof JdbcSQLException) {
-                message = ((JdbcSQLException) e).getOriginalMessage();
+            	JdbcSQLException j = (JdbcSQLException) e;
+                message = j.getOriginalMessage();
+                sql = j.getSQL();
             } else {
                 message = e.getMessage();
+                sql = null;
             }
             transfer.writeInt(SessionRemote.STATUS_ERROR).
                 writeString(s.getSQLState()).
                 writeString(message).
+                writeString(sql).
                 writeInt(s.getErrorCode()).
                 writeString(trace).
                 flush();

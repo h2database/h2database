@@ -119,7 +119,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = new TableData(getSchema(), tableName, id, columns, persistent);
+        TableData table = getSchema().createTable(tableName, id, columns, persistent);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);

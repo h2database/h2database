@@ -46,8 +46,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
     }
 
-    public void exceptionThrown(SQLException e) {
-        TestBase.logError("exceptionThrown", e);
+    public void exceptionThrown(SQLException e, String sql) {
+        TestBase.logError("exceptionThrown sql=" + sql, e);
     }
 
     public void setProgress(int state, String name, int current, int max) {

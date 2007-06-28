@@ -23,14 +23,16 @@ public abstract class Command implements CommandInterface {
     protected long startTime;
     protected Trace trace;
     private volatile boolean cancel;
+    private final String sql;
 
     public abstract boolean isTransactional();
     public abstract boolean isQuery();
     public abstract ObjectArray getParameters();
     public abstract boolean isReadOnly();
 
-    public Command(Parser parser) {
+    public Command(Parser parser, String sql) {
         this.session = parser.getSession();
+        this.sql = sql;
         trace = session.getDatabase().getTrace(Trace.COMMAND);
     }
 
@@ -41,21 +43,6 @@ public abstract class Command implements CommandInterface {
     public LocalResult query(int maxrows) throws SQLException {
         throw Message.getSQLException(Message.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
-
-    // TODO insert parameters into the original query, or allow this syntax
-    // if(parameters != null && parameters.size() > 0) {
-    // buff.append(" /* ");
-    // for(int i=0; i<parameters.size(); i++) {
-    // if(i>0) {
-    // buff.append(", ");
-    // }
-    // Parameter param = (Parameter) parameters.get(i);
-    // buff.append(i+1);
-    // buff.append(" = ");
-    // buff.append(param.getSQL());
-    // }
-    // buff.append(" */");
-    // }
 
     public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
         return executeQueryLocal(maxrows);
@@ -73,7 +60,7 @@ public abstract class Command implements CommandInterface {
                 return result;
             } catch(Throwable e) {
                 SQLException s = Message.convert(e);
-                database.exceptionThrown(s);
+                database.exceptionThrown(s, sql);
                 throw s;
             } finally {
                 stop();
@@ -119,7 +106,7 @@ public abstract class Command implements CommandInterface {
                 int result = update();
                 return result;
             } catch (SQLException e) {
-                database.exceptionThrown(e);
+                database.exceptionThrown(e, sql);
                 database.checkPowerOff();
                 session.rollbackTo(rollback);
                 throw e;
@@ -136,5 +123,8 @@ public abstract class Command implements CommandInterface {
     public void cancel() {
         this.cancel = true;
     }
+	public String getSQL() {
+		return null;
+	}
     
 }

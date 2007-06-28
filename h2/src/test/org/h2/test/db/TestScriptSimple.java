@@ -33,11 +33,11 @@ public class TestScriptSimple extends TestBase {
             }
             sql = sql.trim();
 //            System.out.println(sql);
-            if("@reconnect".equals(sql)) {
+            if("@reconnect".equals(sql.toLowerCase())) {
                 reconnect();
             } else if(sql.length() == 0) {
                 // ignore
-            } else if(sql.startsWith("select")) {
+            } else if(sql.toLowerCase().startsWith("select")) {
                 ResultSet rs = conn.createStatement().executeQuery(sql);
                 while(rs.next()) {
                     String expected = reader.readStatement().trim();

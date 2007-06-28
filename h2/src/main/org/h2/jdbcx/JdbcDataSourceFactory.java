@@ -23,7 +23,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
     static {
         org.h2.Driver.load();
         traceSystem = new TraceSystem(Constants.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE);
-        traceSystem.setLevelFile(TraceSystem.DEBUG);
+        traceSystem.setLevelFile(Constants.DATASOURCE_TRACE_LEVEL);
     }
     
     public JdbcDataSourceFactory() {

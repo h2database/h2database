@@ -12,6 +12,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.Trace;
 import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 
@@ -217,7 +218,15 @@ public class LogSystem {
         activeLogs = new ObjectArray();
         for (int i = 0; i < list.length; i++) {
             String s = list[i];
-            LogFile l = LogFile.openIfLogFile(this, fileNamePrefix, s);
+            LogFile l = null;
+            try {
+            	l = LogFile.openIfLogFile(this, fileNamePrefix, s);
+            } catch(SQLException e) {
+                database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
+                // this can happen if the system crashes just after creating a new file (before writing the header)
+                // rename it, so that it doesn't get in the way the next time
+                FileUtils.rename(s, s + ".corrupt");
+            }
             if (l != null) {
                 if (l.getPos() == LOG_WRITTEN) {
                     closeOldFile(l);

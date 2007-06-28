@@ -467,7 +467,7 @@ public class Database implements DataHandler {
         cols.add(new Column("HEAD", Value.INT, 0, 0));
         cols.add(new Column("TYPE", Value.INT, 0, 0));
         cols.add(new Column("SQL", Value.STRING, 0, 0));
-        meta = new TableData(mainSchema, "SYS", 0, cols, persistent);
+        meta = mainSchema.createTable("SYS", 0, cols, persistent);
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, new Column[]{columnId}, IndexType.createPrimaryKey(false, false), Index.EMPTY_HEAD, null);
         objectIds.set(0);
         // there could be views on system tables, so they must be added first
@@ -1269,10 +1269,10 @@ public class Database implements DataHandler {
         }
     }
 
-    public void exceptionThrown(SQLException e) {
+    public void exceptionThrown(SQLException e, String sql) {
         if(eventListener != null) {
             try {
-                eventListener.exceptionThrown(e);
+                eventListener.exceptionThrown(e, sql);
             } catch(Exception e2) {
                 // ignore this second (user made) exception
             }

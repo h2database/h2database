@@ -70,7 +70,7 @@ public class CreateLinkedTable extends SchemaCommand {
                     tableName);
         }
         int id = getObjectId(false, true);
-        TableLink table = new TableLink(getSchema(), id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+        TableLink table = getSchema().createTableLink(id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
         table.setComment(comment);
         db.addSchemaObject(session, table);
         return 0;

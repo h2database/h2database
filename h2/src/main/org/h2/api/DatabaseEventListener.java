@@ -39,11 +39,12 @@ public interface DatabaseEventListener extends EventListener {
     void diskSpaceIsLow(long stillAvailable) throws SQLException;
 
     /**
-     * This method is called if an exception occurred.
+     * This method is called if an exception occurred during database recovery
      *
      * @param e the exception
+     * @param sql the SQL statement
      */
-    void exceptionThrown(SQLException e);
+    void exceptionThrown(SQLException e, String sql);
 
     /**
      * This method is called for long running events, such as recovering, scanning a file or building an index.

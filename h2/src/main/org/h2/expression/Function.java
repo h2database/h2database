@@ -339,7 +339,7 @@ public class Function extends Expression implements FunctionCall {
             varArgs.add(param);
         } else {
             if(index >= args.length) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, ""+args.length);
+                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[] {info.name, "" + args.length}, null);
             }
             args[index] = param;
         }
@@ -947,7 +947,7 @@ public class Function extends Expression implements FunctionCall {
     private static int getDatePart(String part) throws SQLException {
         Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
         if(p==null) {
-            throw Message.getSQLException(Message.INVALID_VALUE_2, new String[] { "part", part }, null);
+            throw Message.getSQLException(Message.INVALID_VALUE_2, new String[] { "date part", part }, null);
         }
         return p.intValue();
     }
@@ -1057,7 +1057,7 @@ public class Function extends Expression implements FunctionCall {
             // avoid out of memory
             return s;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(s.length());
         int start = 0;
         int len = replace.length();
         while (true) {
@@ -1290,7 +1290,7 @@ public class Function extends Expression implements FunctionCall {
             }
             boolean ok = (len >= min) && (len <= max);
             if(!ok) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, min + ".." + max);
+                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[]{info.name, min + ".." + max}, null);
             }
             args = new Expression[len];
             varArgs.toArray(args);
@@ -1298,7 +1298,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if(len>0 && args[len-1] == null) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_1, info.name + ": " + len);
+                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[]{info.name, "" + len}, null);
             }
         }
     }

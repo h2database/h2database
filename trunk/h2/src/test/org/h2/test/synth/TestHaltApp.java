@@ -40,7 +40,7 @@ public class TestHaltApp extends TestHalt {
     protected void testWaitAfterAppStart() throws Exception {
         int sleep = 10 + random.nextInt(300);
         if((flags & FLAG_NO_DELAY) == 0) {
-        	sleep += 1000;
+            sleep += 1000;
         }
         Thread.sleep(sleep);
     }

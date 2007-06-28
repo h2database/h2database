@@ -744,16 +744,16 @@ public class Parser {
                 String querySQL = query.getSQL();
                 Session s;
                 if(prepared != null && prepared instanceof CreateView) {
-                	s = database.getSystemSession();
+                    s = database.getSystemSession();
                 } else {
-                	s = session;
+                    s = session;
                 }
                 String tempViewName = s.getNextTempViewName();
                 table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s, false);
-            	if(s != database.getSystemSession()) {
-            		table.setOnCommitDrop(true);
-            	}
-            	s.addLocalTempTable(table);
+                if(s != database.getSystemSession()) {
+                    table.setOnCommitDrop(true);
+                }
+                s.addLocalTempTable(table);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -2062,8 +2062,8 @@ public class Parser {
             read();
         }
         if (".".equals(currentToken) && schemaName.equals(database.getShortName())) {
-        	read(".");
-        	schemaName = s;
+            read(".");
+            schemaName = s;
             if (currentTokenType != IDENTIFIER) {
                 throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }

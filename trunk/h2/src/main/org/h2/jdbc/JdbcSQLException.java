@@ -40,12 +40,12 @@ public class JdbcSQLException extends SQLException {
     }
     
     private static String buildMessage(String message, String sql, String state) {
-    	StringBuffer buff = new StringBuffer(message);
-    	if(sql != null) {
-    		buff.append("; SQL statement: ");
-    		buff.append(sql);
-    	}
-    	return message + " [" + state + "-" + Constants.BUILD_ID + "]";
+        StringBuffer buff = new StringBuffer(message);
+        if(sql != null) {
+            buff.append("; SQL statement: ");
+            buff.append(sql);
+        }
+        return message + " [" + state + "-" + Constants.BUILD_ID + "]";
     }
 
     /**
@@ -127,7 +127,7 @@ public class JdbcSQLException extends SQLException {
      * @return the SQL statement
      */        
     public String getSQL() {
-    	return sql;
+        return sql;
     }
     
     /**

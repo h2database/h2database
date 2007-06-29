@@ -33,7 +33,7 @@ public class ValueLob extends Value {
     // TODO lob: concatenate function for blob and clob (to create a large blob from pieces)
     // and a getpart function (to get it in pieces) and make sure a file is created!
 
-    private int type;
+    private final int type;
     private long precision;
     private DataHandler handler;
     private int tableId;

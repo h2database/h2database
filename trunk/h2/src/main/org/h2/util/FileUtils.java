@@ -493,7 +493,7 @@ public class FileUtils {
         return new File(fileName).canWrite();
     }
     
-    private static void trace(String method, String fileName, Object o) {
+    static void trace(String method, String fileName, Object o) {
         if(Constants.TRACE_IO) {
             System.out.println("FileUtils." + method + " " + fileName + " " + o);
         }

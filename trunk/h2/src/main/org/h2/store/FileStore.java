@@ -306,7 +306,6 @@ public class FileStore {
 
     public void sync() {
         try {
-            
             file.getFD().sync();
         } catch(IOException e) {
             // TODO log exception

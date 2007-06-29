@@ -50,6 +50,8 @@ class WebThread extends Thread {
     
     private InputStream input;
     private String ifModifiedSince;
+    String mimeType;
+    boolean cache;    
 
     // TODO web: support online data editing like http://numsum.com/
 
@@ -60,11 +62,136 @@ class WebThread extends Thread {
     }
 
     void setSession(WebSession session, Properties attributes) {
-        int todoRefactor;
         this.session = session;
         this.attributes = attributes;
     }
     
+    private String getAllowedFile(String requestedFile) {
+        if(!allow()) {
+            return "notAllowed.jsp";
+        }
+        if(requestedFile.length() == 0) {
+            return "index.do";
+        }
+        return requestedFile;
+    }
+
+    public String processRequest(String file, String hostname) {
+        int index = file.lastIndexOf('.');
+        String suffix;
+        if(index >= 0) {
+            suffix = file.substring(index+1);
+        } else {
+            suffix = "";
+        }
+        if(suffix.equals("ico")) {
+            mimeType = "image/x-icon";
+            cache=true;
+        } else if(suffix.equals("gif")) {
+            mimeType = "image/gif";
+            cache=true;
+        } else if(suffix.equals("css")) {
+            cache=true;
+            mimeType = "text/css";
+        } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
+            cache=false;
+            mimeType = "text/html";
+            if (session == null) {
+                session = server.createNewSession(hostname);
+                if (!file.equals("notAllowed.jsp")) {
+                    file = "index.do";
+                }
+            }
+        } else if(suffix.equals("js")) {
+            cache=true;
+            mimeType = "text/javascript";
+        } else {
+            cache = false;
+            mimeType = "text/html";
+            file = "error.jsp";
+            server.trace("unknown mime type, file "+file);
+        }
+        server.trace("mimeType="+mimeType);                
+        server.trace(file);
+        if(file.endsWith(".do")) {
+            file = process(file);
+        }
+        return file;
+    }
+    
+    public void run() {
+        try {
+            input = socket.getInputStream();
+            String head = readHeaderLine();
+            if(head.startsWith("GET ") || head.startsWith("POST ")) {
+                int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
+                String file = head.substring(begin+1, end).trim();
+                server.trace(head + ": " + file);
+                file = getAllowedFile(file);
+                attributes = new Properties();
+                int paramIndex = file.indexOf("?");
+                session = null;
+                if(paramIndex >= 0) {
+                    String attrib = file.substring(paramIndex+1);
+                    parseAttributes(attrib);
+                    String sessionId = attributes.getProperty("jsessionid");
+                    file = file.substring(0, paramIndex);
+                    session = server.getSession(sessionId);
+                }
+                parseHeader();
+                String hostname = socket.getInetAddress().getHostName();
+
+                file = processRequest(file, hostname);
+                
+                String message;
+                byte[] bytes;
+                if(cache && ifModifiedSince!=null && ifModifiedSince.equals(server.getStartDateTime())) {
+                    bytes = null;
+                    message = "HTTP/1.1 304 Not Modified\n";
+                } else {
+                    bytes = server.getFile(file);
+                    if(bytes == null) {
+                        message = "HTTP/1.0 404 Not Found\n";
+                        bytes = StringUtils.utf8Encode("File not found: "+file);
+                    } else {
+                        if(session != null && file.endsWith(".jsp")) {
+                            String page = StringUtils.utf8Decode(bytes);
+                            page = PageParser.parse(server, page, session.map);
+                            try {
+                                bytes = StringUtils.utf8Encode(page);
+                            } catch(SQLException e) {
+                            	server.traceError(e);
+                            }
+                        }
+                        message = "HTTP/1.1 200 OK\n";
+                        message += "Content-Type: "+mimeType+"\n";
+                        if(!cache) {
+                            message += "Cache-Control: no-cache\n";
+                        } else {
+                            message += "Cache-Control: max-age=10\n";
+                            message += "Last-Modified: "+server.getStartDateTime()+"\n";
+                        }
+                    }
+                }
+                message += "\n";
+                server.trace(message);
+                DataOutputStream output;
+                output = new DataOutputStream(
+                        new BufferedOutputStream(socket.getOutputStream()));
+                output.write(message.getBytes());
+                if(bytes!=null) {
+                    output.write(bytes);
+                }
+                output.flush();
+                output.close();
+                socket.close();
+                return;
+            }
+        } catch (Exception e) {
+            TraceSystem.traceThrowable(e);
+        }
+    }
+
     protected String getComboBox(String[] elements, String selected) {
         StringBuffer buff = new StringBuffer();
         for(int i=0; i<elements.length; i++) {
@@ -97,118 +224,6 @@ class WebThread extends Thread {
             buff.append("</option>");
         }
         return buff.toString();
-    }
-
-    public void run() {
-        try {
-            input = socket.getInputStream();
-            String head = readHeaderLine();
-            if(head.startsWith("GET ") || head.startsWith("POST ")) {
-                int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
-                String file = head.substring(begin+1, end).trim();
-                if(file.length() == 0) {
-                    file = "index.do";
-                }
-                if(!allow()) {
-                    file = "notAllowed.jsp";
-                }
-                server.trace(head + " :" + file);
-                attributes = new Properties();
-                int paramIndex = file.indexOf("?");
-                session = null;
-                if(paramIndex >= 0) {
-                    String attrib = file.substring(paramIndex+1);
-                    parseAttributes(attrib);
-                    String sessionId = attributes.getProperty("jsessionid");
-                    file = file.substring(0, paramIndex);
-                    session = server.getSession(sessionId);
-                }
-                // TODO web: support errors
-                String mimeType;
-                boolean cache;
-                int index = file.lastIndexOf('.');
-                String suffix;
-                if(index >= 0) {
-                    suffix = file.substring(index+1);
-                } else {
-                    suffix = "";
-                }
-                if(suffix.equals("ico")) {
-                    mimeType = "image/x-icon";
-                    cache=true;
-                } else if(suffix.equals("gif")) {
-                    mimeType = "image/gif";
-                    cache=true;
-                } else if(suffix.equals("css")) {
-                    cache=true;
-                    mimeType = "text/css";
-                } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
-                    cache=false;
-                    mimeType = "text/html";
-                    if (session == null) {
-                        String hostname = socket.getInetAddress().getHostName();
-                        session = server.createNewSession(hostname);
-                        if (!file.equals("notAllowed.jsp")) {
-                            file = "index.do";
-                        }
-                    }
-                } else if(suffix.equals("js")) {
-                    cache=true;
-                    mimeType = "text/javascript";
-                } else {
-                    cache = false;
-                    mimeType = "text/html";
-                    file = "error.jsp";
-                    server.trace("unknown mime type, file "+file);
-                }
-                server.trace("mimeType="+mimeType);                
-                parseHeader();
-                server.trace(file);
-                if(file.endsWith(".do")) {
-                    file = process(file);
-                }
-                String message;
-                byte[] bytes;
-                if(cache && ifModifiedSince!=null && ifModifiedSince.equals(server.getStartDateTime())) {
-                    bytes = null;
-                    message = "HTTP/1.1 304 Not Modified\n";
-                } else {
-                    bytes = server.getFile(file);
-                    if(bytes == null) {
-                        message = "HTTP/1.0 404 Not Found\n";
-                        bytes = StringUtils.utf8Encode("File not found: "+file);
-                    } else {
-                        if(session != null && file.endsWith(".jsp")) {
-                            bytes = StringUtils.utf8Encode(fill(StringUtils.utf8Decode(bytes)));
-                        }
-                        message = "HTTP/1.1 200 OK\n";
-                        message += "Content-Type: "+mimeType+"\n";
-                        if(!cache) {
-                            message += "Cache-Control: no-cache\n";
-                        } else {
-                            message += "Cache-Control: max-age=10\n";
-                            message += "Last-Modified: "+server.getStartDateTime()+"\n";
-                        }
-                    }
-                }
-                message += "\n";
-                server.trace(message);
-                DataOutputStream output;
-                output = new DataOutputStream(
-                        new BufferedOutputStream(socket.getOutputStream()));
-                output.write(message.getBytes());
-                if(bytes!=null) {
-                    output.write(bytes);
-                }
-                output.flush();
-                output.close();
-                output.close();
-                socket.close();
-                return;
-            }
-        } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
-        }
     }
 
     private String readHeaderLine() throws IOException {
@@ -310,10 +325,6 @@ class WebThread extends Thread {
         }
     }
     
-    private String fill(String page) {
-        return PageParser.parse(server, page, session.map);
-    }
-
     String process(String file) {
         server.trace("process " + file);
         while(file.endsWith(".do")) {
@@ -1505,5 +1516,17 @@ class WebThread extends Thread {
         }
         return NetUtils.isLoopbackAddress(socket);
     }
+
+	public String getMimeType() {
+		return mimeType;
+	}
+
+	public boolean getCache() {
+		return cache;
+	}
+
+	public WebSession getSession() {
+		return session;
+	}
     
 }

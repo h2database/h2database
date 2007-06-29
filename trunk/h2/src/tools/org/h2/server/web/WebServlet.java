@@ -26,8 +26,6 @@ public class WebServlet extends HttpServlet {
     private static final long serialVersionUID = 9171446624885086692L;
     private WebServer server;
 
-    private int todoRefactorRemoveDuplicateCode;
-    private int todoRemoveSystem_out;
     private int todoTestWithTomcat;
     private int todoTestWithJetty;
 
@@ -58,7 +56,7 @@ public class WebServlet extends HttpServlet {
     public void destroy() {
     }
     
-    boolean allow(HttpServletRequest req) {
+    private boolean allow(HttpServletRequest req) {
         if(server.getAllowOthers()) {
             return true;
         }
@@ -72,6 +70,16 @@ public class WebServlet extends HttpServlet {
         return address.isLoopbackAddress();
     }
     
+    private String getAllowedFile(HttpServletRequest req, String requestedFile) {
+        if(!allow(req)) {
+            return "notAllowed.jsp";
+        }
+        if(requestedFile.length() == 0) {
+            return "index.do";
+        }
+        return requestedFile;
+    }
+    
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String file = req.getPathInfo();
         if(file == null) {
@@ -80,12 +88,7 @@ public class WebServlet extends HttpServlet {
         } else if(file.startsWith("/")) {
             file = file.substring(1);
         }
-        if(file.length() == 0) {
-            file = "index.do";
-        }        
-        if(!allow(req)) {
-            file = "notAllowed.jsp";
-        }
+        file = getAllowedFile(req, file);
         byte[] bytes = null;
         Properties attributes = new Properties();
         Enumeration en = req.getAttributeNames();
@@ -105,54 +108,17 @@ public class WebServlet extends HttpServlet {
         if(sessionId != null) {
             session = server.getSession(sessionId);
         }
-        String mimeType;
-        boolean cache;
-        int index = file.lastIndexOf('.');
-        String suffix;
-        if(index >= 0) {
-            suffix = file.substring(index+1);
-        } else {
-            suffix = "";
-        }
-        if(suffix.equals("ico")) {
-            mimeType = "image/x-icon";
-            cache=true;
-        } else if(suffix.equals("gif")) {
-            mimeType = "image/gif";
-            cache=true;
-        } else if(suffix.equals("css")) {
-            cache=true;
-            mimeType = "text/css";
-        } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
-            cache = false;
-            mimeType = "text/html";
-            if (session == null) {
-                int todoTest;
-                String hostname = req.getRemoteHost();
-                session = server.createNewSession(hostname);
-                if (!file.equals("notAllowed.jsp")) {
-                    file = "index.do";
-                }
-            }
-        } else if(suffix.equals("js")) {
-            cache = true;
-            mimeType = "text/javascript";
-        } else {
-            cache = false;
-            mimeType = "text/html";
-            file = "error.jsp";
-            server.trace("unknown mime type, file "+file);
-        }
-        server.trace("mimeType="+mimeType);                
-        // parseHeader();
-        String ifModifiedSince = req.getHeader("if-modified-since");
-        server.trace(file);
         WebThread app = new WebThread(null, server);
+        app.setSession(session, attributes);
+        String ifModifiedSince = req.getHeader("if-modified-since");
         
-        if(file.endsWith(".do")) {
-            app.setSession(session, attributes);
-            file = app.process(file);
-        }
+        String hostname = req.getRemoteHost();
+        file = app.processRequest(file, hostname);
+        session = app.getSession();
+        
+        String mimeType = app.getMimeType();
+        boolean cache = app.getCache();
+
         if(cache && server.getStartDateTime().equals(ifModifiedSince)) {
             resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             return;
@@ -164,7 +130,7 @@ public class WebServlet extends HttpServlet {
             try {
                 bytes = StringUtils.utf8Encode("File not found: "+file);
             } catch(SQLException e) {
-                int todoNotIgnore;
+            	server.traceError(e);
             }
         } else {
             if(session != null && file.endsWith(".jsp")) {
@@ -173,7 +139,7 @@ public class WebServlet extends HttpServlet {
                 try {
                     bytes = StringUtils.utf8Encode(page);
                 } catch(SQLException e) {
-                    int todoNotIgnore;
+                	server.traceError(e);
                 }
             }
             resp.setContentType(mimeType);

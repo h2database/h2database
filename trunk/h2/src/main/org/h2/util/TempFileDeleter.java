@@ -18,6 +18,7 @@ public class TempFileDeleter {
     private static HashMap refMap = new HashMap();
 
     public static synchronized Reference addFile(String fileName, Object file) {
+    	FileUtils.trace("TempFileDeleter.addFile", fileName, file);
         PhantomReference ref = new PhantomReference(file, queue);
         refMap.put(ref, fileName);
         deleteUnused();
@@ -33,6 +34,7 @@ public class TempFileDeleter {
         }
         if(fileName != null && FileUtils.exists(fileName)) {
             try {
+            	FileUtils.trace("TempFileDeleter.deleteFile", fileName, null);
                 FileUtils.delete(fileName);
             } catch(Exception e) {
                 // TODO log such errors?
@@ -52,6 +54,7 @@ public class TempFileDeleter {
     }
 
     public static void stopAutoDelete(Reference ref, String fileName) {
+    	FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if(ref != null) {
             String f2 = (String) refMap.remove(ref);
             if(Constants.CHECK && (f2 == null || !f2.equals(fileName))) {

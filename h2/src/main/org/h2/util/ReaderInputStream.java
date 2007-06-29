@@ -21,13 +21,13 @@ import org.h2.message.Message;
 
 public class ReaderInputStream extends InputStream {
     
-    private Reader reader;
+    private final Reader reader;
+    private final char[] chars;
+    private final ByteArrayOutputStream out;
+    private final OutputStreamWriter writer;
     private int pos;
     private int remaining;
-    private char[] chars;
     private byte[] buffer;
-    private ByteArrayOutputStream out;
-    private OutputStreamWriter writer;
     
     public ReaderInputStream(Reader reader) throws SQLException {
         chars = new char[Constants.IO_BUFFER_SIZE];

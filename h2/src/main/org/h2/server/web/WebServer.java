@@ -61,7 +61,7 @@ public class WebServer implements Service {
         "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
         "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|jdbc:derby://localhost:1527/test;create=true|sa",
         "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
-        "Generic H2|org.h2.Driver|jdbc:h2:test|sa",
+        "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
     };
 
     // private URLClassLoader urlClassLoader;
@@ -247,7 +247,11 @@ public class WebServer implements Service {
     void trace(String s) {
         // System.out.println(s);
     }
-
+    
+	public void traceError(Exception e) {
+		e.printStackTrace();
+	}
+    
     public boolean supportsLanguage(String language) {
         return languages.contains(language);
     }

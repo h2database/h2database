@@ -92,20 +92,46 @@ This may not have the desired effect if a default value in the target table is o
 
 <br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>
-This database supports the transaction isolation level 'serializable', in which dirty reads, non-repeatable
-reads and phantom reads are prohibited.
+<p>
+This database supports the following transaction isolation levels:
+</p>
+
+<ul>
+<li><b>Serializable</b><br />
+	This is the default level.<br />
+	To enable, execute the SQL statement	'SET LOCK_MODE 0'<br />
+	or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
+</li><li><b>Read Committed</b><br />
+	Higer concurrency is possible when using this level.<br />
+	This is the isolation level used for many database systems.<br />
+	To enable, execute the SQL statement	'SET LOCK_MODE 0'<br />
+	or append ;LOCK_MODE=3 to the database URL: jdbc:h2:~/test;LOCK_MODE=3
+</li><li><b>Read Uncommitted</b><br />
+	This level means that transaction isolation is disabled.<br />
+	To enable, execute the SQL statement	'SET LOCK_MODE 0'<br />
+	or append ;LOCK_MODE=0 to the database URL: jdbc:h2:~/test;LOCK_MODE=0
+</li>
+</ul>
+
+<p>
+When using the isolation level 'serializable', dirty reads, non-repeatable reads, and phantom reads are prohibited.
+</p>
 
 <ul>
 <li><b>Dirty Reads</b><br />
-    Means a connection can read uncommitted changes made by another connection.
+    Means a connection can read uncommitted changes made by another connection.<br />
+    Possible with: read uncommitted
 </li><li><b>Non-Repeatable Reads</b><br />
     A connection reads a row, another connection changes a row and commits,
-    and the first connection re-reads the same row and gets the new result.
+    and the first connection re-reads the same row and gets the new result.<br />
+    Possible with: read uncommitted, read committed
 </li><li><b>Phantom Reads</b><br />
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
-    re-reads using the same condition and gets the new row.
-</li></ul>
+    re-reads using the same condition and gets the new row.<br />
+    Possible with: read uncommitted, read committed 
+</li>
+</ul>
 
 <h3>Table Level Locking</h3>
 The database allows multiple concurrent connections to the same database.

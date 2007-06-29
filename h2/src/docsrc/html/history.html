@@ -824,13 +824,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Priority 1</h3>
 <ul>
-<li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
+<li>MVCC (Multi Version Concurrency Control)
+</li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Improve performance for create table (if this is possible)
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Document how to use H2 with PHP (generic database API)
 </li><li>Optimization: result set caching (like MySQL)
-</li><li>MVCC (Multi Version Concurrency Control)
 </li><li>Server side cursors
 </li><li>Row level locking
 </li><li>Read-only databases inside a jar (splitting large files to speed up random access)

@@ -95,6 +95,10 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
+read committed: read locks are acquired but they are released immediately
+make read-committed the default
+------------------------------------
+
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)

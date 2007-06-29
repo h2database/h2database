@@ -682,10 +682,13 @@ public class Function extends Expression implements FunctionCall {
             return ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));
         case DATEDIFF:
             return ValueLong.get(datediff(v0.getString(), v1.getTimestampNoCopy(), v2.getTimestampNoCopy()));
-        case DAYNAME:
+        case DAYNAME: {
+            Value result;
             synchronized(FORMAT_DAYNAME) {
-                return ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
+                result = ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
             }
+            return result;
+        }
         case DAYOFMONTH:
             return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
         case DAYOFWEEK:
@@ -698,10 +701,13 @@ public class Function extends Expression implements FunctionCall {
             return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
         case MONTH:
             return ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
-        case MONTHNAME:
+        case MONTHNAME: {
+            Value v;
             synchronized(FORMAT_MONTHNAME) {
-                return ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
+                v = ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
             }
+            return v;
+        }
         case QUARTER:
             return ValueInt.get((getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
         case SECOND:

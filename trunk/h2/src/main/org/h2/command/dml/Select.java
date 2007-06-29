@@ -277,10 +277,6 @@ public class Select extends Query {
                 Value[] row = new Value[columnCount];
                 for (int i = 0; i < columnCount; i++) {
                     Expression expr = (Expression) expressions.get(i);
-int testing;
-if(expr == null) {
-    System.out.println("stop");
-}
                     row[i] = expr.getValue(session);
                 }
                 result.addRow(row);

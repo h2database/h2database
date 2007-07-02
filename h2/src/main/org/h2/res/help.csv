@@ -683,19 +683,6 @@ This setting can be appended to the database URL: jdbc:h2:test;ALLOW_LITERALS=NO
 SET ALLOW_LITERALS NONE
 "
 
-"Commands (Other)","SET ASSERT","
-SET ASSERT int
-","
-Sets the assertion mode.
-0: no assertions (for higher performance)
-1: assertions are switched on (default)
-This setting is not persistent.
-Admin rights are required to execute this command.
-This setting can be appended to the database URL: jdbc:h2:test;ASSERT=0
-","
-SET ASSERT 0
-"
-
 "Commands (Other)","SET AUTOCOMMIT","
 SET AUTOCOMMIT {TRUE | ON | FALSE | OFF}
 ","
@@ -831,7 +818,7 @@ Sets the lock mode.
 0: No locking (should only be used for testing). Also known as READ_UNCOMMITTED.
 1: Table level locking (default). Also known as SERIALIZABLE.
 2: Table level locking with garbage collection (if the application does not close all connections).
-3: Table level locking, but only when writing (no read locks). Also known as READ_COMMITTED.
+3: Table level locking, but read locks are released immediately. Also known as READ_COMMITTED.
 This setting is not persistent.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3

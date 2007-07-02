@@ -165,11 +165,6 @@ public class Set extends Prepared {
             addOrUpdateSetting(name, null, getIntValue());
             break;
         }
-        case SetTypes.ASSERT: {
-            session.getUser().checkAdmin();
-            Constants.CHECK = (getIntValue() == 1);
-            break;
-        }
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();
             Constants.MULTI_THREADED_KERNEL = (getIntValue() == 1);

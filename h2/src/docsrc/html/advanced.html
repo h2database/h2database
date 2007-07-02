@@ -102,6 +102,7 @@ This database supports the following transaction isolation levels:
 	To enable, execute the SQL statement	'SET LOCK_MODE 0'<br />
 	or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
 </li><li><b>Read Committed</b><br />
+	Read locks are released immediately.
 	Higer concurrency is possible when using this level.<br />
 	This is the isolation level used for many database systems.<br />
 	To enable, execute the SQL statement	'SET LOCK_MODE 0'<br />

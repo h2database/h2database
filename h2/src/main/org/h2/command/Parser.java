@@ -3473,6 +3473,9 @@ public class Parser {
         } else if(readIf("ACCESS_MODE_LOG")) {
             read();
             return new NoOperation(session);
+        } else if(readIf("ASSERT")) {
+            read();
+            return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_DATA")) {
             read();
             return new NoOperation(session);

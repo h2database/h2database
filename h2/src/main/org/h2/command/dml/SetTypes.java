@@ -13,10 +13,10 @@ public class SetTypes {
     public static final int CACHE_SIZE = 8;
     public static final int TRACE_LEVEL_SYSTEM_OUT = 9, TRACE_LEVEL_FILE = 10, TRACE_MAX_FILE_SIZE = 11;
     public static final int COLLATION = 12, CLUSTER = 13, WRITE_DELAY = 14, DATABASE_EVENT_LISTENER = 15;
-    public static final int MAX_MEMORY_ROWS = 16, LOCK_MODE = 17, ASSERT = 18, DB_CLOSE_DELAY = 19;
-    public static final int LOG = 20, THROTTLE = 21, MAX_MEMORY_UNDO = 22, MAX_LENGTH_INPLACE_LOB = 23;
-    public static final int COMPRESS_LOB = 24, ALLOW_LITERALS = 25, MULTI_THREADED = 26, SCHEMA = 27;
-    public static final int OPTIMIZE_REUSE_RESULTS = 28;
+    public static final int MAX_MEMORY_ROWS = 16, LOCK_MODE = 17, DB_CLOSE_DELAY = 18;
+    public static final int LOG = 19, THROTTLE = 20, MAX_MEMORY_UNDO = 21, MAX_LENGTH_INPLACE_LOB = 22;
+    public static final int COMPRESS_LOB = 23, ALLOW_LITERALS = 24, MULTI_THREADED = 25, SCHEMA = 26;
+    public static final int OPTIMIZE_REUSE_RESULTS = 27;
 
     private static ObjectArray types = new ObjectArray();
     static {
@@ -37,7 +37,6 @@ public class SetTypes {
         setType(DATABASE_EVENT_LISTENER, "DATABASE_EVENT_LISTENER");
         setType(MAX_MEMORY_ROWS, "MAX_MEMORY_ROWS");
         setType(LOCK_MODE, "LOCK_MODE");
-        setType(ASSERT, "ASSERT");
         setType(DB_CLOSE_DELAY, "DB_CLOSE_DELAY");
         setType(LOG, "LOG");
         setType(THROTTLE, "THROTTLE");

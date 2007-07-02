@@ -95,13 +95,11 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
-read committed: read locks are acquired but they are released immediately
-make read-committed the default
-------------------------------------
-
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)
+
+set read-committed as the default
 
 testHalt
 java org.h2.test.TestAll halt 
@@ -169,6 +167,14 @@ support translated exceptions (translated, then english at the end, for Hibernat
 make static member variables final (this helps find forgotten initializers)
 
 Merge more from diff.zip (Pavel Ganelin)
+
+inlining: try to shorten methods that are used very often
+
+store dates as 'local'. Problem: existing files use GMT (use escape syntax)
+drop table test;
+CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATEDON TIMESTAMP);
+INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
+SELECT * FROM TEST;
 
 */        
 

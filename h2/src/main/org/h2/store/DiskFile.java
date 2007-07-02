@@ -539,19 +539,6 @@ public class DiskFile implements CacheWriter {
         deleted.setRange(pos, blockCount, false);
     }
 
-//    public void finalize() {
-//        if (!Constants.RUN_FINALIZE) {
-//            return;
-//        }
-//        if (file != null) {
-//            try {
-//                file.close();
-//            } catch (Exception e) {
-//                // ignore
-//            }
-//        }
-//    }
-
     public synchronized void delete() throws SQLException {
         try {
             cache.clear();

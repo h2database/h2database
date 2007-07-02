@@ -888,15 +888,5 @@ public class JdbcStatement extends TraceObject implements Statement {
         }
     }
 
-//    public void finalize() {
-//        if(!Constants.RUN_FINALIZE) {
-//            return;
-//        }
-//        closeOld();
-//        if(conn != null) {
-//            conn = null;
-//        }
-//    }
-
 }
 

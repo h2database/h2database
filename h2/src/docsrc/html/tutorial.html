@@ -201,7 +201,7 @@ public class Test {
   throws Exception {
     Class.forName("org.h2.Driver");
     Connection conn = DriverManager.
-      getConnection("jdbc:h2:test", "sa", ""); 
+      getConnection("jdbc:h2:~/test", "sa", ""); 
     // add application code here
   }
 }
@@ -386,7 +386,7 @@ However, this is not recommended while the database is in use. Also, the databas
 and quite large. The recommended way to backup a database is to create a compressed SQL script file. 
 This can be done using the backup tool:
 <pre>
-java org.h2.tools.Backup -url jdbc:h2:test -user sa -script test.zip -options compression zip
+java org.h2.tools.Backup -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 For more information about the options, see the SQL command SCRIPT.
 The backup can be done remotely, however the file will be created on the server side.
@@ -396,7 +396,7 @@ It is also possible to use the SQL command SCRIPT to create the backup of the da
 <h3>Restore</h3>
 To restore a database from a SQL script file, you can use the RunScript tool:
 <pre>
-java org.h2.tools.RunScript -url jdbc:h2:test -user sa -script test.zip -options compression zip
+java org.h2.tools.RunScript -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
 For more information about the options, see the SQL command RUNSCRIPT.
 The restore can be done remotely, however the file needs to be on the server side.

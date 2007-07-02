@@ -849,15 +849,4 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         throw Message.getUnsupportedException();
     }
 
-//    public void finalize() {
-//        if(!Constants.RUN_FINALIZE) {
-//            return;
-//        }
-//        try {
-//            close();
-//        } catch (SQLException e) {
-//            // TODO log exception
-//        }
-//    }
-
 }

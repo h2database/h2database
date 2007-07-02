@@ -359,7 +359,7 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>Embedded (local) connection</td>
   <td>
     jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
-      jdbc:h2:test<br />
+      jdbc:h2:~/test<br />
      jdbc:h2:file:/data/sample<br />
      jdbc:h2:file:C:/data/sample (Windows only)<br />
   </td>
@@ -502,7 +502,7 @@ and the user password; the file password itself may not contain spaces. File pas
 encrypted database:
 <pre>
 Class.forName("org.h2.Driver");
-String url = "jdbc:h2:test;CIPHER=AES";
+String url = "jdbc:h2:~/test;CIPHER=AES";
 String user = "sa";
 String pwds = "filepwd userpwd";
 conn = DriverManager.
@@ -530,13 +530,13 @@ in this case it is up to the application to protect the database files.
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
 The following code opens the database with the 'socket' locking method:
 <pre>
-String url = "jdbc:h2:test;FILE_LOCK=SOCKET";
+String url = "jdbc:h2:~/test;FILE_LOCK=SOCKET";
 </pre>
 The following code forces the database to not create a lock file at all. Please note that
 this is unsafe as another process is able to open the same database, possibly leading to 
 data corruption:
 <pre>
-String url = "jdbc:h2:test;FILE_LOCK=NO";
+String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
 For more information about the algorithms please see in Advanced Topics under 
 File Locking Protocol.  
@@ -570,7 +570,7 @@ SET DB_CLOSE_DELAY 10
 The value -1 means the database is never closed automatically.
 The value 0 is the default and means the database is closed when the last connection is closed.
 This setting is persistent and can be set by an administrator only.
-It is possible to set the value in the database URL: <code>jdbc:h2:test;DB_CLOSE_DELAY=10</code>.
+It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
 
 <h3>Don't Close the Database when the VM Exits</h3>
 By default, a database is closed when the last connection is closed. However, if it is never closed,
@@ -582,7 +582,7 @@ This can be done in the database URL. The first connection (the one that is open
 set the option in the database URL (it is not possible to change the setting afterwards).
 The database URL to disable database closing on exit is:
 <pre>
-String url = "jdbc:h2:test;DB_CLOSE_ON_EXIT=FALSE";
+String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
 <br /><a name="log_index_changes"></a>
@@ -595,7 +595,7 @@ In some situations, for example when using very large databases (over a few hund
 re-creating the index file takes very long. 
 In these situations it may be better to log changes to the index file,
 so that recovery from a corrupted index file is fast.
-To enable log index changes, add LOG=2 to the URL, as in jdbc:h2:test;LOG=2
+To enable log index changes, add LOG=2 to the URL, as in jdbc:h2:~/test;LOG=2
 This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
 
@@ -625,7 +625,7 @@ The access mode used for log files is set via ACCESS_MODE_LOG; for
 data and index files use ACCESS_MODE_DATA.
 These settings must be specified in the database URL:
 <pre>
-String url = "jdbc:h2:test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
+String url = "jdbc:h2:~/test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
 </pre>
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a>.
 On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
@@ -843,7 +843,7 @@ If the database file is corrupted, because the checksum of a record does not mat
 file was edited with another application), the database can be opened in recovery mode. In this case,
 errors in the database are logged but not thrown. The database should be backed up to a script
 and re-built as soon as possible. To open the database in the recovery mode, use a database URL
-must contain RECOVER=1, as in jdbc:h2:test;RECOVER=1. Indexes are rebuilt in this case, and
+must contain RECOVER=1, as in jdbc:h2:~/test;RECOVER=1. Indexes are rebuilt in this case, and
 the summary (object allocation table) is not read in this case, so opening the database takes longer.
 </p>
 
@@ -855,7 +855,7 @@ this database can emulate the behavior of specific databases. Not all features o
 databases are implemented. Currently, this feature is mainly used for randomized comparative testing 
 (where random statements are executed against multiple databases and the results are compared).
 The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE.
-To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:test;MODE=HSQLDB</code>
+To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
 or the SQL statement <code>SET MODE HSQLDB</code>. 
 Here is the list of currently supported modes and the difference to the regular mode:
 </p>
@@ -903,7 +903,7 @@ and one for file tracing (TRACE_LEVEL_FILE).
 The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG.
 A database URL with both levels set to DEBUG is:
 <pre>
-jdbc:h2:test;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3
+jdbc:h2:~/test;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3
 </pre>
 The trace level can be changed at runtime by executing the SQL command
 <code>SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing)
@@ -989,7 +989,7 @@ for example to debug the database engine.
 If a database already exists, the storage format is recognized automatically.
 New databases are created in the binary storage format by default.
 To create a new database in the text storage format, the database URL must contain
-the parameter STORAGE=TEXT. Example URL: jdbc:h2:test;STORAGE=TEXT
+the parameter STORAGE=TEXT. Example URL: jdbc:h2:~/test;STORAGE=TEXT
 
 <br /><a name="low_disk_space"></a>
 <h2>Graceful Handling of Low Disk Space Situations</h2>
@@ -1007,7 +1007,7 @@ It is possible to install a database event listener to detect low disk space sit
 (when only 1 MB if space is available). To do this, use the SQL statement
 SET DATABASE_EVENT_LISTENER. 
 The listener can also be set at connection time, using an URL of the form
-jdbc:h2:test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
+jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
 (the quotes around the class name are required).
 See also the DatabaseEventListener API. 
 </p>
@@ -1117,12 +1117,12 @@ However, Java Swing supports a way to get passwords using a char array (JPasswor
 Instead of passing the user name as a separate parameter as in
 <code>
 Connection conn = DriverManager.
-  getConnection("jdbc:h2:test", "sa", "123");
+  getConnection("jdbc:h2:~/test", "sa", "123");
 </code>
 the user name (and/or password) can be supplied in the URL itself:
 <code>
 Connection conn = DriverManager.
-  getConnection("jdbc:h2:test;USER=sa;PASSWORD=123");
+  getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
 </code>
 The settings in the URL override the settings passed as a separate parameter.
 
@@ -1273,7 +1273,7 @@ of a database and re-build the database from the script.
 The database keeps most frequently used data and index pages in the main memory.
 The amount of memory used for caching can be changed using the setting 
 CACHE_SIZE. This setting can be set in the database connection URL 
-(jdbc:h2:test;CACHE_SIZE=200000), or it can be changed at runtime using
+(jdbc:h2:~/test;CACHE_SIZE=200000), or it can be changed at runtime using
 SET CACHE_SIZE size.
 </p><p>
 This database supports two cache page replacement algorithms: LRU (the default) and
@@ -1281,7 +1281,7 @@ This database supports two cache page replacement algorithms: LRU (the default) 
 cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two 
 queues are used. The 2Q algorithm is more resistant to table scans, however the overhead
 is a bit higher compared to the LRU. To use the cache algorithm 2Q, use a database URL
-of the form jdbc:h2:test;CACHE_TYPE=TQ. The cache algorithm can not be changed
+of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm can not be changed
 once the database is open.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,

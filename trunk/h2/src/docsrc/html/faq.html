@@ -80,13 +80,15 @@ To connect to a database using JDBC, use the following code:
 </p>
 <pre>
 Class.forName("org.h2.Driver");
-Connection conn = DriverManager.getConnection("jdbc:h2:test", "sa", "");
+Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 </pre>
 
 <br /><a name="database_files"></a>
 <h3>Where are the Database Files Stored?</h3>
 <p>
-If the base directory is not set, the database files are stored in the directory where the application is started
+When using database URLs like jdbc:h2:~/test, the database is stored in the user directory.
+For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;.
+If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started
 (the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin.
 The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
 jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory).

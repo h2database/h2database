@@ -26,9 +26,6 @@ public class WebServlet extends HttpServlet {
     private static final long serialVersionUID = 9171446624885086692L;
     private WebServer server;
 
-    private int todoTestWithTomcat;
-    private int todoTestWithJetty;
-
     public void init() throws ServletException {
         ServletConfig config = getServletConfig();
         Enumeration en = config.getInitParameterNames();

@@ -85,6 +85,8 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
+        } else if (Constants.MULTI_THREADED_KERNEL && session.getDatabase().getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
+        	session.unlockReadLocks();
         }
         if (trace.info()) {
             long time = System.currentTimeMillis() - startTime;

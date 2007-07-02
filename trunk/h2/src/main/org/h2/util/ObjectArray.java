@@ -42,15 +42,21 @@ public class ObjectArray {
             data[i] = it.next();
         }
     }
+    
+    private void throwException(int index) {
+        throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
+    }
 
     public void add(Object value) {
-        ensureCapacity(size);
+    	if(size >= data.length) {
+    		ensureCapacity(size);
+    	}
         data[size++] = value;
     }
 
     public Object get(int i) {
         if (Constants.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+        	throwException(i);
         }
         return data[i];
     }
@@ -58,7 +64,7 @@ public class ObjectArray {
     public Object remove(int i) {
         // TODO performance: the app should (where possible) remove from end to start, to avoid O(n^2)
         if (Constants.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+        	throwException(i);
         }
         Object value = data[i];
         System.arraycopy(data, i + 1, data, i, size - i - 1);
@@ -94,7 +100,7 @@ public class ObjectArray {
 
     public void add(int i, Object value) {
         if (Constants.CHECK && i > size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+        	throwException(i);
         }
         ensureCapacity(size);
         if (i == size) {
@@ -108,7 +114,7 @@ public class ObjectArray {
 
     public void set(int i, Object value) {
         if (Constants.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+        	throwException(i);
         }
         data[i] = value;
     }

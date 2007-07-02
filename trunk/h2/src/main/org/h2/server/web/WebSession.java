@@ -120,16 +120,10 @@ public class WebSession {
         return commandHistory;
     }
     
-    public HashMap getMainInfo() {
-        int todoRefactorMergeWithGetInfo;
+    public HashMap getInfo() {
         HashMap m = new HashMap();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
-        return m;
-    }
-    
-    public HashMap getInfo() {
-        HashMap m = getMainInfo();
         try {
             m.put("url", conn == null ? "not connected" : conn.getMetaData().getURL());
             m.put("user", conn == null ? "-" : conn.getMetaData().getUserName());

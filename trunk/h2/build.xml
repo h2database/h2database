@@ -162,7 +162,7 @@
 			<!--
 			<attribute name="Bundle-Activator" value="org.h2.osgi.Activator"/>
 			-->
-			<attribute name="Main-Class" value="org.h2.SysTray"/>
+			<attribute name="Main-Class" value="org.h2.tools.Console"/>
 		</manifest>
 		<jar jarfile="bin/h2.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>

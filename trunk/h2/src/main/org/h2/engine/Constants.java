@@ -69,8 +69,8 @@ import org.h2.message.TraceSystem;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 51;
-    private static final String BUILD = "2007-06-25";
+    public static final int BUILD_ID = 52;
+    private static final String BUILD = "2007-06-30";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -224,7 +224,7 @@ public class Constants {
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
-    public static boolean CHECK = getBooleanSetting("h2.check", true);
+    public static final boolean CHECK = getBooleanSetting("h2.check", true);
     public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
     public static boolean RUN_FINALIZE = getBooleanSetting("h2.runFinalize", true);
     public static String SCRIPT_DIRECTORY = getStringSetting("h2.scriptDirectory", "");

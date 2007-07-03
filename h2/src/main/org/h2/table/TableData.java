@@ -300,7 +300,7 @@ public class TableData extends Table implements RecordReader {
                     if (lockExclusive == null) {
                         if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !Constants.MULTI_THREADED_KERNEL) {
                             // READ_COMMITTED read locks are acquired but they are released immediately
-                        	// when allowing only one thread, no read locks are required
+                            // when allowing only one thread, no read locks are required
                             return;
                         } else if(!lockShared.contains(session)) {
                             traceLock(session, exclusive, "ok");

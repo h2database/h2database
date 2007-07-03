@@ -764,26 +764,26 @@ public class Database implements DataHandler {
     }
 
     void close(boolean fromShutdownHook) {
-    	synchronized(this) {
-	        this.closing = true;
-	        if(sessions.size() > 0) {
-	            if(!fromShutdownHook) {
-	                return;
-	            }
-	            traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
-	            Session[] all = new Session[sessions.size()];
-	            sessions.toArray(all);
-	            for(int i=0; i<all.length; i++) {
-	                Session s = all[i];
-	                try {
-	                    s.close();
-	                } catch(SQLException e) {
-	                    traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
-	                }
-	            }
-	        }
-    	}
-    	traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
+        synchronized(this) {
+            this.closing = true;
+            if(sessions.size() > 0) {
+                if(!fromShutdownHook) {
+                    return;
+                }
+                traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
+                Session[] all = new Session[sessions.size()];
+                sessions.toArray(all);
+                for(int i=0; i<all.length; i++) {
+                    Session s = all[i];
+                    try {
+                        s.close();
+                    } catch(SQLException e) {
+                        traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
+                    }
+                }
+            }
+        }
+        traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
         if(eventListener != null) {
             eventListener.closingDatabase();
             eventListener = null;

@@ -38,39 +38,37 @@ This can be a H2 database, or another database that supports the JDBC API.
 </p>
 <img src="console.png" alt="Web Browser - H2 Console Server - H2 Database" />
 <p>
-This is a client / server application, so both a server and a client are required to run it.
+This is a client / server application, so both a server and a client (a browser) are required to run it.
 </p><p>
 Depending on your platform and environment, there are multiple ways to start the application:
 </p>
-<table><tr><th>OS</th><th>Java</th><th>Start</th></tr>
+<table><tr><th>OS</th><th>Start</th></tr>
 <tr>
   <td>Windows</td>
-  <td>1.4 or 1.5</td>
   <td>
-      Click [Start], [All Programs], [H2], and [H2 Console (Command Line)]<br />
-      If this worked correctly, an icon will be added to the system tray:
+    Click [Start], [All Programs], [H2], and [H2 Console (Command Line)]<br />
+    When using the Sun JDK 1.4 or 1.5, a window with the title 'H2 Console ' should appear.
+    When using the Sun JDK 1.6, an icon will be added to the system tray:
     <img src="h2.png" alt="[H2 icon]" /><br />
-    If you don't get the system tray icon, then maybe Java is not installed correctly (in this case, try another way to start the application).
+    If you don't get the window and the system tray icon, 
+    then maybe Java is not installed correctly (in this case, try another way to start the application).
     A browser window should open
     and point to the Login page (URL: <a href="http://localhost:8082" target="_blank">http://localhost:8082</a>).
   </td>
 </tr>
 <tr>
   <td>Windows</td>
-  <td>1.4 or 1.5</td>
   <td>
-      Open a file browser, navigate to h2/bin, and double click on h2.bat.<br />
-      If this worked correctly, an icon will be added to the system tray.
-    If there is a problem, you will see the error message on the console window.
-    A browser window will open
-    and point to the Login page (URL: <a href="http://localhost:8082" target="_blank">http://localhost:8082</a>).
+    Open a file browser, navigate to h2/bin, and double click on h2.bat.<br />
+    A console window appears. If there is a problem, you will see an error message 
+    in this window. A browser window will open and point to the Login page 
+    (URL: <a href="http://localhost:8082" target="_blank">http://localhost:8082</a>).
   </td>
 </tr>
 <tr>
   <td>Any</td>
-  <td>1.4 or 1.5</td>
   <td>
-      Open a console window, navigate to the directory 'h2/lib' and type:
+      Open a console window, navigate to the directory 'h2/bin' and type:
 <pre>
 java -cp h2.jar org.h2.tools.Server
 </pre>
@@ -81,14 +79,13 @@ java -cp h2.jar org.h2.tools.Server
 <h3>Firewall</h3>
 <p>
 If you start the server, you may get a security warning from the firewall (if you have installed one).
-If you don't want other computers in the network to access the database on your machine, you can
+If you don't want other computers in the network to access the application on your machine, you can
 let the firewall block those connections. The connection from the local machine will still work.
 Only if you want other computers to access the database on this computer, you need allow remote connections
 in the firewall.
 </p><p>
-Please not that a small firewall is already built into the server. This mechanism by default does not
-allow other computer to connect to the server. This can be changed in the Preferences
-(Allow connections from other computers).
+A small firewall is already built into the server: other computers may not connect to the server by default. 
+To change this, go to 'Preferences' and select 'Allow connections from other computers'.
 </p>
 
 <h3>Native Version</h3>

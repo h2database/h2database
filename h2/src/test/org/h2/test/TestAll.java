@@ -7,7 +7,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.message.TraceSystem;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -95,6 +94,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
+maybe another server server already
+
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)
@@ -137,9 +138,6 @@ I will add this to the todo list.
 
 Docs: Fix Quickstart
 
-Dave Brewster (dbrewster at guidewire dot com): currency: 
-Add a setting to allow BigDecimal extensions
-
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 
 Improve LOB in directories performance
@@ -147,8 +145,6 @@ Improve LOB in directories performance
 Improve documentation for MAX_LENGTH_INPLACE_LOB
 
 Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-
-Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
 
 Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
 
@@ -167,12 +163,13 @@ support translated exceptions (translated, then english at the end, for Hibernat
 make static member variables final (this helps find forgotten initializers)
 
 Merge more from diff.zip (Pavel Ganelin)
+Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
 
-inlining: try to shorten methods that are used very often
+performance: try to shorten methods that are used very often
 
 store dates as 'local'. Problem: existing files use GMT (use escape syntax)
 drop table test;
-CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATEDON TIMESTAMP);
+CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
 INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
 SELECT * FROM TEST;
 

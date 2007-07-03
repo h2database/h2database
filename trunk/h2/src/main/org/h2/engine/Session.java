@@ -275,7 +275,7 @@ public class Session implements SessionInterface {
         undoLog.add(log);
     }
     
-	public void unlockReadLocks() {
+    public void unlockReadLocks() {
         for(int i=0; i<locks.size(); i++) {
             Table t = (Table)locks.get(i);
             if(!t.isLockedExclusively()) {
@@ -284,7 +284,7 @@ public class Session implements SessionInterface {
                 i--;
             }
         }
-	}
+    }
 
     private void unlockAll() throws SQLException {
         if(Constants.CHECK) {

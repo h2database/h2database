@@ -69,8 +69,8 @@ import org.h2.message.TraceSystem;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 52;
-    private static final String BUILD = "2007-06-30";
+    public static final int BUILD_ID = 53;
+    private static final String BUILD = "2007-07-03";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -248,6 +248,7 @@ public class Constants {
     public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
     public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
     public static boolean INDEX_OLD = getBooleanSetting("h2.indexOld", false);
+    public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = getBooleanSetting("h2.allowBigDecimalExtensions", false);
     public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
     public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);

@@ -37,16 +37,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>The default database name in the documentation is now jdbc:h2:~/test. Like this, the database
-	is stored in the user home directory (system property user.home). Of course storing the database 
-	in the current working directory (as in jdbc:h2:test) still works. Using the user directory avoids
-	the problem that the database is not found if the application runs in another directory than
-	the console.
+<li>Now PreparedStatement.setBigDecimal(..) can be called with an object of a derrived class 
+    if the system property h2.allowBigDecimalExtensions is set to true.
+</li><li>The default database name in the documentation is now jdbc:h2:~/test. Like this, the database
+    is stored in the user home directory (system property user.home). Of course storing the database 
+    in the current working directory (as in jdbc:h2:test) still works. Using the user directory avoids
+    the problem that the database is not found if the application runs in another directory than
+    the console.
 </li><li>The SQL statement SET ASSERT has been deprecated, because Constants.CHECK is now final.
-	To disable assertions (and improve performance), the system property h2.check can be used.
-	Executing SET ASSERT still works, but has no effect.
+    To disable assertions (and improve performance), the system property h2.check can be used.
+    Executing SET ASSERT still works, but has no effect.
 </li><li>In the READ_COMMITTED mode, when the multi-threaded kernel is enabled, 
-	read locks are now acquired but released immediately after a query.
+    read locks are now acquired but released immediately after a query.
 </li><li>The default trace level for JdbcDataSourceFactory was DEBUG, so when using data sources a trace file
     was always created. Now the default trace level is ERROR, and the file is only created if necessary.
 </li><li>PooledConnection.getConnection took a long time if only one connection was open at any time. Fixed.

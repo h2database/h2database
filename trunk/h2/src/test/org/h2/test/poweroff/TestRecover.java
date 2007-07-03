@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.test.poweroff;
 
 import java.io.File;
@@ -24,11 +28,11 @@ import java.util.zip.ZipOutputStream;
 import org.h2.util.IOUtils;
 
 public class TestRecover {
-	
+    
     private Random random;
-    private static final String RELATIVE = System.getProperty("h2.testRecoverPath", "db");
-    private static final String TEST_DIRECTORY = "/temp/"+RELATIVE+"/data";
-    private static final String BACKUP_DIRECTORY = "/temp/"+RELATIVE+"/last";
+    private static final String NODE = System.getProperty("h2.testRecoverPath", "1");
+    private static final String TEST_DIRECTORY = "/temp/db/data" + NODE;
+    private static final String BACKUP_DIRECTORY = "/temp/db/last";
 
     public static void main(String[] args) throws Exception {
         new TestRecover().runTest(args);
@@ -37,7 +41,7 @@ public class TestRecover {
     private void runTest(String[] args) throws Exception {
         System.out.println("backup...");
         new File(TEST_DIRECTORY).mkdirs();
-        File backup = backup(TEST_DIRECTORY, BACKUP_DIRECTORY, "data", 10);
+        File backup = backup(TEST_DIRECTORY, BACKUP_DIRECTORY, "data", 10, NODE);
         System.out.println("check consistency...");
         if(!testConsistency()) {
             System.out.println("error! renaming file");
@@ -49,7 +53,7 @@ public class TestRecover {
         testLoop();
     }
     
-    static File backup(String sourcePath, String targetPath, String basePath, int max) throws Exception {
+    static File backup(String sourcePath, String targetPath, String basePath, int max, String node) throws Exception {
         File root = new File(targetPath);
         if(!root.exists()) {
             root.mkdirs();
@@ -75,7 +79,7 @@ public class TestRecover {
         }
         SimpleDateFormat sd = new SimpleDateFormat("yyMMdd-HHmmss");
         String date = sd.format(new Date());
-        File zipFile = new File(root, "backup-" + date + ".zip");
+        File zipFile = new File(root, "backup-" + date + "-" + node + ".zip");
         ArrayList list = new ArrayList();
         File base = new File(sourcePath);
         listRecursive(list, base);
@@ -108,7 +112,7 @@ public class TestRecover {
                         in = new FileInputStream(fileName);
                         IOUtils.copyAndCloseInput(in, zipOut);
                     } finally {
-                    	IOUtils.closeSilently(in);
+                        IOUtils.closeSilently(in);
                     }
                     zipOut.closeEntry();
                 }
@@ -163,7 +167,7 @@ public class TestRecover {
     private void runOneTest(int i) throws Exception {
         Random random = new Random(i);
         Connection conn = openConnection();
-    	PreparedStatement prep = null;
+        PreparedStatement prep = null;
         while (true) {
             boolean rollback = random.nextInt(10) == 1;
             int len;
@@ -180,20 +184,20 @@ public class TestRecover {
             random.nextBytes(data);
             int op = random.nextInt();
             if (op % 100 == 0) {
-            	conn.close();
-            	conn = openConnection();
-            	prep = null;
+                conn.close();
+                conn = openConnection();
+                prep = null;
             }
-        	if(prep == null) {
-            	prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES(?)");
-            	conn.setAutoCommit(false);
-        	}            
+            if(prep == null) {
+                prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES(?)");
+                conn.setAutoCommit(false);
+            }            
             prep.setString(1, "" + len);
             prep.execute();
             if (rollback) {
-            	conn.rollback();
+                conn.rollback();
             } else {
-            	conn.commit();
+                conn.commit();
             }
         }
     }
@@ -215,11 +219,11 @@ public class TestRecover {
             conn = openConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
             while(rs.next()) {
-            	String name = rs.getString("NAME");
-            	int value = Integer.parseInt(name);
-            	if(value % 2 == 1) {
-            		throw new Exception("unexpected odd entry " + rs.getInt("ID"));
-            	}
+                String name = rs.getString("NAME");
+                int value = Integer.parseInt(name);
+                if(value % 2 == 1) {
+                    throw new Exception("unexpected odd entry " + rs.getInt("ID"));
+                }
             }
             conn.close();
             return true;

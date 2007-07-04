@@ -950,16 +950,27 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * [Not supported] Gets the result set metadata of the query returned when the statement is executed.
+     * Gets the result set metadata of the query returned when the statement is executed.
+     * If this is not a query, this method returns null.
      *
-     * @return null as the method is not supported
+     * @return the meta data or null if this is not a query
      * @throws SQLException if this object is closed
      */
     public ResultSetMetaData getMetaData() throws SQLException {
         try {
             debugCodeCall("getMetaData");
             checkClosed();
-            return null;
+            ResultInterface result = command.getMetaData();
+            if(result == null) {
+                return null;
+            }
+            int id = getNextId(TraceObject.RESULT_SET_META_DATA);
+            if(debug()) {
+                debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id);
+                debugCodeCall("getMetaData");
+            }
+            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(null, this, result, session.getTrace(), id);
+            return meta;
         } catch(Throwable e) {
             throw logAndConvert(e);
         }

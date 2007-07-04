@@ -90,6 +90,8 @@ public abstract class Prepared {
         throw Message.getSQLException(Message.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }    
 
+    public abstract LocalResult queryMeta() throws SQLException;
+
     public void setSQL(String sql) {
         this.sql = sql;
     }

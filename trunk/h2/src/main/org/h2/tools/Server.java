@@ -335,7 +335,7 @@ public class Server implements Runnable {
     public Server start() throws SQLException {
         service.start();
         Thread t = new Thread(this);
-        t.setName(name);
+        t.setName(name + " (" + service.getURL() + ")");
         t.start();
         for(int i=1; i<64; i+=i) {
             wait(i);

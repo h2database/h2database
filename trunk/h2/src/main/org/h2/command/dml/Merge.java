@@ -258,4 +258,8 @@ public class Merge extends Prepared {
         return true;
     }
 
+    public LocalResult queryMeta() {
+        return null;
+    }
+    
 }

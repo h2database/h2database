@@ -30,12 +30,18 @@ public class Call extends Prepared {
     public Call(Session session) {
         super(session);
     }
+    
+    public LocalResult queryMeta() throws SQLException {
+        LocalResult result = new LocalResult(session, expressions, 1);
+        result.done();
+        return result;
+    }
 
     public LocalResult query(int maxrows) throws SQLException {
         setCurrentRowNumber(1);
         Value v = value.getValue(session);
         if(v.getType() == Value.RESULT_SET) {
-            return LocalResult.read(session, ((ValueResultSet)v).getResultSet());
+            return LocalResult.read(session, ((ValueResultSet)v).getResultSet(), maxrows);
         } else if(v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray)v).getList();
             ObjectArray expr = new ObjectArray();

@@ -40,7 +40,7 @@ public class LocalResult implements ResultInterface {
     private boolean isUpdateCount;
     private int updateCount;
     
-    public static LocalResult read(Session session, ResultSet rs) throws SQLException {
+    public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         ObjectArray cols = new ObjectArray();
@@ -57,7 +57,7 @@ public class LocalResult implements ResultInterface {
             cols.add(expr);
         }
         LocalResult result = new LocalResult(session, cols, columnCount);
-        while (rs.next()) {
+        for(int i=0; (maxrows == 0 || i<maxrows) && rs.next(); i++) {
             Value[] list = new Value[columnCount];
             for (int j = 0; j < columnCount; j++) {
                 list[j] = DataType.readValue(session, rs, j + 1, types[j]);

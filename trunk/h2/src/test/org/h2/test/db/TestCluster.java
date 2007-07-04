@@ -70,20 +70,25 @@ public class TestCluster extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091,localhost:9092/test", "sa", "");
         stat = conn.createStatement();
         check(conn, len);
-        
-        conn.close();
-//        n1.stop();
-//        n2.stop();
 
-//        n1 = org.h2.tools.Server.startTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", BASE_DIR + "/node1"});        
+        stat.execute("CREATE TABLE BOTH(ID INT)");
+
+        n1.stop();
+
+        stat.execute("CREATE TABLE A(ID INT)");
+        conn.close();
+        n2.stop();
+
+        n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", BASE_DIR + "/node1"}).start();        
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test;CLUSTER=''", "sa", "");
         check(conn, len);
         conn.close();
         n1.stop();
         
-//        n2 = org.h2.tools.Server.startTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", BASE_DIR + "/node2"});        
+        n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", BASE_DIR + "/node2"}).start();        
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9092/test;CLUSTER=''", "sa", "");
         check(conn, len);
+        conn.createStatement().execute("SELECT * FROM A");
         conn.close();
         n2.stop();
     }

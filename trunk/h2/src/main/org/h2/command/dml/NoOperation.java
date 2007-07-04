@@ -6,6 +6,7 @@ package org.h2.command.dml;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
+import org.h2.result.LocalResult;
 
 public class NoOperation extends Prepared {
 
@@ -31,6 +32,10 @@ public class NoOperation extends Prepared {
     
     public boolean isReadOnly() {
         return true;
+    }
+    
+    public LocalResult queryMeta() {
+        return null;
     }
     
 }

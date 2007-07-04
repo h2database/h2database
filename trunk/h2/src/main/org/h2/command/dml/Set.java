@@ -18,6 +18,7 @@ import org.h2.engine.Setting;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
@@ -290,6 +291,10 @@ public class Set extends Prepared {
 
     public boolean needRecompile() {
         return false;
+    }
+
+    public LocalResult queryMeta() {
+        return null;
     }
 
 }

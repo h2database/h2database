@@ -94,14 +94,24 @@ public class ScriptCommand extends ScriptBase {
     public void setDrop(boolean drop) {
         this.drop = drop;
     }
+    
+    public LocalResult queryMeta() throws SQLException {
+        LocalResult result = createResult();
+        result.done();
+        return result;
+    }
+    
+    private LocalResult createResult() {
+        ObjectArray cols = new ObjectArray();
+        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING, 0, 0)));
+        return new LocalResult(session, cols, 1);
+    }
 
     public LocalResult query(int maxrows) throws SQLException {
         session.getUser().checkAdmin();
         reset();
         try {
-            ObjectArray cols = new ObjectArray();
-            cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING, 0, 0)));
-            result = new LocalResult(session, cols, 1);
+            result = createResult();
             deleteStore();
             openOutput();
             if(out != null) {

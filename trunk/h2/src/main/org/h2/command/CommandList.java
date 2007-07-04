@@ -58,5 +58,9 @@ public class CommandList extends Command {
     public boolean isReadOnly() {
         return false;
     }
+    
+    public LocalResult queryMeta() throws SQLException {
+        return command.queryMeta();
+    }
 
 }

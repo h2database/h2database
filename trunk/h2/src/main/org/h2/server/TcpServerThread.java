@@ -190,6 +190,20 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(SessionRemote.STATUS_OK).flush();
             break;
         }
+        case SessionRemote.COMMAND_GET_META_DATA: {
+            int id = transfer.readInt();
+            int objectId = transfer.readInt();
+            Command command =  (Command)cache.getObject(id, false);
+            LocalResult result = command.getMetaDataLocal();
+            cache.addObject(objectId, result);
+            int columnCount = result.getVisibleColumnCount();
+            transfer.writeInt(SessionRemote.STATUS_OK).writeInt(columnCount).writeInt(0);
+            for(int i=0; i<columnCount; i++) {
+                ResultColumn.writeColumn(transfer, result, i);
+            }
+            transfer.flush();
+            break;
+        }
         case SessionRemote.COMMAND_EXECUTE_QUERY: {
             int id = transfer.readInt();
             int objectId = transfer.readInt();

@@ -14,9 +14,11 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.security.SecureRandom;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,9 +32,17 @@ import org.h2.util.IOUtils;
 public class TestRecover {
     
     private Random random;
-    private static final String NODE = System.getProperty("h2.testRecoverPath", "1");
-    private static final String TEST_DIRECTORY = "/temp/db/data" + NODE;
-    private static final String BACKUP_DIRECTORY = "/temp/db/last";
+    private static final String NODE = System.getProperty("test.node", "");
+    private static final String DIR = System.getProperty("test.dir", "/temp/db");
+    
+//    private static final String DIR = System.getProperty("test.dir", "/temp/derby");
+//    private static final String URL = System.getProperty("test.url", "jdbc:derby:/temp/derby/data/test;create=true");
+//    private static final String DRIVER = System.getProperty("test.driver", "org.apache.derby.jdbc.EmbeddedDriver");
+
+    private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
+    private static final String BACKUP_DIRECTORY = DIR + "/last";
+    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test");
+    private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     public static void main(String[] args) throws Exception {
         new TestRecover().runTest(args);
@@ -157,22 +167,47 @@ public class TestRecover {
     }
     
     Connection openConnection() throws Exception {
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + TEST_DIRECTORY + "/test", "sa", "sa");
+        Class.forName(DRIVER);
+        Connection conn = DriverManager.getConnection(URL, "sa", "sa");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID IDENTITY, NAME VARCHAR)");
+        try {
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        } catch(SQLException e) {
+            // ignore
+        }
         return conn;
+    }
+    
+    private void closeConnection(Connection conn) {
+        try {
+            conn.close();
+        } catch(SQLException e) {
+            // ignore
+        }
+        if(DRIVER.startsWith("org.apache.derby")) {
+            try {
+                DriverManager.getConnection("jdbc:derby:;shutdown=true");
+            } catch(SQLException e) {
+                // ignore
+            }
+            try {
+                Driver driver = (Driver)Class.forName(DRIVER).newInstance();
+                DriverManager.registerDriver(driver); 
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     
     private void runOneTest(int i) throws Exception {
         Random random = new Random(i);
         Connection conn = openConnection();
         PreparedStatement prep = null;
-        while (true) {
+        for(int id=0; ; id++) {
             boolean rollback = random.nextInt(10) == 1;
             int len;
             if (random.nextInt(10) == 1) {
-                len = random.nextInt(8000) * 2;
+                len = random.nextInt(100) * 2;
             } else {
                 len = random.nextInt(2) * 2;
             }
@@ -184,15 +219,16 @@ public class TestRecover {
             random.nextBytes(data);
             int op = random.nextInt();
             if (op % 100 == 0) {
-                conn.close();
+                closeConnection(conn);
                 conn = openConnection();
                 prep = null;
             }
             if(prep == null) {
-                prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES(?)");
+                prep = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, ?)");
                 conn.setAutoCommit(false);
             }            
-            prep.setString(1, "" + len);
+            prep.setInt(1, id);
+            prep.setString(2, "" + len);
             prep.execute();
             if (rollback) {
                 conn.rollback();
@@ -218,14 +254,19 @@ public class TestRecover {
         try {
             conn = openConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+            int max = 0;
             while(rs.next()) {
+                int id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 int value = Integer.parseInt(name);
                 if(value % 2 == 1) {
-                    throw new Exception("unexpected odd entry " + rs.getInt("ID"));
+                    throw new Exception("unexpected odd entry " + id);
                 }
+                max = Math.max(max, id);
             }
-            conn.close();
+            rs.close();
+            closeConnection(conn);
+            System.out.println("max rows: " + max);
             return true;
         } catch(Throwable t) {
             t.printStackTrace();
@@ -234,7 +275,7 @@ public class TestRecover {
         } finally {
             if(conn != null) {
                 try {
-                    conn.close();
+                    closeConnection(conn);
                 } catch(Throwable t2) {
                     t2.printStackTrace();
                     t2.printStackTrace(p);

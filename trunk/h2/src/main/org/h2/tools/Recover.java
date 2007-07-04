@@ -848,7 +848,7 @@ public class Recover implements DataHandler {
      * INTERNAL
      */
     public void handleInvalidChecksum() throws SQLException {
-    	throw new SQLException("Invalid Checksum");
+        throw new SQLException("Invalid Checksum");
     }
 
     /**

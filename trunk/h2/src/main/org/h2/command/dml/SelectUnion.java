@@ -49,8 +49,6 @@ public class SelectUnion extends Query {
         right = select;
     }
     
-    
-    
     public void setSQL(String sql) {
         this.sql = sql;
     }    
@@ -67,6 +65,14 @@ public class SelectUnion extends Query {
         return values;
     }
 
+    public LocalResult queryMeta() throws SQLException {
+        ObjectArray expressions = left.getExpressions();
+        int columnCount = left.getColumnCount();
+        LocalResult result = new LocalResult(session, expressions, columnCount);
+        result.done();
+        return result;
+    }
+    
     public LocalResult queryWithoutCache(int maxrows) throws SQLException {
         if(maxrows != 0) {
             if(limit != null) {

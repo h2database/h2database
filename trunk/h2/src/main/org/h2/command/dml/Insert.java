@@ -193,4 +193,8 @@ public class Insert extends Prepared {
         return true;
     }
 
+    public LocalResult queryMeta() {
+        return null;
+    }
+    
 }

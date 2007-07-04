@@ -388,9 +388,10 @@ public class Database implements DataHandler {
                     // (maybe an application wants to write something into a database at shutdown time)
                 }
             }
-        } catch(SQLException e) {
+        } catch(Throwable e) {
             if(traceSystem != null) {
                 traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
+                traceSystem.close();
             }
             synchronized(this) {
                 closeOpenFilesAndUnlock();

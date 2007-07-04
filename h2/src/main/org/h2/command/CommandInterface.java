@@ -16,4 +16,5 @@ public interface CommandInterface {
     int executeUpdate() throws SQLException;
     void close();
     void cancel();
+    ResultInterface getMetaData() throws SQLException;
 }

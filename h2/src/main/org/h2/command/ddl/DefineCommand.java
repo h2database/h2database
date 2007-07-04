@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
+import org.h2.result.LocalResult;
 
 public abstract class DefineCommand extends Prepared {
     
@@ -19,6 +20,10 @@ public abstract class DefineCommand extends Prepared {
     
     public boolean isReadOnly() {
         return false;
+    }
+    
+    public LocalResult queryMeta() {
+        return null;
     }
     
 }

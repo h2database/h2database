@@ -37,7 +37,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>Now PreparedStatement.setBigDecimal(..) can be called with an object of a derrived class 
+<li>PreparedStatement.getMetaData is now implemented.
+</li><li>Now PreparedStatement.setBigDecimal(..) can be called with an object of a derived class 
     if the system property h2.allowBigDecimalExtensions is set to true.
 </li><li>The default database name in the documentation is now jdbc:h2:~/test. Like this, the database
     is stored in the user home directory (system property user.home). Of course storing the database 

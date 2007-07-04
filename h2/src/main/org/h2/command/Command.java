@@ -44,6 +44,16 @@ public abstract class Command implements CommandInterface {
         throw Message.getSQLException(Message.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
+    public abstract LocalResult queryMeta() throws SQLException;
+
+    final public LocalResult getMetaDataLocal() throws SQLException {
+        return queryMeta();
+    }
+
+    final public ResultInterface getMetaData() throws SQLException {
+        return queryMeta();
+    }
+    
     public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
         return executeQueryLocal(maxrows);
     }
@@ -86,7 +96,7 @@ public abstract class Command implements CommandInterface {
         } else if (session.getAutoCommit()) {
             session.commit(false);
         } else if (Constants.MULTI_THREADED_KERNEL && session.getDatabase().getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
-        	session.unlockReadLocks();
+            session.unlockReadLocks();
         }
         if (trace.info()) {
             long time = System.currentTimeMillis() - startTime;

@@ -39,9 +39,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int RESULT_CLOSE = 7;
     public static final int COMMAND_COMMIT = 8;
     public static final int CHANGE_ID = 9;
+    public static final int COMMAND_GET_META_DATA = 10;
+    
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
     public static final int STATUS_CLOSED = 2;
+    
     private TraceSystem traceSystem;
     private Trace trace;
     private ObjectArray transferList;
@@ -119,7 +122,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
                     done(transfer);
                 } catch(IOException e) {
-                    removeServer(i);
+                    removeServer(i--);
                 }
             }
         }

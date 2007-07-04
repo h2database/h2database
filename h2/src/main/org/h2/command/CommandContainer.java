@@ -76,5 +76,9 @@ public class CommandContainer extends Command {
     public boolean isReadOnly() {
         return prepared.isReadOnly();
     }
+
+    public LocalResult queryMeta() throws SQLException {
+        return prepared.queryMeta();
+    }
     
 }

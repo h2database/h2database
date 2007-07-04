@@ -11,6 +11,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
@@ -159,6 +160,10 @@ public class Update extends Prepared {
 
     public boolean isTransactional() {
         return true;
+    }
+
+    public LocalResult queryMeta() {
+        return null;
     }
 
 }

@@ -299,6 +299,12 @@ public class Select extends Query {
         }
         result.addRow(row);
     }
+    
+    public LocalResult queryMeta() throws SQLException {
+        LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
+        result.done();
+        return result;
+    }
 
     public LocalResult queryWithoutCache(int maxrows) throws SQLException {
         if(maxrows != 0) {

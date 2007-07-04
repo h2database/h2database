@@ -31,6 +31,10 @@ public class ExplainPlan extends Prepared {
     public void prepare() throws SQLException {
         command.prepare();
     }
+    
+    public LocalResult queryMeta() throws SQLException {
+        return query(-1);
+    }
 
     public LocalResult query(int maxrows) throws SQLException {
         // TODO rights: are rights required for explain?
@@ -39,8 +43,10 @@ public class ExplainPlan extends Prepared {
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), null, column);
         expressions.add(expr);
         result = new LocalResult(session, expressions, 1);
-        String plan = command.getPlanSQL();
-        add(plan);
+        if(maxrows >= 0) {
+            String plan = command.getPlanSQL();
+            add(plan);
+        }
         result.done();
         return result;
     }

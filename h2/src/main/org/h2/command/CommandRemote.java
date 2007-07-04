@@ -30,24 +30,6 @@ public class CommandRemote implements CommandInterface {
     private String sql;
     private int paramCount;
     
-    private void prepare(SessionRemote session) throws SQLException {
-        id = session.getNextId();
-        paramCount = 0;
-        for(int i=0; i<transferList.size(); i++) {
-            try {
-                Transfer transfer = (Transfer) transferList.get(i);
-                session.traceOperation("SESSION_PREPARE", id);
-                transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
-                session.done(transfer);
-                isQuery = transfer.readBoolean();
-                readonly = transfer.readBoolean();
-                paramCount = transfer.readInt();
-            } catch(IOException e) {
-                session.removeServer(i);
-            }
-        }
-    }
-
     public CommandRemote(SessionRemote session, ObjectArray transferList, String sql) throws SQLException {
         this.transferList = transferList;
         trace = session.getTrace();
@@ -61,6 +43,24 @@ public class CommandRemote implements CommandInterface {
         this.session = session;
     }
 
+    private void prepare(SessionRemote session) throws SQLException {
+        id = session.getNextId();
+        paramCount = 0;
+        for(int i=0; i<transferList.size(); i++) {
+            try {
+                Transfer transfer = (Transfer) transferList.get(i);
+                session.traceOperation("SESSION_PREPARE", id);
+                transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
+                session.done(transfer);
+                isQuery = transfer.readBoolean();
+                readonly = transfer.readBoolean();
+                paramCount = transfer.readInt();
+            } catch(IOException e) {
+                session.removeServer(i--);
+            }
+        }
+    }
+    
     public boolean isQuery() {
         return isQuery;
     }
@@ -69,6 +69,41 @@ public class CommandRemote implements CommandInterface {
         return parameters;
     }
     
+    public ResultInterface getMetaData() throws SQLException {
+        synchronized(session) {
+            session.checkClosed();
+            if(!isQuery) {
+                return null;
+            }
+            if(id <= session.getCurrentId() - Constants.SERVER_CACHED_OBJECTS) {
+                // object is too old - we need to prepare again
+                prepare(session);
+            }
+            int objectId = session.getNextId();
+            ResultRemote result = null;
+            for(int i=0; i<transferList.size(); i++) {
+                Transfer transfer = (Transfer) transferList.get(i);
+                try {
+                    // TODO cluster: support load balance with values for each server / auto detect
+                    session.traceOperation("COMMAND_GET_META_DATA", id);
+                    transfer.writeInt(SessionRemote.COMMAND_GET_META_DATA).writeInt(id).writeInt(objectId);
+                    session.done(transfer);
+                    int columnCount = transfer.readInt();
+                    if(result != null) {
+                        result.close();
+                        result = null;
+                    }
+                    result = new ResultRemote(session, transfer, objectId, columnCount, -1);
+                    break;
+                } catch(IOException e) {
+                    session.removeServer(i--);
+                }
+            }
+            session.autoCommitIfCluster();
+            return result;
+        }
+    }
+
     public ResultInterface executeQuery(int maxRows, boolean scrollable) throws SQLException {
         checkParameters();        
         synchronized(session) {
@@ -104,7 +139,7 @@ public class CommandRemote implements CommandInterface {
                         break;
                     }
                 } catch(IOException e) {
-                    session.removeServer(i);
+                    session.removeServer(i--);
                 }
             }
             session.autoCommitIfCluster();
@@ -132,7 +167,7 @@ public class CommandRemote implements CommandInterface {
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
                 } catch(IOException e) {
-                    session.removeServer(i);
+                    session.removeServer(i--);
                 }
             }
             session.setAutoCommit(autoCommit);

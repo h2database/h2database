@@ -84,7 +84,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCodeCall("getMetaData");
             }
             checkClosed();
-            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(this, result, session.getTrace(), id);
+            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(this, null, result, session.getTrace(), id);
             return meta;
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -2827,7 +2827,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         throw Message.getSQLException(Message.COLUMN_NOT_FOUND_1, columnName);
     }
 
-    void checkColumnIndex(int columnIndex) throws SQLException {
+    private void checkColumnIndex(int columnIndex) throws SQLException {
         checkClosed();
         if (columnIndex < 1 || columnIndex > columnCount) {
             throw Message.getInvalidValueException("" + columnIndex, "columnIndex");

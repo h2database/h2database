@@ -18,6 +18,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.LogFile;
@@ -121,6 +122,10 @@ public class BackupCommand extends Prepared {
 
     public boolean needRecompile() {
         return false;
+    }
+
+    public LocalResult queryMeta() {
+        return null;
     }
 
 }

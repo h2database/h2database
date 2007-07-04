@@ -94,7 +94,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
-maybe another server server already
+ResultSet.close() required for large query (before the database can be deleted, even if conn.close is called)?
 
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)

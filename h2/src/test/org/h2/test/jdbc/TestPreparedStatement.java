@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
         
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testPreparedStatementMetaData(conn);
         testDate(conn);
         testArray(conn);
         testUUIDGeneratedKeys(conn);
@@ -47,6 +48,18 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
     }
     
+    private void testPreparedStatementMetaData(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("select * from table(x int = ?, name varchar = ?)");
+        ResultSetMetaData meta = prep.getMetaData();
+        check(meta.getColumnCount(), 2);
+        check(meta.getColumnTypeName(1), "INTEGER");
+        check(meta.getColumnTypeName(2), "VARCHAR");
+        prep = conn.prepareStatement("call 1");
+        meta = prep.getMetaData();
+        check(meta.getColumnCount(), 1);
+        check(meta.getColumnTypeName(1), "INTEGER");
+    }
+
     private void testArray(Connection conn) throws Exception {
         PreparedStatement prep = conn.prepareStatement("select * from table(x int = ?) order by x");
         prep.setObject(1, new Object[]{ new BigDecimal("1"), "2" });

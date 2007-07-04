@@ -10,6 +10,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 
 
 /**
@@ -127,6 +128,10 @@ public class TransactionCommand extends Prepared {
 
     public void setTransactionName(String string) {
         this.transactionName = string;
+    }
+
+    public LocalResult queryMeta() {
+        return null;
     }
 
 }

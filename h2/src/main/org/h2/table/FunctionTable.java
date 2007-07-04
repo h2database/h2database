@@ -131,7 +131,7 @@ public class FunctionTable extends Table {
     public LocalResult getResult(Session session) throws SQLException {
         function.optimize(session);
         ValueResultSet value = (ValueResultSet) function.getValue(session);
-        return LocalResult.read(session, value.getResultSet());
+        return LocalResult.read(session, value.getResultSet(), 0);
     }
 
     public long getMaxDataModificationId() {

@@ -19,21 +19,25 @@ public class CacheLRU implements Cache {
     
     public static final String TYPE_NAME = "LRU";
 
+    private final CacheWriter writer;
     private int len;
     private int maxSize;
     private CacheObject[] values;
     private int mask;
-    private CacheWriter writer;
     private int sizeRecords;
     private int sizeBlocks;
     private CacheObject head = new CacheHead();
 
     public CacheLRU(CacheWriter writer, int maxSize) {
         this.writer = writer;
-        this.len = maxSize / 2;
+        resize(maxSize);
+    }
+    
+    private void resize(int maxSize) {
+    	this.maxSize = maxSize;
+        this.len = MathUtils.nextPowerOf2(maxSize / 2);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
-        this.maxSize = maxSize;
         clear();
     }
 
@@ -242,7 +246,9 @@ public class CacheLRU implements Cache {
     }
     
     public void setMaxSize(int newSize) throws SQLException {
-        maxSize = newSize < 0 ? 0 : newSize;
+        newSize = newSize < 0 ? 0 : newSize;
+        // can not resize, otherwise
+        // resize(maxSize);
         removeOld();
     }
     

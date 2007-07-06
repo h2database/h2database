@@ -1233,7 +1233,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
             debugCodeCall("executeQuery", "CALL IDENTITY()");
         }
-        ResultSet rs = new JdbcResultSet(session, this, statement, result, id, false);
+        ResultSet rs = new JdbcResultSet(session, this, statement, result, id, false, true);
         return rs;
      }
     

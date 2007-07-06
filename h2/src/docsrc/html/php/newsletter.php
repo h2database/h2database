@@ -3,15 +3,14 @@ Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http:/
 Initial Developer: H2 Group
 -->
 <?
-$spam2 = ("false" == $spam) ? "" : "SPAM";
 $now = date('Y-m-d H:i:s');
 $body = "Email: $email
 Message:
 $text
 ";
 $headers = 'From: newsletter@h2database.com' . "\r\n" .
-   'X-Mailer: PHP/' . phpversion();
-mail("dbsupport@h2database.com", "[H2 Newsletter] $now $spam2", $body, $headers);
+   'X-Mailer: PHP/' . phpversion();S
+mail("dbsupport@h2database.com", "[H2 Newsletter] $now", $body, $headers);
 ?>
 <html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 H2 Database

@@ -22,7 +22,7 @@ public class TestUpdatableResultSet extends TestBase {
     private void testScroll() throws Exception {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement();
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World'), (3, 'Test')");
         

@@ -60,17 +60,17 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             CommandInterface command=conn.prepareCommand(sql);
             ResultInterface result;
+            boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
             synchronized(session) {
                 setExecutingStatement(command);
                 try {
-                    boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                     result = command.executeQuery(maxRows, scrollable);
                 } finally {
                     setExecutingStatement(null);
                 }
             }
             command.close();
-            resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet);
+            resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             return resultSet;
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -149,7 +149,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet);
+                        resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
                     } else {
                         returnsResultSet = false;
                         updateCount = command.executeUpdate();

@@ -188,7 +188,8 @@ public class TestFunctions extends TestBase {
     }
 
     public static ResultSet select(Connection conn, String sql) throws SQLException {
-        return conn.createStatement().executeQuery(sql);
+    	Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+    	return stat.executeQuery(sql);
     }
 
     public static ResultSet selectMaxId(Connection conn) throws SQLException {

@@ -82,16 +82,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             checkClosed();
             closeOld();
             ResultInterface result;
+            boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
             synchronized(session) {
                 try {
                     setExecutingStatement(command);
-                    boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                     result = command.executeQuery(maxRows, scrollable);
                 } finally {
                     setExecutingStatement(null);
                 }
             }
-            resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet);
+            resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             return resultSet;
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -155,7 +155,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet);
+                        resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
                     } else {
                         returnsResultSet = false;
                         updateCount = command.executeUpdate();

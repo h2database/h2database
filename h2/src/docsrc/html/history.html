@@ -37,7 +37,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>PreparedStatement.getMetaData is now implemented.
+<li>If large result sets (backed by a temporary file) where not closed, the file was not deleted.
+	Now, the default result set type is FETCH_FORWARD. This means temp files are deleted
+	automatically (without having to close the result set explicitly). But it also means 
+	ResultSet.beforeFirst can only be called for scrollable result sets. To create a scrollable resut set,
+	use Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).
+</li><li>PreparedStatement.getMetaData is now implemented.
 </li><li>Now PreparedStatement.setBigDecimal(..) can be called with an object of a derived class 
     if the system property h2.allowBigDecimalExtensions is set to true.
 </li><li>The default database name in the documentation is now jdbc:h2:~/test. Like this, the database

@@ -16,10 +16,10 @@ import org.h2.message.Message;
 public class Cache2Q implements Cache {
     
     public static final String TYPE_NAME = "TQ";
-    
     private static final int MAIN = 1, IN = 2, OUT = 3;
+    
+    private final CacheWriter writer;
     private int maxSize;
-    private CacheWriter writer;
     private int percentIn = 20, percentOut = 50;
     private int maxMain, maxIn, maxOut; 
     private CacheObject headMain = new CacheHead();
@@ -32,10 +32,14 @@ public class Cache2Q implements Cache {
     
     public Cache2Q(CacheWriter writer, int maxSize) {
         this.writer = writer;
-        this.maxSize = maxSize;
-        this.len = maxSize / 2;
-        MathUtils.checkPowerOf2(len);
+        resize(maxSize);
+    }
+    
+    private void resize(int maxSize) {
+    	this.maxSize = maxSize;
+        this.len = MathUtils.nextPowerOf2(maxSize / 2);
         this.mask = len - 1;
+        MathUtils.checkPowerOf2(len);
         clear();
     }
     
@@ -306,6 +310,7 @@ public class Cache2Q implements Cache {
     public void setMaxSize(int newSize) throws SQLException {
         maxSize = newSize < 0 ? 0 : newSize;
         recalculateMax();
+        // resize(maxSize);
         removeOld();
     }
     

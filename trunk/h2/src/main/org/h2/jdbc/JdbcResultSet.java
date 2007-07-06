@@ -46,7 +46,9 @@ import org.h2.value.ValueTimestamp;
  * and if it contains all columns of a unique index (primary key or other) of this table.
  */
 public class JdbcResultSet extends TraceObject implements ResultSet {
-    private SessionInterface session;
+    private final SessionInterface session;
+    private final boolean closeStatement;
+    private final boolean scrollable;
     private ResultInterface result;
     private JdbcConnection conn;
     private JdbcStatement stat;
@@ -54,7 +56,17 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private boolean wasNull;
     private Value[] insertRow;
     private Value[] updateRow;
-    private boolean closeStatement;
+
+    JdbcResultSet(SessionInterface session, JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id, boolean closeStatement, boolean scrollable) {
+        setTrace(session.getTrace(), TraceObject.RESULT_SET, id);
+        this.session = session;
+        this.conn = conn;
+        this.stat = stat;
+        this.result = result;
+        columnCount = result.getVisibleColumnCount();
+        this.closeStatement = closeStatement;
+        this.scrollable = scrollable;
+    }
 
     /**
      * Moves the cursor to the next row of the result set.
@@ -65,7 +77,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("next");
             checkClosed();
-            return result.next();
+            return nextRow();
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -2481,7 +2493,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("beforeFirst");
             checkClosed();
-            result.reset();
+            if(result.getRowId() >= 0) {
+            	resetResult();
+            }
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -2496,7 +2510,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("afterLast");
             checkClosed();
-            while (result.next()) {
+            while (nextRow()) {
                 // nothing
             }
         } catch(Throwable e) {
@@ -2514,8 +2528,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("first");
             checkClosed();
-            result.reset();
-            return result.next();
+            if(result.getRowId() < 0) {
+            	return nextRow();
+            } else {
+            	resetResult();
+            	return nextRow();
+            }
         } catch(Throwable e) {
             throw logAndConvert(e);
         }
@@ -2555,14 +2573,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             } else if (rowNumber > result.getRowCount() + 1) {
                 rowNumber = result.getRowCount() + 1;
             }
-//            if (rowNumber == 0) {
-//                throw Message.getInvalidValueException("" + rowNumber, "rowNumber");
-//            } else
             if (rowNumber <= result.getRowId()) {
-                result.reset();
+                resetResult();
             }
             while (result.getRowId() + 1 < rowNumber) {
-                result.next();
+                nextRow();
             }
             int row = result.getRowId();
             return row >= 0 && row < result.getRowCount();
@@ -2786,16 +2801,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     // =============================================================
 
-    JdbcResultSet(SessionInterface session, JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id, boolean closeStatement) {
-        setTrace(session.getTrace(), TraceObject.RESULT_SET, id);
-        this.session = session;
-        this.conn = conn;
-        this.stat = stat;
-        this.result = result;
-        columnCount = result.getVisibleColumnCount();
-        this.closeStatement = closeStatement;
-    }
-
     private UpdatableRow getUpdatableRow() throws SQLException {
         UpdatableRow row = new UpdatableRow(conn, result, session);
         if(!row.isUpdatable()) {
@@ -2892,6 +2897,21 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     JdbcConnection getConnection() {
         return conn;
+    }
+    
+    private boolean nextRow() throws SQLException {
+    	boolean next = result.next();
+    	if(!next && !scrollable) {
+    		result.close();
+    	}
+    	return next;
+    }
+
+    private void resetResult() throws SQLException {
+    	if(!scrollable) {
+    		throw Message.getSQLException(Message.RESULT_SET_NOT_SCROLLABLE);
+    	}
+    	result.reset();
     }
 
     /**

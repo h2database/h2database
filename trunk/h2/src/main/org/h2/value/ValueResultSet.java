@@ -14,20 +14,22 @@ import org.h2.tools.SimpleResultSet;
 
 public class ValueResultSet extends Value {
 
-    private ResultSet result;
+    private final ResultSet result;
+    
+    private ValueResultSet(ResultSet rs) {
+    	this.result = rs;
+    }
     
     public static ValueResultSet get(ResultSet rs) throws SQLException {
-        ValueResultSet val = new ValueResultSet();
-        val.result = rs;
+        ValueResultSet val = new ValueResultSet(rs);
         return val;
     }
     
     public static ValueResultSet getCopy(ResultSet rs, int maxrows) throws SQLException {
-        ValueResultSet val = new ValueResultSet();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
-        val.result = simple;
+        ValueResultSet val = new ValueResultSet(simple);
         for(int i=0; i<columnCount; i++) {
             String name = meta.getColumnLabel(i+1);
             int sqlType = meta.getColumnType(i+1);

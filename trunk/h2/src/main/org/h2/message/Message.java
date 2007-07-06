@@ -330,6 +330,7 @@ public class Message {
     public static final int INVALID_CLASS_2 = 90125;
     public static final int DATABASE_IS_NOT_PERSISTENT = 90126;
     public static final int RESULT_SET_NOT_UPDATABLE = 90127;
+    public static final int RESULT_SET_NOT_SCROLLABLE = 90128;
 
     public static SQLException addSQL(SQLException e, String sql) {
         if(e instanceof JdbcSQLException) {

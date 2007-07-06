@@ -312,11 +312,11 @@ public class Database implements DataHandler {
     }
 
     private void openFileData() throws SQLException {
-        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, accessModeData, true, true, Constants.DEFAULT_CACHE_SIZE);
+        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, accessModeData, true, true, Constants.CACHE_SIZE_DEFAULT);
     }
 
     private void openFileIndex() throws SQLException {
-        fileIndex = new DiskFile(this, databaseName+Constants.SUFFIX_INDEX_FILE, accessModeData, false, logIndexChanges, Constants.DEFAULT_CACHE_SIZE_INDEX);
+        fileIndex = new DiskFile(this, databaseName+Constants.SUFFIX_INDEX_FILE, accessModeData, false, logIndexChanges, Constants.CACHE_SIZE_INDEX_DEFAULT);
     }
 
     public DataPage getDataPage() {
@@ -519,7 +519,7 @@ public class Database implements DataHandler {
         addDefaultSetting(SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
         addDefaultSetting(SetTypes.TRACE_LEVEL_FILE, null, traceSystem.getLevelFile());
         addDefaultSetting(SetTypes.TRACE_LEVEL_SYSTEM_OUT, null, traceSystem.getLevelSystemOut());
-        addDefaultSetting(SetTypes.CACHE_SIZE, null, Constants.DEFAULT_CACHE_SIZE);
+        addDefaultSetting(SetTypes.CACHE_SIZE, null, Constants.CACHE_SIZE_DEFAULT);
         addDefaultSetting(SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         removeUnusedStorages();

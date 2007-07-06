@@ -94,11 +94,10 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
-ResultSet.close() required for large query (before the database can be deleted, even if conn.close is called)?
-
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)
+
 
 set read-committed as the default
 
@@ -110,8 +109,6 @@ java org.h2.test.TestAll halt
 timer test
 
 backup.sql / lob file problem
-
-Change documentation and default database for H2 Console: jdbc:h2:~/test
 
 Mail http://sf.net/projects/samooha
 
@@ -172,6 +169,8 @@ drop table test;
 CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
 INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
 SELECT * FROM TEST;
+
+Cache size in KB
 
 */        
 

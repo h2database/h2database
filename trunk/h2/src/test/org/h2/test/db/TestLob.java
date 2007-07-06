@@ -35,23 +35,23 @@ public class TestLob extends TestBase {
         if(config.memory) {
             return;
         }
-//        testLobNoClose();
-//        testLobTransactions(10);
+        testLobNoClose();
+        testLobTransactions(10);
         testLobTransactions(10000);
-//        testLobRollbackStop();
-//        testLobCopy();
-//        testLobHibernate();
-//        testLobCopy(false);
-//        testLobCopy(true);
-//        testLobCompression(false);
-//        testLobCompression(true);
-//        testManyLobs();
-//        testClob();
-//        testUpdateLob();
-//        testLobReconnect();
-//        testLob(false);
-//        testLob(true);
-//        testJavaObject();
+        testLobRollbackStop();
+        testLobCopy();
+        testLobHibernate();
+        testLobCopy(false);
+        testLobCopy(true);
+        testLobCompression(false);
+        testLobCompression(true);
+        testManyLobs();
+        testClob();
+        testUpdateLob();
+        testLobReconnect();
+        testLob(false);
+        testLob(true);
+        testJavaObject();
     }
     
     private void testLobNoClose() throws Exception {
@@ -90,8 +90,7 @@ public class TestLob extends TestBase {
         if(config.logMode == 0) {
             return;
         }
-int testing;
-Constants.LOB_CLOSE_BETWEEN_READS = true;
+		// Constants.LOB_CLOSE_BETWEEN_READS = true;
 
         deleteDb("lob");
         Connection conn = reconnect(null);

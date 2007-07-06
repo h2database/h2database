@@ -5,7 +5,9 @@
 package org.h2.test.db;
 
 import java.sql.*;
+import java.util.ArrayList;
 
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
 public class TestBigResult extends TestBase {
@@ -13,11 +15,30 @@ public class TestBigResult extends TestBase {
         if(config.memory) {
             return;
         }
+        testCloseConnectionDelete();
         testOrderGroup();
         testLimitBufferedResult();
     }
     
-    private void testLimitBufferedResult() throws Exception {
+    private void testCloseConnectionDelete() throws Exception {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        stat.execute("SET MAX_MEMORY_ROWS 2");
+        ResultSet rs = stat.executeQuery("SELECT * FROM SYSTEM_RANGE(1, 100)");
+        while(rs.next()) {
+        	// ignore
+        }
+        // rs.close();
+        conn.close();
+        deleteDb("bigResult");
+        ArrayList files = FileLister.getDatabaseFiles(BASE_DIR, "bigResult", true);
+        if(files.size() > 0) {
+        	error("file not deleted: " + files.get(0));
+        }
+	}
+
+	private void testLimitBufferedResult() throws Exception {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();

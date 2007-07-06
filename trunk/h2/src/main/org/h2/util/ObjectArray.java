@@ -48,15 +48,15 @@ public class ObjectArray {
     }
 
     public void add(Object value) {
-    	if(size >= data.length) {
-    		ensureCapacity(size);
-    	}
+        if(size >= data.length) {
+            ensureCapacity(size);
+        }
         data[size++] = value;
     }
 
     public Object get(int i) {
         if (Constants.CHECK && i >= size) {
-        	throwException(i);
+            throwException(i);
         }
         return data[i];
     }
@@ -64,7 +64,7 @@ public class ObjectArray {
     public Object remove(int i) {
         // TODO performance: the app should (where possible) remove from end to start, to avoid O(n^2)
         if (Constants.CHECK && i >= size) {
-        	throwException(i);
+            throwException(i);
         }
         Object value = data[i];
         System.arraycopy(data, i + 1, data, i, size - i - 1);
@@ -100,7 +100,7 @@ public class ObjectArray {
 
     public void add(int i, Object value) {
         if (Constants.CHECK && i > size) {
-        	throwException(i);
+            throwException(i);
         }
         ensureCapacity(size);
         if (i == size) {
@@ -114,7 +114,7 @@ public class ObjectArray {
 
     public void set(int i, Object value) {
         if (Constants.CHECK && i >= size) {
-        	throwException(i);
+            throwException(i);
         }
         data[i] = value;
     }

@@ -71,9 +71,9 @@ public class MetaTable extends Table {
     private MetaIndex index;
     private int indexColumn;
 
-    public MetaTable(Schema schema, int type) throws SQLException {
+    public MetaTable(Schema schema, int id, int type) throws SQLException {
         // tableName will be set later
-        super(schema, 0, null, true);
+        super(schema, id, null, true);
         this.type = type;
         Column[] cols;
         String indexColumnName = null;
@@ -139,7 +139,8 @@ public class MetaTable extends Table {
                     "ASC_OR_DESC",
                     "PAGES INT",
                     "FILTER_CONDITION",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -197,7 +198,8 @@ public class MetaTable extends Table {
                     "CURRENT_VALUE BIGINT",
                     "INCREMENT BIGINT",
                     "IS_GENERATED BIT",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             break;
         case USERS:
@@ -205,14 +207,16 @@ public class MetaTable extends Table {
             cols = createColumns(new String[]{
                     "NAME",
                     "ADMIN",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             break;
         case ROLES:
             setObjectName("ROLES");
             cols = createColumns(new String[]{
                     "NAME",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             break;
         case RIGHTS:
@@ -223,7 +227,8 @@ public class MetaTable extends Table {
                     "GRANTEDROLE",
                     "RIGHTS",
                     "TABLE_SCHEMA",
-                    "TABLE_NAME"
+                    "TABLE_NAME",
+                    "ID INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -238,7 +243,8 @@ public class MetaTable extends Table {
                     "DATA_TYPE INT",
                     "COLUMN_COUNT INT",
                     "RETURNS_RESULT SMALLINT",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             break;
         case FUNCTION_COLUMNS:
@@ -270,7 +276,8 @@ public class MetaTable extends Table {
                     "DEFAULT_CHARACTER_SET_NAME",
                     "DEFAULT_COLLATION_NAME",
                     "IS_DEFAULT BIT",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             break;
         case TABLE_PRIVILEGES:
@@ -317,7 +324,8 @@ public class MetaTable extends Table {
                     "CHECK_OPTION",
                     "IS_UPDATABLE",
                     "STATUS",
-                    "REMARKS"
+                    "REMARKS",
+                    "ID INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -362,6 +370,7 @@ public class MetaTable extends Table {
                     "COLUMN_LIST",
                     "REMARKS",
                     "SQL",
+                    "ID INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -374,6 +383,7 @@ public class MetaTable extends Table {
                     "DATA_TYPE SMALLINT",
                     "REMARKS",
                     "SQL",
+                    "ID INT"
             });
             break;
         case DOMAINS:
@@ -392,6 +402,7 @@ public class MetaTable extends Table {
                     "CHECK_CONSTRAINT",
                     "REMARKS",
                     "SQL",
+                    "ID INT"
             });
             break;
         case TRIGGERS:
@@ -410,6 +421,7 @@ public class MetaTable extends Table {
                     "NO_WAIT BIT",
                     "REMARKS",
                     "SQL",
+                    "ID INT"
             });
             break;
         default:
@@ -614,7 +626,8 @@ public class MetaTable extends Table {
                                 "A", // ASC_OR_DESC
                                 "0", // PAGES
                                 "", // FILTER_CONDITION
-                                replaceNullWithEmpty(index.getComment()) // REMARKS
+                                replaceNullWithEmpty(index.getComment()), // REMARKS
+                                "" + index.getId() // ID
                             });
                     }
                 }
@@ -760,7 +773,8 @@ public class MetaTable extends Table {
                         String.valueOf(s.getCurrentValue()), // CURRENT_VALUE
                         String.valueOf(s.getIncrement()), // INCREMENT
                         s.getBelongsToTable() ? "TRUE" : "FALSE", // IS_GENERATED
-                        replaceNullWithEmpty(s.getComment()) // REMARKS
+                        replaceNullWithEmpty(s.getComment()), // REMARKS
+                        "" + s.getId() // ID
                     });
             }
             break;
@@ -772,7 +786,8 @@ public class MetaTable extends Table {
                 add(rows,new String[]{
                         identifier(u.getName()), // NAME
                         String.valueOf(u.getAdmin()), // ADMIN
-                        replaceNullWithEmpty(u.getComment()) // REMARKS
+                        replaceNullWithEmpty(u.getComment()), // REMARKS
+                        "" + u.getId() //
                 });
             }
             break;
@@ -783,7 +798,8 @@ public class MetaTable extends Table {
                 Role r = (Role) roles.get(i);
                 add(rows,new String[]{
                         identifier(r.getName()), // NAME
-                        replaceNullWithEmpty(r.getComment()) // REMARKS
+                        replaceNullWithEmpty(r.getComment()), // REMARKS
+                        "" + r.getId() // ID
                 });
             }
             break;
@@ -792,7 +808,6 @@ public class MetaTable extends Table {
             ObjectArray rights = database.getAllRights();
             for(int i=0; i<rights.size(); i++) {
                 Right r = (Right) rights.get(i);
-                // "GRANTEE", "GRANTEETYPE", "GRANTEDROLE", "RIGHTS", "TABLE"
                 Role role = r.getGrantedRole();
                 DbObject grantee = r.getGrantee();
                 String type = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
@@ -803,21 +818,23 @@ public class MetaTable extends Table {
                         continue;
                     }
                     add(rows,new String[]{
-                            identifier(grantee.getName()),
-                            type,
-                            "",
-                            r.getRights(),
-                            identifier(granted.getSchema().getName()),
-                            identifier(granted.getName())
+                            identifier(grantee.getName()), // GRANTEE
+                            type, // GRANTEETYPE
+                            "", // GRANTEDROLE
+                            r.getRights(), // RIGHTS
+                            identifier(granted.getSchema().getName()), // TABLE_SCHEMA
+                            identifier(granted.getName()), // TABLE_NAME
+                            "" + r.getId() // ID
                     });
                 } else {
                     add(rows,new String[]{
-                            identifier(grantee.getName()),
-                            type,
-                            identifier(role.getName()),
-                            "",
-                            "",
-                            ""
+                            identifier(grantee.getName()), // GRANTEE
+                            type, // GRANTEETYPE
+                            identifier(role.getName()), // GRANTEDROLE
+                            "", // RIGHTS
+                            "", // TABLE_SCHEMA
+                            "", // TABLE_NAME
+                            "" + r.getId() // ID
                     });
                 }
             }
@@ -837,7 +854,8 @@ public class MetaTable extends Table {
                         ""+DataType.convertTypeToSQLType(alias.getDataType()), // DATA_TYPE
                         ""+ alias.getColumnClasses().length, // COLUMN_COUNT INT
                         ""+ returnsResult, // RETURNS_RESULT SMALLINT
-                        replaceNullWithEmpty(alias.getComment()) // REMARKS
+                        replaceNullWithEmpty(alias.getComment()), // REMARKS
+                        "" + alias.getId() // ID
                 });
             }
             break;
@@ -885,7 +903,8 @@ public class MetaTable extends Table {
                         Constants.CHARACTER_SET_NAME, // DEFAULT_CHARACTER_SET_NAME
                         collation, // DEFAULT_COLLATION_NAME
                         Constants.SCHEMA_MAIN.equals(schema.getName()) ? "TRUE" : "FALSE", // IS_DEFAULT
-                        replaceNullWithEmpty(schema.getComment()) // REMARKS
+                        replaceNullWithEmpty(schema.getComment()), // REMARKS
+                        "" + schema.getId() // ID
                 });
             }
             break;
@@ -959,7 +978,8 @@ public class MetaTable extends Table {
                         "NONE", // CHECK_OPTION
                         "NO", // IS_UPDATABLE
                         view.getInvalid() ? "INVALID" : "VALID", // STATUS
-                        replaceNullWithEmpty(view.getComment()) // REMARKS
+                        replaceNullWithEmpty(view.getComment()), // REMARKS
+                        "" + view.getId() // ID
                 });
             }
             break;
@@ -1056,6 +1076,7 @@ public class MetaTable extends Table {
                         columnList, // COLUMN_LIST
                         replaceNullWithEmpty(constraint.getComment()), // REMARKS
                         constraint.getCreateSQL(), // SQL
+                        "" + constraint.getId() // ID
                     });
             }
             break;
@@ -1072,6 +1093,7 @@ public class MetaTable extends Table {
                         "" + DataType.convertTypeToSQLType(expr.getType()), // CONSTANT_TYPE
                         replaceNullWithEmpty(constant.getComment()), // REMARKS
                         expr.getSQL(), // SQL
+                        "" + constant.getId() // ID
                     });
             }
             break;
@@ -1094,7 +1116,8 @@ public class MetaTable extends Table {
                         "" + col.getSelectivity(), // SELECTIVITY INT
                         "" + col.getCheckConstraintSQL(session, "VALUE"), // CHECK_CONSTRAINT
                         replaceNullWithEmpty(dt.getComment()), // REMARKS
-                        "" + dt.getCreateSQL() // SQL
+                        "" + dt.getCreateSQL(), // SQL
+                        "" + dt.getId() // ID
                 });
             }
             break;
@@ -1117,7 +1140,8 @@ public class MetaTable extends Table {
                         "" + trigger.getQueueSize(), // QUEUE_SIZE INT
                         "" + trigger.getNoWait(), // NO_WAIT BIT
                         replaceNullWithEmpty(trigger.getComment()), // REMARKS
-                        trigger.getSQL() // SQL
+                        trigger.getSQL(), // SQL
+                        "" + trigger.getId() // ID
                 });
             }
             break;

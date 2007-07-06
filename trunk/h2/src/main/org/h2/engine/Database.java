@@ -614,7 +614,7 @@ public class Database implements DataHandler {
     }
 
     private void addMetaData(int type) throws SQLException {
-        MetaTable m = new MetaTable(infoSchema, type);
+        MetaTable m = new MetaTable(infoSchema, -1-type, type);
         infoSchema.add(m);
     }
 

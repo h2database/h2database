@@ -37,7 +37,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>If large result sets (backed by a temporary file) where not closed, the file was not deleted.
+<li>New column ID for INFORMATION_SCHEMA.INDEXES, SEQUENCES, USERS, ROLES, RIGHTS, 
+	FUNCTION_ALIASES, SCHEMATA, VIEWS, CONSTRAINTS, CONSTANTS, DOMAINS, TRIGGERS.
+</li><li>If large result sets (backed by a temporary file) where not closed, the file was not deleted.
 	Now, the default result set type is FETCH_FORWARD. This means temp files are deleted
 	automatically (without having to close the result set explicitly). But it also means 
 	ResultSet.beforeFirst can only be called for scrollable result sets. To create a scrollable resut set,

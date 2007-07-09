@@ -134,6 +134,7 @@ public class TestScriptReader extends TestBase {
         check(source.readStatement(),"/*;\n*/");
         check(source.readStatement(),"//;\na");
         check(source.readStatement(), null);
+        source.close();
     }
 
 }

@@ -20,6 +20,7 @@ public class Mode {
     public boolean roundWhenConvertToLong ;
     public boolean lowerCaseIdentifiers;
     public boolean indexDefinitionInCreateTable;
+    public boolean systemColumns;
 
     private static final HashMap MODES = new HashMap();
     
@@ -41,6 +42,7 @@ public class Mode {
         mode = new Mode("PostgreSQL");
         mode.nullConcatIsNull = true;
         mode.roundWhenConvertToLong = true;
+        mode.systemColumns = true;
         add(mode);
         
         mode = new Mode("MySQL");

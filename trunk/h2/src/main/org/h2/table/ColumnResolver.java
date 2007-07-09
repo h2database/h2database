@@ -13,6 +13,7 @@ public interface ColumnResolver {
 
     String getTableAlias();
     Column[] getColumns();
+    Column[] getSystemColumns();
     String getSchemaName();
     Value getValue(Column column) throws SQLException;
     TableFilter getTableFilter();

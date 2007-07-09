@@ -32,6 +32,7 @@ import org.h2.command.ddl.CreateTrigger;
 import org.h2.command.ddl.CreateUser;
 import org.h2.command.ddl.CreateUserDataType;
 import org.h2.command.ddl.CreateView;
+import org.h2.command.ddl.DeallocateProcedure;
 import org.h2.command.ddl.DropConstant;
 import org.h2.command.ddl.DropDatabase;
 import org.h2.command.ddl.DropFunctionAlias;
@@ -45,11 +46,13 @@ import org.h2.command.ddl.DropUser;
 import org.h2.command.ddl.DropUserDataType;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
+import org.h2.command.ddl.PrepareProcedure;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.Delete;
+import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.ExplainPlan;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
@@ -70,6 +73,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Mode;
+import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
@@ -241,14 +245,18 @@ public class Parser {
             expected = null;
         }
         parameters = new ObjectArray();
-        int start = lastParseIndex;
         currentSelect = null;
         currentPrepared = null;
         prepared = null;
-        Prepared c = null;
         recompileAlways = false;
         indexedParameterList = null;
         read();
+        return parsePrepared();
+    }
+    
+    private Prepared parsePrepared() throws SQLException {
+        int start = lastParseIndex;
+        Prepared c = null;
          String token = currentToken;
         if(token.length()==0) {
             c = new NoOperation(session);
@@ -291,11 +299,15 @@ public class Parser {
                 } else if (readIf("DECLARE")) {
                     // support for DECLARE GLOBAL TEMPORARY TABLE...
                     c = parseCreate();
+                } else if (readIf("DEALLOCATE")) {
+                    c = parseDeallocate();
                 }
                 break;
             case 'E':
                 if (readIf("EXPLAIN")) {
                     c = parseExplain();
+                } else if(readIf("EXECUTE")) {
+                    c = parseExecute();
                 }
                 break;
             case 'F':
@@ -325,7 +337,7 @@ public class Parser {
                 break;
             case 'P':
                 if(readIf("PREPARE")) {
-                    c = parsePrepareCommit();
+                    c = parsePrepare();
                 }
                 break;
             case 'R':
@@ -487,10 +499,29 @@ public class Parser {
         return command;
     }
 
-    private TransactionCommand parsePrepareCommit() throws SQLException {
-        TransactionCommand command = new TransactionCommand(session, TransactionCommand.PREPARE_COMMIT);
-        read("COMMIT");
-        command.setTransactionName(readUniqueIdentifier());
+    private Prepared parsePrepare() throws SQLException {
+        if(readIf("COMMIT")) {
+            TransactionCommand command = new TransactionCommand(session, TransactionCommand.PREPARE_COMMIT);
+            command.setTransactionName(readUniqueIdentifier());
+            return command;
+        }
+        String procedureName = readAliasIdentifier();
+        if(readIf("(")) {
+            ObjectArray list = new ObjectArray();
+            for(int i=0; ; i++) {
+                Column column = parseColumnForTable("C" + i);
+                list.add(column);
+                if(readIf(")")) {
+                    break;
+                }
+                read(",");
+            }
+        }
+        read("AS");
+        Prepared prep = parsePrepared();
+        PrepareProcedure command = new PrepareProcedure(session);
+        command.setProcedureName(procedureName);
+        command.setPrepared(prep);
         return command;
     }
 
@@ -1061,6 +1092,34 @@ public class Parser {
             }
         }
         return top;
+    }
+    
+    private Prepared parseExecute() throws SQLException {
+        ExecuteProcedure command = new ExecuteProcedure(session);
+        String procedureName = readAliasIdentifier();
+        Procedure p = session.getProcedure(procedureName);
+        if(p==null) {
+            throw Message.getSQLException(Message.FUNCTION_ALIAS_NOT_FOUND_1, procedureName);
+        }
+        command.setProcedure(p);
+        if(readIf("(")) {
+            for(int i=0; ; i++) {
+                command.setExpression(i, readExpression());
+                if(readIf(")")) {
+                    break;
+                }
+                read(",");
+            }
+        }
+        return command;
+    }
+    
+    private DeallocateProcedure parseDeallocate() throws SQLException {
+        readIf("PLAN");
+        String procedureName = readAliasIdentifier();
+        DeallocateProcedure command = new DeallocateProcedure(session);
+        command.setProcedureName(procedureName);
+        return command;
     }
 
     private ExplainPlan parseExplain() throws SQLException {
@@ -3382,21 +3441,25 @@ public class Parser {
 
     private Prepared parseSet() throws SQLException {
         if(readIf("AUTOCOMMIT")) {
+            readIf("=");
             boolean value = readBooleanSetting();
             int setting = value ? TransactionCommand.AUTOCOMMIT_TRUE : TransactionCommand.AUTOCOMMIT_FALSE;
             return new TransactionCommand(session, setting);
         } else if(readIf("IGNORECASE")) {
+            readIf("=");            
             boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.IGNORECASE);
             command.setInt(value ? 1 : 0);
             return command;
         } else if(readIf("PASSWORD")) {
+            readIf("=");            
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
             command.setPassword(readString());
             return command;
         } else if(readIf("SALT")) {
+            readIf("=");            
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
@@ -3405,10 +3468,12 @@ public class Parser {
             command.setHash(readString());
             return command;
         } else if(readIf("MODE")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.MODE);
             command.setString(readAliasIdentifier());
             return command;
         } else if(readIf("COMPRESS_LOB")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.COMPRESS_LOB);
             if(currentTokenType == VALUE) {
                 command.setString(readString());
@@ -3417,31 +3482,37 @@ public class Parser {
             }
             return command;
         } else if(readIf("DATABASE")) {
+            readIf("=");            
             read("COLLATION");
             return parseSetCollation();
         } else if(readIf("COLLATION")) {
+            readIf("=");            
             return parseSetCollation();
         } else if(readIf("CLUSTER")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.CLUSTER);
             command.setString(readString());
             return command;
         } else if(readIf("DATABASE_EVENT_LISTENER")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.DATABASE_EVENT_LISTENER);
             command.setString(readString());
             return command;
         } else if(readIf("ALLOW_LITERALS")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.ALLOW_LITERALS);
             if(readIf("NONE")) {
                 command.setInt(Constants.ALLOW_LITERALS_NONE);
             } else if(readIf("ALL")) {
                 command.setInt(Constants.ALLOW_LITERALS_ALL);
-            } else if(readIf("NUMBERS")){
+            } else if(readIf("NUMBERS")) {
                 command.setInt(Constants.ALLOW_LITERALS_NUMBERS);
             } else {
                 command.setInt(getPositiveInt());
             }
             return command;
         } else if(readIf("DEFAULT_TABLE_TYPE")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.DEFAULT_TABLE_TYPE);
             if(readIf("MEMORY")) {
                 command.setInt(Table.TYPE_MEMORY);
@@ -3452,40 +3523,56 @@ public class Parser {
             }
             return command;
         } else if(readIf("CREATE")) {
+            readIf("=");
             // Derby compatibility (CREATE=TRUE in the database URL)
             read();
             return new NoOperation(session);
         } else if(readIf("HSQLDB.DEFAULT_TABLE_TYPE")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("CACHE_TYPE")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("FILE_LOCK")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("STORAGE")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("DB_CLOSE_ON_EXIT")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_LOG")) {
+            readIf("=");
             read();
             return new NoOperation(session);
         } else if(readIf("ASSERT")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_DATA")) {
+            readIf("=");            
             read();
             return new NoOperation(session);
         } else if(readIf("RECOVER")) {
+            readIf("=");            
             read();
             return new NoOperation(session);            
         } else if(readIf("SCHEMA")) {
+            readIf("=");            
             Set command = new Set(session, SetTypes.SCHEMA);
             command.setString(readAliasIdentifier());
             return command;
+        } else if(readIf("DATESTYLE")) {
+            // PostgreSQL compatibility
+            readIf("=");
+            read("ISO");
+            return new NoOperation(session);
         } else {
             if(isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -3494,6 +3581,7 @@ public class Parser {
             int type = SetTypes.getType(currentToken);
             if(type >= 0) {
                 read();
+                readIf("=");                
                 Set command = new Set(session, type);
                 command.setExpression(readExpression());
                 return command;

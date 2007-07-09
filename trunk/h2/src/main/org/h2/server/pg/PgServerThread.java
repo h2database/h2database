@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,61 +29,14 @@ import java.util.HashMap;
 
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
+import org.h2.util.StringUtils;
 
 /**
+ * This class implements a subset of the PostgreSQL protocol as described here:
+ * http://developer.postgresql.org/pgdocs/postgres/protocol.html
+ * The PostgreSQL catalog is described here:
+ * http://www.postgresql.org/docs/7.4/static/view-pg-user.html 
  * @author Thomas
- */
-
-/*
-
-SELECT NULL AS TABLE_CAT, n.nspname AS TABLE_SCHEM, 
-c.relname AS TABLE_NAME,  
-CASE n.nspname LIKE 'pg\\_%' OR n.nspname = 'information_schema'  WHEN true THEN 
-    CASE  WHEN n.nspname = 'pg_catalog' OR n.nspname = 'information_schema' THEN 
-        CASE c.relkind   
-            WHEN 'r' THEN 'SYSTEM TABLE'   
-            WHEN 'v' THEN 'SYSTEM VIEW'   
-            WHEN 'i' THEN 'SYSTEM INDEX'   
-            ELSE NULL   
-        END  
-    WHEN n.nspname = 'pg_toast' THEN 
-        CASE c.relkind   
-            WHEN 'r' THEN 'SYSTEM TOAST TABLE'   
-            WHEN 'i' THEN 'SYSTEM TOAST INDEX'   
-            ELSE NULL   
-        END  
-    ELSE 
-        CASE c.relkind   
-            WHEN 'r' THEN 'TEMPORARY TABLE'   
-            WHEN 'i' THEN 'TEMPORARY INDEX'   
-            ELSE NULL   
-        END  
-    END  
-    WHEN false THEN 
-        CASE c.relkind  
-            WHEN 'r' THEN 'TABLE'  
-            WHEN 'i' THEN 'INDEX'  
-            WHEN 'S' THEN 'SEQUENCE'  
-            WHEN 'v' THEN 'VIEW'  
-            ELSE NULL  
-        END  
-    ELSE NULL  
-END  AS TABLE_TYPE, 
-d.description AS REMARKS  
-FROM pg_catalog.pg_namespace n, 
-    pg_catalog.pg_class c  
-LEFT JOIN pg_catalog.pg_description d ON (c.oid = d.objoid AND d.objsubid = 0)  
-LEFT JOIN pg_catalog.pg_class dc ON (d.classoid=dc.oid AND dc.relname='pg_class')  
-LEFT JOIN pg_catalog.pg_namespace dn ON (dn.oid=dc.relnamespace AND dn.nspname='pg_catalog')  
-WHERE c.relnamespace = n.oid  
-AND n.nspname LIKE 'INFORMATION_SCHEMA'  
-AND (false  OR ( c.relkind = 'r' AND n.nspname NOT LIKE 'pg\\_%' AND n.nspname <> 'information_schema' )  
-OR ( c.relkind = 'r' AND (n.nspname = 'pg_catalog' OR n.nspname = 'information_schema') )  
-OR ( c.relkind = 'v' AND n.nspname <> 'pg_catalog' AND n.nspname <> 'information_schema' )  
-OR ( c.relkind = 'v' AND (n.nspname = 'pg_catalog' OR n.nspname = 'information_schema')  ) )  
-ORDER BY TABLE_TYPE,TABLE_SCHEM,TABLE_NAME 
-
-
  */
 
 public class PgServerThread implements Runnable {
@@ -102,8 +56,8 @@ public class PgServerThread implements Runnable {
     private String userName;
     private String databaseName;
     private int processId;
-    private String clientEncoding;
-    private String dateStyle;
+    private String clientEncoding = "UTF-8";
+    private String dateStyle = "ISO";
     private HashMap prepared = new HashMap();
     private HashMap portals = new HashMap();
 
@@ -125,8 +79,7 @@ public class PgServerThread implements Runnable {
             server.log("Disconnect");
             close();
         } catch (Exception e) {
-            int testing;
-            e.printStackTrace();
+            error("process", e);
             server.logError(e);
         }
     }
@@ -198,7 +151,7 @@ public class PgServerThread implements Runnable {
                 error("CancelRequest", null);
             } else if(version == 80877103) {
                 println("SSLRequest");
-                error("SSLRequest", null);
+                out.write('N');
             } else {
                 // println("StartupMessage");
                 // println(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
@@ -228,7 +181,7 @@ public class PgServerThread implements Runnable {
             String password = readString();
             // println(" password: " + password);
             try {
-                conn = DriverManager.getConnection("jdbc:h2:" + databaseName, userName, password);
+                conn = DriverManager.getConnection("jdbc:h2:" + databaseName + ";MODE=PostgreSQL", userName, password);
                 initDb();
                 sendAuthenticationOk();
             } catch(SQLException e) {
@@ -365,27 +318,32 @@ public class PgServerThread implements Runnable {
         case 'Q': {
             // println("Query");
             String query = readString();
-            if(query.startsWith("select oid, typbasetype from pg_type where typname =")) {
-                    query = "select oid, typbasetype from pg_catalog.pg_type WHERE 1=0";
-            } else if(query.startsWith("select current_schema()")) {
-                query = "CALL SCHEMA()";
-            } else if(query.startsWith("show max_identifier_length")) {
-                query = "CALL 63";
-            }
-            try {
-                Statement stat = conn.createStatement();
-                boolean result = stat.execute(query);
-                if(result) {
-                    ResultSet rs = stat.getResultSet();
-                    sendResultSet(rs);
-                } else {
-                    int testing;
-                    System.out.println("not a query");
-//                    todo
+            ScriptReader reader = new ScriptReader(new StringReader(query));
+            while(true) {
+                try {
+                    String s = reader.readStatement();
+                    if(s == null) {
+                        break;
+                    }
+                    s = getSQL(s);
+                    Statement stat = conn.createStatement();
+                    boolean result = stat.execute(s);
+                    if(result) {
+                        ResultSet rs = stat.getResultSet();
+                        ResultSetMetaData meta = rs.getMetaData();
+                        sendRowDescription(meta);                        
+                        while(rs.next()) {
+                            sendDataRow(null, rs);
+                        }
+                        sendCommandComplete(s, 0);
+                    } else {
+                        sendCommandComplete(s, stat.getUpdateCount());
+                    }
+                } catch(SQLException e) {
+                    sendErrorResponse(e);
                 }
-            } catch(SQLException e) {
-                e.printStackTrace();
             }
+            sendReadyForQuery('I');
             break;
         }
         case 'X': {
@@ -399,6 +357,29 @@ public class PgServerThread implements Runnable {
     }
     
     private String getSQL(String s) {
+        if(s.startsWith("show max_identifier_length")) {
+            s = "CALL 63";
+        } else if(s.startsWith("set client_encoding to")) {
+            s = "set DATESTYLE ISO";
+        } else if(s.startsWith("BEGIN")) {
+            s = "set DATESTYLE ISO";
+        }
+        s = StringUtils.replaceAll(s, "FROM pg_database", "FROM pg_catalog.pg_database");
+        s = StringUtils.replaceAll(s, "FROM pg_user", "FROM pg_catalog.pg_user");
+        s = StringUtils.replaceAll(s, "FROM pg_settings", "FROM pg_catalog.pg_settings");
+        s = StringUtils.replaceAll(s, "FROM pg_database", "FROM pg_catalog.pg_database");
+        s = StringUtils.replaceAll(s, "JOIN pg_tablespace", "JOIN pg_catalog.pg_tablespace");
+        s = StringUtils.replaceAll(s, "FROM pg_tablespace", "FROM pg_catalog.pg_tablespace");
+        s = StringUtils.replaceAll(s, "FROM pg_class", "FROM pg_catalog.pg_class");
+        s = StringUtils.replaceAll(s, "from pg_class", "from pg_catalog.pg_class");
+        s = StringUtils.replaceAll(s, ", pg_namespace", ", pg_catalog.pg_namespace");
+        s = StringUtils.replaceAll(s, "JOIN pg_namespace", "JOIN pg_catalog.pg_namespace");
+        s = StringUtils.replaceAll(s, "FROM pg_authid", "FROM pg_catalog.pg_authid");
+        s = StringUtils.replaceAll(s, "from pg_type", "from pg_catalog.pg_type");
+        s = StringUtils.replaceAll(s, "join pg_attrdef", "join pg_catalog.pg_attrdef");
+        s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
+        s = StringUtils.replaceAll(s, "current_user", "USER()");
+        s = StringUtils.replaceAll(s, "E'", "'"); // VALUES (E'2'[*], E'Test')
         if(s.indexOf('$') > 0) {
             int todoDontReplaceInQuoted;
             s = s.replace('$', '?');
@@ -527,7 +508,7 @@ public class PgServerThread implements Runnable {
                 startMessage('T');
                 writeShort(columns);
                 for(int i=0; i<columns; i++) {
-                    writeString(names[i]);
+                    writeString(names[i].toLowerCase());
                     writeInt(0); // object ID
                     writeShort(0); // attribute number of the column
                     writeInt(getType(types[i])); // data type
@@ -596,47 +577,48 @@ public class PgServerThread implements Runnable {
             }
             stat.execute(sql);
         }
+        reader.close();
     }
 
-    private void sendResultSet(ResultSet rs) throws SQLException, IOException {
-        ResultSetMetaData meta = rs.getMetaData();
-        int columnCount = meta.getColumnCount();
-        // 
-        startMessage('T');
-        writeShort(columnCount);
-        for(int i=0; i<columnCount; i++) {
-            writeString(meta.getColumnName(i + 1));
-            writeInt(0); // table id
-            writeShort(0); // column id
-            writeInt(0); // data type id
-            writeShort(26); // data type size (see pg_type.typlen)
-            writeInt(4); // type modifier (see pg_attribute.atttypmod)
-            writeShort(0); // format code 0=text, 1=binary
-        }
-        sendMessage();
-        while(rs.next()) {
-            // DataRow
-            startMessage('D');
-            writeShort(columnCount);
-            for(int i=0; i<columnCount; i++) {
-                String v = rs.getString(i + 1);
-                if(v == null) {
-                    writeInt(-1);
-                } else {
-                    byte[] data = v.getBytes();
-                    writeInt(data.length);
-                    write(data);
-                }
-            }
-            sendMessage();
-        }
-        
-        // CommandComplete
-        startMessage('C');
-        writeString("SELECT");
-        sendMessage();
-        sendReadyForQuery('I');
-    }
+//    private void sendResultSet(ResultSet rs) throws SQLException, IOException {
+//        ResultSetMetaData meta = rs.getMetaData();
+//        int columnCount = meta.getColumnCount();
+//        // 
+//        startMessage('T');
+//        writeShort(columnCount);
+//        for(int i=0; i<columnCount; i++) {
+//            writeString(meta.getColumnName(i + 1));
+//            writeInt(0); // table id
+//            writeShort(0); // column id
+//            writeInt(0); // data type id
+//            writeShort(26); // data type size (see pg_type.typlen)
+//            writeInt(4); // type modifier (see pg_attribute.atttypmod)
+//            writeShort(0); // format code 0=text, 1=binary
+//        }
+//        sendMessage();
+//        while(rs.next()) {
+//            // DataRow
+//            startMessage('D');
+//            writeShort(columnCount);
+//            for(int i=0; i<columnCount; i++) {
+//                String v = rs.getString(i + 1);
+//                if(v == null) {
+//                    writeInt(-1);
+//                } else {
+//                    byte[] data = v.getBytes();
+//                    writeInt(data.length);
+//                    write(data);
+//                }
+//            }
+//            sendMessage();
+//        }
+//        
+//        // CommandComplete
+//        startMessage('C');
+//        writeString("SELECT");
+//        sendMessage();
+//        sendReadyForQuery('I');
+//    }
 
     public void close() {
         try {

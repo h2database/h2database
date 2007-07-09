@@ -48,6 +48,7 @@ public class TestScriptSimple extends TestBase {
                 conn.createStatement().execute(sql);
             }
         }
+        is.close();
         conn.close();
     }
     

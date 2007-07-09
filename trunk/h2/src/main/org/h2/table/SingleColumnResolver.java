@@ -44,4 +44,8 @@ public class SingleColumnResolver implements ColumnResolver {
         return null;
     }
 
+    public Column[] getSystemColumns() {
+        return null;
+    }
+
 }

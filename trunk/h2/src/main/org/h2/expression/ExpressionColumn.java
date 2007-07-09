@@ -76,16 +76,28 @@ public class ExpressionColumn extends Expression {
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             if (columnName.equals(col.getName())) {
-                if(this.resolver == null) {
-                    queryLevel = level;
-                    column = col;
-                    this.resolver = resolver;
-                    break;
-                } else if(queryLevel==level && this.resolver != resolver) {
-                    throw Message.getSQLException(Message.AMBIGUOUS_COLUMN_NAME_1, columnName);
-                }
+                mapColumn(resolver, col, level);
+                return;
             }
         }
+        columns = resolver.getSystemColumns();
+        for (int i = 0; columns != null && i < columns.length; i++) {
+            Column col = columns[i];
+            if (columnName.equals(col.getName())) {
+                mapColumn(resolver, col, level);
+                return;
+            }
+        }
+    }
+    
+    private void mapColumn(ColumnResolver resolver, Column col, int level) throws SQLException {
+        if(this.resolver == null) {
+            queryLevel = level;
+            column = col;
+            this.resolver = resolver;
+        } else if(queryLevel==level && this.resolver != resolver) {
+            throw Message.getSQLException(Message.AMBIGUOUS_COLUMN_NAME_1, columnName);
+        }        
     }
 
     public Expression optimize(Session session) throws SQLException {

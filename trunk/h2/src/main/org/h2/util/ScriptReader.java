@@ -21,6 +21,14 @@ public class ScriptReader {
         this.reader = reader;
     }
     
+    public void close() throws SQLException {
+        try {        
+            reader.close();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+    
     private int read() throws SQLException {
         try {
             return reader.read();

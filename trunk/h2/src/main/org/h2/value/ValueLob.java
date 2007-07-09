@@ -555,7 +555,9 @@ public class ValueLob extends Value {
             String[] list = FileUtils.listFiles(dir);
             for(int i=0; i<list.length; i++) {
                 String name = list[i];
-                if(name.startsWith(prefix+"." + tableId) && name.endsWith(".lob.db")) {
+                int testing;
+//                if(name.startsWith(prefix+ "." + tableId + ".") && name.endsWith(".lob.db")) {
+                if(name.startsWith(prefix+ "." + tableId + ".") && name.endsWith(".lob.db")) {
                     deleteFile(handler, name);
                 }
             }

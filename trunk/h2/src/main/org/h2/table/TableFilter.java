@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.dml.Select;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
@@ -21,6 +22,7 @@ import org.h2.result.SearchRow;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
 
 /**
  * @author Thomas
@@ -512,6 +514,20 @@ public class TableFilter implements ColumnResolver {
 
     public Column[] getColumns() {
         return table.getColumns();
+    }
+
+    public Column[] getSystemColumns() {
+        if(!Mode.getCurrentMode().systemColumns) {
+            return null;
+        }
+        Column[] sys = new Column[3];
+        sys[0] = new Column("oid", Value.INT, ValueInt.PRECISION, 0);
+        sys[0].setTable(table, 0);
+        sys[1] = new Column("ctid", Value.STRING, ValueInt.PRECISION, 0);
+        sys[1].setTable(table, 0);
+        sys[2] = new Column("CTID", Value.STRING, ValueInt.PRECISION, 0);
+        sys[2].setTable(table, 0);
+        return sys;
     }
 
     public Value getValue(Column column) throws SQLException {

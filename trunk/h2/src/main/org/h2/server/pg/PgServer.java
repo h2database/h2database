@@ -8,10 +8,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -176,6 +181,75 @@ public class PgServer implements Service {
 
     public boolean getIfExists() {
         return ifExists;
+    }
+    
+    public static String getIndexColumn(Connection conn, int indexId, Integer ordinalPosition, Boolean pretty) throws SQLException {
+        if(ordinalPosition == null || ordinalPosition.intValue() == 0) {
+            PreparedStatement prep = conn.prepareStatement("select sql from information_schema.indexes where id=?");
+            prep.setInt(1, indexId);
+            ResultSet rs = prep.executeQuery();
+            if(rs.next()) {
+                return rs.getString(1);
+            }
+            return null;
+        } else {
+            PreparedStatement prep = conn.prepareStatement("select column_name from information_schema.indexes where id=? and ordinal_position=?");
+            prep.setInt(1, indexId);
+            prep.setInt(2, ordinalPosition.intValue());
+            ResultSet rs = prep.executeQuery();
+            if(rs.next()) {
+                return rs.getString(1);
+            }
+            return null;
+        }
+    }
+    
+    public static String getCurrentSchema(Connection conn) throws SQLException {
+        ResultSet rs = conn.createStatement().executeQuery("call schema()");
+        rs.next();
+        return rs.getString(1);
+    }
+    
+    public static String getEncodingName(int code) throws SQLException {
+        switch(code) {
+        case 0:
+            return "SQL_ASCII";
+        case 6:
+            return "UTF8";
+        case 8:
+            return "LATIN1";
+        }
+        return "UTF8";
+    }
+    
+    public static String getVersion() {
+        return "PostgreSQL 8.1.4  server protocol using H2 " + Constants.getVersion();
+    }
+    
+    public static Timestamp getStartTime() {
+        return new Timestamp(System.currentTimeMillis());
+    }
+    
+    public static String getUserById(Connection conn, int id) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("SELECT NAME FROM INFORMATION_SCHEMA.USERS WHERE ID=?");
+        prep.setInt(1, id);
+        ResultSet rs = prep.executeQuery();
+        if(rs.next()) {
+            return rs.getString(1);
+        }
+        return null;
+    }
+    
+    public static boolean hasDatabasePrivilege(int id, String privilege) {
+        return false;
+    }
+    
+    public static boolean hasTablePrivilege(String table, String privilege) {
+        return true;
+    }
+    
+    public static int getCurrentTid(String table, String id) {
+        return 1;
     }
 
 }

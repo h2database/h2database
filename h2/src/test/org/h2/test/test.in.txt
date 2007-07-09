@@ -778,16 +778,16 @@ select * from test;
 >   null null <empty>
 > rows: 1
 
-select * from information_schema.domains;
-> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                REMARKS SQL
-> -------------- ------------- ----------- -------------- ----------- --------- ---------- ----- --------- ----------- --------------------------------------------------------------- ------- ------------------------------------------------------------------------------------------------------------------------------
-> SCRIPT         PUBLIC        EMAIL                      YES         12        200        0     VARCHAR   50          (POSITION('@', VALUE) > 1)                                              CREATE DOMAIN EMAIL AS VARCHAR(200) CHECK (POSITION('@', VALUE) > 1)
-> SCRIPT         PUBLIC        GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))         CREATE DOMAIN GMAIL AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))
-> SCRIPT         PUBLIC        STRING      ''             NO          12        255        0     VARCHAR   50                                                                                  CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL
-> SCRIPT         PUBLIC        STRING1                    YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING1 AS VARCHAR
-> SCRIPT         PUBLIC        STRING2                    NO          12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
-> SCRIPT         PUBLIC        STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
-> SCRIPT         PUBLIC        STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
+select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, CHECK_CONSTRAINT, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                REMARKS SQL
+> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- --------------------------------------------------------------- ------- ------------------------------------------------------------------------------------------------------------------------------
+> EMAIL                      YES         12        200        0     VARCHAR   50          (POSITION('@', VALUE) > 1)                                              CREATE DOMAIN EMAIL AS VARCHAR(200) CHECK (POSITION('@', VALUE) > 1)
+> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))         CREATE DOMAIN GMAIL AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))
+> STRING      ''             NO          12        255        0     VARCHAR   50                                                                                  CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL
+> STRING1                    YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING1 AS VARCHAR
+> STRING2                    NO          12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
+> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
 > rows: 7
 
 script nodata nopasswords nosettings;
@@ -910,11 +910,11 @@ CREATE CONSTANT IF NOT EXISTS ONE VALUE 1;
 CREATE CONSTANT CONST.ONE VALUE 1;
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_CATALOG CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> ---------------- --------------- ------------- --------- ------- ---
-> SCRIPT           CONST           ONE           4                 1
-> SCRIPT           PUBLIC          ONE           4         Eins    1
+SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
+> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
+> --------------- ------------- --------- ------- ---
+> CONST           ONE           4                 1
+> PUBLIC          ONE           4         Eins    1
 > rows: 2
 
 SELECT ONE, CONST.ONE FROM DUAL;
@@ -929,10 +929,10 @@ COMMENT ON CONSTANT ONE IS NULL;
 DROP SCHEMA CONST;
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.CONSTANTS;
-> CONSTANT_CATALOG CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
-> ---------------- --------------- ------------- --------- ------- ---
-> SCRIPT           PUBLIC          ONE           4                 1
+SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
+> CONSTANT_SCHEMA CONSTANT_NAME DATA_TYPE REMARKS SQL
+> --------------- ------------- --------- ------- ---
+> PUBLIC          ONE           4                 1
 > rows: 1
 
 DROP CONSTANT ONE;
@@ -1713,18 +1713,18 @@ alter table test add constraint nu unique(parent);
 alter table test add constraint fk foreign key(parent) references(id);
 > ok
 
-select * from INFORMATION_SCHEMA.INDEXES;
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME NON_UNIQUE INDEX_NAME    ORDINAL_POSITION COLUMN_NAME CARDINALITY PRIMARY_KEY INDEX_TYPE_NAME IS_GENERATED INDEX_TYPE ASC_OR_DESC PAGES FILTER_CONDITION REMARKS
-> ------------- ------------ ---------- ---------- ------------- ---------------- ----------- ----------- ----------- --------------- ------------ ---------- ----------- ----- ---------------- -------
-> SCRIPT        PUBLIC       TEST       FALSE      NU_INDEX_0    1                PARENT      0           FALSE       UNIQUE INDEX    TRUE         3          A           0
-> SCRIPT        PUBLIC       TEST       FALSE      PRIMARY_KEY_1 1                ID          0           TRUE        PRIMARY KEY     FALSE        3          A           0
-> SCRIPT        PUBLIC       TEST       TRUE       NI            1                PARENT      0           FALSE       INDEX           FALSE        3          A           0
+select TABLE_NAME, NON_UNIQUE, INDEX_NAME, ORDINAL_POSITION, COLUMN_NAME, CARDINALITY, PRIMARY_KEY from INFORMATION_SCHEMA.INDEXES;
+> TABLE_NAME NON_UNIQUE INDEX_NAME    ORDINAL_POSITION COLUMN_NAME CARDINALITY PRIMARY_KEY
+> ---------- ---------- ------------- ---------------- ----------- ----------- -----------
+> TEST       FALSE      NU_INDEX_0    1                PARENT      0           FALSE
+> TEST       FALSE      PRIMARY_KEY_1 1                ID          0           TRUE
+> TEST       TRUE       NI            1                PARENT      0           FALSE
 > rows: 3
 
-select * from INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
-> ---------------- --------------- ------------- ------------- --------- ------------ -------
-> SCRIPT           PUBLIC          TEST_SEQ      0             1         FALSE
+select SEQUENCE_NAME, CURRENT_VALUE, INCREMENT, IS_GENERATED, REMARKS from INFORMATION_SCHEMA.SEQUENCES;
+> SEQUENCE_NAME CURRENT_VALUE INCREMENT IS_GENERATED REMARKS
+> ------------- ------------- --------- ------------ -------
+> TEST_SEQ      0             1         FALSE
 > rows: 1
 
 drop table test;
@@ -3575,10 +3575,10 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 2
 
-SELECT * FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;
-> ALIAS_CATALOG ALIAS_SCHEMA ALIAS_NAME JAVA_CLASS     JAVA_METHOD DATA_TYPE COLUMN_COUNT RETURNS_RESULT REMARKS
-> ------------- ------------ ---------- -------------- ----------- --------- ------------ -------------- -------
-> SCRIPT        PUBLIC       MY_SQRT    java.lang.Math sqrt        8         1            2
+SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RESULT, REMARKS FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;
+> ALIAS_NAME JAVA_CLASS     JAVA_METHOD DATA_TYPE COLUMN_COUNT RETURNS_RESULT REMARKS
+> ---------- -------------- ----------- --------- ------------ -------------- -------
+> MY_SQRT    java.lang.Math sqrt        8         1            2
 > rows: 1
 
 DROP ALIAS MY_SQRT;
@@ -3592,10 +3592,10 @@ SELECT DISTINCT TABLE_SCHEMA, TABLE_CATALOG FROM INFORMATION_SCHEMA.TABLES ORDER
 > rows (ordered): 1
 
 SELECT * FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- -------
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
+> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
+> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.CATALOGS;
@@ -3612,10 +3612,10 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;
 > rows: 2
 
 SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
-> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS
-> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- -------
-> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE
-> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE
+> CATALOG_NAME SCHEMA_NAME        SCHEMA_OWNER DEFAULT_CHARACTER_SET_NAME DEFAULT_COLLATION_NAME IS_DEFAULT REMARKS ID
+> ------------ ------------------ ------------ -------------------------- ---------------------- ---------- ------- --
+> SCRIPT       INFORMATION_SCHEMA SA           Unicode                    OFF                    FALSE              -1
+> SCRIPT       PUBLIC             SA           Unicode                    OFF                    TRUE               0
 > rows: 2
 
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
@@ -4037,14 +4037,14 @@ GRANT UPDATE ON TEST TO TEST_ROLE;
 GRANT TEST_ROLE TO TEST_USER;
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.ROLES;
-> NAME      REMARKS
-> --------- -------
+SELECT NAME FROM INFORMATION_SCHEMA.ROLES;
+> NAME
+> ---------
 > PUBLIC
 > TEST_ROLE
 > rows: 2
 
-SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
+SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.RIGHTS;
 > GRANTEE   GRANTEETYPE GRANTEDROLE RIGHTS         TABLE_SCHEMA TABLE_NAME
 > --------- ----------- ----------- -------------- ------------ ----------
 > TEST_ROLE ROLE                    UPDATE         PUBLIC       TEST
@@ -4074,11 +4074,11 @@ REVOKE INSERT ON TEST FROM TEST_USER;
 REVOKE TEST_ROLE FROM TEST_USER;
 > ok
 
-SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
-> GRANTEE   GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME
-> --------- ----------- ----------- ------ ------------ ----------
-> TEST_ROLE ROLE                    UPDATE PUBLIC       TEST
-> TEST_USER USER                    SELECT PUBLIC       TEST
+SELECT GRANTEE, GRANTEETYPE, GRANTEDROLE, RIGHTS, TABLE_NAME FROM INFORMATION_SCHEMA.RIGHTS;
+> GRANTEE   GRANTEETYPE GRANTEDROLE RIGHTS TABLE_NAME
+> --------- ----------- ----------- ------ ----------
+> TEST_ROLE ROLE                    UPDATE TEST
+> TEST_USER USER                    SELECT TEST
 > rows: 2
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES;
@@ -4098,14 +4098,14 @@ DROP ROLE TEST_ROLE;
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.ROLES;
-> NAME   REMARKS
-> ------ -------
-> PUBLIC
+> NAME   REMARKS ID
+> ------ ------- --
+> PUBLIC         0
 > rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.RIGHTS;
-> GRANTEE GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME
-> ------- ----------- ----------- ------ ------------ ----------
+> GRANTEE GRANTEETYPE GRANTEDROLE RIGHTS TABLE_SCHEMA TABLE_NAME ID
+> ------- ----------- ----------- ------ ------------ ---------- --
 > rows: 0
 
 --- plan ----------------------------------------------------------------------------------------------
@@ -6162,10 +6162,10 @@ CALL IDENTITY();
 > 90123456789012345
 > rows: 1
 
-SELECT * FROM INFORMATION_SCHEMA.SEQUENCES;
-> SEQUENCE_CATALOG SEQUENCE_SCHEMA SEQUENCE_NAME CURRENT_VALUE     INCREMENT IS_GENERATED REMARKS
-> ---------------- --------------- ------------- ----------------- --------- ------------ -------
-> SCRIPT           PUBLIC          TEST_LONG     90123456789012345 -1        FALSE
+SELECT SEQUENCE_NAME, CURRENT_VALUE, INCREMENT FROM INFORMATION_SCHEMA.SEQUENCES;
+> SEQUENCE_NAME CURRENT_VALUE     INCREMENT
+> ------------- ----------------- ---------
+> TEST_LONG     90123456789012345 -1
 > rows: 1
 
 SET AUTOCOMMIT TRUE;
@@ -6734,9 +6734,9 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE USER IF NOT EXISTS TEST_ADMIN PASSWORD '' ADMIN
 > rows: 10
 
-SELECT * FROM INFORMATION_SCHEMA.USERS;
-> NAME       ADMIN REMARKS
-> ---------- ----- -------
+SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS;
+> NAME       ADMIN
+> ---------- -----
 > SA         true
 > TEST       false
 > TEST2      false

@@ -58,6 +58,7 @@ public class Session implements SessionInterface {
     private String traceModuleName;
     private HashSet unlinkSet;
     private int tempViewIndex;
+    private HashMap procedures;
 
     public Session() {
     }
@@ -483,4 +484,23 @@ public class Session implements SessionInterface {
         return "TEMP_VIEW_" + tempViewIndex++;
     }
 
+    public void addProcedure(Procedure procedure) {
+        if(procedures == null) {
+            procedures = new HashMap();
+        }
+        procedures.put(procedure.getName(), procedure);
+    }
+    
+    public void removeProcedure(String name) {
+        if(procedures != null) {
+            procedures.remove(name);
+        }
+    }
+
+    public Procedure getProcedure(String name) {
+        if(procedures == null) {
+            return null;
+        }
+        return (Procedure) procedures.get(name);
+    }
 }

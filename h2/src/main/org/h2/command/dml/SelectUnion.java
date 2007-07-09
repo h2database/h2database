@@ -170,19 +170,9 @@ public class SelectUnion extends Query {
         if(len != right.getColumnCount()) {
             throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-    }
-
-    public void prepare() throws SQLException {
-        if(Constants.CHECK && (checkPrepared || !checkInit)) {
-            throw Message.getInternalError("already prepared");
-        }
-        checkPrepared = true;        
-        left.prepare();
-        right.prepare();
         ObjectArray le = left.getExpressions();
         ObjectArray re = right.getExpressions();
         expressions = new ObjectArray();
-        int len = left.getColumnCount();
         for(int i=0; i<len; i++) {
             Expression l = (Expression)le.get(i);
             Expression r = (Expression)re.get(i);
@@ -193,6 +183,15 @@ public class SelectUnion extends Query {
             Expression e = new ExpressionColumn(session.getDatabase(), null, col);
             expressions.add(e);
         }
+    }
+
+    public void prepare() throws SQLException {
+        if(Constants.CHECK && (checkPrepared || !checkInit)) {
+            throw Message.getInternalError("already prepared");
+        }
+        checkPrepared = true;        
+        left.prepare();
+        right.prepare();
         if(orderList != null) {
             initOrder(expressions, null, orderList, getColumnCount(), true);
             sort = prepareOrder(expressions, orderList);

@@ -77,7 +77,7 @@ public class DataType {
         );
         add(Value.STRING, Types.VARCHAR, "String",
                 createString(true),
-                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE", "CHARACTER VARYING"}
+                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE", "CHARACTER VARYING", "TID"}
         );
         add(Value.STRING, Types.LONGVARCHAR, "String",
                 createString(true),

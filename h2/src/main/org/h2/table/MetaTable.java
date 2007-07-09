@@ -140,6 +140,7 @@ public class MetaTable extends Table {
                     "PAGES INT",
                     "FILTER_CONDITION",
                     "REMARKS",
+                    "SQL",
                     "ID INT"
             });
             indexColumnName = "TABLE_NAME";
@@ -512,14 +513,17 @@ public class MetaTable extends Table {
 
     public ObjectArray generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
         Value indexFrom = null, indexTo = null;
-        if(indexColumn >= 0) {
-            if(first != null) {
-                indexFrom = first.getValue(indexColumn);
-            }
-            if(last != null) {
-                indexTo = last.getValue(indexColumn);
-            }
-        }
+        
+        int testing;
+//        if(indexColumn >= 0) {
+//            if(first != null) {
+//                indexFrom = first.getValue(indexColumn);
+//            }
+//            if(last != null) {
+//                indexTo = last.getValue(indexColumn);
+//            }
+//        }
+        
         ObjectArray rows = new ObjectArray();
         String catalog = identifier(database.getShortName());
         switch(type) {
@@ -627,6 +631,7 @@ public class MetaTable extends Table {
                                 "0", // PAGES
                                 "", // FILTER_CONDITION
                                 replaceNullWithEmpty(index.getComment()), // REMARKS
+                                index.getSQL(), // SQL
                                 "" + index.getId() // ID
                             });
                     }

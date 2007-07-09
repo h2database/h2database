@@ -94,6 +94,15 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
+pg_catalog with views
+
+oid (object identifier)
+The unique object identifier of a row. PostgreSQL automatically adds this 4-byte number to all rows. It is never re-used within the same table.
+
+ctid (tuple identifier)
+The identifier which describes the physical location of the tuple within the database. A pair of numbers are represented by the ctid: the block number, and tuple index within that block.
+
+
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)

@@ -24,7 +24,7 @@ public abstract class Prepared {
     private long modificationId;
     private Command command;
     private int objectId;
-    private boolean prepareAlways;
+    protected boolean prepareAlways;
     private int currentRowNumber;
 
     public boolean needRecompile() throws SQLException {

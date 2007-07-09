@@ -168,7 +168,6 @@ public class CreateTable extends SchemaCommand {
     }
 
     private void generateColumnFromQuery() throws SQLException {
-        asQuery.prepare();
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
         for(int i=0; i<columnCount; i++) {

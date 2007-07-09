@@ -1,3 +1,6 @@
+create table test as select 1 from dual union all select 2 from dual;
+drop table test;
+
 create table test_table(column_a integer);
 insert into test_table values(1);
 create view test_view AS SELECT * FROM (SELECT DISTINCT * FROM test_table) AS subquery;

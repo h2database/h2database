@@ -37,14 +37,16 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>CREATE TABLE AS SELECT .. UNION .. did not work. Fixed.
+<li>PostgreSQL compatibility: SET SEARCH_PATH, SERIAL, CURRENT_USER, E'text', $1.
+</li><li>In some situations, when many tables with LOB columns were modified (ALTER TABLE), large objects were deleted. Fixed.
+</li><li>CREATE TABLE AS SELECT .. UNION .. did not work. Fixed.
 </li><li>New column ID for INFORMATION_SCHEMA.INDEXES, SEQUENCES, USERS, ROLES, RIGHTS, 
-	FUNCTION_ALIASES, SCHEMATA, VIEWS, CONSTRAINTS, CONSTANTS, DOMAINS, TRIGGERS.
+    FUNCTION_ALIASES, SCHEMATA, VIEWS, CONSTRAINTS, CONSTANTS, DOMAINS, TRIGGERS.
 </li><li>If large result sets (backed by a temporary file) where not closed, the file was not deleted.
-	Now, the default result set type is FETCH_FORWARD. This means temp files are deleted
-	automatically (without having to close the result set explicitly). But it also means 
-	ResultSet.beforeFirst can only be called for scrollable result sets. To create a scrollable resut set,
-	use Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).
+    Now, the default result set type is FETCH_FORWARD. This means temp files are deleted
+    automatically (without having to close the result set explicitly). But it also means 
+    ResultSet.beforeFirst can only be called for scrollable result sets. To create a scrollable result set,
+    use Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).
 </li><li>PreparedStatement.getMetaData is now implemented.
 </li><li>Now PreparedStatement.setBigDecimal(..) can be called with an object of a derived class 
     if the system property h2.allowBigDecimalExtensions is set to true.
@@ -719,104 +721,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     C-style block comments /* */ are not parsed correctly when they contain * or /
 </li></ul>
 
-<h3>Version 0.9 / 2006-07-14 (Build 16)</h3><ul>
-<li>
-    The regression tests are no longer included in the jar file. This reduces the size by about 200 KB.
-</li><li>
-    Fixed some bugs in the CSV tool. This tool should now work for most cases, but is still not fully tested.
-</li><li>
-    The cache size is now measured in blocks and no longer in rows. Manually setting
-    the cache size is no longer necessary in most cases.
-</li><li>
-    Objects of unknown type are no longer serialized to a byte array (and deserialized when calling getObject on a byte array data type)
-    by default. This behavior can be changed with Constants.SERIALIZE_JAVA_OBJECTS = true
-</li><li>
-    New column IS_GENERATED in the metadata tables SEQUENCES and INDEXES
-</li><li>
-    Optimization: deterministic subqueries are evaluated only once.
-</li><li>
-    An exception was thrown if a scalar subquery returned no rows. Now the NULL value is used in this case.
-</li><li>
-    IF EXISTS / IF NOT EXISTS implemented for the remaining CREATE / DROP statements.
-</li><li>
-    ResultSetMetaData.isNullable is now implemented.
-</li><li>
-    LIKE ... ESCAPE: The escape character may now also be an expression.
-</li><li>
-    Compatibility: TRIM(whitespace FROM string)
-</li><li>
-    Compatibility: SUBSTRING(string FROM start FOR length)
-</li><li>
-    CREATE VIEW now supports a column list: CREATE VIEW TEST_V(A, B) AS ...
-</li><li>
-    Compatibility: 'T', 'Y', 'YES', 'F', 'N', 'NO' (case insensitive) can now also be converted to boolean.
-    This is allowed now: WHERE BOOLEAN_FIELD='T'=(ID>1)
-</li><li>
-    Optimization: data conversion of constants was not optimized. This is done now.
-</li><li>
-    Compatibility: Implemented a shortcut version to declare single column referential integrity:
-    CREATE TABLE TEST(ID INT PRIMARY KEY, PARENT INT REFERENCES TEST)
-</li><li>
-    Issue #126: It is possible to create multiple primary keys for the same table.
-</li><li>
-    Issue #125: Foreign key constraints of local temporary tables are not dropped when the table is dropped.
-</li><li>
-    Issue #124: Adding a column didn't work when the table contains a referential integrity check.
-</li><li>
-    Issue #123: The connection to the server is lost if an abnormal exception occurs.
-    Example SQL statement: select 1=(1,2)
-</li><li>
-    The H2 Console didn't parse statements containing '-' or '/' correctly. Fixed.
-    Now uses the same facility to split a script into SQL statements for
-    the RunScript tool, for the RUNSCRIPT command and for the H2 Console.
-</li><li>
-    DatabaseMetaData.getTypeInfo: BIGINT was returning AUTO_INCREMENT=TRUE, which is wrong. Fixed.
-</li></ul>
-
-<h3>Version 0.9 / 2006-07-01 (Build 14)</h3><ul>
-<li>
-    After dropping constraints and altering a table sometimes the database could not be opened. Fixed.
-</li><li>
-    Outer joins did not always use an index even if this was possible. Fixed.
-</li><li>
-    Issue #122: Using OFFSET in big result sets (disk buffered result sets) did not work. Fixed.
-</li><li>
-    Support DatabaseMetaData.getSuperTables (currently returns an empty result set in every case).
-</li><li>
-    Database names are no longer case sensitive for the Windows operating system,
-    because there the files names are not case sensitive.
-</li><li>
-    If an index is created for a constraint, this index now belong to the constraint and is removed when removing the constraint.
-</li><li>
-    Issue #121: Using a quoted table or alias name in front of a column name (SELECT "TEST".ID FROM TEST) didn't work.
-</li><li>
-    Issue #120: Some ALTER TABLE statements didn't work when the table was in another than the main schema. Fixed.
-</li><li>
-    Issue #119: If a table with autoincrement column is created in another schema,
-        it was not possible to connect to the database again.
-        Now opening a database first sorts the script by object type.
-</li><li>
-    Issue #118: ALTER TABLE RENAME COLUMN doesn't work correctly. Workaround: don't use it.
-</li><li>
-    Cache: implemented a String cache and improved the Value cache. Now uses a weak reference
-    to avoid OutOfMemory due to caching values.
-</li><li>
-    Server: changed the public API a bit to allow an application to deal easier with start problems.
-    Now instead of Server.startTcpServer(args) use Server.createTcpServer(args).start();
-</li><li>
-    Issue #117: Server.start...Server sometimes returned before the server was started. Solved.
-</li><li>
-    Issue #116: Server: reduces memory usage. Reduced number of cached objects per connection.
-</li><li>
-    Improved trace messages, and trace now starts earlier (when opening the database).
-</li><li>
-    Simplified translation of the Web Console (a tool to convert the translation files to UTF-8).
-</li><li>
-    Newsfeed sample application (used to create the newsfeed and newsletter).
-</li><li>
-    New functions: MEMORY_FREE() and MEMORY_USED().
-</li></ul>
-
 <h3>Version 0.9 / 2005-12-13</h3><ul>
 <li>
     First public release.
@@ -879,6 +783,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>System table / function: cache usage
 </li><li>Connection pool manager
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
@@ -963,7 +868,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>http://www.jpackage.org
 </li><li>Version column (number/sequence and timestamp based)
 </li><li>Optimize getGeneratedKey: send last identity after each execute (server).
-</li><li>Clustering: recovery needs to becomes fully automatic.
 </li><li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 </li><li>Better space re-use in the files after deleting data (shrink the files)
@@ -987,7 +891,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>ValueInt.convertToString and so on (remove Value.convertTo)
 </li><li>Support custom Collators
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
-
 </li><li>Clustering: Reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: When a database is back alive, automatically synchronize with the master
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
@@ -1029,10 +932,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Improved full text search (supports LOBs, reader / tokenizer / filter).
 </li><li>Performance: Update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
-</li><li>Remove finally() (almost) everywhere
 </li><li>Java static code analysis: http://pmd.sourceforge.net/
 </li><li>Java static code analysis: http://www.eclipse.org/tptp/
-</li><li>Java static code analysis: http://checkstyle.sourceforge.net/
 </li><li>Compatibility for CREATE SCHEMA AUTHORIZATION
 </li><li>Implement Clob / Blob truncate and the remaining functionality
 </li><li>Maybe close LOBs after closing connection
@@ -1126,6 +1027,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 </li><li>GROUP BY and DISTINCT: support large groups (buffer to disk), do not keep large sets in memory
+</li><li>Regular expression replaceAll: REGEXP_REPLACE(expression, regex, replacement)
+</li><li>Regular expression LIKE: expression REGEXP matchExpression
+</li><li>Support native XML data type
+</li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
+</li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
+</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true
 </li></ul>
 
 <h3>Not Planned</h3>

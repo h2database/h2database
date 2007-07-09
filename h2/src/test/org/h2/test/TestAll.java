@@ -94,6 +94,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
+-- SET client_encoding = 'UTF8';
+-- SET check_function_bodies = false;
+-- SET client_min_messages = warning;
+-- CREATE PROCEDURAL LANGUAGE plperl;
+-- CREATE PROCEDURAL LANGUAGE plpgsql;
+--SET search_path = public, pg_catalog;
+--SET default_tablespace = '';
+--SET default_with_oids = false;
+--id serial NOT NULL,
+
 pg_catalog with views
 
 oid (object identifier)

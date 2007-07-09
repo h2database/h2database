@@ -484,3 +484,14 @@ chdh biz inventec
 enclosing mostly dtp scrolls cars splitting replay incomplete automate
 shorten
 
+attrdef resut reltuples indrelid tuple adrelid rolconfig relnamespace attname rolpassword atttypid 
+represented rolname indisprimary tablespace proname rolconnlimit currtid indexdef rolcreatedb 
+indexrelid datdba datname adnum tgnargs attnum relam userbyid typbasetype attlen rolcanlogin 
+rolinherit adsrc usecreatedb superuser indexprs tgfoid indisunique spcname cleartext relpages 
+usesuper pgdocs tginitdeferred objoid datestyle indisclustered usename datconfig tgargs resize 
+tgconstrrelid classoid relhasoids pretty portals rolcatupdate rolsuper spcowner typname cet typlen 
+latin tgconstrname datallowconn atttypmod dattablespace attrelid ctid timestamptz atthasdef 
+nspname objsubid typnamespace rolcreaterole tgrelid spclocation relhasrules dont indkey postmaster 
+relkind autovacuum datlastsysoid attisdropped amname datacl deallocate tgdeferrable stats 
+spcacl relname rolvaliduntil attnotnull authid aclitem
+plpgsql interrupting spring oids plperl regex

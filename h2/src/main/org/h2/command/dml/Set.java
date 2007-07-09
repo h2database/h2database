@@ -36,6 +36,7 @@ public class Set extends Prepared {
     private int type;
     private Expression expression;
     private String stringValue;
+    private String[] stringValueList;
 
     public Set(Session session, int type) {
         super(session);
@@ -240,6 +241,10 @@ public class Set extends Prepared {
             database.setOptimizeReuseResults(getIntValue() != 0);
             break;
         }
+        case SetTypes.SCHEMA_SEARCH_PATH: {
+            session.setSchemaSearchPath(stringValueList);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }
@@ -295,6 +300,10 @@ public class Set extends Prepared {
 
     public LocalResult queryMeta() {
         return null;
+    }
+
+    public void setStringArray(String[] list) {
+        this.stringValueList = list;
     }
 
 }

@@ -248,9 +248,9 @@ public class WebServer implements Service {
         // System.out.println(s);
     }
     
-	public void traceError(Exception e) {
-		e.printStackTrace();
-	}
+    public void traceError(Exception e) {
+        e.printStackTrace();
+    }
     
     public boolean supportsLanguage(String language) {
         return languages.contains(language);

@@ -16,7 +16,7 @@ public class SetTypes {
     public static final int MAX_MEMORY_ROWS = 16, LOCK_MODE = 17, DB_CLOSE_DELAY = 18;
     public static final int LOG = 19, THROTTLE = 20, MAX_MEMORY_UNDO = 21, MAX_LENGTH_INPLACE_LOB = 22;
     public static final int COMPRESS_LOB = 23, ALLOW_LITERALS = 24, MULTI_THREADED = 25, SCHEMA = 26;
-    public static final int OPTIMIZE_REUSE_RESULTS = 27;
+    public static final int OPTIMIZE_REUSE_RESULTS = 27, SCHEMA_SEARCH_PATH = 28;
 
     private static ObjectArray types = new ObjectArray();
     static {
@@ -47,6 +47,7 @@ public class SetTypes {
         setType(MULTI_THREADED, "MULTI_THREADED");
         setType(SCHEMA, "SCHEMA");
         setType(OPTIMIZE_REUSE_RESULTS, "OPTIMIZE_REUSE_RESULTS");
+        setType(SCHEMA_SEARCH_PATH, "SCHEMA_SEARCH_PATH");
     }
 
     private static void setType(int type, String name) {

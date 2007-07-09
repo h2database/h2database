@@ -34,7 +34,7 @@ public class CacheLRU implements Cache {
     }
     
     private void resize(int maxSize) {
-    	this.maxSize = maxSize;
+        this.maxSize = maxSize;
         this.len = MathUtils.nextPowerOf2(maxSize / 2);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);

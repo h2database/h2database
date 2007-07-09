@@ -27,18 +27,18 @@ public class TestBigResult extends TestBase {
         stat.execute("SET MAX_MEMORY_ROWS 2");
         ResultSet rs = stat.executeQuery("SELECT * FROM SYSTEM_RANGE(1, 100)");
         while(rs.next()) {
-        	// ignore
+            // ignore
         }
         // rs.close();
         conn.close();
         deleteDb("bigResult");
         ArrayList files = FileLister.getDatabaseFiles(BASE_DIR, "bigResult", true);
         if(files.size() > 0) {
-        	error("file not deleted: " + files.get(0));
+            error("file not deleted: " + files.get(0));
         }
-	}
+    }
 
-	private void testLimitBufferedResult() throws Exception {
+    private void testLimitBufferedResult() throws Exception {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();

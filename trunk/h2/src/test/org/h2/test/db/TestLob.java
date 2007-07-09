@@ -35,6 +35,7 @@ public class TestLob extends TestBase {
         if(config.memory) {
             return;
         }
+        testLobDrop();
         testLobNoClose();
         testLobTransactions(10);
         testLobTransactions(10000);
@@ -52,6 +53,28 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+    
+    private void testLobDrop() throws Exception {
+        if(config.logMode == 0 || config.networked) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        Statement stat = conn.createStatement();
+        for(int i=0; i<500; i++) {
+            stat.execute("CREATE TABLE T"+i +"(ID INT, C CLOB)");
+        }
+        stat.execute("CREATE TABLE TEST(ID INT, C CLOB)");
+        stat.execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
+        for(int i=0; i<500; i++) {
+            stat.execute("DROP TABLE T"+i);
+        }
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        while(rs.next()) {
+            rs.getString("C");
+        }
+        conn.close();
     }
     
     private void testLobNoClose() throws Exception {
@@ -90,7 +113,7 @@ public class TestLob extends TestBase {
         if(config.logMode == 0) {
             return;
         }
-		// Constants.LOB_CLOSE_BETWEEN_READS = true;
+        // Constants.LOB_CLOSE_BETWEEN_READS = true;
 
         deleteDb("lob");
         Connection conn = reconnect(null);

@@ -13,13 +13,13 @@ import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 
-public class AlterIndexRename extends SchemaCommand {
+public class AlterIndexRename extends DefineCommand {
 
     private Index oldIndex;
     private String newIndexName;
 
-    public AlterIndexRename(Session session, Schema schema) {
-        super(session, schema);
+    public AlterIndexRename(Session session) {
+        super(session);
     }
 
     public void setOldIndex(Index index) {
@@ -33,7 +33,8 @@ public class AlterIndexRename extends SchemaCommand {
     public int update() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
-        if(getSchema().findIndex(newIndexName) != null || newIndexName.equals(oldIndex.getName())) {
+        Schema schema = oldIndex.getSchema();
+        if(schema.findIndex(newIndexName) != null || newIndexName.equals(oldIndex.getName())) {
             throw Message.getSQLException(Message.INDEX_ALREADY_EXISTS_1, newIndexName);
         }
         session.getUser().checkRight(oldIndex.getTable(), Right.ALL);

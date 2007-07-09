@@ -9,26 +9,24 @@ import java.sql.SQLException;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.schema.Schema;
 import org.h2.table.Table;
 
-public class TruncateTable extends SchemaCommand {
+public class TruncateTable extends DefineCommand {
 
-    private String tableName;
+    private Table table;
 
-    public TruncateTable(Session session, Schema schema) {
-        super(session, schema);
+    public TruncateTable(Session session) {
+        super(session);
     }
     
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
+    public void setTable(Table table) {
+        this.table = table;
     }
     
     public int update() throws SQLException {
         session.commit(true);
-        Table table = getSchema().getTableOrView(session, tableName);
         if(!table.canTruncate()) {
-            throw Message.getSQLException(Message.CANNOT_TRUNCATE_1, tableName);
+            throw Message.getSQLException(Message.CANNOT_TRUNCATE_1, table.getSQL());
         } else {
             session.getUser().checkRight(table, Right.DELETE);
             table.lock(session, true);

@@ -2494,7 +2494,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("beforeFirst");
             checkClosed();
             if(result.getRowId() >= 0) {
-            	resetResult();
+                resetResult();
             }
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -2529,10 +2529,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("first");
             checkClosed();
             if(result.getRowId() < 0) {
-            	return nextRow();
+                return nextRow();
             } else {
-            	resetResult();
-            	return nextRow();
+                resetResult();
+                return nextRow();
             }
         } catch(Throwable e) {
             throw logAndConvert(e);
@@ -2900,18 +2900,18 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
     
     private boolean nextRow() throws SQLException {
-    	boolean next = result.next();
-    	if(!next && !scrollable) {
-    		result.close();
-    	}
-    	return next;
+        boolean next = result.next();
+        if(!next && !scrollable) {
+            result.close();
+        }
+        return next;
     }
 
     private void resetResult() throws SQLException {
-    	if(!scrollable) {
-    		throw Message.getSQLException(Message.RESULT_SET_NOT_SCROLLABLE);
-    	}
-    	result.reset();
+        if(!scrollable) {
+            throw Message.getSQLException(Message.RESULT_SET_NOT_SCROLLABLE);
+        }
+        result.reset();
     }
 
     /**

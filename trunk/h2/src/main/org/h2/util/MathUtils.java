@@ -27,11 +27,11 @@ public class MathUtils {
     }
     
     public static int nextPowerOf2(int x) {
-    	int i = 1;
-    	while(i < x && i < (Integer.MAX_VALUE/2)) {
-    		i += i;
-    	}
-    	return (int) i;
+        int i = 1;
+        while(i < x && i < (Integer.MAX_VALUE/2)) {
+            i += i;
+        }
+        return (int) i;
     }
     
     public static long scaleUp50Percent(long start, long min, long blockSize) {

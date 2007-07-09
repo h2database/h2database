@@ -364,26 +364,8 @@ public class PgServerThread implements Runnable {
         } else if(s.startsWith("BEGIN")) {
             s = "set DATESTYLE ISO";
         }
-        s = StringUtils.replaceAll(s, "FROM pg_database", "FROM pg_catalog.pg_database");
-        s = StringUtils.replaceAll(s, "FROM pg_user", "FROM pg_catalog.pg_user");
-        s = StringUtils.replaceAll(s, "FROM pg_settings", "FROM pg_catalog.pg_settings");
-        s = StringUtils.replaceAll(s, "FROM pg_database", "FROM pg_catalog.pg_database");
-        s = StringUtils.replaceAll(s, "JOIN pg_tablespace", "JOIN pg_catalog.pg_tablespace");
-        s = StringUtils.replaceAll(s, "FROM pg_tablespace", "FROM pg_catalog.pg_tablespace");
-        s = StringUtils.replaceAll(s, "FROM pg_class", "FROM pg_catalog.pg_class");
-        s = StringUtils.replaceAll(s, "from pg_class", "from pg_catalog.pg_class");
-        s = StringUtils.replaceAll(s, ", pg_namespace", ", pg_catalog.pg_namespace");
-        s = StringUtils.replaceAll(s, "JOIN pg_namespace", "JOIN pg_catalog.pg_namespace");
-        s = StringUtils.replaceAll(s, "FROM pg_authid", "FROM pg_catalog.pg_authid");
-        s = StringUtils.replaceAll(s, "from pg_type", "from pg_catalog.pg_type");
-        s = StringUtils.replaceAll(s, "join pg_attrdef", "join pg_catalog.pg_attrdef");
+        int todoNeedToSupportInParser;
         s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
-        s = StringUtils.replaceAll(s, "current_user", "USER()");
-        s = StringUtils.replaceAll(s, "E'", "'"); // VALUES (E'2'[*], E'Test')
-        if(s.indexOf('$') > 0) {
-            int todoDontReplaceInQuoted;
-            s = s.replace('$', '?');
-        }
         return s;
     }
     

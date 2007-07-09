@@ -601,8 +601,7 @@ public class Parser {
     }
     
     private TableFilter readSimpleTableFilter() throws SQLException {
-        String tableName = readIdentifierWithSchema();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = readTableOrView();
         String alias = null;
         if(readIf("AS")) {
             alias = readAliasIdentifier();
@@ -691,8 +690,7 @@ public class Parser {
         Merge command = new Merge(session);
         currentPrepared = command;
         read("INTO");
-        String tableName = readIdentifierWithSchema();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
             Column[] columns = parseColumnList(table);
@@ -731,8 +729,7 @@ public class Parser {
         Insert command = new Insert(session);
         currentPrepared = command;
         read("INTO");
-        String tableName = readIdentifierWithSchema();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
             Column[] columns = parseColumnList(table);
@@ -793,7 +790,7 @@ public class Parser {
                 return top;
             }
         } else {
-            String tableName = readIdentifierWithSchema();
+            String tableName = readIdentifierWithSchema(null);
             if(readIf("(")) {
                 if(tableName.equals(RangeTable.NAME)) {
                     long min = readLong();
@@ -811,7 +808,7 @@ public class Parser {
             } else if(tableName.equals("DUAL")) {
                 table = new RangeTable(mainSchema, 1, 1);
             } else {
-                table = getSchema().getTableOrView(session, tableName);
+                table = readTableOrView(tableName);
             }
         }
         String alias = null;
@@ -829,9 +826,9 @@ public class Parser {
 
     private Prepared parseTruncate() throws SQLException {
         read("TABLE");
-        String tableName = readIdentifierWithSchema();
-        TruncateTable command = new TruncateTable(session, getSchema());
-        command.setTableName(tableName);
+        Table table = readTableOrView();
+        TruncateTable command = new TruncateTable(session);
+        command.setTable(table);
         return command;
     }
 
@@ -1904,6 +1901,8 @@ public class Parser {
                 }
             } else if (readIf("(")) {
                 return readFunction(name);
+            } else if("CURRENT_USER".equals(name)) {
+                return readFunctionWithoutParameters("USER");
             } else if("CURRENT".equals(name)) {
                 if(readIf("TIMESTAMP")) {
                     return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
@@ -1916,8 +1915,7 @@ public class Parser {
                 }
             } else if("NEXT".equals(name) && readIf("VALUE")) {
                 read("FOR");
-                String sequenceName = readIdentifierWithSchema();
-                Sequence sequence = getSchema().getSequence(sequenceName);
+                Sequence sequence = readSequence();
                 return new SequenceValue(sequence);
             } else if("DATE".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
                 String date = currentValue.getString();
@@ -1931,6 +1929,10 @@ public class Parser {
                 String timestamp = currentValue.getString();
                 read();
                 return ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
+            } else if("E".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                String text = currentValue.getString();
+                read();
+                return ValueExpression.get(ValueString.get(text));
             } else {
                 return new ExpressionColumn(database, currentSelect, null, null, name);
             }
@@ -2489,6 +2491,7 @@ public class Parser {
             case '+':
             case '%':
             case '?':
+            case '$':
                 type = CHAR_SPECIAL_1;
                 break;
             case '!':
@@ -2587,6 +2590,7 @@ public class Parser {
         if(s.length()==1) {
             switch(c0) {
             case '?':
+            case '$':
                 return PARAMETER;
             case '+':
                 return PLUS;
@@ -2757,7 +2761,7 @@ public class Parser {
 
     private Column parseColumnForTable(String columnName) throws SQLException {
         Column column;
-        if(readIf("IDENTITY")) {
+        if(readIf("IDENTITY") || readIf("SERIAL")) {
             column = new Column(columnName, Value.LONG, ValueLong.PRECISION, 0);
             column.setOriginalSQL("IDENTITY");
             long start = 1, increment = 1;
@@ -2828,8 +2832,7 @@ public class Parser {
             column.setConvertNullToDefault(true);
         }
         if(readIf("SEQUENCE")) {
-            String sequenceName = readIdentifierWithSchema();
-            Sequence sequence = getSchema().getSequence(sequenceName);
+            Sequence sequence = readSequence();
             column.setSequence(sequence);
         }
         if(readIf("SELECTIVITY")) {
@@ -3081,8 +3084,7 @@ public class Parser {
         if(!isRoleBased) {
             if(readIf("ON")) {
                 do {
-                    String tableName = readIdentifierWithSchema();
-                    Table table = getSchema().getTableOrView(session, tableName);
+                    Table table = readTableOrView();
                     command.addTable(table);
                 } while(readIf(","));
             }
@@ -3357,11 +3359,11 @@ public class Parser {
     private AlterIndexRename parseAlterIndex() throws SQLException {
         String indexName = readIdentifierWithSchema();
         Schema old = getSchema();
-        AlterIndexRename command = new AlterIndexRename(session, getSchema());
+        AlterIndexRename command = new AlterIndexRename(session);
         command.setOldIndex(getSchema().getIndex(indexName));
         read("RENAME");
         read("TO");
-        String newName = readIdentifierWithSchema(old.getSQL());
+        String newName = readIdentifierWithSchema(old.getName());
         checkSchema(old);
         command.setNewName(newName);
         return command;
@@ -3438,28 +3440,34 @@ public class Parser {
         }
         throw getSyntaxError();
     }
+    
+    private void readIfEqualOrTo() throws SQLException {
+        if(!readIf("=")) {
+            readIf("TO");
+        }
+    }
 
     private Prepared parseSet() throws SQLException {
         if(readIf("AUTOCOMMIT")) {
-            readIf("=");
+            readIfEqualOrTo();
             boolean value = readBooleanSetting();
             int setting = value ? TransactionCommand.AUTOCOMMIT_TRUE : TransactionCommand.AUTOCOMMIT_FALSE;
             return new TransactionCommand(session, setting);
         } else if(readIf("IGNORECASE")) {
-            readIf("=");            
+            readIfEqualOrTo();
             boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.IGNORECASE);
             command.setInt(value ? 1 : 0);
             return command;
         } else if(readIf("PASSWORD")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
             command.setPassword(readString());
             return command;
         } else if(readIf("SALT")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
@@ -3468,12 +3476,12 @@ public class Parser {
             command.setHash(readString());
             return command;
         } else if(readIf("MODE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.MODE);
             command.setString(readAliasIdentifier());
             return command;
         } else if(readIf("COMPRESS_LOB")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.COMPRESS_LOB);
             if(currentTokenType == VALUE) {
                 command.setString(readString());
@@ -3482,24 +3490,24 @@ public class Parser {
             }
             return command;
         } else if(readIf("DATABASE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read("COLLATION");
             return parseSetCollation();
         } else if(readIf("COLLATION")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             return parseSetCollation();
         } else if(readIf("CLUSTER")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.CLUSTER);
             command.setString(readString());
             return command;
         } else if(readIf("DATABASE_EVENT_LISTENER")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.DATABASE_EVENT_LISTENER);
             command.setString(readString());
             return command;
         } else if(readIf("ALLOW_LITERALS")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.ALLOW_LITERALS);
             if(readIf("NONE")) {
                 command.setInt(Constants.ALLOW_LITERALS_NONE);
@@ -3512,7 +3520,7 @@ public class Parser {
             }
             return command;
         } else if(readIf("DEFAULT_TABLE_TYPE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.DEFAULT_TABLE_TYPE);
             if(readIf("MEMORY")) {
                 command.setInt(Table.TYPE_MEMORY);
@@ -3523,56 +3531,68 @@ public class Parser {
             }
             return command;
         } else if(readIf("CREATE")) {
-            readIf("=");
+            readIfEqualOrTo();
             // Derby compatibility (CREATE=TRUE in the database URL)
             read();
             return new NoOperation(session);
         } else if(readIf("HSQLDB.DEFAULT_TABLE_TYPE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("CACHE_TYPE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("FILE_LOCK")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("STORAGE")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("DB_CLOSE_ON_EXIT")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_LOG")) {
-            readIf("=");
+            readIfEqualOrTo();
             read();
             return new NoOperation(session);
         } else if(readIf("ASSERT")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_DATA")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);
         } else if(readIf("RECOVER")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             read();
             return new NoOperation(session);            
         } else if(readIf("SCHEMA")) {
-            readIf("=");            
+            readIfEqualOrTo();            
             Set command = new Set(session, SetTypes.SCHEMA);
             command.setString(readAliasIdentifier());
             return command;
         } else if(readIf("DATESTYLE")) {
             // PostgreSQL compatibility
-            readIf("=");
+            readIfEqualOrTo();
             read("ISO");
             return new NoOperation(session);
+        } else if(readIf("SEARCH_PATH") || readIf(SetTypes.getTypeName(SetTypes.SCHEMA_SEARCH_PATH))) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
+            ObjectArray list = new ObjectArray();
+            list.add(readAliasIdentifier());
+            while(readIf(",")) {
+                list.add(readAliasIdentifier());
+            }
+            String[] schemaNames = new String[list.size()];
+            list.toArray(schemaNames);
+            command.setStringArray(schemaNames);
+            return command;
         } else {
             if(isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -3581,7 +3601,7 @@ public class Parser {
             int type = SetTypes.getType(currentToken);
             if(type >= 0) {
                 read();
-                readIf("=");                
+                readIfEqualOrTo();                
                 Set command = new Set(session, type);
                 command.setExpression(readExpression());
                 return command;
@@ -3674,13 +3694,56 @@ public class Parser {
         }
         return command;
     }
+    
+    private Table readTableOrView() throws SQLException {
+        return readTableOrView(readIdentifierWithSchema(null));
+    }
+    
+    private Table readTableOrView(String tableName) throws SQLException {
+        // same algorithm than readSequence
+        if(schemaName != null) {
+            return getSchema().getTableOrView(session, tableName);
+        }
+        Table table = database.getSchema(session.getCurrentSchemaName()).findTableOrView(session, tableName);
+        if(table != null) {
+            return table;
+        }
+        String[] schemaNames = session.getSchemaSearchPath();
+        for(int i=0; schemaNames != null && i<schemaNames.length; i++) {
+            Schema s = database.getSchema(schemaNames[i]);
+            table = s.findTableOrView(session, tableName);
+            if(table != null) {
+                return table;
+            }
+        }
+        throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+    }
+    
+    private Sequence readSequence() throws SQLException {
+        // same algorithm than readTableOrView
+        String sequenceName = readIdentifierWithSchema(null);
+        if(schemaName != null) {
+            return getSchema().getSequence(sequenceName);
+        }
+        Sequence sequence = database.getSchema(session.getCurrentSchemaName()).findSequence(sequenceName);
+        if(sequence != null) {
+            return sequence;
+        }
+        String[] schemaNames = session.getSchemaSearchPath();
+        for(int i=0; schemaNames != null && i<schemaNames.length; i++) {
+            Schema s = database.getSchema(schemaNames[i]);
+            sequence = s.findSequence(sequenceName);
+            if(sequence != null) {
+                return sequence;
+            }
+        }
+        throw Message.getSQLException(Message.SEQUENCE_NOT_FOUND_1, sequenceName);
+    }
 
     private Prepared parseAlterTable() throws SQLException {
-        String tableName = readIdentifierWithSchema();
-        Schema tableSchema = getSchema();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = readTableOrView();
         if(readIf("ADD")) {
-            Prepared command = parseAlterTableAddConstraintIf(getSchema(), tableName);
+            Prepared command = parseAlterTableAddConstraintIf(table.getName(), table.getSchema());
             if(command != null) {
                 return command;
             }
@@ -3694,34 +3757,34 @@ public class Parser {
                 read("FALSE");
                 type = AlterTableAddConstraint.REFERENTIAL_INTEGRITY_FALSE;
             }
-            AlterTableAddConstraint command = new AlterTableAddConstraint(session, getSchema());
-            command.setTableName(tableName);
+            AlterTableAddConstraint command = new AlterTableAddConstraint(session, table.getSchema());
+            command.setTableName(table.getName());
             command.setType(type);
             return command;
         } else if(readIf("RENAME")) {
             read("TO");
-            String newName = readIdentifierWithSchema(tableSchema.getSQL());
-            checkSchema(tableSchema);
+            String newName = readIdentifierWithSchema(table.getSchema().getName());
+            checkSchema(table.getSchema());
             AlterTableRename command = new AlterTableRename(session, getSchema());
             command.setOldTable(table);
             command.setNewTableName(newName);
             return command;
         } else if(readIf("DROP")) {
             if(readIf("CONSTRAINT")) {
-                String constraintName = readIdentifierWithSchema(tableSchema.getSQL());
-                checkSchema(tableSchema);
+                String constraintName = readIdentifierWithSchema(table.getSchema().getName());
+                checkSchema(table.getSchema());
                 AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema());
                 command.setConstraintName(constraintName);
                 return command;
             } else if(readIf("PRIMARY")) {
                 read("KEY");
                 Index idx = table.getPrimaryKey();
-                DropIndex command = new DropIndex(session, tableSchema);
+                DropIndex command = new DropIndex(session, table.getSchema());
                 command.setIndexName(idx.getName());
                 return command;
             } else {
                 readIf("COLUMN");
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setType(AlterTableAlterColumn.DROP);
                 String columnName = readColumnIdentifier();
                 command.setTable(table);
@@ -3745,14 +3808,14 @@ public class Parser {
                     // Derby compatibility
                     read("TYPE");
                     Column newColumn = parseColumnForTable(columnName);
-                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                     command.setTable(table);
                     command.setType(AlterTableAlterColumn.CHANGE_TYPE);
                     command.setOldColumn(column);
                     command.setNewColumn(newColumn);
                     return command;
                 }
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setOldColumn(column);
                 if(readIf("NULL")) {
@@ -3771,7 +3834,7 @@ public class Parser {
             } else if(readIf("RESTART")) {
                 readIf("WITH");
                 long start = readLong();
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.RESTART);
                 command.setOldColumn(column);
@@ -3779,7 +3842,7 @@ public class Parser {
                 return command;
             } else if(readIf("SELECTIVITY")) {
                 int selectivity = getPositiveInt();
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.SELECTIVITY);
                 command.setOldColumn(column);
@@ -3787,7 +3850,7 @@ public class Parser {
                 return command;
             } else {
                 Column newColumn = parseColumnForTable(columnName);
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, tableSchema);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.CHANGE_TYPE);
                 command.setOldColumn(column);
@@ -3832,7 +3895,7 @@ public class Parser {
         }
     }
 
-    private Prepared parseAlterTableAddConstraintIf(Schema schema, String tableName) throws SQLException {
+    private Prepared parseAlterTableAddConstraintIf(String tableName, Schema schema) throws SQLException {
         String name = null, comment = null;
         if(readIf("CONSTRAINT")) {
             name = readIdentifierWithSchema(schema.getName());
@@ -3989,7 +4052,7 @@ public class Parser {
             read("(");
             if(!readIf(")")) {
                 do {
-                    Prepared c = parseAlterTableAddConstraintIf(schema, tableName);
+                    Prepared c = parseAlterTableAddConstraintIf(tableName, schema);
                     if(c != null) {
                         command.addConstraintCommand(c);
                     } else {

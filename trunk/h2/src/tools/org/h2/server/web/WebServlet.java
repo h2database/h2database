@@ -127,7 +127,7 @@ public class WebServlet extends HttpServlet {
             try {
                 bytes = StringUtils.utf8Encode("File not found: "+file);
             } catch(SQLException e) {
-            	server.traceError(e);
+                server.traceError(e);
             }
         } else {
             if(session != null && file.endsWith(".jsp")) {
@@ -136,7 +136,7 @@ public class WebServlet extends HttpServlet {
                 try {
                     bytes = StringUtils.utf8Encode(page);
                 } catch(SQLException e) {
-                	server.traceError(e);
+                    server.traceError(e);
                 }
             }
             resp.setContentType(mimeType);

@@ -160,7 +160,7 @@ class WebThread extends Thread {
                             try {
                                 bytes = StringUtils.utf8Encode(page);
                             } catch(SQLException e) {
-                            	server.traceError(e);
+                                server.traceError(e);
                             }
                         }
                         message = "HTTP/1.1 200 OK\n";
@@ -1517,16 +1517,16 @@ class WebThread extends Thread {
         return NetUtils.isLoopbackAddress(socket);
     }
 
-	public String getMimeType() {
-		return mimeType;
-	}
+    public String getMimeType() {
+        return mimeType;
+    }
 
-	public boolean getCache() {
-		return cache;
-	}
+    public boolean getCache() {
+        return cache;
+    }
 
-	public WebSession getSession() {
-		return session;
-	}
+    public WebSession getSession() {
+        return session;
+    }
     
 }

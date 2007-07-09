@@ -26,7 +26,7 @@ public class ObjectArray {
     
     public ObjectArray(int size) {
         data = new Object[size > 1 ? size : 1];
-    }    
+    }
 
     public ObjectArray(Object[] data) {
         this.data = data;

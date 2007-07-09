@@ -1,4 +1,21 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+set autocommit off;
+> ok
+
+set search_path = public, information_schema;
+> ok
+
+select table_name from tables where 1=0;
+> TABLE_NAME
+> ----------
+> rows: 0
+
+set search_path = public;
+> ok
+
+set autocommit on;
+> ok
+
 create table script.public.x(a int);
 > ok
 

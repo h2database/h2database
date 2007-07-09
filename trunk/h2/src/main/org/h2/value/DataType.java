@@ -113,7 +113,7 @@ public class DataType {
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, false, true),
-                new String[]{"IDENTITY"}
+                new String[]{"IDENTITY", "SERIAL"}
         );
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, true, false),

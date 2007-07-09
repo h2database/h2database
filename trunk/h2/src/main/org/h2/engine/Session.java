@@ -55,6 +55,7 @@ public class Session implements SessionInterface {
     private Command currentCommand;
     private boolean allowLiterals;
     private String currentSchemaName;
+    private String[] schemaSearchPath;
     private String traceModuleName;
     private HashSet unlinkSet;
     private int tempViewIndex;
@@ -62,7 +63,7 @@ public class Session implements SessionInterface {
 
     public Session() {
     }
-
+    
     public Table findLocalTempTable(String name) {
         Table t = null;
         if(t == null && localTempTables != null) {
@@ -503,4 +504,13 @@ public class Session implements SessionInterface {
         }
         return (Procedure) procedures.get(name);
     }
+    
+    public void setSchemaSearchPath(String[] schemas) {
+        this.schemaSearchPath = schemas;
+    }
+    
+    public String[] getSchemaSearchPath() {
+        return schemaSearchPath;
+    }
+    
 }

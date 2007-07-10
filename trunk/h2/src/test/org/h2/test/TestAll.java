@@ -94,9 +94,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+public static void Constants.setBaseDir(String baseDir) throws IOException. 
+System property h2.baseDir (default: empty meaning current working directory). 
+Can be set to ~ (meaning the user directory) or any directory (is created if it does not yet exist).
+java -Dh2.baseDir=/tmp/data org.h2.tools.Server
+System.setProperty would work as well, needs to be set before connecting to any database.
+
+Test with newest Hibernate
+
 SELECT * FROM DUAL WHERE 'a_z' LIKE '%=_%' ESCAPE '=';
 SELECT * FROM DUAL WHERE 'a_z' LIKE '%\_%';
-
 
 -- SET client_encoding = 'UTF8';
 -- SET check_function_bodies = false;

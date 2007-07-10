@@ -969,7 +969,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id);
                 debugCodeCall("getMetaData");
             }
-            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(null, this, result, session.getTrace(), id);
+            String catalog = conn.getCatalog();
+            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(null, this, result, catalog, session.getTrace(), id);
             return meta;
         } catch(Throwable e) {
             throw logAndConvert(e);

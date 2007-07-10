@@ -27,7 +27,7 @@ public class MathUtils {
     }
     
     public static int nextPowerOf2(int x) {
-        int i = 1;
+        long i = 1;
         while(i < x && i < (Integer.MAX_VALUE/2)) {
             i += i;
         }

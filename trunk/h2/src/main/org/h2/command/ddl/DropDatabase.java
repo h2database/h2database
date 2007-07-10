@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.schema.Schema;
@@ -84,7 +85,15 @@ public class DropDatabase extends DefineCommand {
             }
         }
         list = db.getAllRoles();
-        list.addAll(db.getAllRights());
+        for(int i=0; i<list.size(); i++) {
+            Role role = (Role) list.get(i);
+            String sql = role.getCreateSQL();  
+            // the role PUBLIC must not be dropped            
+            if(sql != null) {            
+                db.removeDatabaseObject(session, role);                
+            }
+        }
+        list = db.getAllRights();
         list.addAll(db.getAllFunctionAliases());
         for(int i=0; i<list.size(); i++) {
             DbObject obj = (DbObject) list.get(i);

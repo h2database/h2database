@@ -171,17 +171,12 @@ public class SelectUnion extends Query {
             throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
         }
         ObjectArray le = left.getExpressions();
-        ObjectArray re = right.getExpressions();
+        // set the expressions to get the right column count and names, 
+        // but can't validate at this time
         expressions = new ObjectArray();
         for(int i=0; i<len; i++) {
             Expression l = (Expression)le.get(i);
-            Expression r = (Expression)re.get(i);
-            int type = Value.getHigherOrder(l.getType(), r.getType());
-            long prec = Math.max(l.getPrecision(), r.getPrecision());
-            int scale = Math.max(l.getScale(), r.getScale());
-            Column col = new Column(l.getAlias(), type, prec, scale);
-            Expression e = new ExpressionColumn(session.getDatabase(), null, col);
-            expressions.add(e);
+            expressions.add(l);
         }
     }
 
@@ -192,6 +187,21 @@ public class SelectUnion extends Query {
         checkPrepared = true;        
         left.prepare();
         right.prepare();
+        int len = left.getColumnCount();
+        // set the correct expressions now
+        expressions = new ObjectArray();
+        ObjectArray le = left.getExpressions();
+        ObjectArray re = right.getExpressions();
+        for(int i=0; i<len; i++) {
+            Expression l = (Expression)le.get(i);
+            Expression r = (Expression)re.get(i);
+            int type = Value.getHigherOrder(l.getType(), r.getType());
+            long prec = Math.max(l.getPrecision(), r.getPrecision());
+            int scale = Math.max(l.getScale(), r.getScale());
+            Column col = new Column(l.getAlias(), type, prec, scale);
+            Expression e = new ExpressionColumn(session.getDatabase(), null, col);
+            expressions.add(e);
+        }
         if(orderList != null) {
             initOrder(expressions, null, orderList, getColumnCount(), true);
             sort = prepareOrder(expressions, orderList);

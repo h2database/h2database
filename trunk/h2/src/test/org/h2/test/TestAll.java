@@ -91,8 +91,12 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();      
-        
+
 /*
+
+SELECT * FROM DUAL WHERE 'a_z' LIKE '%=_%' ESCAPE '=';
+SELECT * FROM DUAL WHERE 'a_z' LIKE '%\_%';
+
 
 -- SET client_encoding = 'UTF8';
 -- SET check_function_bodies = false;

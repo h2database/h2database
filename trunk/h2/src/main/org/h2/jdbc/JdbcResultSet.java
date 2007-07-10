@@ -96,7 +96,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 debugCodeCall("getMetaData");
             }
             checkClosed();
-            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(this, null, result, session.getTrace(), id);
+            String catalog = conn.getCatalog();
+            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(this, null, result, catalog, session.getTrace(), id);
             return meta;
         } catch(Throwable e) {
             throw logAndConvert(e);

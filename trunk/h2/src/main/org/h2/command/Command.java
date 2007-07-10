@@ -46,11 +46,11 @@ public abstract class Command implements CommandInterface {
 
     public abstract LocalResult queryMeta() throws SQLException;
 
-    final public LocalResult getMetaDataLocal() throws SQLException {
+    public final LocalResult getMetaDataLocal() throws SQLException {
         return queryMeta();
     }
 
-    final public ResultInterface getMetaData() throws SQLException {
+    public final ResultInterface getMetaData() throws SQLException {
         return queryMeta();
     }
     
@@ -95,8 +95,11 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (Constants.MULTI_THREADED_KERNEL && session.getDatabase().getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
-            session.unlockReadLocks();
+        } else if (Constants.MULTI_THREADED_KERNEL) {
+            Database db = session.getDatabase();
+            if (db != null && db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
+                session.unlockReadLocks();
+            }
         }
         if (trace.info()) {
             long time = System.currentTimeMillis() - startTime;

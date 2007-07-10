@@ -17,13 +17,15 @@ import org.h2.value.DataType;
  */
 public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaData {
 
+    private final String catalog;
     private final JdbcResultSet rs;
     private final JdbcPreparedStatement prep;
     private final ResultInterface result;
     private final int columnCount;
 
-    JdbcResultSetMetaData(JdbcResultSet rs, JdbcPreparedStatement prep, ResultInterface result, Trace trace, int id) {
+    JdbcResultSetMetaData(JdbcResultSet rs, JdbcPreparedStatement prep, ResultInterface result, String catalog, Trace trace, int id) {
         setTrace(trace, TraceObject.RESULT_SET_META_DATA, id);
+        this.catalog = catalog;
         this.rs = rs;
         this.prep = prep;
         this.result = result;
@@ -161,7 +163,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         try {
             debugCodeCall("getCatalogName", column);
             checkColumnIndex(column);
-            return rs.getConnection().getCatalog();
+            return catalog;
         } catch(Throwable e) {
             throw logAndConvert(e);
         }

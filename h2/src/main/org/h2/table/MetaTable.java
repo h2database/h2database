@@ -514,15 +514,14 @@ public class MetaTable extends Table {
     public ObjectArray generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
         Value indexFrom = null, indexTo = null;
         
-        int testing;
-//        if(indexColumn >= 0) {
-//            if(first != null) {
-//                indexFrom = first.getValue(indexColumn);
-//            }
-//            if(last != null) {
-//                indexTo = last.getValue(indexColumn);
-//            }
-//        }
+        if(indexColumn >= 0) {
+            if(first != null) {
+                indexFrom = first.getValue(indexColumn);
+            }
+            if(last != null) {
+                indexTo = last.getValue(indexColumn);
+            }
+        }
         
         ObjectArray rows = new ObjectArray();
         String catalog = identifier(database.getShortName());

@@ -94,10 +94,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-whats faster, stringBuffer.append.append.append or buff.append buff.append...
-maybe replace StringBuffer with own class (StringCreator)
-
-storages should be an inthashmap
+storages should be an int hash map
 
 Test with newest Hibernate
 

@@ -17,7 +17,7 @@ import org.h2.util.ObjectArray;
  */
 
 public abstract class DbObject {
-	
+    
     public static final int TABLE_OR_VIEW=0, INDEX=1, USER=2, SEQUENCE=3, TRIGGER=4;
     public static final int CONSTRAINT = 5, SETTING = 6, ROLE = 7, RIGHT = 8, FUNCTION_ALIAS = 9;
     public static final int SCHEMA = 10, CONSTANT = 11;

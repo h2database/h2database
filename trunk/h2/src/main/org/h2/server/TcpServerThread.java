@@ -58,6 +58,9 @@ public class TcpServerThread implements Runnable {
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
                 String baseDir = server.getBaseDir();
+                if(baseDir == null) {
+                	baseDir = Constants.BASE_DIR;
+                }
                 ConnectionInfo ci = new ConnectionInfo(db);
                 if(baseDir != null) {
                     ci.setBaseDir(baseDir);

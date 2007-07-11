@@ -68,27 +68,33 @@ import org.h2.value.ValueInt;
  */
 public class Database implements DataHandler {
 
+    private final boolean persistent;
+    private final String databaseName;
+    private final String databaseShortName;
+    private final String databaseURL;
+    private final String cipher;
+    private final byte[] filePasswordHash;
+    
+    private final HashMap roles = new HashMap();
+    private final HashMap users = new HashMap();
+    private final HashMap settings = new HashMap();
+    private final HashMap schemas = new HashMap();
+    private final HashMap rights = new HashMap();
+    private final HashMap functionAliases = new HashMap();
+    private final HashMap userDataTypes = new HashMap();
+    private final HashMap comments = new HashMap();
+    private final HashSet sessions = new HashSet();
+    private final BitField objectIds = new BitField();
+    private final Object lobSyncObject = new Object();
+
     private boolean textStorage;
-    private String databaseName;
-    private String databaseShortName;
-    private String databaseURL;
-    private HashMap roles = new HashMap();
-    private HashMap users = new HashMap();
-    private HashMap settings = new HashMap();
-    private HashMap schemas = new HashMap();
-    private HashMap rights = new HashMap();
-    private HashMap functionAliases = new HashMap();
-    private HashMap userDataTypes = new HashMap();
-    private HashMap comments = new HashMap();
     private Schema mainSchema;
     private Schema infoSchema;
     private int nextSessionId;
-    private HashSet sessions = new HashSet();
     private User systemUser;
     private Session systemSession;
     private TableData meta;
     private Index metaIdIndex;
-    private BitField objectIds = new BitField();
     private FileLock lock;
     private LogSystem log;
     private WriterThread writer;
@@ -96,9 +102,6 @@ public class Database implements DataHandler {
     private boolean starting;
     private DiskFile fileData, fileIndex;
     private TraceSystem traceSystem;
-    private boolean persistent;
-    private String cipher;
-    private byte[] filePasswordHash;
     private DataPage dummy;
     private int fileLockMethod;
     private Role publicRole;
@@ -133,8 +136,67 @@ public class Database implements DataHandler {
     private boolean optimizeReuseResults = true;
     private String cacheType;
     private boolean indexSummaryValid = true;
-    private Object lobSyncObject = new Object();
     private String accessModeLog, accessModeData;
+
+    public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
+        this.compareMode = new CompareMode(null, null);
+        this.persistent = ci.isPersistent();
+        this.filePasswordHash = ci.getFilePasswordHash();
+        this.databaseName = name;
+        this.databaseShortName = parseDatabaseShortName();
+        this.cipher = cipher;
+        String lockMethodName = ci.removeProperty("FILE_LOCK", null);
+        this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
+        this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
+        this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+        this.textStorage = ci.getTextStorage();
+        this.databaseURL = ci.getURL();
+        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
+        if(listener != null) {
+            if(listener.startsWith("'")) {
+                listener = listener.substring(1);
+            }
+            if(listener.endsWith("'")) {
+                listener = listener.substring(0, listener.length()-1);
+            }
+            setEventListener(listener);
+        }
+        String log = ci.getProperty(SetTypes.LOG, null);
+        if(log != null) {
+            this.logIndexChanges = log.equals("2");
+        }
+        String ignoreSummary = ci.getProperty("RECOVER", null);
+        if(ignoreSummary != null) {
+            this.recovery = true;
+        }
+        boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
+        int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
+        int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT, TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
+        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", CacheLRU.TYPE_NAME));
+        try {
+            synchronized(this) {
+                open(traceLevelFile, traceLevelSystemOut);
+            }
+            if(closeAtVmShutdown) {
+                DatabaseCloser closeOnExit = new DatabaseCloser(this, 0, true);
+                try {
+                    Runtime.getRuntime().addShutdownHook(closeOnExit);
+                } catch(IllegalStateException e) {
+                    // shutdown in progress - just don't register the handler 
+                    // (maybe an application wants to write something into a database at shutdown time)
+                }
+            }
+        } catch(Throwable e) {
+            if(traceSystem != null) {
+                traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
+                traceSystem.close();
+            }
+            synchronized(this) {
+                closeOpenFilesAndUnlock();
+            }
+            throw Message.convert(e);
+        }
+    }
 
     public static void setInitialPowerOffCount(int count) {
         initialPowerOffCount = count;
@@ -338,66 +400,6 @@ public class Database implements DataHandler {
             n = "UNNAMED";
         }
         return StringUtils.toUpperEnglish(n);
-    }
-
-    public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
-        this.compareMode = new CompareMode(null, null);
-        this.persistent = ci.isPersistent();
-        this.filePasswordHash = ci.getFilePasswordHash();
-        this.databaseName = name;
-        this.databaseShortName = parseDatabaseShortName();
-        this.cipher = cipher;
-        String lockMethodName = ci.removeProperty("FILE_LOCK", null);
-        this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
-        this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
-        this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-        this.textStorage = ci.getTextStorage();
-        this.databaseURL = ci.getURL();
-        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-        if(listener != null) {
-            if(listener.startsWith("'")) {
-                listener = listener.substring(1);
-            }
-            if(listener.endsWith("'")) {
-                listener = listener.substring(0, listener.length()-1);
-            }
-            setEventListener(listener);
-        }
-        String log = ci.getProperty(SetTypes.LOG, null);
-        if(log != null) {
-            this.logIndexChanges = log.equals("2");
-        }
-        String ignoreSummary = ci.getProperty("RECOVER", null);
-        if(ignoreSummary != null) {
-            this.recovery = true;
-        }
-        boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
-        int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
-        int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT, TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", CacheLRU.TYPE_NAME));
-        try {
-            synchronized(this) {
-                open(traceLevelFile, traceLevelSystemOut);
-            }
-            if(closeAtVmShutdown) {
-                DatabaseCloser closeOnExit = new DatabaseCloser(this, 0, true);
-                try {
-                    Runtime.getRuntime().addShutdownHook(closeOnExit);
-                } catch(IllegalStateException e) {
-                    // shutdown in progress - just don't register the handler 
-                    // (maybe an application wants to write something into a database at shutdown time)
-                }
-            }
-        } catch(Throwable e) {
-            if(traceSystem != null) {
-                traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
-                traceSystem.close();
-            }
-            synchronized(this) {
-                closeOpenFilesAndUnlock();
-            }
-            throw Message.convert(e);
-        }
     }
 
     private void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {

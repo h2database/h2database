@@ -11,8 +11,8 @@ import org.h2.util.ObjectArray;
 
 public class CommandList extends Command {
 
-    private Command command;
-    private String remaining;
+    private final Command command;
+    private final String remaining;
     
     // TODO lock if possible!
     

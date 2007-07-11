@@ -19,7 +19,7 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 public class AggregateData {
-    private int aggregateType;
+    private final int aggregateType;
     private long count;
     private ValueHashMap distinctValues;
     private Value value;

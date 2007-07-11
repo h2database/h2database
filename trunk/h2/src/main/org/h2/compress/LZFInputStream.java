@@ -9,7 +9,7 @@ import java.io.InputStream;
 
 public class LZFInputStream extends InputStream {
     
-    private InputStream in;
+    private final InputStream in;
     private CompressLZF decompress = new CompressLZF();
     private int pos;
     private int bufferLength;

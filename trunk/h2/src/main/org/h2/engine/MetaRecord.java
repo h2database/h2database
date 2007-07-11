@@ -17,6 +17,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
 public class MetaRecord {
+	
     private int id;
     private int objectType;
     private int headPos;

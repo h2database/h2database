@@ -25,7 +25,7 @@ import org.h2.value.ValueString;
 
 public class CompareLike extends Condition {
 
-    private CompareMode compareMode;
+    private final CompareMode compareMode;
     private Expression left;
     private Expression right;
     private Expression escape;
@@ -253,6 +253,7 @@ public class CompareLike extends Condition {
                     throw Message.getSQLException(Message.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 type = MATCH;
+                lastAny = false;
             } else if (c == '%') {
                 if(lastAny) {
                     continue;

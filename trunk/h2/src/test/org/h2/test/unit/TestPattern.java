@@ -19,8 +19,9 @@ public class TestPattern extends TestBase {
         test(comp, "B", "%_");
         test(comp, "A", "A%");
         test(comp, "A", "A%%");
+        test(comp, "A_A", "%\\_%");
 
-        for(int i=0; i<10; i++) {
+        for(int i=0; i<10000; i++) {
             String pattern=getRandomPattern();
             String value=getRandomValue();
             test(comp, value, pattern);
@@ -28,21 +29,18 @@ public class TestPattern extends TestBase {
     }
     
     void test(CompareLike comp, String value, String pattern) throws Exception {
-        // TODO test: need another regexp implementation (this one doesn't work for gcj)
-//        String regexp = initPatternRegexp(pattern);
-//        boolean resultRegexp = value.matches(regexp);
-//        boolean result = 
-        comp.test(pattern, value, 'X');
-        
-//        if(result != resultRegexp) {
-//            throw new Exception("Error: >"+value+"< LIKE >"+pattern+"< result="+result+" resultReg="+resultRegexp);
-//        }
+        String regexp = initPatternRegexp(pattern, '\\');
+        boolean resultRegexp = value.matches(regexp);
+        boolean result = comp.test(pattern, value, '\\');
+        if(result != resultRegexp) {
+            error("Error: >"+value+"< LIKE >"+pattern+"< result="+result+" resultReg="+resultRegexp);
+        }
     }
 
     static String getRandomValue() {
         StringBuffer buff = new StringBuffer();
         int len = (int)(Math.random() * 10);
-        String s = "ABCDEFGHIJKLMNOP";
+        String s = "AB_%\\";
         for(int i=0; i<len; i++) {
             buff.append(s.charAt((int)(Math.random()*s.length())));
         }
@@ -52,40 +50,45 @@ public class TestPattern extends TestBase {
     static String getRandomPattern() {
         StringBuffer buff = new StringBuffer();
         int len = (int)(Math.random() * 4);
-        //String s = "ABC%_\\";
-        String s = "AB_";
+        String s = "A%_\\";
         for(int i=0; i<len; i++) {
-            buff.append(s.charAt((int)(Math.random()*s.length())));
+        	char c = s.charAt((int)(Math.random()*s.length()));
+        	if((c == '_' || c == '%') && Math.random() > 0.5) {
+                buff.append('\\');
+        	} else if(c=='\\') {
+                buff.append(c);
+        	}
+            buff.append(c);
         }
         return buff.toString();
     }
 
-//    private String initPatternRegexp(String pattern) {
-//        int len = pattern.length();
-//        StringBuffer buff = new StringBuffer();
-//        for (int i = 0; i < len; i++) {
-//            char c = pattern.charAt(i);
-//            if (escape != null && escape.charValue() == c) {
-//                if (i >= len) {
-//                    throw Message.internal("escape can't be last char");
-//                }
-//                c = pattern.charAt(++i);
-//                buff.append('\\');
-//                buff.append(c);
-//            } else if (c == '%') {
-//                buff.append(".*");
-//            } else if (c == '_') {
-//                buff.append('.');
-//            } else if(c=='\\'){
-//                buff.append("\\\\");
-//            } else {
-//                buff.append(c);
-//            }
-//            // TODO regexp: there are other chars that need escaping
-//        }
-//        String regexp = buff.toString();
-////        System.out.println("regexp = " + regexp);
-//        return regexp;
-//    }
+    private String initPatternRegexp(String pattern, char escape) throws Exception {
+        int len = pattern.length();
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < len; i++) {
+            char c = pattern.charAt(i);
+            if (escape == c) {
+                if (i >= len) {
+                	error("escape can't be last char");
+                }
+                c = pattern.charAt(++i);
+                buff.append('\\');
+                buff.append(c);
+            } else if (c == '%') {
+                buff.append(".*");
+            } else if (c == '_') {
+                buff.append('.');
+            } else if(c=='\\'){
+                buff.append("\\\\");
+            } else {
+                buff.append(c);
+            }
+            // TODO regexp: there are other chars that need escaping
+        }
+        String regexp = buff.toString();
+//        System.out.println("regexp = " + regexp);
+        return regexp;
+    }
     
 }

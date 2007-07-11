@@ -19,15 +19,15 @@ import org.h2.util.StringUtils;
 
 public class ConnectionInfo {
 
+    private static final HashSet KNOWN_SETTINGS = new HashSet();
+
+    private final Properties prop = new Properties();
     private String originalURL;
     private String url;
-    private Properties prop = new Properties();
     private String user;
     private byte[] filePasswordHash;
     private byte[] userPasswordHash;
     private String name;
-
-    private static HashSet KNOWN_SETTINGS = new HashSet();
 
     private boolean remote;
     private boolean ssl;

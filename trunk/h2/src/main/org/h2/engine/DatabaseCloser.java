@@ -7,9 +7,10 @@ package org.h2.engine;
 import java.lang.ref.WeakReference;
 
 public class DatabaseCloser extends Thread {
+	
+    private final boolean shutdownHook;
     private WeakReference databaseRef;
     private int delayInMillis;
-    private boolean shutdownHook;
     
     DatabaseCloser(Database db, int delayInMillis, boolean shutdownHook) {
         this.databaseRef = new WeakReference(db);

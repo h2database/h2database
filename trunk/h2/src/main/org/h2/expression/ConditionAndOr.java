@@ -19,9 +19,12 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 public class ConditionAndOr extends Condition {
+	
     // TODO optimization: we could extend (ID=1 AND ID=B) to (ID=1 AND ID=B AND B=1)
+	
     public static final int AND = 0, OR = 1;
-    private int andOrType;
+    
+    private final int andOrType;
     private Expression left, right;
 
     public ConditionAndOr(int andOrType, Expression left, Expression right) {

@@ -20,14 +20,14 @@ import org.h2.value.Transfer;
 
 public class CommandRemote implements CommandInterface {
 
+    private final ObjectArray transferList;
+    private final ObjectArray parameters;
+    private final Trace trace;
+    private final String sql;
     private SessionRemote session;
-    private ObjectArray transferList;
     private int id;
     private boolean isQuery;
     private boolean readonly;
-    private ObjectArray parameters;
-    private Trace trace;
-    private String sql;
     private int paramCount;
     
     public CommandRemote(SessionRemote session, ObjectArray transferList, String sql) throws SQLException {

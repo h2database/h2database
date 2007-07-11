@@ -13,7 +13,7 @@ import org.h2.util.ObjectArray;
 
 public class Role extends RightOwner {
     
-    private boolean system;
+    private final boolean system;
 
     public Role(Database database, int id, String roleName, boolean system) {
         super(database, id, roleName, Trace.USER);

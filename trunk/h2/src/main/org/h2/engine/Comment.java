@@ -13,8 +13,8 @@ import org.h2.util.StringUtils;
 
 public class Comment extends DbObject {
 
-    private int objectType;
-    private String objectName;
+    private final int objectType;
+    private final String objectName;
     private String commentText;
 
     public Comment(Database database, int id, DbObject obj) {

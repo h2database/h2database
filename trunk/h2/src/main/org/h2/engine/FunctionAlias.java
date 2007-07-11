@@ -20,12 +20,12 @@ import org.h2.value.ValueNull;
 
 public class FunctionAlias extends DbObject {
 
+    private boolean hasConnectionParam;
     private String className;
     private String methodName;
     private Method javaMethod;
     private int paramCount;
-    private boolean hasConnectionParam;
-    private int dataType;
+    private final int dataType;
 
     public FunctionAlias(Database db, int id, String name, String javaClassMethod) throws SQLException {
         super(db, id, name, Trace.FUNCTION);

@@ -23,9 +23,10 @@ import org.h2.value.ValueNull;
  */
 
 public class ConditionIn extends Condition {
-    private Database database;
+	
+    private final Database database;
     private Expression left;
-    private ObjectArray values;
+    private final ObjectArray values;
     private Value min, max;
     private int queryLevel;
 

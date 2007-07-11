@@ -24,8 +24,7 @@ import org.h2.message.TraceSystem;
  */
 public class Driver implements java.sql.Driver {
 
-    // TODO server: maybe start/stop a server using DriverManager.getConnection ?
-    private static Driver instance = new Driver();
+    private static final Driver instance = new Driver();
 
     static {
         try {

@@ -251,7 +251,15 @@ public class Constants {
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", (1 << 16));
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
+    public static String BASE_DIR = getStringSetting("h2.baseDir", null);
 
+    public static void setBaseDir(String dir) {
+    	if(!dir.endsWith("/")) {
+    		dir += "/";
+    	}
+    	BASE_DIR = dir;
+    }
+    
     public static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);
         if(s != null) {

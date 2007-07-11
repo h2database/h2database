@@ -147,6 +147,9 @@ public class Parser {
 
     private static final int CURRENT_TIMESTAMP = 42, CURRENT_DATE = 43, CURRENT_TIME = 44, ROWNUM = 45;
 
+    private final Database database;
+    private final Session session;
+
     private int[] characterTypes;
     private int currentTokenType;
     private String currentToken;
@@ -159,8 +162,6 @@ public class Parser {
     private Prepared prepared;
     private Prepared currentPrepared;
     private Select currentSelect;
-    private Session session;
-    private Database database;
     private ObjectArray parameters;
     private String schemaName;
     private ObjectArray expected;

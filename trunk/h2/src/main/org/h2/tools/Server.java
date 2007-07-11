@@ -59,7 +59,7 @@ public class Server implements Runnable {
         System.out.println("-ftpWritePassword <password> (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");        
 
         System.out.println("-log [true|false]");
-        System.out.println("-baseDir <directory>");
+        System.out.println("-baseDir <directory> (sets the base directory for H2 databases)");
         System.out.println("-ifExists [true|false] (only existing databases may be opened)");
     }
     

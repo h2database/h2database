@@ -37,7 +37,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build TODO)</h3><ul>
-<li>PostgreSQL compatibility: SET SEARCH_PATH, SERIAL, CURRENT_USER, E'text', $1.
+<li>Support for the system property baseDir. This works for embedded databases as well. The setting is supported
+	by the H2 Console using -Dh2.baseDir or -baseDir
+</li><li>LIKE ESCAPE did not work correctly if the pattern was % or _, followed by an escape character, followed by %. Fixed.
+</li><li>PostgreSQL compatibility: SET SEARCH_PATH, SERIAL, CURRENT_USER, E'text', $1.
 </li><li>In some situations, when many tables with LOB columns were modified (ALTER TABLE), large objects were deleted. Fixed.
 </li><li>CREATE TABLE AS SELECT .. UNION .. did not work. Fixed.
 </li><li>New column ID for INFORMATION_SCHEMA.INDEXES, SEQUENCES, USERS, ROLES, RIGHTS, 
@@ -783,13 +786,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>System table / function: cache usage
-</li><li>Connection pool manager
-</li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
+</li><li>User defined aggregate functions
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
+</li><li>Connection pool manager
 </li><li>Start / stop server with database URL
 </li><li>Rebuild index functionality (other than delete the index file)
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
@@ -975,8 +979,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Delay reading the row if data is not required
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
-</li><li>User defined aggregate functions
-</li><li>System property for base directory (h2.baseDir) in embedded mode
 </li><li>Feature matrix like here: http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
@@ -1033,6 +1035,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true
+</li><li>Cache size should be in KB
 </li></ul>
 
 <h3>Not Planned</h3>

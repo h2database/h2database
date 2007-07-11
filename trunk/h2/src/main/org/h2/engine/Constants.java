@@ -69,8 +69,8 @@ import org.h2.message.TraceSystem;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 53;
-    private static final String BUILD = "2007-07-03";
+    public static final int BUILD_ID = 54;
+    private static final String BUILD = "2007-07-12";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -254,10 +254,10 @@ public class Constants {
     public static String BASE_DIR = getStringSetting("h2.baseDir", null);
 
     public static void setBaseDir(String dir) {
-    	if(!dir.endsWith("/")) {
-    		dir += "/";
-    	}
-    	BASE_DIR = dir;
+        if(!dir.endsWith("/")) {
+            dir += "/";
+        }
+        BASE_DIR = dir;
     }
     
     public static boolean getBooleanSetting(String name, boolean defaultValue) {

@@ -494,4 +494,4 @@ latin tgconstrname datallowconn atttypmod dattablespace attrelid ctid timestampt
 nspname objsubid typnamespace rolcreaterole tgrelid spclocation relhasrules dont indkey postmaster 
 relkind autovacuum datlastsysoid attisdropped amname datacl deallocate tgdeferrable stats 
 spcacl relname rolvaliduntil attnotnull authid aclitem
-plpgsql interrupting spring oids plperl regex
+plpgsql interrupting spring oids plperl regex newest

@@ -21,15 +21,19 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 public class Comparison extends Condition {
+	
     public static final int EQUAL = 0, BIGGER_EQUAL = 1, BIGGER = 2, SMALLER_EQUAL = 3, 
         SMALLER = 4, NOT_EQUAL = 5, IS_NULL = 6, IS_NOT_NULL = 7;
-    // TODO refactor: comparison: there never is a comparison 'false', the constant is used only for index conditions
+    
+    // TODO refactor: comparison: a comparison is never 'false'; the constant is used only for index conditions
+    
     public static final int FALSE = 8;
+    
+    private final Database database;
+    private final int compareType;
     private Expression left;
     private Expression right;
-    private int compareType;
     private int dataType = -1;
-    private Database database;
 
     public Comparison(Session session, int compareType, Expression left, Expression right) {
         this.database = session.getDatabase();

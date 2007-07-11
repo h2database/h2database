@@ -258,9 +258,21 @@ public class AlterTableAlterColumn extends SchemaCommand {
             newTable.addRow(newRow);
         }
          */
-        
-        String sql = "INSERT INTO " + newTable.getSQL() + "(" + columnList+") " 
-            + "SELECT " + columnList + " FROM " + table.getSQL();
+        StringBuffer buff = new StringBuffer();
+		buff.append("INSERT INTO ");
+		buff.append(newTable.getSQL());
+		buff.append("(");
+		buff.append(columnList);
+		buff.append(") SELECT ");
+		if (columnList.length() == 0) {
+			// special case insert into test select * from test
+			buff.append("*");
+		} else {
+			buff.append(columnList);
+		}
+		buff.append(" FROM ");
+		buff.append(table.getSQL());
+		String sql = buff.toString();
         newTable.setCheckForeignKeyConstraints(false);
         try {
             execute(sql);

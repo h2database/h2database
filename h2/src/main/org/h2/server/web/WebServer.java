@@ -167,8 +167,9 @@ public class WebServer implements Service {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
             } else  if("-webAllowOthers".equals(args[i])) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-            // } else if("-baseDir".equals(args[i])) {
-            //    String baseDir = args[++i];
+             } else if("-baseDir".equals(args[i])) {
+                String baseDir = args[++i];
+                Constants.setBaseDir(baseDir);
             }
         }
 //            if(driverList != null) {

@@ -42,18 +42,28 @@ public class Aggregate extends Expression {
     public static final int COUNT_ALL = 0, COUNT = 1, SUM = 2, MIN = 3, MAX = 4, AVG = 5;
     public static final int GROUP_CONCAT = 6, STDDEV_POP = 7, STDDEV_SAMP = 8;
     public static final int VAR_POP = 9, VAR_SAMP = 10, SOME = 11, EVERY = 12, SELECTIVITY = 13;
-    private int type;
+
+    private final Database database;
+    private final int type;
+    private final Select select;
+    private final boolean distinct;
+    
     private Expression on;
     private Expression separator;
     private ObjectArray orderList;
     private SortOrder sort;
     private int dataType, scale;
     private long precision;
-    private Select select;
-    private Database database;
-    private boolean distinct;
     
-    private static HashMap aggregates = new HashMap();
+    private static final HashMap aggregates = new HashMap();
+    
+    public Aggregate(Database database, int type, Expression on, Select select, boolean distinct) {
+        this.database = database;
+        this.type = type;
+        this.on = on;
+        this.select = select;
+        this.distinct = distinct;
+    }
     
     static {
         addAggregate("COUNT", COUNT);
@@ -85,14 +95,6 @@ public class Aggregate extends Expression {
         return type == null ? -1 : type.intValue();
     }    
 
-    public Aggregate(Database database, int type, Expression on, Select select, boolean distinct) {
-        this.database = database;
-        this.type = type;
-        this.on = on;
-        this.select = select;
-        this.distinct = distinct;
-    }
-    
     public void setOrder(ObjectArray orderBy) {
         this.orderList = orderBy;
     }

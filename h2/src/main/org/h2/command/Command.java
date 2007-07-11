@@ -19,11 +19,11 @@ import org.h2.util.ObjectArray;
  * @author Thomas
  */
 public abstract class Command implements CommandInterface {
-    protected Session session;
-    protected long startTime;
-    protected Trace trace;
-    private volatile boolean cancel;
     private final String sql;
+    protected final Session session;
+    protected final Trace trace;
+    protected long startTime;
+    private volatile boolean cancel;
 
     public abstract boolean isTransactional();
     public abstract boolean isQuery();

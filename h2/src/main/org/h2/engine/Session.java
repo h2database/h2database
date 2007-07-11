@@ -35,6 +35,7 @@ import org.h2.value.ValueLong;
  * @author Thomas
  */
 public class Session implements SessionInterface {
+	
     private User user;
     private int id;
     private Database database;

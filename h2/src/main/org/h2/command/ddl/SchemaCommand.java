@@ -11,7 +11,7 @@ import org.h2.schema.Schema;
 
 public abstract class SchemaCommand extends DefineCommand {
     
-    private Schema schema;
+    private final Schema schema;
     
     public SchemaCommand(Session session, Schema schema) {
         super(session);

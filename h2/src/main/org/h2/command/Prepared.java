@@ -17,9 +17,9 @@ import org.h2.util.ObjectArray;
 
 public abstract class Prepared {
     
+    protected Session session;
     protected String sql;
     protected int headPos = -1;
-    protected Session session;
     protected ObjectArray parameters;
     private long modificationId;
     private Command command;
@@ -27,6 +27,11 @@ public abstract class Prepared {
     protected boolean prepareAlways;
     private int currentRowNumber;
 
+    public Prepared(Session session) {
+        this.session = session;
+        modificationId = session.getDatabase().getModificationMetaId();
+    }
+    
     public boolean needRecompile() throws SQLException {
         Database db = session.getDatabase();
         if(db == null) {
@@ -42,11 +47,6 @@ public abstract class Prepared {
         return false;
     }
 
-    public Prepared(Session session) {
-        this.session = session;
-        modificationId = session.getDatabase().getModificationMetaId();
-    }
-    
     long getModificationId() {
         return modificationId;
     }

@@ -1,3 +1,13 @@
+create table test();
+insert into test values();
+ALTER TABLE TEST ADD ID INTEGER;
+select count(*) from test;
+> 1;
+drop table test;
+
+select * from dual where 'a_z' like '%=_%' escape '=';
+> 1;
+
 create table test as select 1 from dual union all select 2 from dual;
 drop table test;
 

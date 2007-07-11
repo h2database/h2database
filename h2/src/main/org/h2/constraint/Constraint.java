@@ -21,8 +21,8 @@ import org.h2.table.Table;
  */
 public abstract class Constraint extends SchemaObject {
     
-    protected Table table;
     public static final String CHECK = "CHECK", REFERENTIAL = "REFERENTIAL", UNIQUE = "UNIQUE";
+    protected Table table;
     
     public Constraint(Schema schema, int id, String name, Table table) {
         super(schema, id, name, Trace.CONSTRAINT);

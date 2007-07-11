@@ -11,6 +11,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 
 public class Setting extends DbObject {
+	
     private int intValue;
     private String stringValue;
 

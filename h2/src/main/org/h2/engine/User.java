@@ -19,10 +19,10 @@ import org.h2.util.StringUtils;
 
 public class User extends RightOwner {
 
+    private final boolean systemUser;
     private byte[] salt;
     private byte[] passwordHash;
     private boolean admin;
-    private boolean systemUser;
 
     public User(Database database, int id, String userName, boolean systemUser) {
         super(database, id, userName, Trace.USER);

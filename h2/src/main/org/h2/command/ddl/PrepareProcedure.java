@@ -24,9 +24,7 @@ public class PrepareProcedure extends DefineCommand {
     }
     
     public int update() throws SQLException {
-        Procedure proc = new Procedure();
-        proc.setName(procedureName);
-        proc.setPrepared(prepared);
+        Procedure proc = new Procedure(procedureName, prepared);
         prepared.setParameterList(parameters);
         prepared.setPrepareAlways(prepareAlways);
         prepared.prepare();

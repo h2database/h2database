@@ -18,8 +18,8 @@ import org.h2.value.Value;
 
 public class Alias extends Expression {
 
+    private final String alias;
     private Expression expr;
-    private String alias;
 
     public Alias(Expression expression, String alias) {
         this.expr = expression;

@@ -20,7 +20,7 @@ import org.h2.value.ValueBoolean;
 
 public class ConditionExists extends Condition {
 
-    private Query query;
+    private final Query query;
 
     public ConditionExists(Query query) {
         this.query = query;

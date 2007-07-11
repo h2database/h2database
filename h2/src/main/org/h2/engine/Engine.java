@@ -20,8 +20,8 @@ import org.h2.util.StringUtils;
 public class Engine {
     // TODO use a 'engine'/'master' database to allow shut down the server, view & kill sessions and so on
 
-    private HashMap databases = new HashMap();
-    private static Engine instance = new Engine();
+    private static final Engine instance = new Engine();
+    private final HashMap databases = new HashMap();
 
     private Engine() {
         // don't allow others to instantiate

@@ -717,6 +717,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.maxFileRetry", "" + Constants.MAX_FILE_RETRY});
             add(rows, new String[]{"h2.lobCloseBetweenReads", "" + Constants.LOB_CLOSE_BETWEEN_READS});
             add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + Constants.ALLOW_BIG_DECIMAL_EXTENSIONS});
+            add(rows, new String[]{"h2.baseDir", "" + Constants.BASE_DIR});
             break;
         }
         case TYPE_INFO: {

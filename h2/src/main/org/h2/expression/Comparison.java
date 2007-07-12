@@ -21,7 +21,7 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 public class Comparison extends Condition {
-	
+    
     public static final int EQUAL = 0, BIGGER_EQUAL = 1, BIGGER = 2, SMALLER_EQUAL = 3, 
         SMALLER = 4, NOT_EQUAL = 5, IS_NULL = 6, IS_NOT_NULL = 7;
     

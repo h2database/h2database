@@ -23,7 +23,7 @@ import org.h2.value.ValueNull;
  */
 
 public class ConditionIn extends Condition {
-	
+    
     private final Database database;
     private Expression left;
     private final ObjectArray values;

@@ -10,6 +10,47 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(25,
+'New version available: 1.0 / 2007-07-12', '2007-07-12 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+<br />
+<b>Changes and new functionality:</b>
+<ul>
+<li>The H2 Console can run as a standalone web application.
+</li><li>The default database name is now jdbc:h2:~/test.
+</li><li>The new view implementation is now enabled by default. 
+</li><li>The Polish translation is available. Thanks a lot to Tomek!
+</li><li>Support for the system property baseDir.
+</li><li>Improved PostgreSQL compatibility.
+</li><li>New column ID in INFORMATION_SCHEMA tables.
+</li><li>PreparedStatement.getMetaData is now implemented.
+</li><li>New setting h2.allowBigDecimalExtensions.
+</li><li>The SQL statement SET ASSERT has been deprecated.
+</li><li>The trace level for JdbcDataSourceFactory is now ERROR.
+</li><li>Referential integrity violation: Two SQL states are now used.
+</li><li>DatabaseEventListener.exceptionThrown is changed.
+</li><li>The catalog name can now be used in queries.
+</li><li>The default result set type is now FETCH_FORWARD.
+</li>
+</ul>
+<b>Bugfixes:</b>
+<ul>
+</li><li>Views did not work in some cases. 
+</li><li>LIKE ESCAPE did not work correctly in some cases.
+</li><li>In some situations, large objects were deleted.
+</li><li>CREATE TABLE AS SELECT .. UNION .. did not work.
+</li><li>Sometimes temp files were not deleted.
+</li><li>PooledConnection.getConnection is now faster.
+</li><li>Deleting databases in the root directory now works.
+</li><li>Windows service: the CLASSPATH was not included.
+</li><li>For READ_COMMITTED, when the multi-threaded 
+	kernel is enabled, read locks are now acquired but released 
+	immediately after a query.
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+</ul>
+');
+
 INSERT INTO ITEM VALUES(24,
 'New version available: 1.0 / 2007-06-17', '2007-06-17 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -611,47 +652,6 @@ For details see also the history. Version 1.0 is planned for 2006-08-29.
 The plans for version 1.0 are:
 <ul>
 <li>Write more tests, bugfixes.
-</li><li>For plans after release 1.0, see the new ''Roadmap'' page on the web site.
-</li></ul>
-');
-
-INSERT INTO ITEM VALUES(8,
-'New proposed license', '2006-08-25 12:00:00',
-'A new proposed license is available at
-<a href="http://www.h2database.com/html/proposed_license.html">h2database.com/html/proposed_license.html</a>.
-This is still open for discussion at the <a href="http://www.h2database.com/ipowerb">license forum</a>.
-');
-
-INSERT INTO ITEM VALUES(7,
-'New version available: 0.9 RC 1 / 2006-08-23', '2006-08-23 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Date and time constants outside the valid range (February 31 and so on) are no longer accepted.
-</li><li>Improvements in the autocomplete feature. Thanks a lot to James Devenish for his very valuable feedback and testing!
-</li></ul>
-<b>New Functionality (but currently disabled):</b>
-These features are currently disabled. They will be enabled after release 1.0.
-See the history for more details.
-<li>Optimization for IN(value list) and IN(subquery).
-</li><li>Very large transactions are now supported.
-</li><li>Arithmetic overflows in can now be detected for integer types.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Bugfix for an outer join problem (too many rows where returned for a combined inner join / outer join).
-</li><li>Local temporary tables where not included in the meta data.
-</li><li>Database opening: Sometimes opening a database was very slow because indexes were re-created.
-</li><li>Referential integrity: Fixed a stack overflow problem when using cascade delete.
-</li><li>LIKE: If collation was set (SET COLLATION ...), it was ignored when using LIKE.
-</li></ul>
-For details see also the history. Release 1.0 is planned for 2006-08-28.
-There will be another release candidate (RC 2) before.
-The plans for the next release (RC 2) are:
-<ul>
-<li>Change the license to MPL.
-</li><li>Write more tests, bugfixes.
 </li><li>For plans after release 1.0, see the new ''Roadmap'' page on the web site.
 </li></ul>
 ');

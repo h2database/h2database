@@ -52,12 +52,12 @@ public class TestPattern extends TestBase {
         int len = (int)(Math.random() * 4);
         String s = "A%_\\";
         for(int i=0; i<len; i++) {
-        	char c = s.charAt((int)(Math.random()*s.length()));
-        	if((c == '_' || c == '%') && Math.random() > 0.5) {
+            char c = s.charAt((int)(Math.random()*s.length()));
+            if((c == '_' || c == '%') && Math.random() > 0.5) {
                 buff.append('\\');
-        	} else if(c=='\\') {
+            } else if(c=='\\') {
                 buff.append(c);
-        	}
+            }
             buff.append(c);
         }
         return buff.toString();
@@ -70,7 +70,7 @@ public class TestPattern extends TestBase {
             char c = pattern.charAt(i);
             if (escape == c) {
                 if (i >= len) {
-                	error("escape can't be last char");
+                    error("escape can't be last char");
                 }
                 c = pattern.charAt(++i);
                 buff.append('\\');

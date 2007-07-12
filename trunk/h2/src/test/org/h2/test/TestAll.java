@@ -94,6 +94,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+check trace.db/ number of files, limit to 1000 or so
+
 storages should be an int hash map
 
 Test with newest Hibernate

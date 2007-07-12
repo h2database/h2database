@@ -69,7 +69,7 @@ import org.h2.message.TraceSystem;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 54;
+    public static final int BUILD_ID = 55;
     private static final String BUILD = "2007-07-12";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;

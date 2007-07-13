@@ -586,6 +586,7 @@ public class Select extends Query {
             buff.append("\nGROUP BY ");
             for(int i=0; i<groupIndex.length; i++) {
                 Expression g = exprList[groupIndex[i]];
+                g = g.getNonAliasExpression();
                 if(i>0) {
                     buff.append(", ");
                 }

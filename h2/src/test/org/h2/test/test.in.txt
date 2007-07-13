@@ -1,4 +1,37 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE test_table (firstcol varchar(20), secondcol integer);
+> ok
+
+insert into test_table values('a', 10), ('a', 4), ('b', 30), ('b', 3);
+> update count: 4
+
+CREATE VIEW test_view AS SELECT firstcol AS renamed_col, MIN(secondcol) AS also_renamed FROM test_table GROUP BY firstcol;
+> ok
+
+SELECT * FROM test_view WHERE renamed_col = 'a';
+> RENAMED_COL ALSO_RENAMED
+> ----------- ------------
+> a           4
+> rows: 1
+
+drop view test_view;
+> ok
+
+drop table test_table;
+> ok
+
+create table test(id int);
+> ok
+
+explain select id+1 a from test group by id+1;
+> PLAN
+> ----------------------------------------------------------------------------------
+> SELECT (ID + 1) AS A FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ GROUP BY ID + 1
+> rows: 1
+
+drop table test;
+> ok
+
 set autocommit off;
 > ok
 

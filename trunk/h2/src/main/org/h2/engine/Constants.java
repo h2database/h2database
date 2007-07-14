@@ -141,8 +141,6 @@ public class Constants {
 
     public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;
 
-    public static final int DEFAULT_MAX_MEMORY_UNDO = Integer.MAX_VALUE;
-
     public static final int DEFAULT_WRITE_DELAY = 500;
 
     public static final String SERVER_PROPERTIES_TITLE = "H2 Server Properties";
@@ -252,6 +250,7 @@ public class Constants {
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
     public static String BASE_DIR = getStringSetting("h2.baseDir", null);
+    public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", Integer.MAX_VALUE);
 
     public static void setBaseDir(String dir) {
         if(!dir.endsWith("/")) {

@@ -43,15 +43,15 @@ import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
 class WebThread extends Thread {
-    protected WebServer server;
-    protected WebSession session;
-    protected Properties attributes;
-    protected Socket socket;
+    private WebServer server;
+    private WebSession session;
+    private Properties attributes;
+    private Socket socket;
     
     private InputStream input;
     private String ifModifiedSince;
-    String mimeType;
-    boolean cache;    
+    private String mimeType;
+    private boolean cache;    
 
     // TODO web: support online data editing like http://numsum.com/
 

@@ -44,8 +44,8 @@ INSERT INTO ITEM VALUES(25,
 </li><li>Deleting databases in the root directory now works.
 </li><li>Windows service: the CLASSPATH was not included.
 </li><li>For READ_COMMITTED, when the multi-threaded 
-	kernel is enabled, read locks are now acquired but released 
-	immediately after a query.
+    kernel is enabled, read locks are now acquired but released 
+    immediately after a query.
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 </ul>

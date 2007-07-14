@@ -94,6 +94,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+H2 Console: the result set is not updatable by default. Need to change in web console, and test other databases
+
 check trace.db/ number of files, limit to 1000 or so
 
 storages should be an int hash map

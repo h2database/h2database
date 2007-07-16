@@ -721,7 +721,7 @@ public class Parser {
                 command.addRow(expr);
             } while(readIf(","));
         } else {
-            command.setQuery(parseQueryWithParams());
+            command.setQuery(parseSelect());
         }
         return command;
     }
@@ -759,7 +759,7 @@ public class Parser {
                 command.addRow(expr);
             } while(readIf(","));
         } else {
-            command.setQuery(parseQueryWithParams());
+            command.setQuery(parseSelect());
         }
         return command;
     }
@@ -769,7 +769,7 @@ public class Parser {
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         if(readIf("(")) {
             if(isToken("SELECT") || isToken("FROM")) {
-                Query query = parseQueryWithParams();
+                Query query = parseSelect();
                 String querySQL = query.getSQL();
                 Session s;
                 if(prepared != null && prepared instanceof CreateView) {
@@ -1141,24 +1141,18 @@ public class Parser {
         }
         return command;
     }
-
+    
     private Query parseSelect() throws SQLException {
-        Query command = parseSelectUnion();
-        command.init();
-        return command;
-    }
-
-    private Query parseQueryWithParams() throws SQLException {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
-        command.init();
         ObjectArray params = new ObjectArray();
         for(int i=paramIndex; i<parameters.size(); i++) {
             params.add(parameters.get(i));
         }
         command.setParameterList(params);
+        command.init();
         return command;
-    }
+    }    
 
     private Query parseSelectUnion() throws SQLException {
         int start = lastParseIndex;
@@ -1402,6 +1396,8 @@ public class Parser {
             Expression condition = readExpression();
             command.setHaving(condition);
         }
+        // TODO optimization: not all parameters may be referenced
+        command.setParameterList(parameters);
         currentSelect = oldSelect;
         setSQL(command, "SELECT", start);
         return command;
@@ -1438,7 +1434,7 @@ public class Parser {
         }
         if (readIf("EXISTS")) {
             read("(");
-            Query query = parseQueryWithParams();
+            Query query = parseSelect();
             // can not reduce expression because it might be a union except query with distinct
             read(")");
             return new ConditionExists(query);
@@ -1484,7 +1480,7 @@ public class Parser {
                     r = ValueExpression.get(ValueBoolean.get(false));
                 } else {
                     if (isToken("SELECT") || isToken("FROM")) {
-                        Query query = parseQueryWithParams();
+                        Query query = parseSelect();
                         r = new ConditionInSelect(database, r, query, false, Comparison.EQUAL);
                     } else {
                         ObjectArray v = new ObjectArray();
@@ -1519,12 +1515,12 @@ public class Parser {
                 read();
                 if(readIf("ALL")) {
                     read("(");
-                    Query query = parseQueryWithParams();
+                    Query query = parseSelect();
                     r = new ConditionInSelect(database, r, query, true, compareType);
                     read(")");
                 } else if(readIf("ANY") || readIf("SOME")) {
                     read("(");
-                    Query query = parseQueryWithParams();
+                    Query query = parseSelect();
                     r = new ConditionInSelect(database, r, query, false, compareType);
                     read(")");
                 } else {
@@ -1871,7 +1867,7 @@ public class Parser {
             break;
         case KEYWORD:
             if(isToken("SELECT") || isToken("FROM")) {
-                Query query = parseQueryWithParams();
+                Query query = parseSelect();
                 return new Subquery(query);
             }
             throw getSyntaxError();
@@ -4047,7 +4043,7 @@ public class Parser {
         command.setTableName(tableName);
         command.setComment(readCommentIf());
         if(readIf("AS")) {
-            Query query = parseQueryWithParams();
+            Query query = parseSelect();
             command.setQuery(query);
         } else {
             read("(");

@@ -330,4 +330,5 @@ public class SelectUnion extends Query {
         left.updateAggregate(session);
         right.updateAggregate(session);
     }
+    
 }

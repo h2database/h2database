@@ -962,7 +962,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support ARRAY data type
 </li><li>Implement more JDBC 4.0 features
 </li><li>H2 Console: implement a servlet to allow simple web app integration
-</li><li>Support ISO 8601 timestamp / date / time with timezone
 </li><li>Support TRANSFORM / PIVOT as in MS Access
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 </li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
@@ -1036,6 +1035,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true
 </li><li>Cache size should be in KB
+</li><li>Support materialized views (using triggers)
+</li><li>Store dates in local timezone (portability of database files)
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Index usage for WHERE NOT FLAG (flag is a boolean column)
 </li><li>Automatic conversion from WHERE ID=1 AND ID=2 to WHERE FALSE

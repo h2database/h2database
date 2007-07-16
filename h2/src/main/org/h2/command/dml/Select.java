@@ -461,7 +461,7 @@ public class Select extends Query {
             return;
         }
         if(Constants.CHECK && !checkInit) {
-            throw Message.getInternalError("already prepared");
+            throw Message.getInternalError("not initialized");
         }
         isPrepared = true;
         if(orderList != null) {

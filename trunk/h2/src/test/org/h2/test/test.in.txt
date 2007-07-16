@@ -1,4 +1,22 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE TEST(ID INT PRIMARY KEY, FLAG BOOLEAN, NAME VARCHAR);
+> ok
+
+CREATE INDEX IDXFLAG ON TEST(FLAG, NAME);
+> ok
+
+INSERT INTO TEST VALUES(1, TRUE, 'Hello'), (2, FALSE, 'World');
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE FLAG;
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE FLAG AND NAME>'I';
+> ok
+
+DROP TABLE TEST;
+> ok
+
 CREATE TABLE test_table (firstcol varchar(20), secondcol integer);
 > ok
 

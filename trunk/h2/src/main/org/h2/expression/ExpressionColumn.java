@@ -11,6 +11,7 @@ import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
@@ -19,6 +20,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueBoolean;
 
 /**
  * @author Thomas
@@ -242,5 +244,17 @@ public class ExpressionColumn extends Expression {
     public int getCost() {
         return 2;
     }
+    
+    public Expression createIndexConditions(TableFilter filter) {
+        TableFilter tf = getTableFilter();
+        if(filter != tf) {
+            return this;
+        }
+        if(column.getType() == Value.BOOLEAN) {
+            IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(true)));
+            return filter.addIndexCondition(this, cond);
+        }            
+        return this;
+    }    
     
 }

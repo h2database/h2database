@@ -20,8 +20,9 @@ public class ConditionNot extends Condition {
         this.condition = condition;
     }
 
-    public void createIndexConditions(TableFilter filter) {
+    public Expression createIndexConditions(TableFilter filter) {
         // TODO optimization: in some cases, index conditions can be created here
+        return this;
     }
 
     public Value getValue(Session session) throws SQLException {

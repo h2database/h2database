@@ -103,14 +103,14 @@ public class CompareLike extends Condition {
         return esc;
     }
 
-    public void createIndexConditions(TableFilter filter) throws SQLException {
+    public Expression createIndexConditions(TableFilter filter) throws SQLException {
         Session session = filter.getSession();
         if(!(left instanceof ExpressionColumn)) {
-            return;
+            return this;
         }
         ExpressionColumn l = (ExpressionColumn)left;
         if(filter != l.getTableFilter()) {
-            return;
+            return this;
         }
         // parameters are always evaluatable, but
         // we need to check the actual value now
@@ -119,10 +119,10 @@ public class CompareLike extends Condition {
         // which is maybe slower (but maybe not in this case!)
         // TODO optimizer: like: check what other databases do!
         if(!right.isConstant()) {
-            return;
+            return this;
         }
         if(escape != null && !escape.isConstant()) {
-            return;
+            return this;
         }
         String p = right.getValue(session).getString();
         Value e = escape == null ? null : escape.getValue(session);
@@ -133,12 +133,12 @@ public class CompareLike extends Condition {
         initPattern(p, getEscapeChar(e));
         if(patternLength <= 0 || types[0] != MATCH) {
             // can't use an index
-            return;
+            return this;
         }
         int dataType = l.getColumn().getType();
         if(dataType != Value.STRING && dataType != Value.STRING_IGNORECASE  && dataType != Value.STRING_FIXED) {
             // column is not a varchar - can't use the index
-            return;
+            return this;
         }
         int maxMatch = 0;
         StringBuffer buff = new StringBuffer();
@@ -146,24 +146,26 @@ public class CompareLike extends Condition {
             buff.append(pattern[maxMatch++]);
         }
         String begin = buff.toString();
+        Expression condition = this;
         if(maxMatch == patternLength) {
-            filter.addIndexCondition(new IndexCondition(Comparison.EQUAL, l, ValueExpression.get(ValueString.get(begin))));
+            condition = filter.addIndexCondition(condition, new IndexCondition(Comparison.EQUAL, l, ValueExpression.get(ValueString.get(begin))));
         } else {
             // TODO check if this is correct according to Unicode rules (code points)
             String end;
             if(begin.length()>0) {
-                filter.addIndexCondition(new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString.get(begin))));
+                condition = filter.addIndexCondition(condition, new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString.get(begin))));
                 char next = begin.charAt(begin.length()-1);
                 // search the 'next' unicode character (or at least a character that is higher)
                 for(int i=1; i<2000; i++) {
                     end = begin.substring(0, begin.length()-1) + (char)(next+i);
                     if(compareMode.compareString(begin, end, ignoreCase) == -1) {
-                        filter.addIndexCondition(new IndexCondition(Comparison.SMALLER, l, ValueExpression.get(ValueString.get(end))));
+                        condition = filter.addIndexCondition(condition, new IndexCondition(Comparison.SMALLER, l, ValueExpression.get(ValueString.get(end))));
                         break;
                     }
                 }
             }
         }
+        return condition;
     }
 
     public Value getValue(Session session) throws SQLException {

@@ -19,5 +19,6 @@ public interface FunctionCall {
     Expression optimize(Session session) throws SQLException;
     Value getValue(Session session) throws SQLException;
     Expression[] getArgs();
+    String getSQL();
 
 }

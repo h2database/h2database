@@ -94,7 +94,7 @@ public class Delete extends Prepared {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);
-            condition.createIndexConditions(tableFilter);
+            condition = condition.createIndexConditions(tableFilter);
         }
         PlanItem item = tableFilter.getBestPlanItem(session);
         tableFilter.setPlanItem(item);

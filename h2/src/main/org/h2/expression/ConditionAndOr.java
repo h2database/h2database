@@ -51,11 +51,12 @@ public class ConditionAndOr extends Condition {
         return "("+sql+")";        
     }
 
-    public void createIndexConditions(TableFilter filter) throws SQLException {
+    public Expression createIndexConditions(TableFilter filter) throws SQLException {
         if (andOrType == AND) {
-            left.createIndexConditions(filter);
-            right.createIndexConditions(filter);
+            left = left.createIndexConditions(filter);
+            right = right.createIndexConditions(filter);
         }
+        return this;
     }
     
     public Value getValue(Session session) throws SQLException {

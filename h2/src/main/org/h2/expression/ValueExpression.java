@@ -39,13 +39,14 @@ public class ValueExpression extends Expression {
         return value.getType();
     }
     
-    public void createIndexConditions(TableFilter filter) {
+    public Expression createIndexConditions(TableFilter filter) {
         if(value.getType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean)value).getBoolean().booleanValue();
             if(!v) {
-                filter.addIndexCondition(new IndexCondition(Comparison.FALSE, null, this));
+                return filter.addIndexCondition(this, new IndexCondition(Comparison.FALSE, null, this));
             }
         }
+        return this;
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {

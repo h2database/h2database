@@ -476,7 +476,7 @@ public class Select extends Query {
             condition = condition.optimize(session);
             for (int j = 0; j < filters.size(); j++) {
                 TableFilter f = (TableFilter) filters.get(j);
-                condition.createIndexConditions(f);
+                condition = condition.createIndexConditions(f);
             }
         }
         if(condition == null && isGroupQuery && groupIndex == null && havingIndex<0 && filters.size()==1) {

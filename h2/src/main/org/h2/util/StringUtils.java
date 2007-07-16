@@ -260,6 +260,7 @@ public class StringUtils {
     }
 
     public static String unEnclose(String s) {
+        int todoNotCorrectForArrays;
         if(s.startsWith("(") && s.endsWith(")")) {
             return s.substring(1, s.length()-1);
         } else {

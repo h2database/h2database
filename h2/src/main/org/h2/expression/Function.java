@@ -1405,7 +1405,6 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public String getSQL() {
-        // TODO function: getSQL for some functions is not correct
         StringBuffer buff = new StringBuffer();
         buff.append(info.name);
         buff.append('(');
@@ -1422,6 +1421,18 @@ public class Function extends Expression implements FunctionCall {
             buff.append(v.getString());
             buff.append(" FROM ");
             buff.append(StringUtils.unEnclose(args[1].getSQL()));
+            break;
+        }
+        case TABLE: {
+            for (int i = 0; i < args.length; i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                buff.append(columnList[i].getCreateSQL());
+                buff.append("=");
+                Expression e = args[i];
+                buff.append(e.getSQL());
+            }
             break;
         }
         default: {

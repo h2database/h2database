@@ -199,10 +199,10 @@ public class Comparison extends Condition {
         }
     }
 
-    public void createIndexConditions(TableFilter filter) {
+    public Expression createIndexConditions(TableFilter filter) {
         if(right==null) {
             // TODO index usage: IS [NOT] NULL index usage is possible
-            return;
+            return this;
         }
         ExpressionColumn l = null;
         if(left instanceof ExpressionColumn) {
@@ -220,12 +220,12 @@ public class Comparison extends Condition {
         }
         // one side must be from the current filter
         if(l==null && r==null) {
-            return;
+            return this;
         }
         // filter.addFilterCondition(this, join);
         // if both sides are part of the same filter, it can't be used for index lookup
         if(l!=null && r!=null) {
-            return;
+            return this;
         }
         boolean addIndex;
         switch(compareType) {
@@ -244,12 +244,13 @@ public class Comparison extends Condition {
         }
         if(addIndex) {
             if(l!=null) {
-                filter.addIndexCondition(new IndexCondition(compareType, l, right));
+                return filter.addIndexCondition(this, new IndexCondition(compareType, l, right));
             } else if(r!=null) {
                 int compareRev = getReversedCompareType(compareType);
-                filter.addIndexCondition(new IndexCondition(compareRev, r, left));
+                return filter.addIndexCondition(this, new IndexCondition(compareRev, r, left));
             }
         }
+        return this;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {

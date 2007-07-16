@@ -144,7 +144,7 @@ public class Update extends Prepared {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);
-            condition.createIndexConditions(tableFilter);
+            condition = condition.createIndexConditions(tableFilter);
         }
         for (int i = 0; i < expressions.length; i++) {
             Expression expr = expressions[i];

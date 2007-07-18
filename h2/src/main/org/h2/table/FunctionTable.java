@@ -144,21 +144,7 @@ public class FunctionTable extends Table {
     }
 
     public String getSQL() {
-        int todoDocument;
         return function.getSQL();
-//        return super.getSQL();
-//        StringBuffer buff = new StringBuffer();
-//        buff.append(super.getSQL());
-//        buff.append('(');
-//        Expression[] args = function.getArgs();
-//        for (int i = 0; i < args.length; i++) {
-//            if (i > 0) {
-//                buff.append(", ");
-//            }
-//            buff.append(args[i].getSQL());
-//        }
-//        buff.append(')');
-//        return buff.toString();
     }    
 
 }

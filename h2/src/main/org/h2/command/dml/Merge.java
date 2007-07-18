@@ -20,7 +20,6 @@ import org.h2.store.UndoLogRecord;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
@@ -213,7 +212,7 @@ public class Merge extends Prepared {
                     if(e == null) {
                         buff.append("DEFAULT");
                     } else {
-                        buff.append(StringUtils.unEnclose(e.getSQL()));
+                        buff.append(e.getSQL());
                     }
                 }
                 buff.append(')');

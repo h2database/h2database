@@ -1,4 +1,75 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+explain select * from system_range(1, 2) where x=x+1 and x=1;
+> PLAN
+> -------------------------------------------------------------------------------------------------------
+> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ WHERE (X <> 1) OR ((X * 2) <> 2)
+> rows: 1
+
+explain select * from system_range(1, 2) where not (x = 1 and x*2 = 2);
+> PLAN
+> -------------------------------------------------------------------------------------------------------
+> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ WHERE (X <> 1) OR ((X * 2) <> 2)
+> rows: 1
+
+explain select * from system_range(1, 10) where (NOT x >= 5);
+> PLAN
+> ------------------------------------------------------------------------------------------
+> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 10) /* PUBLIC.RANGE_INDEX: X < 5 */ WHERE X < 5
+> rows: 1
+
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
+> ok
+
+INSERT INTO TEST VALUES(1, 'Hello'), (-1, '-1');
+> update count: 2
+
+select * from test where name = -1 and name = id;
+> ID NAME
+> -- ----
+> -1 -1
+> rows: 1
+
+explain select * from test where name = -1 and name = id;
+> PLAN
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = -1 */ WHERE ((CAST(NAME AS INTEGER) = -1) AND (CAST(NAME AS INTEGER) = ID)) AND (-1 = ID)
+> rows: 1
+
+DROP TABLE TEST;
+> ok
+
+select * from system_range(1, 2) where x=x+1 and x=1;
+> X
+> -
+> rows: 0
+
+CREATE TABLE A as select 6 a;
+> ok
+
+CREATE TABLE B(B INT PRIMARY KEY);
+> ok
+
+CREATE VIEW V(V) AS (SELECT A FROM A UNION SELECT B FROM B);
+> ok
+
+create table C as select * from table(c int = (0,6));
+> ok
+
+select * from V, C where V.V  = C.C;
+> V C
+> - -
+> 6 6
+> rows: 1
+
+drop table A, B, C, V;
+> ok
+
+explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
+> PLAN
+> ------------------------------------------------------------------------------------------------------
+> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* PUBLIC."" */
+> rows: 1
+
 CREATE TABLE TEST(ID INT PRIMARY KEY, FLAG BOOLEAN, NAME VARCHAR);
 > ok
 
@@ -6,13 +77,19 @@ CREATE INDEX IDXFLAG ON TEST(FLAG, NAME);
 > ok
 
 INSERT INTO TEST VALUES(1, TRUE, 'Hello'), (2, FALSE, 'World');
-> ok
+> update count: 2
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG;
-> ok
+> PLAN
+> --------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDXFLAG: FLAG = TRUE */ WHERE FLAG
+> rows: 1
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG AND NAME>'I';
-> ok
+> PLAN
+> ----------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDXFLAG: FLAG = TRUE AND NAME > 'I' */ WHERE FLAG AND (NAME > 'I')
+> rows: 1
 
 DROP TABLE TEST;
 > ok
@@ -1060,8 +1137,8 @@ insert into x values(0), (1), (10);
 > update count: 3
 
 SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) FROM X t1;
-> ID SELECT (T1.ID || ':') || AVG(T2.ID) FROM PUBLIC.X T2 /* PUBLIC.X_TABLE_SCAN */ LIMIT 2
-> -- --------------------------------------------------------------------------------------
+> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X_TABLE_SCAN */ LIMIT 2
+> -- ----------------------------------------------------------------------------------------
 > 0  0:3
 > 1  1:3
 > 10 10:3
@@ -1620,8 +1697,8 @@ SELECT CASE WHEN NOT (false IN (null)) THEN false END;
 > rows: 1
 
 select a.v as av, b.v as bv, a.v IN (b.v), not a.v IN (b.v) from test a, test b;
-> AV    BV    A.V = B.V NOT (A.V = B.V)
-> ----- ----- --------- ---------------
+> AV    BV    A.V = B.V A.V <> B.V
+> ----- ----- --------- ----------
 > FALSE FALSE TRUE      FALSE
 > FALSE TRUE  FALSE     TRUE
 > FALSE null  null      null
@@ -3255,14 +3332,14 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 
 explain update test set (id, name)=(id+1, name || 'Hi');
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET((ID + 1), (NAME || 'Hi'), 1), NAME = ARRAY_GET((ID + 1), (NAME || 'Hi'), 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
 > rows: 1
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET(SELECT ID + 1, NAME || 'Ho' FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_1: ID = TEST.ID */ WHERE TEST.ID = T1.ID, 1), NAME = ARRAY_GET(SELECT ID + 1, NAME || 'Ho' FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_1: ID = TEST.ID */ WHERE TEST.ID = T1.ID, 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_1: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_1: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
 > rows: 1
 
 select * from test;
@@ -4033,8 +4110,8 @@ SELECT * FROM TEST2COL WHERE A=0 AND B=0;
 
 EXPLAIN SELECT * FROM TEST2COL WHERE A=0 AND B=0;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.PRIMARY_KEY_1: A = 0 AND B = 0 */ WHERE (A = 0) AND (B = 0)
+> --------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.PRIMARY_KEY_1: A = 0 AND B = 0 */ WHERE ((A = 0) AND (B = 0)) AND (A = B)
 > rows: 1
 
 SELECT * FROM TEST2COL WHERE A=0;
@@ -4202,14 +4279,14 @@ EXPLAIN INSERT INTO TEST VALUES(1, 'Test'), (2, 'World');
 
 EXPLAIN INSERT INTO TEST SELECT DISTINCT ID+1, NAME FROM TEST;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------
-> INSERT INTO PUBLIC.TEST(ID, NAME) SELECT DISTINCT ID + 1, NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> --------------------------------------------------------------------------------------------------------------
+> INSERT INTO PUBLIC.TEST(ID, NAME) SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
 > rows: 1
 
 EXPLAIN SELECT DISTINCT ID + 1, NAME FROM TEST;
 > PLAN
-> --------------------------------------------------------------------------
-> SELECT DISTINCT ID + 1, NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
+> ----------------------------------------------------------------------------
+> SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */
 > rows: 1
 
 EXPLAIN SELECT * FROM TEST WHERE 1=0;

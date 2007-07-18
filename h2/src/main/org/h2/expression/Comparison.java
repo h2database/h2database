@@ -198,11 +198,35 @@ public class Comparison extends Condition {
             throw Message.getInternalError("type="+compareType);
         }
     }
+    
+    private int getNotCompareType(int type) {
+        switch(compareType) {
+        case EQUAL:
+            return NOT_EQUAL;
+        case NOT_EQUAL:
+            return EQUAL;
+        case BIGGER_EQUAL:
+            return SMALLER;
+        case BIGGER:
+            return SMALLER_EQUAL;
+        case SMALLER_EQUAL:
+            return BIGGER;
+        case SMALLER:
+            return BIGGER_EQUAL;
+        default:
+            throw Message.getInternalError("type="+compareType);
+        }
+    }
 
-    public Expression createIndexConditions(TableFilter filter) {
+    public Expression getNotIfPossible(Session session) {
+        int type = getNotCompareType(compareType);
+        return new Comparison(session, type, left, right);
+    }
+
+    public void createIndexConditions(TableFilter filter) {
         if(right==null) {
             // TODO index usage: IS [NOT] NULL index usage is possible
-            return this;
+            return;
         }
         ExpressionColumn l = null;
         if(left instanceof ExpressionColumn) {
@@ -220,12 +244,22 @@ public class Comparison extends Condition {
         }
         // one side must be from the current filter
         if(l==null && r==null) {
-            return this;
+            return;
         }
-        // filter.addFilterCondition(this, join);
-        // if both sides are part of the same filter, it can't be used for index lookup
         if(l!=null && r!=null) {
-            return this;
+            return;
+        }
+        if(l == null) {
+            if(!left.isEverything(ExpressionVisitor.getNotFromResolver(filter))) {
+                return;
+            }
+        } else if(r == null) {
+            if(!right.isEverything(ExpressionVisitor.getNotFromResolver(filter))) {
+                return;
+            }
+        } else {
+            // if both sides are part of the same filter, it can't be used for index lookup
+            return;
         }
         boolean addIndex;
         switch(compareType) {
@@ -244,13 +278,13 @@ public class Comparison extends Condition {
         }
         if(addIndex) {
             if(l!=null) {
-                return filter.addIndexCondition(this, new IndexCondition(compareType, l, right));
+                filter.addIndexCondition(new IndexCondition(compareType, l, right));
             } else if(r!=null) {
                 int compareRev = getReversedCompareType(compareType);
-                return filter.addIndexCondition(this, new IndexCondition(compareRev, r, left));
+                filter.addIndexCondition(new IndexCondition(compareRev, r, left));
             }
         }
-        return this;
+        return;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
@@ -291,6 +325,25 @@ public class Comparison extends Condition {
     
     public int getCost() {
         return left.getCost() + (right == null ? 0 : right.getCost()) + 1;
+    }
+
+    public Comparison getAdditional(Session session, Comparison other) {
+        if(compareType == other.compareType && compareType == EQUAL) {
+            String l = left.getSQL();
+            String l2 = other.left.getSQL();
+            String r = right.getSQL();
+            String r2 = other.right.getSQL();
+            if(l.equals(l2)) {
+                return new Comparison(session, EQUAL, right, other.right);
+            } else if(l.equals(r2)) {
+                return new Comparison(session, EQUAL, right, other.left);
+            } else if(r.equals(l2)) {
+                return new Comparison(session, EQUAL, left, other.right);
+            } else if(r.equals(r2)) {
+                return new Comparison(session, EQUAL, left, other.left);
+            }
+        }
+        return null;
     }
 
 }

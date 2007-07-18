@@ -1411,7 +1411,7 @@ public class Function extends Expression implements FunctionCall {
         switch(info.type) {
         case CAST:
         case CONVERT: {
-            buff.append(StringUtils.unEnclose(args[0].getSQL()));
+            buff.append(args[0].getSQL());
             buff.append(" AS ");
             buff.append(new Column(null, dataType, precision, scale).getCreateSQL());
             break;
@@ -1420,7 +1420,7 @@ public class Function extends Expression implements FunctionCall {
             ValueString v = (ValueString)((ValueExpression)args[0]).getValue(null);
             buff.append(v.getString());
             buff.append(" FROM ");
-            buff.append(StringUtils.unEnclose(args[1].getSQL()));
+            buff.append(args[1].getSQL());
             break;
         }
         case TABLE: {
@@ -1441,7 +1441,7 @@ public class Function extends Expression implements FunctionCall {
                     buff.append(", ");
                 }
                 Expression e = args[i];
-                buff.append(StringUtils.unEnclose(e.getSQL()));
+                buff.append(e.getSQL());
             }
         }
         }

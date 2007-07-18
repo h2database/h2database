@@ -291,3 +291,5 @@ SELECT
  AND n.nspname = 'PUBLIC'  
  AND ct.relname = 'TEST'  
  ORDER BY NON_UNIQUE, TYPE, INDEX_NAME, ORDINAL_POSITION ;
+ 
+

@@ -61,6 +61,8 @@ public class Session implements SessionInterface {
     private HashSet unlinkSet;
     private int tempViewIndex;
     private HashMap procedures;
+    private static int nextSerialId;
+    private int serialId = nextSerialId++;
 
     public Session() {
     }
@@ -512,6 +514,10 @@ public class Session implements SessionInterface {
     
     public String[] getSchemaSearchPath() {
         return schemaSearchPath;
+    }
+    
+    public int hashCode() {
+        return serialId;
     }
     
 }

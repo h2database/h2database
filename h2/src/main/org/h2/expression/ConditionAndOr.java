@@ -51,12 +51,26 @@ public class ConditionAndOr extends Condition {
         return "("+sql+")";        
     }
 
-    public Expression createIndexConditions(TableFilter filter) throws SQLException {
+    public void createIndexConditions(TableFilter filter) throws SQLException {
         if (andOrType == AND) {
-            left = left.createIndexConditions(filter);
-            right = right.createIndexConditions(filter);
+            left.createIndexConditions(filter);
+            right.createIndexConditions(filter);
         }
-        return this;
+    }
+    
+    public Expression getNotIfPossible(Session session) {
+        // (NOT (A OR B)) > (NOT(A) OR NOT(B))
+        // (NOT (A AND B)) > (NOT(A) OR NOT(B))
+        Expression l = left.getNotIfPossible(session);
+        if(l == null) {
+            l = new ConditionNot(left);
+        }
+        Expression r = right.getNotIfPossible(session);
+        if(r == null) {
+            r = new ConditionNot(right);
+        }
+        int reversed = andOrType == AND ? OR : AND;
+        return new ConditionAndOr(reversed, l, r);
     }
     
     public Value getValue(Session session) throws SQLException {
@@ -111,6 +125,20 @@ public class ConditionAndOr extends Condition {
             Expression t = left;
             left = right;
             right = t;
+        }
+        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1 AND (B=2 OR B=3))
+        if(Constants.OPTIMIZE_2_EQUALS && andOrType == AND) {
+            // try to add conditions (A=B AND B=1: add A=1)
+            if(left instanceof Comparison && right instanceof Comparison) {
+                Comparison compLeft = (Comparison) left;
+                Comparison compRight = (Comparison) right;
+                Expression added = compLeft.getAdditional(session, compRight);
+                if(added != null) {
+                    added = added.optimize(session);
+                    ConditionAndOr a = new ConditionAndOr(AND, this, added);
+                    return a; 
+                }
+            }
         }
         Value l = left.isConstant() ? left.getValue(session) : null;
         Value r = right.isConstant() ? right.getValue(session) : null;

@@ -38,6 +38,11 @@ public abstract class Expression {
         return isEverything(visitor);
     }
     
+    public Expression getNotIfPossible(Session session) {
+        // by default it is not possible
+        return null;
+    }
+    
     public boolean isConstant() {
         return false;
     }
@@ -51,9 +56,8 @@ public abstract class Expression {
         return getValue(session).getBoolean();
     }
 
-    public Expression createIndexConditions(TableFilter filter) throws SQLException {
+    public void createIndexConditions(TableFilter filter) throws SQLException {
         // default is do nothing
-        return this;
     }
 
     public String getColumnName() {

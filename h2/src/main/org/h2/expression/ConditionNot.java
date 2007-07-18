@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -20,9 +21,8 @@ public class ConditionNot extends Condition {
         this.condition = condition;
     }
 
-    public Expression createIndexConditions(TableFilter filter) {
-        // TODO optimization: in some cases, index conditions can be created here
-        return this;
+    public Expression getNotIfPossible(Session session) {
+        return condition;
     }
 
     public Value getValue(Session session) throws SQLException {
@@ -38,8 +38,17 @@ public class ConditionNot extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
+        if(!Constants.OPTIMIZE_NOT) {
+            return this;
+        }
         // TODO optimization: some cases are maybe possible to optimize further: (NOT ID >= 5)
         Expression expr = condition.optimize(session);
+        Expression e2 = expr.getNotIfPossible(session);
+        if(e2 != null) {
+            e2 = e2.optimize(session);
+            expr = e2;
+            return e2;
+        }
         if(expr.isConstant()) {
             Value v = expr.getValue(session);
             if(v == ValueNull.INSTANCE) {

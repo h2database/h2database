@@ -120,24 +120,22 @@ public class ConditionIn extends Condition {
         return this;
     }
     
-    public Expression createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(TableFilter filter) {
         if(!Constants.OPTIMIZE_IN) {
-            return this;
+            return;
         }
         if(min == null && max == null) {
-            return this;
+            return;
         }
         if(!(left instanceof ExpressionColumn)) {
-            return this;
+            return;
         }
         ExpressionColumn l = (ExpressionColumn)left;
         if(filter != l.getTableFilter()) {
-            return this;
+            return;
         }
-        Expression result = this;
-        result = filter.addIndexCondition(result, new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(min)));
-        result = filter.addIndexCondition(result, new IndexCondition(Comparison.SMALLER_EQUAL, l, ValueExpression.get(max)));
-        return result;
+        filter.addIndexCondition(new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(min)));
+        filter.addIndexCondition(new IndexCondition(Comparison.SMALLER_EQUAL, l, ValueExpression.get(max)));
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {

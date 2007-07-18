@@ -289,8 +289,7 @@ public class TableData extends Table implements RecordReader {
                             session.addLock(this);
                             lockExclusive = session;
                             return;
-                        } else if (lockShared.size() == 1
-                                && lockShared.contains(session)) {
+                        } else if (lockShared.size() == 1 && lockShared.contains(session)) {
                             traceLock(session, exclusive, "ok (upgrade)");
                             lockExclusive = session;
                             return;
@@ -388,10 +387,14 @@ public class TableData extends Table implements RecordReader {
             if(lockExclusive == s) {
                 lockExclusive = null;
             }
-            lockShared.remove(s);
+            if(lockShared.size() > 0) {
+                lockShared.remove(s);
+            }
             // TODO lock: maybe we need we fifo-queue to make sure nobody starves. check what other databases do
             synchronized(database) {
-                database.notifyAll();
+                if(database.getSessionCount() > 1) {
+                    database.notifyAll();
+                }
             }
         }
     }

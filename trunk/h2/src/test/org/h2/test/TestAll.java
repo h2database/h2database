@@ -94,54 +94,12 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-H2 Console: the result set is not updatable by default. Need to change in web console, and test other databases
 
-drop table tc, ts, tx;
-CREATE MEMORY TABLE tc(ARG0 INT, ARG1 INT);
--- 8 = SELECT COUNT(*) FROM tc;
-INSERT INTO tc(ARG0, ARG1) VALUES(1, 0);
-INSERT INTO tc(ARG0, ARG1) VALUES(2, 0);
-INSERT INTO tc(ARG0, ARG1) VALUES(3, 0);
-INSERT INTO tc(ARG0, ARG1) VALUES(4, 0);
-INSERT INTO tc(ARG0, ARG1) VALUES(5, 0);
-INSERT INTO tc(ARG0, ARG1) VALUES(7, 6);
-INSERT INTO tc(ARG0, ARG1) VALUES(8, 6);
-INSERT INTO tc(ARG0, ARG1) VALUES(5, 6);
-CREATE INDEX tc01 ON tc(ARG0, ARG1);
-CREATE INDEX tc1 ON tc(ARG1);
-CREATE MEMORY TABLE ts(ARG0 INT, ARG1 INT, ARG2 INT);
--- 0 = SELECT COUNT(*) FROM ts;
-CREATE INDEX ts02 ON ts(ARG0, ARG2);
-CREATE INDEX ts12 ON ts(ARG1, ARG2);
-CREATE INDEX ts2 ON ts(ARG2);
-CREATE FORCE VIEW v1(ARG0, ARG1) AS (SELECT ARG0, ARG1 FROM tc UNION SELECT ARG0, ARG2 FROM ts);
-create table tx (ARG1 int);
-insert into tx values (0),(6);
--- This query produce the correct results only with -Dh2.indexOld=true
-select * from v1 natural join tx;
+database is not closed when killing the process (but should? why not?)
 
+set read-committed as the default
 
-drop view V;
-drop table A, B;
-CREATE TABLE A(A INT);
-INSERT INTO A(A) VALUES(6);
-CREATE TABLE B(B INT PRIMARY KEY);
-CREATE VIEW V(V) AS (SELECT A FROM A UNION SELECT B FROM B);
-drop table C;
-create table C(C int);
-delete from C;
-insert into C values (0), (6);
-
-select * from V, C where V.V  = C.C;
-
-
-I forgot to mention a litte documentation bug.
-In the code sample of the feature section "Compacting a Database" there is the line
-Backup.execute(url, user, password, script);
-Correctly it should be
-Script.execute(url, user, password, script);
-
-
+SELECT rolcreaterole, rolcreatedb FROM pg_roles WHERE rolname = current_user;
 
 check trace.db/ number of files, limit to 1000 or so
 
@@ -168,8 +126,6 @@ The identifier which describes the physical location of the tuple within the dat
 make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)
-
-set read-committed as the default
 
 testHalt
 java org.h2.test.TestAll halt 

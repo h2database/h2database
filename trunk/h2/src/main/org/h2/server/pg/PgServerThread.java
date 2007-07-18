@@ -150,11 +150,11 @@ public class PgServerThread implements Runnable {
                 println(" key: "+readInt());
                 error("CancelRequest", null);
             } else if(version == 80877103) {
-                println("SSLRequest");
+                // println("SSLRequest");
                 out.write('N');
             } else {
-                // println("StartupMessage");
-                // println(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
+                 // println("StartupMessage");
+                 // println(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
                 while(true) {
                     String param = readString();
                     if(param.length() == 0) {
@@ -195,7 +195,6 @@ public class PgServerThread implements Runnable {
             Prepared p = new Prepared();
             p.name = readString();
             p.sql = getSQL(readString());
-            println(p.sql + ";");
             int count = readShort();
             p.paramType = new int[count];
             for(int i=0; i<count; i++) {
@@ -366,6 +365,7 @@ public class PgServerThread implements Runnable {
         }
         int todoNeedToSupportInParser;
         s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
+        println(s + ";");        
         return s;
     }
     

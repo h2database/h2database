@@ -11,6 +11,7 @@ import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
@@ -103,6 +104,8 @@ public class Parameter extends Expression implements ParameterInterface {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             // it is checked independently if the value is the same as the last time
             return true;
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }
@@ -110,6 +113,10 @@ public class Parameter extends Expression implements ParameterInterface {
     
     public int getCost() {
         return 0;
+    }
+    
+    public Expression getNotIfPossible(Session session) {
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
 
 }

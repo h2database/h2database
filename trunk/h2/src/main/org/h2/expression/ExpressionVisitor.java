@@ -4,6 +4,7 @@
  */
 package org.h2.expression;
 
+import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 
 public class ExpressionVisitor {
@@ -24,11 +25,15 @@ public class ExpressionVisitor {
 
     // Does the expression have no side effects (change the data)?
     public static final int READONLY = 5;
+    
+    // Does an expression have no relation to the given table filter?
+    public static final int NOT_FROM_RESOLVER = 6;
 
     int queryLevel;
     public Table table;
     public int type;
     private long maxDataModificationId;
+    private ColumnResolver resolver;
     
     public static ExpressionVisitor get(int type) {
         return new ExpressionVisitor(type);
@@ -45,9 +50,19 @@ public class ExpressionVisitor {
     public void queryLevel(int offset) {
         queryLevel += offset;
     }
+    
+    public ColumnResolver getResolver() {
+        return resolver;
+    }
 
     public void addDataModificationId(long v) {
         maxDataModificationId = Math.max(maxDataModificationId, v);
+    }
+
+    public static ExpressionVisitor getNotFromResolver(ColumnResolver resolver) {
+        ExpressionVisitor v = new ExpressionVisitor(NOT_FROM_RESOLVER);
+        v.resolver = resolver;
+        return v;
     }
 
 }

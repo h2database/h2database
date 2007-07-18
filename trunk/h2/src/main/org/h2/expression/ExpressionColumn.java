@@ -236,6 +236,8 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
             return true;
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+            return resolver != visitor.getResolver();
         default:
             throw Message.getInternalError("type="+visitor.type);
         }
@@ -245,16 +247,16 @@ public class ExpressionColumn extends Expression {
         return 2;
     }
     
-    public Expression createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(TableFilter filter) {
         TableFilter tf = getTableFilter();
-        if(filter != tf) {
-            return this;
-        }
-        if(column.getType() == Value.BOOLEAN) {
+        if(filter == tf && column.getType() == Value.BOOLEAN) {
             IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(true)));
-            return filter.addIndexCondition(this, cond);
+            filter.addIndexCondition(cond);
         }            
-        return this;
     }    
+
+    public Expression getNotIfPossible(Session session) {
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
+    }
     
 }

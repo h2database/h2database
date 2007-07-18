@@ -5,13 +5,11 @@
 package org.h2.table;
 
 import java.sql.SQLException;
-
 import org.h2.command.dml.Select;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.index.Cursor;
@@ -323,21 +321,8 @@ public class TableFilter implements ColumnResolver {
         return table.getName();
     }
 
-    public Expression addIndexCondition(Expression expr, IndexCondition condition) {
-        for(int i=0; i<indexConditions.size(); i++) {
-            IndexCondition c = (IndexCondition) indexConditions.get(i);
-            if(c.getColumn() == condition.getColumn()) {
-                if(c.getMask() == IndexCondition.EQUALITY && condition.getMask() == IndexCondition.EQUALITY) {
-                    Expression e1 = c.getExpression();
-                    Expression e2 = condition.getExpression();
-//                    Comparison comp = new Comparison();
-                    System.out.println("add: " + e1.getSQL() + " = " + e2.getSQL());
-                    
-                }
-            }
-        }
+    public void addIndexCondition(IndexCondition condition) {
         indexConditions.add(condition);
-        return expr;
     }
 
     public void addFilterCondition(Expression condition, boolean join) {
@@ -380,7 +365,7 @@ public class TableFilter implements ColumnResolver {
     private void mapAndAddFilter(Expression on) throws SQLException {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
-        on = on.createIndexConditions(this);
+        on.createIndexConditions(this);
         for(int i=0; joins != null && i<joins.size(); i++) {
             TableFilter join = getTableFilter(i);
             join.mapAndAddFilter(on);

@@ -79,6 +79,8 @@ public class SequenceValue extends Expression {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(sequence.getModificationId());
             return true;
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }

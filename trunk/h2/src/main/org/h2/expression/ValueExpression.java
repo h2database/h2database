@@ -39,14 +39,17 @@ public class ValueExpression extends Expression {
         return value.getType();
     }
     
-    public Expression createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(TableFilter filter) {
         if(value.getType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean)value).getBoolean().booleanValue();
             if(!v) {
-                return filter.addIndexCondition(this, new IndexCondition(Comparison.FALSE, null, this));
+                filter.addIndexCondition(new IndexCondition(Comparison.FALSE, null, this));
             }
         }
-        return this;
+    }
+    
+    public Expression getNotIfPossible(Session session) {
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
@@ -90,6 +93,8 @@ public class ValueExpression extends Expression {
         case ExpressionVisitor.EVALUATABLE:
             return true;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+            return true;
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
         default:
             throw Message.getInternalError("type="+visitor.type);

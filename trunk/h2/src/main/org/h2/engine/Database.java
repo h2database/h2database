@@ -1499,4 +1499,8 @@ public class Database implements DataHandler {
         return lobSyncObject;
     }
 
+    public int getSessionCount() {
+        return sessions.size();
+    }
+
 }

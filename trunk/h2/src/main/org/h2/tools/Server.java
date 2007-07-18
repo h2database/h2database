@@ -319,7 +319,7 @@ public class Server implements Runnable {
     }
     
     /**
-     * Create a new TCP server, but does not start it yet.
+     * Create a new ODBC server, but does not start it yet.
      * @param args
      * @return the server
      */

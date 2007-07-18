@@ -251,7 +251,9 @@ public class Constants {
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
     public static String BASE_DIR = getStringSetting("h2.baseDir", null);
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", Integer.MAX_VALUE);
-
+    public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
+    public static final boolean OPTIMIZE_2_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
+    
     public static void setBaseDir(String dir) {
         if(!dir.endsWith("/")) {
             dir += "/";

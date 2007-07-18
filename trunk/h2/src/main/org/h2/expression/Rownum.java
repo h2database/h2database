@@ -70,6 +70,8 @@ public class Rownum extends Expression {
             return true;
         case ExpressionVisitor.READONLY:
             return true;
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }

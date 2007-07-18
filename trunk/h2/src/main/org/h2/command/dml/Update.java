@@ -131,7 +131,7 @@ public class Update extends Prepared {
                 Column column = table.getColumn(i);
                 buff.append(column.getName());
                 buff.append(" = ");
-                buff.append(StringUtils.unEnclose(newExpr.getSQL()));
+                buff.append(newExpr.getSQL());
             }
         }
         if(condition != null) {
@@ -144,7 +144,7 @@ public class Update extends Prepared {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);
-            condition = condition.createIndexConditions(tableFilter);
+            condition.createIndexConditions(tableFilter);
         }
         for (int i = 0; i < expressions.length; i++) {
             Expression expr = expressions[i];

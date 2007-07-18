@@ -476,7 +476,7 @@ public class Select extends Query {
             condition = condition.optimize(session);
             for (int j = 0; j < filters.size(); j++) {
                 TableFilter f = (TableFilter) filters.get(j);
-                condition = condition.createIndexConditions(f);
+                condition.createIndexConditions(f);
             }
         }
         if(condition == null && isGroupQuery && groupIndex == null && havingIndex<0 && filters.size()==1) {
@@ -564,7 +564,7 @@ public class Select extends Query {
                 buff.append(", ");
             }
             Expression expr = exprList[i];
-            buff.append(StringUtils.unEnclose(expr.getSQL()));
+            buff.append(expr.getSQL());
         }
         buff.append("\nFROM ");
         TableFilter filter = topTableFilter;
@@ -715,7 +715,6 @@ public class Select extends Query {
             having.updateAggregate(session);
         }
     }
-
 
     public boolean isEverything(ExpressionVisitor visitor) {
         if(visitor.type == ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID) {

@@ -36,6 +36,18 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
+<h3>Version 1.0 / 2007-TODO</h3><ul>
+<li>Optimization for WHERE NOT(...) and WHERE [NOT] booleanFlagColumn. 
+	This can be disabled using the system property h2.optimizeNot.
+</li><li>Optimization for conditions like WHERE A=B AND B=X (A=X is added). This often appears in joins.
+	This can be disabled using the system property h2.optimizeTwoEquals.
+</li><li>Documentation: the source code in 'Compacting a Database' was incorrect. Fixed.
+</li><li>In the H2 Console, result sets could not be modified because the default result set type is now forward only.
+	For H2, now uses scrollable result sets. Also for other databases, but only when the query starts with @EDIT.
+</li><li>Views using UNION did not work correctly. Fixed.
+</li><li>Function tables did not work with views and EXPLAIN. Fixed.
+</li></ul>
+
 <h3>Version 1.0 / 2007-07-12 (Build 55)</h3><ul>
 <li>Support for the system property baseDir. This works for embedded databases as well. The setting is supported
     by the H2 Console using -Dh2.baseDir or -baseDir

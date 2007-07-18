@@ -878,7 +878,7 @@ class WebThread extends Thread {
                         buff.append(PageParser.escapeHtml(s+";"));
                         buff.append("<br />");
                     }
-                    buff.append(getResult(conn, i+1, s, list.size()==1));
+                    buff.append(getResult(conn, i+1, s, list.size()==1, false));
                     buff.append("<br />");
                 }
                 result = buff.toString();
@@ -924,7 +924,7 @@ class WebThread extends Thread {
         }
         String sql = "@EDIT " + (String) session.get("resultSetSQL");
         Connection conn = session.getConnection();
-        result = error + getResult(conn, -1, sql, true) + result;
+        result = error + getResult(conn, -1, sql, true, true) + result;
         session.put("result", result);
         return "result.jsp";
     }
@@ -1153,7 +1153,7 @@ class WebThread extends Thread {
         return maxrows;
     }
 
-    private String getResult(Connection conn, int id, String sql, boolean allowEdit) {
+    private String getResult(Connection conn, int id, String sql, boolean allowEdit, boolean forceEdit) {
         try {
             sql = sql.trim();
             StringBuffer buff = new StringBuffer();
@@ -1162,7 +1162,13 @@ class WebThread extends Thread {
                 String sessionId = attributes.getProperty("jsessionid");
                 buff.append("<script type=\"text/javascript\">top['h2menu'].location='tables.do?jsessionid="+sessionId+"';</script>");
             }
-            Statement stat = conn.createStatement();
+            Statement stat;
+            DbContents contents = session.getContents();
+            if(forceEdit || (allowEdit && contents.isH2)) {
+                stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            } else {
+                stat = conn.createStatement();
+            }
             ResultSet rs;
             long time = System.currentTimeMillis();
             boolean metadata = false;
@@ -1441,7 +1447,7 @@ class WebThread extends Thread {
                 buff.append("</tr>");
             }
         }
-        boolean isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
+        boolean isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
         if(edit) {
             ResultSet old = session.result;
             if(old != null) {

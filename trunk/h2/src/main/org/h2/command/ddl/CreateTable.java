@@ -157,6 +157,7 @@ public class CreateTable extends SchemaCommand {
                 insert.setTable(table);
                 insert.setQuery(asQuery);
                 insert.prepare();
+                int todoSetCreateAsBatchSize;
                 insert.update();
             }
         } catch(SQLException e) {

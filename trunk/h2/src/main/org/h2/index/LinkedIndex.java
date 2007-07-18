@@ -103,7 +103,7 @@ public class LinkedIndex extends Index {
         if(buff.length() > 0) {
             buff.insert(0, " WHERE ");
         }
-        buff.insert(0, "SELECT * FROM "+originalTable);
+        buff.insert(0, "SELECT * FROM "+originalTable + " T");
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
@@ -121,7 +121,7 @@ public class LinkedIndex extends Index {
                     v.set(prep, j+1);
                     j++;
                 }
-            }        
+            }
             ResultSet rs = prep.executeQuery();
             return new LinkedCursor(table, rs, session);
         } catch(SQLException e) {

@@ -16,10 +16,10 @@ import org.h2.util.ObjectArray;
  * @author Thomas
  */
 public class Plan {
-    private TableFilter[] filters;
-    private HashMap planItems = new HashMap();
-    private Expression[] allConditions;
-    private TableFilter[] allFilters;
+    private final TableFilter[] filters;
+    private final HashMap planItems = new HashMap();
+    private final Expression[] allConditions;
+    private final TableFilter[] allFilters;
 
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];

@@ -577,8 +577,8 @@ By default, a database is closed when the last connection is closed. However, if
 the database is closed when the virtual machine exits normally. This is done using a shutdown hook.
 In some situations, the database should not be closed in this case, for example because the
 database is still used at virtual machine shutdown (to store the shutdown process in the database for example).
-In this case, the automatic closing of the database can be disabled. 
-This can be done in the database URL. The first connection (the one that is opening the database) needs to 
+For those cases, the automatic closing of the database can be disabled in the database URL. 
+The first connection (the one that is opening the database) needs to 
 set the option in the database URL (it is not possible to change the setting afterwards).
 The database URL to disable database closing on exit is:
 <pre>

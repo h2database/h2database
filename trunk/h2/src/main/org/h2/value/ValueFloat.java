@@ -16,7 +16,7 @@ import org.h2.message.Message;
 public class ValueFloat extends Value {
     public static final int PRECISION = 7;
 
-    private float value;
+    private final float value;
     private static final float FLOAT_ZERO = 0.0F;
     private static final float FLOAT_ONE = 1.0F;
     private static final ValueFloat ZERO = new ValueFloat(FLOAT_ZERO);

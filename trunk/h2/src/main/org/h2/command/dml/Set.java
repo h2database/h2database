@@ -245,6 +245,14 @@ public class Set extends Prepared {
             session.setSchemaSearchPath(stringValueList);
             break;
         }
+        case SetTypes.UNDO_LOG: {
+            int value = getIntValue();
+            if(value < 0 || value > 1) {
+                throw Message.getInvalidValueException(""+getIntValue(), "UNDO_LOG");
+            }
+            session.setUndoLogEnabled(value == 1);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

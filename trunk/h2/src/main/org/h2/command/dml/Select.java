@@ -457,7 +457,7 @@ public class Select extends Query {
 
     public void prepare() throws SQLException {
         if(isPrepared) {
-            // TODO optimization: sometimes a subquery is prepared twice. why?
+            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
         if(Constants.CHECK && !checkInit) {

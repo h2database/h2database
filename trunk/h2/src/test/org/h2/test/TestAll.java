@@ -94,26 +94,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-ability to switch off undo log of the session
-(and automatically switch it off for create table as select)
-
-drop table test;
-create table test as select x, space(10000) d from system_range(1, 10000);
-null?
-
-drop table test;
-create table test as select x, cast(space(5000) as varchar) d from system_range(1, 10000);
-select top 10 * from test;
-
-
-
-database is not closed when killing the process (but should? why not?)
-
 set read-committed as the default
 
 SELECT rolcreaterole, rolcreatedb FROM pg_roles WHERE rolname = current_user;
-
-check trace.db/ number of files, limit to 1000 or so
 
 storages should be an int hash map
 

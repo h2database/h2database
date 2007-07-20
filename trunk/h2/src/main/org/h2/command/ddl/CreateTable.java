@@ -20,6 +20,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
+import org.h2.value.DataType;
 
 /**
  * @author Thomas
@@ -153,12 +154,18 @@ public class CreateTable extends SchemaCommand {
                 command.update();
             }
             if(asQuery != null) {
-                Insert insert = new Insert(session);
-                insert.setTable(table);
-                insert.setQuery(asQuery);
-                insert.prepare();
-                int todoSetCreateAsBatchSize;
-                insert.update();
+                boolean old = session.getUndoLogEnabled();
+                try {
+                    session.setUndoLogEnabled(false);
+                    Insert insert = null;
+                    insert = new Insert(session);
+                    insert.setQuery(asQuery);
+                    insert.setTable(table);
+                    insert.prepare();
+                    insert.update();
+                } finally {
+                    session.setUndoLogEnabled(old);
+                }
             }
         } catch(SQLException e) {
             db.checkPowerOff();
@@ -169,6 +176,7 @@ public class CreateTable extends SchemaCommand {
     }
 
     private void generateColumnFromQuery() throws SQLException {
+        asQuery.prepare();
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
         for(int i=0; i<columnCount; i++) {
@@ -176,7 +184,14 @@ public class CreateTable extends SchemaCommand {
             int type = expr.getType();
             String name = expr.getColumnName();
             long precision = expr.getPrecision();
+            DataType dt = DataType.getDataType(type);
+            if(precision > 0 && (dt.defaultPrecision == 0 || dt.defaultPrecision > precision)) {
+                precision = dt.defaultPrecision;
+            }
             int scale = expr.getScale();
+            if(scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
+                precision = dt.defaultScale;
+            }
             Column col = new Column(name, type, precision, scale);
             addColumn(col);
         }

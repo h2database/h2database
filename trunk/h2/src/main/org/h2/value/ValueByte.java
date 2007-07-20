@@ -13,7 +13,7 @@ import org.h2.message.Message;
 public class ValueByte extends Value {
     public static final int PRECISION = 3;
 
-    private byte value;
+    private final byte value;
 
     private ValueByte(byte value) {
         this.value = value;
@@ -114,10 +114,6 @@ public class ValueByte extends Value {
         return (ValueByte) Value.cache(new ValueByte(i));
     }
 
-//    public String getJavaString() {
-//        return "(byte)" + toString();
-//    }
-    
     public int getDisplaySize() {
         return PRECISION;
     }

@@ -11,7 +11,7 @@ import org.h2.util.ByteUtils;
 
 abstract class ValueBytesBase extends Value {
 
-    private byte[] value;
+    private final byte[] value;
     private int hash;
     
     protected ValueBytesBase(byte[] v) {

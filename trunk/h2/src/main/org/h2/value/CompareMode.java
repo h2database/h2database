@@ -11,14 +11,12 @@ import org.h2.util.StringUtils;
 
 public class CompareMode {
     public static final String OFF = "OFF";
-    private String name = OFF;
-    private Collator collator;
+    private final Collator collator;
+    private final String name;
     
     public CompareMode(Collator collator, String name) {
         this.collator = collator;
-        if(name != null) {
-            this.name = name;
-        }
+        this.name = name == null ? OFF : name;
     }
     
     public int compareString(String a, String b, boolean ignoreCase) {

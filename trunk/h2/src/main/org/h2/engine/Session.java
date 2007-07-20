@@ -63,6 +63,7 @@ public class Session implements SessionInterface {
     private HashMap procedures;
     private static int nextSerialId;
     private int serialId = nextSerialId++;
+    private boolean undoLogEnabled = true;
 
     public Session() {
     }
@@ -277,7 +278,9 @@ public class Session implements SessionInterface {
                 }
             }
         }
-        undoLog.add(log);
+        if(undoLogEnabled) {
+            undoLog.add(log);
+        }
     }
     
     public void unlockReadLocks() {
@@ -518,6 +521,14 @@ public class Session implements SessionInterface {
     
     public int hashCode() {
         return serialId;
+    }
+
+    public void setUndoLogEnabled(boolean b) {
+        this.undoLogEnabled  = b;
+    }
+    
+    public boolean getUndoLogEnabled() {
+        return undoLogEnabled;
     }
     
 }

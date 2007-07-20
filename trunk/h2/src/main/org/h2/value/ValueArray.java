@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 
 public class ValueArray extends Value {
-    private Value[] values;
+    private final Value[] values;
     private int hash;
 
     public static ValueArray get(Value[] list) {

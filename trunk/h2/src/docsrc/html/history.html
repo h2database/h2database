@@ -37,7 +37,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>Optimization for WHERE NOT(...) and WHERE [NOT] booleanFlagColumn. 
+<li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo 
+	log is temporarily disabled. This avoid out of memory problems when creating large tables.
+</li><li>The per session undo log can now be disabled. This setting is useful for bulk operations
+	that don't need to be atomic, like bulk delete or update.
+</li><li>The database file could get corruted when there was an OutOfMemoryException in the middle of inserting a row.
+</li><li>Optimization for WHERE NOT(...) and WHERE [NOT] booleanFlagColumn. 
 	This can be disabled using the system property h2.optimizeNot.
 </li><li>Optimization for conditions like WHERE A=B AND B=X (A=X is added). This often appears in joins.
 	This can be disabled using the system property h2.optimizeTwoEquals.

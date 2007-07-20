@@ -67,9 +67,9 @@ public class MetaTable extends Table {
     COLUMN_PRIVILEGES = 15, COLLATIONS = 16, VIEWS = 17, IN_DOUBT = 18, CROSS_REFERENCES = 19,
     CONSTRAINTS = 20, FUNCTION_COLUMNS = 21, CONSTANTS = 22, DOMAINS = 23, TRIGGERS = 24;
 
-    private int type;
+    private final int type;
+    private final int indexColumn;
     private MetaIndex index;
-    private int indexColumn;
 
     public MetaTable(Schema schema, int id, int type) throws SQLException {
         // tableName will be set later

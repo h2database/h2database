@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test as select 1, space(10) from dual where 1=0 union all select x, cast(space(100) as varchar(101)) d from system_range(1, 100);
+> ok
+
+drop table test;
+> ok
+
 explain select * from system_range(1, 2) where x=x+1 and x=1;
 > PLAN
 > -------------------------------------------------------------------------------------------------------

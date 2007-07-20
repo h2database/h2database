@@ -36,8 +36,8 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalTable;
     private Connection conn;
     private HashMap prepared = new HashMap();
-    private ObjectArray indexes = new ObjectArray();
-    private boolean emitUpdates;
+    private final ObjectArray indexes = new ObjectArray();
+    private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private SQLException connectException;
 

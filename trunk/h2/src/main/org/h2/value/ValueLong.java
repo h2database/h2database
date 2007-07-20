@@ -13,7 +13,7 @@ import org.h2.message.Message;
 
 public class ValueLong extends Value {
 
-    private long value;
+    private final long value;
     
     public static final int PRECISION = 19;
     private static final int STATIC_SIZE = 10;

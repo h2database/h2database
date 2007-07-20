@@ -13,7 +13,7 @@ import org.h2.message.Message;
 public class ValueShort extends Value {
     public static final int PRECISION = 5;
 
-    private short value;
+    private final short value;
 
     private ValueShort(short value) {
         this.value = value;

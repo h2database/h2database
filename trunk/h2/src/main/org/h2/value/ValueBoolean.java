@@ -13,7 +13,7 @@ import java.sql.SQLException;
 public class ValueBoolean extends Value {
     public static final int PRECISION = 1;
 
-    private Boolean value;
+    private final Boolean value;
 
     private static final ValueBoolean TRUE = new ValueBoolean(true);
     private static final ValueBoolean FALSE = new ValueBoolean(false);

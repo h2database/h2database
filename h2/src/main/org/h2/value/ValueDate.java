@@ -17,7 +17,7 @@ import org.h2.util.DateTimeUtils;
 public class ValueDate extends Value {
     public static final int PRECISION = 8;
 
-    private Date value;
+    private final Date value;
 
     private ValueDate(Date value) {
         this.value = value;

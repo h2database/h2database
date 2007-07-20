@@ -36,8 +36,8 @@ public class Restore {
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-file filename (the default is backup.zip)
-     * </li><li>-dir directory (the default is the current directory)
-     * </li><li>-db databaseName (as stored in the backup if no name is specified)
+     * </li><li>-dir database directory (the default is the current directory)
+     * </li><li>-db database name (as stored in the backup if no name is specified)
      * </li><li>-quiet does not print progress information
      * </li></ul>
      * 

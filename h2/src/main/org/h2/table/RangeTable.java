@@ -19,7 +19,7 @@ import org.h2.value.Value;
 public class RangeTable extends Table {
     
     public static final String NAME = "SYSTEM_RANGE";  
-    private long min, max;
+    private final long min, max;
 
     public RangeTable(Schema schema, long min, long max) throws SQLException {
         super(schema, 0, NAME, true);

@@ -35,11 +35,11 @@ import org.h2.value.ValueUuid;
  * @author Thomas
  */
 public class Column {
+    private final int type;
+    private final long precision;
+    private final int scale;
     private Table table;
     private String name;
-    private int type;
-    private long precision;
-    private int scale;
     private int columnId;
     private boolean nullable = true;
     private Expression defaultExpression;

@@ -25,7 +25,7 @@ import org.h2.value.ValueResultSet;
 
 public class FunctionTable extends Table {
     
-    private FunctionCall function;
+    private final FunctionCall function;
     
     public FunctionTable(Schema schema, Session session, FunctionCall function) throws SQLException {
         super(schema, 0, function.getName(), false);

@@ -33,7 +33,7 @@ public class SelectUnion extends Query {
     private ObjectArray orderList;
     private SortOrder sort;    
     private boolean distinct;
-    private boolean checkPrepared, checkInit;
+    private boolean isPrepared, checkInit;
     private boolean isForUpdate;
     
     public SelectUnion(Session session, Query query) {
@@ -181,10 +181,14 @@ public class SelectUnion extends Query {
     }
 
     public void prepare() throws SQLException {
-        if(Constants.CHECK && (checkPrepared || !checkInit)) {
-            throw Message.getInternalError("already prepared");
+        if(isPrepared) {
+            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
+            return;
         }
-        checkPrepared = true;        
+        if(Constants.CHECK && !checkInit) {
+            throw Message.getInternalError("not initialized");
+        }
+        isPrepared = true;
         left.prepare();
         right.prepare();
         int len = left.getColumnCount();

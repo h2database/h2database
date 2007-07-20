@@ -11,9 +11,7 @@ import org.h2.index.Index;
  */
 public class PlanItem {
     public double cost;
-    
     private Index index;
-    
     private PlanItem joinPlan;
     
     public void setIndex(Index index) {

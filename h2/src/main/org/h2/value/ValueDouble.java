@@ -16,7 +16,7 @@ import org.h2.message.Message;
 public class ValueDouble extends Value {
     public static final int PRECISION = 17;
 
-    private double value;
+    private final double value;
     private static final double DOUBLE_ZERO = 0.0;
     private static final double DOUBLE_ONE = 1.0;
     private static final ValueDouble ZERO = new ValueDouble(DOUBLE_ZERO);

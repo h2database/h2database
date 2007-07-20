@@ -44,7 +44,7 @@ public class TableData extends Table implements RecordReader {
     private HashSet lockShared = new HashSet();
     private Trace traceLock;
     private boolean globalTemporary;
-    private ObjectArray indexes = new ObjectArray();
+    private final ObjectArray indexes = new ObjectArray();
     private long lastModificationId;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
@@ -84,7 +84,7 @@ public class TableData extends Table implements RecordReader {
                 }
             }
             rowCount++;
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             try {
                 while(--i >= 0) {
                     Index index = (Index) indexes.get(i);
@@ -102,7 +102,7 @@ public class TableData extends Table implements RecordReader {
                 // TODO log this problem
                 throw e2;
             }
-            throw e;
+            throw Message.convert(e);
         }
     }
 

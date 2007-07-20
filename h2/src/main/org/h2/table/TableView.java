@@ -26,7 +26,7 @@ public class TableView extends Table {
 
     private String querySQL;
     private ObjectArray tables;
-    private String[] columnNames;
+    private final String[] columnNames;
     private Query viewQuery;
     private ViewIndexOld indexOld;
     private ViewIndex indexNew;

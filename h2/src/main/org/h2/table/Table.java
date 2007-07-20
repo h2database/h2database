@@ -44,8 +44,8 @@ public abstract class Table extends SchemaObject {
     public static final String VIEW = "VIEW";
 
     protected Column[] columns;
-    private HashMap columnMap = new HashMap();
-    private boolean persistent;
+    private final HashMap columnMap = new HashMap();
+    private final boolean persistent;
     private ObjectArray triggers;
     private ObjectArray constraints;
     private ObjectArray sequences;

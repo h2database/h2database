@@ -16,7 +16,7 @@ import org.h2.util.MathUtils;
 public class ValueTimestamp extends Value {
     public static final int PRECISION = 23;
     public static final int DEFAULT_SCALE = 10;
-    private Timestamp value;
+    private final Timestamp value;
 
     private ValueTimestamp(Timestamp value) {
         this.value = value;

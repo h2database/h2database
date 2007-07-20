@@ -9,7 +9,7 @@ import org.h2.value.Value;
 
 public class SingleColumnResolver implements ColumnResolver {
 
-    private Column column;
+    private final Column column;
     private Value value;
 
     SingleColumnResolver(Column column) {

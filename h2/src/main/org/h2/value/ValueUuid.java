@@ -13,7 +13,7 @@ import org.h2.util.StringUtils;
 
 public class ValueUuid extends Value {
     public static final int PRECISION = 36;
-    private long high, low;
+    private final long high, low;
 
     private ValueUuid(long high, long low) {
         this.high = high;

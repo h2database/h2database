@@ -36,23 +36,13 @@ public class Transfer {
     private static final int BUFFER_SIZE = 16 * 1024;
     private static final int LOB_MAGIC = 0x1234;
 
+    private SessionInterface session;
     protected Socket socket;
     protected DataInputStream in;
     protected DataOutputStream out;
-    private Exception stackTrace = new Exception();
-    private SessionInterface session;
     
     public Transfer(SessionInterface session) {
         this.session = session;
-    }
-
-    protected void finalize() {
-        if (!Constants.RUN_FINALIZE) {
-            return;
-        }
-        if(socket != null) {
-            throw Message.getInternalError("not closed", stackTrace);
-        }
     }
 
     public void setSocket(Socket s) {

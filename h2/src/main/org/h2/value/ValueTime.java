@@ -13,7 +13,7 @@ import org.h2.util.DateTimeUtils;
 
 public class ValueTime extends Value {
     public static final int PRECISION = 6;
-    private Time value;
+    private final Time value;
 
     private ValueTime(Time value) {
         this.value = value;

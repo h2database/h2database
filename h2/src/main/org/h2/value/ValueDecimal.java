@@ -17,7 +17,7 @@ import org.h2.util.MathUtils;
  */
 public class ValueDecimal extends Value {
     // TODO doc: document differences for BigDecimal 1.5 <> 1.4
-    private BigDecimal value;
+    private final BigDecimal value;
     private String valueString;
     private int precision;
 

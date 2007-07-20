@@ -27,18 +27,18 @@ import org.h2.value.ValueInt;
  * @author Thomas
  */
 public class TableFilter implements ColumnResolver {
-    private Session session;
-    private Table table;
-    private String alias;
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+    private final Table table;
+    private final String alias;
+    private final Select select;
+    private Session session;
     private Index index;
     private Cursor cursor;
     private int scanCount;
     private boolean used; // used in the plan
-    private Select select;
 
     // conditions that can be used for direct index lookup (start or end)
-    private ObjectArray indexConditions = new ObjectArray();
+    private final ObjectArray indexConditions = new ObjectArray();
 
     // conditions that can't be used for index lookup, but for row filter for this table (ID=ID, NAME LIKE '%X%')
     private Expression filterCondition;
@@ -55,7 +55,7 @@ public class TableFilter implements ColumnResolver {
     private boolean outerJoin;
     private boolean foundOne;
     private Expression fullCondition;
-    private boolean rightsChecked;
+    private final boolean rightsChecked;
 
     public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) {
         this.session = session;

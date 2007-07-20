@@ -16,7 +16,7 @@ import org.h2.message.Message;
 public class ValueInt extends Value {
     public static final int PRECISION = 10;
 
-    private int value;
+    private final int value;
     private static final int STATIC_SIZE = 100;
     private static final int DYNAMIC_SIZE = 256; // must be a power of 2
     // TODO check performance of final static!

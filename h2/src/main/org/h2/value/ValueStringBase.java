@@ -11,7 +11,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 abstract class ValueStringBase extends Value {
-    protected String value;
+    protected final String value;
 
     protected ValueStringBase(String value) {
         this.value = value;

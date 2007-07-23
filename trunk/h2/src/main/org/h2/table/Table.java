@@ -27,6 +27,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.UndoLogRecord;
 import org.h2.util.ObjectArray;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -52,6 +53,7 @@ public abstract class Table extends SchemaObject {
     private ObjectArray views;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
+    protected int memoryPerRow;
 
     public Table(Schema schema, int id, String name, boolean persistent) {
         super(schema, id, name, Trace.TABLE);
@@ -95,8 +97,10 @@ public abstract class Table extends SchemaObject {
         if(columnMap.size() > 0) {
             columnMap.clear();
         }
+        int memory = 0;
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
+            memory += DataType.getDataType(col.getType()).memory;
             col.setTable(this, i);
             String columnName = col.getName();
             if (columnMap.get(columnName) != null) {
@@ -105,6 +109,7 @@ public abstract class Table extends SchemaObject {
             }
             columnMap.put(columnName, col);
         }
+        memoryPerRow = memory;
     }
     
     public void renameColumn(Column column, String newName) {
@@ -200,7 +205,7 @@ public abstract class Table extends SchemaObject {
     }    
     
     public Row getTemplateRow() {
-        return new Row(new Value[columns.length]);
+        return new Row(new Value[columns.length], memoryPerRow);
     }
 
     public SearchRow getTemplateSimpleRow(boolean singleColumn) {
@@ -213,7 +218,7 @@ public abstract class Table extends SchemaObject {
 
     public Row getNullRow() {
         // TODO memory usage: if rows are immutable, we could use a static null row
-        Row row = new Row(new Value[columns.length]);
+        Row row = new Row(new Value[columns.length], 0);
         for (int i = 0; i < columns.length; i++) {
             row.setValue(i, ValueNull.INSTANCE);
         }

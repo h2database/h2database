@@ -405,7 +405,7 @@ public class TableData extends Table implements RecordReader {
         for(int i=0; i<len; i++) {
             data[i] = s.readValue();
         }
-        return new Row(data);
+        return new Row(data, memoryPerRow);
     }
 
     public void setRowCount(int count) {

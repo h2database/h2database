@@ -94,6 +94,25 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+Backup and BackupCommand with subdirectories (lobs): stored in a flat directory structure
+-Dh2.lobFilesInDirectories=true
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME CLOB);
+@LOOP 20 INSERT INTO TEST VALUES(?, SPACE(10000));
+BACKUP TO 'backup.zip';
+test Backup tool as well!
+
+PMD
+
+replace new Byte, Double, Float, Long, Byte, Short with ObjectUtils.get
+
+http://fastutil.dsi.unimi.it/
+http://javolution.org/
+http://joda-time.sourceforge.net/
+http://ibatis.apache.org/
+
+SET REFERENTIAL_INTEGRITY TRUE
+
 replace new Byte, Double, Float, Long, Byte, Short with ObjectUtils.get
 
 http://fastutil.dsi.unimi.it/

@@ -23,6 +23,11 @@ pre {
     padding: 4px;
 }
 
+code {
+    background-color: #ece9d8;
+    padding: 0px 2px;
+}
+
 body {
     margin: 0px;
 }

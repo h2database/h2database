@@ -22,7 +22,10 @@ public interface Cache {
 
     CacheObject find(int i);
 
-    void setMaxSize(int value) throws SQLException;
+    /*
+     * @param memorySize in number of double words (4 bytes)
+     */
+    void setMaxSize(int memorySize) throws SQLException;
 
     String getTypeName();
 }

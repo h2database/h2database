@@ -119,6 +119,13 @@ public class ValueDecimal extends Value {
         }
         return precision;
     }
+    
+    public boolean checkPrecision(long precision) {
+        if(precision == DEFAULT_PRECISION) {
+            return true;
+        }
+        return getPrecision() <= precision;
+    }
 
     public int getScale() {
         return value.scale();

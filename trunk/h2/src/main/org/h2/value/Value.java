@@ -655,4 +655,8 @@ public abstract class Value {
     public void close() throws SQLException {
     }
 
+    public boolean checkPrecision(long precision) {
+        return getPrecision() <= precision;
+    }
+
 }

@@ -695,13 +695,14 @@ SET AUTOCOMMIT OFF
 "Commands (Other)","SET CACHE_SIZE","
 SET CACHE_SIZE int
 ","
-Sets the size of the cache.
-A cache entry contains about 128 bytes. The default value is 65536.
+Sets the size of the cache in KB (each KB being 1024 bytes). The default value is 16384 (16 MB).
+The value is rounded to the next higher power of two.
+Depending on the virtual machine, the actual memory required may be higher.
 This setting is persistent and affects all connections as there is only one cache per database.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;CACHE_SIZE=8192
 ","
-SET CACHE_SIZE 1000
+SET CACHE_SIZE 8192
 "
 
 "Commands (Other)","SET CLUSTER","

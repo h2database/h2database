@@ -254,6 +254,9 @@ It looks like the development of this database has stopped. The last release was
         <td><a href="http://hibernate.org">Hibernate</a></td>
         <td>Relational persistence for idiomatic Java (O-R mapping tool)</td>
     </tr><tr>
+        <td><a href="http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Why">H2 Spatial</a></td>
+        <td>A project to add spatial functions to H2 database</td>
+    </tr><tr>
         <td><a href="http://jamwiki.org">JAMWiki</a></td>
         <td>Java-based Wiki engine.</td>
     </tr><tr>
@@ -378,7 +381,7 @@ This is achieved using different database URLs. The settings in the URLs are not
 <tr>
   <td>Remote using TCP/IP</td>
   <td>
-    jdbc:h2:tcp://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br />
+    jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
     jdbc:h2:tcp://localhost/test<br />
     jdbc:h2:tcp://dbserv:8084/sample
   </td>
@@ -386,31 +389,31 @@ This is achieved using different database URLs. The settings in the URLs are not
 <tr>
   <td>Remote using SSL/TLS</td>
   <td>
-    jdbc:h2:ssl://&lt;server&gt;[&lt;port&gt;]/&lt;databaseName&gt;<br />
+    jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
     jdbc:h2:ssl://secureserv:8085/sample;
   </td>
 </tr>
 <tr>
   <td>Using Encrypted Files</td>
   <td>
-    jdbc:h2:&lt;url&gt;;CIPHER=[AES][XTEA]<br />
+    jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
     jdbc:h2:ssl://secureserv/testdb;CIPHER=AES<br />
-    jdbc:h2:file:secure;CIPHER=XTEA<br />
+    jdbc:h2:file:~/secure;CIPHER=XTEA<br />
   </td>
 </tr>
 <tr>
   <td>File Locking Methods</td>
   <td>
     jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
-    jdbc:h2:file:quickAndDirty;FILE_LOCK=NO<br />
-    jdbc:h2:file:private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
+    jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
+    jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
   </td>
 </tr>
 <tr>
   <td>Only Open if it Already Exists</td>
   <td>
     jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
-    jdbc:h2:file:sample;IFEXISTS=TRUE<br />
+    jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
   </td>
 </tr>
 <tr>
@@ -423,21 +426,21 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>User Name and/or Password</td>
   <td>
     jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
-    jdbc:h2:file:sample;USER=sa;PASSWORD=123<br />
+    jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
   </td>
 </tr>
 <tr>
   <td>Log Index Changes</td>
   <td>
     jdbc:h2:&lt;url&gt;;LOG=2<br />
-    jdbc:h2:file:sample;LOG=2<br />
+    jdbc:h2:file:~/sample;LOG=2<br />
   </td>
 </tr>
 <tr>
   <td>Debug Trace Settings</td>
   <td>
     jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
-    jdbc:h2:file:sample;TRACE_LEVEL_FILE=3<br />
+    jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
   </td>
 </tr>
 <tr>
@@ -456,7 +459,7 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>Changing Other Settings</td>
   <td>
     jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
-    jdbc:h2:file:sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
+    jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
   </td>
 </tr>
 </table>
@@ -467,7 +470,7 @@ The prefix <code>file:</code> is optional. If no or only a relative path is used
 directory is used as a starting point. The case sensitivity of the path and database name depend on the 
 operating system, however it is suggested to use lowercase letters only.
 The database name must be at least three characters long (a limitation of File.createTempFile).
-To point to the user directory, use ~/, as in: jdbc:h2:~/test.
+To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 
 <h3>Memory-Only Databases</h3>
 <p>

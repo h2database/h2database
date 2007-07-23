@@ -62,6 +62,7 @@ public class BackupCommand extends Prepared {
                 String fn = db.getName() + Constants.SUFFIX_DATA_FILE;
                 backupDiskFile(out, fn, db.getDataFile());
                 fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
+                String base = FileUtils.getParent(fn);
                 backupDiskFile(out, fn, db.getIndexFile());
                 ObjectArray list = log.getActiveLogFiles();
                 int max = list.size();
@@ -70,7 +71,7 @@ public class BackupCommand extends Prepared {
                     for(int i=0; i<list.size(); i++) {
                         LogFile lf = (LogFile) list.get(i);
                         fn = lf.getFileName();
-                        backupFile(out, fn);
+                        backupFile(out, base, fn);
                         db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
                     }
                     String prefix = db.getDatabasePath();
@@ -79,7 +80,7 @@ public class BackupCommand extends Prepared {
                     for(int i=0; i<fileList.size(); i++) {
                         fn = (String) fileList.get(i);
                         if(fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                            backupFile(out, fn);
+                            backupFile(out, base, fn);
                         }
                     }
                 }
@@ -109,8 +110,14 @@ public class BackupCommand extends Prepared {
         out.closeEntry();
     }
     
-    private void backupFile(ZipOutputStream out, String fn) throws SQLException, IOException {
-        out.putNextEntry(new ZipEntry(FileUtils.getFileName(fn)));
+    private void backupFile(ZipOutputStream out, String base, String fn) throws SQLException, IOException {
+        String f = FileUtils.getAbsolutePath(fn);
+        base = FileUtils.getAbsolutePath(base);
+        if(!f.startsWith(base)) {
+            throw Message.getInternalError(f + " does not start with " + base);
+        }
+        f = f.substring(base.length());
+        out.putNextEntry(new ZipEntry(f));
         InputStream in = FileUtils.openFileInputStream(fn);
         IOUtils.copyAndCloseInput(in, out);
         out.closeEntry();

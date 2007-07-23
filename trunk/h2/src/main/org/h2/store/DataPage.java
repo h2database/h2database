@@ -264,6 +264,7 @@ public abstract class DataPage {
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
+            return 1 + getStringLen(v.getString());
         case Value.DECIMAL:
             return 1 + getStringLen(v.getString());
         case Value.JAVA_OBJECT:

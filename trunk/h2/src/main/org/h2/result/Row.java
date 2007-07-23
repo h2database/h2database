@@ -7,6 +7,7 @@ package org.h2.result;
 import java.sql.SQLException;
 
 import org.h2.store.DataPage;
+import org.h2.store.DiskFile;
 import org.h2.store.Record;
 import org.h2.value.Value;
 
@@ -14,18 +15,17 @@ import org.h2.value.Value;
  * @author Thomas
  */
 public class Row extends Record implements SearchRow {
-    private Value[] data;
+    private final Value[] data;
+    private final int memory;
 
-    public Row(Value[] data) {
+    public Row(Value[] data, int memory) {
         this.data = data;
+        this.memory = memory;
     }
 
     public Row(Row old) {
         this.data = old.data;
-    }
-
-    public Row() {
-        // empty constructor
+        this.memory = old.memory;
     }
 
     public Value getValue(int i) {
@@ -61,5 +61,9 @@ public class Row extends Record implements SearchRow {
     public int getColumnCount() {
         return data.length;
     }
+    
+    public int getMemorySize() {
+        return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
+    }    
 
 }

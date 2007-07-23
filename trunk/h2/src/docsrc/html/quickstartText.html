@@ -11,7 +11,23 @@ Quickstart
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Quickstart</h1>
+<a href="#embedding">
+    Embedding H2 in an Application</a><br />
+<a href="#h2_console">
+    The H2 Console Application</a><br />
 
+<br /><a name="embedding"></a>
+<h2>Embedding H2 in an Application</h2>
+
+This database can be used in embedded mode, or in server mode. To use it in embedded mode, you need to:
+
+<ul>
+<li>Add <code>h2.jar</code> to the classpath
+</li><li>Use the JDBC driver class: <code>org.h2.Driver</code>
+</li><li>The database URL <code>jdbc:h2:~/test</code> opens the database 'test' in your user home directory
+</ul>
+
+<br /><a name="h2_console"></a>
 <h2>The H2 Console Application</h2>
 The Console lets you access a SQL database using a browser interface.
 <br />

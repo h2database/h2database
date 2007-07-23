@@ -52,6 +52,7 @@ public class DataType {
     public long defaultPrecision;
     public int defaultScale;
     public boolean hidden;
+    public int memory;
     
     // for operations that include different types, convert both to the higher order
     public int order;
@@ -74,125 +75,153 @@ public class DataType {
 //#endif
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
-                new String[]{"NULL"}
+                new String[]{"NULL"},
+                1
         );
         add(Value.STRING, Types.VARCHAR, "String",
                 createString(true),
-                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE", "CHARACTER VARYING", "TID"}
+                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "VARCHAR_CASESENSITIVE", "CHARACTER VARYING", "TID"},
+                4
         );
         add(Value.STRING, Types.LONGVARCHAR, "String",
                 createString(true),
-                new String[]{"LONGVARCHAR"}
+                new String[]{"LONGVARCHAR"},
+                4
         );
         add(Value.STRING_FIXED, Types.CHAR, "String",
                 createString(true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR"}
+                new String[]{"CHAR", "CHARACTER", "NCHAR"},
+                4
         );
         add(Value.STRING_IGNORECASE, Types.VARCHAR, "String",
                 createString(false),
-                new String[]{"VARCHAR_IGNORECASE"}
+                new String[]{"VARCHAR_IGNORECASE"},
+                4
         );
         add(Value.BOOLEAN, DataType.TYPE_BOOLEAN, "Boolean",
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION, 0, false, false),
-                new String[]{"BOOLEAN", "BIT", "BOOL"}
+                new String[]{"BOOLEAN", "BIT", "BOOL"},
+                1
         );
         add(Value.BYTE, Types.TINYINT, "Byte",
                 createDecimal(ValueByte.PRECISION, ValueByte.PRECISION, 0, false, false),
-                new String[]{"TINYINT"}
+                new String[]{"TINYINT"},
+                1
         );
         add(Value.SHORT, Types.SMALLINT, "Short",
                 createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0, false, false),
-                new String[]{"SMALLINT", "YEAR", "INT2"}
+                new String[]{"SMALLINT", "YEAR", "INT2"},
+                1
         );
         add(Value.INT, Types.INTEGER, "Int",
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0, false, false),
-                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
+                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"},
+                1
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, false, false),
-                new String[]{"BIGINT", "INT8"}
+                new String[]{"BIGINT", "INT8"},
+                1
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, false, true),
-                new String[]{"IDENTITY", "SERIAL"}
+                new String[]{"IDENTITY", "SERIAL"},
+                1
         );
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, true, false),
-                new String[]{"DECIMAL", "DEC"}
+                new String[]{"DECIMAL", "DEC"},
+                7
                 // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, true, false),
-                new String[]{"NUMERIC", "NUMBER"}
+                new String[]{"NUMERIC", "NUMBER"},
+                7
                 // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.FLOAT, Types.REAL, "Float",
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, false, false),
-                new String[] {"REAL", "FLOAT4"}
+                new String[] {"REAL", "FLOAT4"},
+                1
         );
         add(Value.DOUBLE, Types.DOUBLE, "Double",
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, false, false),
-                new String[] { "DOUBLE", "DOUBLE PRECISION" }
+                new String[] { "DOUBLE", "DOUBLE PRECISION" },
+                1
         );
         add(Value.DOUBLE, Types.FLOAT, "Double",
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, false, false),
-                new String[] {"FLOAT", "FLOAT8" }
+                new String[] {"FLOAT", "FLOAT8" },
+                1
                 // TODO value: show min and max values, E format if supported
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0),
-                new String[]{"TIME"}
+                new String[]{"TIME"},
+                4
                 // TODO value: min / max for time
         );
         add(Value.DATE, Types.DATE, "Date",
                 createDate(ValueDate.PRECISION, "DATE", 0),
-                new String[]{"DATE"}
+                new String[]{"DATE"},
+                4
                 // TODO value: min / max for date
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP, "Timestamp",
                 createDate(ValueTimestamp.PRECISION, "TIMESTAMP", ValueTimestamp.DEFAULT_SCALE),
-                new String[]{"TIMESTAMP", "DATETIME", "SMALLDATETIME"}
+                new String[]{"TIMESTAMP", "DATETIME", "SMALLDATETIME"},
+                4
                 // TODO value: min / max for timestamp
         );
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),
-                new String[]{"VARBINARY"}
+                new String[]{"VARBINARY"},
+                4
         );
         add(Value.BYTES, Types.BINARY, "Bytes",
                 createString(false),
-                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
+                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"},
+                4
         );
         add(Value.BYTES, Types.LONGVARBINARY, "Bytes",
                 createString(false),
-                new String[]{"LONGVARBINARY"}
+                new String[]{"LONGVARBINARY"},
+                4
         );
         add(Value.UUID, Types.BINARY, "Bytes",
                 createString(false),
-                new String[]{"UUID"}
+                new String[]{"UUID"},
+                4
         );
         add(Value.JAVA_OBJECT, Types.OTHER, "Object",
                 createString(false),
-                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
+                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"},
+                4
         );
         add(Value.BLOB, Types.BLOB, "Bytes",
                 createString(false),
-                new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE", "OID"}
+                new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE", "OID"},
+                4
         );
         add(Value.CLOB, Types.CLOB, "String",
                 createString(true),
-                new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT", "NCLOB"}
+                new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT", "NCLOB"},
+                4
         );
         DataType dataType = new DataType();
         dataType.prefix = "(";
         dataType.suffix = "')";
         add(Value.ARRAY, Types.ARRAY, "Array",
                 dataType,
-                new String[]{"ARRAY"}
+                new String[]{"ARRAY"},
+                2
         );
         dataType = new DataType();
         add(Value.RESULT_SET, 0, "ResultSet",
                 dataType,
-                new String[]{"RESULT_SET"}
+                new String[]{"RESULT_SET"},
+                2
         );
         for(int i=0; i<typesByValueType.length; i++) {
             DataType dt = typesByValueType[i];
@@ -204,7 +233,7 @@ public class DataType {
         // TODO data types: try to support other types as well (longvarchar for odbc/access,...) - maybe map them to regular types?
     }
 
-    private static void add(int type, int sqlType, String jdbc, DataType dataType, String[] names) {
+    private static void add(int type, int sqlType, String jdbc, DataType dataType, String[] names, int memory) {
         for(int i=0; i<names.length; i++) {
             DataType dt = new DataType();
             dt.type = type;
@@ -225,6 +254,7 @@ public class DataType {
             dt.defaultScale = dataType.defaultScale;
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
+            dt.memory = memory;
             for(int j=0; j<types.size(); j++) {
                 DataType t2 = (DataType) types.get(j);
                 if(t2.sqlType == dt.sqlType) {

@@ -8,12 +8,13 @@ import java.util.Comparator;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.store.DiskFile;
 
 public abstract class CacheObject {
     private boolean changed;
     public CacheObject previous, next, chained;
     public int cacheQueue;
-    private int blockCount;
+    protected int blockCount;
     private int pos;
     
     public static void sort(ObjectArray recordList) {
@@ -59,6 +60,14 @@ public abstract class CacheObject {
     
     public boolean canRemove() {
         return true;
+    }
+    
+    /*
+     * Get the estimated memory size.
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return blockCount * (DiskFile.BLOCK_SIZE / 4);
     }
 
 }

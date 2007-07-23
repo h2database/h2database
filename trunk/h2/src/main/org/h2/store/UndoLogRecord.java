@@ -131,7 +131,7 @@ public class UndoLogRecord {
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
-        row = new Row(values);
+        row = new Row(values, 0);
         state = IN_MEMORY_READ_POS;
     }
 

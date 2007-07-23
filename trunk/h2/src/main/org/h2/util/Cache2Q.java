@@ -17,57 +17,45 @@ public class Cache2Q implements Cache {
     
     public static final String TYPE_NAME = "TQ";
     private static final int MAIN = 1, IN = 2, OUT = 3;
+    private final static int PERCENT_IN = 20, PERCENT_OUT = 50;
     
     private final CacheWriter writer;
     private int maxSize;
-    private int percentIn = 20, percentOut = 50;
     private int maxMain, maxIn, maxOut; 
     private CacheObject headMain = new CacheHead();
     private CacheObject headIn = new CacheHead();
     private CacheObject headOut = new CacheHead();
-    private int sizeMain, sizeIn, sizeOut, sizeRecords;
+    private int sizeMain, sizeIn, sizeOut;
+    private int recordCount;
     private int len;
     private CacheObject[] values;
     private int mask;
     
-    public Cache2Q(CacheWriter writer, int maxSize) {
+    public Cache2Q(CacheWriter writer, int maxKb) {
+        int maxSize = maxKb * 1024 / 4;
         this.writer = writer;
-        resize(maxSize);
-    }
-    
-    private void resize(int maxSize) {
         this.maxSize = maxSize;
-        this.len = MathUtils.nextPowerOf2(maxSize / 2);
+        this.len = MathUtils.nextPowerOf2(maxSize / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
+        recalculateMax();
         clear();
     }
     
-    public void clear() {    
+    public void clear() {
         headMain.next = headMain.previous = headMain;
         headIn.next = headIn.previous = headIn;
         headOut.next = headOut.previous = headOut;
         values = new CacheObject[len];
         sizeIn = sizeOut = sizeMain = 0;
-        sizeRecords = 0;
-        recalculateMax();
+        recordCount = 0;
     }
     
-    void setPercentIn(int percent) {
-        percentIn = percent;
-        recalculateMax();
-    }
-
-    void setPercentOut(int percent) {
-        percentOut = percent;
-        recalculateMax();
-    }
-
     private void recalculateMax() {
         maxMain = maxSize;
-        maxIn = maxSize * percentIn / 100;
-        maxOut = maxSize * percentOut / 100;
-    }
+        maxIn = maxSize * PERCENT_IN / 100;
+        maxOut = maxSize * PERCENT_OUT / 100;
+    }    
     
     private void addToFront(CacheObject head, CacheObject rec) {
         if(Constants.CHECK) {
@@ -107,8 +95,8 @@ public class Cache2Q implements Cache {
             return null;
         } else if(r.cacheQueue == IN) {
             removeFromList(r);
-            sizeIn -= r.getBlockCount();
-            sizeMain += r.getBlockCount();
+            sizeIn -= r.getMemorySize();
+            sizeMain += r.getMemorySize();
             r.cacheQueue = MAIN;
             addToFront(headMain, r);
         }
@@ -142,7 +130,7 @@ public class Cache2Q implements Cache {
             } while(rec.getPos() != pos);
             last.chained = rec.chained;
         }
-        sizeRecords--;
+        recordCount--;
         if(Constants.CHECK) {
             rec.chained = null;
         }
@@ -154,21 +142,25 @@ public class Cache2Q implements Cache {
         if(r != null) {
             removeFromList(r);
             if(r.cacheQueue == MAIN) {
-                sizeMain -= r.getBlockCount();
+                sizeMain -= r.getMemorySize();
             } else if(r.cacheQueue == IN) {
-                sizeIn -= r.getBlockCount();
+                sizeIn -= r.getMemorySize();
             }
         }
     }
 
-    private void removeOld() throws SQLException {
-        if((sizeIn < maxIn) && (sizeOut < maxOut) && (sizeMain < maxMain)) {
-            return;
+    private void removeOldIfRequired() throws SQLException {
+        // a small method, to allow inlining
+        if((sizeIn >= maxIn) || (sizeOut >= maxOut) || (sizeMain >= maxMain)) {
+            removeOld();
         }
+    }
+    
+    private void removeOld() throws SQLException {
         int i=0;
         ObjectArray changed = new ObjectArray();        
-        while (((sizeIn*4 > maxIn*3) || (sizeOut*4 > maxOut*3) || (sizeMain*4 > maxMain*3)) && sizeRecords > Constants.CACHE_MIN_RECORDS) {        
-            if(i++ >= sizeRecords) {
+        while (((sizeIn*4 > maxIn*3) || (sizeOut*4 > maxOut*3) || (sizeMain*4 > maxMain*3)) && recordCount > Constants.CACHE_MIN_RECORDS) {        
+            if(i++ >= recordCount) {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen theoretically
                 // TODO log this
@@ -181,7 +173,7 @@ public class Cache2Q implements Cache {
                     addToFront(headIn, r);
                     continue;
                 }
-                sizeIn -= r.getBlockCount();
+                sizeIn -= r.getMemorySize();
                 int pos = r.getPos();
                 removeCacheObject(pos);
                 removeFromList(r);
@@ -207,7 +199,7 @@ public class Cache2Q implements Cache {
                     addToFront(headMain, r);
                     continue;
                 }
-                sizeMain -= r.getBlockCount();                
+                sizeMain -= r.getMemorySize();
                 removeCacheObject(r.getPos());
                 removeFromList(r);
                 if(r.isChanged()) {
@@ -260,7 +252,7 @@ public class Cache2Q implements Cache {
         int index = rec.getPos() & mask;
         rec.chained = values[index];
         values[index] = rec;
-        sizeRecords++;
+        recordCount++;
     }
     
 
@@ -271,24 +263,24 @@ public class Cache2Q implements Cache {
             if(r.cacheQueue == OUT) {
                 removeCacheObject(pos);
                 removeFromList(r);
-                removeOld();
+                removeOldIfRequired();
                 rec.cacheQueue = MAIN;
                 putCacheObject(rec);
                 addToFront(headMain, rec);
-                sizeMain += rec.getBlockCount();
+                sizeMain += rec.getMemorySize();
             }
         } else if(sizeMain < maxMain) {
-            removeOld();
+            removeOldIfRequired();
             rec.cacheQueue = MAIN;
             putCacheObject(rec);
             addToFront(headMain, rec);
-            sizeMain += rec.getBlockCount();
+            sizeMain += rec.getMemorySize();
         } else {
-            removeOld();
+            removeOldIfRequired();
             rec.cacheQueue = IN;
             putCacheObject(rec);
             addToFront(headIn, rec);
-            sizeIn += rec.getBlockCount();
+            sizeIn += rec.getMemorySize();
         }
     }
 
@@ -307,11 +299,13 @@ public class Cache2Q implements Cache {
         return old;
     }
     
-    public void setMaxSize(int newSize) throws SQLException {
+    public void setMaxSize(int maxKb) throws SQLException {
+        int newSize = maxKb * 1024 / 4;
         maxSize = newSize < 0 ? 0 : newSize;
         recalculateMax();
+        // can not resize, otherwise existing records are lost
         // resize(maxSize);
-        removeOld();
+        removeOldIfRequired();
     }
     
     public String getTypeName() {

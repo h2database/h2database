@@ -129,7 +129,7 @@ public class ScanIndex extends Index {
                 }
             }
         } else {
-            Row free = new Row();
+            Row free = new Row(null, 0);
             free.setPos(firstFree);
             int key = row.getPos();
             rows.set(key, free);

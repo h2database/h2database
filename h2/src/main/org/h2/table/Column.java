@@ -192,8 +192,10 @@ public class Column {
             }
         }
         value = value.convertScale(Mode.getCurrentMode().convertOnlyToSmallerScale, scale);
-        if (precision > 0 && value.getPrecision() > precision) {
-            throw Message.getSQLException(Message.VALUE_TOO_LONG_1, name);
+        if (precision > 0) {
+            if(!value.checkPrecision(precision)) {
+                throw Message.getSQLException(Message.VALUE_TOO_LONG_1, name);
+            }
         }
         updateSequenceIfRequired(session, value);
         return value;

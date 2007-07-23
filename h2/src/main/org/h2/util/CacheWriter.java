@@ -12,4 +12,5 @@ import java.sql.SQLException;
 
 public interface CacheWriter {
     void writeBack(CacheObject entry) throws SQLException;
+    void flushLog() throws SQLException;
 }

@@ -24,21 +24,25 @@ public class CacheLRU implements Cache {
     private int maxSize;
     private CacheObject[] values;
     private int mask;
-    private int sizeRecords;
-    private int sizeBlocks;
+    private int recordCount;
+    private int sizeMemory;
     private CacheObject head = new CacheHead();
 
-    public CacheLRU(CacheWriter writer, int maxSize) {
+    public CacheLRU(CacheWriter writer, int maxKb) {
+        int maxSize = maxKb * 1024 / 4;
         this.writer = writer;
-        resize(maxSize);
-    }
-    
-    private void resize(int maxSize) {
         this.maxSize = maxSize;
-        this.len = MathUtils.nextPowerOf2(maxSize / 2);
+        this.len = MathUtils.nextPowerOf2(maxSize / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
         clear();
+    }
+    
+    public void clear() {    
+        head.next = head.previous = head;
+        values = new CacheObject[len];
+        recordCount = 0;
+        sizeMemory = 0;
     }
 
     public void put(CacheObject rec) throws SQLException {
@@ -53,10 +57,10 @@ public class CacheLRU implements Cache {
         int index = rec.getPos() & mask;
         rec.chained = values[index];
         values[index] = rec;
-        sizeRecords++;
-        sizeBlocks += rec.getBlockCount();
+        recordCount++;
+        sizeMemory += rec.getMemorySize();
         addToFront(rec);
-        removeOld();
+        removeOldIfRequired();
     }
     
     public CacheObject update(int pos, CacheObject rec) throws SQLException {
@@ -75,18 +79,32 @@ public class CacheLRU implements Cache {
         return old;
     }
     
-    private void removeOld() throws SQLException {
-        if(sizeBlocks < maxSize) {
-            return;
+    private void removeOldIfRequired() throws SQLException {
+        // a small method, to allow inlining
+        if(sizeMemory >= maxSize) {
+            removeOld();
         }
+    }
+    
+    private void removeOld() throws SQLException {
         int i=0;
         ObjectArray changed = new ObjectArray();
-        while (sizeBlocks*4 > maxSize*3 && sizeRecords > Constants.CACHE_MIN_RECORDS) {
+        while (sizeMemory*4 > maxSize*3 && recordCount > Constants.CACHE_MIN_RECORDS) {
             CacheObject last = head.next;
-            if(i++ >= sizeRecords) {
+            i++;
+            if(i == recordCount) {
+                int testing;
+                int todoCopyTo2Q;
+System.out.println("flush log");                
+                writer.flushLog();
+            }
+            if(i >= recordCount * 2) {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen theoretically
                 // TODO log this
+System.out.println("can not shrink cache");
+
+
                 break;
             }
             if(Constants.CHECK && last == head) {
@@ -154,8 +172,8 @@ public class CacheLRU implements Cache {
             } while(rec.getPos() != pos);
             last.chained = rec.chained;
         }
-        sizeRecords--;
-        sizeBlocks -= rec.getBlockCount();
+        recordCount--;
+        sizeMemory -= rec.getMemorySize();
         removeFromLinkedList(rec);
         if(Constants.CHECK) {
             rec.chained = null;
@@ -222,9 +240,9 @@ public class CacheLRU implements Cache {
             while (rec != null) {
                 if(rec.isChanged()) {                                
                     list.add(rec);
-                    if(list.size() >= sizeRecords) {
+                    if(list.size() >= recordCount) {
                         if(Constants.CHECK) {
-                            if(list.size() > sizeRecords) {
+                            if(list.size() > recordCount) {
                                 throw Message.getInternalError("cache chain error");
                             }
                         } else {
@@ -238,18 +256,12 @@ public class CacheLRU implements Cache {
         return list;
     }
     
-    public void clear() {    
-        head.next = head.previous = head;
-        values = new CacheObject[len];
-        sizeRecords = 0;
-        sizeBlocks = 0;
-    }
-    
-    public void setMaxSize(int newSize) throws SQLException {
+    public void setMaxSize(int maxKb) throws SQLException {
+        int newSize = maxKb * 1024 / 4;        
         newSize = newSize < 0 ? 0 : newSize;
-        // can not resize, otherwise
+        // can not resize, otherwise existing records are lost
         // resize(maxSize);
-        removeOld();
+        removeOldIfRequired();
     }
     
     public String getTypeName() {

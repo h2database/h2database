@@ -829,5 +829,11 @@ public class DiskFile implements CacheWriter {
     public int getReadCount() {
         return readCount;
     }
+    
+    public void flushLog() throws SQLException {
+        if(log != null) {
+            log.flush();
+        }
+    }
 
 }

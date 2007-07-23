@@ -1160,16 +1160,16 @@ public class Database implements DataHandler {
         return fileIndex;
     }
 
-    public void setCacheSize(int value) throws SQLException {
+    public void setCacheSize(int kb) throws SQLException {
         if(fileData != null) {
             synchronized(fileData) {
-                fileData.getCache().setMaxSize(value);
+                fileData.getCache().setMaxSize(kb);
             }
-            int valueIndex = value <= (1<<8) ? value : (value>>>Constants.CACHE_SIZE_INDEX_SHIFT);
+            int valueIndex = kb <= 32 ? kb : (kb >>> Constants.CACHE_SIZE_INDEX_SHIFT);
             synchronized(fileIndex) {
                 fileIndex.getCache().setMaxSize(valueIndex);
             }
-            cacheSize = value;
+            cacheSize = kb;
         }
     }
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
@@ -60,6 +61,8 @@ public class Backup {
                 db = args[++i];
             } else if(args[i].equals("-quiet")) {
                 quiet = true;
+            } else if(args[i].equals("-file")) {
+                zipFileName = args[++i];
             } else {
                 showUsage();
                 return;
@@ -93,9 +96,22 @@ public class Backup {
         try {
             out = FileUtils.openFileOutputStream(zipFileName);
             ZipOutputStream zipOut = new ZipOutputStream(out);
+            String base = "";
             for(int i=0; i<list.size(); i++) {
                 String fileName = (String) list.get(i);
-                ZipEntry entry = new ZipEntry(FileUtils.getFileName(fileName));
+                if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+                    base = FileUtils.getParent(fileName);
+                    base = FileUtils.getAbsolutePath(fileName);
+                }
+            }
+            for(int i=0; i<list.size(); i++) {
+                String fileName = (String) list.get(i);
+                String f = FileUtils.getAbsolutePath(fileName);
+                if(!f.startsWith(base)) {
+                    throw Message.getInternalError(f + " does not start with " + base);
+                }
+                f = f.substring(base.length());
+                ZipEntry entry = new ZipEntry(f);
                 zipOut.putNextEntry(entry);
                 InputStream in = null;
                 try {

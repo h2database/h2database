@@ -103,7 +103,7 @@ public class Constants {
     public static final int IO_BUFFER_SIZE = 4 * 1024;
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;
 
-    public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 1 << 8;
+    public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 64 * 1024;
 
     public static final String SUFFIX_DB_FILE = ".db";
     public static final String SUFFIX_DATA_FILE = ".data.db";
@@ -246,7 +246,7 @@ public class Constants {
     public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
     public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
-    public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", (1 << 16));
+    public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
     public static String BASE_DIR = getStringSetting("h2.baseDir", null);

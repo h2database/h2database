@@ -222,17 +222,7 @@ the administrator of this database.
 H2 currently supports three servers: a Web Server, a TCP Server and an ODBC Server.
 The servers can be started in different ways.
 
-<h3>Limitations of the Server</h3>
-There currently are a few limitations when using the server or cluster mode:
-<ul>
-<li>Statement.cancel() is only supported in embedded mode.
-    A connection can only execute one operation at a time in server or cluster mode,
-    and is blocked until this operation is finished.
-</li><li>CLOBs and BLOBs are sent to the server in one piece and not as a stream.
-    That means those objects need to fit in memory when using the server or cluster mode.
-</li></ul>
-
-<h3>Starting from Command Line</h3>
+<h3>Starting the Server from Command Line</h3>
 To start the Server from the command line with the default settings, run
 <pre>
 java org.h2.tools.Server
@@ -241,20 +231,23 @@ This will start the Server with the default options. To get the list of options,
 <pre>
 java org.h2.tools.Server -?
 </pre>
-The native version can also be started in this way:
-<pre>
-h2-server -?
-</pre>
 There are options available to use a different ports, and start or not start 
 parts of the Server and so on. For details, see the API documentation of the Server tool.
 
-<h3>Starting within an Application</h3>
+<h3>Connecting to the TCP Server</h3>
+To remotly connect to a database using the TCP server, use the following driver and database URL:
+<ul>
+<li>JDBC driver class: org.h2.Driver
+</li><li>Database URL: jdbc:h2:tcp://localhost/~/test
+</li></ul>
+For details about the database URL, see also in Features.
+
+<h3>Starting the Server within an Application</h3>
 It is also possible to start and stop a Server from within an application. Sample code:
 <pre>
 import org.h2.tools.Server;
 ...
-// start the TCP Server with SSL enabled
-String[] args = new String[]{"-ssl", "true"};
+// start the TCP Server
 Server server = Server.createTcpServer(args).start();
 ...
 // stop the TCP Server
@@ -275,6 +268,16 @@ This function will call System.exit on the server.
 This function should be called after all connection to the databases are closed 
 to avoid recovery when the databases are opened the next time.
 To stop remote server, remote connections must be enabled on the server.
+
+<h3>Limitations of the Server</h3>
+There currently are a few limitations when using the server or cluster mode:
+<ul>
+<li>Statement.cancel() is only supported in embedded mode.
+    A connection can only execute one operation at a time in server or cluster mode,
+    and is blocked until this operation is finished.
+</li><li>CLOBs and BLOBs are sent to the server in one piece and not as a stream.
+    That means those objects need to fit in memory when using the server or cluster mode.
+</li></ul>
 
 <br /><a name="using_hibernate"></a>
 <h2>Using Hibernate</h2>

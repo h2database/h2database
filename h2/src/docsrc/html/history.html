@@ -37,7 +37,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo 
+<li>Calculation of cache memory usage has been improved.
+</li><li>In some situations record were released too late from the cache. Fixed.
+</li><li>The cache size is now measured in KB instead of blocks of 128 byte.
+</li><li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo 
 	log is temporarily disabled. This avoid out of memory problems when creating large tables.
 </li><li>The per session undo log can now be disabled. This setting is useful for bulk operations
 	that don't need to be atomic, like bulk delete or update.
@@ -1056,6 +1059,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Store dates in local timezone (portability of database files)
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Automatic conversion from WHERE X>10 AND X>20 to X>20
+</li><li>Time based cache writing (one second after writing the log)
 </li></ul>
 
 <h3>Not Planned</h3>

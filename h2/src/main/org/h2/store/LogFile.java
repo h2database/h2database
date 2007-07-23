@@ -111,6 +111,9 @@ public class LogFile {
         buff.setInt(0, blockCount);
         buff.updateChecksum();
 //            IOLogger.getInstance().logWrite(this.fileName, file.getFilePointer(), buff.length());
+        if(rec != null) {
+            unwritten.add(rec);
+        }
         if (buff.length() + bufferPos > buffer.length) {
             // the buffer is full
             flush();
@@ -123,9 +126,6 @@ public class LogFile {
         }
         System.arraycopy(buff.getBytes(), 0, buffer, bufferPos, buff.length());
         bufferPos += buff.length();
-        if(rec != null) {
-            unwritten.add(rec);
-        }
         pos = getBlock() + (bufferPos / BLOCK_SIZE);
     }
     
@@ -334,13 +334,13 @@ public class LogFile {
                 throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
             }
             file.write(buffer, 0, bufferPos);
+            pos = getBlock();
             for(int i=0; i<unwritten.size(); i++) {
                 Record r = (Record) unwritten.get(i);
                 r.setLogWritten(id, pos);
             }
             unwritten.clear();
             bufferPos = 0;
-            pos = getBlock();
             long min = (long)pos * BLOCK_SIZE;
             min = MathUtils.scaleUp50Percent(128 * 1024, min, 8 * 1024);
             if(min > file.length()) {

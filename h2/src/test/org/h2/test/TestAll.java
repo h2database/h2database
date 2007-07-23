@@ -101,6 +101,8 @@ http://javolution.org/
 http://joda-time.sourceforge.net/
 http://ibatis.apache.org/
 
+SET REFERENTIAL_INTEGRITY TRUE
+
 set read-committed as the default
 
 SELECT rolcreaterole, rolcreatedb FROM pg_roles WHERE rolname = current_user;

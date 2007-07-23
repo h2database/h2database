@@ -25,6 +25,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.util.ByteUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
@@ -678,9 +679,9 @@ public class DataType {
         } else if(clazz == Short.TYPE) {
             return new Short((short)0);
         } else if(clazz == Integer.TYPE) {
-            return new Integer(0);
+            return ObjectUtils.getInteger(0);
         } else if(clazz == Long.TYPE) {
-            return new Long(0);
+            return ObjectUtils.getLong(0);
         } else if(clazz == Float.TYPE) {
             return new Float(0);
         } else if(clazz == Double.TYPE) {

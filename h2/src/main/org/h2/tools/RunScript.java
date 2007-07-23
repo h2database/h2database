@@ -22,6 +22,7 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
@@ -183,7 +184,7 @@ public class RunScript {
                 execute(conn, threadMap, sql, continueOnError, charsetName);
             } else if (MULTI_THREAD && sql.startsWith("/*")) {
                 int idx = sql.indexOf(']');
-                Integer id = new Integer(Integer.parseInt(sql.substring("/*".length(), idx)));
+                Integer id = ObjectUtils.getInteger(Integer.parseInt(sql.substring("/*".length(), idx)));
                 RunScriptThread thread = (RunScriptThread) threadMap.get(id);
                 if (thread == null) {
                     Connection c = DriverManager.getConnection(conn.getMetaData().getURL());

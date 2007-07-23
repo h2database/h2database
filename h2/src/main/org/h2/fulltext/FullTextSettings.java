@@ -12,6 +12,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.h2.util.ObjectUtils;
+
 public class FullTextSettings {
 
     private static HashMap settings = new HashMap();
@@ -34,11 +36,11 @@ public class FullTextSettings {
     }
 
     IndexInfo getIndexInfo(long indexId) {
-        return (IndexInfo) indexes.get(new Long(indexId));
+        return (IndexInfo) indexes.get(ObjectUtils.getLong(indexId));
     }
 
     void addIndexInfo(IndexInfo index) {
-        indexes.put(new Long(index.id), index);
+        indexes.put(ObjectUtils.getLong(index.id), index);
     }
 
     public String convertWord(String word) {

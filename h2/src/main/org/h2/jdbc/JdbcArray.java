@@ -14,6 +14,7 @@ import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 
 /**
@@ -232,7 +233,7 @@ public class JdbcArray extends TraceObject implements Array {
         rs.addColumn("VALUE", Types.NULL, 0, 0);
         for(int i=0; i<array.length; i++) {
             Object[] row = new Object[2];
-            row[0] = new Long(offset + i + 1);
+            row[0] = ObjectUtils.getLong(offset + i + 1);
             row[1] = array[i];
             rs.addRow(row);
         }

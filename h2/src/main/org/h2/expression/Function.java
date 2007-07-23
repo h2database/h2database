@@ -31,6 +31,7 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.ObjectUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
@@ -116,20 +117,20 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         datePart = new HashMap();
-        datePart.put("YY", new Integer(Calendar.YEAR));
-        datePart.put("YEAR", new Integer(Calendar.YEAR));
-        datePart.put("MM", new Integer(Calendar.MONTH));
-        datePart.put("MONTH", new Integer(Calendar.MONTH));
-        datePart.put("DD", new Integer(Calendar.DATE));
-        datePart.put("DAY", new Integer(Calendar.DATE));
-        datePart.put("HH", new Integer(Calendar.HOUR));
-        datePart.put("HOUR", new Integer(Calendar.HOUR));
-        datePart.put("MI", new Integer(Calendar.MINUTE));
-        datePart.put("MINUTE", new Integer(Calendar.MINUTE));
-        datePart.put("SS", new Integer(Calendar.SECOND));
-        datePart.put("SECOND", new Integer(Calendar.SECOND));
-        datePart.put("MS", new Integer(Calendar.MILLISECOND));
-        datePart.put("MILLISECOND", new Integer(Calendar.MILLISECOND));
+        datePart.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
+        datePart.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
+        datePart.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
+        datePart.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
+        datePart.put("DD", ObjectUtils.getInteger(Calendar.DATE));
+        datePart.put("DAY", ObjectUtils.getInteger(Calendar.DATE));
+        datePart.put("HH", ObjectUtils.getInteger(Calendar.HOUR));
+        datePart.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR));
+        datePart.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
+        datePart.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
+        datePart.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
+        datePart.put("SECOND", ObjectUtils.getInteger(Calendar.SECOND));
+        datePart.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
+        datePart.put("MILLISECOND", ObjectUtils.getInteger(Calendar.MILLISECOND));
     }
     
     static {

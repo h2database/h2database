@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 public class ValueLong extends Value {
 
@@ -155,7 +156,7 @@ public class ValueLong extends Value {
     }
 
     public Object getObject() {
-        return new Long(value);
+        return ObjectUtils.getLong(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

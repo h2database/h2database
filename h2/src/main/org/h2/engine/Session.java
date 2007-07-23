@@ -27,6 +27,7 @@ import org.h2.store.LogSystem;
 import org.h2.store.UndoLog;
 import org.h2.store.UndoLogRecord;
 import org.h2.table.Table;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
@@ -377,7 +378,7 @@ public class Session implements SessionInterface {
         if(savepoints == null) {
             savepoints = new HashMap();
         }
-        savepoints.put(name, new Integer(getLogId()));
+        savepoints.put(name, ObjectUtils.getInteger(getLogId()));
     }
 
     public void rollbackToSavepoint(String name) throws SQLException {

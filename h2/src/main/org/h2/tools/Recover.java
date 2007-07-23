@@ -38,6 +38,7 @@ import org.h2.store.LogFile;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.value.Value;
@@ -701,8 +702,8 @@ public class Recover implements DataHandler {
                     writeDataError(writer, "out of memory", s.getBytes(), blockCount);
                     continue;
                 }
-                if(!objectIdSet.contains(new Integer(storageId))) {
-                    objectIdSet.add(new Integer(storageId));
+                if(!objectIdSet.contains(ObjectUtils.getInteger(storageId))) {
+                    objectIdSet.add(ObjectUtils.getInteger(storageId));
                     StringBuffer sb = new StringBuffer();
                     sb.append("CREATE TABLE O_" + storageId + "(");
                     for(int i=0; i<recordLength; i++) {
@@ -749,7 +750,7 @@ public class Recover implements DataHandler {
                             if(end >= 0) {
                                 int start = sql.lastIndexOf(' ', end);
                                 String name = sql.substring(start, end).trim();
-                                tableMap.put(new Integer(meta.getId()), name);
+                                tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
                             }
                         }
                     } catch(Throwable t) {

@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import org.h2.bnf.Bnf;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
@@ -1261,10 +1262,10 @@ class WebThread extends Thread {
                 break;
             }
             if(sql.substring(idx).startsWith("?/*RND*/")) {
-                params.add(new Integer(1));
+                params.add(ObjectUtils.getInteger(1));
                 sql = sql.substring(0, idx) + "?" + sql.substring(idx+"/*RND*/".length()+1);
             } else {
-                params.add(new Integer(0));
+                params.add(ObjectUtils.getInteger(0));
             }
             idx++;
         }

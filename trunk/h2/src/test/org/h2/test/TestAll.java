@@ -94,6 +94,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+replace new Byte, Double, Float, Long, Byte, Short with ObjectUtils.get
+
 set read-committed as the default
 
 SELECT rolcreaterole, rolcreatedb FROM pg_roles WHERE rolname = current_user;

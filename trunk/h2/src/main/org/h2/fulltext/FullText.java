@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 import org.h2.api.Trigger;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -217,7 +218,7 @@ public class FullText implements Trigger {
            long id = rs.getLong("ID");
            word = setting.convertWord(word);
            if(word != null) {
-               map.put(word, new Long(id));
+               map.put(word, ObjectUtils.getLong(id));
            }
        }
    }
@@ -477,7 +478,7 @@ public class FullText implements Trigger {
                 ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
                 rs.next();
                 wordId = rs.getInt(1);
-                allWords.put(word, new Integer(wordId));
+                allWords.put(word, ObjectUtils.getInteger(wordId));
             } else {
                 wordId = wId.intValue();
             }
@@ -560,7 +561,7 @@ public class FullText implements Trigger {
            prepSelectMapByWordId.setInt(1, wId.intValue());
            ResultSet rs = prepSelectMapByWordId.executeQuery();
            while(rs.next()) {
-               Long rId = new Long(rs.getLong(1));
+               Long rId = ObjectUtils.getLong(rs.getLong(1));
                if(lastRowIds == null || lastRowIds.contains(rId)) {
                    rIds.add(rId);
                }

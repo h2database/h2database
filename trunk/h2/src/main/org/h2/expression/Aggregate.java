@@ -20,6 +20,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -87,7 +88,7 @@ public class Aggregate extends Expression {
     }
     
     private static void addAggregate(String name, int type) {
-        aggregates.put(name, new Integer(type));
+        aggregates.put(name, ObjectUtils.getInteger(type));
     }
     
     public static int getAggregateType(String name) {

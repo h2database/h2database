@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 /**
  * @author Thomas
@@ -131,7 +132,7 @@ public class ValueInt extends Value {
     }
 
     public Object getObject() {
-        return new Integer(value);
+        return ObjectUtils.getInteger(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

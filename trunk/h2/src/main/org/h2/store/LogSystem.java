@@ -14,6 +14,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Trace;
 import org.h2.util.FileUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 
 /**
@@ -190,7 +191,7 @@ public class LogSystem {
             for (int i = undo.size() - 1; i >= 0 && sessions.size() > 0; i--) {
                 database.setProgress(DatabaseEventListener.STATE_RECOVER, null, undo.size() - 1 - i, undo.size());
                 LogRecord record = (LogRecord) undo.get(i);
-                if (sessions.get(new Integer(record.sessionId)) != null) {
+                if (sessions.get(ObjectUtils.getInteger(record.sessionId)) != null) {
                     // undo only if the session is not yet committed
                     record.log.undo(record.logRecordId);
                     database.getDataFile().flushRedoLog();
@@ -255,7 +256,7 @@ public class LogSystem {
         } else {
             dataFile = true;
         }
-        Integer i = new Integer(id);
+        Integer i = ObjectUtils.getInteger(id);
         Storage storage = (Storage) storages.get(i);
         if (storage == null) {
             storage = database.getStorage(null, id, dataFile);
@@ -265,7 +266,7 @@ public class LogSystem {
     }
 
     boolean isSessionCommitted(int sessionId, int logId, int pos) {
-        Integer key = new Integer(sessionId);
+        Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
         if (state == null) {
             return true;
@@ -274,7 +275,7 @@ public class LogSystem {
     }
 
     void setLastCommitForSession(int sessionId, int logId, int pos) {
-        Integer key = new Integer(sessionId);
+        Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
         if (state == null) {
             state = new SessionState();
@@ -287,7 +288,7 @@ public class LogSystem {
     }
 
     void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
-        Integer key = new Integer(sessionId);
+        Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
         if (state == null) {
             state = new SessionState();
@@ -304,7 +305,7 @@ public class LogSystem {
     }
 
     void removeSession(int sessionId) {
-        sessions.remove(new Integer(sessionId));
+        sessions.remove(ObjectUtils.getInteger(sessionId));
     }
 
     public void prepareCommit(Session session, String transaction) throws SQLException {

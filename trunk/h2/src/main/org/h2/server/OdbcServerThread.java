@@ -25,6 +25,7 @@ import java.util.HashMap;
 
 import org.h2.engine.ConnectionInfo;
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -55,7 +56,7 @@ public class OdbcServerThread implements Runnable {
     private int addObject(Object o) {
         int id = nextId++;
         server.log("addObj "+id+" "+o);
-        object.put(new Integer(id), o);
+        object.put(ObjectUtils.getInteger(id), o);
         cacheId = id;
         cache = o;
         return id;
@@ -66,7 +67,7 @@ public class OdbcServerThread implements Runnable {
             cacheId = -1;
             cache = null;
         }
-        object.remove(new Integer(id));
+        object.remove(ObjectUtils.getInteger(id));
     }
 
     private Object getObject(int id) {
@@ -74,8 +75,8 @@ public class OdbcServerThread implements Runnable {
             server.log("getObj "+id+" "+cache);
             return cache;
         }
-        server.log("getObj "+id+" "+object.get(new Integer(id)));
-        return object.get(new Integer(id));
+        server.log("getObj "+id+" "+object.get(ObjectUtils.getInteger(id)));
+        return object.get(ObjectUtils.getInteger(id));
     }
 
     public void run() {

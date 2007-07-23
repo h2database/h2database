@@ -13,6 +13,7 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.TableData;
 import org.h2.util.IntIntHashMap;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -63,7 +64,7 @@ public class HashIndex extends Index {
                 // TODO index duplicate key for hash indexes: is this allowed?
                 throw getDuplicateKeyException();
             }
-            Integer pos = new Integer(row.getPos());
+            Integer pos = ObjectUtils.getInteger(row.getPos());
             rows.put(getKey(row), pos);
         }
         rowCount++;

@@ -23,7 +23,7 @@ public class TraceObject {
         PARAMETER_META_DATA = 11;
     public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
     
-    private static int LAST = ARRAY + 1;  
+    private static final int LAST = ARRAY + 1;  
     private Trace trace;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {

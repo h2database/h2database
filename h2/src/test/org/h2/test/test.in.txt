@@ -7,8 +7,8 @@ drop table test;
 
 explain select * from system_range(1, 2) where x=x+1 and x=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------
-> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ WHERE (X <> 1) OR ((X * 2) <> 2)
+> ---------------------------------------------------------------------------------------------------------------------------------
+> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX: X = 1 */ WHERE ((X = 1) AND (X = (X + 1))) AND (1 = (X + 1))
 > rows: 1
 
 explain select * from system_range(1, 2) where not (x = 1 and x*2 = 2);

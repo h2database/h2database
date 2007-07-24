@@ -94,6 +94,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+Restore doesn't work with subdirectories 
+
 Backup and BackupCommand with subdirectories (lobs): stored in a flat directory structure
 -Dh2.lobFilesInDirectories=true
 DROP TABLE IF EXISTS TEST;

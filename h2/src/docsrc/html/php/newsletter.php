@@ -9,7 +9,7 @@ Message:
 $text
 ";
 $headers = 'From: newsletter@h2database.com' . "\r\n" .
-   'X-Mailer: PHP/' . phpversion();S
+   'X-Mailer: PHP/' . phpversion();
 mail("dbsupport@h2database.com", "[H2 Newsletter] $now", $body, $headers);
 ?>
 <html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>

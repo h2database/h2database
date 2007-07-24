@@ -87,7 +87,7 @@ public class WebServer implements Service {
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;
-    private boolean allowShutdown;
+    private boolean allowShutdown = true;
     private Thread listenerThread;
 
     byte[] getFile(String file) throws IOException {

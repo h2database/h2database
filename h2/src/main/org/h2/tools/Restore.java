@@ -137,6 +137,12 @@ public class Restore {
                     break;
                 }
                 String fileName = entry.getName();
+                // restoring windows backups on linux and vice versa
+                fileName = fileName.replace('\\', File.separatorChar);
+                fileName = fileName.replace('/', File.separatorChar);
+                if(fileName.startsWith(File.separator)) {
+                    fileName = fileName.substring(1);
+                }
                 boolean copy = false;
                 if(db == null) {
                     copy = true;

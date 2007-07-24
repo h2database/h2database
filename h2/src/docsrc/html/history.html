@@ -37,7 +37,16 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>Calculation of cache memory usage has been improved.
+<li>The old view implementation has been removed.
+</li><li>The SysTray tool has been removed, because JDK 1.6 has native support for system tray icons.
+	Use the Console tool (org.h2.tools.Console) automatically installs a system tray icon if JDK 1.6 is used.
+</li><li>H2 Console: In the last release, the shutdown button did not work. Fixed.
+</li><li>Referential integrity can now be disabled using
+	SET REFERENTIAL_INTEGRITY FALSE. It can also be disable only
+	for one table using ALTER TABLE SET REFERENTIAL_INTEGRITY FALSE.
+</li><li>The Backup and Restore tools, and the BACKUP command did not back up LOBs when 
+	h2.lobFilesInDirectories was enabled. Fixed.
+</li><li>Calculation of cache memory usage has been improved.
 </li><li>In some situations record were released too late from the cache. Fixed.
 </li><li>The cache size is now measured in KB instead of blocks of 128 byte.
 </li><li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo 
@@ -796,11 +805,14 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Stop the server: close all open databases first
 </li><li>SET variable { TO | = } { value | 'value' | DEFAULT }
 </li><li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
+</li><li>Option to globally disable / enable referential integrity checks
 </li><li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
 </li><li>Allow editing NULL values in the Console
+</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true. 
+	Simple solution: automatically calls 'refresh' when the result was changed.
 </li></ul>
 
 <h3>Priority 2</h3>
@@ -836,7 +848,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Performance / server mode: use UDP optionally?
 </li><li>Version check: docs / web console (using javascript), and maybe in the library (using TCP/IP)
 </li><li>Aggregates: support MEDIAN
-</li><li>Option to globally disable / enable referential integrity checks
 </li><li>Web server classloader: override findResource / getResourceFrom
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
@@ -879,7 +890,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
 </li><li>Performance test: read the data (getString) and use column names to get the data
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
-</li><li>System Tray: http://jroller.com/page/stritti?entry=system_tray_implementations_for_java
 </li><li>SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Automatically delete the index file if opening it fails
 </li><li>Performance: Automatically build in-memory indexes if the whole table is in memory
@@ -1053,13 +1063,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support native XML data type
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
-</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true
-</li><li>Cache size should be in KB
 </li><li>Support materialized views (using triggers)
 </li><li>Store dates in local timezone (portability of database files)
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Automatic conversion from WHERE X>10 AND X>20 to X>20
 </li><li>Time based cache writing (one second after writing the log)
+</li><li>Write a H2 driver for http://db.apache.org/ddlutils/
 </li></ul>
 
 <h3>Not Planned</h3>

@@ -219,6 +219,9 @@ public class ConstraintReferential extends Constraint {
     }
     
     public void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException {
+        if(!database.getReferentialIntegrity()) {
+            return;
+        }
         if(!table.getCheckForeignKeyConstraints() || !refTable.getCheckForeignKeyConstraints()) {
             return;
         }

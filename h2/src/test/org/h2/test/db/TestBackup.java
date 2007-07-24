@@ -7,6 +7,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
 

@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 /**
  * @author Thomas
@@ -96,7 +97,7 @@ public class ValueDouble extends Value {
     }
 
     public Object getObject() {
-        return new Double(value);
+        return ObjectUtils.getDouble(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

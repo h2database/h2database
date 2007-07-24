@@ -8,6 +8,15 @@ create schema pg_catalog;
 
 set search_path = PUBLIC, pg_catalog;
 
+create table pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
+as
+select
+	id oid,
+	cast(name as varchar_ignorecase) rolname,
+	case when admin then 't' else 'f' end as rolcreaterole,
+	case when admin then 't' else 'f' end as rolcreatedb
+from information_schema.users;
+
 create table pg_catalog.pg_namespace -- (oid, nspname) 
 as 
 select 

@@ -15,11 +15,8 @@
 		<delete includeemptydirs="true" verbose="true">
 			<fileset dir="bin" includes="**/*.txt"/>
 			<fileset dir="bin" includes="h2-test.exe"/>
-			<fileset dir="bin" includes="systray4j.jar"/>
 			<fileset dir="bin" includes="org/**/*"/>
 			<fileset dir="bin" includes="org"/>
-			<fileset dir="bin" includes="snoozesoft/**/*"/>
-			<fileset dir="bin" includes="snoozesoft"/>
 			<fileset dir="bin" includes="META-INF/**/*"/>
 			<fileset dir="bin" includes="META-INF"/>
 			<fileset dir="docs/html" includes="onePage.html"/>
@@ -113,12 +110,9 @@
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true">
 			<exclude name="org/h2/server/web/*.*"/>
 		</javac>
-		<unzip src="src/systray/systray4j.jar" dest="bin"/>
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/systray" destdir="bin" debug="true"/>
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/**/*"/>
 			<fileset dir="src/main" includes="**/*.png"/>
-			<fileset dir="src/systray" includes="**/*.ico"/>
 			<fileset dir="src/installer" includes="*.bat"/>
 			<fileset dir="src/test" includes="**/*.txt"/>
 			<fileset dir="src/test" includes="**/*.properties"/>
@@ -175,7 +169,6 @@
 			<exclude name="**/*.bat"/>
 			<exclude name="**/*.txt"/>
 		</jar>
-		<copy todir="bin" file="src/systray/systray4j.dll"/>
 	</target>
 
 	<target name="jarClient" depends="compileResources">

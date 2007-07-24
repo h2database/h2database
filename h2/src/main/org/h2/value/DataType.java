@@ -703,19 +703,19 @@ public class DataType {
         if(clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if(clazz == Byte.TYPE) {
-            return new Byte((byte)0);
+            return ObjectUtils.getByte((byte)0);
         } else if(clazz == Character.TYPE) {
-            return new Character((char)0);
+            return ObjectUtils.getCharacter((char)0);
         } else if(clazz == Short.TYPE) {
-            return new Short((short)0);
+            return ObjectUtils.getShort((short)0);
         } else if(clazz == Integer.TYPE) {
             return ObjectUtils.getInteger(0);
         } else if(clazz == Long.TYPE) {
             return ObjectUtils.getLong(0);
         } else if(clazz == Float.TYPE) {
-            return new Float(0);
+            return ObjectUtils.getFloat(0);
         } else if(clazz == Double.TYPE) {
-            return new Double(0);
+            return ObjectUtils.getDouble(0);
         } else {
             throw Message.getInternalError("primitive="+ clazz.toString());
         }

@@ -5,15 +5,12 @@
 package org.h2.table;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.ViewIndexOld;
 import org.h2.index.ViewIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -28,8 +25,7 @@ public class TableView extends Table {
     private ObjectArray tables;
     private final String[] columnNames;
     private Query viewQuery;
-    private ViewIndexOld indexOld;
-    private ViewIndex indexNew;
+    private ViewIndex index;
     private boolean recursive;
     private SQLException createException; 
 
@@ -38,12 +34,7 @@ public class TableView extends Table {
         this.querySQL = querySQL;
         this.columnNames = columnNames;
         this.recursive = recursive;
-        int todoRemoveIndexOld;
-        if(Constants.INDEX_OLD) {
-            indexOld = new ViewIndexOld(this, querySQL, params, recursive);
-        } else {
-            indexNew = new ViewIndex(this, querySQL, params, recursive);
-        }
+        index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
 
@@ -88,18 +79,12 @@ public class TableView extends Table {
             // this avoids problems when creating the view when opening the database
             tables = new ObjectArray();
             cols = new Column[0];
-
-            int needToTestRecursiveQueries;
             if(recursive && columnNames != null) {
                 cols = new Column[columnNames.length];
                 for(int i=0; i<columnNames.length; i++) {
                     cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
                 }
-                if(Constants.INDEX_OLD) {
-                    indexOld.setRecursive(true);
-                } else {
-                    indexNew.setRecursive(true);
-                }
+                index.setRecursive(true);
                 recursive = true;
                 createException = null;
             }
@@ -114,14 +99,8 @@ public class TableView extends Table {
 
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
-        Index i2;
-        if(Constants.INDEX_OLD) {
-            item.cost = indexOld.getCost(session, masks);
-            i2 = new ViewIndexOld(this, indexOld, session, masks);
-        } else {
-            item.cost = indexNew.getCost(session, masks);
-            i2 = new ViewIndex(this, indexNew, session, masks);
-        }
+        item.cost = index.getCost(session, masks);
+        Index i2 = new ViewIndex(this, index, session, masks);
         item.setIndex(i2);
         return item;
     }
@@ -216,8 +195,7 @@ public class TableView extends Table {
         removeViewFromTables();
         super.removeChildrenAndResources(session);
         querySQL = null;
-        indexNew = null;
-        indexOld = null;
+        index = null;
         invalidate();
     }
     

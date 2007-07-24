@@ -364,6 +364,7 @@ public class PgServerThread implements Runnable {
             s = "set DATESTYLE ISO";
         }
         int todoNeedToSupportInParser;
+        s = StringUtils.replaceAll(s, "::oid", "");
         s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
         println(s + ";");        
         return s;

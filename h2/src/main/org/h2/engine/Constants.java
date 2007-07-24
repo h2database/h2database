@@ -216,6 +216,7 @@ public class Constants {
 
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
@@ -241,7 +242,6 @@ public class Constants {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
     public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
     public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
-    public static boolean INDEX_OLD = getBooleanSetting("h2.indexOld", false);
     public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = getBooleanSetting("h2.allowBigDecimalExtensions", false);
     public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);

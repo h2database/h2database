@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 public class ValueShort extends Value {
     public static final int PRECISION = 5;
@@ -103,7 +104,7 @@ public class ValueShort extends Value {
     }
 
     public Object getObject() {
-        return new Short(value);
+        return ObjectUtils.getShort(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

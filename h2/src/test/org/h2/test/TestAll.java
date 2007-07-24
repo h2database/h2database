@@ -94,35 +94,18 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-Restore doesn't work with subdirectories 
+SELECT db.oid, datname, spcname, datallowconn, datconfig, datacl, pg_encoding_to_char(encoding) AS serverencoding, 
+    pg_get_userbyid(datdba) AS datowner,has_database_privilege(db.oid, 'CREATE') as cancreate
+  FROM pg_database db
+  LEFT OUTER JOIN pg_tablespace ta ON db.dattablespace=ta.OID
+ ORDER BY datname;
+SELECT description FROM pg_description WHERE objoid=0;
 
-Backup and BackupCommand with subdirectories (lobs): stored in a flat directory structure
--Dh2.lobFilesInDirectories=true
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME CLOB);
-@LOOP 20 INSERT INTO TEST VALUES(?, SPACE(10000));
-BACKUP TO 'backup.zip';
-test Backup tool as well!
 
-PMD
-
-replace new Byte, Double, Float, Long, Byte, Short with ObjectUtils.get
-
-http://fastutil.dsi.unimi.it/
-http://javolution.org/
-http://joda-time.sourceforge.net/
-http://ibatis.apache.org/
-
-SET REFERENTIAL_INTEGRITY TRUE
-
-replace new Byte, Double, Float, Long, Byte, Short with ObjectUtils.get
-
-http://fastutil.dsi.unimi.it/
-http://javolution.org/
-http://joda-time.sourceforge.net/
-http://ibatis.apache.org/
-
-SET REFERENTIAL_INTEGRITY TRUE
+rename Performance > Comparison [/Compatibility]
+move  Comparison to Other Database Engines > Comparison
+move Products that Work with H2 > Comparison
+move Performance Tuning > Advanced Topics
 
 set read-committed as the default
 
@@ -148,7 +131,6 @@ The unique object identifier of a row. PostgreSQL automatically adds this 4-byte
 ctid (tuple identifier)
 The identifier which describes the physical location of the tuple within the database. A pair of numbers are represented by the ctid: the block number, and tuple index within that block.
 
-make sure INDEX_LOOKUP_NEW = is true by default.
 Test Console (batch, javaw, different platforms)
 test with openoffice (metadata changes)
 
@@ -159,8 +141,6 @@ java org.h2.test.TestAll halt
 
 timer test
 
-backup.sql / lob file problem
-
 Mail http://sf.net/projects/samooha
 
 java.lang.Exception: query was too quick; result: 0 time:968
@@ -170,11 +150,11 @@ java.lang.Exception: query was too quick; result: 0 time:968
         
 h2\src\docsrc\html\images\SQLInjection.txt
 
-D:\pictures\2007-email
-
 ftp server: problem with multithreading?
 
 send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide, 
+Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
+Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 MySQL, PostgreSQL
 
 http://semmle.com/
@@ -184,24 +164,13 @@ READ_TEXT(fileName String) returning a CLOB.
 I am not sure if this will read the CLOB in memory however. 
 I will add this to the todo list.
 
-Docs: Fix Quickstart
-
-Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
-
 Improve LOB in directories performance
 
 Improve documentation for MAX_LENGTH_INPLACE_LOB
 
-Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-
 Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
 
 Automate real power off tests
-
-how to make -baseDir work for H2 Console (embedded mode)?
--Dh2.baseDir=x {$baseDir}/...
-
-http://db.apache.org/ddlutils/ (write a H2 driver)   
 
 Negative dictionary:
 Please note that
@@ -213,8 +182,6 @@ make static member variables final (this helps find forgotten initializers)
 Merge more from diff.zip (Pavel Ganelin)
 Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
 
-performance: try to shorten methods that are used very often
-
 store dates as 'local'. Problem: existing files use GMT (use escape syntax)
 drop table test;
 CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
@@ -222,6 +189,13 @@ INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
 SELECT * FROM TEST;
 
 Server: use one listener (detect if the request comes from an ODBC or TCP client).
+
+PMD
+
+http://fastutil.dsi.unimi.it/
+http://javolution.org/
+http://joda-time.sourceforge.net/
+http://ibatis.apache.org/
 
 */        
 

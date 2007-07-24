@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 /**
  * @author Thomas
@@ -96,7 +97,7 @@ public class ValueFloat extends Value {
     }
 
     public Object getObject() {
-        return new Float(value);
+        return ObjectUtils.getFloat(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

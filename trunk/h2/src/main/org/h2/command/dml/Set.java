@@ -253,6 +253,15 @@ public class Set extends Prepared {
             session.setUndoLogEnabled(value == 1);
             break;
         }
+        case SetTypes.REFERENTIAL_INTEGRITY: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if(value < 0 || value > 1) {
+                throw Message.getInvalidValueException(""+getIntValue(), "REFERENTIAL_INTEGRITY");
+            }
+            database.setReferentialIntegrity(value == 1);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

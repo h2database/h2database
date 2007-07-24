@@ -137,6 +137,7 @@ public class Database implements DataHandler {
     private String cacheType;
     private boolean indexSummaryValid = true;
     private String accessModeLog, accessModeData;
+    private boolean referentialIntegrity = true;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);
@@ -1501,6 +1502,14 @@ public class Database implements DataHandler {
 
     public int getSessionCount() {
         return sessions.size();
+    }
+
+    public void setReferentialIntegrity(boolean b) {
+        referentialIntegrity = b;
+    }
+    
+    public boolean getReferentialIntegrity() {
+        return referentialIntegrity;
     }
 
 }

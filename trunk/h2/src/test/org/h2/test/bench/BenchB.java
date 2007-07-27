@@ -62,7 +62,7 @@ public class BenchB implements Bench, Runnable {
                 "INSERT INTO BRANCHES(BID, BBALANCE) VALUES(?, 0)");
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
-            db.update(prep);
+            db.update(prep, "insertBranches");
             if(i%commitEvery==0) {
                 db.commit();
             }            
@@ -73,7 +73,7 @@ public class BenchB implements Bench, Runnable {
         for (int i = 0; i < tellers * scale; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
-            db.update(prep);
+            db.update(prep, "insertTellers");
             if(i%commitEvery==0) {
                 db.commit();
             }                  
@@ -85,7 +85,7 @@ public class BenchB implements Bench, Runnable {
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
-            db.update(prep);
+            db.update(prep, "insertAccounts");
             if(i%commitEvery==0) {
                 db.commit();
             }      

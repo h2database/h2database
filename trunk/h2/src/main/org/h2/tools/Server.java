@@ -16,6 +16,7 @@ import org.h2.server.OdbcServer;
 import org.h2.server.Service;
 import org.h2.server.TcpServer;
 import org.h2.server.ftp.FtpServer;
+import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -51,6 +52,10 @@ public class Server implements Runnable {
         System.out.println("-odbcPort <port> (default: " + OdbcServer.DEFAULT_PORT+")");
         System.out.println("-odbcAllowOthers [true|false]");        
 
+        System.out.println("-pg (start the PG Server)");
+        System.out.println("-pgPort <port> (default: " + PgServer.DEFAULT_PORT+")");
+        System.out.println("-pgAllowOthers [true|false]");        
+
         System.out.println("-ftp (start the FTP Server)");
         System.out.println("-ftpPort <port> (default: " + Constants.DEFAULT_FTP_PORT+")");
         System.out.println("-ftpDir <directory> (default: " + FtpServer.DEFAULT_ROOT+", use jdbc:... to access a database)");        
@@ -78,6 +83,7 @@ public class Server implements Runnable {
      * </li><li>-tcp (start the TCP Server)
      * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
      * </li><li>-odbc (start the ODBC Server)
+     * </li><li>-pg (start the PG Server)
      * </li><li>-browser (start a browser and open a page to connect to the Web Server)
      * </li><li>-log [true|false] (enable or disable logging)
      * </li><li>-baseDir {directory} (sets the base directory for database files; not for H2 Console)
@@ -94,6 +100,8 @@ public class Server implements Runnable {
      * </li><li>-tcpAllowOthers [true|false] (enable/disable remote connections)
      * </li><li>-tcpPassword {password} (the password for shutting down a TCP Server)
      * </li><li>-tcpShutdownForce [true|false] (don't wait for other connections to close)
+     * </li><li>-pgPort {port} (the port of PG Server, default: 5435)
+     * </li><li>-pgAllowOthers [true|false] (enable/disable remote connections)
      * </li><li>-odbcPort {port} (the port of ODBC Server, default: 9083)
      * </li><li>-odbcAllowOthers [true|false] (enable/disable remote connections)
      * </li><li>-ftpPort {port}
@@ -114,7 +122,7 @@ public class Server implements Runnable {
     }
 
     private int run(String[] args) throws SQLException {
-        boolean tcpStart = false, odbcStart = false, webStart = false, ftpStart = false;
+        boolean tcpStart = false, odbcStart = false, pgStart = false, webStart = false, ftpStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
@@ -134,6 +142,9 @@ public class Server implements Runnable {
             } else if(a.equals("-tcp")) {
                 startDefaultServers = false;
                 tcpStart = true;
+            } else if(a.equals("-pg")) {
+                startDefaultServers = false;
+                pgStart = true;
             } else if(a.equals("-ftp")) {
                 startDefaultServers = false;
                 ftpStart = true;
@@ -153,6 +164,7 @@ public class Server implements Runnable {
         int exitCode = 0;
         if(startDefaultServers) {
             tcpStart = true;
+            pgStart = true;
             odbcStart = true;
             webStart = true;
             browserStart = true;
@@ -172,6 +184,17 @@ public class Server implements Runnable {
                 exitCode = EXIT_ERROR;
             }
             System.out.println(tcp.getStatus());
+        }
+        if(pgStart) {
+            Server pg = createPgServer(args);
+            try {
+                pg.start();
+            } catch(SQLException e) {
+                // ignore (status is displayed)
+                e.printStackTrace();
+                exitCode = EXIT_ERROR;
+            }            
+            System.out.println(pg.getStatus());
         }
         if(odbcStart) {
             Server odbc = createOdbcServer(args);
@@ -325,6 +348,15 @@ public class Server implements Runnable {
      */
     public static Server createOdbcServer(String[] args) throws SQLException {
         return new Server("H2 ODBC Server", new OdbcServer(), args);
+    }
+    
+    /**
+     * Create a new PG server, but does not start it yet.
+     * @param args
+     * @return the server
+     */
+    public static Server createPgServer(String[] args) throws SQLException {
+        return new Server("H2 PG Server", new PgServer(), args);
     }
     
     /**

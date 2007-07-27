@@ -102,7 +102,8 @@ public class DateTimeUtils {
         return x == null ? null : new Time(getLocalTime(x, calendar));
     }
     
-    public static java.util.Date parseDateTime(String s, int type, int errorCode) throws SQLException {
+    public static java.util.Date parseDateTime(String original, int type, int errorCode) throws SQLException {
+        String s = original;
         if (s == null) {
             return null;
         }
@@ -159,7 +160,7 @@ public class DateTimeUtils {
                         if(!tz.getID().equals(tzName)) {
                             throw Message.getSQLException(errorCode, s + " " + tz.getID() + "/" + tzName);
                         }
-                        s = s.substring(0, timezoneStart);
+                        s = s.substring(0, timezoneStart).trim();
                     }
                 }
                 
@@ -210,7 +211,7 @@ public class DateTimeUtils {
                 throw Message.getInternalError("type:"+type);
             }
         } catch(IllegalArgumentException e) {
-            throw Message.getSQLException(errorCode, new String[]{s}, e);
+            throw Message.getSQLException(errorCode, new String[]{original}, e);
         }
     }
 

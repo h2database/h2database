@@ -65,6 +65,7 @@ public class Session implements SessionInterface {
     private static int nextSerialId;
     private int serialId = nextSerialId++;
     private boolean undoLogEnabled = true;
+    private boolean autoCommitAtTransactionEnd;
 
     public Session() {
     }
@@ -191,6 +192,10 @@ public class Session implements SessionInterface {
         if(!ddl) {
             // do not clean the temp tables if the last command was a create/drop
             cleanTempTables(false);
+            if(autoCommitAtTransactionEnd) {
+                autoCommit = true;
+                autoCommitAtTransactionEnd = false;
+            }
         }
         if(unlinkSet != null && unlinkSet.size() > 0) {
             // need to flush the log file, because we can't unlink lobs if the commit record is not written
@@ -216,6 +221,10 @@ public class Session implements SessionInterface {
         }
         cleanTempTables(false);
         unlockAll();
+        if(autoCommitAtTransactionEnd) {
+            autoCommit = true;
+            autoCommitAtTransactionEnd = false;
+        }
     }
 
     public void rollbackTo(int index) throws SQLException {
@@ -530,6 +539,11 @@ public class Session implements SessionInterface {
     
     public boolean getUndoLogEnabled() {
         return undoLogEnabled;
+    }
+
+    public void begin() {
+        autoCommitAtTransactionEnd = true;
+        autoCommit = false;
     }
     
 }

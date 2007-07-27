@@ -56,7 +56,7 @@ public class BenchA implements Bench {
         prep = db.prepare("INSERT INTO BRANCHES(BID,BBALANCE,FILLER) VALUES(?,10000.00,'" + FILLER + "')");
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
-            db.update(prep);
+            db.update(prep, "insertBranches");
             if(i%commitEvery==0) {
                 db.commit();
             }            
@@ -66,7 +66,7 @@ public class BenchA implements Bench {
         for (int i = 0; i < tellers * scale; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
-            db.update(prep);
+            db.update(prep, "insertTellers");
             if(i%commitEvery==0) {
                 db.commit();
             }                  
@@ -77,7 +77,7 @@ public class BenchA implements Bench {
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
-            db.update(prep);
+            db.update(prep, "insertAccounts");
             if(i%commitEvery==0) {
                 db.commit();
             }      
@@ -136,15 +136,15 @@ public class BenchA implements Bench {
 
             updateAccount.setBigDecimal(1, delta);
             updateAccount.setInt(2, account);
-            db.update(updateAccount);            
+            db.update(updateAccount, "updateAccount");            
 
             updateTeller.setBigDecimal(1, delta);
             updateTeller.setInt(2, teller);
-            db.update(updateTeller);            
+            db.update(updateTeller, "updateTeller");            
 
             updateBranch.setBigDecimal(1, delta);
             updateBranch.setInt(2, branch);
-            db.update(updateBranch);            
+            db.update(updateBranch, "updateBranch");            
             
             selectBalance.setInt(1, account);
             db.queryReadResult(selectBalance);            
@@ -157,7 +157,7 @@ public class BenchA implements Bench {
             // insertHistory.setDate(5, new java.sql.Date(current));
             insertHistory.setTimestamp(5, new java.sql.Timestamp(current));
             insertHistory.setString(6, BenchA.FILLER);
-            db.update(insertHistory);
+            db.update(insertHistory, "insertHistory");
 
             db.commit();
         }

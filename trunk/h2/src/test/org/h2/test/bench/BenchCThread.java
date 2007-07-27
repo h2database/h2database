@@ -112,7 +112,7 @@ public class BenchCThread {
                 + "WHERE D_ID=? AND D_W_ID=?");
         prep.setInt(1, d_id);
         prep.setInt(2, warehouseId);
-        db.update(prep);
+        db.update(prep, "updateDistrict");
         prep = prepare("SELECT D_NEXT_O_ID, D_TAX FROM DISTRICT "
                 + "WHERE D_ID=? AND D_W_ID=?");
         prep.setInt(1, d_id);
@@ -203,7 +203,7 @@ public class BenchCThread {
             prep.setInt(1, s_quantity);
             prep.setInt(2, ol_supply_w_id);
             prep.setInt(3, ol_i_id);
-            db.update(prep);
+            db.update(prep, "updateStock");
             BigDecimal ol_amount = new BigDecimal(ol_quantity).multiply(
                     i_price).multiply(ONE.add(w_tax).add(d_tax)).multiply(
                     ONE.subtract(c_discount));
@@ -223,7 +223,7 @@ public class BenchCThread {
             prep.setInt(7, ol_quantity);
             prep.setBigDecimal(8, ol_amount);
             prep.setString(9, ol_dist_info);
-            db.update(prep);
+            db.update(prep, "insertOrderLine");
         }
         prep = prepare("INSERT INTO ORDERS (O_ID, O_D_ID, O_W_ID, O_C_ID, "
                 + "O_ENTRY_D, O_OL_CNT, O_ALL_LOCAL) "
@@ -235,13 +235,13 @@ public class BenchCThread {
         prep.setTimestamp(5, datetime);
         prep.setInt(6, o_ol_cnt);
         prep.setInt(7, o_all_local);
-        db.update(prep);
+        db.update(prep, "insertOrders");
         prep = prepare("INSERT INTO NEW_ORDER (NO_O_ID, NO_D_ID, NO_W_ID) "
                 + "VALUES (?, ?, ?)");
         prep.setInt(1, o_id);
         prep.setInt(2, d_id);
         prep.setInt(3, warehouseId);
-        db.update(prep);
+        db.update(prep, "insertNewOrder");
         db.commit();
     }
 
@@ -279,11 +279,11 @@ public class BenchCThread {
         prep.setBigDecimal(1, h_amount);
         prep.setInt(2, d_id);
         prep.setInt(3, warehouseId);
-        db.update(prep);
+        db.update(prep, "updateDistrict");
         prep = prepare("UPDATE WAREHOUSE SET W_YTD=W_YTD+? WHERE W_ID=?");
         prep.setBigDecimal(1, h_amount);
         prep.setInt(2, warehouseId);
-        db.update(prep);
+        db.update(prep, "updateWarehouse");
         prep = prepare("SELECT W_STREET_1, W_STREET_2, W_CITY, W_STATE, W_ZIP, W_NAME "
                 + "FROM WAREHOUSE WHERE W_ID=?");
         prep.setInt(1, warehouseId);
@@ -409,7 +409,7 @@ public class BenchCThread {
             prep.setInt(3, c_id);
             prep.setInt(4, c_d_id);
             prep.setInt(5, c_w_id);
-            db.update(prep);
+            db.update(prep, "updateCustomer");
         } else {
             prep = prepare("UPDATE CUSTOMER SET C_BALANCE=? "
                     + "WHERE C_ID=? AND C_D_ID=? AND C_W_ID=?");
@@ -417,7 +417,7 @@ public class BenchCThread {
             prep.setInt(2, c_id);
             prep.setInt(3, c_d_id);
             prep.setInt(4, c_w_id);
-            db.update(prep);
+            db.update(prep, "updateCustomer");
         }
         // MySQL bug?
 //        String h_data = w_name + "    " + d_name;
@@ -433,7 +433,7 @@ public class BenchCThread {
         prep.setTimestamp(6, datetime);
         prep.setBigDecimal(7, h_amount);
         prep.setString(8, h_data);
-        db.update(prep);
+        db.update(prep, "insertHistory");
         db.commit();
     }
 
@@ -453,7 +453,7 @@ public class BenchCThread {
         ResultSet rs;
 
         prep = prepare("UPDATE DISTRICT SET D_NEXT_O_ID=-1 WHERE D_ID=-1");
-        db.update(prep);
+        db.update(prep, "updateDistrict");
         if (byName) {
             prep = prepare("SELECT COUNT(C_ID) FROM CUSTOMER "
                     + "WHERE C_LAST=? AND C_D_ID=? AND C_W_ID=?");
@@ -552,7 +552,7 @@ public class BenchCThread {
         ResultSet rs;
 
         prep = prepare("UPDATE DISTRICT SET D_NEXT_O_ID=-1 WHERE D_ID=-1");
-        db.update(prep);
+        db.update(prep, "updateDistrict");
         for (int d_id = 1; d_id <= bench.districtsPerWarehouse; d_id++) {
             prep = prepare("SELECT MIN(NO_O_ID) FROM NEW_ORDER "
                     + "WHERE NO_D_ID=? AND NO_W_ID=?");
@@ -573,7 +573,7 @@ public class BenchCThread {
                 prep.setInt(1, no_o_id);
                 prep.setInt(2, d_id);
                 prep.setInt(3, warehouseId);
-                db.update(prep);
+                db.update(prep, "deleteNewOrder");
                 prep = prepare("SELECT O_C_ID FROM ORDERS "
                         + "WHERE O_ID=? AND O_D_ID=? AND O_W_ID=?");
                 prep.setInt(1, no_o_id);
@@ -589,14 +589,14 @@ public class BenchCThread {
                 prep.setInt(2, no_o_id);
                 prep.setInt(3, d_id);
                 prep.setInt(4, warehouseId);
-                db.update(prep);
+                db.update(prep, "updateOrders");
                 prep = prepare("UPDATE ORDER_LINE SET OL_DELIVERY_D=? "
                         + "WHERE OL_O_ID=? AND OL_D_ID=? AND OL_W_ID=?");
                 prep.setTimestamp(1, datetime);
                 prep.setInt(2, no_o_id);
                 prep.setInt(3, d_id);
                 prep.setInt(4, warehouseId);
-                db.update(prep);
+                db.update(prep, "updateOrderLine");
                 prep = prepare("SELECT SUM(OL_AMOUNT) FROM ORDER_LINE "
                         + "WHERE OL_O_ID=? AND OL_D_ID=? AND OL_W_ID=?");
                 prep.setInt(1, no_o_id);
@@ -612,7 +612,7 @@ public class BenchCThread {
                 prep.setInt(2, no_o_id);
                 prep.setInt(3, d_id);
                 prep.setInt(4, warehouseId);
-                db.update(prep);
+                db.update(prep, "updateCustomer");
             }
         }
         db.commit();
@@ -625,7 +625,7 @@ public class BenchCThread {
         ResultSet rs;
 
         prep = prepare("UPDATE DISTRICT SET D_NEXT_O_ID=-1 WHERE D_ID=-1");
-        db.update(prep);
+        db.update(prep, "updateDistrict");
 
         prep = prepare("SELECT D_NEXT_O_ID FROM DISTRICT "
                 + "WHERE D_ID=? AND D_W_ID=?");

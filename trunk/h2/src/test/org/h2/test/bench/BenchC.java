@@ -163,8 +163,6 @@ public class BenchC implements Bench {
         trace("load done");
     }
 
-    
-
     void trace(String s) {
         action = s;
     }
@@ -190,7 +188,7 @@ public class BenchC implements Bench {
             prep.setString(3, i_name);
             prep.setBigDecimal(4, i_price);
             prep.setString(5, i_data);
-            db.update(prep);
+            db.update(prep, "insertItem");
             trace(i_id, items);
             if(i_id%commitEvery==0) {
                 db.commit();
@@ -222,7 +220,7 @@ public class BenchC implements Bench {
             prep.setString(7, w_zip);
             prep.setBigDecimal(8, w_tax);
             prep.setBigDecimal(9, w_ytd);
-            db.update(prep);
+            db.update(prep, "insertWarehouse");
             loadStock(w_id);
             loadDistrict(w_id);
             if(w_id%commitEvery==0) {
@@ -310,7 +308,7 @@ public class BenchC implements Bench {
             prepCustomer.setBigDecimal(19, c_ytd_payment);
             prepCustomer.setInt(20, c_payment_cnt);
             prepCustomer.setInt(21, c_delivery_cnt);
-            db.update(prepCustomer);            
+            db.update(prepCustomer, "insertCustomer");            
             BigDecimal h_amount = new BigDecimal("10.00");
             String h_data = random.getString(12, 24);
             prepHistory.setInt(1, c_id);
@@ -321,7 +319,7 @@ public class BenchC implements Bench {
             prepHistory.setTimestamp(6, timestamp);
             prepHistory.setBigDecimal(7, h_amount);
             prepHistory.setString(8, h_data);
-            db.update(prepHistory);
+            db.update(prepHistory, "insertHistory");
         }
     }
 
@@ -370,9 +368,9 @@ public class BenchC implements Bench {
                 prepNewOrder.setInt(1, o_id);
                 prepNewOrder.setInt(2, o_d_id);
                 prepNewOrder.setInt(3, o_w_id);
-                db.update(prepNewOrder);
+                db.update(prepNewOrder, "newNewOrder");
             }
-            db.update(prepOrder);
+            db.update(prepOrder, "insertOrder");
             for (int ol = 1; ol <= o_ol_cnt; ol++) {
                 int ol_i_id = random.getInt(1, items);
                 int ol_supply_w_id = o_w_id;
@@ -393,7 +391,7 @@ public class BenchC implements Bench {
                 prepLine.setInt(7, ol_quantity);
                 prepLine.setBigDecimal(8, ol_amount);
                 prepLine.setString(9, ol_dist_info);
-                db.update(prepLine);
+                db.update(prepLine, "insertOrderLine");
                 if(i++%commitEvery==0) {
                     db.commit();
                 }
@@ -443,7 +441,7 @@ public class BenchC implements Bench {
             prep.setInt(15, 0);
             prep.setInt(16, 0);
             prep.setInt(17, 0);
-            db.update(prep);
+            db.update(prep, "insertStock");
             if(s_i_id%commitEvery==0) {
                 db.commit();
             }            
@@ -479,7 +477,7 @@ public class BenchC implements Bench {
             prep.setBigDecimal(9, d_tax);
             prep.setBigDecimal(10, d_ytd);
             prep.setInt(11, d_next_o_id);
-            db.update(prep);
+            db.update(prep, "insertDistrict");
             trace(d_id, districtsPerWarehouse);
         }
     }

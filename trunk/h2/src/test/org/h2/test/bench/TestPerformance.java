@@ -21,6 +21,7 @@ import org.h2.util.JdbcUtils;
 public class TestPerformance {
     
     boolean collect;
+    boolean log;
     
     public static void main(String[] args) throws Exception {
         new TestPerformance().test(args);
@@ -59,6 +60,8 @@ public class TestPerformance {
                 init = true;
             } else if(args[i].equals("-out")) {
                 out = args[++i];
+            } else if(args[i].equals("-log")) {
+                log = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
         openResults(init);
@@ -213,6 +216,12 @@ public class TestPerformance {
     private void runTest(Database db, Bench bench, int size) throws Exception {
         bench.init(db, size);
         bench.runTest();
+    }
+
+    public void log(String s) {
+        if(log) {
+            System.out.println(s);
+        }
     }
 
 }

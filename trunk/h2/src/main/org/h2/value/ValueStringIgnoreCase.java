@@ -6,6 +6,7 @@ package org.h2.value;
 
 import org.h2.engine.Constants;
 import org.h2.util.StringCache;
+import org.h2.util.StringUtils;
 
 public class ValueStringIgnoreCase extends ValueStringBase {
 
@@ -35,6 +36,10 @@ public class ValueStringIgnoreCase extends ValueStringBase {
             hash = value.toUpperCase().hashCode();
         }
         return hash;
+    }
+    
+    public String getSQL() {
+        return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
     }
 
     public static ValueStringIgnoreCase get(String s) {

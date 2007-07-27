@@ -64,7 +64,7 @@ public class Console implements ActionListener, MouseListener {
                 System.out.println(web.getStatus());
             }
         }
-        Server tcp = null, odbc = null;
+        Server tcp = null, odbc = null, pg = null;
         try {
             tcp = Server.createTcpServer(args);
             tcp.start();
@@ -83,6 +83,16 @@ public class Console implements ActionListener, MouseListener {
                 e.printStackTrace();
             } else {
                 System.out.println(odbc.getStatus());
+            }
+        }
+        try {
+            pg = Server.createPgServer(args);
+            pg.start();
+        } catch(SQLException e) {
+            if(pg == null) {
+                e.printStackTrace();
+            } else {
+                System.out.println(pg.getStatus());
             }
         }
         if(!GraphicsEnvironment.isHeadless()) {

@@ -21,6 +21,7 @@ public class Mode {
     public boolean lowerCaseIdentifiers;
     public boolean indexDefinitionInCreateTable;
     public boolean systemColumns;
+    public boolean squareBracketQuotedNames;
 
     private static final HashMap MODES = new HashMap();
     
@@ -56,6 +57,11 @@ public class Mode {
         mode.nullConcatIsNull = true;
         mode.convertOnlyToSmallerScale = true;
         add(mode);
+        
+        mode = new Mode("MSSQLServer");
+        mode.squareBracketQuotedNames = true;
+        add(mode);
+        
     }
     
     private static void add(Mode mode) {

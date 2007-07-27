@@ -103,8 +103,8 @@ public class Driver implements java.sql.Driver {
     /**
      * INTERNAL
      */
-    public static void load() {
-        // does nothing, but calling it loads the class
+    public static Driver load() {
+        return instance;
     }
 
 }

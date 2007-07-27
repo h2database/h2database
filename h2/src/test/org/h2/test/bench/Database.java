@@ -216,7 +216,8 @@ class Database {
         }
     }
     
-    public void update(PreparedStatement prep) throws Exception {
+    public void update(PreparedStatement prep, String log) throws Exception {
+        test.log(log);
         prep.executeUpdate();
         executedStatements++;
     }
@@ -293,6 +294,10 @@ class Database {
 
     public int getId() {
         return id;
+    }
+
+    public Connection getCurrentConnection() {
+        return conn;
     }
 
 }

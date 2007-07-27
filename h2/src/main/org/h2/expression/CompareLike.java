@@ -5,6 +5,7 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -26,6 +27,7 @@ import org.h2.value.ValueString;
 public class CompareLike extends Condition {
 
     private final CompareMode compareMode;
+    private final boolean regexp;
     private Expression left;
     private Expression right;
     private Expression escape;
@@ -33,22 +35,29 @@ public class CompareLike extends Condition {
     private boolean isInit;
     private char[] pattern;
     private String patternString;
+    private Pattern patternRegexp;
     private int[] types;
     private int patternLength;
     private static final int MATCH = 0, ONE = 1, ANY = 2;
     private boolean ignoreCase;
 
-    public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape) {
+    public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape, boolean regexp) {
         this.compareMode = compareMode;
+        this.regexp = regexp;
         this.left = left;
         this.right = right;
         this.escape = escape;
     }
 
     public String getSQL() {
-        String sql = left.getSQL() + " LIKE " + right.getSQL();
-        if (escape != null) {
-            sql += " ESCAPE " + escape.getSQL();
+        String sql;
+        if(regexp) {
+            sql = left.getSQL() + " REGEXP " + right.getSQL();
+        } else {
+            sql = left.getSQL() + " LIKE " + right.getSQL();
+            if (escape != null) {
+                sql += " ESCAPE " + escape.getSQL();
+            }
         }
         return "("+sql+")";
     }
@@ -104,6 +113,9 @@ public class CompareLike extends Condition {
     }
 
     public void createIndexConditions(TableFilter filter) throws SQLException {
+        if(regexp) {
+            return;
+        }
         Session session = filter.getSession();
         if(!(left instanceof ExpressionColumn)) {
             return;
@@ -184,7 +196,12 @@ public class CompareLike extends Condition {
             initPattern(pattern, getEscapeChar(e));
         }
         String value = l.getString();
-        boolean result = compareAt(value, 0, 0, value.length());
+        boolean result;
+        if(regexp) {
+            result = patternRegexp.matcher(value).matches();
+        } else {
+            result = compareAt(value, 0, 0, value.length());
+        }
         return ValueBoolean.get(result);
     }
 
@@ -231,6 +248,15 @@ public class CompareLike extends Condition {
     }
 
     private void initPattern(String p, char escape) throws SQLException {
+        if(regexp) {
+            patternString = p;
+            if(ignoreCase) {
+                patternRegexp = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+            } else {
+                patternRegexp = Pattern.compile(p);
+            }
+            return;
+        }
         patternLength = 0;
         if(p == null) {
             types = null;

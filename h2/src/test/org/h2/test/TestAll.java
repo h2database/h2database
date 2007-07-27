@@ -94,13 +94,26 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-SELECT db.oid, datname, spcname, datallowconn, datconfig, datacl, pg_encoding_to_char(encoding) AS serverencoding, 
-    pg_get_userbyid(datdba) AS datowner,has_database_privilege(db.oid, 'CREATE') as cancreate
-  FROM pg_database db
-  LEFT OUTER JOIN pg_tablespace ta ON db.dattablespace=ta.OID
- ORDER BY datname;
-SELECT description FROM pg_description WHERE objoid=0;
 
+test.properties
+#size = 400
+size = 100
+
+
+cd C:\data\h2database\h2\bin
+java -cp %H2DRIVERS% org.h2.test.bench.TestPerformance
+
+jdbc:postgresql://localhost:5435/test
+
+SELECT nspname AS TABLE_SCHEM FROM pg_catalog.pg_namespace WHERE nspname <> 'pg_toast' AND nspname !~ '^pg_temp_' ORDER BY TABLE_SCHEM;
+
+PostgreSQL: ~/test doesn't work. maybe need mapping 'database name > database url' (in properties file?)
+
+html-ja
+
+change default:
+SET MAX_LENGTH_INPLACE_LOB 1024
+SET MAX_MEMORY_UNDO 50000
 
 rename Performance > Comparison [/Compatibility]
 move  Comparison to Other Database Engines > Comparison
@@ -196,6 +209,13 @@ http://fastutil.dsi.unimi.it/
 http://javolution.org/
 http://joda-time.sourceforge.net/
 http://ibatis.apache.org/
+
+strict xhtml (license,...) 
+
+Document org.h2.samples.MixedMode
+
+http://www.igniterealtime.org/projects/openfire/index.jsp
+(fonts)
 
 */        
 

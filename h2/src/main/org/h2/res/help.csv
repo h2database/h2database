@@ -1177,11 +1177,15 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 | BETWEEN operand AND operand
 | IN ({select | expression[,...]})
 | [NOT] LIKE operand [ESCAPE string]
+| [NOT] REGEXP operand
 ","
-The right hand side of a condition.
+The right hand side of a condition. 
+When comparing with LIKE, the wildcards characters are _ (any one character) and % (any characters).
+When comparing with REGEXP, regular expression matching is used. See Java String.matches for details.
 ","
 LIKE 'Jo%'
 "
+
 "Other Grammar","Compare","
 = | < | > | <> | <= | >= | !=
 ","
@@ -2160,6 +2164,16 @@ It is possible to remove other characters as well.
 ","
 TRIM(BOTH '_' FROM NAME)
 "
+
+"Functions (String)","REGEXP_REPLACE","
+REGEXP_REPLACE(inputString, regexString, replacementString): string
+","
+Replaces each substring that matches a regular expression.
+For details, see the Java String.replaceAll() method.
+","
+REGEXP_REPLACE('Hoohoho', 'o+', 'o')
+"
+
 "Functions (String)","REPEAT","
 REPEAT(string, int): string
 ","
@@ -2167,6 +2181,7 @@ Returns a string repeated some number of times.
 ","
 REPEAT(NAME || ' ', 10)
 "
+
 "Functions (String)","REPLACE","
 REPLACE(string, searchString [, replacementString]): string
 ","

@@ -30,6 +30,7 @@ public class TransactionCommand extends Prepared {
     public static final int ROLLBACK_TRANSACTION = 11;
     public static final int SHUTDOWN = 12;
     public static final int SHUTDOWN_IMMEDIATELY = 13;
+    public static final int BEGIN = 14;
 
     private int type;
     private String savepointName;
@@ -51,6 +52,9 @@ public class TransactionCommand extends Prepared {
             break;
         case AUTOCOMMIT_FALSE:
             session.setAutoCommit(false);
+            break;
+        case BEGIN:
+            session.begin();
             break;
         case COMMIT:
             session.commit(false);

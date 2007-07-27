@@ -1,9 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!-- 
 Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
 Initial Developer: H2 Group
 -->
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Advanced Topics
 </title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript" src="navigation.js"></script>
@@ -189,30 +191,30 @@ databases will be on different servers.
     Each directory will simulate a directory on a computer.
 </li><li>Start a TCP server pointing to the first directory.
     You can do this using the command line:
-</li><pre>
+<pre>
 java org.h2.tools.Server
     -tcp -tcpPort 9101
     -baseDir server1
 </pre>
-<li>Start a second TCP server pointing to the second directory.
+</li><li>Start a second TCP server pointing to the second directory.
     This will simulate a server running on a second (redundant) computer.
     You can do this using the command line:
-</li><pre>
+<pre>
 java org.h2.tools.Server
     -tcp -tcpPort 9102
     -baseDir server2
 </pre>
-<li>Use the CreateCluster tool to initialize clustering.
+</li><li>Use the CreateCluster tool to initialize clustering.
     This will automatically create a new, empty database if it does not exist.
     Run the tool on the command line:
-</li><pre>
+<pre>
 java org.h2.tools.CreateCluster
   -urlSource jdbc:h2:tcp://localhost:9101/test
   -urlTarget jdbc:h2:tcp://localhost:9102/test
   -user sa
   -serverlist localhost:9101,localhost:9102
 </pre>
-<li>You can now connect to the databases using
+</li><li>You can now connect to the databases using
 an application or the H2 Console using the JDBC URL
 jdbc:h2:tcp://localhost:9101,localhost:9102/test
 </li><li>If you stop a server (by killing the process),
@@ -239,16 +241,16 @@ The two phase commit protocol is supported. 2-phase-commit works as follows:
 <li>Autocommit needs to be switched off
 </li><li>A transaction is started, for example by inserting a row
 </li><li>The transaction is marked 'prepared' by executing the SQL statement
-    </li><code>PREPARE COMMIT transactionName</code>
-<li>The transaction can now be committed or rolled back
+    <code>PREPARE COMMIT transactionName</code>
+</li><li>The transaction can now be committed or rolled back
 </li><li>If a problem occurs before the transaction was successfully committed or rolled back
     (for example because a network problem occurred), the transaction is in the state 'in-doubt'
 </li><li>When re-connecting to the database, the in-doubt transactions can be listed
-    with </li><code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
-<li>Each transaction in this list must now be committed or rolled back by executing
-    </li><code>COMMIT TRANSACTION transactionName</code> or
+    with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+</li><li>Each transaction in this list must now be committed or rolled back by executing
+    <code>COMMIT TRANSACTION transactionName</code> or
     <code>ROLLBACK TRANSACTION transactionName</code>
-<li>The database needs to be closed and re-opened to apply the changes
+</li><li>The database needs to be closed and re-opened to apply the changes
 </li></ul>
 
 <br /><a name="compatibility"></a>

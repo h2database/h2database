@@ -78,7 +78,7 @@ public class Function extends Expression implements FunctionCall {
             SUBSTRING = 73, UCASE = 74, LOWER = 75, UPPER = 76, POSITION = 77, TRIM = 78,
             STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87,
-            XMLTEXT = 88;
+            XMLTEXT = 88, REGEXP_REPLACE = 89;
 
     public static final int CURDATE = 100, CURTIME = 101, DATEADD = 102, DATEDIFF = 103,
             DAYNAME = 104, DAYOFMONTH = 105, DAYOFWEEK = 106, DAYOFYEAR = 107,
@@ -228,6 +228,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("XMLCDATA", XMLCDATA, 1, Value.STRING);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
         addFunction("XMLTEXT", XMLTEXT, 1, Value.STRING);
+        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
 
         // date
         addFunctionNotConst("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
@@ -678,6 +679,8 @@ public class Function extends Expression implements FunctionCall {
             return ValueString.get(StringUtils.xmlStartDoc());
         case XMLTEXT:
             return ValueString.get(StringUtils.xmlText(v0.getString()));
+        case REGEXP_REPLACE:
+            return ValueString.get(v0.getString().replaceAll(v1.getString(), v2.getString()));
         // date
         case DATEADD:
             return ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));

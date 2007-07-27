@@ -1,3 +1,21 @@
+call timestamp '2007-07-26 18:44:26.109000 +02:00';
+> 1;
+
+create table test(id int primary key);
+begin;
+insert into test values(1);
+rollback;
+insert into test values(2);
+rollback;
+begin;
+insert into test values(3);
+commit;
+insert into test values(4);
+rollback;
+select group_concat(id order by id) from test;
+> 2,3,4;
+drop table test;
+
 create table test();
 insert into test values();
 ALTER TABLE TEST ADD ID INTEGER;

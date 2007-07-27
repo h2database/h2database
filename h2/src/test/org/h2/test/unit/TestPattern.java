@@ -15,7 +15,7 @@ public class TestPattern extends TestBase {
     
     public void test() throws Exception {
         CompareMode mode = new CompareMode(null, null);
-        CompareLike comp = new CompareLike(mode, null, null, null);
+        CompareLike comp = new CompareLike(mode, null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");
         test(comp, "A", "A%%");

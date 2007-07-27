@@ -27,7 +27,7 @@ public class BenchSimple implements Bench {
         for(int i=0; i<records; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Hello World " + i);
-            db.update(prep);
+            db.update(prep, "insertTest");
             if(i%commitEvery==0) {
                 db.commit();
             }
@@ -70,7 +70,7 @@ public class BenchSimple implements Bench {
         for(int i=0; i<records; i++) {
             prep.setString(1, "Hallo Welt");
             prep.setInt(2, i);
-            db.update(prep);
+            db.update(prep, "updateTest");
         }
         db.end();
 
@@ -79,7 +79,7 @@ public class BenchSimple implements Bench {
         // delete only 50%
         for(int i=0; i<records; i+=2) {
             prep.setInt(1, i);
-            db.update(prep);
+            db.update(prep, "deleteTest");
         }
         db.end();
         

@@ -8,7 +8,7 @@ create schema pg_catalog;
 
 set search_path = PUBLIC, pg_catalog;
 
-create table pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
+create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
 as
 select
 	id oid,
@@ -17,7 +17,7 @@ select
 	case when admin then 't' else 'f' end as rolcreatedb
 from information_schema.users;
 
-create table pg_catalog.pg_namespace -- (oid, nspname) 
+create view pg_catalog.pg_namespace -- (oid, nspname) 
 as 
 select 
     id oid, 
@@ -38,7 +38,8 @@ select
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog') typnamespace,
     -1 typlen,
     0 typbasetype
-from information_schema.type_info;
+from information_schema.type_info
+where pos = 0;
 
 insert into pg_catalog.pg_type values(
     1111, 
@@ -48,7 +49,7 @@ insert into pg_catalog.pg_type values(
     0
 );
     
-create table pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids) 
+create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids) 
 as 
 select 
     id oid, 
@@ -74,15 +75,6 @@ select
     false relhasoids    
 from information_schema.indexes;
 
-create table pg_catalog.pg_description -- (objoid, objsubid, classoid, description) 
-as 
-select 
-    id objoid, 
-    0 objsubid, 
-    -1 classoid, 
-    cast('' as varchar_ignorecase) description
-from information_schema.tables where 1=0;
-
 create table pg_catalog.pg_proc(
     oid int,
     proname varchar_ignorecase
@@ -100,7 +92,7 @@ create table pg_catalog.pg_trigger(
     tgrelid int
 );
 
-create table pg_catalog.pg_attrdef -- (oid, adsrc, adrelid, adnum) 
+create view pg_catalog.pg_attrdef -- (oid, adsrc, adrelid, adnum) 
 as 
 select 
     id oid, 
@@ -109,7 +101,7 @@ select
     0 adnum
 from information_schema.tables where 1=0;
 
-create table pg_catalog.pg_attribute -- (oid, attrelid, attname, atttypid, attlen, attnum, atttypmod, attnotnull, attisdropped, atthasdef) 
+create view pg_catalog.pg_attribute -- (oid, attrelid, attname, atttypid, attlen, attnum, atttypmod, attnotnull, attisdropped, atthasdef) 
 as 
 select
     t.id*10000 + c.ordinal_position oid, 
@@ -143,7 +135,7 @@ and t.table_schema = i.table_schema
 and t.table_name = c.table_name
 and t.table_schema = c.table_schema;
 
-create table pg_catalog.pg_index -- (oid, indexrelid, indrelid, indisclustered, indisunique, indisprimary, indexprs, indkey) 
+create view pg_catalog.pg_index -- (oid, indexrelid, indrelid, indisclustered, indisunique, indisprimary, indexprs, indkey) 
 as 
 select 
     i.id oid,
@@ -237,13 +229,9 @@ insert into pg_catalog.pg_settings values
 (1, 'stats_start_collector', 'on'),
 (2, 'stats_row_level', 'on');
 
-create table pg_catalog.pg_user(
-    oid int,
-    usename varchar_ignorecase,
-    usecreatedb boolean,
-    usesuper boolean);
-
-insert into pg_catalog.pg_user select
+create view pg_catalog.pg_user -- oid, usename, usecreatedb, usesuper
+as 
+select 
     id oid,
     cast(name as varchar_ignorecase) usename,
     true usecreatedb,
@@ -269,36 +257,19 @@ create table pg_catalog.pg_am(oid int, amname varchar_ignorecase);
 insert into  pg_catalog.pg_am values(0, 'btree');
 insert into  pg_catalog.pg_am values(1, 'hash');
 
-SELECT 
-    NULL AS TABLE_CAT, 
-    n.nspname AS TABLE_SCHEM, 
-    ct.relname AS TABLE_NAME, 
-    NOT i.indisunique AS NON_UNIQUE, 
-    NULL AS INDEX_QUALIFIER, 
-    ci.relname AS INDEX_NAME,  
-    CASE i.indisclustered  WHEN true THEN 1 ELSE CASE am.amname  WHEN 'hash' THEN 2 ELSE 3 END  END AS TYPE,  
-    a.attnum AS ORDINAL_POSITION,  
-    CASE i.indexprs 
-    WHEN null THEN a.attname 
-    ELSE pg_get_indexdef(ci.oid,a.attnum,false) END 
-    AS COLUMN_NAME,  
-    NULL AS ASC_OR_DESC,  
-    ci.reltuples AS CARDINALITY,  
-    ci.relpages AS PAGES,  
-    NULL AS FILTER_CONDITION  
- FROM pg_catalog.pg_namespace n, 
- pg_catalog.pg_class ct, 
- pg_catalog.pg_class ci, 
- pg_catalog.pg_attribute a, 
- pg_catalog.pg_am am , 
- pg_catalog.pg_index i  
- WHERE ct.oid=i.indrelid 
- AND ci.oid=i.indexrelid 
- AND a.attrelid=ci.oid 
- AND ci.relam=am.oid  
- AND n.oid = ct.relnamespace  
- AND n.nspname = 'PUBLIC'  
- AND ct.relname = 'TEST'  
- ORDER BY NON_UNIQUE, TYPE, INDEX_NAME, ORDINAL_POSITION ;
- 
+create table pg_catalog.pg_description -- (objoid, objsubid, classoid, description) 
+as 
+select 
+    oid objoid, 
+    0 objsubid, 
+    -1 classoid, 
+    cast(datname as varchar_ignorecase) description
+from pg_catalog.pg_database;
+
+create table pg_catalog.pg_group -- oid, groname
+as
+select
+	0 oid,
+	cast('' as varchar_ignorecase) groname
+from pg_catalog.pg_database where 1=0;
 

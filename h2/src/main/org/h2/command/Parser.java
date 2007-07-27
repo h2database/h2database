@@ -277,6 +277,8 @@ public class Parser {
             case 'B':
                 if(readIf("BACKUP")) {
                     c = parseBackup();
+                } else if (readIf("BEGIN")) {
+                    c = parseBegin();
                 }
                 break;
             case 'C':
@@ -454,6 +456,15 @@ public class Parser {
         if(readIf("SAMPLE_SIZE")) {
             command.setTop(getPositiveInt());
         }
+        return command;
+    }
+    
+    private TransactionCommand parseBegin() throws SQLException {
+        TransactionCommand command;
+        if(!readIf("WORK")) {
+            readIf("TRANSACTION");
+        }
+        command = new TransactionCommand(session, TransactionCommand.BEGIN);
         return command;
     }
 
@@ -1460,7 +1471,10 @@ public class Parser {
                     esc = readConcat();
                 }
                 recompileAlways = true;
-                r = new CompareLike(database.getCompareMode(), r, b, esc);
+                r = new CompareLike(database.getCompareMode(), r, b, esc, false);
+            } else if (readIf("REGEXP")) {
+                Expression b = readConcat();
+                r = new CompareLike(database.getCompareMode(), r, b, null, true);
             } else if (readIf("IS")) {
                 int type;
                 if (readIf("NOT")) {
@@ -1559,10 +1573,29 @@ public class Parser {
 
     private Expression readConcat() throws SQLException {
         Expression r = readSum();
-        while (readIf("||")) {
-            r = new Operation(Operation.CONCAT, r, readSum());
+        while (true) {
+            if(readIf("||")) {
+                r = new Operation(Operation.CONCAT, r, readSum());
+            } else if(readIf("~")) {
+                if(readIf("*")) {
+                    Function function = Function.getFunction(database, "CAST");
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 0));
+                    function.setParameter(0, r);
+                    r = function;
+                }
+                r = new CompareLike(database.getCompareMode(), r, readSum(), null, true);
+            } else if(readIf("!~")) {
+                if(readIf("*")) {
+                    Function function = Function.getFunction(database, "CAST");
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 0));
+                    function.setParameter(0, r);
+                    r = function;
+                }
+                r = new ConditionNot(new CompareLike(database.getCompareMode(), r, readSum(), null, true));
+            } else {
+                return r;
+            }
         }
-        return r;
     }
 
     private Expression readSum() throws SQLException {
@@ -1831,7 +1864,7 @@ public class Parser {
     }
     
     private Expression readTerm() throws SQLException {
-        Expression r = null;
+        Expression r;
         switch (currentTokenType) {
         case PARAMETER:
             // there must be no space between ? and the number
@@ -1868,88 +1901,94 @@ public class Parser {
         case KEYWORD:
             if(isToken("SELECT") || isToken("FROM")) {
                 Query query = parseSelect();
-                return new Subquery(query);
+                r = new Subquery(query);
+            } else {
+                throw getSyntaxError();
             }
-            throw getSyntaxError();
+            break;
         case IDENTIFIER:
             String name = currentToken;
             if(currentTokenQuoted) {
                 read();
                 if(readIf(".")) {
-                    return readTermObjectDot(name);
-                }
-                return new ExpressionColumn(database, currentSelect, null, null, name);
-            }
-            read();
-            if("X".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                read();
-                byte[] buffer = ByteUtils.convertStringToBytes(currentValue.getString());
-                r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
-            } else if(readIf(".")) {
-                return readTermObjectDot(name);
-            } else if("CASE".equals(name)) {
-                // CASE must be processed before (, 
-                // otherwise CASE(3) would be a function call, which it is not
-                if(isToken("WHEN")) {
-                    return readWhen(null);
+                    r = readTermObjectDot(name);
                 } else {
-                    Expression left = readExpression();
-                    return readWhen(left);
+                    r = new ExpressionColumn(database, currentSelect, null, null, name);
                 }
-            } else if (readIf("(")) {
-                return readFunction(name);
-            } else if("CURRENT_USER".equals(name)) {
-                return readFunctionWithoutParameters("USER");
-            } else if("CURRENT".equals(name)) {
-                if(readIf("TIMESTAMP")) {
-                    return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                } else if(readIf("TIME")) {
-                    return readFunctionWithoutParameters("CURRENT_TIME");
-                } else if(readIf("DATE")) {
-                    return readFunctionWithoutParameters("CURRENT_DATE");
-                } else {
-                    return new ExpressionColumn(database, currentSelect, null, null, name);
-                }
-            } else if("NEXT".equals(name) && readIf("VALUE")) {
-                read("FOR");
-                Sequence sequence = readSequence();
-                return new SequenceValue(sequence);
-            } else if("DATE".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                String date = currentValue.getString();
-                read();
-                return ValueExpression.get(ValueDate.get(ValueDate.parseDate(date)));
-            } else if("TIME".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                String time = currentValue.getString();
-                read();
-                return ValueExpression.get(ValueTime.get(ValueTime.parseTime(time)));
-            } else if("TIMESTAMP".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                String timestamp = currentValue.getString();
-                read();
-                return ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
-            } else if("E".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
-                String text = currentValue.getString();
-                read();
-                return ValueExpression.get(ValueString.get(text));
             } else {
-                return new ExpressionColumn(database, currentSelect, null, null, name);
+                read();
+                if("X".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    read();
+                    byte[] buffer = ByteUtils.convertStringToBytes(currentValue.getString());
+                    r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
+                } else if(readIf(".")) {
+                    r = readTermObjectDot(name);
+                } else if("CASE".equals(name)) {
+                    // CASE must be processed before (, 
+                    // otherwise CASE(3) would be a function call, which it is not
+                    if(isToken("WHEN")) {
+                        r = readWhen(null);
+                    } else {
+                        Expression left = readExpression();
+                        r = readWhen(left);
+                    }
+                } else if (readIf("(")) {
+                    r = readFunction(name);
+                } else if("CURRENT_USER".equals(name)) {
+                    r = readFunctionWithoutParameters("USER");
+                } else if("CURRENT".equals(name)) {
+                    if(readIf("TIMESTAMP")) {
+                        r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                    } else if(readIf("TIME")) {
+                        r = readFunctionWithoutParameters("CURRENT_TIME");
+                    } else if(readIf("DATE")) {
+                        r = readFunctionWithoutParameters("CURRENT_DATE");
+                    } else {
+                        r = new ExpressionColumn(database, currentSelect, null, null, name);
+                    }
+                } else if("NEXT".equals(name) && readIf("VALUE")) {
+                    read("FOR");
+                    Sequence sequence = readSequence();
+                    r = new SequenceValue(sequence);
+                } else if("DATE".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    String date = currentValue.getString();
+                    read();
+                    r = ValueExpression.get(ValueDate.get(ValueDate.parseDate(date)));
+                } else if("TIME".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    String time = currentValue.getString();
+                    read();
+                    r = ValueExpression.get(ValueTime.get(ValueTime.parseTime(time)));
+                } else if("TIMESTAMP".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    String timestamp = currentValue.getString();
+                    read();
+                    r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
+                } else if("E".equals(name) && currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    String text = currentValue.getString();
+                    read();
+                    r = ValueExpression.get(ValueString.get(text));
+                } else {
+                    r = new ExpressionColumn(database, currentSelect, null, null, name);
+                }
             }
             break;
         case MINUS:
             read();
             if (currentTokenType == VALUE) {
-                Expression e = ValueExpression.get(currentValue.negate());
+                r = ValueExpression.get(currentValue.negate());
                 // convert Integer.MIN_VALUE to int (-Integer.MIN_VALUE needed to be a long)
-                if(e.getType() == Value.LONG && e.getValue(session).getLong() == Integer.MIN_VALUE) {
-                    e = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
+                if(r.getType() == Value.LONG && r.getValue(session).getLong() == Integer.MIN_VALUE) {
+                    r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
                 }
                 // TODO parser: maybe convert Long.MIN_VALUE from decimal to long?
                 read();
-                return e;
+            } else {
+                r = new Operation(Operation.NEGATE, readTerm(), null);
             }
-            return new Operation(Operation.NEGATE, readTerm(), null);
+            break;
         case PLUS:
             read();
-            return readTerm();
+            r = readTerm();
+            break;
         case OPEN:
             read();
             r = readExpression();
@@ -1968,16 +2007,20 @@ public class Parser {
             break;
         case TRUE:
             read();
-            return ValueExpression.get(ValueBoolean.get(true));
+            r = ValueExpression.get(ValueBoolean.get(true));
+            break;
         case FALSE:
             read();
-            return ValueExpression.get(ValueBoolean.get(false));
+            r = ValueExpression.get(ValueBoolean.get(false));
+            break;
         case CURRENT_TIME:
             read();
-            return readFunctionWithoutParameters("CURRENT_TIME");
+            r = readFunctionWithoutParameters("CURRENT_TIME");
+            break;
         case CURRENT_DATE:
             read();
-            return readFunctionWithoutParameters("CURRENT_DATE");
+            r = readFunctionWithoutParameters("CURRENT_DATE");
+            break;
         case CURRENT_TIMESTAMP: {
             Function function = Function.getFunction(database, "CURRENT_TIMESTAMP");
             read();
@@ -1988,21 +2031,20 @@ public class Parser {
                 }
             }
             function.doneWithParameters();
-            return function;
+            r = function;
+            break;
         }
         case ROWNUM:
             read();
             if(readIf("(")) {
                 read(")");
             }
-            return new Rownum(currentSelect == null ? currentPrepared : currentSelect);
+            r = new Rownum(currentSelect == null ? currentPrepared : currentSelect);
+            break;
         case NULL:
             read();
-            if(readIf("::")) {
-                // PostgreSQL compatibility
-                parseColumn(null);
-            }
-            return ValueExpression.NULL;
+            r = ValueExpression.NULL;
+            break;
         case VALUE:
             r = ValueExpression.get(currentValue);
             read();
@@ -2010,6 +2052,23 @@ public class Parser {
         default:
             // TODO exception: expected a term
             throw getSyntaxError();
+        }
+        if(readIf("[")) {
+            Function function = Function.getFunction(database, "ARRAY_GET");
+            function.setParameter(0, r);
+            r = readExpression();
+            r = new Operation(Operation.PLUS, r, ValueExpression.get(ValueInt.get(1)));
+            function.setParameter(1, r);
+            r = function;
+            read("]");
+        }
+        if(readIf("::")) {
+            // PostgreSQL compatibility
+            Column col = parseColumn(null);
+            Function function = Function.getFunction(database, "CAST");
+            function.setDataType(col);
+            function.setParameter(0, r);
+            r = function;
         }
         return r;
     }
@@ -2489,6 +2548,7 @@ public class Parser {
             case '%':
             case '?':
             case '$':
+            case ']':
                 type = CHAR_SPECIAL_1;
                 break;
             case '!':
@@ -2497,6 +2557,7 @@ public class Parser {
             case '|':
             case '=':
             case ':':
+            case '~':
                 type = CHAR_SPECIAL_2;
                 break;
             case '.':
@@ -2510,15 +2571,19 @@ public class Parser {
                 }
                 break;
             case '[':
-                // SQL Server alias for "
-                command[i] = '"';
-                changed = true;
-                type = types[i] = CHAR_QUOTED;
-                startLoop = i;
-                while (command[++i] != ']') {
-                    checkRunOver(i, len, startLoop);
+                if(Mode.getCurrentMode().squareBracketQuotedNames) {
+                    // SQL Server alias for "
+                    command[i] = '"';
+                    changed = true;
+                    type = types[i] = CHAR_QUOTED;
+                    startLoop = i;
+                    while (command[++i] != ']') {
+                        checkRunOver(i, len, startLoop);
+                    }
+                    command[i] = '"';
+                } else {
+                    type = CHAR_SPECIAL_1;
                 }
-                command[i] = '"';
                 break;
             case '`':
                 // MySQL alias for ", but not case sensitive
@@ -2600,6 +2665,9 @@ public class Parser {
             case ';':
             case ',':
             case ':':
+            case '[':
+            case ']':
+            case '~':
                 return KEYWORD;
             case '(':
                 return OPEN;
@@ -2634,12 +2702,15 @@ public class Parser {
             case '!':
                 if (s.equals("!=")) {
                     return NOT_EQUAL;
+                } else if(s.equals("!~")) {
+                    return KEYWORD;
                 }
                 break;
             case '|':
                 if(s.equals("||")) {
                     return STRING_CONCAT;
                 }
+                break;
             }
         }
         throw getSyntaxError();
@@ -3285,7 +3356,7 @@ public class Parser {
         id = database.allocateObjectId(true, true);
         TableView view = new TableView(schema, id, tempViewName, querySQL, null, cols, session, true);
         view.setTemporary(true);
-//        view.setOnCommitDrop(true);
+        // view.setOnCommitDrop(true);
         session.addLocalTempTable(view);
         Query query = parseSelect();
         query.prepare();

@@ -113,6 +113,7 @@
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/**/*"/>
 			<fileset dir="src/main" includes="**/*.png"/>
+			<fileset dir="src/main" includes="**/*.sql"/>
 			<fileset dir="src/installer" includes="*.bat"/>
 			<fileset dir="src/test" includes="**/*.txt"/>
 			<fileset dir="src/test" includes="**/*.properties"/>

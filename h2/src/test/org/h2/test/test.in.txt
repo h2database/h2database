@@ -1,4 +1,28 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CALL REGEXP_REPLACE('Kaboooom', 'o+', 'o');
+> 'Kabom'
+> -------
+> Kabom
+> rows: 1
+
+SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
+> T1   F2    T3
+> ---- ----- ----
+> TRUE FALSE TRUE
+> rows: 1
+
+SELECT 'Hello' ~* 'He.*' T1, 'HELLO' ~* 'He.*' T2, 'hallo' ~* 'He.*' F3;
+> T1   T2   F3
+> ---- ---- -----
+> TRUE TRUE FALSE
+> rows: 1
+
+SELECT 'Hello' !~* 'Ho.*' T1, 'HELLO' !~* 'He.*' F2, 'hallo' !~* 'Ha.*' F3;
+> T1   F2    F3
+> ---- ----- -----
+> TRUE FALSE FALSE
+> rows: 1
+
 create table test(parent int primary key, child int, foreign key(child) references (parent));
 > ok
 

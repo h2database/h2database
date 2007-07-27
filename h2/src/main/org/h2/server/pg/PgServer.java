@@ -26,7 +26,6 @@ import org.h2.util.NetUtils;
  */
 public class PgServer implements Service {
 
-//    public static final int DEFAULT_PORT = 5433; // also in the docs
     public static final int DEFAULT_PORT = 5435; // also in the docs
 
     private int port = PgServer.DEFAULT_PORT;
@@ -83,7 +82,10 @@ public class PgServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = "odbc://localhost:" + port;
+        url = "pg://localhost:" + port;
+        
+        int testing;
+//        log = true;
     }
 
     public String getURL() {
@@ -219,7 +221,7 @@ public class PgServer implements Service {
         case 8:
             return "LATIN1";
         }
-        return "UTF8";
+        return code < 40 ? "UTF8" : "";
     }
     
     public static String getVersion() {

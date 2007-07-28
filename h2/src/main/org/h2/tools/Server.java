@@ -33,7 +33,7 @@ public class Server implements Runnable {
     
     private void showUsage() {
         System.out.println("java "+getClass().getName() + " [options]");
-        System.out.println("By default, -tcp, -web, -browser and -odbc are started");
+        System.out.println("By default, -tcp, -web, -browser and -pg are started");
         System.out.println("-tcp (start the TCP Server)");
         System.out.println("-tcpPort <port> (default: " + TcpServer.DEFAULT_PORT+")");
         System.out.println("-tcpSSL [true|false]");        
@@ -48,13 +48,13 @@ public class Server implements Runnable {
         System.out.println("-webAllowOthers [true|false}");
         System.out.println("-browser (start a browser)");
 
-        System.out.println("-odbc (start the ODBC Server)");
-        System.out.println("-odbcPort <port> (default: " + OdbcServer.DEFAULT_PORT+")");
-        System.out.println("-odbcAllowOthers [true|false]");        
-
         System.out.println("-pg (start the PG Server)");
         System.out.println("-pgPort <port> (default: " + PgServer.DEFAULT_PORT+")");
         System.out.println("-pgAllowOthers [true|false]");        
+
+        System.out.println("-odbc (start the ODBC Server)");
+        System.out.println("-odbcPort <port> (default: " + OdbcServer.DEFAULT_PORT+")");
+        System.out.println("-odbcAllowOthers [true|false]");        
 
         System.out.println("-ftp (start the FTP Server)");
         System.out.println("-ftpPort <port> (default: " + Constants.DEFAULT_FTP_PORT+")");
@@ -82,8 +82,8 @@ public class Server implements Runnable {
      * </li><li>-web (start the Web Server / H2 Console application)
      * </li><li>-tcp (start the TCP Server)
      * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
-     * </li><li>-odbc (start the ODBC Server)
      * </li><li>-pg (start the PG Server)
+     * </li><li>-odbc (start the ODBC Server)
      * </li><li>-browser (start a browser and open a page to connect to the Web Server)
      * </li><li>-log [true|false] (enable or disable logging)
      * </li><li>-baseDir {directory} (sets the base directory for database files; not for H2 Console)
@@ -165,7 +165,7 @@ public class Server implements Runnable {
         if(startDefaultServers) {
             tcpStart = true;
             pgStart = true;
-            odbcStart = true;
+            odbcStart = false;
             webStart = true;
             browserStart = true;
         }

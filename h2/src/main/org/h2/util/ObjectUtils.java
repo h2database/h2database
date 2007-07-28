@@ -10,7 +10,7 @@ public class ObjectUtils {
 */
 //#endif
 //#ifdef JDK14
-        return new Integer(x);
+        return new Integer(x); // NOPMD
 //#endif
     }
 
@@ -34,7 +34,7 @@ public class ObjectUtils {
 */
 //#endif
 //#ifdef JDK14
-        return new Long(x);
+        return new Long(x); // NOPMD
 //#endif
     }    
     
@@ -46,7 +46,7 @@ public class ObjectUtils {
 */
 //#endif
 //#ifdef JDK14
-        return new Short(x);
+        return new Short(x); // NOPMD
 //#endif
     }        
     
@@ -58,7 +58,7 @@ public class ObjectUtils {
 */
 //#endif
 //#ifdef JDK14
-        return new Byte(x);
+        return new Byte(x); // NOPMD
 //#endif
     }  
 

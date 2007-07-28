@@ -85,25 +85,25 @@ class WebThread extends Thread {
         } else {
             suffix = "";
         }
-        if(suffix.equals("ico")) {
+        if("ico".equals(suffix)) {
             mimeType = "image/x-icon";
             cache=true;
-        } else if(suffix.equals("gif")) {
+        } else if("gif".equals(suffix)) {
             mimeType = "image/gif";
             cache=true;
-        } else if(suffix.equals("css")) {
+        } else if("css".equals(suffix)) {
             cache=true;
             mimeType = "text/css";
-        } else if(suffix.equals("html") || suffix.equals("do") || suffix.equals("jsp")) {
+        } else if("html".equals(suffix) || "do".equals(suffix) || "jsp".equals(suffix)) {
             cache=false;
             mimeType = "text/html";
             if (session == null) {
                 session = server.createNewSession(hostname);
-                if (!file.equals("notAllowed.jsp")) {
+                if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
                 }
             }
-        } else if(suffix.equals("js")) {
+        } else if("js".equals(suffix)) {
             cache=true;
             mimeType = "text/javascript";
         } else {
@@ -329,33 +329,33 @@ class WebThread extends Thread {
     String process(String file) {
         server.trace("process " + file);
         while(file.endsWith(".do")) {
-            if(file.equals("login.do")) {
+            if("login.do".equals(file)) {
                 file = login();
-            } else if(file.equals("index.do")) {
+            } else if("index.do".equals(file)) {
                 file = index();
-            } else if(file.equals("logout.do")) {
+            } else if("logout.do".equals(file)) {
                 file = logout();
-            } else if(file.equals("settingRemove.do")) {
+            } else if("settingRemove.do".equals(file)) {
                 file = settingRemove();
-            } else if(file.equals("settingSave.do")) {
+            } else if("settingSave.do".equals(file)) {
                 file = settingSave();
-            } else if(file.equals("test.do")) {
+            } else if("test.do".equals(file)) {
                 file = test();
-            } else if(file.equals("query.do")) {
+            } else if("query.do".equals(file)) {
                 file = query();
-            } else if(file.equals("tables.do")) {
+            } else if("tables.do".equals(file)) {
                 file = tables();
-            } else if(file.equals("editResult.do")) {
+            } else if("editResult.do".equals(file)) {
                 file = editResult();
-            } else if(file.equals("getHistory.do")) {
+            } else if("getHistory.do".equals(file)) {
                 file = getHistory();
-            } else if(file.equals("admin.do")) {
+            } else if("admin.do".equals(file)) {
                 file = admin();
-            } else if(file.equals("adminSave.do")) {
+            } else if("adminSave.do".equals(file)) {
                 file = adminSave();
-            } else if(file.equals("adminShutdown.do")) {
+            } else if("adminShutdown.do".equals(file)) {
                 file = adminShutdown();
-            } else if(file.equals("autoCompleteList.do")) {
+            } else if("autoCompleteList.do".equals(file)) {
                 file = autoCompleteList();
             } else {
                 file = "error.jsp";
@@ -425,7 +425,7 @@ class WebThread extends Thread {
                         key = StringUtils.toLowerEnglish(key);
                         value = StringUtils.toLowerEnglish(value);
                     }
-                    if(key.equals(value) && !value.equals(".")) {
+                    if(key.equals(value) && !".".equals(value)) {
                         value = space + value;
                     }
                     key = StringUtils.urlEncode(key);
@@ -717,7 +717,7 @@ class WebThread extends Thread {
                         treeIndex++;
                         buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.current}: " + PageParser.escapeJavaScript(current)+ "', null);\n");
                         treeIndex++;
-                        if(!increment.equals("1")) {
+                        if(!"1".equals(increment)) {
                             buff.append("setNode("+treeIndex+", 2, 2, 'type', '${text.tree.increment}: " + PageParser.escapeJavaScript(increment)+ "', null);\n");
                             treeIndex++;
                         }
@@ -841,10 +841,10 @@ class WebThread extends Thread {
         try {
             Connection conn = session.getConnection();
             String result;
-            if(sql.equals("@AUTOCOMMIT TRUE")) {
+            if("@AUTOCOMMIT TRUE".equals(sql)) {
                 conn.setAutoCommit(true);
                 result = "${text.result.autoCommitOn}";
-            } else if(sql.equals("@AUTOCOMMIT FALSE")) {
+            } else if("@AUTOCOMMIT FALSE".equals(sql)) {
                 conn.setAutoCommit(false);
                 result = "${text.result.autoCommitOff}";
             } else if(sql.startsWith("@TRANSACTION_ISOLATION")) {
@@ -1175,7 +1175,7 @@ class WebThread extends Thread {
             boolean metadata = false;
             boolean generatedKeys = false;
             boolean edit = false;
-            if(sql.equals("@CANCEL")) {
+            if("@CANCEL".equals(sql)) {
                 stat = session.executingStatement;
                 if(stat != null) {
                     stat.cancel();
@@ -1201,7 +1201,7 @@ class WebThread extends Thread {
                 edit = true;
                 sql = sql.substring("@EDIT".length()).trim();
                 session.put("resultSetSQL", sql);
-            } else if(sql.equals("@HISTORY")) {
+            } else if("@HISTORY".equals(sql)) {
                 buff.append(getHistoryString());
                 return buff.toString();
             }

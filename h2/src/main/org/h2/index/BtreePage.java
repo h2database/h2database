@@ -86,5 +86,4 @@ public abstract class BtreePage extends Record {
         return root;
     }
 
-    public abstract String print(String indent) throws SQLException;
 }

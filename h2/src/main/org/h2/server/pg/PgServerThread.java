@@ -30,6 +30,7 @@ import java.util.Properties;
 
 import org.h2.Driver;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
 
 /**
@@ -362,7 +363,7 @@ public class PgServerThread implements Runnable {
     }
     
     private void checkType(int type) {
-        if(types.contains(new Integer(type))) {
+        if(types.contains(ObjectUtils.getInteger(type))) {
             error("Unsupported type: " + type, null);
         }
     }
@@ -431,7 +432,7 @@ public class PgServerThread implements Runnable {
     }
     
     private String getEncoding() {
-        if(clientEncoding.equals("UNICODE")) {
+        if("UNICODE".equals(clientEncoding)) {
             return "UTF-8";
         }
         return clientEncoding;
@@ -593,7 +594,7 @@ public class PgServerThread implements Runnable {
         
         rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
         while(rs.next()) {
-            types.add(new Integer(rs.getInt(1)));
+            types.add(ObjectUtils.getInteger(rs.getInt(1)));
         }
     }
 

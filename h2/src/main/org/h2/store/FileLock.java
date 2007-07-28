@@ -67,7 +67,7 @@ public class FileLock {
     }
 
     protected void finalize() {
-        if (!Constants.RUN_FINALIZE) {
+        if (!Constants.runFinalize) {
             return;
         }
         if(locked) {

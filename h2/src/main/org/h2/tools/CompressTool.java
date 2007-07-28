@@ -32,7 +32,7 @@ public class CompressTool {
     
     private static CompressTool instance = new CompressTool();
     private static byte[] buffer;
-    private static int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
+    private static final int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
     
     private static byte[] getBuffer(int min) {
         if(min > MAX_BUFFER_SIZE) {

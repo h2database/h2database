@@ -22,9 +22,9 @@ public class CompressDeflate implements Compressor {
             StringTokenizer tokenizer = new StringTokenizer(options);
             while(tokenizer.hasMoreElements()) {
                 String option = tokenizer.nextToken();
-                if(option.equals("level") || option.equals("l")) {
+                if("level".equals(option) || "l".equals(option)) {
                     level = Integer.parseInt(tokenizer.nextToken());
-                } else if(option.equals("strategy") || option.equals("s")) {
+                } else if("strategy".equals(option) || "s".equals(option)) {
                     strategy = Integer.parseInt(tokenizer.nextToken());
                 }
             }

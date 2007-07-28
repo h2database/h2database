@@ -648,7 +648,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 
     public void beforeTest() throws SQLException {
         if(networked) {
-            TcpServer.LOG_INTERNAL_ERRORS = true;
+            TcpServer.logInternalErrors = true;
             String[] args = ssl ? new String[]{"-tcpSSL", "true"} : new String[0];
             server = Server.createTcpServer(args);
             try {

@@ -7,8 +7,8 @@ package org.h2.util;
 public class MemoryUtils {
     
     private static long lastGC;
-    private static int GC_DELAY = 50;
-    private static int MAX_GC = 8;
+    private static final int GC_DELAY = 50;
+    private static final int MAX_GC = 8;
     
     public static int getMemoryUsed() {
         collectGarbage();

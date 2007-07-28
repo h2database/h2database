@@ -186,8 +186,7 @@ public class Parser {
 
     public Prepared parseOnly(String sql) throws SQLException {
         try {
-            Prepared p = parse(sql);
-            return p;
+            return parse(sql);
         } catch(Exception e) {
             throw Message.convert(e);
         }
@@ -489,8 +488,7 @@ public class Parser {
                 readIf("SCRIPT");
             }
         }
-        TransactionCommand command = new TransactionCommand(session, type);
-        return command;
+        return new TransactionCommand(session, type);
     }
 
     private TransactionCommand parseRollback() throws SQLException {
@@ -623,8 +621,7 @@ public class Parser {
                 alias = readAliasIdentifier();
             }
         }
-        TableFilter filter = new TableFilter(session, table, alias, rightsChecked, currentSelect);
-        return filter;
+        return new TableFilter(session, table, alias, rightsChecked, currentSelect);
     }
 
     private Delete parseDelete() throws SQLException {
@@ -694,8 +691,7 @@ public class Parser {
             buff.append("UPPER(TOPIC) LIKE ");
             buff.append(StringUtils.quoteStringSQL("%"+s+"%"));
         }
-        Prepared command = session.prepare(buff.toString());
-        return command;
+        return session.prepare(buff.toString());
     }
 
     private Merge parseMerge() throws SQLException {
@@ -817,7 +813,7 @@ public class Parser {
                     }
                     table = new FunctionTable(mainSchema, session, (FunctionCall)func);
                 }
-            } else if(tableName.equals("DUAL")) {
+            } else if("DUAL".equals(tableName)) {
                 table = new RangeTable(mainSchema, 1, 1);
             } else {
                 table = readTableOrView(tableName);
@@ -832,8 +828,7 @@ public class Parser {
                 alias = readAliasIdentifier();
             }
         }
-        TableFilter filter = new TableFilter(session, table, alias, rightsChecked, currentSelect);
-        return filter;
+        return new TableFilter(session, table, alias, rightsChecked, currentSelect);
     }
 
     private Prepared parseTruncate() throws SQLException {
@@ -2683,31 +2678,31 @@ public class Parser {
         } else if(s.length()==2) {
             switch (c0) {
             case ':':
-                if(s.equals("::")) {
+                if("::".equals(s)) {
                     return KEYWORD;
                 }
                 break;
             case '>':
-                if(s.equals(">=")) {
+                if(">=".equals(s)) {
                     return BIGGER_EQUAL;
                 }
                 break;
             case '<':
-                if (s.equals("<=")) {
+                if ("<=".equals(s)) {
                     return SMALLER_EQUAL;
-                } else if (s.equals("<>")) {
+                } else if ("<>".equals(s)) {
                     return NOT_EQUAL;
                 }
                 break;
             case '!':
-                if (s.equals("!=")) {
+                if ("!=".equals(s)) {
                     return NOT_EQUAL;
-                } else if(s.equals("!~")) {
+                } else if("!~".equals(s)) {
                     return KEYWORD;
                 }
                 break;
             case '|':
-                if(s.equals("||")) {
+                if("||".equals(s)) {
                     return STRING_CONCAT;
                 }
                 break;
@@ -2746,16 +2741,16 @@ public class Parser {
         case 'D':
             return getKeywordOrIdentifier(s, "DISTINCT", KEYWORD);
         case 'E':
-            if(s.equals("EXCEPT")) {
+            if("EXCEPT".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "EXISTS", KEYWORD);
         case 'F':
-            if(s.equals("FROM")) {
+            if("FROM".equals(s)) {
                 return KEYWORD;
-            } else if(s.equals("FOR")) {
+            } else if("FOR".equals(s)) {
                 return KEYWORD;
-            } else if(s.equals("FULL")) {
+            } else if("FULL".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "FALSE", FALSE);
@@ -2764,33 +2759,33 @@ public class Parser {
         case 'H':
             return getKeywordOrIdentifier(s, "HAVING", KEYWORD);
         case 'I':
-            if (s.equals("INNER")) {
+            if ("INNER".equals(s)) {
                 return KEYWORD;
-            } else if(s.equals("INTERSECT")) {
+            } else if("INTERSECT".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "IS", KEYWORD);
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
         case 'L':
-            if (s.equals("LIMIT")) {
+            if ("LIMIT".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "LIKE", KEYWORD);
         case 'M':
-            if(s.equals("MINUS")) {
+            if("MINUS".equals(s)) {
                 return KEYWORD;
             }
             break;
         case 'N':
-            if(s.equals("NOT")) {
+            if("NOT".equals(s)) {
                 return KEYWORD;
-            } else if(s.equals("NATURAL")) {
+            } else if("NATURAL".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "NULL", NULL);
         case 'O':
-            if (s.equals("ON")) {
+            if ("ON".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "ORDER", KEYWORD);
@@ -2808,7 +2803,7 @@ public class Parser {
             }
             return getKeywordOrIdentifier(s, "SELECT", KEYWORD);
         case 'T':
-            if(s.equals("TODAY")) {
+            if("TODAY".equals(s)) {
                 return CURRENT_DATE;
             }
             return getKeywordOrIdentifier(s, "TRUE", TRUE);

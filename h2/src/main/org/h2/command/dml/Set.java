@@ -169,7 +169,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();
-            Constants.MULTI_THREADED_KERNEL = (getIntValue() == 1);
+            Constants.multiThreadedKernel = (getIntValue() == 1);
             break;
         }
         case SetTypes.DB_CLOSE_DELAY: {

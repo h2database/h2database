@@ -695,8 +695,8 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.check2", "" + Constants.CHECK2});
             add(rows, new String[]{"h2.lobFilesInDirectories", "" + Constants.LOB_FILES_IN_DIRECTORIES});
             add(rows, new String[]{"h2.lobFilesPerDirectory", "" + Constants.LOB_FILES_PER_DIRECTORY});
-            add(rows, new String[]{"h2.multiThreadedKernel", "" + Constants.MULTI_THREADED_KERNEL});
-            add(rows, new String[]{"h2.runFinalize", "" + Constants.RUN_FINALIZE});
+            add(rows, new String[]{"h2.multiThreadedKernel", "" + Constants.multiThreadedKernel});
+            add(rows, new String[]{"h2.runFinalize", "" + Constants.runFinalize});
             add(rows, new String[]{"h2.optimizeMinMax", "" + Constants.OPTIMIZE_MIN_MAX});
             add(rows, new String[]{"h2.optimizeIn", "" + Constants.OPTIMIZE_IN});
             add(rows, new String[]{"h2.redoBufferSize", "" + Constants.REDO_BUFFER_SIZE});
@@ -713,11 +713,11 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.objectCacheSize", "" + Constants.OBJECT_CACHE_SIZE});
             add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
             add(rows, new String[]{"h2.clientTraceDirectory", Constants.CLIENT_TRACE_DIRECTORY});
-            add(rows, new String[]{"h2.scriptDirectory", Constants.SCRIPT_DIRECTORY});
+            add(rows, new String[]{"h2.scriptDirectory", Constants.scriptDirectory});
             add(rows, new String[]{"h2.maxFileRetry", "" + Constants.MAX_FILE_RETRY});
-            add(rows, new String[]{"h2.lobCloseBetweenReads", "" + Constants.LOB_CLOSE_BETWEEN_READS});
+            add(rows, new String[]{"h2.lobCloseBetweenReads", "" + Constants.lobCloseBetweenReads});
             add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + Constants.ALLOW_BIG_DECIMAL_EXTENSIONS});
-            add(rows, new String[]{"h2.baseDir", "" + Constants.BASE_DIR});
+            add(rows, new String[]{"h2.baseDir", "" + Constants.getBaseDir()});
             add(rows, new String[]{"h2.defaultMaxMemoryUndo", "" + Constants.DEFAULT_MAX_MEMORY_UNDO});
             break;
         }

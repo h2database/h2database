@@ -95,7 +95,7 @@ public class TestPowerOff extends TestBase {
         }
         deleteDb(dir, dbName);  
         Random random = new Random(1);
-        Constants.RUN_FINALIZE = false;
+        Constants.runFinalize = false;
         int repeat = getSize(1, 20);
         for(int i=0; i<repeat; i++) {
             Connection conn = getConnection(url);

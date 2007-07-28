@@ -37,7 +37,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private int type;
     private String constraintName;
     private String tableName;
-    private Table table;
     private String[] columnNames;
     private int deleteAction;
     private int updateAction;
@@ -62,7 +61,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     public int update() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
-        table = getSchema().getTableOrView(session, tableName);   
+        Table table = getSchema().getTableOrView(session, tableName);   
         if(getSchema().findConstraint(constraintName)!=null) {
             throw Message.getSQLException(Message.CONSTRAINT_ALREADY_EXISTS_1,
                     constraintName);

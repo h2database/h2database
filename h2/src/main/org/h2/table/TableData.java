@@ -297,7 +297,7 @@ public class TableData extends Table implements RecordReader {
                     }
                 } else {
                     if (lockExclusive == null) {
-                        if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !Constants.MULTI_THREADED_KERNEL) {
+                        if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !Constants.multiThreadedKernel) {
                             // READ_COMMITTED read locks are acquired but they are released immediately
                             // when allowing only one thread, no read locks are required
                             return;

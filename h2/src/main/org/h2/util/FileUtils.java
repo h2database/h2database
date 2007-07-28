@@ -31,7 +31,7 @@ public class FileUtils {
     private static final String MEMORY_PREFIX = "inmemory:";
     private static final String MEMORY_PREFIX_2 = "mem:";
     // TODO detection of 'case in sensitive filesystem' could maybe implemented using some other means
-    private static final boolean isCaseInsensitiveFileSystem = (File.separatorChar == '\\');
+    private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = (File.separatorChar == '\\');
 
     public static RandomAccessFile openRandomAccessFile(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
@@ -82,7 +82,7 @@ public class FileUtils {
 
     public static boolean fileStartsWith(String fileName, String prefix) {
         fileName = translateFileName(fileName);
-        if(isCaseInsensitiveFileSystem) {
+        if(IS_FILE_SYSTEM_CASE_INSENSITIVE) {
             fileName = StringUtils.toUpperEnglish(fileName);
             prefix = StringUtils.toUpperEnglish(prefix);
         }

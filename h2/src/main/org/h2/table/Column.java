@@ -224,7 +224,7 @@ public class Column {
         if(!autoIncrement) {
             throw Message.getInternalError();
         }
-        if(originalSQL.equals("IDENTITY")) {
+        if("IDENTITY".equals(originalSQL)) {
             originalSQL = "BIGINT";
         }
         String sequenceName;

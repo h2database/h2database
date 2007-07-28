@@ -32,7 +32,7 @@ public class ValueDecimal extends Value {
 
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException();
         } else if(!Constants.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
             SQLException e = Message.getSQLException(Message.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()}, null);
             throw Message.convertToInternal(e);

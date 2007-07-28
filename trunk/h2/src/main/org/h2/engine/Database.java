@@ -164,7 +164,7 @@ public class Database implements DataHandler {
         }
         String log = ci.getProperty(SetTypes.LOG, null);
         if(log != null) {
-            this.logIndexChanges = log.equals("2");
+            this.logIndexChanges = "2".equals(log);
         }
         String ignoreSummary = ci.getProperty("RECOVER", null);
         if(ignoreSummary != null) {

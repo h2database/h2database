@@ -18,7 +18,7 @@ public class RuleFixed implements Rule {
     public static final int ANY_WORD = 7;
     public static final int HEX_START = 10, CONCAT = 11, AZ_ = 12, AF = 13, DIGIT = 14;
     
-    private int type;
+    private final int type;
     
     public RuleFixed(int type) {
         this.type = type;
@@ -212,14 +212,14 @@ public class RuleFixed implements Rule {
         case HEX_START: 
             if(query.length() == 0) {
                 sentence.add("0x", "0x", Sentence.KEYWORD);
-            } else if(query.equals("0")) {
+            } else if("0".equals(query)) {
                 sentence.add("0x", "x", Sentence.KEYWORD);
             }
             break;
         case CONCAT:
             if(query.length() == 0) {
                 sentence.add("||", "||", Sentence.KEYWORD);
-            } else if(query.equals("|")) {
+            } else if("|".equals(query)) {
                 sentence.add("||", "|", Sentence.KEYWORD);
             }
             break;

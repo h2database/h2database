@@ -96,7 +96,7 @@ public class StringCache {
             }
         }
         // create a new object that is not shared (to avoid out of memory if it is a substring of a big String)
-        s = new String(s);
+        s = new String(s); // NOPMD
         cache[index] = s;
         return s;
     }

@@ -29,7 +29,7 @@ public class TcpServer implements Service {
     public static final int DEFAULT_PORT = 9092;
     public static final int SHUTDOWN_NORMAL = 0;
     public static final int SHUTDOWN_FORCE = 1;
-    public static boolean LOG_INTERNAL_ERRORS;
+    public static boolean logInternalErrors;
     
     private int port;
     private boolean log;
@@ -80,19 +80,19 @@ public class TcpServer implements Service {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
             String a = args[i];
-            if (a.equals("-log")) {
+            if ("-log".equals(a)) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-tcpSSL")) {
+            } else if ("-tcpSSL".equals(a)) {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-tcpPort")) {
+            } else if ("-tcpPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else if (a.equals("-tcpPassword")) {
+            } else if ("-tcpPassword".equals(a)) {
                 managementPassword= args[++i];
-            } else if (a.equals("-baseDir")) {
+            } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
-            } else if (a.equals("-tcpAllowOthers")) {
+            } else if ("-tcpAllowOthers".equals(a)) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-ifExists")) {
+            } else if ("-ifExists".equals(a)) {
                 ifExists = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
@@ -243,7 +243,7 @@ public class TcpServer implements Service {
     }
 
     public void logInternalError(String string) {
-        if(TcpServer.LOG_INTERNAL_ERRORS) {
+        if(TcpServer.logInternalErrors) {
             System.out.println(string);
             new Error(string).printStackTrace();
         }

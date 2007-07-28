@@ -26,8 +26,8 @@ public class Bnf {
     private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'";
     private static final long MAX_PARSE_TIME = 100;
     
-    private Random random;
-    private HashMap ruleMap = new HashMap();
+    private final Random random = new Random();
+    private final HashMap ruleMap = new HashMap();
     private String syntax;
     private String currentToken;
     private String[] tokens;
@@ -54,7 +54,6 @@ public class Bnf {
     }
     
     Bnf() {
-        this.random = new Random();
         random.setSeed(1);
     }
     
@@ -170,8 +169,7 @@ public class Bnf {
     
     private Rule parseRule() {
         read();
-        Rule r= parseOr();
-        return r;
+        return parseOr();
     }
     
     private Rule parseOr() {

@@ -75,7 +75,7 @@ public class ConnectionInfo {
     }
 
     private void parseName() {
-        if(name.equals(".")) {
+        if(".".equals(name)) {
             name = "mem:";
         }
         if(name.startsWith("tcp:")) {
@@ -87,7 +87,7 @@ public class ConnectionInfo {
             name = name.substring("ssl:".length());
         } else if(name.startsWith("mem:")) {
             persistent = false;
-            if(name.equals("mem:")) {
+            if("mem:".equals(name)) {
                 unnamed = true;
             }
         } else if(name.startsWith("file:")) {

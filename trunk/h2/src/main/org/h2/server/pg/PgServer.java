@@ -42,15 +42,15 @@ public class PgServer implements Service {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
             String a = args[i];
-            if (a.equals("-log")) {
+            if ("-log".equals(a)) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-pgPort")) {
+            } else if ("-pgPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else if (a.equals("-baseDir")) {
+            } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
-            } else if (a.equals("-pgAllowOthers")) {
+            } else if ("-pgAllowOthers".equals(a)) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-ifExists")) {
+            } else if ("-ifExists".equals(a)) {
                 ifExists = Boolean.valueOf(args[++i]).booleanValue();
             }
         }

@@ -122,30 +122,30 @@ public class Server implements Runnable {
         boolean startDefaultServers = true;
         for(int i=0; args != null && i<args.length; i++) {
             String a = args[i];
-            if(a.equals("-?") || a.equals("-help")) {
+            if("-?".equals(a) || "-help".equals(a)) {
                 showUsage();
                 return EXIT_ERROR;
-            } else if(a.equals("-web")) {
+            } else if("-web".equals(a)) {
                 startDefaultServers = false;
                 webStart = true;
-            } else if(a.equals("-tcp")) {
+            } else if("-tcp".equals(a)) {
                 startDefaultServers = false;
                 tcpStart = true;
-            } else if(a.equals("-pg")) {
+            } else if("-pg".equals(a)) {
                 startDefaultServers = false;
                 pgStart = true;
-            } else if(a.equals("-ftp")) {
+            } else if("-ftp".equals(a)) {
                 startDefaultServers = false;
                 ftpStart = true;
-            } else if(a.equals("-tcpShutdown")) {
+            } else if("-tcpShutdown".equals(a)) {
                 startDefaultServers = false;
                 tcpShutdown = true;
                 tcpShutdownServer = args[++i];
-            } else if(a.equals("-tcpPassword")) {
+            } else if("-tcpPassword".equals(a)) {
                 tcpPassword = args[++i];
-            } else if(a.equals("-tcpShutdownForce")) {
+            } else if("-tcpShutdownForce".equals(a)) {
                 tcpShutdownForce = true;
-            } else if(a.equals("-browser")) {
+            } else if("-browser".equals(a)) {
                 startDefaultServers = false;
                 browserStart = true;
             }

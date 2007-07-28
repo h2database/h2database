@@ -61,13 +61,12 @@ public abstract class Command implements CommandInterface {
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = Constants.MULTI_THREADED_KERNEL ? (Object)session : (Object)database;
+        Object sync = Constants.multiThreadedKernel ? (Object)session : (Object)database;
         synchronized (sync) {
             try {
                 database.checkPowerOff();
                 session.setCurrentCommand(this);
-                LocalResult result = query(maxrows);
-                return result;
+                return query(maxrows);
             } catch(Throwable e) {
                 SQLException s = Message.convert(e);
                 database.exceptionThrown(s, sql);
@@ -95,7 +94,7 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (Constants.MULTI_THREADED_KERNEL) {
+        } else if (Constants.multiThreadedKernel) {
             Database db = session.getDatabase();
             if (db != null && db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
                 session.unlockReadLocks();
@@ -112,14 +111,13 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = Constants.MULTI_THREADED_KERNEL ? (Object)session : (Object)database;
+        Object sync = Constants.multiThreadedKernel ? (Object)session : (Object)database;
         synchronized (sync) {
             int rollback = session.getLogId();
             session.setCurrentCommand(this);            
             try {
                 database.checkPowerOff();
-                int result = update();
-                return result;
+                return update();
             } catch (SQLException e) {
                 database.exceptionThrown(e, sql);
                 database.checkPowerOff();

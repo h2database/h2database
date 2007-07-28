@@ -139,8 +139,8 @@ public class TestRandomSQL extends TestBase {
     }
     
     public void testCase(int i) throws Exception {
-        String old = Constants.SCRIPT_DIRECTORY;
-        Constants.SCRIPT_DIRECTORY = "dataScript/";
+        String old = Constants.scriptDirectory;
+        Constants.scriptDirectory = "dataScript/";
         seed = i;
         printTime("TestRandomSQL " + seed);
         try {
@@ -149,7 +149,7 @@ public class TestRandomSQL extends TestBase {
             processException("deleteDb", e);
         }
         testWithSeed(bnf);
-        Constants.SCRIPT_DIRECTORY = old;
+        Constants.scriptDirectory = old;
     }
 
     public void test() throws Exception {

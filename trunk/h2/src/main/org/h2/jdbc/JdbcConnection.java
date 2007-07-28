@@ -921,7 +921,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 session = new SessionRemote().createSession(ci);
             } else {
                 SessionInterface si = (SessionInterface) ClassUtils.loadClass("org.h2.engine.Session").newInstance();
-                String baseDir = Constants.BASE_DIR;
+                String baseDir = Constants.getBaseDir();
                 if(baseDir != null) {
                     ci.setBaseDir(baseDir);
                 }
@@ -1184,7 +1184,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     protected void finalize() {
-        if(!Constants.RUN_FINALIZE) {
+        if(!Constants.runFinalize) {
             return;
         }
         if(isInternal) {

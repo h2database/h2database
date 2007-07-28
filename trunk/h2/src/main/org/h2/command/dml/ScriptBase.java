@@ -59,7 +59,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         if(fileName == null || fileName.trim().length() == 0) {
             fileName = "script.sql";
         }
-        this.fileName = Constants.SCRIPT_DIRECTORY + fileName;
+        this.fileName = Constants.scriptDirectory + fileName;
     }    
 
     public boolean isTransactional() {

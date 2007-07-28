@@ -74,7 +74,7 @@ public class Script {
                 for(; i<args.length; i++) {
                     String a = args[i];
                     String upper = StringUtils.toUpperEnglish(a);
-                    if(upper.startsWith("NO") || upper.equals("DROP")) {
+                    if(upper.startsWith("NO") || "DROP".equals(upper)) {
                         buff1.append(' ');
                         buff1.append(args[i]);
                     } else {

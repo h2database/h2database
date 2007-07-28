@@ -276,12 +276,4 @@ public class BtreeLeaf extends BtreePage {
         return (SearchRow)pageData.get(0);
     }
 
-    public String print(String indent) throws SQLException {
-        System.out.println(indent + "leaf:");
-        for(int i=0; i<pageData.size(); i++) {
-            System.out.println(indent + "  " + getData(i).getValue(1).getString().substring(4150));
-        }
-        return getData(0).getValue(1).getString().substring(4150);
-    }
-
 }

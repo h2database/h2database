@@ -87,11 +87,11 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
         ResultSet rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
         rs.next();
-        Constants.LOB_CLOSE_BETWEEN_READS = true;
+        Constants.lobCloseBetweenReads = true;
         Reader in = rs.getCharacterStream(1);
         in.read();
         conn.createStatement().execute("DELETE FROM TEST");
-        Constants.LOB_CLOSE_BETWEEN_READS = false;
+        Constants.lobCloseBetweenReads = false;
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
         rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
         rs.next();

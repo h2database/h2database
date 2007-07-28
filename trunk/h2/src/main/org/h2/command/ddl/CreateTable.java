@@ -34,7 +34,6 @@ public class CreateTable extends SchemaCommand {
     private boolean ifNotExists;
     private boolean persistent = true;
     private boolean hashPrimaryKey;
-    private ObjectArray sequences;
     private boolean temporary;
     private boolean globalTemporary;
     private boolean onCommitDrop;
@@ -107,7 +106,7 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         }
-        sequences = new ObjectArray();
+        ObjectArray sequences = new ObjectArray();
         for(int i=0; i<columns.size(); i++) {
             Column c = (Column) columns.get(i);
             if(c.getAutoIncrement()) {

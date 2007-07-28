@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ObjectUtils;
 
 public class ValueByte extends Value {
     public static final int PRECISION = 3;
@@ -103,7 +104,7 @@ public class ValueByte extends Value {
     }
 
     public Object getObject() {
-        return new Byte(value);
+        return ObjectUtils.getByte(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

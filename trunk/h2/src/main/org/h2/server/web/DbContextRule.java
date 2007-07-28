@@ -23,7 +23,7 @@ public class DbContextRule implements Rule {
     static final int COLUMN = 0, TABLE = 1, TABLE_ALIAS = 2;
     public static final int NEW_TABLE_ALIAS = 3; 
     public static final int COLUMN_ALIAS = 4; 
-    private static boolean SUGGEST_TABLE_ALIAS;
+    private static final boolean SUGGEST_TABLE_ALIAS = false;
     
     DbContextRule(DbContents contents, int type) {
         this.contents = contents;

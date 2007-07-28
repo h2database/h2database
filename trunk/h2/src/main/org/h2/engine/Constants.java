@@ -77,7 +77,6 @@ public class Constants {
     public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
     public static final int TCP_DRIVER_VERSION = 4;
-
     public static final int VERSION_JDBC_MAJOR = 3;
     public static final int VERSION_JDBC_MINOR = 0;
 
@@ -88,22 +87,14 @@ public class Constants {
     public static final int NULL_SORT_LOW = 1, NULL_SORT_HIGH = 2;
     public static final int NULL_SORT_START = 3, NULL_SORT_END = 4;
     public static final int NULL_SORT_DEFAULT = NULL_SORT_LOW;
-
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs
-
     public static final String START_URL = "jdbc:h2:";
-
     public static final String URL_FORMAT = START_URL + "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
-
     public static final String PRODUCT_NAME = "H2";
-
     public static final String DRIVER_NAME = "H2 JDBC Driver";
-
     public static final int IO_BUFFER_SIZE = 4 * 1024;
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;
-
     public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 64 * 1024;
-
     public static final String SUFFIX_DB_FILE = ".db";
     public static final String SUFFIX_DATA_FILE = ".data.db";
     public static final String SUFFIX_LOG_FILE = ".log.db";
@@ -115,59 +106,40 @@ public class Constants {
     public static final String SUFFIX_LOB_FILE = ".lob.db";
     public static final String SUFFIX_TRACE_START_FILE = ".start";
     public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
-
     public static final String UTF8 = "UTF8";
     public static final int DEFAULT_TABLE_TYPE = 0;
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 128;
     public static final int DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB = 65536;
     public static final int SALT_LEN = 8;
-
     public static final int DEFAULT_DATA_PAGE_SIZE = 512;
-
     public static final String PRIMARY_KEY_PREFIX = "PRIMARY_KEY_";
-
     public static final int LOCK_SLEEP = 1000;
 
     // TODO for testing, the lock timeout is smaller than for interactive use cases
     // public static final int INITIAL_LOCK_TIMEOUT = 60 * 1000;
     public static final int INITIAL_LOCK_TIMEOUT = 1000;
-
     public static final char DEFAULT_ESCAPE_CHAR = '\\';
     public static final int DEFAULT_HTTP_PORT = 8082; // also in the docs
     public static final boolean DEFAULT_HTTP_SSL = false;
     public static final boolean DEFAULT_HTTP_ALLOW_OTHERS = false;
     public static final int DEFAULT_FTP_PORT = 8021;
-
     public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;
-
     public static final int DEFAULT_WRITE_DELAY = 500;
-
     public static final String SERVER_PROPERTIES_TITLE = "H2 Server Properties";
-
     public static final String SERVER_PROPERTIES_FILE = ".h2.server.properties";
-
     public static final long LONG_QUERY_LIMIT_MS = 100;
-
     public static final String PUBLIC_ROLE_NAME = "PUBLIC";
-
     public static final String TEMP_TABLE_PREFIX = "TEMP_TABLE_";
-
     public static final int BIG_DECIMAL_SCALE_MAX = 100000;
-
     public static final String SCHEMA_MAIN = "PUBLIC";
     public static final String SCHEMA_INFORMATION = "INFORMATION_SCHEMA";
-
     public static final String DBA_NAME = "DBA";
-
     public static final String CHARACTER_SET_NAME = "Unicode";
-
     public static final String CLUSTERING_DISABLED = "''";
-
     public static final int LOCK_MODE_OFF = 0;
     public static final int LOCK_MODE_TABLE = 1;
     public static final int LOCK_MODE_TABLE_GC = 2;
     public static final int LOCK_MODE_READ_COMMITTED = 3;
-
     public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
     public static final int SELECTIVITY_DEFAULT = 50;
     public static final int SELECTIVITY_ANALYZE_SAMPLE_ROWS = 10000;
@@ -177,52 +149,44 @@ public class Constants {
     public static final int COST_ROW_OFFSET = 1000;
     public static final long FLUSH_INDEX_DELAY = 0;
     public static final int THROTTLE_DELAY = 50;
-
     public static final String MANAGEMENT_DB_PREFIX = "management_db_";
     public static final String MANAGEMENT_DB_USER = "sa";
-
     public static final boolean SERIALIZE_JAVA_OBJECTS = true;
     public static final long DEFAULT_MAX_LOG_SIZE = 32 * 1024 * 1024;
     public static final long LOG_SIZE_DIVIDER = 10;
-
     public static final int ALLOW_LITERALS_NONE = 0;
     public static final int ALLOW_LITERALS_NUMBERS = 1;
     public static final int ALLOW_LITERALS_ALL = 2;
-
     public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
     public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
     public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
-    
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
     
+    public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
+    public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");
+    private static String baseDir = getStringSetting("h2.baseDir", null);
+    public static boolean multiThreadedKernel = getBooleanSetting("h2.multiThreadedKernel", false);
+    public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
+
+    // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
+    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
+
     // TODO need to refactor & test the code to enable this (add more tests!)
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = false;
 
     // to slow down dictionary attacks
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
-    
     public static final String SCRIPT_SQL = "script.sql";
-
-    // for testing only
     public static final int CACHE_MIN_RECORDS = 16;
-    
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
-
-    // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
-    
-    public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
-    public static boolean MULTI_THREADED_KERNEL = getBooleanSetting("h2.multiThreadedKernel", false);
-    public static boolean RUN_FINALIZE = getBooleanSetting("h2.runFinalize", true);
-    public static String SCRIPT_DIRECTORY = getStringSetting("h2.scriptDirectory", "");
-
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
     public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
@@ -239,8 +203,7 @@ public class Constants {
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
-    public static int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
-    public static boolean LOB_CLOSE_BETWEEN_READS = getBooleanSetting("h2.lobCloseBetweenReads", false);
+    public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
     public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = getBooleanSetting("h2.allowBigDecimalExtensions", false);
     public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
@@ -248,7 +211,6 @@ public class Constants {
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
-    public static String BASE_DIR = getStringSetting("h2.baseDir", null);
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 50000);
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
     public static final boolean OPTIMIZE_2_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
@@ -257,7 +219,11 @@ public class Constants {
         if(!dir.endsWith("/")) {
             dir += "/";
         }
-        BASE_DIR = dir;
+        baseDir = dir;
+    }
+    
+    public static String getBaseDir() {
+        return baseDir;
     }
     
     public static boolean getBooleanSetting(String name, boolean defaultValue) {

@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
-import org.h2.server.OdbcServer;
 import org.h2.server.Service;
 import org.h2.server.TcpServer;
 import org.h2.server.ftp.FtpServer;
@@ -52,10 +51,6 @@ public class Server implements Runnable {
         System.out.println("-pgPort <port> (default: " + PgServer.DEFAULT_PORT+")");
         System.out.println("-pgAllowOthers [true|false]");        
 
-        System.out.println("-odbc (start the ODBC Server)");
-        System.out.println("-odbcPort <port> (default: " + OdbcServer.DEFAULT_PORT+")");
-        System.out.println("-odbcAllowOthers [true|false]");        
-
         System.out.println("-ftp (start the FTP Server)");
         System.out.println("-ftpPort <port> (default: " + Constants.DEFAULT_FTP_PORT+")");
         System.out.println("-ftpDir <directory> (default: " + FtpServer.DEFAULT_ROOT+", use jdbc:... to access a database)");        
@@ -74,7 +69,7 @@ public class Server implements Runnable {
     /**
      * The command line interface for this tool.
      * The options must be split into strings like this: "-baseDir", "/temp/data",...
-     * By default, -tcp, -web, -browser and -odbc are started.
+     * By default, -tcp, -web, -browser and -pg are started.
      * If there is a problem starting a service, the program terminates with an exit code of 1.
      * The following options are supported:
      * <ul>
@@ -83,7 +78,6 @@ public class Server implements Runnable {
      * </li><li>-tcp (start the TCP Server)
      * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
      * </li><li>-pg (start the PG Server)
-     * </li><li>-odbc (start the ODBC Server)
      * </li><li>-browser (start a browser and open a page to connect to the Web Server)
      * </li><li>-log [true|false] (enable or disable logging)
      * </li><li>-baseDir {directory} (sets the base directory for database files; not for H2 Console)
@@ -102,8 +96,6 @@ public class Server implements Runnable {
      * </li><li>-tcpShutdownForce [true|false] (don't wait for other connections to close)
      * </li><li>-pgPort {port} (the port of PG Server, default: 5435)
      * </li><li>-pgAllowOthers [true|false] (enable/disable remote connections)
-     * </li><li>-odbcPort {port} (the port of ODBC Server, default: 9083)
-     * </li><li>-odbcAllowOthers [true|false] (enable/disable remote connections)
      * </li><li>-ftpPort {port}
      * </li><li>-ftpDir {directory}
      * </li><li>-ftpRead  {readUserName}
@@ -122,7 +114,7 @@ public class Server implements Runnable {
     }
 
     private int run(String[] args) throws SQLException {
-        boolean tcpStart = false, odbcStart = false, pgStart = false, webStart = false, ftpStart = false;
+        boolean tcpStart = false, pgStart = false, webStart = false, ftpStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
@@ -136,9 +128,6 @@ public class Server implements Runnable {
             } else if(a.equals("-web")) {
                 startDefaultServers = false;
                 webStart = true;
-            } else if(a.equals("-odbc")) {
-                startDefaultServers = false;
-                odbcStart = true;
             } else if(a.equals("-tcp")) {
                 startDefaultServers = false;
                 tcpStart = true;
@@ -165,7 +154,6 @@ public class Server implements Runnable {
         if(startDefaultServers) {
             tcpStart = true;
             pgStart = true;
-            odbcStart = false;
             webStart = true;
             browserStart = true;
         }
@@ -195,17 +183,6 @@ public class Server implements Runnable {
                 exitCode = EXIT_ERROR;
             }            
             System.out.println(pg.getStatus());
-        }
-        if(odbcStart) {
-            Server odbc = createOdbcServer(args);
-            try {
-                odbc.start();
-            } catch(SQLException e) {
-                // ignore (status is displayed)
-                e.printStackTrace();
-                exitCode = EXIT_ERROR;
-            }            
-            System.out.println(odbc.getStatus());
         }
         if(webStart) {
             Server web = createWebServer(args);
@@ -339,15 +316,6 @@ public class Server implements Runnable {
      */
     public static Server createTcpServer(String[] args) throws SQLException {
         return new Server("H2 TCP Server", new TcpServer(), args);
-    }
-    
-    /**
-     * Create a new ODBC server, but does not start it yet.
-     * @param args
-     * @return the server
-     */
-    public static Server createOdbcServer(String[] args) throws SQLException {
-        return new Server("H2 ODBC Server", new OdbcServer(), args);
     }
     
     /**

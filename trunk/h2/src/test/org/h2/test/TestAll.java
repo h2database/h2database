@@ -201,7 +201,7 @@ CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
 INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
 SELECT * FROM TEST;
 
-Server: use one listener (detect if the request comes from an ODBC or TCP client).
+Server: use one listener (detect if the request comes from an PG or TCP client).
 
 PMD
 

@@ -1,5 +1,5 @@
-call timestamp '2007-07-26 18:44:26.109000 +02:00';
-> 1;
+select timestamp '2007-07-26 18:44:26.109000 +02:00';
+> 2007-07-26 18:44:26.109;
 
 create table test(id int primary key);
 begin;

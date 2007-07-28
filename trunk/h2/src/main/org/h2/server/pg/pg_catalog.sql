@@ -6,6 +6,8 @@
 drop schema if exists pg_catalog;
 create schema pg_catalog;
 
+create table pg_version as select 1 as version;
+
 set search_path = PUBLIC, pg_catalog;
 
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
@@ -87,7 +89,9 @@ from information_schema.indexes;
 
 create table pg_catalog.pg_proc(
     oid int,
-    proname varchar_ignorecase
+    proname varchar_ignorecase,
+    prorettype int,
+    pronamespace int
 );
     
 create table pg_catalog.pg_trigger(

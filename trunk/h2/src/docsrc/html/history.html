@@ -39,7 +39,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
-<li>The default value for h2.defaultMaxMemoryUndo is now 50000. 
+<li>
+</li><li>The experimental H2 ODBC driver has been removed.
+</li><li>The default value for h2.defaultMaxMemoryUndo is now 50000. 
 	This avoids out of memory problems when using very large transactions, 
 	however large transactions are slower because they are buffered to disk.
 	To disable, use -Dh2.defaultMaxMemoryUndo=2000000000.

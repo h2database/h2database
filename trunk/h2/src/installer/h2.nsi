@@ -119,8 +119,6 @@ Section "All"
   File /r /x CVS /x .cvsignore ..\..\bin\*.*
   SetOutPath "$INSTDIR\docs"
   File /r /x CVS /x .cvsignore ..\..\docs\*.*
-  SetOutPath "$INSTDIR\odbc"
-  File /r /x CVS /x .cvsignore ..\..\odbc\*.*
   SetOutPath "$INSTDIR\service"
   File /r /x CVS /x .cvsignore /x .svn ..\..\service\*.*
   SetOutPath "$INSTDIR"

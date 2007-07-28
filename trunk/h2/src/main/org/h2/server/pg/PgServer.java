@@ -38,11 +38,25 @@ public class PgServer implements Service {
     private boolean allowOthers;
     private boolean ifExists;
     
-    public static void main(String[] args) throws Exception {
-        PgServer app = new PgServer();
-        app.init(args);
-        app.start();
-        app.listen();
+    public void init(String[] args) throws Exception {
+        port = DEFAULT_PORT;
+        for (int i = 0; i < args.length; i++) {
+            String a = args[i];
+            if (a.equals("-log")) {
+                log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (a.equals("-pgPort")) {
+                port = MathUtils.decodeInt(args[++i]);
+            } else if (a.equals("-baseDir")) {
+                baseDir = args[++i];
+            } else if (a.equals("-pgAllowOthers")) {
+                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (a.equals("-ifExists")) {
+                ifExists = Boolean.valueOf(args[++i]).booleanValue();
+            }
+        }
+        org.h2.Driver.load();
+        url = "pg://localhost:" + port;
+        // log = true;
     }
 
     boolean getLog() {
@@ -63,29 +77,6 @@ public class PgServer implements Service {
         if (log) {
             e.printStackTrace();
         }
-    }
-
-    public void init(String[] args) throws Exception {
-        port = DEFAULT_PORT;
-        for (int i = 0; i < args.length; i++) {
-            String a = args[i];
-            if (a.equals("-log")) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-pgPort")) {
-                port = MathUtils.decodeInt(args[++i]);
-            } else if (a.equals("-baseDir")) {
-                baseDir = args[++i];
-            } else if (a.equals("-pgAllowOthers")) {
-                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-            } else if (a.equals("-ifExists")) {
-                ifExists = Boolean.valueOf(args[++i]).booleanValue();
-            }
-        }
-        org.h2.Driver.load();
-        url = "pg://localhost:" + port;
-        
-        int testing;
-        log = true;
     }
 
     public String getURL() {
@@ -129,7 +120,7 @@ public class PgServer implements Service {
     }
 
     public void stop() {
-        // TODO server: share code between web and tcp servers
+        // TODO server: combine with tcp server
         if(!stop) {
             stop = true;
             if(serverSocket != null) {
@@ -243,7 +234,7 @@ public class PgServer implements Service {
     }
     
     public static boolean hasDatabasePrivilege(int id, String privilege) {
-        return false;
+        return true;
     }
     
     public static boolean hasTablePrivilege(String table, String privilege) {

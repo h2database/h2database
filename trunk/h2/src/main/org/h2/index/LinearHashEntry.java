@@ -10,6 +10,14 @@ import org.h2.value.Value;
  * @author Thomas
  */
 public class LinearHashEntry {
+    
+//    private LinearHashEntry(int home, int hash, Value key, int value) {
+//        this.home = home;
+//        this.hash = hash;
+//        this.key = key;
+//        this.value = value;
+//    }
+    
     public int home;
     public int hash;
     public Value key;

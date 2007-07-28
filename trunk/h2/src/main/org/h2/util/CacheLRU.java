@@ -90,23 +90,17 @@ public class CacheLRU implements Cache {
         int i=0;
         ObjectArray changed = new ObjectArray();
         while (sizeMemory*4 > maxSize*3 && recordCount > Constants.CACHE_MIN_RECORDS) {
-            CacheObject last = head.next;
             i++;
             if(i == recordCount) {
-                int testing;
-                int todoCopyTo2Q;
-System.out.println("flush log");                
                 writer.flushLog();
             }
             if(i >= recordCount * 2) {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen theoretically
                 // TODO log this
-System.out.println("can not shrink cache");
-
-
                 break;
             }
+            CacheObject last = head.next;
             if(Constants.CHECK && last == head) {
                 throw Message.getInternalError("try to remove head");
             }            

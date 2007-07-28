@@ -230,7 +230,6 @@ public class DataType {
             }
             Value.getOrder(i);
         }
-        // TODO data types: try to support other types as well (longvarchar for odbc/access,...) - maybe map them to regular types?
     }
 
     private static void add(int type, int sqlType, String jdbc, DataType dataType, String[] names, int memory) {

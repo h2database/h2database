@@ -58,7 +58,6 @@ import org.h2.value.ValueUuid;
  */
 
 public class Function extends Expression implements FunctionCall {
-    // TODO functions: ODBC TIMESTAMPDIFF
     // TODO functions: add function hashcode(value)
 
     public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,

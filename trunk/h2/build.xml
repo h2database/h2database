@@ -37,13 +37,10 @@
 
 	<target name="clean" depends="init">
 		<mkdir dir="bin"/>
-		<mkdir dir="odbc"/>
 		<mkdir dir="docs"/>
 		<delete includeemptydirs="true">
 			<fileset dir="." includes="*.sql,*.txt,*.lock,**/*.db,node*"/>
 			<fileset dir="bin" includes="**/*" excludes="**/*.bat,**/*.sh"/>
-			<fileset dir="odbc" includes="*.a,*.def,"/>
-			<fileset dir="odbc" includes="*.def,h2odbcTest.exe"/>
 			<fileset dir="docs" includes="**/*"/>
 		</delete>
 		<delete file="src/tools/org/h2/tools/code/CodeSwitch.class"/>
@@ -251,7 +248,7 @@
 			<fileset dir="src/main"/>
 		</copy>
 		<java classname="org.h2.test.coverage.Coverage" classpath="bin" dir="bin" fork="true">
-			<arg line="-e org/h2/web -e org/h2/server/Odbc -e org/h2/jdbcx -e org/h2/bnf -r org/h2"/>
+			<arg line="-e org/h2/web -e org/h2/jdbcx -e org/h2/bnf -r org/h2"/>
 		</java>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
 		<java classname="org.h2.test.TestAll" fork="true" classpath="bin" dir="bin">
@@ -279,7 +276,6 @@
 			<fileset dir=".." includes="h2/ant-build.properties"/>
 			<fileset dir=".." includes="h2/bin/**/*"/>
 			<fileset dir=".." includes="h2/docs/**/*"/>
-			<fileset dir=".." includes="h2/odbc/**/*"/>
 			<fileset dir=".." includes="h2/service/**/*"/>
 			<fileset dir=".." includes="h2/src/**/*"/>
 		</zip>

@@ -17,7 +17,7 @@ public class Cache2Q implements Cache {
     
     public static final String TYPE_NAME = "TQ";
     private static final int MAIN = 1, IN = 2, OUT = 3;
-    private final static int PERCENT_IN = 20, PERCENT_OUT = 50;
+    private static final int PERCENT_IN = 20, PERCENT_OUT = 50;
     
     private final CacheWriter writer;
     private int maxSize;
@@ -160,12 +160,16 @@ public class Cache2Q implements Cache {
         int i=0;
         ObjectArray changed = new ObjectArray();        
         while (((sizeIn*4 > maxIn*3) || (sizeOut*4 > maxOut*3) || (sizeMain*4 > maxMain*3)) && recordCount > Constants.CACHE_MIN_RECORDS) {        
-            if(i++ >= recordCount) {
+            i++;
+            if(i == recordCount) {
+                writer.flushLog();
+            }
+            if(i >= recordCount * 2) {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen theoretically
                 // TODO log this
                 break;
-            }            
+            }
             if (sizeIn > maxIn) {
                 CacheObject r = headIn.next;
                 if(!r.canRemove()) {

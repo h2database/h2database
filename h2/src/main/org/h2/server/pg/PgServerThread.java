@@ -26,7 +26,6 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Properties;
 
 import org.h2.Driver;
@@ -37,7 +36,7 @@ import org.h2.util.ScriptReader;
  * This class implements a subset of the PostgreSQL protocol as described here:
  * http://developer.postgresql.org/pgdocs/postgres/protocol.html
  * The PostgreSQL catalog is described here:
- * http://www.postgresql.org/docs/7.4/static/view-pg-user.html 
+ * http://www.postgresql.org/docs/7.4/static/catalogs.html
  * @author Thomas
  */
 
@@ -117,17 +116,6 @@ public class PgServerThread implements Runnable {
     }
     
     private void error(String message, Exception e) {
-
-        int todoDocumentLimitations;
-/*        
-Limitations:
-- The database name can not contains the path (~ or directory). 
-  Workaround: use -baseDir when starting the server.
-- SSL is not supported.
-- Statements can not be cancelled.
-- Metadata is static.
-*/        
-
         if(e != null) {
             server.logError(e);
         }
@@ -154,8 +142,7 @@ Limitations:
             server.log("Init");
             int version = readInt();
             if(version == 80877102) {
-                int todoSupport;
-                server.log("CancelRequest");
+                server.log("CancelRequest (not supported)");
                 server.log(" pid: "+readInt());
                 server.log(" key: "+readInt());
                 error("CancelRequest", null);
@@ -382,7 +369,6 @@ Limitations:
 
     private String getSQL(String s) {
         String lower = s.toLowerCase();
-        int todo;
         if(lower.startsWith("show max_identifier_length")) {
             s = "CALL 63";
         } else if(lower.startsWith("set client_encoding to")) {
@@ -458,8 +444,7 @@ Limitations:
             if(text) {
                 s = new String(d2, getEncoding());
             } else {
-                int testing;
-                System.out.println("binary format!");
+                server.logError(new SQLException("Binary format not supported"));
                 s = new String(d2, getEncoding());
             }
         } catch(Exception e) {
@@ -483,6 +468,7 @@ Limitations:
         writeString(e.getMessage());
         write('D');
         writeString(e.toString());
+        write(0);
         sendMessage();
     }
 
@@ -534,7 +520,7 @@ Limitations:
                     writeString(names[i].toLowerCase());
                     writeInt(0); // object ID
                     writeShort(0); // attribute number of the column
-                    writeInt(getType(types[i])); // data type
+                    writeInt(types[i]); // data type
                     writeShort(getTypeSize(types[i])); // pg_type.typlen
                     writeInt(getModifier(types[i])); // pg_attribute.atttypmod
                     writeShort(0); // text
@@ -544,15 +530,6 @@ Limitations:
         } catch(SQLException e) {
             sendErrorResponse(e);
         }
-    }
-    
-    private int getType(int type) {
-        int testing;
-//        switch(type) {
-//        case Types.VARCHAR:
-//            return 19;
-//        }
-        return type;
     }
     
     private int getTypeSize(int type) {
@@ -590,8 +567,18 @@ Limitations:
     }    
 
     private void initDb() throws SQLException {
-        int todoUseVersionOnlyInitWhenRequired;
+        ResultSet rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
+        boolean tableFound = rs.next();
         Statement stat = conn.createStatement();
+        if(tableFound) {
+            rs = stat.executeQuery("SELECT VERION FROM PG_CATALOG.PG_VERSION");
+            if(rs.next()) {
+                if(rs.getInt(1) == 1) {
+                    // already installed
+                    return;
+                }
+            }
+        }
         Reader r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
         r = new BufferedReader(r);
         ScriptReader reader = new ScriptReader(r);
@@ -604,51 +591,11 @@ Limitations:
         }
         reader.close();
         
-        ResultSet rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
+        rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
         while(rs.next()) {
             types.add(new Integer(rs.getInt(1)));
         }
     }
-
-//    private void sendResultSet(ResultSet rs) throws SQLException, IOException {
-//        ResultSetMetaData meta = rs.getMetaData();
-//        int columnCount = meta.getColumnCount();
-//        // 
-//        startMessage('T');
-//        writeShort(columnCount);
-//        for(int i=0; i<columnCount; i++) {
-//            writeString(meta.getColumnName(i + 1));
-//            writeInt(0); // table id
-//            writeShort(0); // column id
-//            writeInt(0); // data type id
-//            writeShort(26); // data type size (see pg_type.typlen)
-//            writeInt(4); // type modifier (see pg_attribute.atttypmod)
-//            writeShort(0); // format code 0=text, 1=binary
-//        }
-//        sendMessage();
-//        while(rs.next()) {
-//            // DataRow
-//            startMessage('D');
-//            writeShort(columnCount);
-//            for(int i=0; i<columnCount; i++) {
-//                String v = rs.getString(i + 1);
-//                if(v == null) {
-//                    writeInt(-1);
-//                } else {
-//                    byte[] data = v.getBytes();
-//                    writeInt(data.length);
-//                    write(data);
-//                }
-//            }
-//            sendMessage();
-//        }
-//        
-//        // CommandComplete
-//        startMessage('C');
-//        writeString("SELECT");
-//        sendMessage();
-//        sendReadyForQuery('I');
-//    }
 
     public void close() {
         try {

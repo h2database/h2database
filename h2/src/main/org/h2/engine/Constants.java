@@ -50,7 +50,6 @@ import org.h2.message.TraceSystem;
  *      - table of contents
  * - Switch off auto-build
  * - ant all
- * - Make sure odbc files are the
  * - Copy the pdf file to h2/docs
  * - Make sure the build files are removed
  * - ant zip

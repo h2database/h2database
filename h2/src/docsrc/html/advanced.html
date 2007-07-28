@@ -311,47 +311,85 @@ If successful, a command prompt window will pop up and disappear immediately. If
 
 <br /><a name="odbc_driver"></a>
 <h2>ODBC Driver</h2>
-The ODBC driver of this database is currently not very stable and only tested superficially
-with a few applications (OpenOffice 2.0, Microsoft Excel and Microsoft Access) and
-data types (INT and VARCHAR), and should not be used for production applications.
-Only a Windows version of the driver is available at this time.
+This database does not come with its own ODBC driver at this time, 
+but it supports the PostgreSQL network protocol.
+Therefore, the PostgreSQL ODBC driver can be used.
+Support for the PostgreSQL network protocol is quite new and should be viewed
+as experimental. It should not be used for production applications.
 
 <h3>ODBC Installation</h3>
 <p>
-Before the ODBC driver can be used, it needs to be installed. To do this,
-double click on h2odbcSetup.exe. If you do this the first time, it will ask you to locate the
-driver dll (h2odbc.dll). If you already installed it, the ODBC administration dialog will open
-where you can create new or modify existing data sources.
-When you create a new H2 ODBC data source, a dialog window will appear
-and ask for the database settings:
+First, the ODBC driver must be installed.
+Any recent PostgreSQL ODBC driver should work, however version 8.2.4 or newer is recommended.
+The Windows version of the PostgreSQL ODBC driver is available at
+<a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a>.
 </p>
-<img src="odbcDataSource.png" alt="ODBC Configuration" />
 
-<h3>Log Option</h3>
-The driver is able to log operations to a file.
-To enable logging, the log file name must be set in the registry under the key
-CURRENT_USER/Software/H2/ODBC/LogFile. This key will only be read when the
-driver starts, so you need to make sure all applications that may use the driver
-are closed before changing this setting.
-If this registry entry is not found when the driver starts, logging is disabled.
-A sample registry key file may look like this:
+<h3>Starting the Server</h3>
+<p>
+After installing the ODBC driver, start the H2 Server using the command line:
 <pre>
-Windows Registry Editor Version 5.00
-
-[HKEY_CURRENT_USER\Software\H2\ODBC]
-"LogFile"="C:\\temp\\h2odbc.txt"
+java -cp h2.jar org.h2.tools.Server
 </pre>
+The PG Server (PG for PostgreSQL protocol) is started as well.
+By default, databases are stored in the current working directory where the server is started.
+Use -baseDir to save databases in another directory, for example the user home directory:
+<pre>
+java -cp h2.jar org.h2.tools.Server -baseDir ~
+</pre>
+The PG server can be started and stopped from within a Java application as follows:
+<pre>
+Server server = Server.createPgServer(new String[]{"-baseDir", "~"});
+server.start();
+...
+server.stop();	
+</pre>
+By default, only connections from localhost are allowed. To allow remote connections, use
+<code>-pgAllowOthers true</code> when starting the server.
+</p>
+
+<h3>ODBC Configuration</h3>
+<p>
+After installing the driver, a new Data Source must be added. In Windows, 
+run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...'
+and select the PostgreSQL Unicode driver. Then click 'Finish'.
+You will be able to change the connection properties:
+</p>
+<table>
+<tr><th>Property</th><th>Example</th><th>Remarks</th></th>
+<tr><td>Data Source</td><td>H2 Test</td><td>The name of the ODBC Data Source</td></tr>
+<tr><td>Database</td><td>test</td>
+	<td>
+		The database name. Only simple names are supported at this time; <br />
+		relative or absolute path are not supported in the database name. <br />
+		By default, the database is stored in the current working directory <br />
+		where the Server is started except when the -baseDir setting is used. <br />
+		The name must be at least 3 characters.
+	</td></tr>
+<tr><td>Server</td><td>localhost</td><td>The server name or IP address.<br />By default, only remote connections are allowed</td></tr>
+<tr><td>User Name</td><td>sa</td><td>The database user name.</td></tr>
+<tr><td>SSL Mode</td><td>disabled</td><td>At this time, SSL is not supported.</td></tr>
+<tr><td>Port</td><td>5435</td><td>The port where the PG Server is listening.</td></tr>
+<tr><td>Password</td><td>sa</td><td>The database password.</td></tr>
+</table>
+<p>
+Afterwards, you may use this data source.
+</p>
+
+<h3>PG Protocol Support Limitations</h3>
+<p>
+At this time, only a subset of the PostgreSQL network protocol is implemented. 
+Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding.
+Problems are fixed as they are found.
+Currently, statements can not be cancelled when using the PG protocol.
+</p>
 
 <h3>Security Considerations</h3>
-Currently, the ODBC does not encrypt the password before sending it over TCP/IP to the server.
-This may be a problem if an attacker can listen to the data transferred between the ODBC client
+Currently, the PG Server does not support challenge response or encrypt passwords.
+This may be a problem if an attacker can listen to the data transferred between the ODBC driver
 and the server, because the password is readable to the attacker.
 Also, it is currently not possible to use encrypted SSL connections.
-The password for a data source is stored unencrypted in the registry.
 Therefore the ODBC driver should not be used where security is important.
-
-<h3>Uninstalling</h3>
-To uninstall the ODBC driver, double click on h2odbcUninstall.exe. This will uninstall the driver.
 
 <br /><a name="acid"></a>
 <h2>ACID</h2>

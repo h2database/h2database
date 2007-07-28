@@ -25,7 +25,7 @@ select
 from information_schema.schemata;
 
 create table pg_catalog.pg_type(
-    oid int, 
+    oid int primary key, 
     typname varchar_ignorecase, 
     typnamespace int, 
     typlen int, 
@@ -41,7 +41,7 @@ select
 from information_schema.type_info
 where pos = 0;
 
-insert into pg_catalog.pg_type values(
+merge into pg_catalog.pg_type values(
     1111, 
     'name',
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
@@ -144,7 +144,7 @@ select
     false indisclustered,
     not non_unique indisunique,
     primary_key indisprimary,
-    cast(null as varchar_ignorecase) indexprs,
+    cast('' as varchar_ignorecase) indexprs,
     cast(0 as array) indkey
 from information_schema.indexes i, information_schema.tables t
 where i.table_schema = t.table_schema 

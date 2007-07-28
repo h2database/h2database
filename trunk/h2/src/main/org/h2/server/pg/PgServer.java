@@ -85,7 +85,7 @@ public class PgServer implements Service {
         url = "pg://localhost:" + port;
         
         int testing;
-//        log = true;
+        log = true;
     }
 
     public String getURL() {

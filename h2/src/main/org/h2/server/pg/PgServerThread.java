@@ -25,6 +25,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Properties;
 
 import org.h2.Driver;
@@ -60,6 +62,7 @@ public class PgServerThread implements Runnable {
     private String dateStyle = "ISO";
     private HashMap prepared = new HashMap();
     private HashMap portals = new HashMap();
+    private HashSet types = new HashSet();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -210,7 +213,9 @@ Limitations:
             int count = readShort();
             p.paramType = new int[count];
             for(int i=0; i<count; i++) {
-                p.paramType[i] = readInt();
+                int type = readInt();
+                checkType(type);
+                p.paramType[i] = type;
             }
             try {
                 p.prep = conn.prepareStatement(p.sql);
@@ -369,6 +374,12 @@ Limitations:
         }
     }
     
+    private void checkType(int type) {
+        if(types.contains(new Integer(type))) {
+            error("Unsupported type: " + type, null);
+        }
+    }
+
     private String getSQL(String s) {
         String lower = s.toLowerCase();
         int todo;
@@ -483,11 +494,14 @@ Limitations:
             startMessage('t');
             writeShort(count);
             for(int i=0; i<count; i++) {
+                int type;
                 if(p.paramType != null && p.paramType[i] != 0) {
-                    writeInt(p.paramType[i]);
+                    type = p.paramType[i];
                 } else {
-                    writeInt(TYPE_STRING);
+                    type = TYPE_STRING;
                 }
+                checkType(type);
+                writeInt(type);
             }
             sendMessage();
         } catch(SQLException e) {
@@ -510,7 +524,9 @@ Limitations:
                 String[] names = new String[columns];
                 for(int i=0; i<columns; i++) {
                     names[i] = meta.getColumnName(i + 1);
-                    types[i] = meta.getColumnType(i + 1);
+                    int type = meta.getColumnType(i + 1); 
+                    checkType(type);
+                    types[i] = type;
                 }
                 startMessage('T');
                 writeShort(columns);
@@ -531,10 +547,11 @@ Limitations:
     }
     
     private int getType(int type) {
-        switch(type) {
-        case Types.VARCHAR:
-            return 19;
-        }
+        int testing;
+//        switch(type) {
+//        case Types.VARCHAR:
+//            return 19;
+//        }
         return type;
     }
     
@@ -573,6 +590,7 @@ Limitations:
     }    
 
     private void initDb() throws SQLException {
+        int todoUseVersionOnlyInitWhenRequired;
         Statement stat = conn.createStatement();
         Reader r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
         r = new BufferedReader(r);
@@ -585,6 +603,11 @@ Limitations:
             stat.execute(sql);
         }
         reader.close();
+        
+        ResultSet rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
+        while(rs.next()) {
+            types.add(new Integer(rs.getInt(1)));
+        }
     }
 
 //    private void sendResultSet(ResultSet rs) throws SQLException, IOException {

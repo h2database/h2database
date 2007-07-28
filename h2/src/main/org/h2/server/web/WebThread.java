@@ -747,7 +747,7 @@ class WebThread extends Thread {
             buff.append("setNode("+treeIndex+", 0, 0, 'info', '" + PageParser.escapeJavaScript(version)+ "', null);\n");
             buff.append("refreshQueryTables();");
             session.put("tree", buff.toString());
-        } catch(SQLException e) {
+        } catch(Exception e) {
             session.put("tree", "");
             session.put("error", getStackTrace(0, e));
         }

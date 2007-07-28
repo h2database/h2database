@@ -48,6 +48,16 @@ merge into pg_catalog.pg_type values(
     -1,
     0
 );
+merge into pg_catalog.pg_type values(
+    0, 
+    'null',
+    (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
+    -1,
+    0
+);
+
+
+
     
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids) 
 as 

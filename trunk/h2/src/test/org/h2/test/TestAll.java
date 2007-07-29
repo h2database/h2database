@@ -62,12 +62,12 @@ Random test:
 cd bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"
-start cmd /k "java org.h2.test.TestAll crash >testCrash.txt"
-start cmd /k "java org.h2.test.TestAll synth >testSynth.txt"
-start cmd /k "java org.h2.test.TestAll all >testAll.txt"
-start cmd /k "java org.h2.test.TestAll random >testRandom.txt"
-start cmd /k "java org.h2.test.TestAll btree >testBtree.txt"
-start cmd /k "java org.h2.test.TestAll halt >testHalt.txt"
+start cmd /k "java -cp . org.h2.test.TestAll crash >testCrash.txt"
+start cmd /k "java -cp . org.h2.test.TestAll synth >testSynth.txt"
+start cmd /k "java -cp . org.h2.test.TestAll all >testAll.txt"
+start cmd /k "java -cp . org.h2.test.TestAll random >testRandom.txt"
+start cmd /k "java -cp . org.h2.test.TestAll btree >testBtree.txt"
+start cmd /k "java -cp . org.h2.test.TestAll halt >testHalt.txt"
 
 
 java org.h2.test.TestAll timer
@@ -94,26 +94,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-
-test.properties
-#size = 400
-size = 100
-
-
-cd C:\data\h2database\h2\bin
-java -cp %H2DRIVERS% org.h2.test.bench.TestPerformance
-
-jdbc:postgresql://localhost:5435/test
-
-SELECT nspname AS TABLE_SCHEM FROM pg_catalog.pg_namespace WHERE nspname <> 'pg_toast' AND nspname !~ '^pg_temp_' ORDER BY TABLE_SCHEM;
-
-PostgreSQL: ~/test doesn't work. maybe need mapping 'database name > database url' (in properties file?)
-
-html-ja
-
-change default:
-SET MAX_LENGTH_INPLACE_LOB 1024
-SET MAX_MEMORY_UNDO 50000
+merge html-ja
 
 rename Performance > Comparison [/Compatibility]
 move  Comparison to Other Database Engines > Comparison
@@ -122,30 +103,9 @@ move Performance Tuning > Advanced Topics
 
 set read-committed as the default
 
-SELECT rolcreaterole, rolcreatedb FROM pg_roles WHERE rolname = current_user;
-
 storages should be an int hash map
 
 Test with newest Hibernate
-
--- SET client_encoding = 'UTF8';
--- SET check_function_bodies = false;
--- SET client_min_messages = warning;
--- CREATE PROCEDURAL LANGUAGE plperl;
--- CREATE PROCEDURAL LANGUAGE plpgsql;
---SET default_tablespace = '';
---SET default_with_oids = false;
-
-pg_catalog with views
-
-oid (object identifier)
-The unique object identifier of a row. PostgreSQL automatically adds this 4-byte number to all rows. It is never re-used within the same table.
-
-ctid (tuple identifier)
-The identifier which describes the physical location of the tuple within the database. A pair of numbers are represented by the ctid: the block number, and tuple index within that block.
-
-Test Console (batch, javaw, different platforms)
-test with openoffice (metadata changes)
 
 testHalt
 java org.h2.test.TestAll halt 
@@ -178,8 +138,6 @@ I am not sure if this will read the CLOB in memory however.
 I will add this to the todo list.
 
 Improve LOB in directories performance
-
-Improve documentation for MAX_LENGTH_INPLACE_LOB
 
 Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
 

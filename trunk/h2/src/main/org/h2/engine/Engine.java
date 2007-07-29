@@ -94,7 +94,7 @@ public class Engine {
                 break;
             }
             // we found a database that is currently closing
-            // wait a bit to avoid a busy loop
+            // wait a bit to avoid a busy loop (the method is synchronized)
             try {
                 Thread.sleep(1);
             } catch(InterruptedException e) {

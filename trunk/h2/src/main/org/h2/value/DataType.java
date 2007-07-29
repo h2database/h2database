@@ -437,7 +437,7 @@ public class DataType {
             for(int i=0; i<list.length; i++) {
                 values[i] = DataType.convertToValue(session, list[i], Value.NULL);
             }
-            v = array ==null ? (Value)ValueNull.INSTANCE : ValueArray.get(values);
+            v = ValueArray.get(values);
             break;
         }
         default:

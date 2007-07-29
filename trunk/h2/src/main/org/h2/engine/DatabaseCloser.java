@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 public class DatabaseCloser extends Thread {
     
     private final boolean shutdownHook;
-    private WeakReference databaseRef;
+    private volatile WeakReference databaseRef;
     private int delayInMillis;
     
     DatabaseCloser(Database db, int delayInMillis, boolean shutdownHook) {

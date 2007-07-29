@@ -89,10 +89,6 @@ public class CommandRemote implements CommandInterface {
                     transfer.writeInt(SessionRemote.COMMAND_GET_META_DATA).writeInt(id).writeInt(objectId);
                     session.done(transfer);
                     int columnCount = transfer.readInt();
-                    if(result != null) {
-                        result.close();
-                        result = null;
-                    }
                     result = new ResultRemote(session, transfer, objectId, columnCount, -1);
                     break;
                 } catch(IOException e) {

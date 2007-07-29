@@ -826,8 +826,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
 </li><li>Allow editing NULL values in the Console
-</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true. 
+</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true (for insert, delete, update)
 	Simple solution: automatically calls 'refresh' when the result was changed.
+	Compare with other databases.
 </li></ul>
 
 <h3>Priority 2</h3>
@@ -1083,6 +1084,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Write a H2 driver for http://db.apache.org/ddlutils/
 </li><li>Index usage for REGEXP LIKE.
+</li><li>Add a role DBA (like ADMIN).
+</li><li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). 
+	Problem: what to do when server stops while others are connected to it.
 </li></ul>
 
 <h3>Not Planned</h3>

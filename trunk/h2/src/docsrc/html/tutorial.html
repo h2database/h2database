@@ -383,20 +383,20 @@ The recommended way to upgrade from one version of the database engine to the ne
 version is to create a backup of the database (in the form of a SQL script) using the old engine,
 and then execute the SQL script using the new engine.
 
-<h3>Backup</h3>
+<h3>Backup using the Script Tool</h3>
 There are different ways to backup a database. For example, it is possible to copy the database files.
 However, this is not recommended while the database is in use. Also, the database files are not human readable
 and quite large. The recommended way to backup a database is to create a compressed SQL script file. 
-This can be done using the backup tool:
+This can be done using the Script tool:
 <pre>
-java org.h2.tools.Backup -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
+java org.h2.tools.Script -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
 </pre>
+It is also possible to use the SQL command SCRIPT to create the backup of the database.
 For more information about the options, see the SQL command SCRIPT.
 The backup can be done remotely, however the file will be created on the server side.
 The built in FTP server could be used to retrieve the file from the server.
-It is also possible to use the SQL command SCRIPT to create the backup of the database.
 
-<h3>Restore</h3>
+<h3>Restore from a Script</h3>
 To restore a database from a SQL script file, you can use the RunScript tool:
 <pre>
 java org.h2.tools.RunScript -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
@@ -408,6 +408,19 @@ It is also possible to use the SQL command RUNSCRIPT to execute a SQL script.
 SQL script files may contain references to other script files, in the form of
 RUNSCRIPT commands. However, when using the server mode, the references script files
 need to be available on the server side.
+
+<h3>Online Backup</h3>
+The BACKUP SQL statement and the Backup tool both create a zip file 
+with all database files. However, the contents of this file are not human readable. 
+Other than the SCRIPT statement, the BACKUP statement does not lock the
+database objects, and therefore does not block other users. The resulting
+backup is transactionally consistent:
+<pre>
+BACKUP TO 'backup.zip'
+</pre>
+The Backup tool (org.h2.tools.Backup) can not be used to create a online backup;
+the database must not be in use while running this program.
+
 
 <br /><a name="open_office"></a>
 <h2>Using OpenOffice Base</h2>

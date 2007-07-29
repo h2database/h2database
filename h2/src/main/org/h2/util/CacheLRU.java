@@ -252,7 +252,7 @@ public class CacheLRU implements Cache {
     
     public void setMaxSize(int maxKb) throws SQLException {
         int newSize = maxKb * 1024 / 4;        
-        newSize = newSize < 0 ? 0 : newSize;
+        maxSize = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost
         // resize(maxSize);
         removeOldIfRequired();

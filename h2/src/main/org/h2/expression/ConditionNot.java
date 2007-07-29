@@ -45,9 +45,7 @@ public class ConditionNot extends Condition {
         Expression expr = condition.optimize(session);
         Expression e2 = expr.getNotIfPossible(session);
         if(e2 != null) {
-            e2 = e2.optimize(session);
-            expr = e2;
-            return e2;
+            return e2.optimize(session);
         }
         if(expr.isConstant()) {
             Value v = expr.getValue(session);

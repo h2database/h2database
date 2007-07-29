@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import org.h2.Driver;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
@@ -325,13 +326,14 @@ public class PgServerThread implements Runnable {
             String query = readString();
             ScriptReader reader = new ScriptReader(new StringReader(query));
             while(true) {
+                Statement stat = null;
                 try {
                     String s = reader.readStatement();
                     if(s == null) {
                         break;
                     }
                     s = getSQL(s);
-                    Statement stat = conn.createStatement();
+                    stat = conn.createStatement();
                     boolean result = stat.execute(s);
                     if(result) {
                         ResultSet rs = stat.getResultSet();
@@ -346,6 +348,8 @@ public class PgServerThread implements Runnable {
                     }
                 } catch(SQLException e) {
                     sendErrorResponse(e);
+                } finally {
+                    JdbcUtils.closeSilently(stat);
                 }
             }
             sendReadyForQuery();
@@ -568,33 +572,41 @@ public class PgServerThread implements Runnable {
     }    
 
     private void initDb() throws SQLException {
-        ResultSet rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
-        boolean tableFound = rs.next();
-        Statement stat = conn.createStatement();
-        if(tableFound) {
-            rs = stat.executeQuery("SELECT VERION FROM PG_CATALOG.PG_VERSION");
-            if(rs.next()) {
-                if(rs.getInt(1) == 1) {
-                    // already installed
-                    return;
+        Statement stat = null;
+        ResultSet rs = null;
+        Reader r = null;
+        try {
+            rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
+            boolean tableFound = rs.next();
+            stat = conn.createStatement();
+            if(tableFound) {
+                rs = stat.executeQuery("SELECT VERION FROM PG_CATALOG.PG_VERSION");
+                if(rs.next()) {
+                    if(rs.getInt(1) == 1) {
+                        // already installed
+                        return;
+                    }
                 }
             }
-        }
-        Reader r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
-        r = new BufferedReader(r);
-        ScriptReader reader = new ScriptReader(r);
-        while(true) {
-            String sql = reader.readStatement();
-            if(sql == null) {
-                break;
+            r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
+            ScriptReader reader = new ScriptReader(new BufferedReader(r));
+            while(true) {
+                String sql = reader.readStatement();
+                if(sql == null) {
+                    break;
+                }
+                stat.execute(sql);
             }
-            stat.execute(sql);
-        }
-        reader.close();
-        
-        rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
-        while(rs.next()) {
-            types.add(ObjectUtils.getInteger(rs.getInt(1)));
+            reader.close();
+            
+            rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
+            while(rs.next()) {
+                types.add(ObjectUtils.getInteger(rs.getInt(1)));
+            }
+        } finally {
+            JdbcUtils.closeSilently(stat);
+            JdbcUtils.closeSilently(rs);
+            IOUtils.closeSilently(r);
         }
     }
 

@@ -17,11 +17,7 @@ import org.h2.message.TraceSystem;
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
  * 
- * - Compile with JDK 1.3, 1.4, 1.5 and 1.6:
- *   set path=C:\jdk1.3.1_19\bin;%PATH%
- *   set JAVA_HOME=C:\jdk1.3.1_19
- *   ant codeswitchJdk13
- *   ant compile
+ * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   ant codeswitchJdk16

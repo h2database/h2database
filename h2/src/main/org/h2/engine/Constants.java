@@ -108,7 +108,7 @@ public class Constants {
     public static final String SUFFIX_LOBS_DIRECTORY = ".lobs.db";
     public static final String UTF8 = "UTF8";
     public static final int DEFAULT_TABLE_TYPE = 0;
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 128;
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 1024;
     public static final int DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB = 65536;
     public static final int SALT_LEN = 8;
     public static final int DEFAULT_DATA_PAGE_SIZE = 512;

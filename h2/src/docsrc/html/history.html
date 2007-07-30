@@ -1014,11 +1014,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
 </li><li>Public interface for functions (not public static)
-</li><li>Index usage for IN(...), IN ARRAY(?), and IN ARRAY RANGES(?, ?); support ARRAY in JDBC API (variable size)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 </li><li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
-</li><li>Functions: options readonly, deterministic
+</li><li>Functions: options readonly, deterministic (pure, always return the same value)
 </li><li>Document FTP server, including -ftpTask option to execute / kill remote processes
 </li><li>Add jdbcx to the javadocs
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
@@ -1087,6 +1086,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Add a role DBA (like ADMIN).
 </li><li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). 
 	Problem: what to do when server stops while others are connected to it.
+</li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li></ul>
 
 <h3>Not Planned</h3>

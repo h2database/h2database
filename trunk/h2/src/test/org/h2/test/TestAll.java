@@ -94,7 +94,6 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-Hi!
  Openfire server uses this script to setup a user permissions
 on the fresh-installed server. The database is [current] HSQLDB :
 CREATE SCHEMA PUBLIC AUTHORIZATION DBA
@@ -104,19 +103,6 @@ SET SCHEMA PUBLIC
  Unfortunately, this does not work (first string has a different semantic)
 on the H2...
 Wrong user name or password [08004-55]
-
- Could you please correct documentation ?
-Tutorial --> Upgrade, Backup, and Restore --> Backup
-The documentation states :
-java org.h2.tools.Backup -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
- The "tools.Backup" has no such options ! Seems you meant "tools.Script"
-[root@ftp bin]# java -cp "h2.jar" org.h2.tools.Backup -help
-java org.h2.tools.Backup [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]
-=
- Could you please cross-link this topic with
-Features --> Database File Layout --> Backup
-=
- What is the difference between "SCRIPT" and "BACKUP" statements ?
 
 merge html-ja
 
@@ -185,8 +171,6 @@ SELECT * FROM TEST;
 
 Server: use one listener (detect if the request comes from an PG or TCP client).
 
-PMD
-
 http://fastutil.dsi.unimi.it/
 http://javolution.org/
 http://joda-time.sourceforge.net/
@@ -197,7 +181,6 @@ strict xhtml (license,...)
 Document org.h2.samples.MixedMode
 
 http://www.igniterealtime.org/projects/openfire/index.jsp
-(fonts)
 
 */        
 

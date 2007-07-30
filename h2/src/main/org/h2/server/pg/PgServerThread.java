@@ -580,7 +580,7 @@ public class PgServerThread implements Runnable {
             boolean tableFound = rs.next();
             stat = conn.createStatement();
             if(tableFound) {
-                rs = stat.executeQuery("SELECT VERION FROM PG_CATALOG.PG_VERSION");
+                rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
                 if(rs.next()) {
                     if(rs.getInt(1) == 1) {
                         // already installed

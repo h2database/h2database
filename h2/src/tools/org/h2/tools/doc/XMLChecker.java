@@ -128,7 +128,11 @@ public class XMLChecker {
                     if(pop.equals(name)) {
                         break;
                     }
-                    throw new Exception("Unclosed element " + pop + " at " + parser.getRemaining());
+                    String remaining = parser.getRemaining();
+                    if(remaining.length() > 100) {
+                        remaining = remaining.substring(0, 100);
+                    }
+                    throw new Exception("Unclosed element " + pop + " at " + remaining);
                 }
             } else if(event == XMLParser.CHARACTERS) {
                 // lastElement = parser.getText();

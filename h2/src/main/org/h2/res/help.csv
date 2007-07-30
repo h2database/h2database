@@ -2171,7 +2171,7 @@ REGEXP_REPLACE(inputString, regexString, replacementString): string
 Replaces each substring that matches a regular expression.
 For details, see the Java String.replaceAll() method.
 ","
-REGEXP_REPLACE('Hoohoho', 'o+', 'o')
+REGEXP_REPLACE('Hello    World', ' +', ' ')
 "
 
 "Functions (String)","REPEAT","

@@ -1,8 +1,8 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
-CALL REGEXP_REPLACE('Kaboooom', 'o+', 'o');
-> 'Kabom'
-> -------
-> Kabom
+CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
+> 'abckabom'
+> ----------
+> abckabom
 > rows: 1
 
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
@@ -136,7 +136,7 @@ explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
 CREATE TABLE TEST(ID INT PRIMARY KEY, FLAG BOOLEAN, NAME VARCHAR);
 > ok
 
-CREATE INDEX IDXFLAG ON TEST(FLAG, NAME);
+CREATE INDEX IDX_FLAG ON TEST(FLAG, NAME);
 > ok
 
 INSERT INTO TEST VALUES(1, TRUE, 'Hello'), (2, FALSE, 'World');
@@ -144,26 +144,26 @@ INSERT INTO TEST VALUES(1, TRUE, 'Hello'), (2, FALSE, 'World');
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG;
 > PLAN
-> --------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDXFLAG: FLAG = TRUE */ WHERE FLAG
+> ---------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDX_FLAG: FLAG = TRUE */ WHERE FLAG
 > rows: 1
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG AND NAME>'I';
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDXFLAG: FLAG = TRUE AND NAME > 'I' */ WHERE FLAG AND (NAME > 'I')
+> -----------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDX_FLAG: FLAG = TRUE AND NAME > 'I' */ WHERE FLAG AND (NAME > 'I')
 > rows: 1
 
 DROP TABLE TEST;
 > ok
 
-CREATE TABLE test_table (firstcol varchar(20), secondcol integer);
+CREATE TABLE test_table (first_col varchar(20), second_col integer);
 > ok
 
 insert into test_table values('a', 10), ('a', 4), ('b', 30), ('b', 3);
 > update count: 4
 
-CREATE VIEW test_view AS SELECT firstcol AS renamed_col, MIN(secondcol) AS also_renamed FROM test_table GROUP BY firstcol;
+CREATE VIEW test_view AS SELECT first_col AS renamed_col, MIN(second_col) AS also_renamed FROM test_table GROUP BY first_col;
 > ok
 
 SELECT * FROM test_view WHERE renamed_col = 'a';

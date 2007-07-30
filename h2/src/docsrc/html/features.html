@@ -1226,8 +1226,8 @@ a lot of data in a database), one sometimes wants to shrink the size of the data
 (compact a database). Here is a sample function to do this:
 <pre>
 public static void compact(String dir, String dbName, 
-		String user, String password) throws Exception {
-	String url = "jdbc:h2:" + dir + "/" + dbName;
+        String user, String password) throws Exception {
+    String url = "jdbc:h2:" + dir + "/" + dbName;
     String file = "data/test.sql";
     Script.execute(url, user, password, file);
     DeleteDbFiles.execute(dir, dbName, true);

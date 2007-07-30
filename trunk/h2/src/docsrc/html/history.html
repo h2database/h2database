@@ -40,42 +40,42 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 / 2007-TODO</h3><ul>
 <li>Some Unicode characters where not supported as identifier name. 
-	Thanks Yusuke Fukushima for reporting this problem.
+    Thanks Yusuke Fukushima for reporting this problem.
 </li><li>The default value DEFAULT_MAX_LENGTH_INPLACE_LOB has been changed from 128 to 1024.
 </li><li>A server that implements the PostgreSQL protocol is now included and documented.
-	That means, the PostgreSQL ODBC driver can be used to access a H2 database.
-	See in the documentation for details.
+    That means, the PostgreSQL ODBC driver can be used to access a H2 database.
+    See in the documentation for details.
 </li><li>The experimental H2 ODBC driver has been removed.
 </li><li>The default value for h2.defaultMaxMemoryUndo is now 50000. 
-	This avoids out of memory problems when using large transactions, 
-	however large transactions are slower because they are buffered to disk.
-	To disable, use -Dh2.defaultMaxMemoryUndo=2000000000.
+    This avoids out of memory problems when using large transactions, 
+    however large transactions are slower because they are buffered to disk.
+    To disable, use -Dh2.defaultMaxMemoryUndo=2000000000.
 </li><li>Support for regular expression function REGEXP_REPLACE(expression, regex, replacement)
-	and regular expression LIKE: expression REGEXP matchExpression. However, indexes are not yet used.
+    and regular expression LIKE: expression REGEXP matchExpression. However, indexes are not yet used.
 </li><li>The old view implementation has been removed.
 </li><li>The SysTray tool has been removed, because JDK 1.6 has native support for system tray icons.
-	Use the Console tool (org.h2.tools.Console) automatically installs a system tray icon if JDK 1.6 is used.
+    Use the Console tool (org.h2.tools.Console) automatically installs a system tray icon if JDK 1.6 is used.
 </li><li>H2 Console: In the last release, the shutdown button did not work. Fixed.
 </li><li>Referential integrity can now be disabled using
-	SET REFERENTIAL_INTEGRITY FALSE. It can also be disable only
-	for one table using ALTER TABLE SET REFERENTIAL_INTEGRITY FALSE.
+    SET REFERENTIAL_INTEGRITY FALSE. It can also be disable only
+    for one table using ALTER TABLE SET REFERENTIAL_INTEGRITY FALSE.
 </li><li>The Backup and Restore tools, and the BACKUP command did not back up LOBs when 
-	h2.lobFilesInDirectories was enabled. Fixed.
+    h2.lobFilesInDirectories was enabled. Fixed.
 </li><li>Calculation of cache memory usage has been improved.
 </li><li>In some situations record were released too late from the cache. Fixed.
 </li><li>The cache size is now measured in KB instead of blocks of 128 byte.
 </li><li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo 
-	log is temporarily disabled. This avoid out of memory problems when creating large tables.
+    log is temporarily disabled. This avoid out of memory problems when creating large tables.
 </li><li>The per session undo log can now be disabled. This setting is useful for bulk operations
-	that don't need to be atomic, like bulk delete or update.
-</li><li>The database file could get corruted when there was an OutOfMemoryException in the middle of inserting a row.
+    that don't need to be atomic, like bulk delete or update.
+</li><li>The database file could get corrupted when there was an OutOfMemoryException in the middle of inserting a row.
 </li><li>Optimization for WHERE NOT(...) and WHERE [NOT] booleanFlagColumn. 
-	This can be disabled using the system property h2.optimizeNot.
+    This can be disabled using the system property h2.optimizeNot.
 </li><li>Optimization for conditions like WHERE A=B AND B=X (A=X is added). This often appears in joins.
-	This can be disabled using the system property h2.optimizeTwoEquals.
+    This can be disabled using the system property h2.optimizeTwoEquals.
 </li><li>Documentation: the source code in 'Compacting a Database' was incorrect. Fixed.
 </li><li>In the H2 Console, result sets could not be modified because the default result set type is now forward only.
-	For H2, now uses scrollable result sets. Also for other databases, but only when the query starts with @EDIT.
+    For H2, now uses scrollable result sets. Also for other databases, but only when the query starts with @EDIT.
 </li><li>Views using UNION did not work correctly. Fixed.
 </li><li>Function tables did not work with views and EXPLAIN. Fixed.
 </li></ul>
@@ -827,8 +827,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
 </li><li>Allow editing NULL values in the Console
 </li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true (for insert, delete, update)
-	Simple solution: automatically calls 'refresh' when the result was changed.
-	Compare with other databases.
+    Simple solution: automatically calls 'refresh' when the result was changed.
+    Compare with other databases.
 </li></ul>
 
 <h3>Priority 2</h3>
@@ -1085,7 +1085,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Add a role DBA (like ADMIN).
 </li><li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). 
-	Problem: what to do when server stops while others are connected to it.
+    Problem: what to do when server stops while others are connected to it.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li></ul>
 

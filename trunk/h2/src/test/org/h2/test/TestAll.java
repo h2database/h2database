@@ -94,14 +94,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+test odbc again a few times (debug catalog creation)
+
+
  Openfire server uses this script to setup a user permissions
 on the fresh-installed server. The database is [current] HSQLDB :
 CREATE SCHEMA PUBLIC AUTHORIZATION DBA
 CREATE USER SA PASSWORD ""
 GRANT DBA TO SA
 SET SCHEMA PUBLIC
- Unfortunately, this does not work (first string has a different semantic)
-on the H2...
+Unfortunately, this does not work in H2
 Wrong user name or password [08004-55]
 
 merge html-ja
@@ -181,6 +183,20 @@ strict xhtml (license,...)
 Document org.h2.samples.MixedMode
 
 http://www.igniterealtime.org/projects/openfire/index.jsp
+
+translation:
+src/org.h2.server.web.res/_text_en.properties
+src/org.h2.res/messages.properties
+src/org.h2.res/help.csv (using ${.} like .jsp?)
+javadocs (using generated ${.} ?)
+html (using generated ${.} ?)
+how do multi line properties files work? xml? [key]...?
+converter between properties and [key] ...?
+checksum marker
+glossary
+spell check / word list per language
+
+html-jp
 
 */        
 

@@ -13,10 +13,10 @@ set search_path = PUBLIC, pg_catalog;
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
 as
 select
-	id oid,
-	cast(name as varchar_ignorecase) rolname,
-	case when admin then 't' else 'f' end as rolcreaterole,
-	case when admin then 't' else 'f' end as rolcreatedb
+    id oid,
+    cast(name as varchar_ignorecase) rolname,
+    case when admin then 't' else 'f' end as rolcreaterole,
+    case when admin then 't' else 'f' end as rolcreatedb
 from information_schema.users;
 
 create view pg_catalog.pg_namespace -- (oid, nspname) 
@@ -283,7 +283,7 @@ from pg_catalog.pg_database;
 create table pg_catalog.pg_group -- oid, groname
 as
 select
-	0 oid,
-	cast('' as varchar_ignorecase) groname
+    0 oid,
+    cast('' as varchar_ignorecase) groname
 from pg_catalog.pg_database where 1=0;
 

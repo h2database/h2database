@@ -2613,7 +2613,7 @@ public class Parser {
                 } else if (c >= '0' && c <= '9') {
                     type = CHAR_VALUE;
                 } else {
-                    // $ is not supported at this time (compatbility for PostgreSQL: $1 )
+                    // $ is not supported at this time (compatibility for PostgreSQL: $1 )
                     if(Character.isJavaIdentifierPart(c)) {
                         type = CHAR_NAME;
                         char u = Character.toUpperCase(c);

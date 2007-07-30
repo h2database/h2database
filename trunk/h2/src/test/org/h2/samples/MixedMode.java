@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.samples;
 
 import java.sql.Connection;
@@ -32,7 +36,7 @@ public class MixedMode {
                   Thread.sleep(1000);
               }
           } catch(SQLException e) {
-              System.out.println("Errror: " + e.toString());
+              System.out.println("Error: " + e.toString());
           }
           conn.close();
           

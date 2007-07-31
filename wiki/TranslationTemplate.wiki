@@ -4,6 +4,8 @@
 
 If you want to translate H2 Console to your language, use this file as a template and save the translated version in as a new file.
 
+Test
+
 {{{
 .translator=Thomas Mueller
 a.help=Help

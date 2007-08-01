@@ -30,12 +30,17 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
+import org.h2.util.SortedProperties;
 
 public class WebServer implements Service {
     
     // TODO tool: implement a watchdog for a server
     
     private static final String DEFAULT_LANGUAGE = "en";
+    
+    /**
+     * Hungarian spec chars: &eacute;&#369;&aacute;&#337;&uacute;&ouml;&uuml;&oacute;&iacute;&Eacute;&Aacute;&#368;&#336;&Uacute;&Ouml;&Uuml;&Oacute;&Iacute;
+     */
     private static final String[][] LANGUAGES = {
         { "en", "English" },
         { "de", "Deutsch" },
@@ -388,7 +393,7 @@ public class WebServer implements Service {
 
     synchronized void saveSettings() {
         try {
-            Properties prop = new Properties();
+            Properties prop = new SortedProperties();
             if(driverList != null) {
                 prop.setProperty("drivers", driverList);
             }

@@ -23,6 +23,7 @@ import org.h2.message.TraceSystem;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.RandomUtils;
+import org.h2.util.SortedProperties;
 
 /**
  * @author Thomas
@@ -152,7 +153,7 @@ public class FileLock {
 
     private void lockFile() throws SQLException {
         method = FILE;
-        properties = new Properties();
+        properties = new SortedProperties();
         byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
         String random = ByteUtils.convertBytesToString(bytes);
         properties.setProperty("id", Long.toHexString(System.currentTimeMillis())+random);
@@ -206,7 +207,7 @@ public class FileLock {
 
     private void lockSocket() throws SQLException {
         method = SOCKET;
-        properties = new Properties();
+        properties = new SortedProperties();
         try {
             // TODO documentation: if this returns 127.0.0.1, the computer is probably not networked
             ipAddress = InetAddress.getLocalHost().getHostAddress();

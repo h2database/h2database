@@ -9,13 +9,20 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Iterator;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.Resources;
 import org.h2.util.StringUtils;
 
 /**
+ * Use the PropertiesToUTF8 tool to translate properties files to UTF-8 and back.
+ * If the word 'SQL' appears then the whole SQL statement must be a parameter,
+ * otherwise this may be added: '; SQL statement: ' + sql
+ * 
  * @author Thomas
  */
 public class Message {
@@ -23,12 +30,26 @@ public class Message {
     private static final Properties MESSAGES = new Properties();
 
     static {
-        // TODO multi language messages
-        // String language = Locale.getDefault().getLanguage();
         try {
-            byte[] messages = Resources.get("/org/h2/res/messages.properties");
+            byte[] messages = Resources.get("/org/h2/res/_messages_en.properties");
             if(messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
+            }
+            String language = Locale.getDefault().getLanguage();
+int testing;
+System.out.println("language: " + language);
+            if(!"en".equals(language)) {
+                byte[] translations = Resources.get("/org/h2/res/_messages_"+language+".properties");
+                // message: translated message + english (otherwise certain applications don't work)
+                if(translations != null) {
+                    Properties p = new Properties();
+                    p.load(new ByteArrayInputStream(translations));
+                    for(Iterator it = p.entrySet().iterator(); it.hasNext(); ) {
+                        Entry e = (Entry) it.next();
+                        String key = (String) e.getKey();
+                        MESSAGES.put(key, e.getValue() + " / " + MESSAGES.getProperty(key));
+                    }
+                }
             }
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);

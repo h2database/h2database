@@ -2,7 +2,7 @@
  * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.tools.code;
+package org.h2.tools.i18n;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 
+import org.h2.tools.code.CheckTextFiles;
 import org.h2.tools.indexer.HtmlConverter;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;

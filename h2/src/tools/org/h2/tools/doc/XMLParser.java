@@ -377,4 +377,8 @@ public class XMLParser {
         return xml.substring(index);
     }
 
+    public int getPos() {
+        return index;
+    }
+
 }

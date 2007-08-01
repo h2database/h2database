@@ -103,7 +103,7 @@ extend tests that simulate power off
 
 CREATE TABLE first (id IDENTITY, value INT);
 CREATE TABLE second (id IDENTITY, value INT);
-CREATE TRIGGER blah BEFORE INSERT ON first CALL xxx;
+CREATE TRIGGER T BEFORE INSERT ON first CALL X;
 INSERT INTO first VALUES(1,2);
 ...trigger calls INSERT INTO second VALUES(3, 4); before the first INSERT
 CALL IDENTITY();

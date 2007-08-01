@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.tools.i18n;
 
 import java.io.BufferedWriter;
@@ -131,7 +135,7 @@ public class PrepareTranslation {
             } else {
                 String last = base.getProperty(key);
                 if(last != null && !last.equals(now)) {
-                    // main data changed since the last run: review translatation
+                    // main data changed since the last run: review translation
                     System.out.println(trans.getName() + ": key " + key + " changed; last=" + last + " now=" + now);
                     String old = p.getProperty(key);
                     p.put(key, "#" + now + " #" + old);

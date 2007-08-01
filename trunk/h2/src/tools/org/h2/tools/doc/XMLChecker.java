@@ -114,7 +114,7 @@ public class XMLChecker {
                     }
                 }
                 if(name != null) {
-                    stack.add(name);
+                    stack.add(new Object[]{name, new Integer(parser.getPos())});
                 }
             } else if(event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
@@ -124,15 +124,16 @@ public class XMLChecker {
                     }
                 }
                 while(true) {
-                    String pop = (String) stack.pop();
-                    if(pop.equals(name)) {
+                    Object[] pop = (Object[]) stack.pop();
+                    String p = (String) pop[0];
+                    if(p.equals(name)) {
                         break;
                     }
-                    String remaining = parser.getRemaining();
+                    String remaining = xml.substring(((Integer)pop[1]).intValue());
                     if(remaining.length() > 100) {
                         remaining = remaining.substring(0, 100);
                     }
-                    throw new Exception("Unclosed element " + pop + " at " + remaining);
+                    throw new Exception("Unclosed element " + p + " at " + remaining);
                 }
             } else if(event == XMLParser.CHARACTERS) {
                 // lastElement = parser.getText();

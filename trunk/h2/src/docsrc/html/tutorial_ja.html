@@ -97,7 +97,7 @@ java -version
 複数のコンソールアプリケーションを同じコンピューターで起動することは可能です (異なったポートを使用します)、しかし、コンソールが複数の同時接続を維持するということは、普通は必要とされていません。
 
 <h3>他のポートを使用する</h3>
-もしポートが他のアプリケーションによって使用されている場合は、H2コンソールを 異なったポートで起動したいはずです。これは、.h2.server.properties.ファイル内のポートを変更することにより実行できます。 このファイルはユーザディレクトリ内に格納されています (Windowsでは通常、"Documents and Settings/<ユーザ名>")。関連する項目はwebPortです。
+もしポートが他のアプリケーションによって使用されている場合は、H2コンソールを 異なったポートで起動したいはずです。これは、.h2.server.properties.ファイル内のポートを変更することにより実行できます。 このファイルはユーザディレクトリ内に格納されています (Windowsでは通常、"Documents and Settings/&lt;ユーザ名&gt;")。関連する項目はwebPortです。
 
 <h3>起動成功</h3>
 コンソールウィンドウからのサーバー起動が成功したら、新しいウィンドウが開き、 下記のように表示されます:
@@ -328,7 +328,7 @@ the database must not be in use while running this program.
 OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
 <ul>
 <li>オートスタートを含め、OpenOfficeを終了する
-</li><li>h2.jar ファイルを <OpenOffice>\program\classes ディレクトリ内にコピーする
+</li><li>h2.jar ファイルを &lt;OpenOffice&gt;\program\classes ディレクトリ内にコピーする
 </li><li>OpenOffice Base を起動する
 </li><li>存在するデータベースに接続し、JDBCを選択し、[Next] をクリックする
 </li><li>データソースURLの例: jdbc:h2:c:/temp/test

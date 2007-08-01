@@ -36,8 +36,6 @@ public class Message {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
             String language = Locale.getDefault().getLanguage();
-int testing;
-System.out.println("language: " + language);
             if(!"en".equals(language)) {
                 byte[] translations = Resources.get("/org/h2/res/_messages_"+language+".properties");
                 // message: translated message + english (otherwise certain applications don't work)
@@ -47,7 +45,7 @@ System.out.println("language: " + language);
                     for(Iterator it = p.entrySet().iterator(); it.hasNext(); ) {
                         Entry e = (Entry) it.next();
                         String key = (String) e.getKey();
-                        MESSAGES.put(key, e.getValue() + " / " + MESSAGES.getProperty(key));
+                        MESSAGES.put(key, e.getValue() + "\n" + MESSAGES.getProperty(key));
                     }
                 }
             }

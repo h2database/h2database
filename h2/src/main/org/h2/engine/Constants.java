@@ -37,6 +37,7 @@ import org.h2.message.TraceSystem;
  *
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all javadoc files are in the index
+ * - run PrepareTranslation (or add to ant docs)
  * - ant docs
  * - PDF (15 min)
  *      - footer
@@ -64,8 +65,8 @@ import org.h2.message.TraceSystem;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 55;
-    private static final String BUILD = "2007-07-12";
+    public static final int BUILD_ID = 56;
+    private static final String BUILD = "2007-08-02";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

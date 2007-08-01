@@ -31,7 +31,7 @@ public class PrepareTranslation {
         path = "src/main/org/h2/server/web/res";
         prepare(baseDir, path);
         int todoAllowTranslateHtmlFiles;
-        extract("src/docsrc/html");
+        // extract("src/docsrc/html");
     }
     
     private static void extract(String dir) throws Exception {

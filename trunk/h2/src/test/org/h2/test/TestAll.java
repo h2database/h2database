@@ -94,16 +94,12 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-html-jp
-
-platform independent zip: what do others write (shorter)
 copyright to include 2007
 how to make search work for japanese?
 
-automated tests that simulate power off
-
 test odbc again a few times (debug catalog creation)
 
+extend tests that simulate power off
 
 CREATE TABLE first (id IDENTITY, value INT);
 CREATE TABLE second (id IDENTITY, value INT);
@@ -121,8 +117,6 @@ SET SCHEMA PUBLIC
 Unfortunately, this does not work in H2
 Wrong user name or password [08004-55]
 
-merge html-ja
-
 rename Performance > Comparison [/Compatibility]
 move  Comparison to Other Database Engines > Comparison
 move Products that Work with H2 > Comparison
@@ -131,8 +125,6 @@ move Performance Tuning > Advanced Topics
 set read-committed as the default
 
 storages should be an int hash map
-
-Test with newest Hibernate
 
 testHalt
 java org.h2.test.TestAll halt 
@@ -200,18 +192,15 @@ Document org.h2.samples.MixedMode
 http://www.igniterealtime.org/projects/openfire/index.jsp
 
 translation:
-src/org.h2.server.web.res/_text_en.properties
-src/org.h2.res/messages.properties
-src/org.h2.res/help.csv (using ${.} like .jsp?)
+src/org.h2.res/help.csv (using ${.} as in .jsp?)
 javadocs (using generated ${.} ?)
-html (using generated ${.} ?)
+html (using generated wiki pages ?)
 how do multi line properties files work? xml? [key]...?
 converter between properties and [key] ...?
 checksum marker
 glossary
 spell check / word list per language
-
-SpellChecker filter files with _: don't use _ in files names except translated files.
+translated .pdf
 
 */        
 

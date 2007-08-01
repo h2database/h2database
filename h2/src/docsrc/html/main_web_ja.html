@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). -->
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+H2 データベース エンジン
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<link rel="alternate" type="application/atom+xml" title="H2 Newsfeed" href="http://www.h2database.com/html/newsfeed-atom.xml" />
+<link rel="alternate" type="application/rss+xml" title="H2 Newsfeed" href="http://www.h2database.com/html/newsfeed-rss.xml" />
+<script type="text/javascript" src="navigation.js"></script>
+<style type="text/css">
+<!--
+h3 { margin-top: 0px; margin-bottom: 10px; }
+-->
+</style>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>H2 データベース エンジン</h1>
+<p>
+ようこそ、無料のSQLデータベース、H2へ。H2の主な特徴は:
+</p>
+<ul>
+<li>速度がとても速く、全ての方が無料で使用でき、ソースコードが含まれています
+</li><li>Javaで書かれています; GCJ (Linux) でコンパイル可能
+</li><li>エンベッド、サーバー、クラスターモードに対応
+</li><li>JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
+</li></ul>
+
+<table style="border: 0px; width: 395px;">
+    <tr><td style="background-color: #eee;">
+        <table style="border: 0px; margin: 5px; background-color: #eee;">
+              <tr><td style="border: 0px; background-color: #eee;" colspan="2">
+                <h3>ダウンロード</h3>
+                Version 1.0 / 2007-07-12:
+            </td></tr>
+            <tr><td style="border: 0px; background-color: #eee;">
+                <a href="http://www.h2database.com/h2-setup-2007-07-12.exe"><img border="1" src="images/download.png" alt="download" /></a>
+            </td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
+                <a href="http://www.h2database.com/h2-setup-2007-07-12.exe">Windows Installer (2.9 MB)</a>
+            </td></tr>
+            <tr><td style="border: 0px; background-color: #eee;">
+                <a href="http://www.h2database.com/h2-2007-07-12.zip"><img border="1" src="images/download.png" alt="download" /></a>
+            </td><td style="vertical-align: middle; border: 0px; background-color: #eee;">
+                <a href="http://www.h2database.com/h2-2007-07-12.zip">Platform-Independent Zip (3.8 MB)</a>
+            </td></tr>
+            <tr><td style="border: 0px; background-color: #eee;" colspan="2">
+                <a href="download.html">全てダウンロード</a>
+            </td></tr>
+        </table>
+    </td><td style="border: 0px;">&nbsp;&nbsp;&nbsp;</td>
+    <td style="background-color: #eee;">
+        <table style="border: 0px; margin: 5px;">
+            <tr><td style="border: 0px; background-color: #eee;">
+                <h3>サポート</h3>
+                <p>
+                <a href="http://groups.google.com/group/h2-database" target="_top">Google グループ: ヘルプとディスカッション</a><br /><br />
+                e-mail はこちらから:<br />
+            <script type="text/javascript">
+            <!--    
+              var a = '-support.png';
+              var b = 'mail';
+              var c = 'support ';
+              var d = 'db';
+              var e = 'at ';
+              var f = '.com';
+              var g = 'h2database';
+              var alt = 'mail address: ' + d + c + e + g + f + '(without spaces)';
+              document.write('<' + 'a h'+'ref="em' + 'ail:' + d + c + e + g + f +'">' + d + c + e + g + f);
+            //-->
+            </script>
+        </p>
+    </td></tr>
+</table>
+</td></tr>
+
+<tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
+
+<tr><td colspan="3" style="border: 0px">
+    <table style="border: 0px; margin: 5px; width: 100%;">
+        <tr><td style="border: 0px;" >
+            <h3>パフォーマンス</h3>
+            <img border="0" src="images/performance.png" alt="Performance comparison" /><br />
+            操作/秒 (高い方がより良い) - <a href="performance.html">このテストについての詳しい情報</a>
+        </td></tr>
+    </table>
+</td></tr>
+
+<tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
+
+<tr><td colspan="3" style="background-color: #eee;">
+    <table style="border: 0px; margin: 5px; background-color: #eee;">
+        <tr><td style="border: 0px; background-color: #eee;">
+            <h3>ニュース</h3>
+            <p>
+            <b>ニュースフィード:</b> 二種類から選べます: 
+            <a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">フルテキスト (Atom)</a>
+            または <a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">ヘッダーのみ (RSS)</a>.
+            </p>
+            <form name="newsletter" method="post" action="php/newsletter.php">
+                <b>Email ニュースレター:</b> 
+                <a href="http://groups.google.com/group/h2database-news/subscribe">
+                 H2 データベース ニュース (Googleアカウントが必要です)</a>
+                に署名し、ニューリリースについての情報を入手して下さい。
+				あなたのemailアドレスはこのコンテンツでのみ使用されます。
+				もしGoogleアカウントを入手したくないのであれば、 こちらのリストに入力して下さい:  <br />
+                Email: <input type="text" name="email" size="30"/>
+                    <input type="hidden" name="text" value="subscribe"/>
+                    <input type="submit" value="Submit"/>
+            </form>
+        </td></tr>
+    </table>
+</td></tr>
+
+<tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
+
+<tr><td colspan="3" style="background-color: #eee;">
+    <table style="border: 0px; margin: 5px;">
+          <tr><td style="border: 0px; background-color: #eee;">
+            <h3>寄稿する</h3>
+            <p>
+            H2の発展のため、フィードバックやバグ報告を送ったり、H2コンソールアプリケーション
+            (ファイル h2/src/main/org/h2/server/web/res/_text_*.properties)を訳すなど、 
+            投稿することができます。また、下にある PayPal ボタンをクリックすることで
+            寄付することもできます。 支援者として、あなたの名前が載ります:             
+            </p>
+            <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+            <input type="hidden" name="cmd" value="_s-xclick"/>
+            <input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" border="0" name="submit" alt="PayPal"/>
+            <img alt="" border="0" src="https://www.paypal.com/de_DE/i/scr/pixel.gif" width="1" height="1" />
+            <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----"/>
+            </form>   
+        </td></tr>
+    </table>
+</td></tr>
+  
+<tr><td colspan="3" style="border: 0px">&nbsp;</td></tr>
+
+<tr><td colspan="3" style="background-color: #eee;">
+    <table style="border: 0px; margin: 5px;">
+          <tr><td style="border: 0px; background-color: #eee;">
+            <h3>フィードバック</h3>
+            質問や要望、その他あらゆるフィードバックはこちらから送信して下さい:
+            <form method="post" action="php/sendMail.php">
+            <p>
+            Email (任意):<br />
+            <input name="email" size="73" type="text"/>
+            </p>
+            メッセージ:<br />
+            <textarea name="text" cols="70" rows="5"></textarea>
+            <br />
+            <input value="Submit" type="submit"/>
+            </form>
+        </td></tr>
+    </table>
+</td></tr>
+
+</table>
+
+</div></td></tr></table></body></html>

@@ -158,7 +158,7 @@ public class FileUtils {
 
     public static synchronized Properties loadProperties(String fileName) throws IOException {
         fileName = translateFileName(fileName);
-        Properties prop = new Properties();
+        Properties prop = new SortedProperties();
         File file = new File(fileName);
         if(file.exists()) {
             FileInputStream in = new FileInputStream(file);

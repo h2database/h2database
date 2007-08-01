@@ -94,8 +94,23 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+html-jp
+
+platform independent zip: what do others write (shorter)
+copyright to include 2007
+how to make search work for japanese?
+
+automated tests that simulate power off
+
 test odbc again a few times (debug catalog creation)
 
+
+CREATE TABLE first (id IDENTITY, value INT);
+CREATE TABLE second (id IDENTITY, value INT);
+CREATE TRIGGER blah BEFORE INSERT ON first CALL xxx;
+INSERT INTO first VALUES(1,2);
+...trigger calls INSERT INTO second VALUES(3, 4); before the first INSERT
+CALL IDENTITY();
 
  Openfire server uses this script to setup a user permissions
 on the fresh-installed server. The database is [current] HSQLDB :
@@ -196,7 +211,7 @@ checksum marker
 glossary
 spell check / word list per language
 
-html-jp
+SpellChecker filter files with _: don't use _ in files names except translated files.
 
 */        
 

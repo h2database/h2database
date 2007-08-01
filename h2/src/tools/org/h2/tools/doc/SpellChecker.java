@@ -76,7 +76,10 @@ public class SpellChecker {
 
     private void process(File file) throws IOException {
         String name = file.getCanonicalPath();
-        if(name.endsWith(".svn") || name.indexOf("_text_") > 0) {
+        if(name.endsWith(".svn")) {
+            return;
+        }
+        if(name.indexOf("_") > 0 && name.indexOf("_en") < 0) {
             return;
         }
         if(file.isDirectory()) {

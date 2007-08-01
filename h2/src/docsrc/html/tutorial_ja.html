@@ -1,0 +1,354 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- 
+Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Tutorial
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>チュートリアル</h1>
+<a href="#tutorial_starting_h2_console">
+    起動とH2コンソールの使用</a><br />
+<a href="#connecting_using_jdbc">
+    JDBCを使用してデータベースに接続 </a><br />
+<a href="#creating_new_databases">
+    新しいデータベースを作成する </a><br />
+<a href="#using_server">
+    サーバーを使用する </a><br />    
+<a href="#using_hibernate">
+    Hibernateを使用する </a><br />
+<a href="#web_applications">
+    Webアプリケーションで データベースを使用する</a><br />
+<a href="#csv">
+    CSV (Comma Separated Values) サポート</a><br />
+<a href="#upgrade_backup_restore">
+    アップグレード、 バックアップ、修復</a><br />
+<a href="#open_office">
+    OpenOffice Baseを使用する</a><br />
+<a href="#web_start">
+    Java Web Start / JNLP</a><br />
+
+<br /><a name="tutorial_starting_h2_console"></a>
+<h2>起動とH2コンソールの使用</h2>
+<p>
+このアプリケーションはブラウザインターフェースを使ってSQLデータベースにアクセスします。 これは、H2データベース、またはJDBC APIをサポートする別のデータベースであるかもしれません。
+</p>
+<img src="images/console.png" alt="Web Browser - H2 Console Server - H2 Database" />
+<p>
+これはクライアント / サーバーアプリケーションで、サーバーとクライアントの両方実行されることが必要です。
+</p><p>
+プラットフォームと環境によって、アプリケーションの起動方法が多数あります:
+</p>
+<table><tr><th>OS</th><th>起動</th></tr>
+<tr>
+  <td>Windows</td>
+  <td>
+    [スタート]、 [すべてのプログラム]、 [H2]、 [H2 Console]をクリックします<br />
+    正しく動作したら、 システムトレイにアイコンが追加されます:
+    <img src="images/h2.png" alt="[H2 icon]" /><br />
+    システムトレイアイコンが表示されなかったら、 Javaが正しくインストールされていないのかもしれません。 
+    (この場合は、 他のアプリケーション起動方法を試して下さい) ブラウザウィンドウが開き、ログインページが表示されます。 (URL: http://localhost:8082/)
+  </td>
+</tr>
+<tr>
+  <td>Windows</td>
+  <td>
+    ファイルブラウザを開き、h2/binフォルダまで進み、h2.batをダブルクリックします。
+正しく動作したら、システムトレイにアイコンが追加されます。 問題があれば、コンソールウィンドウにエラーメッセージが表示されます。 ブラウザウィンドウが開き、ログインページが表示されます。 (URL: http://localhost:8082/)
+  </td>
+</tr>
+<tr>
+  <td>Any</td>
+  <td>
+      コンソールウィンドウを開き、'h2/lib'ディレクトリまで進み、下記を実行します:
+<pre>
+java -cp h2.jar org.h2.tools.Server
+</pre>
+  </td>
+</tr>
+</table>
+
+<h3>ファイアウォール</h3>
+<p>
+サーバーを起動させたら、ファイアウォールによるセキュリティ警告を受けるでしょう (1度インストールした場合)。外部ネットワークから あなたのマシンのデータベースにアクセスされたくないのであれば、 ファイアーウォールが他の接続を遮断します。ローカルマシンからの接続はまだつながっています。 他のコンピュータから、このコンピューターのデータベースにアクセスしたい場合のみ、 ファイアウォールでリモート接続を許可する必要があります。
+</p><p>
+小さなファイアーウォールはすでにサーバーに組み込まれています。 デフォルトによるこの構造は、他のコンピューターがサーバーにアクセスすることを許可していません。 これは、好きなように変更することができます (他のコンピューターからの接続を許可します)。
+</p>
+
+<h3>ネイティブ バージョン</h3>
+ネイティブ バージョンはJavaを必要としていません。なぜなら、 これはGCJを使用してコンパイルされるからです。しかし、H2は現在、Windows上のGCJプロジェクトでは実行されません。 異なったプラットフォームでソフトウェアをコンパイルすることが可能です。
+
+<h3>Javaをテストする</h3>
+インストールしたJavaのバージョンを調べるためには、 コマンドプロンプトを開き、 下記を入力します:
+<pre>
+java -version
+</pre>
+もしエラーメッセージが表示されたら、Javaのバイナリディレクトリを環境変数のPathに追加します。
+
+<h3>エラーメッセージ 'Port is in use'</h3>
+ひとつのH2コンソールのみ起動することができます。 そうでなければ、次のようなエラーメッセージが表示されます:
+<code>Port is in use, maybe another ... server already running on...</code>
+複数のコンソールアプリケーションを同じコンピューターで起動することは可能です (異なったポートを使用します)、しかし、コンソールが複数の同時接続を維持するということは、普通は必要とされていません。
+
+<h3>他のポートを使用する</h3>
+もしポートが他のアプリケーションによって使用されている場合は、H2コンソールを 異なったポートで起動したいはずです。これは、.h2.server.properties.ファイル内のポートを変更することにより実行できます。 このファイルはユーザディレクトリ内に格納されています (Windowsでは通常、"Documents and Settings/<ユーザ名>")。関連する項目はwebPortです。
+
+<h3>起動成功</h3>
+コンソールウィンドウからのサーバー起動が成功したら、新しいウィンドウが開き、 下記のように表示されます:
+<pre>
+H2 Server running on port 9092
+Webserver running on https://localhost:8082/
+</pre>
+ウィンドウ内をクリックしないで下さい; アプリケーションが遮断されてしまいます (Fast-Edit モードが有効の場合)。
+
+<h3>ブラウザを使用してサーバーに接続</h3>
+サーバーの接続に成功したら、webブラウザを使用してサーバーに接続することができます。 ブラウザにはJavaScript、フレーム、カスケードスタイルシート (css)のサポートが必要です。 もし同じコンピューターのブラウザでサーバーを起動したら、 http://localhost:8082 へアクセスしてください。他のコンピューターからアプリケーションに接続したい場合は、 サーバーのIPアドレスを用意することが必要です。 例: http://192.168.0.2:8082 サーバー側でSSLを使用したい場合は、URLをHTTPSから始めます。 
+
+<h3>複数の同時セッション</h3>
+複数の同時ブラウザセッションがサポートされています。 データベースオブジェクトはサーバーに属しているため、同時接続の数はサーバーアプリケーションの利用可能メモリによって制限されています。
+
+<h3>アプリケーションプロパティ</h3>
+サーバーを起動するとローカルのホームディレクトリに .h2.server.properties と呼ばれるファイル構成が作成されます。Windowsのインストールでは、このファイルは will be in the directory C:\Documents and Settings\[ユーザ名]のディレクトリ内にあります。このファイルはアプリケーションのセッティングに含まれています。
+
+<h3>ログイン</h3>
+<p>
+ログインページでは、データベースに接続するための接続情報を設定する必要があります。 JDBCドライバをデータベースのクラスに設定し、JDBCのURL、ユーザ名とパスワードを入力します。 完了したら [Connect] をクリックします。
+</p><p>
+保存された設定をあらかじめ保存し、再び使用することができます。設定はアプリケーションプロパティファイルに記憶されます。
+</p>
+
+<h3>エラーメッセージ</h3>
+エラーメッセージは赤で表示されます。 メッセージをクリックすることによって、例外の記録の表示、非表示を切り替えることができます。
+
+<h3>データベースドライバの追加</h3>
+<p>
+H2DRIVERSかCLASSPATHの環境変数に、ドライバのJarファイルの位置を追加することにより、データベースドライバの追加を行うことができます。 例 (Windowsの場合): データベースドライバのライブラリに C:\Programs\hsqldb\lib\hsqldb.jar を追加し、H2DRIVERSの環境変数に C:\Programs\hsqldb\lib\hsqldb.jar を設定します。
+</p><p>
+複数のドライバを設定することも可能です; それぞれのパスは ';' (Windows) や ':' (他のOS) で区切ります。 パス名内のスペースは有効です。設定は引用されません。
+</p><p>
+ドライバの追加はJavaバージョンのみでサポートされています (この特徴はネイティブバージョンではサポートされていません)。
+</p>
+
+<h3>アプリケーションを使用する</h3>
+アプリケーションは3つのメインパネルを保持しています。上部のツールバー、左側のツリーとクエリ、右側の結果表示パネルです。 データベースオブジェクト (例; テーブル) は左側のパネルに一覧表示されます。クエリパネルにSQLコマンドを打ち、 'Run' をクリックします。 コマンドの結果は、コマンドのすぐ下に表示されます。
+
+<h3>テーブル名、またはカラム名をインサートする</h3>
+テーブル名やカラム名は、ツリー内のテーブル名、カラム名をクリックすることによって スクリプトにインサートすることができます。クエリが空の時にテーブルをクリックすると、 'SELECT * FROM ...' も同様に追加されます。 クエリを入力している間、使用されているテーブルはツリー内で自動的に拡張されます。例えば、 'SELECT * FROM TEST T WHERE T.' と入力すると、ツリー内のTESTテーブルは自動的に拡張されます。
+
+<h3>切断とアプリケーションの終了</h3>
+<p>
+ブラウザでは、ツールバーパネルの 'Disconnect' をクリックします。データベースからログアウトします。しかし、サーバーはまだ接続されていて、 新しいセッションを受け入れる準備をしています。
+</p><p>
+サーバーを止めるためには、システムトレイアイコンを右クリックし、 [Exit] を選択します。もしアイコンが表示されていないのであれば、 (別の方法で実行した場合) サーバーが実行されたコンソール上で [Ctrl]+[C] を押すか (Windowsの場合)、 コンソールウィンドウを閉じます。
+</p>
+
+<br /><a name="connecting_using_jdbc"></a>
+<h2>JDBCを使用してデータベースに接続</h2>
+データベースに接続するためにJavaアプリケーションに最初に必要なことは、 データベースドライバをロードし、接続することです。簡単な方法は、次のコードを使用します:
+<pre>
+import java.sql.*;
+public class Test {
+  public static void main(String[] a) 
+  throws Exception {
+    Class.forName("org.h2.Driver");
+    Connection conn = DriverManager.
+      getConnection("jdbc:h2:~/test", "sa", ""); 
+    // add application code here
+  }
+}
+</pre>
+このコードは最初にドライバをロードして (Class.forName())、 接続を開始します (DriverManager.getConnection())。 このドライバの名前は全てのケースにおいて "org.h2.Driver" です。 データベースに認識されるため、データベースのURLは常に jdbc:h2: から始まります。 getConnection() 内の2番目のパラメーターはユーザ名を指しています ('sa' はこの場合、システム管理者を表しています)。3番目のパラメーターはパスワードです。 このデータベースでは、ユーザ名は大文字と小文字を区別していませんが、パスワードは大文字と小文字を区別しています。 
+
+<br /><a name="creating_new_databases"></a>
+<h2>新しいデータベースを作成する</h2>
+初期設定では、データベースの指定されたURLがまだ存在しない場合、自動的に新しい (空の) データベースが作られます。 
+
+<br /><a name="using_server"></a>
+<h2>サーバーを使用する</h2>
+H2は現在、3つのサーバーをサポートしています: Webサーバー、TCPサーバー、ODBCサーバーです。 これらのサーバーは異なった方法で起動します。
+
+<h3>コマンドラインから起動する</h3>
+初期設定でコマンドラインからサーバーを起動させるには、次のように実行します。
+<pre>
+java org.h2.tools.Server
+</pre>
+サーバーはデフォルトオプションで起動します。オプションの一覧を取得するには、次のように実行します。
+<pre>
+java org.h2.tools.Server -?
+</pre>
+異なったポートの使用が可能なオプションや、サーバーの一部を起動、終了させるオプションなどがあります。 詳細はサーバーツールのAPIドキュメントをご覧下さい。
+
+<h3>Connecting to the TCP Server</h3>
+To remotly connect to a database using the TCP server, use the following driver and database URL:
+<ul>
+<li>JDBC driver class: org.h2.Driver
+</li><li>Database URL: jdbc:h2:tcp://localhost/~/test
+</li></ul>
+For details about the database URL, see also in Features.
+
+<h3>アプリケーション内で起動する</h3>
+アプリケーション内からサーバーを起動、終了することも可能です。 以下はサンプルコードです:
+<pre>
+import org.h2.tools.Server;
+...
+// start the TCP Server
+Server server = Server.createTcpServer(args).start();
+...
+// stop the TCP Server
+server.stop();
+</pre>
+
+<h3>他の過程からTCPサーバーを終了する</h3>
+TCPサーバーは他の過程から終了することができます。 コマンドラインからサーバーを終了するには、次のように実行します:
+<pre>
+java org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+</pre>
+ユーザアプリケーションからサーバーを終了するには、次のコードを使用します:
+<pre>
+org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094");
+</pre>
+この機能はサーバー上の System.exit を呼んでいます。この機能は、データベースが次回起動された時のリカバリーを回避するため、 データベースへの全ての接続が切断された後に呼ばれます。リモートサーバーを終了するには、サーバー上でリモート接続が可能である必要があります。 
+
+<h3>サーバーの制限</h3>
+現在、サーバーやクラスターモードを使用する時にいくつかの制限があります:
+<ul>
+<li>Statement.cancel() はエンベッドモードのみサポートされています。接続はサーバー、またはクラスターモードで1度にひとつのオペレーションで実行され、 このオペレーションが終了するまで接続は遮断されます。
+</li><li>CLOBとBLOBはストリームとしてではなく、ひとつの断片としてサーバーに送信されます。これは、サーバーやクラスターモードを使用している時、 CLOBとBLOBはメモリーに適合している必要があるということを意味しています。
+</li></ul>
+
+<br /><a name="using_hibernate"></a>
+<h2>Hibernateを使用する</h2>
+このデータベースはHibernate version 3.1 と以降の新しいバージョンをサポートしています。 HSQLDB Dialect、または H2 Dialectは src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内で使用可能です。 H2 dialectは Hibernateのより新しいバージョンに含まれています。H2 dialectが含まれていないバージョンでは、 src\org\hibernate\dialect (Hibernate 3.1の場合) フォルダ内のファイルをコピーし、 H2Dialect.java にファイル名を変更し、 Hibernateを再びコンパイルします。 
+
+<br /><a name="web_applications"></a>
+<h2>Webアプリケーションでデータベースを使用する</h2>
+Webアプリケーション内からデータベースに接続するには様々な方法があります。 以下はTomcatかJBossを使用の場合のいくつかの例です。
+
+<h3>エンベッドモード</h3>
+(現在)最も簡単なソリューションはエンベッドモードでデータベースを使用することです。 それは、アプリケーションが起動する時や (良いソリューションは Servletリスナーを使用します。下記参照)、 セッションが起動する時、アプリケーションにおける接続が開始するということを意味します。 データベースは、セッションやアプリケーションが同じ過程で実行している限り、 多様なセッションやアプリケーションから同時に接続されることが可能です。 多くのServletコンテナは (例； Tomcat) ただひとつのプロセスで利用されるので、問題はありません。 (Tomcatをクラスターモードで起動している場合を除いて)。 Tomcatはマルチスレッドとマルチクラスローダーを使用しています。 もし複数のアプリケーションが同じデータベースに同時にアクセスする場合、データベースjarをshared/lib、またはserver/libディレクトリに置く必要があります。 webアプリケーションが起動した時にデータベースを開き、webアプリケーションが終了した時にデータベースを閉じるのが良い方法です。 もし複数のアプリケーションを使用する場合、そのうちひとつのアプリケーションをこのように動作することが必要です。 アプリケーションでは、セッションごとにひとつの接続を使うか、リクエスト(アクション)ごとにひとつの接続を使うという概念があります。 これらの接続はできる限り、使用後に終了させます(しかし、終了させなくても悪くはありません)。
+
+<h3>サーバーモード</h3>
+サーバーモードは類似していますが、他のプロセスでサーバーを起動させることを許可しています。
+
+<h3>データベースの起動と終了にServletリスナーを使用する</h3>
+以下を web.xmlファイルに追記して下さい。 (context-paramとfilterの間):
+<pre>
+&lt;listener>
+   &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
+&lt;/listener>
+</pre>
+
+For details on how to access the database, see the code DbStarter.java
+
+<br /><a name="csv"></a>
+<h2>CSV (Comma Separated Values) サポート</h2>
+データベースにCSVREADとCSVWRITEの関数を使用することで、 CSVファイルサポートを使用することができ、スタンドアロンツールとしてデータベースの外でCSVライブラリを使用することができます。
+
+<h3>データベース内からCSVファイルに書き込む</h3>
+クエリからCSVファイルを作成するのに、組込み関数 CSVWRITEを使用することができます。例:
+<pre>
+CREATE TABLE TEST(ID INT, NAME VARCHAR);
+INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
+CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
+</pre>
+
+<h3>データベース内からCSVファイルを読み込む</h3>
+CSVREAD関数を使用してCSVファイルを読み込むことができます。 例:
+<pre>
+SELECT * FROM CSVREAD('test.csv');
+</pre>
+
+<h3>JavaアプリケーションからCSVファイルに書き込む</h3>
+データベースを全く使用しなくても、JavaアプリケーションでCSVツールを使用することができます。 例:
+<pre>
+SimpleResultSet rs = new SimpleResultSet();
+rs.addColumn("NAME", Types.VARCHAR, 255, 0);
+rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
+rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
+rs.addRow(new String[]{"Bob Meier", "bob.meier@abcde.abc", "+41123456789"});
+rs.addRow(new String[]{"John Jones", "john.jones@abcde.abc", "+41976543210"});
+Csv.write("test.csv", rs, null);
+</pre>
+
+<h3>JavaアプリケーションからCSVファイルを読み込む</h3>
+データベースを開かなくてもCSVファイルを読み込むことができます。 例:
+<pre>
+ResultSet rs = Csv.read("test.csv", null, null);
+ResultSetMetaData meta = rs.getMetaData();
+while(rs.next()) {
+    for(int i=0; i&lt;meta.getColumnCount(); i++) {
+        System.out.println(meta.getColumnLabel(i+1) + ": " + rs.getString(i+1));
+    }
+    System.out.println();
+}
+rs.close();
+</pre>
+
+<br /><a name="upgrade_backup_restore"></a>
+<h2>アップグレード、バックアップ、修復</h2>
+
+<h3>データベースのアップグレー</h3>
+あるバージョンのデータベースエンジンを次のバージョンにアップグレードする際の推奨する方法は、 古いエンジンを使って(SQLスクリプトのフォームでの)データベースのバックアップを作成し、新しいエンジンを使ってSQLスクリプトを実行します。
+
+<h3>バックアップ</h3>
+異なった方法のデータベースのバックアップがあります。例えば、データベースファイルをコピーすることが可能です。 しかしながら、この方法はデータベースが使用されている間は推奨しません。データベースは人が判読しやすく、極めて大きいというわけではありません。 データベースバックアップの推奨する方法は、圧縮したSQLスクリプトを作成することです。この方法は、バックアップツールを使用することで可能です:
+<pre>
+java org.h2.tools.Script -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
+</pre>
+オプションについての情報は、SQLコマンドスクリプトをご覧下さい。バックアップは遠隔で行えますが、ファイルはサーバー側に作られます。 サーバーからファイルを取るのに、ビルトインFTPサーバーを使用することができます。データベースのバックアップを作るのに、SQLコマンドスクリプトを 使用することもできます。
+
+<h3>修復</h3>
+SQLスクリプトファイルからデータベースを修復するには、RunScriptツールを使用する必要があります:
+<pre>
+java org.h2.tools.RunScript -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
+</pre>
+オプションについての情報は、SQLコマンド RUNSCRIPTをご覧下さい。修復は遠隔で行えますが、サーバー側にファイルが存在する必要があります。 サーバーからファイルをコピーするのに、ビルトインFTPサーバーを使用することができます。SQLスクリプトを実行するために、 SQLコマンド RUNSCRIPTを使用することができます。SQLスクリプトファイルには、RUNSCRIPTコマンドのフォーム内に他のスクリプトファイルのリファレンスが含まれています。 しかしながら、サーバーモードを使用している時、リファレンススクリプトファイルはサーバー側で利用可能であることが必要です。 
+
+<h3>Online Backup</h3>
+The BACKUP SQL statement and the Backup tool both create a zip file 
+with all database files. However, the contents of this file are not human readable. 
+Other than the SCRIPT statement, the BACKUP statement does not lock the
+database objects, and therefore does not block other users. The resulting
+backup is transactionally consistent:
+<pre>
+BACKUP TO 'backup.zip'
+</pre>
+The Backup tool (org.h2.tools.Backup) can not be used to create a online backup;
+the database must not be in use while running this program.
+
+
+<br /><a name="open_office"></a>
+<h2>OpenOffice Baseを使用する</h2>
+OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
+<ul>
+<li>オートスタートを含め、OpenOfficeを終了する
+</li><li>h2.jar ファイルを <OpenOffice>\program\classes ディレクトリ内にコピーする
+</li><li>OpenOffice Base を起動する
+</li><li>存在するデータベースに接続し、JDBCを選択し、[Next] をクリックする
+</li><li>データソースURLの例: jdbc:h2:c:/temp/test
+</li><li>JDBCドライバクラス: org.h2.Driver
+</li></ul>
+これで、C:/temp ディレクトリ内に格納されているデータベースにアクセス可能です。
+
+
+<br /><a name="web_start"></a>
+<h2>Java Web Start / JNLP</h2>
+
+When using Java Web Start / JNLP (Java Network Launch Protocol), permissions tags must be set in the .jnlp file, 
+and the application .jar file must be signed. Otherwise, when trying to write to the file system, the following 
+exception will occur: java.security.AccessControlException: access denied (java.io.FilePermission ... read).
+
+Example permission tags:
+<pre>
+&lt;security>
+    &lt;all-permissions/>
+&lt;/security>
+</pre>
+
+</div></td></tr></table></body></html>

@@ -127,7 +127,7 @@
 	<target name="docs" depends="clean,javadoc,compile">
 		<copy todir="docs">
 			<fileset dir="src/docsrc" includes="index.html"/>
-			<fileset dir="src/docsrc" includes="html/*" excludes="**/*.jsp" />
+			<fileset dir="src/docsrc" includes="html/**/*" excludes="**/*.jsp" />
 		</copy>
 		<java classname="org.h2.tools.code.CheckTextFiles" classpath="bin"/>
 		<java classname="org.h2.tools.doc.GenerateDoc" classpath="bin">

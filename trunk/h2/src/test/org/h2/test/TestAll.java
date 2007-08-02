@@ -201,6 +201,10 @@ checksum marker
 glossary
 spell check / word list per language
 translated .pdf
+docs: xml:lang="en" > correct language (and detect wrong language based on _ja)
+docs: xhtml: use UTF-8 encoding (<?xml version="1.0"?>)
+
+io: wrapped streams are closed: simplify code
 
 */        
 

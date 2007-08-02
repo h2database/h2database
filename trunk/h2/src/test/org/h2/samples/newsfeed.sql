@@ -10,6 +10,48 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(26,
+'New version available: 1.0 / 2007-08-02', '2007-08-02 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+
+<br />
+<b>Changes and new functionality:</b>
+<ul>
+</li><li>H2 databases can now be accessed using the PostgreSQL ODBC driver.
+</li><li>The old H2 ODBC driver has been removed.
+</li><li>Function REGEXP_REPLACE and regular expression LIKE: REGEXP.
+</li><li>CREATE TABLE ... AS SELECT now needs less memory.
+</li><li>The per session undo log can now be disabled.
+</li><li>Referential integrity can now be disabled.
+</li><li>To avoid memory problems when using large transactions,
+	h2.defaultMaxMemoryUndo is now 50000.    
+</li><li>DEFAULT_MAX_LENGTH_INPLACE_LOB is now 1024.
+</li><li>The cache size is now measured in KB.
+</li><li>Optimization for NOT, boolean columns, and certain joins. 
+</li><li>Part of the documentation has been translated to Japanese.
+</li><li>The error messages (src/main/org/h2/res/_*.*) can now be translated.
+</li><li>A new tool to help translation has been implemented
+</li><li>The SysTray tool has been removed.
+</ul>
+<b>Bugfixes:</b>
+<ul>
+</li><li>Running out of memory while inserting could corrupt the database.
+</li><li>Some Unicode characters where not supported as identifiers.
+</li><li>H2 Console: The shutdown button works again.
+</li><li>LOBs were not backed up using the BACKUP statement or tool when 
+    h2.lobFilesInDirectories was enabled. 
+</li><li>Calculation of cache memory usage has been improved.
+</li><li>In some situations records were released from the cache too late.
+</li><li>Documentation: the source code in ''Compacting a Database'' was incorrect.
+</li><li>Result set in the H2 Console can now be modified again.
+</li><li>Views using UNION did not work correctly.
+</li><li>Function tables did not work with views and EXPLAIN.
+</li>
+</ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+');
+
 INSERT INTO ITEM VALUES(25,
 'New version available: 1.0 / 2007-07-12', '2007-07-12 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -46,9 +88,9 @@ INSERT INTO ITEM VALUES(25,
 </li><li>For READ_COMMITTED, when the multi-threaded 
     kernel is enabled, read locks are now acquired but released 
     immediately after a query.
+</li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(24,
@@ -128,7 +170,6 @@ One object per opened connection was kept in a hash map.
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(23,
@@ -192,7 +233,6 @@ INSERT INTO ITEM VALUES(23,
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(22,
@@ -231,7 +271,6 @@ INSERT INTO ITEM VALUES(22,
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(21,
@@ -258,7 +297,6 @@ INSERT INTO ITEM VALUES(21,
 <li>Forum subscriptions (the emails sent from the forum) now work.</li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(20,
@@ -292,7 +330,6 @@ INSERT INTO ITEM VALUES(20,
 </li><li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed. 
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(19,
@@ -335,7 +372,6 @@ INSERT INTO ITEM VALUES(19,
     ALL OBJECTS, resulting in a null pointer exception afterwards.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(18,
@@ -377,7 +413,6 @@ INSERT INTO ITEM VALUES(18,
     when the prepared statement was reused. This could lead to incorrect results.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(17,
@@ -421,7 +456,6 @@ INSERT INTO ITEM VALUES(17,
     an exception. This has been fixed.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(16,
@@ -457,7 +491,6 @@ INSERT INTO ITEM VALUES(16,
 </li><li>When using the server version, when not closing result sets or using nested DatabaseMetaData result sets, the connection could break.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(15,
@@ -502,7 +535,6 @@ INSERT INTO ITEM VALUES(15,
 </li><li>LOCK_MODE 0 (READ_UNCOMMITTED) did not work when using multiple connections.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(14,
@@ -528,7 +560,6 @@ INSERT INTO ITEM VALUES(14,
 </li><li>Redundant () in a IN subquery is now supported: where id in ((select id from test)).
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(13,
@@ -570,7 +601,6 @@ INSERT INTO ITEM VALUES(13,
 </li><li>Functions returning a result set are now called as documented.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
 ');
 
 INSERT INTO ITEM VALUES(12,
@@ -600,60 +630,6 @@ INSERT INTO ITEM VALUES(12,
 </li><li>Correlated subqueries: It is now possible to use columns of the outer query in the select list of the inner query.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
-</ul>
-');
-
-INSERT INTO ITEM VALUES(11,
-'Article about the 1.0 release on InfoQ', '2006-09-05 12:00:00',
-'There is an article about the 1.0 release at InfoQ:
-See <a href="http://www.infoq.com/news/h2-released">http://www.infoq.com/news/h2-released</a>.
-');
-
-INSERT INTO ITEM VALUES(10,
-'New version available: 1.0 / 2006-08-31', '2006-08-31 12:00:00',
-'H2 version 1.0 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Bugfixes:</b>
-<ul>
-<li>In some situations, wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
-</li><li>ORDER BY was broken in the last release when using table aliases. Fixed.
-</li></ul>
-For details see also the history.
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(9,
-'New version available: 1.0 RC 2 / 2006-08-28', '2006-08-28 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Linked tables: The table name is no longer quoted when accessing the foreign database.
-    This allows to use schema names, and possibly subqueries as table names (when used in queries).
-    Also, the compatibility with other databases has been improved.
-</li><li>New setting MAX_LENGTH_INPLACE_LOB.
-</li><li>LOB files where not deleted when the table was truncated or dropped. This is now done.
-</li></ul>
-<b>New Functionality (but currently disabled):</b>
-These features are currently disabled. They will be enabled after release 1.0.
-See the history for more details.
-<li>Optimization for MIN and MAX: Queries such as SELECT MIN(ID), MAX(ID)+1, COUNT(*) FROM TEST can now use an index if one is available.
-</li><li>When large strings or byte arrays where inserted into a LOB (CLOB or BLOB), or if the data was stored using
-    PreparedStatement.setBytes or setString, the data was stored in-place (no separate files where created).
-    Now distinct files are created if the size is larger than MAX_LENGTH_INPLACE_LOB.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Outer join: Some incompatibilities with PostgreSQL and MySQL with more complex outer joins have been fixed.
-</li><li>Subquery optimization: Constant subqueries are now only evaluated once (like this was before).
-</li><li>DATEDIFF on seconds, minutes, hours did return different results in certain timezones (half-hour timezones) in certain situations. Fixed.
-</li></ul>
-For details see also the history. Version 1.0 is planned for 2006-08-29.
-The plans for version 1.0 are:
-<ul>
-<li>Write more tests, bugfixes.
-</li><li>For plans after release 1.0, see the new ''Roadmap'' page on the web site.
-</li></ul>
 ');
 
 SELECT 'newsfeed-rss.xml' FILE,

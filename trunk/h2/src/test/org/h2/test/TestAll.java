@@ -94,8 +94,13 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+pg_version is in public instead of pg_catalog
+
 copyright to include 2007
-how to make search work for japanese?
+search for japanese: works, but is it ok?
+can not use google to translate h2 homepage?
+pdf: first page looks empty (because the top part is empty) - title on the top?
+pdf / openoffice: pictures don't work?
 
 test odbc again a few times (debug catalog creation)
 

@@ -839,6 +839,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>System table / function: cache usage
@@ -1019,7 +1020,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>File_Read / File_Store funktionen: FILE_STORE('test.sql', ?), FILE_READ('test.sql')
 </li><li>Public interface for functions (not public static)
-</li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 </li><li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
 </li><li>Functions: options readonly, deterministic (pure, always return the same value)

@@ -8,12 +8,16 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,14 +32,15 @@ public class PrepareTranslation {
     private static final String DELETED_PREFIX = "~";
     
     public static void main(String[] args) throws Exception {
-        String baseDir = "src/tools/org/h2/tools/i18n";
-        String path;
-        path = "src/main/org/h2/res";
-        prepare(baseDir, path);
-        path = "src/main/org/h2/server/web/res";
-        prepare(baseDir, path);
+        int todoSwitchOn;
+//        String baseDir = "src/tools/org/h2/tools/i18n";
+//        String path;
+//        path = "src/main/org/h2/res";
+//        prepare(baseDir, path);
+//        path = "src/main/org/h2/server/web/res";
+//        prepare(baseDir, path);
         int todoAllowTranslateHtmlFiles;
-        // extract("src/docsrc/html");
+        extract("src/docsrc/html");
     }
     
     private static void extract(String dir) throws Exception {
@@ -65,28 +70,57 @@ public class PrepareTranslation {
         return false;
     }
 
-    private static void extract(HashSet set, String documentName, File f) throws Exception {
-        String xml = IOUtils.readStringAndClose(new FileReader(f), -1);
+    private static void extract(HashSet already, String documentName, File f) throws Exception {
+        String xml = IOUtils.readStringAndClose(new InputStreamReader(new FileInputStream(f), "UTF-8"), -1);
+        // Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f.getName()), "UTF-8"));
         XMLParser parser = new XMLParser(xml);
+        StringBuffer buff = new StringBuffer();
         boolean translate = true;
+        String tag = "";
         for(int i=0;;) {
             int event = parser.next();
+            String s = parser.getToken();
+            // writer.write(s);
             if(event == XMLParser.END_DOCUMENT) {
                 break;
             } else if(event == XMLParser.CHARACTERS) {
-                String text = parser.getText().trim();
-                if(translate && !set.contains(text) && isText(text)) {
-                    System.out.println(documentName + "_" + i++ );
-                    System.out.println(text);
-                    System.out.println();
-                    set.add(text);
+                String text = parser.getText();
+                if(translate) {
+                    if("p".equals(tag) || "li".equals(tag) || "a".equals(tag) || 
+                        "td".equals(tag) || "th".equals(tag) || "h1".equals(tag) || 
+                        "h2".equals(tag) || "h3".equals(tag) || "h4".equals(tag)) {
+                        buff.append(text);
+                    } else if(text.trim().length() > 0) {
+                        System.out.println(f.getName() + " invalid wrapper tag for text: " + tag + " text: " + text);
+//                        System.out.println(parser.getRemaining());
+                    }
                 }
             } else if(event == XMLParser.START_ELEMENT) {
                 String name = parser.getName();
-                if("code".equals(name) || "pre".equals(name)) {
+                if("pre".equals(name) || "title".equals(name)) {
                     translate = false;
+                } else if("p".equals(name) || "li".equals(name) || "a".equals(name) || 
+                        "td".equals(name) || "th".equals(name) || "h1".equals(name) || 
+                        "h2".equals(name) || "h3".equals(name) || "h4".equals(name)) {
+                    translate = true;
+                    if("".equals(tag)) {
+                        tag = name;
+                    }
+                } else if(translate && ("code".equals(name) || "a".equals(name))) {
+                    buff.append(parser.getToken());
                 }
             } else if(event == XMLParser.END_ELEMENT) {
+                String name = parser.getName();
+                if("pre".equals(name)) {
+                    translate = true;
+                } else if(tag.equals(name)) {
+                    translate = false;
+                    tag = "";
+                } else if(translate) {
+                    if("code".equals(name) || "a".equals(name)) {
+                        buff.append(parser.getToken());
+                    }
+                }
                 translate = true;
             } else if(event == XMLParser.DTD) {
             } else if(event == XMLParser.COMMENT) {
@@ -95,6 +129,7 @@ public class PrepareTranslation {
                 throw new Exception("Unexpected event " + eventType + " at " + parser.getRemaining());
             }
         }
+        // writer.close();
     }
 
     private static void prepare(String baseDir, String path) throws IOException {

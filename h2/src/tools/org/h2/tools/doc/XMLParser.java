@@ -27,6 +27,7 @@ public class XMLParser {
     private int index;
     private int eventType;
     private String currentText;
+    private String currentToken;
     private String prefix, localName;
     private String[] attributeValues = new String[3];
     private int currentAttribute;
@@ -83,18 +84,15 @@ public class XMLParser {
     private void read() {
         currentText = null;
         currentAttribute = 0;
-        int currentStart = index;
+        int tokenStart = index, currentStart = index;
         int ch = readChar();
         if (ch < 0) {
             eventType = END_DOCUMENT;
-            return;
-        }
-        if (ch == '<') {
+        } else if (ch == '<') {
             currentStart = index;
             ch = readChar();
             if (ch < 0) {
                 eventType = ERROR;
-                return;
             } else if (ch == '?') {
                 eventType = PROCESSING_INSTRUCTION;
                 currentStart = index;
@@ -108,10 +106,12 @@ public class XMLParser {
                     }
                 }
                 if(xml.substring(currentStart).startsWith("xml")) {
+                    int back = tokenStart;
                     read();
-                    return;
+                    tokenStart = back;
+                } else {
+                    currentText = xml.substring(currentStart, index - 1);
                 }
-                currentText = xml.substring(currentStart, index - 1);
             } else if (ch == '!') {
                 ch = readChar();
                 if (ch == '-') {
@@ -224,6 +224,7 @@ public class XMLParser {
                 }
             }
         } else {
+            // TODO need to replace &#xx;?
             eventType = CHARACTERS;
             while (true) {
                 ch = readChar();
@@ -236,6 +237,7 @@ public class XMLParser {
             }
             currentText = xml.substring(currentStart, index);
         }
+        currentToken = xml.substring(tokenStart, index);
     }
     
     private void readAttributeValues() {
@@ -302,6 +304,7 @@ public class XMLParser {
         if(endElement) {
             endElement = false;
             eventType = END_ELEMENT;
+            currentToken = "";
         } else {
             read();
         }
@@ -323,6 +326,10 @@ public class XMLParser {
 
     public String getText() {
         return currentText;
+    }
+    
+    public String getToken() {
+        return currentToken;
     }
 
     public int getAttributeCount() {

@@ -54,22 +54,27 @@ Advanced Topics
 <h2>Result Sets</h2>
 
 <h3>Limiting the Number of Rows</h3>
+<p>
 Before the result is returned to the application, all rows are read by the database.
 Server side cursors are not supported currently.
 If only the first few rows are interesting for the application, then the
 result set size should be limited to improve the performance.
 This can be done using LIMIT in a query (example: SELECT * FROM TEST LIMIT 100),
 or by using Statement.setMaxRows(max).
+</p>
 
 <h3>Large Result Sets and External Sorting</h3>
+<p>
 For result set larger than 1000 rows, the result is buffered to disk. If ORDER BY is used,
 the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
 quick sort, then written to disk; when reading the data, the blocks are merged together.
+</p>
 
 <br /><a name="large_objects"></a>
 <h2>Large Objects</h2>
 
 <h3>Storing and Reading Large Objects</h3>
+<p>
 If it is possible that the objects don't fit into memory, then the data type
 CLOB (for textual data) or BLOB (for binary data) should be used.
 For these data types, the objects are not fully read into memory, by using streams.
@@ -78,26 +83,29 @@ PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStr
 and to read a CLOB, use ResultSet.getCharacterStream.
 If the client/server mode is used, the BLOB and CLOB data is fully read into memory when
 accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
+</p>
 
 <br /><a name="linked_tables"></a>
 <h2>Linked Tables</h2>
-
+<p>
 This database supports linked tables, which means tables that don't exist in the current database but
 are just links to another database. To create such a link, use the CREATE LINKED TABLE statement:
+</p>
 <pre>
 CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 'sa', 'TEST');
 </pre>
+<p>
 It is then possible to access the table in the usual way. 
 There is a restriction when inserting data to this table: When inserting or updating rows into the table,
 NULL and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
+</p>
 
 <br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>
 <p>
 This database supports the following transaction isolation levels:
 </p>
-
 <ul>
 <li><b>Serializable</b><br />
     This is the default level.<br />
@@ -115,11 +123,9 @@ This database supports the following transaction isolation levels:
     or append ;LOCK_MODE=0 to the database URL: jdbc:h2:~/test;LOCK_MODE=0
 </li>
 </ul>
-
 <p>
 When using the isolation level 'serializable', dirty reads, non-repeatable reads, and phantom reads are prohibited.
 </p>
-
 <ul>
 <li><b>Dirty Reads</b><br />
     Means a connection can read uncommitted changes made by another connection.<br />
@@ -137,6 +143,7 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 </ul>
 
 <h3>Table Level Locking</h3>
+<p>
 The database allows multiple concurrent connections to the same database.
 To make sure all connections only see consistent data, table level locking is used.
 This mechanism does not allow high concurrency, but is very fast.
@@ -149,14 +156,17 @@ to write to a table (update or delete a row), an exclusive lock is required. To 
 exclusive lock, other connection must not have any locks on the object. After the
 connection commits, all locks are released.
 This database keeps all locks in memory.
+</p>
 
 <h3>Lock Timeout</h3>
+<p>
 If a connection cannot get a lock on an object, the connection waits for some amount
 of time (the lock timeout). During this time, hopefully the connection holding the
 lock commits and it is then possible to get the lock. If this is not possible because
 the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
+</p>
 
 <br /><a name="clustering"></a>
 <h2>Clustering / High Availability</h2>
@@ -167,6 +177,7 @@ same database. If both servers run, each database operation is executed on both 
 If one server fails (power, hardware or network failure), the other server can still continue to work.
 From this point on, the operations will be executed only on one server until the other server
 is back up.
+</p><p>
 Clustering can only be used in the server mode (the embedded mode does not support clustering).
 It is possible to restore the cluster without stopping the server, however it is critical that no other
 application is changing the data in the first database while the second database is restored, so
@@ -183,9 +194,11 @@ To initialize the cluster, use the following steps:
 </li></ul>
 
 <h3>Using the CreateCluster Tool</h3>
+<p>
 To understand how clustering works, please try out the following example.
 In this example, the two databases reside on the same computer, but usually, the
 databases will be on different servers.
+</p>
 <ul>
 <li>Create two directories: server1 and server2.
     Each directory will simulate a directory on a computer.
@@ -226,6 +239,7 @@ and re-run the CreateCluster tool.
 </li></ul>
 
 <h3>Clustering Algorithm and Limitations</h3>
+<p>
 Read-only queries are only executed against the first cluster node, but all other statements are
 executed against all nodes. There is currently no load balancing made to avoid problems with
 transactions. The following functions may yield different results on different cluster nodes and must be
@@ -233,10 +247,13 @@ executed with care: RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), M
 CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should not be used
 directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
+</p>
 
 <br /><a name="two_phase_commit"></a>
 <h2>Two Phase Commit</h2>
+<p>
 The two phase commit protocol is supported. 2-phase-commit works as follows:
+</p>
 <ul>
 <li>Autocommit needs to be switched off
 </li><li>A transaction is started, for example by inserting a row
@@ -255,14 +272,17 @@ The two phase commit protocol is supported. 2-phase-commit works as follows:
 
 <br /><a name="compatibility"></a>
 <h2>Compatibility</h2>
-
+<p>
 This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL.
 There are certain areas where H2 is incompatible.
+</p>
 
 <h3>Transaction Commit when Autocommit is On</h3>
+<p>
 At this time, this database engine commits a transaction (if autocommit is switched on) just before returning the result.
 For a query, this means the transaction is committed even before the application scans through the result set, and before the result set is closed.
 Other database engines may commit the transaction in this case when the result set is closed.
+</p>
 
 <h3>Keywords / Reserved Words</h3>
 <p>
@@ -279,43 +299,57 @@ for example CURRENT_TIMESTAMP.
 
 <br /><a name="windows_service"></a>
 <h2>Run as Windows Service</h2>
+<p>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service. 
 There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
 (<a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a>)
 is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service.
 This service contains the TCP Server and the H2 Console web application.
 The batch files are located in the directory H2/service.
+</p>
 
 <h3>Install the Service</h3>
+<p>
 The service needs to be registered as a Windows Service first.
 To do that, double click on 1_install_service.bat. 
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+</p>
 
 <h3>Start the Service</h3>
+<p>
 You can start the H2 Database Engine Service using the service manager of Windows,
 or by double clicking on 2_start_service.bat. 
 Please note that the batch file does not print an error message if the service is not installed.
+</p>
 
 <h3>Connect to the H2 Console</h3>
+<p>
 After installing and starting the service, you can connect to the H2 Console application using a browser.
 Double clicking on 3_start_browser.bat to do that. The
 default port (8082) is hard coded in the batch file.
+</p>
 
 <h3>Stop the Service</h3>
+<p>
 To stop the service, double click on 4_stop_service.bat.
 Please note that the batch file does not print an error message if the service is not installed or started.
+</p>
 
 <h3>Uninstall the Service</h3>
+<p>
 To uninstall the service, double click on 5_uninstall_service.bat.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+</p>
 
 <br /><a name="odbc_driver"></a>
 <h2>ODBC Driver</h2>
+<p>
 This database does not come with its own ODBC driver at this time, 
 but it supports the PostgreSQL network protocol.
 Therefore, the PostgreSQL ODBC driver can be used.
 Support for the PostgreSQL network protocol is quite new and should be viewed
 as experimental. It should not be used for production applications.
+</p>
 
 <h3>ODBC Installation</h3>
 <p>
@@ -385,15 +419,19 @@ Currently, statements can not be cancelled when using the PG protocol.
 </p>
 
 <h3>Security Considerations</h3>
+<p>
 Currently, the PG Server does not support challenge response or encrypt passwords.
 This may be a problem if an attacker can listen to the data transferred between the ODBC driver
 and the server, because the password is readable to the attacker.
 Also, it is currently not possible to use encrypted SSL connections.
 Therefore the ODBC driver should not be used where security is important.
+</p>
 
 <br /><a name="acid"></a>
 <h2>ACID</h2>
+<p>
 In the database world, ACID stands for:
+</p>
 <ul>
 <li>Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
 </li><li>Consistency: All operations must comply with the defined constraints.
@@ -402,24 +440,32 @@ In the database world, ACID stands for:
 </li></ul>
 
 <h3>Atomicity</h3>
+<p>
 Transactions in this database are always atomic.
+</p>
 
 <h3>Consistency</h3>
+<p>
 This database is always in a consistent state.
 Referential integrity rules are always enforced.
+</p>
 
 <h3>Isolation</h3>
+<p>
 For H2, the default isolation level is 'serializable', which means complete isolation. 
 The default transaction isolation level for many other databases is 'read committed'. 
 This provides better performance, but also means that transactions are not completely isolated.
 H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
+</p>
 
 <h3>Durability</h3>
+<p>
 This database does not guarantee that all committed transactions survive a power failure.
 Tests show that all databases sometimes lose transactions on power failure (for details, see below).
 Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. 
 If durability is required for all possible cases of hardware failure, clustering should be used, 
 such as the H2 clustering mode.
+</p>
 
 <br /><a name="durability_problems"></a>
 <h2>Durability Problems</h2>
@@ -488,6 +534,7 @@ In the performance comparison, commit delay was used for all databases that supp
 </p>
 
 <h3>Running the Durability Test</h3>
+<p>
 To test the durability / non-durability of this and other databases, you can use the test application
 in the package org.h2.test.poweroff. Two computers with network connection are required to run this test.
 One computer just listens, while the test application is run (and power is cut) on the other computer.
@@ -499,9 +546,11 @@ The listener computer displays the last inserted record number every 10 seconds.
 manually, then restart the computer, and run the application again. You will find out that in most cases, 
 none of the databases contains all the records that the listener computer knows about. For details, please 
 consult the source code of the listener and test application.
+</p>
 
 <br /><a name="using_recover_tool"></a>
 <h2>Using the Recover Tool</h2>
+<p>
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
 At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
 To run the tool, type on the command line:
@@ -512,6 +561,7 @@ For each database in the current directory, a text file will be created.
 This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate
 the schema of the database. This file cannot be executed directly, as the raw insert statements
 don't have the correct table names, so the file needs to be pre-processed manually before executing.
+</p>
 
 <br /><a name="file_locking_protocols"></a>
 <h2>File Locking Protocols</h2>
@@ -531,7 +581,9 @@ The two methods are 'file method' and 'socket methods'.
 </p>
 
 <h3>File Locking Method 'File'</h3>
+<p>
 The default method for database file locking is the 'File Method'. The algorithm is:
+</p>
 <ul>
 <li>When the lock file does not exist, it is created (using the atomic operation File.createNewFile).
 Then, the process waits a little bit (20ms) and checks the file again. If the file was changed
@@ -568,8 +620,10 @@ to the user if it cannot open a database, and not try again in a (fast) loop.
 </p>
 
 <h3>File Locking Method 'Socket'</h3>
+<p>
 There is a second locking mechanism implemented, but disabled by default.
 The algorithm is:
+</p>
 <ul>
 <li>If the lock file does not exist, it is created.
 Then a server socket is opened on a defined port, and kept open.
@@ -583,14 +637,17 @@ and this process throws an exception (database is in use). If the original proce
 died (for example due to a blackout, or abnormal termination of the virtual machine),
 then the port was released. The new process deletes the lock file and starts again.
 </li></ul>
+<p>
 This method does not require a watchdog thread actively polling (reading) the same
 file every second. The problem with this method is, if the file is stored on a network
 share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
+<p>
 
 <br /><a name="sql_injection"></a>
 <h2>Protection against SQL Injection</h2>
 <h3>What is SQL Injection</h3>
+<p>
 This database engine provides a solution for the security vulnerability known as 'SQL Injection'.
 Here is a short description of what SQL injection means.
 Some applications build SQL statements with embedded user input such as:
@@ -606,8 +663,10 @@ SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
 </pre>
 Which is always true no matter what the password stored in the database is. 
 For more information about SQL Injection, see Glossary and Links.
+</p>
 
 <h3>Disabling Literals</h3>
+<p>
 SQL Injection is not possible if user input is not directly embedded in SQL statements.
 A simple solution for the problem above is to use a PreparedStatement:
 <pre>
@@ -630,8 +689,10 @@ do not include literals.
 There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS.
 To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting).
 Literals can only be enabled or disabled by an administrator.
+</p>
 
 <h3>Using Constants</h3>
+<p>
 Disabling literals also means disabling hard-coded 'constant' literals. This database supports
 defining constants using the CREATE CONSTANT command. Constants can be defined only 
 when literals are enabled, but used even when literals are disabled. To avoid name clashes
@@ -645,18 +706,23 @@ SELECT * FROM USERS WHERE TYPE=CONST.ACTIVE;
 Even when literals are enabled, it is better to use constants instead
 of hard-coded number or text literals in queries or views. With constants, typos are found at compile
 time, the source code is easier to understand and change.
+</p>
 
 <h3>Using the ZERO() Function</h3>
+<p>
 It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
 <pre>
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
+</p>
 
 <br /><a name="security_protocols"></a>
 <h2>Security Protocols</h2>
+<p>
 The following paragraphs document the security protocols used in this database.
 These descriptions are very technical and only intended for security experts that already know
 the underlying security primitives.
+</p>
 
 <h3>User Password Encryption</h3>
 <p>
@@ -736,17 +802,22 @@ database operations take about 2.2 times longer when using XTEA, and 2.5 times l
 </p>
 
 <h3>SSL/TLS Connections</h3>
+<p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
 (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
 The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
+</p>
 
 <h3>HTTPS Connections</h3>
+<p>
 The web server supports HTTP and HTTPS connections using SSLServerSocket.
 There is a default self-certified certificate to support an easy starting point, but
 custom certificates are supported as well.
+</p>
 
 <br /><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
+<p>
 This database supports the UUIDs. Also supported is a function to create new UUIDs using 
 a cryptographically strong pseudo random number generator.
 With random UUIDs, the chance of two having the same value can be calculated
@@ -773,6 +844,7 @@ Some values are:
 </pre>
 One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, 
 that means the probability is about 0.000'000'000'06.
+</p>
 
 <br /><a name="system_properties"></a>
 <h2>Settings Read from System Properties</h2>
@@ -781,11 +853,9 @@ Some settings of the database can be set on the command line using
 -DpropertyName=value. It is usually not required to change those settings manually.
 The settings are case sensitive. 
 Example:
-</p>
 <pre>
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
 </pre>
-<p>
 The current value of the settings can be read in the table
 INFORMATION_SCHEMA.SETTINGS
 </p>

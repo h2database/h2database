@@ -40,6 +40,9 @@ public class JdbcSQLException extends SQLException {
     }
     
     private static String buildMessage(String message, String sql, String state) {
+        if(message == null) {
+            message = "";
+        }
         StringBuffer buff = new StringBuffer(message);
         if(sql != null) {
             buff.append("; SQL statement: ");

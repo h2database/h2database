@@ -4,7 +4,10 @@
  */
 package org.h2.test;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 import org.h2.server.TcpServer;
@@ -93,6 +96,23 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 
 /*
+
+search from a frame (but usually don't use frames)
+
+        Class.forName("org.h2.Driver");
+        DeleteDbFiles.execute("~", null, true);
+        Connection conn1 = DriverManager.getConnection("jdbc:h2:~/test");
+        Statement s1 = conn1.createStatement();
+        s1.execute("create table test(id int)");
+        conn1.setAutoCommit(false);
+        s1.execute("delete from test");
+        s1.execute("PREPARE COMMIT TX_8");
+        s1.execute("COMMIT TRANSACTION TX_8");
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:~/test");
+        conn2.createStatement().execute("select * from test");
+        
+        
+call  N'@name';
 
 pg_version is in public instead of pg_catalog
 

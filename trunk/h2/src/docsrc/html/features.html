@@ -212,22 +212,27 @@ Features
 </table>
 
 <h3>Derby and HSQLDB</h3>
+<p>
 After an unexpected process termination (for example power failure), H2 can recover safely and 
 automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required 
 ('Another instance of Derby may have already booted the database' / 
 'The database is already in use by another process').
+</p>
 
 <h3>DaffodilDb and One$Db</h3>
+<p>
 It looks like the development of this database has stopped. The last release was February 2006.
+</p>
 
 <h3>McKoi</h3>
+<p>
 It looks like the development of this database has stopped. The last release was August 2004
+</p>
 
 <br /><a name="products_work_with"></a>
 <h2>Products that Work with H2</h2>
 <table>
 <tr><th>Product</th><th>Description</th></tr>
-
     <tr>
         <td><a href="http://jackrabbit.apache.org">Apache Jackrabbit</a></td>
         <td>Open source implementation of the Java Content Repository API (JCR).</td>     
@@ -314,7 +319,9 @@ It looks like the development of this database has stopped. The last release was
 
 <br /><a name="connection_modes"></a>
 <h2>Connection Modes</h2>
+<p>
 The following connection modes are supported:
+</p>
 <ul>
 <li>Local connections using JDBC (embedded) 
 </li><li>Remote connections using JDBC over TCP/IP (client/server)
@@ -436,12 +443,14 @@ This is achieved using different database URLs. The settings in the URLs are not
 </table>
 
 <h3>Connecting to an Embedded (Local) Database</h3>
+<p>
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
 The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working 
 directory is used as a starting point. The case sensitivity of the path and database name depend on the 
 operating system, however it is suggested to use lowercase letters only.
 The database name must be at least three characters long (a limitation of File.createTempFile).
 To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+</p>
 
 <h3>Memory-Only Databases</h3>
 <p>
@@ -467,6 +476,7 @@ An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>
 
 <br /><a name="file_encryption"></a>
 <h2>Connecting to a Database with File Encryption</h2>
+<p>
 To use file encryption, it is required to specify the encryption algorithm (the 'cipher') 
 and the file password. The algorithm needs to be specified using the connection parameter.
 Two algorithms are supported: XTEA and AES. The file password is specified in the password field,
@@ -474,6 +484,7 @@ before the user password. A single space needs to be added between the file pass
 and the user password; the file password itself may not contain spaces. File passwords
 (as well as user passwords) are case sensitive. Here is an example to connect to a password
 encrypted database:
+</p>
 <pre>
 Class.forName("org.h2.Driver");
 String url = "jdbc:h2:~/test;CIPHER=AES";
@@ -501,6 +512,7 @@ if the database files are only accessed by the one (and always the same) compute
 </li><li>It is also possible to open the database without file locking;
 in this case it is up to the application to protect the database files. 
 </li></ul>
+<p>
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
 The following code opens the database with the 'socket' locking method:
 <pre>
@@ -514,9 +526,11 @@ String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
 For more information about the algorithms please see in Advanced Topics under 
 File Locking Protocol.  
+</p>
 
 <br /><a name="database_only_if_exists"></a>
 <h2>Opening a Database Only if it Already Exists</h2>
+<p>
 By default, when an application calls <code>DriverManager.getConnection(url,...)</code> 
 and the database specified in the URL does not yet exist, a new (empty) database is created.
 In some situations, it is better to restrict creating new database, and only open
@@ -524,6 +538,7 @@ the database if it already exists. This can be done by adding <code>;ifexists=tr
 to the URL. In this case, if the database does not already exist, an exception is thrown when 
 trying to connect. The connection only succeeds when the database already exists.
 The complete URL may look like this:
+</p>
 <pre>
 String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 </pre>
@@ -532,6 +547,7 @@ String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 <h2>Closing the Database</h2>
 
 <h3>Delayed Database Closing</h3>
+<p>
 Usually, the database is closed when the last connection to it is closed. In some situations
 this slows down the application, for example when it is not possible leave the connection open.
 The automatic closing of the database can be delayed or disabled with the SQL statement 
@@ -545,8 +561,10 @@ The value -1 means the database is never closed automatically.
 The value 0 is the default and means the database is closed when the last connection is closed.
 This setting is persistent and can be set by an administrator only.
 It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
+</p>
 
 <h3>Don't Close the Database when the VM Exits</h3>
+<p>
 By default, a database is closed when the last connection is closed. However, if it is never closed,
 the database is closed when the virtual machine exits normally. This is done using a shutdown hook.
 In some situations, the database should not be closed in this case, for example because the
@@ -555,12 +573,14 @@ For those cases, the automatic closing of the database can be disabled in the da
 The first connection (the one that is opening the database) needs to 
 set the option in the database URL (it is not possible to change the setting afterwards).
 The database URL to disable database closing on exit is:
+</p>
 <pre>
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
 
 <br /><a name="log_index_changes"></a>
 <h2>Log Index Changes</h2>
+<p>
 Usually, changes to the index file are not logged for performance.
 If the index file is corrupt or missing when opening a database, it is re-created from the data.
 The index file can get corrupt when the database is not shut down correctly,
@@ -572,8 +592,10 @@ so that recovery from a corrupted index file is fast.
 To enable log index changes, add LOG=2 to the URL, as in jdbc:h2:~/test;LOG=2
 This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
+</p>
 
 <h3>Ignore Unknown Settings</h3>
+<p>
 Some applications (for example OpenOffice.org Base) pass some additional parameters 
 when connecting to the database. Why those parameters are passed is unknown.
 The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples,
@@ -581,17 +603,21 @@ they are simply ignored to improve the compatibility with OpenOffice.org. If an 
 passes other parameters when connecting to the database, usually the database throws an exception
 saying the parameter is not supported. It is possible to ignored such parameters by adding
 ;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL. 
+</p>
 
 <h3>Changing Other Settings when Opening a Connection</h3>
+<p>
 In addition to the settings already described (cipher, file_lock, ifexists, user, password), 
 other database settings can be passed in the database URL.
 Adding <code>setting=value</code> at the end of an URL is the
 same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of settings supported by this database please see the
 SQL grammar documentation.
+</p>
 
 <br /><a name="custom_access_mode"></a>
 <h2>Custom File Access Mode</h2>
+<p>
 Usually, the database opens log, data and index files with the access mode 'rw', meaning
 read-write (except for read only databases, where the mode 'r' is used).
 Also supported are 'rws' and 'rwd'.
@@ -603,26 +629,33 @@ String url = "jdbc:h2:~/test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
 </pre>
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a>.
 On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
+</p>
 
 <br /><a name="multiple_connections"></a>
 <h2>Multiple Connections</h2>
 
 <h3>Opening Multiple Databases at the Same Time</h3>
+<p>
 An application can open multiple databases at the same time, including multiple
 connections to the same database. The number of open database is only limited by the memory available.
+</p>
 
 <h3>Multiple Connections to the Same Database: Client/Server</h3>
- If you want to access the same database at the same time from different processes or computers,
- you need to use the client / server mode. In this case, one process acts as the server, and the
- other processes (that could reside on other computers as well) connect to the server via TCP/IP
- (or SSL/TLS over TCP/IP for improved security).
+<p>
+If you want to access the same database at the same time from different processes or computers,
+you need to use the client / server mode. In this case, one process acts as the server, and the
+other processes (that could reside on other computers as well) connect to the server via TCP/IP
+(or SSL/TLS over TCP/IP for improved security).
+</p>
  
 <h3>Multithreading Support</h3>
- This database is multithreading-safe. That means, if an application is multi-threaded, it does not need
- to worry about synchronizing the access to the database. Internally, most requests to the same database 
- are synchronized. That means an application can use multiple threads all accessing the same database
- at the same time, however if one thread executes a long running query, the other threads
- need to wait.
+<p>
+This database is multithreading-safe. That means, if an application is multi-threaded, it does not need
+o worry about synchronizing the access to the database. Internally, most requests to the same database 
+are synchronized. That means an application can use multiple threads all accessing the same database
+at the same time, however if one thread executes a long running query, the other threads
+need to wait.
+</p>
  
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
 <p>
@@ -860,8 +893,10 @@ Here is the list of currently supported modes and the difference to the regular 
 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>
+<p>
 To find problems in an application, it is sometimes good to see what database operations 
 where executed. This database offers the following trace features:
+</p>
 <ul>
 <li>Trace to System.out and/or a file
 </li><li>Support for trace levels OFF, ERROR, INFO, and DEBUG
@@ -871,6 +906,7 @@ where executed. This database offers the following trace features:
 </li></ul>
 
 <h3>Trace Options</h3>
+<p>
 The simplest way to enable the trace option is setting it in the database URL.
 There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, 
 and one for file tracing (TRACE_LEVEL_FILE). 
@@ -886,22 +922,25 @@ Example:
 <pre>
 SET TRACE_LEVEL_SYSTEM_OUT 3
 </pre>
+</p>
 
 <h3>Setting the Maximum Size of the Trace File</h3>
+<p>
 When using a high trace level, the trace file can get very big quickly.
 The size of the file can be limited by executing the SQL statement 
 <code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code>.
 If the log file exceeds the limit, the file is renamed to .old and a new file is created.
 If another .old file exists, it is deleted.
 The default setting is 16 MB. Example:
+</p>
 <pre>
 SET TRACE_MAX_FILE_SIZE 1
 </pre>
 
 <h3>Java Code Generation</h3>
+<p>
 When setting the trace level to INFO or DEBUG, Java source code is generated as well, so that
 problem can be reproduced more easily. The trace file looks like this:
-
 <pre>
 ...
 12-20 20:58:09 jdbc[0]: 
@@ -910,7 +949,6 @@ problem can be reproduced more easily. The trace file looks like this:
 /**/dbMeta3.getTables(null, "", null, new String[]{"TABLE", "VIEW"});
 ...
 </pre>
-
 You need to filter out the lines without /**/ to get the Java source code.
 In Windows, a simple way to do that is:
 <pre>
@@ -925,6 +963,7 @@ Class.forName("org.h2.Driver");
 }}
 </pre>
 Also, the user name and password needs to be set, because they are not listed in the trace file.
+</p>
 
 <h3>Enabling the Trace Option at Runtime by Manually Creating a File</h3>
 <p>
@@ -946,6 +985,7 @@ will always enable the trace mode when connecting.
 
 <br /><a name="read_only"></a>
 <h2>Read Only Databases</h2>
+<p>
 If the database files are read-only, then the database is read-only as well.
 It is not possible to create new tables, add or modify data in this database.
 Only SELECT statements are allowed.
@@ -954,9 +994,11 @@ Then, make the database files read-only using the operating system.
 When you open the database now, it is read-only.
 There are two ways an application can find out a database is read-only:
 By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
+</p>
 
 <br /><a name="storage_formats"></a>
 <h2>Binary and Text Storage Formats</h2>
+<p>
 This database engine supports both binary and text storage formats. 
 The binary format is faster, but the text storage format can be useful as well,
 for example to debug the database engine.
@@ -964,6 +1006,7 @@ If a database already exists, the storage format is recognized automatically.
 New databases are created in the binary storage format by default.
 To create a new database in the text storage format, the database URL must contain
 the parameter STORAGE=TEXT. Example URL: jdbc:h2:~/test;STORAGE=TEXT
+</p>
 
 <br /><a name="low_disk_space"></a>
 <h2>Graceful Handling of Low Disk Space Situations</h2>
@@ -987,12 +1030,15 @@ See also the DatabaseEventListener API.
 </p>
 
 <h3>Opening a Corrupted Database</h3>
+<p>
 If a database can not be opened because the boot info (the SQL script that is run at startup)
 is corrupted, then the database can be opened by specifying a database event listener. 
 The exceptions are logged, but opening the database will continue.
+</p>
 
 <br /><a name="computed_columns"></a>
 <h2>Computed Columns / Function Based Index</h2>
+<p>
 Function indexes are not directly supported by this database, but they can be easily emulated
 by using computed columns. For example, if an index on the upper-case version of
 a column is required, just create a computed column with the upper-case version of the original column,
@@ -1012,6 +1058,7 @@ column when querying the table:
 INSERT INTO ADDRESS(ID, NAME) VALUES(1, 'Miller');
 SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 </pre>
+</p>
 
 <br /><a name="multi_dimensional"></a>
 <h2>Multi-Dimensional Indexes</h2>
@@ -1066,7 +1113,6 @@ password will not be stored in the swap file.
 </p><p>
 This database supports using char arrays instead of String to pass user and file passwords.
 The following code can be used to do that:
-</p>
 <pre>
 Class.forName("org.h2.Driver");
 String url = "jdbc:h2:simple";
@@ -1086,8 +1132,10 @@ try {
 </pre>
 In this example, the password is hard code in the application, which is not secure of course. 
 However, Java Swing supports a way to get passwords using a char array (JPasswordField).
+</p>
 
 <h3>Passing the User Name and/or Password in the URL</h3>
+<p>
 Instead of passing the user name as a separate parameter as in
 <code>
 Connection conn = DriverManager.
@@ -1099,10 +1147,11 @@ Connection conn = DriverManager.
   getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
 </code>
 The settings in the URL override the settings passed as a separate parameter.
+</p>
 
 <br /><a name="user_defined_functions"></a>
 <h2>User Defined Functions and Stored Procedures</h2>
-
+<p>
 In addition to the built-in functions, this database supports user defined Java functions.
 In this database, Java functions can be used as stored procedures as well.
 A function must be declared (registered) before it can be used.
@@ -1122,21 +1171,29 @@ The Java function must be registered in the database by calling CREATE ALIAS:
 CREATE ALIAS IS_PRIME FOR "org.h2.samples.Function.isPrime"
 </pre>
 For a complete sample application, see src/test/org/h2/samples/Function.java.
+</p>
 
 <h3>Function Data Type Mapping</h3>
+<p>
 Functions that accept non-nullable parameters such as 'int' will not be called if one of those parameters is NULL.
 In this case, the value NULL is used as the result. If the function should be called in this case, you need
 to use 'java.lang.Integer' instead of 'int'.
+</p>
 
 <h3>Functions that require a Connection</h3>
+<p>
 If the first parameter in a Java function is a java.sql.Connection, then the connection
 to database is provided. This connection does not need to be closed before returning.
+</p>
 
 <h3>Functions throwing an Exception</h3>
+<p>
 If a function throws an Exception, then the current statement is rolled back 
 and the exception is thrown to the application.
+</p>
 
 <h3>Functions returning a Result Set</h3>
+<p>
 Functions may returns a result set. Such a function can be called with the CALL statement:
 <pre>
 public static ResultSet query(Connection conn, String sql) throws SQLException {
@@ -1146,8 +1203,10 @@ public static ResultSet query(Connection conn, String sql) throws SQLException {
 CREATE ALIAS QUERY FOR "org.h2.samples.Function.query";
 CALL QUERY('SELECT * FROM TEST');
 </pre>
+</p>
 
 <h3>Using SimpleResultSet</h3>
+<p>
 A function that returns a result set can create this result set from scratch using the SimpleResultSet tool:
 <pre>
 import org.h2.tools.SimpleResultSet;
@@ -1164,8 +1223,10 @@ public static ResultSet simpleResultSet() throws SQLException {
 CREATE ALIAS SIMPLE FOR "org.h2.samples.Function.simpleResultSet";
 CALL SIMPLE();
 </pre>
+</p>
 
 <h3>Using a Function as a Table</h3>
+<p>
 A function returning a result set can be like a table.
 However, in this case the function is called at least twice:
 First while parsing the statement to collect the column names 
@@ -1192,9 +1253,11 @@ public static ResultSet getMatrix(Integer id) throws SQLException {
 CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(3) WHERE X>0;
 </pre>
+</p>
 
 <br /><a name="triggers"></a>
 <h2>Triggers</h2>
+<p>
 This database supports Java triggers that are called before or after a row is updated, inserted or deleted.
 Triggers can be used for complex consistency checks, or to update related data in the database.
 It is also possible to use triggers to simulate materialized views.
@@ -1219,9 +1282,11 @@ CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
   FOR EACH ROW CALL "org.h2.samples.TriggerSample"
 </pre>
 The trigger can be used to veto a change, by throwing a SQL Exception.
+</p>
 
 <br /><a name="compacting"></a>
 <h2>Compacting a Database</h2>
+<p>
 Empty space in the database file is re-used automatically. 
 To re-build the indexes, the most simple way is to delete the .index.db file
 while the database is closed. However in some situations (for example after deleting 
@@ -1240,6 +1305,7 @@ public static void compact(String dir, String dbName,
 See also the sample application org.h2.samples.Compact.
 The commands SCRIPT / RUNSCRIPT can be used as well to create the a backup
 of a database and re-build the database from the script.
+</p>
 
 <br /><a name="cache_settings"></a>
 <h2>Cache Settings</h2>
@@ -1265,7 +1331,9 @@ is listed for the data and index file.
 
 <br /><a name="why_java"></a>
 <h2>Why Java</h2>
+<p>
 A few reasons using a Java database are:
+</p>
 <ul>
 <li>Very simple to integrate in Java applications
 </li><li>Support for many different platforms

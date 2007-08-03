@@ -17,7 +17,7 @@ public class DbStarter implements ServletContextListener {
             // You can also get the setting from a context-param in web.xml:
             ServletContext servletContext = servletContextEvent.getServletContext();
             // String url = servletContext.getInitParameter("db.url");
-            conn = DriverManager.getConnection("jdbc:h2:test", "sa", "");
+            conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
             servletContext.setAttribute("connection", conn);
         } catch (Exception e) {
             e.printStackTrace();

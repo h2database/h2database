@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
@@ -230,6 +230,8 @@ docs: xml:lang="en" > correct language (and detect wrong language based on _ja)
 docs: xhtml: use UTF-8 encoding (<?xml version="1.0"?>)
 
 io: wrapped streams are closed: simplify code
+
+document SET SEARCH_PATH, BEGIN, EXECUTE, $ parameters
 
 */        
 

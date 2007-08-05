@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2006 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 ;
 drop schema if exists pg_catalog;
 create schema pg_catalog;
 
-create table pg_version as select 1 as version;
+create table pg_catalog.pg_version as select 1 as version;
 
 set search_path = PUBLIC, pg_catalog;
 

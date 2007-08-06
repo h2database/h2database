@@ -1,3 +1,12 @@
+create table test(id int);
+insert into scriptSimple.public.test(id) values(1), (2);
+update test t set t.id=t.id+1;
+update public.test set public.test.id=1;
+select count(scriptSimple.public.test.id) from scriptSimple.public.test;
+> 2;
+update scriptSimple.public.test set scriptSimple.public.test.id=1;
+drop table scriptSimple.public.test;
+
 select timestamp '2007-07-26 18:44:26.109000 +02:00';
 > 2007-07-26 18:44:26.109;
 

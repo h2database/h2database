@@ -210,7 +210,6 @@ public class Parser {
                     c = list;
                 }
             } else if (currentTokenType != END) {
-                // TODO exception: expected end of command
                 throw getSyntaxError();
             }
             return c;
@@ -385,7 +384,6 @@ public class Parser {
                 }
                 break;
             default:
-                // TODO exception: unknown command
                 throw getSyntaxError();
             }
             if(indexedParameterList != null) {
@@ -563,9 +561,26 @@ public class Parser {
         if(readIf(".")) {
             tableAlias = columnName;
             columnName = readColumnIdentifier();
-        }
-        if (tableAlias != null && !tableAlias.equals(filter.getTableAlias())) {
-            throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+            if(readIf(".")) {
+                String schemaName = tableAlias;
+                tableAlias = columnName;
+                columnName = readColumnIdentifier();
+                if(readIf(".")) {
+                    String catalogName = schemaName;
+                    schemaName = tableAlias;
+                    tableAlias = columnName;
+                    columnName = readColumnIdentifier();
+                    if(!catalogName.equals(database.getShortName())) {
+                        throw Message.getSQLException(Message.DATABASE_NOT_FOUND_1, catalogName);
+                    }
+                }
+                if(!schemaName.equals(filter.getTable().getSchema().getName())) {
+                    throw Message.getSQLException(Message.SCHEMA_NOT_FOUND_1, schemaName);
+                }
+            }
+            if(!tableAlias.equals(filter.getTableAlias())) {
+                throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+            }
         }
         return filter.getTable().getColumn(columnName);
     }
@@ -922,7 +937,6 @@ public class Parser {
         } else if (readIf("INDEX")) {
             boolean ifExists = readIfExists(false);
             String indexName = readIdentifierWithSchema();
-            // TODO drop index: how to drop a primary key?
             DropIndex command = new DropIndex(session, getSchema());
             command.setIndexName(indexName);
             ifExists = readIfExists(ifExists);
@@ -1172,7 +1186,6 @@ public class Parser {
                     readIf("DISTINCT");
                     union.setUnionType(SelectUnion.UNION);
                 }
-                // TODO exceptions: always add the SQL statement to the exception, if possible!
                 union.setRight(parseSelectSub());
                 command = union;
             } else if(readIf("MINUS") || readIf("EXCEPT")) {
@@ -1249,7 +1262,6 @@ public class Parser {
         if(readIf("FOR")) {
             if(readIf("UPDATE")) {
                 if(readIf("OF")) {
-                    // TODO parser: select for update of: should do something with the list!
                     do {
                         readIdentifierWithSchema();
                     } while(readIf(","));
@@ -1402,7 +1414,6 @@ public class Parser {
             Expression condition = readExpression();
             command.setHaving(condition);
         }
-        // TODO optimization: not all parameters may be referenced
         command.setParameterList(parameters);
         currentSelect = oldSelect;
         setSQL(command, "SELECT", start);
@@ -1480,7 +1491,6 @@ public class Parser {
                 read("NULL");
                 r = new Comparison(session, type, r, null);
             } else if (readIf("IN")) {
-                // TODO extend IN to support arrays (using setArray?)
                 if(Constants.OPTIMIZE_IN) {
                     recompileAlways = true;
                 }
@@ -1621,7 +1631,6 @@ public class Parser {
 
     private Expression readAggregate(int aggregateType) throws SQLException {
         if(currentSelect == null) {
-            // TODO exception: function only allowed in a query
             throw getSyntaxError();
         }
         currentSelect.setGroupQuery();
@@ -1671,7 +1680,7 @@ public class Parser {
     private JavaFunction readJavaFunction(String name) throws SQLException {
         FunctionAlias functionAlias = database.findFunctionAlias(name);
         if(functionAlias == null) {
-            // TODO compatibility: maybe support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
+            // TODO compatibility: support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
             throw Message.getSQLException(Message.FUNCTION_NOT_FOUND_1, name);
         }
         int paramCount = functionAlias.getParameterCount();
@@ -1845,6 +1854,7 @@ public class Parser {
             return expr;
         }
         String name = readColumnIdentifier();
+int supportDatabaseSchema;        
         if(readIf(".")) {
             String schemaName = objectName;
             objectName = name;
@@ -1853,6 +1863,20 @@ public class Parser {
                 return expr;
             }
             name = readColumnIdentifier();
+            if(readIf(".")) {
+                String databaseName = schemaName;
+                if(!database.getShortName().equals(databaseName)) {
+                    throw Message.getSQLException(Message.DATABASE_NOT_FOUND_1, databaseName);
+                }
+                schemaName = objectName;
+                objectName = name;
+                expr = readWildcardOrSequenceValue(schemaName, objectName);
+                if(expr != null) {
+                    return expr;
+                }
+                name = readColumnIdentifier();
+                return new ExpressionColumn(database, currentSelect, schemaName, objectName, name);
+            }
             return new ExpressionColumn(database, currentSelect, schemaName, objectName, name);
         }
         return new ExpressionColumn(database, currentSelect, null, objectName, name);
@@ -1974,7 +1998,6 @@ public class Parser {
                 if(r.getType() == Value.LONG && r.getValue(session).getLong() == Integer.MIN_VALUE) {
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
                 }
-                // TODO parser: maybe convert Long.MIN_VALUE from decimal to long?
                 read();
             } else {
                 r = new Operation(Operation.NEGATE, readTerm(), null);
@@ -2045,7 +2068,6 @@ public class Parser {
             read();
             break;
         default:
-            // TODO exception: expected a term
             throw getSyntaxError();
         }
         if(readIf("[")) {
@@ -2149,7 +2171,6 @@ public class Parser {
     }
 
     private String readString() throws SQLException {
-        // TODO parser: readInt/Long could maybe use readExpression as well
         Expression expr = readExpression().optimize(session);
         if(!(expr instanceof ValueExpression)) {
             throw Message.getSyntaxError(sqlCommand, parseIndex, "string");
@@ -2392,7 +2413,6 @@ public class Parser {
             parseIndex = i;
             return;
         default:
-            // TODO exception: unsupported character
             throw getSyntaxError();
         }
     }
@@ -2437,7 +2457,6 @@ public class Parser {
                 i++;
             }
             if (types[i] != CHAR_VALUE) {
-                // TODO exception: error reading value
                 throw getSyntaxError();
             }
             while (types[++i] == CHAR_VALUE) {
@@ -2638,7 +2657,6 @@ public class Parser {
     private void checkRunOver(int i, int len, int startLoop) throws SQLException {
         if(i >= len) {
             parseIndex = startLoop;
-            // TODO exception: unexpected end
             throw getSyntaxError();
         }
     }
@@ -2713,7 +2731,6 @@ public class Parser {
     }
 
     private int getTokenType(String s) throws SQLException {
-        // TODO the list of keywords is in the documentation! should be a hash map!
         int len = s.length();
         if(len == 0) {
             throw getSyntaxError();

@@ -44,7 +44,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </ul>
 
 <h3>Version 1.0 / 2007-08-02</h3><ul>
-<li>A new tool to help translation has been implemented: src/tools/org/h2/tools/i18n/PrepareTranslation.
+<li>OpenOffice compatibility: support database name in column names.
+</li><li>A new tool to help translation has been implemented: src/tools/org/h2/tools/i18n/PrepareTranslation.
     This tool can detect delta changes in the original (English) and prepends '#' in translation if the original
     text was changed. It can also extract text from the user documentation (however, it is incomplete).
 </li><li>The error messages (src/main/org/h2/res/_*.*) can now be translated.
@@ -844,6 +845,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>Procedural language / script language
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
@@ -891,7 +893,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>JSON parser and functions
 </li><li>Option for Java functions: constant/isDeterministic to allow early evaluation when all parameters are constant
 </li><li>Automatic collection of statistics (auto ANALYZE)
-</li><li>Procedural language
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 </li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 </li><li>Document, implement tool for long running transactions using user defined compensation statements
@@ -1098,6 +1099,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
     Problem: what to do when server stops while others are connected to it.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li><li>Implement INSTEAD OF trigger.
+</li><li>Access rights: Finer grained access control (grant access for specific functions)
 </li></ul>
 
 <h3>Not Planned</h3>

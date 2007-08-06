@@ -2513,6 +2513,7 @@ If the column names are specified (a comma separated list of column names),
 those are used they are read from the file, otherwise (or if they are set to NULL) the first line
 of the file is interpreted as the column names.
 The default charset is the default value for this system, and the default field separator is a comma.
+This function can be used like a table: SELECT * FROM CSVREAD(...).
 Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv')

@@ -97,6 +97,14 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+create table test(id int);
+update test t set t.id=1;
+update public.test set public.test.id=1;
+select count(test.public.test.id) from test.public.test;
+update test.public.test set test.public.test.id=1;
+drop table test.public.test;
+
+
 search from a frame (but usually don't use frames)
 
         Class.forName("org.h2.Driver");

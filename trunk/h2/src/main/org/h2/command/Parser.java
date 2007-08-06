@@ -1854,7 +1854,6 @@ public class Parser {
             return expr;
         }
         String name = readColumnIdentifier();
-int supportDatabaseSchema;        
         if(readIf(".")) {
             String schemaName = objectName;
             objectName = name;
@@ -2748,11 +2747,11 @@ int supportDatabaseSchema;
     private static int getSaveTokenType(String s) {
         switch (s.charAt(0)) {
         case 'C':
-            if(s.endsWith("CURRENT_TIMESTAMP")) {
+            if(s.equals("CURRENT_TIMESTAMP")) {
                 return CURRENT_TIMESTAMP;
-            } else if(s.endsWith("CURRENT_TIME")) {
+            } else if(s.equals("CURRENT_TIME")) {
                 return CURRENT_TIME;
-            } else if(s.endsWith("CURRENT_DATE")) {
+            } else if(s.equals("CURRENT_DATE")) {
                 return CURRENT_DATE;
             }
             return getKeywordOrIdentifier(s, "CROSS", KEYWORD);
@@ -2812,11 +2811,11 @@ int supportDatabaseSchema;
         case 'R':
             return getKeywordOrIdentifier(s, "ROWNUM", ROWNUM);
         case 'S':
-            if(s.endsWith("SYSTIMESTAMP")) {
+            if(s.equals("SYSTIMESTAMP")) {
                 return CURRENT_TIMESTAMP;
-            } else if(s.endsWith("SYSTIME")) {
+            } else if(s.equals("SYSTIME")) {
                 return CURRENT_TIME;
-            } else if(s.endsWith("SYSDATE")) {
+            } else if(s.equals("SYSDATE")) {
                 return CURRENT_DATE;
             }
             return getKeywordOrIdentifier(s, "SELECT", KEYWORD);

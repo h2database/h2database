@@ -66,6 +66,7 @@ public class Session implements SessionInterface {
     private int serialId = nextSerialId++;
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
+    private String currentTransactionName;
 
     public Session() {
     }
@@ -182,6 +183,7 @@ public class Session implements SessionInterface {
     }
 
     public void commit(boolean ddl) throws SQLException {
+        currentTransactionName = null;
         if(containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop table and so on)
             logSystem.commit(this);
@@ -211,6 +213,7 @@ public class Session implements SessionInterface {
     }
 
     public void rollback() throws SQLException {
+        currentTransactionName = null;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
             rollbackTo(0);
@@ -407,15 +410,30 @@ public class Session implements SessionInterface {
             // need to commit even if rollback is not possible (create/drop table and so on)
             logSystem.prepareCommit(this, transactionName);
         }
+        currentTransactionName = transactionName;
     }
 
     public void setPreparedTransaction(String transactionName, boolean commit) throws SQLException {
-        ObjectArray list = logSystem.getInDoubtTransactions();
-        int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
-        for(int i=0; list!=null && i<list.size(); i++) {
-            InDoubtTransaction p = (InDoubtTransaction)list.get(i);
-            if(p.getTransaction().equals(transactionName)) {
-                p.setState(state);
+        if(currentTransactionName != null && currentTransactionName.equals(transactionName)) {
+            if(commit) {
+                commit(false);
+            } else {
+                rollback();
+            }
+        } else {
+            ObjectArray list = logSystem.getInDoubtTransactions();
+            int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
+            boolean found = false;
+            for(int i=0; list!=null && i<list.size(); i++) {
+                InDoubtTransaction p = (InDoubtTransaction)list.get(i);
+                if(p.getTransaction().equals(transactionName)) {
+                    p.setState(state);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                throw Message.getSQLException(Message.TRANSACTION_NOT_FOUND_1, transactionName);
             }
         }
     }

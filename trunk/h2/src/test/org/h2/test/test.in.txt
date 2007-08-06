@@ -1,4 +1,34 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int);
+> ok
+
+set autocommit false;
+> ok
+
+insert into test values(1);
+> update count: 1
+
+prepare commit tx1;
+> ok
+
+commit transaction tx1;
+> ok
+
+rollback;
+> ok
+
+select * from test;
+> ID
+> --
+> 1
+> rows: 1
+
+drop table test;
+> ok
+
+set autocommit true;
+> ok
+
 CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
 > 'abckabom'
 > ----------

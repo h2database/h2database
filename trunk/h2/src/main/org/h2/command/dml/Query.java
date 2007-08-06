@@ -201,7 +201,7 @@ public abstract class Query extends Prepared {
                 }
                 idx -= 1;
                 if(idx < 0 || idx >= originalLength) {
-                    throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT, "index " + idx);
+                    throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT,  "" + (idx + 1));
                 }
             }
             index[i] = idx;

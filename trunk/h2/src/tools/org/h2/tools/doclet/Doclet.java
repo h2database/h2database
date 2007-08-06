@@ -124,9 +124,9 @@ public class Doclet {
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             //writer.println("<a href=\"#f" + fieldId + "\">" + name + "</a>");
             writer.println(name + " = " + field.constantValueExpression());
-            String firstSentence = getFirstSentence(field.firstSentenceTags());
-            if(firstSentence != null) {
-                writer.println("<div class=\"methodText\">"+firstSentence+"</div>");
+            String text = field.commentText();
+            if(text != null) {
+                writer.println("<div class=\"methodText\">"+text+"</div>");
             }
             writer.println("</td></tr>");
             fieldId++;
@@ -234,7 +234,6 @@ public class Doclet {
     }
 
     private static String getFirstSentence(Tag[] tags) {
-
         String firstSentence = null;
         if(tags.length>0) {
             Tag first = tags[0];

@@ -512,10 +512,12 @@ public class PgServerThread implements Runnable {
             } else {
                 int columns = meta.getColumnCount();
                 int[] types = new int[columns];
+                int[] precision = new int[columns];
                 String[] names = new String[columns];
                 for(int i=0; i<columns; i++) {
                     names[i] = meta.getColumnName(i + 1);
-                    int type = meta.getColumnType(i + 1); 
+                    int type = meta.getColumnType(i + 1);
+                    precision[i] = meta.getColumnDisplaySize(i + 1);
                     checkType(type);
                     types[i] = type;
                 }
@@ -526,7 +528,7 @@ public class PgServerThread implements Runnable {
                     writeInt(0); // object ID
                     writeShort(0); // attribute number of the column
                     writeInt(types[i]); // data type
-                    writeShort(getTypeSize(types[i])); // pg_type.typlen
+                    writeShort(getTypeSize(types[i], precision[i])); // pg_type.typlen
                     writeInt(getModifier(types[i])); // pg_attribute.atttypmod
                     writeShort(0); // text
                 }
@@ -537,12 +539,12 @@ public class PgServerThread implements Runnable {
         }
     }
     
-    private int getTypeSize(int type) {
+    private int getTypeSize(int type, int precision) {
         switch(type) {
         case Types.VARCHAR:
-            return 255;
+            return Math.max(255, precision + 10);
         }
-        return type;
+        return precision + 4;
     }
     
     private int getModifier(int type) {
@@ -584,6 +586,7 @@ public class PgServerThread implements Runnable {
                 if(rs.next()) {
                     if(rs.getInt(1) == 1) {
                         // already installed
+                        stat.execute("set search_path = PUBLIC, pg_catalog");
                         return;
                     }
                 }

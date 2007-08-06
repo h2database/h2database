@@ -4,10 +4,7 @@
  */
 package org.h2.test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Properties;
 
 import org.h2.server.TcpServer;
@@ -97,15 +94,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-create table test(id int);
-update test t set t.id=1;
-update public.test set public.test.id=1;
-select count(test.public.test.id) from test.public.test;
-update test.public.test set test.public.test.id=1;
-drop table test.public.test;
-
-
-search from a frame (but usually don't use frames)
+Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
 
         Class.forName("org.h2.Driver");
         DeleteDbFiles.execute("~", null, true);
@@ -118,6 +107,16 @@ search from a frame (but usually don't use frames)
         s1.execute("COMMIT TRANSACTION TX_8");
         Connection conn2 = DriverManager.getConnection("jdbc:h2:~/test");
         conn2.createStatement().execute("select * from test");
+        
+create table test(id int);
+set autocommit off;
+insert into test values(1);
+prepare commit tx1;
+commit transaction tx1;
+rollback;
+select * from test;
+drop table test;
+
         
         
 call  N'@name';
@@ -240,6 +239,10 @@ docs: xhtml: use UTF-8 encoding (<?xml version="1.0"?>)
 io: wrapped streams are closed: simplify code
 
 document SET SEARCH_PATH, BEGIN, EXECUTE, $ parameters
+
+Complete Javadocs for Messages and add to docs
+
+write tests using the PostgreSQL JDBC driver
 
 */        
 

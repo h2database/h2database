@@ -38,15 +38,20 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0 / TODO</h3><ul>
-<li>Some file operations didn't work for files in the root directory. Fixed.
-</li>
-</ul>
-
-<h3>Version 1.0 / 2007-08-02</h3><ul>
-<li>The column name C_CURRENT_TIMESTAMP did not work in the last release.
+<h3>Version 1.0 / TODO (Build xx)</h3><ul>
+<li>PG server: data was truncated when reading large VARCHAR columns and decimal columns.
+</li><li>PG server: when the same database was accessed multiple times using the PostgreSQL ODBC driver, 
+	the pg_catalog schema update failed, and connecting to the database was not possible. Fixed.
+</li><li>Some file operations didn't work for files in the root directory. Fixed.
+</li><li>In the Restore tool, the parameter -file did not work. Fixed.
+</li><li>Two-phase commit: commit with transaction name was only supported in the recovery scan. 
+	Now it is always supported. 
+</li><li>The column name C_CURRENT_TIMESTAMP did not work in the last release.
 </li><li>OpenOffice compatibility: support database name in column names.
-</li><li>A new tool to help translation has been implemented: src/tools/org/h2/tools/i18n/PrepareTranslation.
+</li></ul>
+
+<h3>Version 1.0 / 2007-08-02 (Build 56)</h3><ul>
+<li>A new tool to help translation has been implemented: src/tools/org/h2/tools/i18n/PrepareTranslation.
     This tool can detect delta changes in the original (English) and prepends '#' in translation if the original
     text was changed. It can also extract text from the user documentation (however, it is incomplete).
 </li><li>The error messages (src/main/org/h2/res/_*.*) can now be translated.
@@ -798,13 +803,15 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>In Version 1.1</h3>
 <ul>
-<li>ALTER TABLE on a table with a LOB could result in 'Cannot delete file' on some systems. Fixed.
+<li>Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar. Micro version: use build number, staring with 1.1.100
+</li><li>ALTER TABLE on a table with a LOB could result in 'Cannot delete file' on some systems. Fixed.
 </li><li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
 </li><li>Enable and document optimizations, LOB files in directories
 </li><li>Special methods for DataPage.writeByte / writeShort and so on
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Change the default for NULL || 'x' to NULL
 </li><li>Change the default isolation level to read committed 
+</li><li>Automatic upgrade if there is a file format change
 </li></ul>
 
 <h3>Priority 1</h3>

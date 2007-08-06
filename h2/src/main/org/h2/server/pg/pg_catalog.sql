@@ -8,8 +8,6 @@ create schema pg_catalog;
 
 create table pg_catalog.pg_version as select 1 as version;
 
-set search_path = PUBLIC, pg_catalog;
-
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
 as
 select

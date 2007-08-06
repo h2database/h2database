@@ -56,6 +56,8 @@ public class Restore {
         for(int i=0; args != null && i<args.length; i++) {
             if(args[i].equals("-dir")) {
                 dir = args[++i];
+            } else if(args[i].equals("-file")) {
+                zipFileName = args[++i];
             } else if(args[i].equals("-db")) {
                 db = args[++i];
             } else if(args[i].equals("-quiet")) {

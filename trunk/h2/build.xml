@@ -77,7 +77,7 @@
 		</java>
 	</target>
 
-	<target name="compileResources" depends="clean">
+	<target name="compileResources" depends="clean, compileTest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/Resources.java"/>
 		<java fork="true" classname="org.h2.util.Resources" classpath="bin" dir="."/>
 		<delete>
@@ -89,19 +89,19 @@
 		</delete>
 	</target>
 	
-	<target name="compileServlet" depends="compileServletTest, compile" if="servlet.jar.present">
+	<target name="compileServlet" depends="compile" if="servlet.jar.present">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true">
 			<classpath location="${path.servlet.jar}" />
 			<include name="org/h2/server/web/*.*"/>
 		</javac>
 	</target>
 	
-	<target name="compileServletTest" depends="init" unless="servlet.jar.present">
+	<target name="compileServletTest" depends="init" unless="java.version.ok">
 		<echo message="Servlet API jar not found, console servlet not compiled."/>
 		<echo message="Please set ant-build.properties / path.servlet.jar"/>
 	</target>
 
-	<target name="compile" depends="compileResources">
+	<target name="compile" depends="compileResources, compileTest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true"/>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true"/>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true">
@@ -115,6 +115,11 @@
 			<fileset dir="src/test" includes="**/*.txt"/>
 			<fileset dir="src/test" includes="**/*.properties"/>
 		</copy>
+	</target>
+	
+	<target name="compileTest" unless="java.version.ok">
+		<echo message="Java version is ${java.specification.version} but source code is switched to ${jdk}."/>
+		<echo message="Run ant codeswitchJdk.. first."/>
 	</target>
 
 	<target name="createPatch" depends="clean">
@@ -146,8 +151,25 @@
 
 	<target name="init">
 		<available file="${path.servlet.jar}" property="servlet.jar.present"/>
+		<condition property="java.version.ok">
+			<or>
+				<and>
+					<equals arg1="${java.specification.version}" arg2="1.6"/>
+					<equals arg1="${jdk}" arg2="1.6"/>
+				</and>
+				<and>
+					<equals arg1="${java.specification.version}" arg2="1.5"/>
+					<equals arg1="${jdk}" arg2="1.4"/>
+				</and>
+				<and>
+					<equals arg1="${java.specification.version}" arg2="1.4"/>
+					<equals arg1="${jdk}" arg2="1.4"/>
+				</and>
+			</or>
+		</condition>
+		<echo message="${java.version.ok} spec:${java.specification.version} jdk:${jdk}"></echo>
 	</target>
-
+	
 	<target name="jar" depends="compile, compileServlet">
 		<mkdir dir="bin/META-INF"/>
 		<manifest file="bin/META-INF/MANIFEST.MF">

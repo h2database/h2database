@@ -100,6 +100,11 @@ a:hover {
     text-decoration: underline;
 }
 
+em.u {
+    text-decoration: underline;
+    font-style: normal;
+}
+
 .screenshot {
     border: 1px outset #888;
     padding: 10px;

@@ -1412,10 +1412,15 @@ public class Function extends Expression implements FunctionCall {
         buff.append(info.name);
         buff.append('(');
         switch(info.type) {
-        case CAST:
-        case CONVERT: {
+        case CAST: {
             buff.append(args[0].getSQL());
             buff.append(" AS ");
+            buff.append(new Column(null, dataType, precision, scale).getCreateSQL());
+            break;
+        }
+        case CONVERT: {
+            buff.append(args[0].getSQL());
+            buff.append(",");
             buff.append(new Column(null, dataType, precision, scale).getCreateSQL());
             break;
         }

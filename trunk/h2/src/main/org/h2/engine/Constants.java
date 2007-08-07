@@ -211,6 +211,7 @@ public class Constants {
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 50000);
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
     public static final boolean OPTIMIZE_2_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
+    public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", LOCK_MODE_READ_COMMITTED);
     
     public static void setBaseDir(String dir) {
         if(!dir.endsWith("/")) {

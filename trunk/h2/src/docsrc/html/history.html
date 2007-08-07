@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!-- 
 Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
@@ -24,6 +23,7 @@ History
 
 <br /><a name="history"></a>
 <h2>History of this Database Engine</h2>
+<p>
 The development of H2 was started in May 2004,
 but it was first published on December 14th 2005.
 The author of H2, Thomas Mueller, is also the original developer of Hypersonic SQL.
@@ -32,6 +32,7 @@ At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group w
 to continued to work on the Hypersonic SQL codebase.
 The name H2 stands for Hypersonic 2; however H2 does not share any code with
 Hypersonic SQL or HSQLDB. H2 is built from scratch.
+</p>
 
 <br /><a name="changelog"></a>
 <h2>Change Log</h2>
@@ -39,7 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build xx)</h3><ul>
-<li>PG server: data was truncated when reading large VARCHAR columns and decimal columns.
+<li>Google translate did not work for the H2 homepage. It should be fixed now.
+</li><li>The CONVERT function did not work with views when using UNION.
+</li><li>The build now issues a warning if the source code is switched to the wrong version.
+</li><li>The default lock mode is now read committed instead of serialized.
+</li><li>PG server: data was truncated when reading large VARCHAR columns and decimal columns.
 </li><li>PG server: when the same database was accessed multiple times using the PostgreSQL ODBC driver, 
 	the pg_catalog schema update failed, and connecting to the database was not possible. Fixed.
 </li><li>Some file operations didn't work for files in the root directory. Fixed.
@@ -810,7 +815,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Special methods for DataPage.writeByte / writeShort and so on
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Change the default for NULL || 'x' to NULL
-</li><li>Change the default isolation level to read committed 
 </li><li>Automatic upgrade if there is a file format change
 </li></ul>
 
@@ -1108,6 +1112,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li><li>Implement INSTEAD OF trigger.
 </li><li>Access rights: Finer grained access control (grant access for specific functions)
+</li><li>Support N'text'
+</li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li></ul>
 
 <h3>Not Planned</h3>
@@ -1118,9 +1124,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <br /><a name="supporters"></a>
 <h2>Supporters</h2>
+<p>
 Many thanks for those who helped by finding and reporting bugs, gave valuable feedback,
 spread the word and have translated this project. Also many thanks to the donors who contributed
 via PayPal:
+</p>
 <ul>
 <li>Florent Ramiere, France
 </li><li>Pete Haidinyak, USA

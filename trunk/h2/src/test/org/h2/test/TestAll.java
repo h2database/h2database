@@ -94,53 +94,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
+strict xhtml (license,...)
+make docs translatable
 
-        Class.forName("org.h2.Driver");
-        DeleteDbFiles.execute("~", null, true);
-        Connection conn1 = DriverManager.getConnection("jdbc:h2:~/test");
-        Statement s1 = conn1.createStatement();
-        s1.execute("create table test(id int)");
-        conn1.setAutoCommit(false);
-        s1.execute("delete from test");
-        s1.execute("PREPARE COMMIT TX_8");
-        s1.execute("COMMIT TRANSACTION TX_8");
-        Connection conn2 = DriverManager.getConnection("jdbc:h2:~/test");
-        conn2.createStatement().execute("select * from test");
-        
-create table test(id int);
-set autocommit off;
-insert into test values(1);
-prepare commit tx1;
-commit transaction tx1;
-rollback;
-select * from test;
-drop table test;
-
-        
-        
-call  N'@name';
-
-pg_version is in public instead of pg_catalog
-
-copyright to include 2007
 search for japanese: works, but is it ok?
-can not use google to translate h2 homepage?
 pdf: first page looks empty (because the top part is empty) - title on the top?
 pdf / openoffice: pictures don't work?
 
-test odbc again a few times (debug catalog creation)
-
 extend tests that simulate power off
 
-CREATE TABLE first (id IDENTITY, value INT);
-CREATE TABLE second (id IDENTITY, value INT);
-CREATE TRIGGER T BEFORE INSERT ON first CALL X;
-INSERT INTO first VALUES(1,2);
-...trigger calls INSERT INTO second VALUES(3, 4); before the first INSERT
-CALL IDENTITY();
-
- Openfire server uses this script to setup a user permissions
+Openfire server uses this script to setup a user permissions
 on the fresh-installed server. The database is [current] HSQLDB :
 CREATE SCHEMA PUBLIC AUTHORIZATION DBA
 CREATE USER SA PASSWORD ""
@@ -153,8 +116,6 @@ rename Performance > Comparison [/Compatibility]
 move  Comparison to Other Database Engines > Comparison
 move Products that Work with H2 > Comparison
 move Performance Tuning > Advanced Topics
-
-set read-committed as the default
 
 storages should be an int hash map
 
@@ -197,10 +158,6 @@ Automate real power off tests
 Negative dictionary:
 Please note that
 
-support translated exceptions (translated, then english at the end, for Hibernate compatibility)
-
-make static member variables final (this helps find forgotten initializers)
-
 Merge more from diff.zip (Pavel Ganelin)
 Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
 
@@ -216,8 +173,6 @@ http://fastutil.dsi.unimi.it/
 http://javolution.org/
 http://joda-time.sourceforge.net/
 http://ibatis.apache.org/
-
-strict xhtml (license,...) 
 
 Document org.h2.samples.MixedMode
 
@@ -242,7 +197,11 @@ document SET SEARCH_PATH, BEGIN, EXECUTE, $ parameters
 
 Complete Javadocs for Messages and add to docs
 
+Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
+
 write tests using the PostgreSQL JDBC driver
+
+JDK 1.6: Deskop.isDesktopSupported, browse(URI uri)
 
 */        
 

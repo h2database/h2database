@@ -116,7 +116,7 @@ public class Database implements DataHandler {
     private FileStore emergencyReserve;
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
     private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
-    private int lockMode = Constants.LOCK_MODE_TABLE;
+    private int lockMode = Constants.DEFAULT_LOCK_MODE;
     private boolean logIndexChanges;
     private int logLevel = 1;
     private int cacheSize;

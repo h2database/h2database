@@ -97,6 +97,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 strict xhtml (license,...)
 make docs translatable
 
+Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
+
 search for japanese: works, but is it ok?
 pdf: first page looks empty (because the top part is empty) - title on the top?
 pdf / openoffice: pictures don't work?

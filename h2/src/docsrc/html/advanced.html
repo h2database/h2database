@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!-- 
 Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
@@ -107,16 +106,16 @@ This may not have the desired effect if a default value in the target table is o
 This database supports the following transaction isolation levels:
 </p>
 <ul>
-<li><b>Serializable</b><br />
-    This is the default level.<br />
-    To enable, execute the SQL statement    'SET LOCK_MODE 0'<br />
-    or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
-</li><li><b>Read Committed</b><br />
+<li><b>Read Committed</b><br />
+	This is the default level.
     Read locks are released immediately.
     Higher concurrency is possible when using this level.<br />
-    This is the isolation level used for many database systems.<br />
-    To enable, execute the SQL statement    'SET LOCK_MODE 0'<br />
+    To enable, execute the SQL statement    'SET LOCK_MODE 3'<br />
     or append ;LOCK_MODE=3 to the database URL: jdbc:h2:~/test;LOCK_MODE=3
+</li><li>
+<b>Serializable</b><br />
+    To enable, execute the SQL statement    'SET LOCK_MODE 1'<br />
+    or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
 </li><li><b>Read Uncommitted</b><br />
     This level means that transaction isolation is disabled.<br />
     To enable, execute the SQL statement    'SET LOCK_MODE 0'<br />
@@ -452,8 +451,7 @@ Referential integrity rules are always enforced.
 
 <h3>Isolation</h3>
 <p>
-For H2, the default isolation level is 'serializable', which means complete isolation. 
-The default transaction isolation level for many other databases is 'read committed'. 
+For H2, as with most other database systems, the default isolation level is 'read committed'.
 This provides better performance, but also means that transactions are not completely isolated.
 H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
 </p>

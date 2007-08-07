@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!-- 
 Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
@@ -13,7 +12,6 @@ Build
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Build</h1>
-
 <a href="#portability">
     Portability</a><br />
 <a href="#environment">
@@ -25,13 +23,17 @@ Build
 
 <br /><a name="portability"></a>
 <h2>Portability</h2>
+<p>
 This database is written in Java and therefore works on many platforms.
 It can also be compiled to a native executable using GCJ.
+</p>
 
 <br /><a name="environment"></a>
 <h2>Environment</h2>
+<p>
 To build the database executables, the following software stack was used.
 In most cases, newer version or compatible software works too.
+</p>
 <ul>
     <li>Windows XP
     </li><li>Sun JDK Version 1.4 or 1.5
@@ -43,6 +45,7 @@ In most cases, newer version or compatible software works too.
 
 <br /><a name="building"></a>
 <h2>Building the Software</h2>
+<p>
 On the command line, go to the directory src and execute the following command:
 <pre>
 ant -projecthelp
@@ -57,10 +60,12 @@ use the target jarClient:
 ant jarClient
 </pre>
 The other targets may be used as well.
+</p>
 
 <br /><a name="maven2"></a>
 <h2>Using Maven 2</h2>
 <h3>Using a Central Repository</h3>
+<p>
 You can include the database in your Maven 2 project as a dependency. 
 The version is currently 1.0.&lt;year&gt;&lt;month&gt;&lt;day&gt;. Example:
 <pre>
@@ -70,8 +75,10 @@ The version is currently 1.0.&lt;year&gt;&lt;month&gt;&lt;day&gt;. Example:
     &lt;version&gt;1.0.20070617&lt;/version&gt;
 &lt;/dependency&gt;
 </pre>
+</p>
 
 <h3>Using Snapshot Version</h3>
+<p>
 To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
 <pre>
 ant mavenUploadLocal
@@ -84,5 +91,6 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;
 </pre>
+</p>
 
 </div></td></tr></table></body></html>

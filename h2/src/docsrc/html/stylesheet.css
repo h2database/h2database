@@ -101,6 +101,11 @@ a:hover {
     text-decoration: underline;
 }
 
+em.u {
+    text-decoration: underline;
+    font-style: normal;
+}
+
 .button {
     border: 1px outset #800;
     margin: 0px 2px 0px 2px;

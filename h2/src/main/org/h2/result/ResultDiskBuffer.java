@@ -6,6 +6,7 @@ package org.h2.result;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -158,7 +159,7 @@ class ResultDiskBuffer {
     }
 
     protected void finalize() {
-        if(!Constants.runFinalize) {
+        if(!SysProperties.runFinalize) {
             return;
         }        
         close();

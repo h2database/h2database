@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -98,7 +99,7 @@ public class ExpressionColumn extends Expression {
             column = col;
             this.resolver = resolver;
         } else if(queryLevel==level && this.resolver != resolver) {
-            throw Message.getSQLException(Message.AMBIGUOUS_COLUMN_NAME_1, columnName);
+            throw Message.getSQLException(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
         }        
     }
 
@@ -118,7 +119,7 @@ public class ExpressionColumn extends Expression {
                     name = schemaName + "." + name;
                 }
             }
-            throw Message.getSQLException(Message.COLUMN_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, name);
         }
         return this;
     }
@@ -127,7 +128,7 @@ public class ExpressionColumn extends Expression {
         Value now = resolver.getValue(column);
         Select select = resolver.getSelect();
         if(select == null) {
-            throw Message.getSQLException(Message.MUST_GROUP_BY_COLUMN_1, getSQL());
+            throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         HashMap values = select.getCurrentGroup();
         if(values == null) {
@@ -139,7 +140,7 @@ public class ExpressionColumn extends Expression {
             values.put(this, now);
         } else {
             if(!database.areEqual(now, v)) {
-                throw Message.getSQLException(Message.MUST_GROUP_BY_COLUMN_1, getSQL());
+                throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
     }
@@ -159,7 +160,7 @@ public class ExpressionColumn extends Expression {
         }
         Value value = resolver.getValue(column);
         if(value== null) {
-            throw Message.getSQLException(Message.MUST_GROUP_BY_COLUMN_1, getSQL());
+            throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         return value;
     }

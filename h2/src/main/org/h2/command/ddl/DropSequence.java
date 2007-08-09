@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -37,11 +38,11 @@ public class DropSequence extends SchemaCommand {
         Sequence sequence = getSchema().findSequence(sequenceName);
         if(sequence == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.SEQUENCE_NOT_FOUND_1, sequenceName);
+                throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
             }
         } else {
             if(sequence.getBelongsToTable()) {
-                throw Message.getSQLException(Message.SEQUENCE_BELONGS_TO_A_TABLE_1, sequenceName);
+                throw Message.getSQLException(ErrorCode.SEQUENCE_BELONGS_TO_A_TABLE_1, sequenceName);
             }
             db.removeSchemaObject(session, sequence);
         }

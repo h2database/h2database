@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -37,7 +38,7 @@ public class CreateConstant extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.CONSTANT_ALREADY_EXISTS_1,
+            throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1,
                     constantName);
         }
         int id = getObjectId(false, true);

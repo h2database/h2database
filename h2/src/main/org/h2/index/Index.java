@@ -6,6 +6,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -58,7 +59,7 @@ public abstract class Index extends SchemaObject {
         buff.append("(");
         buff.append(getColumnListSQL());
         buff.append(")");
-        return Message.getSQLException(Message.DUPLICATE_KEY_1, buff.toString());
+        return Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, buff.toString());
     }
 
     public String getPlanSQL() {

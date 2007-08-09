@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
@@ -33,8 +34,8 @@ public class ValueDecimal extends Value {
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
             throw new IllegalArgumentException();
-        } else if(!Constants.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
-            SQLException e = Message.getSQLException(Message.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()}, null);
+        } else if(!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
+            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()}, null);
             throw Message.convertToInternal(e);
         }
         this.value = value;
@@ -63,7 +64,7 @@ public class ValueDecimal extends Value {
         ValueDecimal dec = (ValueDecimal) v;
         // TODO value: divide decimal: rounding?
         if (dec.value.signum() == 0) {
-            throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         BigDecimal bd = value.divide(dec.value, value.scale()+DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
         if(bd.signum()==0) {
@@ -160,7 +161,7 @@ public class ValueDecimal extends Value {
         if (getPrecision() <= precision) {
             return this;
         }
-        throw Message.getSQLException(Message.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
+        throw Message.getSQLException(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
     }
 
     public static ValueDecimal get(BigDecimal dec) {

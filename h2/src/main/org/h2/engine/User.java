@@ -6,6 +6,7 @@ package org.h2.engine;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.security.SHA256;
@@ -78,7 +79,7 @@ public class User extends RightOwner {
             return;
         }
         if(!isRightGrantedRecursive(table, rightMask)) {
-            throw Message.getSQLException(Message.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
+            throw Message.getSQLException(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
         }
     }
 
@@ -112,13 +113,13 @@ public class User extends RightOwner {
         SHA256 sha = new SHA256();
         byte[] hash =  sha.getHashWithSalt(buff, salt);
         if(!ByteUtils.compareSecure(hash, passwordHash)) {
-            throw Message.getSQLException(Message.WRONG_USER_OR_PASSWORD);
+            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }
     }
 
     public void checkAdmin() throws SQLException {
         if(!admin) {
-            throw Message.getSQLException(Message.ADMIN_RIGHTS_REQUIRED);
+            throw Message.getSQLException(ErrorCode.ADMIN_RIGHTS_REQUIRED);
         }
     }
 

@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
@@ -80,10 +81,10 @@ public class ValueLob extends Value {
     }
 
     private static String getFileName(DataHandler handler, int tableId, int objectId) {
-        if (Constants.CHECK && tableId == 0 && objectId == 0) {
+        if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
             throw Message.getInternalError("0 LOB");
         }
-        if(Constants.LOB_FILES_IN_DIRECTORIES) {
+        if(SysProperties.LOB_FILES_IN_DIRECTORIES) {
             String table = tableId < 0 ? ".temp" : ".t" + tableId;
             return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
         } else {
@@ -159,17 +160,17 @@ public class ValueLob extends Value {
 
     private static String getFileNamePrefix(String path, int objectId) {
         String name;
-        int f = objectId % Constants.LOB_FILES_PER_DIRECTORY;
+        int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if(f > 0) {
             name = File.separator + objectId;
         } else {
             name = "";
         }
-        objectId /= Constants.LOB_FILES_PER_DIRECTORY;
+        objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         while(objectId > 0) {
-            f = objectId % Constants.LOB_FILES_PER_DIRECTORY;
+            f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
             name = File.separator + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
-            objectId /= Constants.LOB_FILES_PER_DIRECTORY;
+            objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
         name = path + Constants.SUFFIX_LOBS_DIRECTORY + name;
         return name;
@@ -182,7 +183,7 @@ public class ValueLob extends Value {
             String dir = getFileNamePrefix(path, objectId);
             String[] list = FileUtils.listFiles(dir);
             int fileCount = 0;
-            boolean[] used = new boolean[Constants.LOB_FILES_PER_DIRECTORY];
+            boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
             for(int i=0; i<list.length; i++) {
                 String name = list[i];
                 if(name.endsWith(Constants.SUFFIX_DB_FILE)) {
@@ -196,13 +197,13 @@ public class ValueLob extends Value {
                     }
                     if(id > 0) {
                         fileCount++;
-                        used[id % Constants.LOB_FILES_PER_DIRECTORY] = true;
+                        used[id % SysProperties.LOB_FILES_PER_DIRECTORY] = true;
                     }
                 }
             }
             int fileId = -1;
-            if(fileCount < Constants.LOB_FILES_PER_DIRECTORY) {
-                for(int i=1; i<Constants.LOB_FILES_PER_DIRECTORY; i++) {
+            if(fileCount < SysProperties.LOB_FILES_PER_DIRECTORY) {
+                for(int i=1; i<SysProperties.LOB_FILES_PER_DIRECTORY; i++) {
                     if(!used[i]) {
                         fileId = i;
                         break;
@@ -213,15 +214,15 @@ public class ValueLob extends Value {
                 objectId += fileId;
                 break;
             } else {
-                if(objectId > Integer.MAX_VALUE / Constants.LOB_FILES_PER_DIRECTORY) {
+                if(objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
                     // this directory path is full: start from zero
                     // (this can happen only theoretically, for example if the random number generator is broken)
                     objectId = 0;
                 } else {
                     // start with 1 (otherwise we don't know the number of directories)
-                    int dirId = RandomUtils.nextInt(Constants.LOB_FILES_PER_DIRECTORY - 1) + 1;
-                    objectId = objectId * Constants.LOB_FILES_PER_DIRECTORY;
-                    objectId += dirId * Constants.LOB_FILES_PER_DIRECTORY;
+                    int dirId = RandomUtils.nextInt(SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
+                    objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
+                    objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
                 }
             }
         }
@@ -262,7 +263,7 @@ public class ValueLob extends Value {
         String compressionAlgorithm = handler.getLobCompressionAlgorithm(type);
         this.compression = compressionAlgorithm != null;
         synchronized(handler) {
-            if(Constants.LOB_FILES_IN_DIRECTORIES) {
+            if(SysProperties.LOB_FILES_IN_DIRECTORIES) {
                 objectId = getNewObjectId(handler);
                 fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + ".temp.db";
             } else {
@@ -333,7 +334,7 @@ public class ValueLob extends Value {
             String temp;
             // synchronize on the database, to avoid concurrent temp file creation / deletion / backup
             synchronized(handler) {
-                if(Constants.LOB_FILES_IN_DIRECTORIES) {
+                if(SysProperties.LOB_FILES_IN_DIRECTORIES) {
                     temp = getFileName(handler, -1, objectId);
                 } else {
                     // just to get a filename - an empty file will be created
@@ -357,7 +358,7 @@ public class ValueLob extends Value {
         }
         if(linked) {
             ValueLob copy = ValueLob.copy(this);
-            if(Constants.LOB_FILES_IN_DIRECTORIES) {
+            if(SysProperties.LOB_FILES_IN_DIRECTORIES) {
                 copy.objectId = getNewObjectId(handler);
             } else {
                 copy.objectId = handler.allocateObjectId(false, true);
@@ -477,7 +478,7 @@ public class ValueLob extends Value {
             return new ByteArrayInputStream(small);
         }
         FileStore store = handler.openFile(fileName, "r", true);
-        boolean alwaysClose = Constants.lobCloseBetweenReads;
+        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose), Constants.IO_BUFFER_SIZE);
     }
 
@@ -539,14 +540,14 @@ public class ValueLob extends Value {
                 createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, handler);
             }
             Value v2 = link(handler, tabId);
-            if(Constants.CHECK && v2 != this) {
+            if(SysProperties.CHECK && v2 != this) {
                 throw Message.getInternalError();
             }
         }
     }
 
     public static void removeAllForTable(DataHandler handler, int tableId) throws SQLException {
-        if(Constants.LOB_FILES_IN_DIRECTORIES) {
+        if(SysProperties.LOB_FILES_IN_DIRECTORIES) {
             String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
             removeAllForTable(handler, dir, tableId);
         } else {

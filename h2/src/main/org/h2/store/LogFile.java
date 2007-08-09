@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -96,14 +97,14 @@ public class LogFile {
     
     private int getBlock() throws SQLException {
         if(file == null) {
-            throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }        
         return (int)(file.getFilePointer() / BLOCK_SIZE);
     }
 
     private void writeBuffer(DataPage buff, Record rec) throws SQLException { 
         if(file == null) {
-            throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
         int size = MathUtils.roundUp(buff.length()+buff.getFillerLength(), BLOCK_SIZE);
         int blockCount = size / BLOCK_SIZE;
@@ -331,7 +332,7 @@ public class LogFile {
     void flush() throws SQLException {
         if(bufferPos > 0) {
             if(file == null) {
-                throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+                throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
             }
             file.write(buffer, 0, bufferPos);
             pos = getBlock();

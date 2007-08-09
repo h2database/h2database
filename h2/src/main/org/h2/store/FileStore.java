@@ -9,6 +9,8 @@ import java.io.RandomAccessFile;
 import java.lang.ref.Reference;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.security.SecureFileStore;
@@ -121,7 +123,7 @@ public class FileStore {
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
             if(ByteUtils.compareNotNull(buff, magic) != 0) {
-                throw Message.getSQLException(Message.FILE_VERSION_ERROR_1, name);
+                throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, name);
             }
             salt = new byte[len];
             readFullyDirect(salt, 0, len);
@@ -129,7 +131,7 @@ public class FileStore {
             // read (maybe) encrypted
             readFully(buff, 0, Constants.FILE_BLOCK_SIZE);
             if(ByteUtils.compareNotNull(buff, magic) != 0) {
-                throw Message.getSQLException(Message.FILE_ENCRYPTION_ERROR_1, name);
+                throw Message.getSQLException(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
         }
     }
@@ -166,10 +168,10 @@ public class FileStore {
     }
 
     public void readFully(byte[] b, int off, int len) throws SQLException {
-        if(Constants.CHECK && len < 0) {
+        if(SysProperties.CHECK && len < 0) {
             throw Message.getInternalError("read len "+len);
         }
-        if(Constants.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
+        if(SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned read "+name+" len "+len);
         }
         checkPowerOff();
@@ -182,7 +184,7 @@ public class FileStore {
     }
 
     public void seek(long pos) throws SQLException {     
-        if(Constants.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
+        if(SysProperties.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned seek "+name+" pos "+pos);
         }
         try {
@@ -200,10 +202,10 @@ public class FileStore {
     }
 
     public void write(byte[] b, int off, int len) throws SQLException {
-        if(Constants.CHECK && len < 0) {
+        if(SysProperties.CHECK && len < 0) {
             throw Message.getInternalError("read len "+len);
         }
-        if(Constants.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
+        if(SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned write "+name+" len "+len);
         }
         checkWritingAllowed();
@@ -234,7 +236,7 @@ public class FileStore {
     }
 
     public void setLength(long newLength) throws SQLException {
-        if(Constants.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
+        if(SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned setLength "+name+" pos "+newLength);
         }
         checkPowerOff();
@@ -273,13 +275,13 @@ public class FileStore {
     public long length() throws SQLException {
         try {
             long len = fileLength;
-            if(Constants.CHECK2) {
+            if(SysProperties.CHECK2) {
                 len = file.length();
                 if(len != fileLength) {
                     throw Message.getInternalError("file "+name+" length "+len+" expected " + fileLength);
                 }
             }
-            if(Constants.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
+            if(SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
                 FileUtils.setLength(file, newLength);
                 fileLength = newLength;
@@ -292,7 +294,7 @@ public class FileStore {
     }
 
     public long getFilePointer() throws SQLException {
-        if(Constants.CHECK2) {
+        if(SysProperties.CHECK2) {
             try {
                 if(file.getFilePointer() != filePos) {
                     throw Message.getInternalError();
@@ -338,7 +340,7 @@ public class FileStore {
     }
     
     private static void trace(String method, String fileName, Object o) {
-        if(Constants.TRACE_IO) {
+        if(SysProperties.TRACE_IO) {
             System.out.println("FileStore." + method + " " + fileName + " " + o);
         }
     }        

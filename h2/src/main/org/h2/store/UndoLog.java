@@ -6,6 +6,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -27,7 +28,7 @@ public class UndoLog {
     }
 
     public int size() {
-        if(Constants.CHECK && memoryUndo > records.size()) {
+        if(SysProperties.CHECK && memoryUndo > records.size()) {
             throw Message.getInternalError();
         }
         return records.size();

@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
@@ -174,7 +175,7 @@ public class WebServer implements Service {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
              } else if("-baseDir".equals(args[i])) {
                 String baseDir = args[++i];
-                Constants.setBaseDir(baseDir);
+                SysProperties.setBaseDir(baseDir);
             }
         }
 //            if(driverList != null) {

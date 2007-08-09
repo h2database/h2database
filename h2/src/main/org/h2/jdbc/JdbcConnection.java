@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.h2.command.CommandInterface;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -817,7 +819,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private JdbcSavepoint convertSavepoint(Savepoint savepoint) throws SQLException {
         if (!(savepoint instanceof JdbcSavepoint)) {
-            throw Message.getSQLException(Message.SAVEPOINT_IS_INVALID_1, "" + savepoint);
+            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, "" + savepoint);
         }
         return (JdbcSavepoint) savepoint;
     }
@@ -921,7 +923,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 session = new SessionRemote().createSession(ci);
             } else {
                 SessionInterface si = (SessionInterface) ClassUtils.loadClass("org.h2.engine.Session").newInstance();
-                String baseDir = Constants.getBaseDir();
+                String baseDir = SysProperties.getBaseDir();
                 if(baseDir != null) {
                     ci.setBaseDir(baseDir);
                 }
@@ -963,7 +965,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             clazz.getClass();
 //#endif
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.UNSUPPORTED_JAVA_VERSION);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_JAVA_VERSION);
         }
     }
 
@@ -1166,10 +1168,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     void checkClosed() throws SQLException {
         if (session == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         if(session.isClosed()) {
-            throw Message.getSQLException(Message.DATABASE_CALLED_AT_SHUTDOWN);
+            throw Message.getSQLException(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
     }
 
@@ -1184,7 +1186,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     protected void finalize() {
-        if(!Constants.runFinalize) {
+        if(!SysProperties.runFinalize) {
             return;
         }
         if(isInternal) {

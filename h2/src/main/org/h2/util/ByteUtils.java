@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 
@@ -49,7 +50,7 @@ public class ByteUtils {
     public static byte[] convertStringToBytes(String s) throws SQLException {
         int len = s.length();
         if (len % 2 != 0) {
-            throw Message.getSQLException(Message.HEX_STRING_ODD_1, s);
+            throw Message.getSQLException(ErrorCode.HEX_STRING_ODD_1, s);
         }
         len /= 2;
         byte[] buff = new byte[len];
@@ -58,7 +59,7 @@ public class ByteUtils {
                 buff[i] = (byte) ((Character.digit(s.charAt(i+i), 16) << 4) | (Character.digit(s.charAt(i+i+1), 16)));
             }
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(Message.HEX_STRING_WRONG_1, s);
+            throw Message.getSQLException(ErrorCode.HEX_STRING_WRONG_1, s);
         }
         return buff;
     }
@@ -169,7 +170,7 @@ public class ByteUtils {
             os.writeObject(obj);
             return out.toByteArray();
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.SERIALIZATION_FAILED, null, e);
+            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED, null, e);
         }
     }
 
@@ -180,7 +181,7 @@ public class ByteUtils {
             Object obj = is.readObject();
             return obj;
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.DESERIALIZATION_FAILED, null, e);
+            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED, null, e);
         }
     }
 

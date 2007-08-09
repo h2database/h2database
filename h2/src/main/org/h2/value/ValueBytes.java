@@ -4,7 +4,7 @@
  */
 package org.h2.value;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.util.ByteUtils;
 
 /**
@@ -28,7 +28,7 @@ public class ValueBytes extends ValueBytesBase {
             return EMPTY;
         }
         ValueBytes obj = new ValueBytes(b);
-        if (b.length > Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueBytes) Value.cache(obj);

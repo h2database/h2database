@@ -6,6 +6,7 @@ package org.h2.schema;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcSQLException;
@@ -40,7 +41,7 @@ public class Sequence extends SchemaObject {
 
     public void setIncrement(long inc) throws JdbcSQLException {
         if(increment == 0) {
-            throw Message.getSQLException(Message.INVALID_VALUE_2, new String[]{"0", "INCREMENT"}, null);
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{"0", "INCREMENT"}, null);
         }
         this.increment = inc;
     }

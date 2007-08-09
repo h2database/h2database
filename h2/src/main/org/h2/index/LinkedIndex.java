@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -74,7 +75,7 @@ public class LinkedIndex extends Index {
             prep.executeUpdate();
             rowCount++;
         } catch(SQLException e) {
-            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
         }
     }
 
@@ -125,7 +126,7 @@ public class LinkedIndex extends Index {
             ResultSet rs = prep.executeQuery();
             return new LinkedCursor(table, rs, session);
         } catch(SQLException e) {
-            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
         }
     }
     
@@ -194,7 +195,7 @@ public class LinkedIndex extends Index {
             int count = prep.executeUpdate();
             rowCount -= count;
         } catch(SQLException e) {
-            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
         }
     }
     
@@ -237,7 +238,7 @@ public class LinkedIndex extends Index {
             }
             prep.executeUpdate();
         } catch(SQLException e) {
-            throw Message.getSQLException(Message.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_1, new String[]{sql}, e);
         }
     }
 

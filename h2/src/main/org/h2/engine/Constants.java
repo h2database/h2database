@@ -4,7 +4,8 @@
  */
 package org.h2.engine;
 
-import org.h2.message.TraceSystem;
+import org.h2.constant.SysProperties;
+
 
 /*
  * Coding rules:
@@ -163,16 +164,6 @@ public class Constants {
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
     
-    public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
-    public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");
-    private static String baseDir = getStringSetting("h2.baseDir", null);
-    public static boolean multiThreadedKernel = getBooleanSetting("h2.multiThreadedKernel", false);
-    public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
-
-    // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
-    public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
-
     // TODO need to refactor & test the code to enable this (add more tests!)
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = false;
 
@@ -180,74 +171,5 @@ public class Constants {
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
     public static final String SCRIPT_SQL = "script.sql";
     public static final int CACHE_MIN_RECORDS = 16;
-    public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
-    public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
-    
-    public static final boolean CHECK = getBooleanSetting("h2.check", true);
-    public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
-    public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
-    public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
-    public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
-    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
-    public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
-    public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
-    public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
-    public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
-    public static final int SERVER_SMALL_RESULT_SET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
-    public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 1 * 1024 * 1024);
-    public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 128 * 1024);
-    public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);
-    public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
-    public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
-    public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
-    public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
-    public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = getBooleanSetting("h2.allowBigDecimalExtensions", false);
-    public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
-    public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
-    public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
-    public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
-    public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
-    public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
-    public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 50000);
-    public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
-    public static final boolean OPTIMIZE_2_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
-    public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", LOCK_MODE_READ_COMMITTED);
-    
-    public static void setBaseDir(String dir) {
-        if(!dir.endsWith("/")) {
-            dir += "/";
-        }
-        baseDir = dir;
-    }
-    
-    public static String getBaseDir() {
-        return baseDir;
-    }
-    
-    public static boolean getBooleanSetting(String name, boolean defaultValue) {
-        String s = System.getProperty(name);
-        if(s != null) {
-            try {
-                return Boolean.valueOf(s).booleanValue();
-            } catch(NumberFormatException e) {
-            }
-        }
-        return defaultValue;
-    }
-
-    public static String getStringSetting(String name, String defaultValue) {
-        String s = System.getProperty(name);
-        return s == null ? defaultValue : s;
-    }
-
-    public static int getIntSetting(String name, int defaultValue) {
-        String s = System.getProperty(name);
-        if(s != null) {
-            try {
-                return Integer.decode(s).intValue();
-            } catch(NumberFormatException e) {
-            }
-        }
-        return defaultValue;
-    }
+    public static final int CACHE_SIZE_INDEX_DEFAULT = SysProperties.CACHE_SIZE_DEFAULT >> SysProperties.CACHE_SIZE_INDEX_SHIFT;
 }

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.util.StringUtils;
@@ -44,7 +45,7 @@ public class Engine {
         boolean opened = false;
         if(database == null) {
             if(ifExists && !Database.exists(name)) {
-                throw Message.getSQLException(Message.DATABASE_NOT_FOUND_1, name);
+                throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, name);
             }
             database = new Database(name, ci, cipher);
             opened = true;
@@ -133,9 +134,9 @@ public class Engine {
         if(!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if(!StringUtils.equals(clusterSession, clusterDb)) {
                 if(clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
-                    throw Message.getSQLException(Message.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+                    throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
                 } else {
-                    throw Message.getSQLException(Message.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
+                    throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
                 }
             }
         }

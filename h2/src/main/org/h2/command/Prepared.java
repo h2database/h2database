@@ -6,7 +6,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -35,10 +36,10 @@ public abstract class Prepared {
     public boolean needRecompile() throws SQLException {
         Database db = session.getDatabase();
         if(db == null) {
-            throw Message.getSQLException(Message.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
         // TODO parser: currently, compiling every create/drop/... twice! because needRecompile return true even for the first execution
-        return Constants.RECOMPILE_ALWAYS || prepareAlways || modificationId < db.getModificationMetaId();
+        return SysProperties.RECOMPILE_ALWAYS || prepareAlways || modificationId < db.getModificationMetaId();
     }
     
     public abstract boolean isTransactional();
@@ -83,11 +84,11 @@ public abstract class Prepared {
     }    
 
     public int update() throws SQLException {
-        throw Message.getSQLException(Message.METHOD_NOT_ALLOWED_FOR_QUERY);
+        throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
     public LocalResult query(int maxrows) throws SQLException {
-        throw Message.getSQLException(Message.METHOD_ONLY_ALLOWED_FOR_QUERY);
+        throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }    
 
     public abstract LocalResult queryMeta() throws SQLException;

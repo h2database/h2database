@@ -16,6 +16,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
@@ -140,12 +142,12 @@ public class FileUtils {
             throw Message.getInternalError("rename file old=new");
         }
         if(!oldFile.exists()) {
-            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName + " (not found)", newName}, null);
+            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName + " (not found)", newName}, null);
         }            
         if(newFile.exists()) {
-            throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"}, null);
+            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"}, null);
         }
-        for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+        for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
             trace("rename", oldName + " >" + newName, null);
             boolean ok = oldFile.renameTo(newFile);
             if(ok) {
@@ -153,7 +155,7 @@ public class FileUtils {
             }
             wait(i);
         }
-        throw Message.getSQLException(Message.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+        throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
     }
 
     public static synchronized Properties loadProperties(String fileName) throws IOException {
@@ -200,13 +202,13 @@ public class FileUtils {
                 return;
             }
             File dir = new File(parent);
-            for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+            for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
                 if(dir.exists() || dir.mkdirs()) {
                     return;
                 }
                 wait(i);
             }
-            throw Message.getSQLException(Message.FILE_CREATION_FAILED_1, parent);
+            throw Message.getSQLException(ErrorCode.FILE_CREATION_FAILED_1, parent);
         }
     }
 
@@ -221,7 +223,7 @@ public class FileUtils {
             return true;
         }
         File file = new File(fileName);
-        for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+        for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
             try {
                 return file.createNewFile();
             } catch (IOException e) {
@@ -240,7 +242,7 @@ public class FileUtils {
         }
         File file = new File(fileName);
         if(file.exists()) {
-            for(int i=0; i<Constants.MAX_FILE_RETRY; i++) {
+            for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
                 trace("delete", fileName, null);
                 if(fileName.indexOf("1459.146") >= 0) {
                     new Error(fileName).printStackTrace();
@@ -251,7 +253,7 @@ public class FileUtils {
                 }
                 wait(i);
             }
-            throw Message.getSQLException(Message.FILE_DELETE_FAILED_1, fileName);
+            throw Message.getSQLException(ErrorCode.FILE_DELETE_FAILED_1, fileName);
         }
     }
 
@@ -500,7 +502,7 @@ public class FileUtils {
     }
     
     static void trace(String method, String fileName, Object o) {
-        if(Constants.TRACE_IO) {
+        if(SysProperties.TRACE_IO) {
             System.out.println("FileUtils." + method + " " + fileName + " " + o);
         }
     }

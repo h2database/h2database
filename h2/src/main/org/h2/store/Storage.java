@@ -6,7 +6,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -134,7 +134,7 @@ public class Storage {
 
     public void removeRecord(Session session, int pos) throws SQLException {
         Record record = getRecord(pos);
-        if(Constants.CHECK && record.getDeleted()) {
+        if(SysProperties.CHECK && record.getDeleted()) {
             throw Message.getInternalError("duplicate delete " + pos);
         }
         record.setDeleted(true);

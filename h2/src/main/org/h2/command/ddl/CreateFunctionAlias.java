@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
@@ -27,7 +28,7 @@ public class CreateFunctionAlias extends DefineCommand {
         Database db = session.getDatabase();
         if(db.findFunctionAlias(aliasName) != null) {
             if(!ifNotExists) {
-                throw Message.getSQLException(Message.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
+                throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }
         } else {
             int id = getObjectId(false, true);

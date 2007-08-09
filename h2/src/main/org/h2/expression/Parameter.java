@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
@@ -61,7 +62,7 @@ public class Parameter extends Expression implements ParameterInterface {
 
     public void checkSet() throws SQLException {
         if (value == null) {
-            throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, "#" + (index + 1));
+            throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 

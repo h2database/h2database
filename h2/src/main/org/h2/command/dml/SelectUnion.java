@@ -7,7 +7,8 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 import java.util.HashSet;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -160,7 +161,7 @@ public class SelectUnion extends Query {
     }
 
     public void init() throws SQLException {
-        if(Constants.CHECK && checkInit) {
+        if(SysProperties.CHECK && checkInit) {
             throw Message.getInternalError();
         }
         checkInit = true;
@@ -168,7 +169,7 @@ public class SelectUnion extends Query {
         right.init();
         int len = left.getColumnCount();
         if(len != right.getColumnCount()) {
-            throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+            throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
         ObjectArray le = left.getExpressions();
         // set the expressions to get the right column count and names, 
@@ -185,7 +186,7 @@ public class SelectUnion extends Query {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
-        if(Constants.CHECK && !checkInit) {
+        if(SysProperties.CHECK && !checkInit) {
             throw Message.getInternalError("not initialized");
         }
         isPrepared = true;

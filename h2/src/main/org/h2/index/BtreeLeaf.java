@@ -6,6 +6,8 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -90,7 +92,7 @@ public class BtreeLeaf extends BtreePage {
         while (l < r) {
             int i = (l + r) >>> 1;
             SearchRow row = (SearchRow) pageData.get(i);
-            if(Constants.CHECK && row == null) {
+            if(SysProperties.CHECK && row == null) {
                 throw Message.getInternalError("btree corrupt");
             }
             int comp = index.compareRows(row, oldRow);
@@ -123,7 +125,7 @@ public class BtreeLeaf extends BtreePage {
                 l = i + 1;
             }
         }
-        throw Message.getSQLException(Message.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
+        throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
     }
 
     public BtreePage split(Session session, int splitPoint) throws SQLException {

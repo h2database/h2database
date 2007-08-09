@@ -6,6 +6,8 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -261,13 +263,13 @@ public class LinearHashIndex extends Index implements RecordReader {
                 // and therefore all home records have been found
                 // (and it would be an error to set next to -1)
                 moveOut(session, foreign, storeIn);
-                if(Constants.CHECK && getBucket(foreign).getNextBucket() != -1) {
+                if(SysProperties.CHECK && getBucket(foreign).getNextBucket() != -1) {
                     throw Message.getInternalError("moveOut "+foreign);
                 }
                 return;
             }
             int next = bucket.getNextBucket();
-            if(Constants.CHECK && next >= head.bucketCount) {
+            if(SysProperties.CHECK && next >= head.bucketCount) {
                 throw Message.getInternalError("next="+next+" max="+head.bucketCount);
             }
             if (next < 0) {
@@ -389,7 +391,7 @@ public class LinearHashIndex extends Index implements RecordReader {
 
     private LinearHashBucket getBucket(int i) throws SQLException {
         readCount++;
-        if(Constants.CHECK && i >= head.bucketCount) {
+        if(SysProperties.CHECK && i >= head.bucketCount) {
             throw Message.getInternalError("get="+i+" max="+head.bucketCount);
         }
         // trace.debug("read " + i);
@@ -406,7 +408,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         // bucket.setPos(buckets.size());
         // buckets.add(bucket);
         //System.out.println("addBucket "+bucket.getPos());
-        if(Constants.CHECK && bucket.getBlockCount() > blocksPerBucket) {
+        if(SysProperties.CHECK && bucket.getBlockCount() > blocksPerBucket) {
             throw Message.getInternalError("blocks="+bucket.getBlockCount());
         }
         head.bucketCount++;
@@ -435,7 +437,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         } else if (c == 'H') {
             return new LinearHashHead(this, s);
         } else {
-            throw Message.getSQLException(Message.FILE_CORRUPTED_1, getName());
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, getName());
         }
     }
 

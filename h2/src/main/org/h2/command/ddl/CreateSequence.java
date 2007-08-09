@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -39,7 +40,7 @@ public class CreateSequence extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
+            throw Message.getSQLException(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
         int id = getObjectId(false, true);
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);

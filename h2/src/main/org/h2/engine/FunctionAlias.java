@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.h2.command.Parser;
+import org.h2.constant.ErrorCode;
 import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -32,7 +33,7 @@ public class FunctionAlias extends DbObject {
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
         if(lastDot < 0) {
-            throw Message.getSQLException(Message.SYNTAX_ERROR_1, javaClassMethod);
+            throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
         }
         className = javaClassMethod.substring(0, lastDot);
         methodName = javaClassMethod.substring(lastDot + 1);
@@ -40,7 +41,7 @@ public class FunctionAlias extends DbObject {
         try {
             javaClass = database.loadClass(className);
         } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(Message.CLASS_NOT_FOUND_1, new String[]{className + " (" + methodName + ")"}, e);
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{className + " (" + methodName + ")"}, e);
         }
         Method[] methods = javaClass.getMethods();
         for(int i=0; i<methods.length; i++) {
@@ -57,7 +58,7 @@ public class FunctionAlias extends DbObject {
             }
         }
         if(javaMethod == null) {
-            throw Message.getSQLException(Message.METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
+            throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
         }
         Class[] paramClasses = javaMethod.getParameterTypes();
         paramCount = paramClasses.length;

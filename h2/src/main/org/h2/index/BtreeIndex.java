@@ -6,7 +6,8 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -173,8 +174,8 @@ public class BtreeIndex extends Index implements RecordReader {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(Constants.CHECK && storage == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+        if(SysProperties.CHECK && storage == null) {
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         if(first==null) {
             BtreeCursor cursor = new BtreeCursor(this, last);
@@ -211,7 +212,7 @@ public class BtreeIndex extends Index implements RecordReader {
         } else if (c == 'H') {
             return new BtreeHead(s);
         } else {
-            throw Message.getSQLException(Message.FILE_CORRUPTED_1, getName());
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, getName());
         }
     }
 

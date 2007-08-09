@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -80,7 +81,7 @@ public class CreateTrigger extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.TRIGGER_ALREADY_EXISTS_1,
+            throw Message.getSQLException(ErrorCode.TRIGGER_ALREADY_EXISTS_1,
                     triggerName);
         }
         int id = getObjectId(false, true);

@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.sql.Clob;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
@@ -225,7 +226,7 @@ public class JdbcClob extends TraceObject implements Clob
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
 

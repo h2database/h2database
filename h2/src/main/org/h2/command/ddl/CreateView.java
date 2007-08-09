@@ -7,11 +7,12 @@
     import java.sql.SQLException;
     
     import org.h2.command.dml.Query;
+import org.h2.constant.ErrorCode;
     import org.h2.engine.Database;
     import org.h2.engine.Session;
     import org.h2.message.Message;
     import org.h2.schema.Schema;
-    import org.h2.table.TableView;
+import org.h2.table.TableView;
     
     public class CreateView extends SchemaCommand {
     
@@ -47,7 +48,7 @@
                 if (ifNotExists) {
                     return 0;
                 }
-                throw Message.getSQLException(Message.VIEW_ALREADY_EXISTS_1,
+                throw Message.getSQLException(ErrorCode.VIEW_ALREADY_EXISTS_1,
                         viewName);
             }
             int id = getObjectId(true, true);

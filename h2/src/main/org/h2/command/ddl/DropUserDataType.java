@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
@@ -31,7 +32,7 @@ public class DropUserDataType extends DefineCommand {
         UserDataType type = db.findUserDataType(typeName);
         if(type == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.USER_DATA_TYPE_NOT_FOUND_1, typeName);
+                throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_NOT_FOUND_1, typeName);
             }
         } else {
             db.removeDatabaseObject(session, type);

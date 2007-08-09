@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
@@ -168,7 +169,7 @@ public abstract class Query extends Prepared {
             }
             if(!isAlias) {
                 if(mustBeInResult) {
-                    throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                    throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
                 }            
                 expressions.add(e);
             }
@@ -201,7 +202,7 @@ public abstract class Query extends Prepared {
                 }
                 idx -= 1;
                 if(idx < 0 || idx >= originalLength) {
-                    throw Message.getSQLException(Message.ORDER_BY_NOT_IN_RESULT,  "" + (idx + 1));
+                    throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT,  "" + (idx + 1));
                 }
             }
             index[i] = idx;

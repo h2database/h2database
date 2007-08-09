@@ -4,7 +4,7 @@
  */
 package org.h2.security;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
@@ -39,7 +39,7 @@ public class XTEA implements BlockCipher {
    }
 
     public void encrypt(byte[] bytes, int off, int len) {
-        if (Constants.CHECK && (len % ALIGN != 0)) {
+        if (SysProperties.CHECK && (len % ALIGN != 0)) {
             throw Message.getInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {
@@ -48,7 +48,7 @@ public class XTEA implements BlockCipher {
     }
 
     public void decrypt(byte[] bytes, int off, int len) {
-        if (Constants.CHECK && (len % ALIGN != 0)) {
+        if (SysProperties.CHECK && (len % ALIGN != 0)) {
             throw Message.getInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {

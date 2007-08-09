@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.util.FileUtils;
 import org.h2.util.StringUtils;
 
@@ -180,11 +180,11 @@ public class TraceObject {
     }
 
     protected SQLException logAndConvert(Throwable e) {
-        if(Constants.LOG_ALL_ERRORS)  {
+        if(SysProperties.LOG_ALL_ERRORS)  {
             synchronized(this.getClass()) {
                 // e.printStackTrace();
                 try {
-                    Writer writer = FileUtils.openFileWriter(Constants.LOG_ALL_ERRORS_FILE,  true);
+                    Writer writer = FileUtils.openFileWriter(SysProperties.LOG_ALL_ERRORS_FILE,  true);
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

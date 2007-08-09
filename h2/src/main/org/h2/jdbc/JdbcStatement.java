@@ -13,6 +13,7 @@ import java.sql.SQLWarning;
 import java.sql.Statement;
 
 import org.h2.command.CommandInterface;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
@@ -808,7 +809,7 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     void checkClosed() throws SQLException {
         if(conn == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         conn.checkClosed();
     }

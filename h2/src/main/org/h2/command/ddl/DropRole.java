@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Role;
@@ -30,12 +31,12 @@ public class DropRole extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         if(roleName.equals(Constants.PUBLIC_ROLE_NAME)) {
-            throw Message.getSQLException(Message.ROLE_CAN_NOT_BE_DROPPED_1, roleName);
+            throw Message.getSQLException(ErrorCode.ROLE_CAN_NOT_BE_DROPPED_1, roleName);
         }
         Role role = db.findRole(roleName);
         if(role == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.ROLE_NOT_FOUND_1, roleName);
+                throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, roleName);
             }
         } else {
             db.removeDatabaseObject(session, role);

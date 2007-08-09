@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -129,7 +131,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     private String getTraceFilePrefix(String dbName) throws SQLException {
-        String dir = Constants.CLIENT_TRACE_DIRECTORY;
+        String dir = SysProperties.CLIENT_TRACE_DIRECTORY;
         StringBuffer buff = new StringBuffer();
         buff.append(dir);
         for(int i=0; i<dbName.length(); i++) {
@@ -245,7 +247,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public void checkClosed() throws SQLException {
         if(isClosed()) {
             // TODO broken connection: try to reconnect automatically
-            throw Message.getSQLException(Message.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
     }
 
@@ -356,12 +358,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public void handleInvalidChecksum() throws SQLException {
-        throw Message.getSQLException(Message.FILE_CORRUPTED_1, "wrong checksum");
+        throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         if(mustExist && !FileUtils.exists(name)) {
-            throw Message.getSQLException(Message.FILE_CORRUPTED_1, name);
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, name);
         }
         FileStore store;
         byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();

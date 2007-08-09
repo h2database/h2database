@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
@@ -95,7 +96,7 @@ public class TestPowerOff extends TestBase {
         }
         deleteDb(dir, dbName);  
         Random random = new Random(1);
-        Constants.runFinalize = false;
+        SysProperties.runFinalize = false;
         int repeat = getSize(1, 20);
         for(int i=0; i<repeat; i++) {
             Connection conn = getConnection(url);

@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.Command;
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -72,7 +73,7 @@ public class Merge extends Prepared {
         if(keys == null) {
             Index idx = table.getPrimaryKey();
             if(idx == null) {
-                throw Message.getSQLException(Message.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
+                throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
             }
             keys = idx.getColumns();
         }
@@ -153,7 +154,7 @@ public class Merge extends Prepared {
             Column col = keys[i];
             Value v = row.getValue(col.getColumnId());
             if(v == null) {
-                throw Message.getSQLException(Message.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
+                throw Message.getSQLException(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
             }
             Parameter p = (Parameter) k.get(columns.length + i);
             p.setValue(v);
@@ -169,7 +170,7 @@ public class Merge extends Prepared {
             table.fireAfter(session);
             table.fireAfterRow(session, null, row);
         } else if(count != 1) {
-            throw Message.getSQLException(Message.DUPLICATE_KEY_1, table.getSQL());
+            throw Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, table.getSQL());
         }
     }
 
@@ -236,7 +237,7 @@ public class Merge extends Prepared {
             for(int x=0; x<list.size(); x++) {
                 Expression[] expr = (Expression[])list.get(x);
                 if(expr.length != columns.length) {
-                    throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+                    throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 for(int i=0; i<expr.length; i++) {
                     Expression e = expr[i];
@@ -248,7 +249,7 @@ public class Merge extends Prepared {
         } else {
             query.prepare();
             if(query.getColumnCount() != columns.length) {
-                throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
     }

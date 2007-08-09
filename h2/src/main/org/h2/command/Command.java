@@ -6,6 +6,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -37,11 +39,11 @@ public abstract class Command implements CommandInterface {
     }
 
     public int update() throws SQLException {
-        throw Message.getSQLException(Message.METHOD_NOT_ALLOWED_FOR_QUERY);
+        throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
     public LocalResult query(int maxrows) throws SQLException {
-        throw Message.getSQLException(Message.METHOD_ONLY_ALLOWED_FOR_QUERY);
+        throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
     public abstract LocalResult queryMeta() throws SQLException;
@@ -61,7 +63,7 @@ public abstract class Command implements CommandInterface {
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = Constants.multiThreadedKernel ? (Object)session : (Object)database;
+        Object sync = SysProperties.multiThreadedKernel ? (Object)session : (Object)database;
         synchronized (sync) {
             try {
                 database.checkPowerOff();
@@ -83,7 +85,7 @@ public abstract class Command implements CommandInterface {
 
     public void checkCancelled() throws SQLException {
         if (cancel) {
-            throw Message.getSQLException(Message.STATEMENT_WAS_CANCELLED);
+            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
         }
         session.throttle();
     }
@@ -94,7 +96,7 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (Constants.multiThreadedKernel) {
+        } else if (SysProperties.multiThreadedKernel) {
             Database db = session.getDatabase();
             if (db != null && db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
                 session.unlockReadLocks();
@@ -111,7 +113,7 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = Constants.multiThreadedKernel ? (Object)session : (Object)database;
+        Object sync = SysProperties.multiThreadedKernel ? (Object)session : (Object)database;
         synchronized (sync) {
             int rollback = session.getLogId();
             session.setCurrentCommand(this);            

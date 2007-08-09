@@ -8,7 +8,8 @@ import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
@@ -35,7 +36,7 @@ public class ValueLong extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             long result = value + other.value;
             int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
@@ -56,7 +57,7 @@ public class ValueLong extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             if(value == Long.MIN_VALUE) {
                 throw getOverflow();
             }
@@ -65,12 +66,12 @@ public class ValueLong extends Value {
     }
     
     private SQLException getOverflow() {
-        return Message.getSQLException(Message.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
+        return Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
             // if the operands have the same sign, then overflow can not occur
@@ -91,7 +92,7 @@ public class ValueLong extends Value {
 
     public Value multiply(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             long result = value * other.value;
             if(value == 0 || value == 1 || other.value == 0 || other.value == 1) {
                 return ValueLong.get(result);
@@ -118,7 +119,7 @@ public class ValueLong extends Value {
     public Value divide(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
         if (other.value == 0) {
-            throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueLong.get(value / other.value);
     }

@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -31,11 +32,11 @@ public class DropSchema extends DefineCommand {
         Schema schema = db.findSchema(schemaName);
         if(schema == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.SCHEMA_NOT_FOUND_1, schemaName);
+                throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
         } else {
             if(!schema.canDrop()) {
-                throw Message.getSQLException(Message.SCHEMA_CAN_NOT_BE_DROPPED_1, schemaName);
+                throw Message.getSQLException(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, schemaName);
             }
             db.removeDatabaseObject(session, schema);
         }

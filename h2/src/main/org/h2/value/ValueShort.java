@@ -7,7 +7,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
@@ -22,7 +23,7 @@ public class ValueShort extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value + other.value);
         }        
         return ValueShort.get((short) (value + other.value));
@@ -30,7 +31,7 @@ public class ValueShort extends Value {
     
     private ValueShort checkRange(int value) throws SQLException {
         if(value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-            throw Message.getSQLException(Message.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
+            throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
         } else {
             return ValueShort.get((short)value);
         }
@@ -41,7 +42,7 @@ public class ValueShort extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(-(int)value);
         }        
         return ValueShort.get((short) (-value));
@@ -49,7 +50,7 @@ public class ValueShort extends Value {
 
     public Value subtract(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value - other.value);
         }             
         return ValueShort.get((short) (value - other.value));
@@ -57,7 +58,7 @@ public class ValueShort extends Value {
 
     public Value multiply(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value * other.value);
         }                 
         return ValueShort.get((short) (value * other.value));
@@ -66,7 +67,7 @@ public class ValueShort extends Value {
     public Value divide(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
         if (other.value == 0) {
-            throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueShort.get((short) (value / other.value));
     }

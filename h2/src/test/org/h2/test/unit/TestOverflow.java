@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
@@ -64,7 +64,7 @@ public class TestOverflow extends TestBase {
     }
     
     void onSuccess() throws Exception {
-        if(!successExpected && Constants.OVERFLOW_EXCEPTIONS) {
+        if(!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
             error("unexpected success");
         }
     }

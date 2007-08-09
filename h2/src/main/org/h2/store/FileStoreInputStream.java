@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.tools.CompressTool;
@@ -140,7 +141,7 @@ public class FileStoreInputStream extends InputStream {
     }
     
     protected void finalize() {
-        if (!Constants.runFinalize) {
+        if (!SysProperties.runFinalize) {
             return;
         }    
         try {

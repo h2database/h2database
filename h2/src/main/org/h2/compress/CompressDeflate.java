@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 import java.util.zip.*;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 public class CompressDeflate implements Compressor {
@@ -29,7 +30,7 @@ public class CompressDeflate implements Compressor {
                 }
             }
         } catch(Exception e) {
-            throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1, options);
         }
     }
     

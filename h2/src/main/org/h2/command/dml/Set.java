@@ -9,7 +9,8 @@ import java.text.Collator;
 
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
@@ -103,7 +104,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             Mode mode = Mode.getMode(stringValue);
             if(mode == null) {
-                throw Message.getSQLException(Message.UNKNOWN_MODE_1, stringValue);
+                throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
             }
             Mode.setCurrentMode(mode);
             break;
@@ -113,7 +114,7 @@ public class Set extends Prepared {
             for(int i=0; i<array.size(); i++) {
                 Table table = (Table) array.get(i);
                 if(table.getCreateSQL() != null) {
-                    throw Message.getSQLException(Message.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
+                    throw Message.getSQLException(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
                 }
             }
             CompareMode compareMode;
@@ -169,7 +170,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();
-            Constants.multiThreadedKernel = (getIntValue() == 1);
+            SysProperties.multiThreadedKernel = (getIntValue() == 1);
             break;
         }
         case SetTypes.DB_CLOSE_DELAY: {

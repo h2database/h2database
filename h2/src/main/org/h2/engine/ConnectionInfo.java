@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.util.FileUtils;
@@ -48,7 +50,7 @@ public class ConnectionInfo {
         };
         for(int i=0; i<connectionTime.length; i++) {
             String key = connectionTime[i];
-            if(Constants.CHECK && KNOWN_SETTINGS.contains(key)) {
+            if(SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {
                 throw Message.getInternalError(key);
             }
             KNOWN_SETTINGS.add(key);
@@ -135,7 +137,7 @@ public class ConnectionInfo {
         for(int i=0; i<list.length; i++) {
             String key = StringUtils.toUpperEnglish(list[i].toString());
             if(prop.containsKey(key)) {
-                throw Message.getSQLException(Message.DUPLICATE_PROPERTY_1, key);
+                throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
             }
             if(KNOWN_SETTINGS.contains(key)) {
                 prop.put(key, info.get(list[i]));
@@ -159,11 +161,11 @@ public class ConnectionInfo {
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
                 if(!KNOWN_SETTINGS.contains(key)) {
-                    throw Message.getSQLException(Message.UNSUPPORTED_SETTING_1, key);
+                    throw Message.getSQLException(ErrorCode.UNSUPPORTED_SETTING_1, key);
                 }
                 String old = prop.getProperty(key);
                 if(old != null && !old.equals(value)) {
-                    throw Message.getSQLException(Message.DUPLICATE_PROPERTY_1, key);
+                    throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
                 }
                 prop.setProperty(key, value);
             }
@@ -199,7 +201,7 @@ public class ConnectionInfo {
                 }
             }
             if(space < 0) {
-                throw Message.getSQLException(Message.WRONG_PASSWORD_FORMAT);
+                throw Message.getSQLException(ErrorCode.WRONG_PASSWORD_FORMAT);
             }
             char[] np = new char[password.length - space -1];
             char[] filePassword = new char[space];
@@ -218,7 +220,7 @@ public class ConnectionInfo {
     }
 
     public String removeProperty(String key, String defaultValue) {
-        if(Constants.CHECK && !KNOWN_SETTINGS.contains(key)) {
+        if(SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
         }
         Object x = prop.remove(key);
@@ -257,7 +259,7 @@ public class ConnectionInfo {
     }
 
     public String getProperty(String key, String defaultValue) {
-        if(Constants.CHECK && !KNOWN_SETTINGS.contains(key)) {
+        if(SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
         }
         String s = getProperty(key);
@@ -325,7 +327,7 @@ public class ConnectionInfo {
 
     public SQLException getFormatException() {
         String format = Constants.URL_FORMAT;
-        return Message.getSQLException(Message.URL_FORMAT_ERROR_2, new String[]{format, url}, null);
+        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[]{format, url}, null);
     }
 
 }

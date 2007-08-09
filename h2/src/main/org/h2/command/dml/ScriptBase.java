@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -59,7 +61,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         if(fileName == null || fileName.trim().length() == 0) {
             fileName = "script.sql";
         }
-        this.fileName = Constants.scriptDirectory + fileName;
+        this.fileName = SysProperties.scriptDirectory + fileName;
     }    
 
     public boolean isTransactional() {
@@ -117,7 +119,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, Constants.SCRIPT_SQL);
             if(in == null) {
-                throw Message.getSQLException(Message.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + fileName);
+                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + fileName);
             }
         }
     }

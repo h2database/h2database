@@ -6,7 +6,7 @@ package org.h2.util;
 
 import java.util.Comparator;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.store.DiskFile;
 
@@ -36,7 +36,7 @@ public abstract class CacheObject {
     }
     
     public void setPos(int pos) {
-        if(Constants.CHECK && (previous!=null || next!=null || chained!=null)) {
+        if(SysProperties.CHECK && (previous!=null || next!=null || chained!=null)) {
             throw Message.getInternalError("setPos too late");
         }
         this.pos = pos;

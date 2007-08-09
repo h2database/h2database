@@ -6,6 +6,7 @@ package org.h2.security;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 public class CipherFactory {
@@ -16,7 +17,7 @@ public class CipherFactory {
         } else if ("AES".equalsIgnoreCase(algorithm)) {
             return new AES();
         } else {
-            throw Message.getSQLException(Message.UNSUPPORTED_CIPHER, algorithm);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
         }
     }
 

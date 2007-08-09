@@ -6,6 +6,7 @@ package org.h2.constraint;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -88,7 +89,7 @@ public class ConstraintCheck extends Constraint {
         filter.set(newRow);
         // Both TRUE and NULL are ok
         if(Boolean.FALSE.equals(expr.getValue(session).getBoolean())) {
-            throw Message.getSQLException(Message.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
+            throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
         }
     }
 

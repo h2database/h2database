@@ -8,7 +8,8 @@ import java.sql.SQLException;
 
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
@@ -278,7 +279,7 @@ public class ConstraintReferential extends Constraint {
             check.setValue(refIdx, v.convertTo(refCol.getType()));
         }
         if(!found(session, refIndex, check)) {
-            throw Message.getSQLException(Message.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, getShortDescription());
+            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, getShortDescription());
         }
     }
     
@@ -286,7 +287,7 @@ public class ConstraintReferential extends Constraint {
         Cursor cursor = index.find(session, check, check);
         while(cursor.next()) {
             SearchRow found;
-            if(Constants.INDEX_LOOKUP_NEW) {
+            if(SysProperties.INDEX_LOOKUP_NEW) {
                 found = cursor.getSearchRow();
             } else {
                 found = cursor.get();
@@ -342,7 +343,7 @@ public class ConstraintReferential extends Constraint {
             check.setValue(idx, v);
         }        
         if(found(session, index, check)) {
-            throw Message.getSQLException(Message.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, getShortDescription());
+            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, getShortDescription());
         }
     }
     
@@ -415,7 +416,7 @@ public class ConstraintReferential extends Constraint {
             return;
         }
         if(deleteAction != RESTRICT) {
-            throw Message.getSQLException(Message.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
+            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
         }
         this.deleteAction = action;
         StringBuffer buff = new StringBuffer();
@@ -446,7 +447,7 @@ public class ConstraintReferential extends Constraint {
             return;
         }
         if(updateAction != RESTRICT) {
-            throw Message.getSQLException(Message.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
+            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
         }
         this.updateAction = action;
         StringBuffer buff = new StringBuffer();
@@ -468,7 +469,7 @@ public class ConstraintReferential extends Constraint {
                 } else {
                     Expression expr = column.getDefaultExpression();
                     if(expr ==null) {
-                        throw Message.getSQLException(Message.NO_DEFAULT_SET_1, column.getName());
+                        throw Message.getSQLException(ErrorCode.NO_DEFAULT_SET_1, column.getName());
                     }
                     value = expr.getValue(session);
                 }

@@ -7,8 +7,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
-
-import org.h2.message.Message;
+import org.h2.constant.ErrorCode;
 import org.h2.util.DateTimeUtils;
 
 public class ValueTime extends Value {
@@ -20,7 +19,7 @@ public class ValueTime extends Value {
     }
 
     public static Time parseTime(String s) throws SQLException {
-        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, Message.TIME_CONSTANT_1);
+        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_1);
     }
 
     public Time getTime() {

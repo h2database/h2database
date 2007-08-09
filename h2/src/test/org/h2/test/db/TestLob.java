@@ -20,7 +20,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -87,11 +87,11 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
         ResultSet rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
         rs.next();
-        Constants.lobCloseBetweenReads = true;
+        SysProperties.lobCloseBetweenReads = true;
         Reader in = rs.getCharacterStream(1);
         in.read();
         conn.createStatement().execute("DELETE FROM TEST");
-        Constants.lobCloseBetweenReads = false;
+        SysProperties.lobCloseBetweenReads = false;
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, SPACE(10000))");
         rs = conn.createStatement().executeQuery("SELECT DATA FROM TEST");
         rs.next();

@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.util.ObjectArray;
@@ -86,7 +87,7 @@ public class UpdatableRow {
                 return i;
             }
         }
-        throw Message.getSQLException(Message.COLUMN_NOT_FOUND_1, columnName);
+        throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
     }
 
     private void appendColumnList(StringBuffer buff, boolean set) {
@@ -160,7 +161,7 @@ public class UpdatableRow {
         setKey(prep, 1, row);
         ResultSet rs = prep.executeQuery();
         if(!rs.next()) {
-            throw Message.getSQLException(Message.NO_DATA_AVAILABLE);
+            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
         Value[] newRow = new Value[columnCount];
         for(int i=0; i<columnCount; i++) {
@@ -180,7 +181,7 @@ public class UpdatableRow {
         setKey(prep, 1, current);
         int count = prep.executeUpdate();
         if(count != 1) {
-            throw Message.getSQLException(Message.NO_DATA_AVAILABLE);
+            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
 

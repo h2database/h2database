@@ -6,7 +6,7 @@ package org.h2.util;
 
 import java.lang.ref.WeakReference;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 
 public class StringCache {
     private static final boolean ENABLED = true;
@@ -46,7 +46,7 @@ public class StringCache {
 
     // 3906
     public static String get(String s) {
-        if (!Constants.OBJECT_CACHE || !ENABLED) {
+        if (!SysProperties.OBJECT_CACHE || !ENABLED) {
             return s;
         }
         if (s == null) {
@@ -57,10 +57,10 @@ public class StringCache {
         String[] cache = (String[]) weakCache.get();
         int hash = s.hashCode();
         if (cache == null) {
-            cache = new String[Constants.OBJECT_CACHE_SIZE];
+            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
             weakCache = new WeakReference(cache);
         }
-        int index = hash & (Constants.OBJECT_CACHE_SIZE - 1);
+        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
         String cached = cache[index];
         if (cached != null) {
             if (s.equals(cached)) {
@@ -73,7 +73,7 @@ public class StringCache {
     }
     
     public static String getNew(String s) {
-        if (!Constants.OBJECT_CACHE || !ENABLED) {
+        if (!SysProperties.OBJECT_CACHE || !ENABLED) {
             return s;
         }
         if (s == null) {
@@ -84,10 +84,10 @@ public class StringCache {
         String[] cache = (String[]) weakCache.get();
         int hash = s.hashCode();
         if (cache == null) {
-            cache = new String[Constants.OBJECT_CACHE_SIZE];
+            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
             weakCache = new WeakReference(cache);
         }
-        int index = hash & (Constants.OBJECT_CACHE_SIZE - 1);
+        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
         String cached = cache[index];
         if (cached != null) {
             if (s.equals(cached)) {

@@ -6,6 +6,7 @@ package org.h2.util;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -58,7 +59,7 @@ public class Cache2Q implements Cache {
     }    
     
     private void addToFront(CacheObject head, CacheObject rec) {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(rec == head) {
                 throw Message.getInternalError("try to move head");
             }
@@ -73,7 +74,7 @@ public class Cache2Q implements Cache {
     }
     
     private void removeFromList(CacheObject rec) {
-        if(Constants.CHECK && (rec instanceof CacheHead && rec.cacheQueue != OUT)) {
+        if(SysProperties.CHECK && (rec instanceof CacheHead && rec.cacheQueue != OUT)) {
             throw Message.getInternalError();
         }        
         rec.previous.next = rec.next;
@@ -131,7 +132,7 @@ public class Cache2Q implements Cache {
             last.chained = rec.chained;
         }
         recordCount--;
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             rec.chained = null;
         }
         return rec;
@@ -245,7 +246,7 @@ public class Cache2Q implements Cache {
     }
     
     private void putCacheObject(CacheObject rec) {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             for(int i=0; i<rec.getBlockCount(); i++) {
                 CacheObject old = find(rec.getPos() + i);
                 if(old != null)  {

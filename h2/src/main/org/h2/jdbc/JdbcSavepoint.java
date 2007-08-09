@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 //#endif
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
@@ -56,7 +57,7 @@ implements Savepoint
 
     private void checkValid() throws SQLException {
         if (conn == null) {
-            throw Message.getSQLException(Message.SAVEPOINT_IS_INVALID_1, getName(name, savepointId));
+            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, getName(name, savepointId));
         }
     }
 
@@ -69,7 +70,7 @@ implements Savepoint
             debugCodeCall("getSavepointId");
             checkValid();
             if (name != null) {
-                throw Message.getSQLException(Message.SAVEPOINT_IS_NAMED);
+                throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_NAMED);
             }
             return savepointId;
         } catch(Throwable e) {
@@ -86,7 +87,7 @@ implements Savepoint
             debugCodeCall("getSavepointName");
             checkValid();
             if (name == null) {
-                throw Message.getSQLException(Message.SAVEPOINT_IS_UNNAMED);
+                throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_UNNAMED);
             }
             return name;
         } catch(Throwable e) {

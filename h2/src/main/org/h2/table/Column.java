@@ -9,6 +9,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 import org.h2.command.Parser;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -179,7 +180,7 @@ public class Column {
                         value = ValueString.get("").convertTo(type);
                     }
                 } else {
-                    throw Message.getSQLException(Message.NULL_NOT_ALLOWED, name);
+                    throw Message.getSQLException(ErrorCode.NULL_NOT_ALLOWED, name);
                 }
             }
         }
@@ -188,13 +189,13 @@ public class Column {
             Value v = checkConstraint.getValue(session);
             // Both TRUE and NULL are ok
             if(Boolean.FALSE.equals(v.getBoolean())) {
-                throw Message.getSQLException(Message.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
+                throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
             }
         }
         value = value.convertScale(Mode.getCurrentMode().convertOnlyToSmallerScale, scale);
         if (precision > 0) {
             if(!value.checkPrecision(precision)) {
-                throw Message.getSQLException(Message.VALUE_TOO_LONG_1, name);
+                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_1, name);
             }
         }
         updateSequenceIfRequired(session, value);

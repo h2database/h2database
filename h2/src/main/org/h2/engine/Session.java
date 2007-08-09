@@ -15,6 +15,8 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -92,7 +94,7 @@ public class Session implements SessionInterface {
             localTempTables = new HashMap();
         }
         if(localTempTables.get(table.getName()) != null) {
-            throw Message.getSQLException(Message.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
         }
         localTempTables.put(table.getName(), table);
     }
@@ -103,7 +105,7 @@ public class Session implements SessionInterface {
     }
 
     protected void finalize() {
-        if(!Constants.runFinalize) {
+        if(!SysProperties.runFinalize) {
             return;
         }
         if(database != null) {
@@ -162,7 +164,7 @@ public class Session implements SessionInterface {
 
     public Command prepareLocal(String sql) throws SQLException {
         if(database == null) {
-            throw Message.getSQLException(Message.CONNECTION_BROKEN);
+            throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
         Parser parser = new Parser(this);
         return parser.prepareCommand(sql);
@@ -268,7 +270,7 @@ public class Session implements SessionInterface {
     }
 
     public void addLock(Table table) {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(locks.indexOf(table)>=0) {
                 throw Message.getInternalError();
             }
@@ -283,7 +285,7 @@ public class Session implements SessionInterface {
     private void log(UndoLogRecord log) throws SQLException {
         // called _after_ the row was inserted successfully into the table,
         // otherwise rollback will try to rollback a not-inserted row
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             int lockMode = database.getLockMode();
             if(lockMode != Constants.LOCK_MODE_OFF) {
                 if(locks.indexOf(log.getTable())<0 && log.getTable().getTableType() != Table.TABLE_LINK) {
@@ -308,7 +310,7 @@ public class Session implements SessionInterface {
     }
 
     private void unlockAll() throws SQLException {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(undoLog.size() > 0) {
                 throw Message.getInternalError();
             }
@@ -395,11 +397,11 @@ public class Session implements SessionInterface {
 
     public void rollbackToSavepoint(String name) throws SQLException {
         if(savepoints == null) {
-            throw Message.getSQLException(Message.SAVEPOINT_IS_INVALID_1, name);
+            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         Integer id = (Integer)savepoints.get(name);
         if(id==null) {
-            throw Message.getSQLException(Message.SAVEPOINT_IS_INVALID_1, name);
+            throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         int i = id.intValue();
         rollbackTo(i);
@@ -433,7 +435,7 @@ public class Session implements SessionInterface {
                 }
             }
             if(!found) {
-                throw Message.getSQLException(Message.TRANSACTION_NOT_FOUND_1, transactionName);
+                throw Message.getSQLException(ErrorCode.TRANSACTION_NOT_FOUND_1, transactionName);
             }
         }
     }

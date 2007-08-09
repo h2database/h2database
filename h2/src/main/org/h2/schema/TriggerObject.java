@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -55,7 +56,7 @@ public class TriggerObject extends SchemaObject {
             triggerCallback = (Trigger)obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName());
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.ERROR_CREATING_TRIGGER_OBJECT_2, new String[]{getName(), triggerClassName}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_2, new String[]{getName(), triggerClassName}, e);
         }
     }
 
@@ -67,7 +68,7 @@ public class TriggerObject extends SchemaObject {
         try {
             triggerCallback.fire(c2, null, null);
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.ERROR_EXECUTING_TRIGGER_2, new String[]{getName(), triggerClassName}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_2, new String[]{getName(), triggerClassName}, e);
         }
     }
 

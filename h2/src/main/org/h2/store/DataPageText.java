@@ -6,7 +6,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 public class DataPageText extends DataPage {
@@ -43,7 +43,7 @@ public class DataPageText extends DataPage {
     }
 
     public void writeInt(int x) {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             checkCapacity(8);
         }
         for(int i=7;i>=0;i--, x>>>= 4) {
@@ -101,7 +101,7 @@ public class DataPageText extends DataPage {
 
     public String readString() {
         StringBuffer buff = new StringBuffer(32);
-        if(Constants.CHECK && data[pos] != '"') {
+        if(SysProperties.CHECK && data[pos] != '"') {
             throw Message.getInternalError("\" expected");
         }
         pos++;

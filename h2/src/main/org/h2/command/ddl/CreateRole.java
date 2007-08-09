@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -36,13 +37,13 @@ public class CreateRole extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.USER_ALREADY_EXISTS_1, roleName);
+            throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
         }
         if(db.findRole(roleName)!=null) {
             if (ifNotExists) {
                 return 0;
             }            
-            throw Message.getSQLException(Message.ROLE_ALREADY_EXISTS_1, roleName);
+            throw Message.getSQLException(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
         }
         int id = getObjectId(false, true);
         Role role = new Role(db, id, roleName, false);

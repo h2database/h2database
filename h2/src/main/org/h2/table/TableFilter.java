@@ -6,7 +6,7 @@ package org.h2.table;
 
 import java.sql.SQLException;
 import org.h2.command.dml.Select;
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -159,7 +159,7 @@ public class TableFilter implements ColumnResolver {
         }
         for(int i=0; joins != null && i<joins.size(); i++) {
             TableFilter join = getTableFilter(i);
-            if(Constants.CHECK && join==this) {
+            if(SysProperties.CHECK && join==this) {
                 throw Message.getInternalError("self join");
             }
             join.prepare();
@@ -530,7 +530,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Value getValue(Column column) throws SQLException {
-        if(Constants.INDEX_LOOKUP_NEW) {
+        if(SysProperties.INDEX_LOOKUP_NEW) {
             if(currentSearchRow == null) {
                 return null;
             }

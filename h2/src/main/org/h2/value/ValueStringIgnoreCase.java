@@ -4,7 +4,7 @@
  */
 package org.h2.value;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
@@ -47,7 +47,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
             return EMPTY;
         }
         ValueStringIgnoreCase obj = new ValueStringIgnoreCase(StringCache.get(s));
-        if (s.length() > Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         ValueStringIgnoreCase cache = (ValueStringIgnoreCase) Value.cache(obj);

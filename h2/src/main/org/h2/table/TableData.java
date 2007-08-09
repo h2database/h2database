@@ -9,6 +9,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
@@ -76,7 +78,7 @@ public class TableData extends Table implements RecordReader {
             for (; i < indexes.size(); i++) {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
-                if(Constants.CHECK) {
+                if(SysProperties.CHECK) {
                     long rc = index.getRowCount();
                     if(rc != rowCount+1) {
                         throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
@@ -89,7 +91,7 @@ public class TableData extends Table implements RecordReader {
                 while(--i >= 0) {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
-                    if(Constants.CHECK) {
+                    if(SysProperties.CHECK) {
                         long rc = index.getRowCount();
                         if(rc != rowCount) {
                             throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
@@ -131,7 +133,7 @@ public class TableData extends Table implements RecordReader {
             for(int i=0; i<cols.length; i++) {
                 Column column = cols[i];
                 if(column.getNullable()) {
-                    throw Message.getSQLException(Message.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    throw Message.getSQLException(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
                 column.setPrimaryKey(true);
             }
@@ -172,7 +174,7 @@ public class TableData extends Table implements RecordReader {
                     remaining--;
                 }
                 addRowsToIndex(session, buffer, index);
-                if(Constants.CHECK && remaining != 0) {
+                if(SysProperties.CHECK && remaining != 0) {
                     throw Message.getInternalError("rowcount remaining=" + remaining + " " + getName());
                 }
             } catch(SQLException e) {
@@ -246,7 +248,7 @@ public class TableData extends Table implements RecordReader {
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);
-            if(Constants.CHECK) {
+            if(SysProperties.CHECK) {
                 long rc = index.getRowCount();
                 if(rc != rowCount-1) {
                     throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
@@ -261,7 +263,7 @@ public class TableData extends Table implements RecordReader {
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = (Index) indexes.get(i);
             index.truncate(session);
-            if(Constants.CHECK) {
+            if(SysProperties.CHECK) {
                 long rc = index.getRowCount();
                 if(rc != 0) {
                     throw Message.getInternalError("rowCount expected 0 got "+rc);
@@ -297,7 +299,7 @@ public class TableData extends Table implements RecordReader {
                     }
                 } else {
                     if (lockExclusive == null) {
-                        if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !Constants.multiThreadedKernel) {
+                        if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !SysProperties.multiThreadedKernel) {
                             // READ_COMMITTED read locks are acquired but they are released immediately
                             // when allowing only one thread, no read locks are required
                             return;
@@ -312,7 +314,7 @@ public class TableData extends Table implements RecordReader {
                 long now = System.currentTimeMillis();
                 if (now >= max) {
                     traceLock(session, exclusive, "timeout " + session.getLockTimeout());
-                    throw Message.getSQLException(Message.LOCK_TIMEOUT_1, getName());
+                    throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, getName());
                 }
                 try {
                     traceLock(session, exclusive, "waiting");
@@ -421,7 +423,7 @@ public class TableData extends Table implements RecordReader {
                 database.removeSchemaObject(session, index);
             }
         }
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             ObjectArray list = database.getAllSchemaObjects(DbObject.INDEX);
             for(int i=0; i<list.size(); i++) {
                 Index index = (Index) list.get(i);

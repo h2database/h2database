@@ -6,6 +6,7 @@ package org.h2.util;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -46,7 +47,7 @@ public class CacheLRU implements Cache {
     }
 
     public void put(CacheObject rec) throws SQLException {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             for(int i=0; i<rec.getBlockCount(); i++) {
                 CacheObject old = find(rec.getPos() + i);
                 if(old != null)  {
@@ -68,7 +69,7 @@ public class CacheLRU implements Cache {
         if(old == null) {
             put(rec);
         } else {
-            if(Constants.CHECK) {
+            if(SysProperties.CHECK) {
                 if(old!=rec) {
                     throw Message.getInternalError("old != record old="+old+" new="+rec);
                 }
@@ -101,7 +102,7 @@ public class CacheLRU implements Cache {
                 break;
             }
             CacheObject last = head.next;
-            if(Constants.CHECK && last == head) {
+            if(SysProperties.CHECK && last == head) {
                 throw Message.getInternalError("try to remove head");
             }            
             // we are not allowed to remove it if the log is not yet written 
@@ -127,7 +128,7 @@ public class CacheLRU implements Cache {
     }
 
     private void addToFront(CacheObject rec) {
-        if(Constants.CHECK && rec == head) {
+        if(SysProperties.CHECK && rec == head) {
             throw Message.getInternalError("try to move head");
         }
         rec.next = head;
@@ -137,7 +138,7 @@ public class CacheLRU implements Cache {
     }
 
     private void removeFromLinkedList(CacheObject rec) {
-        if(Constants.CHECK && rec == head) {
+        if(SysProperties.CHECK && rec == head) {
             throw Message.getInternalError("try to remove head");
         }
         rec.previous.next = rec.next;
@@ -169,7 +170,7 @@ public class CacheLRU implements Cache {
         recordCount--;
         sizeMemory -= rec.getMemorySize();
         removeFromLinkedList(rec);
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             rec.chained = null;
             if(find(pos) != null) {
                 throw Message.getInternalError("not removed!");
@@ -235,7 +236,7 @@ public class CacheLRU implements Cache {
                 if(rec.isChanged()) {                                
                     list.add(rec);
                     if(list.size() >= recordCount) {
-                        if(Constants.CHECK) {
+                        if(SysProperties.CHECK) {
                             if(list.size() > recordCount) {
                                 throw Message.getInternalError("cache chain error");
                             }

@@ -10,7 +10,8 @@ import java.util.HashMap;
 
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -167,7 +168,7 @@ public class Aggregate extends Expression {
         }
         HashMap group = select.getCurrentGroup();
         if(group == null) {
-            throw Message.getSQLException(Message.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         AggregateData data = (AggregateData) group.get(this);
         if(data == null) {
@@ -276,7 +277,7 @@ public class Aggregate extends Expression {
         case SUM:
         case AVG:
             if(!DataType.supportsAdd(dataType)) {
-                throw Message.getSQLException(Message.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             break;
         case MIN:
@@ -424,7 +425,7 @@ public class Aggregate extends Expression {
                 return visitor.table.canGetRowCount();
             case MIN:
             case MAX:
-                if(!Constants.OPTIMIZE_MIN_MAX) {
+                if(!SysProperties.OPTIMIZE_MIN_MAX) {
                     return false;
                 }
                 boolean first = type == MIN;

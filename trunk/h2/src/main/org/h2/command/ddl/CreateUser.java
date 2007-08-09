@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -48,7 +49,7 @@ public class CreateUser extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.USER_ALREADY_EXISTS_1, userName);
+            throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, userName);
         }
         int id = getObjectId(false, true);
         User user = new User(db, id, userName, false);

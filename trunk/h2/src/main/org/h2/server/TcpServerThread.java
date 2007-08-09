@@ -11,6 +11,8 @@ import java.net.Socket;
 import java.sql.SQLException;
 
 import org.h2.command.Command;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
@@ -33,7 +35,7 @@ public class TcpServerThread implements Runnable {
     private Thread thread;
     private Transfer transfer;
     private Command commit;
-    private SmallMap cache = new SmallMap(Constants.SERVER_CACHED_OBJECTS);
+    private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
 
     public TcpServerThread(Socket socket, TcpServer server) {
         this.server = server;
@@ -49,17 +51,17 @@ public class TcpServerThread implements Runnable {
             try {
                 int version = transfer.readInt();
                 if(!server.allow(transfer.getSocket())) {
-                    throw Message.getSQLException(Message.REMOTE_CONNECTION_NOT_ALLOWED);
+                    throw Message.getSQLException(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
                 if(version != Constants.TCP_DRIVER_VERSION) {
-                    throw Message.getSQLException(Message.DRIVER_VERSION_ERROR_2,
+                    throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2,
                             new String[] { "" + version, "" + Constants.TCP_DRIVER_VERSION }, null);
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
                 String baseDir = server.getBaseDir();
                 if(baseDir == null) {
-                    baseDir = Constants.getBaseDir();
+                    baseDir = SysProperties.getBaseDir();
                 }
                 ConnectionInfo ci = new ConnectionInfo(db);
                 if(baseDir != null) {

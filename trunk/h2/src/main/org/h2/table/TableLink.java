@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -107,7 +108,7 @@ public class TableLink extends Table {
                     columnMap.put(n, col);
                 }
             } catch(SQLException e) {
-                throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, new String[]{originalTable}, e);
+                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[]{originalTable}, e);
             } finally {
                 JdbcUtils.closeSilently(stat);
             }

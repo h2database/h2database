@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.FunctionCall;
@@ -33,7 +34,7 @@ public class FunctionTable extends Table {
         function.optimize(session);
         int type = function.getType();
         if(type != Value.RESULT_SET) {
-            throw Message.getSQLException(Message.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         int params = function.getParameterCount();
         Expression[] columnListArgs = new Expression[params];
@@ -44,7 +45,7 @@ public class FunctionTable extends Table {
         }
         ValueResultSet template = function.getValueForColumnList(session, columnListArgs);
         if(template == null) {
-            throw Message.getSQLException(Message.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         ResultSet rs = template.getResultSet();
         ResultSetMetaData meta = rs.getMetaData();

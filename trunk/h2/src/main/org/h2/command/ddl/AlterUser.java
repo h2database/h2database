@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -79,7 +80,7 @@ public class AlterUser extends DefineCommand {
         case RENAME:
             session.getUser().checkAdmin();
             if(db.findUser(newName) != null || newName.equals(user.getName())) {
-                throw Message.getSQLException(Message.USER_ALREADY_EXISTS_1, newName);
+                throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, newName);
             }
             db.renameDatabaseObject(session, user, newName);
             break;

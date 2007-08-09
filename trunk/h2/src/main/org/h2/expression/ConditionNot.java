@@ -6,7 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -38,7 +38,7 @@ public class ConditionNot extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if(!Constants.OPTIMIZE_NOT) {
+        if(!SysProperties.OPTIMIZE_NOT) {
             return this;
         }
         // TODO optimization: some cases are maybe possible to optimize further: (NOT ID >= 5)

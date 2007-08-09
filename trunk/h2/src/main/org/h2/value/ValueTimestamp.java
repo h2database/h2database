@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -35,7 +36,7 @@ public class ValueTimestamp extends Value {
     }
 
     public static Timestamp parseTimestamp(String s) throws SQLException {
-        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, Message.TIMESTAMP_CONSTANT_1);
+        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_1);
     }
 
     public int getType() {

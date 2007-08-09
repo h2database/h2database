@@ -4,7 +4,7 @@
  */
 package org.h2.value;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 
 public class ValueJavaObject extends ValueBytesBase {
     
@@ -19,7 +19,7 @@ public class ValueJavaObject extends ValueBytesBase {
             return EMPTY;
         }
         ValueJavaObject obj = new ValueJavaObject(b);
-        if (b.length > Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueJavaObject) Value.cache(obj);

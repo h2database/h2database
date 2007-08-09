@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
@@ -343,7 +344,7 @@ public class Server implements Runnable {
                 return this;
             }
         }
-        throw Message.getSQLException(Message.CONNECTION_BROKEN);
+        throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
     }
     
     private static void wait(int i) {

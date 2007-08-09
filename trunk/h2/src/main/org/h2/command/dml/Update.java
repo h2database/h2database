@@ -7,6 +7,7 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -48,7 +49,7 @@ public class Update extends Prepared {
             throws SQLException {
         int id = column.getColumnId();
         if (expressions[id] != null) {
-            throw Message.getSQLException(Message.DUPLICATE_COLUMN_NAME_1, column
+            throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, column
                     .getName());
         }
         expressions[id] = expression;

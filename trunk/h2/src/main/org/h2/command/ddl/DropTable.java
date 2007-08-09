@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -51,12 +52,12 @@ public class DropTable extends SchemaCommand {
         // TODO drop table: drops views as well (is this ok?)
         if(table == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
             }
         } else {
             session.getUser().checkRight(table, Right.ALL);
             if(!table.canDrop()) {
-                throw Message.getSQLException(Message.CANNOT_DROP_TABLE_1, tableName);
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
             table.lock(session, true);
         }

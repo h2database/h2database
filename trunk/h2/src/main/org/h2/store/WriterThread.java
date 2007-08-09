@@ -7,6 +7,7 @@ package org.h2.store;
 import java.lang.ref.WeakReference;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -38,7 +39,7 @@ public class WriterThread extends Thread {
         LogSystem log = getLog();
         this.writeDelay = writeDelay;
         // TODO check if MIN_WRITE_DELAY is a good value
-        if(writeDelay < Constants.MIN_WRITE_DELAY) {
+        if(writeDelay < SysProperties.MIN_WRITE_DELAY) {
             log.setFlushOnEachCommit(true);
         } else {
             log.setFlushOnEachCommit(false);

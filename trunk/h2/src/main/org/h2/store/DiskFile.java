@@ -14,6 +14,8 @@ import java.sql.SQLException;
 import java.util.Comparator;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -285,7 +287,7 @@ public class DiskFile implements CacheWriter {
             file.readFully(buff, 0, blockHeaderLen);
             s.reset();
             int blockCount = s.readInt();
-            if(Constants.CHECK && blockCount < 0) {
+            if(SysProperties.CHECK && blockCount < 0) {
                 throw Message.getInternalError();
             }
             if(blockCount == 0) {
@@ -293,7 +295,7 @@ public class DiskFile implements CacheWriter {
                 i++;
             } else {
                 int id = s.readInt();
-                if(Constants.CHECK && id < 0) {
+                if(SysProperties.CHECK && id < 0) {
                     throw Message.getInternalError();
                 }
                 Storage storage = database.getStorage(id, this);
@@ -380,7 +382,7 @@ public class DiskFile implements CacheWriter {
     
     synchronized Record getRecord(int pos, RecordReader reader, int storageId) throws SQLException {
         if(file == null) {
-            throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
         synchronized(this) {
             Record record = (Record) cache.get(pos);
@@ -395,10 +397,10 @@ public class DiskFile implements CacheWriter {
             DataPage s = DataPage.create(database, buff);
             int blockCount = s.readInt();
             int id = s.readInt();
-            if(Constants.CHECK && storageId != id) {
+            if(SysProperties.CHECK && storageId != id) {
                 throw Message.getInternalError("File ID mismatch got="+id+" expected="+storageId+" pos="+pos+" "+logChanges+" "+this +" blockCount:"+blockCount);
             }
-            if(Constants.CHECK && blockCount == 0) {
+            if(SysProperties.CHECK && blockCount == 0) {
                 throw Message.getInternalError("0 blocks to read pos="+pos);
             }
             if(blockCount > 1) {
@@ -422,7 +424,7 @@ public class DiskFile implements CacheWriter {
 
     synchronized int allocate(Storage storage, int blockCount) throws SQLException {
         if(file == null) {
-            throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
         blockCount = getPage(blockCount+BLOCKS_PER_PAGE-1)*BLOCKS_PER_PAGE;
         int lastPage = getPage(getBlockCount());
@@ -511,7 +513,7 @@ public class DiskFile implements CacheWriter {
         if(old == storageId) {
             return;
         }
-        if(Constants.CHECK &&  old >= 0 && storageId >= 0 && old != storageId) {
+        if(SysProperties.CHECK &&  old >= 0 && storageId >= 0 && old != storageId) {
             for(int i=0; i<BLOCKS_PER_PAGE; i++) {
                 if(used.get(i + page*BLOCKS_PER_PAGE)) {
                     throw Message.getInternalError("double allocation");
@@ -596,7 +598,7 @@ public class DiskFile implements CacheWriter {
         record.setChanged(true);
         int pos = record.getPos();
         Record old = (Record) cache.update(pos, record);
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(old != null) {
                 if(old!=record) {
                     database.checkPowerOff();
@@ -652,14 +654,14 @@ public class DiskFile implements CacheWriter {
             file.readFully(buff, 0, blockSize);
             s.reset();
             int blockCount = s.readInt();
-            if(Constants.CHECK && blockCount < 0) {
+            if(SysProperties.CHECK && blockCount < 0) {
                 throw Message.getInternalError();
             }
             if(blockCount == 0) {
                 blockCount = 1;
             }
             int id = s.readInt();
-            if(Constants.CHECK && id < 0) {
+            if(SysProperties.CHECK && id < 0) {
                 throw Message.getInternalError();
             }
             s.checkCapacity(blockCount * blockSize);
@@ -763,7 +765,7 @@ public class DiskFile implements CacheWriter {
             // the buffer may have some additional fillers - just ignore them
             all.fill(blockCount * BLOCK_SIZE);
             all.updateChecksum();
-            if(Constants.CHECK && all.length() != BLOCK_SIZE * blockCount) {
+            if(SysProperties.CHECK && all.length() != BLOCK_SIZE * blockCount) {
                 throw Message.getInternalError("blockCount:" + blockCount + " length: " + all.length()*BLOCK_SIZE);
             }
             data = new byte[all.length()];
@@ -779,7 +781,7 @@ public class DiskFile implements CacheWriter {
             redoBuffer.add(log);
             redoBufferSize += log.getSize();
         }
-        if (redoBufferSize > Constants.REDO_BUFFER_SIZE) {
+        if (redoBufferSize > SysProperties.REDO_BUFFER_SIZE) {
             flushRedoLog();
         }
     }

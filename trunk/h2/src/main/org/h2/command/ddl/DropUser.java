@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -35,11 +36,11 @@ public class DropUser extends DefineCommand {
         User user = db.findUser(userName);
         if(user == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.USER_NOT_FOUND_1, userName);
+                throw Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, userName);
             }
         } else {
             if(user == session.getUser()) {
-                throw Message.getSQLException(Message.CANNOT_DROP_CURRENT_USER);
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
             }
             db.removeDatabaseObject(session, user);
         }

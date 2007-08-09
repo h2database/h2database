@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 public class SmallMap {
@@ -54,7 +55,7 @@ public class SmallMap {
         }
         Object obj = map.get(ObjectUtils.getInteger(id));
         if(obj == null && !ifAvailable) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         return obj;
     }

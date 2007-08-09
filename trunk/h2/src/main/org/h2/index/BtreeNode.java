@@ -6,6 +6,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -176,7 +177,7 @@ public class BtreeNode extends BtreePage {
         IntArray children = new IntArray();
         splitPoint++;
         int max = pageData.size();
-        if(Constants.CHECK  && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
+        if(SysProperties.CHECK  && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
             // page must have been deleted already before calling getSplitPoint()
             throw Message.getInternalError();
         }

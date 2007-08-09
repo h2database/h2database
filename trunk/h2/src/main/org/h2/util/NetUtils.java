@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.security.SecureSocketFactory;
 
@@ -50,7 +51,7 @@ public class NetUtils {
                 return new ServerSocket(port);
             }
         } catch(BindException be) {
-            throw Message.getSQLException(Message.EXCEPTION_OPENING_PORT_1, new String[]{""+port}, be);
+            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_1, new String[]{""+port}, be);
         } catch(IOException e) {
             throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }

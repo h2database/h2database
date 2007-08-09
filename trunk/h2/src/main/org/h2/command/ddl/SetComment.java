@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Comment;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -32,7 +33,7 @@ public class SetComment extends DefineCommand {
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
         DbObject object = null;
-        int errorCode = Message.GENERAL_ERROR_1;
+        int errorCode = ErrorCode.GENERAL_ERROR_1;
         if(schemaName == null) {
             schemaName = session.getCurrentSchemaName();
         }
@@ -46,7 +47,7 @@ public class SetComment extends DefineCommand {
         case DbObject.FUNCTION_ALIAS:
             schemaName = null;
             object = db.findFunctionAlias(objectName);
-            errorCode = Message.FUNCTION_ALIAS_NOT_FOUND_1;
+            errorCode = ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1;
             break;
         case DbObject.INDEX:
             object = db.getSchema(schemaName).getIndex(objectName);
@@ -54,12 +55,12 @@ public class SetComment extends DefineCommand {
         case DbObject.ROLE:
             schemaName = null;
             object = db.findRole(objectName);
-            errorCode = Message.ROLE_NOT_FOUND_1;
+            errorCode = ErrorCode.ROLE_NOT_FOUND_1;
             break;
         case DbObject.SCHEMA:
             schemaName = null;
             object = db.findSchema(objectName);
-            errorCode = Message.SCHEMA_NOT_FOUND_1;
+            errorCode = ErrorCode.SCHEMA_NOT_FOUND_1;
             break;
         case DbObject.SEQUENCE:
             object = db.getSchema(schemaName).getSequence(objectName);
@@ -69,7 +70,7 @@ public class SetComment extends DefineCommand {
             break;
         case DbObject.TRIGGER:
             object = db.getSchema(schemaName).findTrigger(objectName);
-            errorCode = Message.TRIGGER_NOT_FOUND_1;
+            errorCode = ErrorCode.TRIGGER_NOT_FOUND_1;
             break;
         case DbObject.USER:
             schemaName = null;
@@ -78,7 +79,7 @@ public class SetComment extends DefineCommand {
         case DbObject.USER_DATATYPE:
             schemaName = null;
             object = db.findUserDataType(objectName);
-            errorCode = Message.USER_DATA_TYPE_ALREADY_EXISTS_1;
+            errorCode = ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1;
             break;
         }
         if(object == null) {

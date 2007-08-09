@@ -14,6 +14,8 @@ import java.util.StringTokenizer;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -115,8 +117,8 @@ public class Database implements DataHandler {
     private DatabaseEventListener eventListener;
     private FileStore emergencyReserve;
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
-    private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
-    private int lockMode = Constants.DEFAULT_LOCK_MODE;
+    private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
+    private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
     private boolean logIndexChanges;
     private int logLevel = 1;
     private int cacheSize;
@@ -234,7 +236,7 @@ public class Database implements DataHandler {
                 // file size is 0 or too small
                 return defaultValue;
             }
-            throw Message.getSQLException(Message.FILE_VERSION_ERROR_1, fileName);
+            throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, fileName);
         } catch(IOException e) {
             throw Message.convertIOException(e, fileName);
         }
@@ -343,7 +345,7 @@ public class Database implements DataHandler {
             }
         }
         Engine.getInstance().close(databaseName);
-        throw Message.getSQLException(Message.SIMULATED_POWER_OFF);
+        throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
     }
 
     public static boolean exists(String name) {
@@ -356,7 +358,7 @@ public class Database implements DataHandler {
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         if(mustExist && !FileUtils.exists(name)) {
-            throw Message.getSQLException(Message.FILE_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, name);
         }
         FileStore store = FileStore.open(this, name, mode, getMagic(), cipher, filePasswordHash);
         try {
@@ -370,12 +372,12 @@ public class Database implements DataHandler {
 
     public void checkFilePasswordHash(String c, byte[] hash) throws JdbcSQLException {
         if(!ByteUtils.compareSecure(hash, filePasswordHash) || !StringUtils.equals(c, cipher)) {
-            throw Message.getSQLException(Message.WRONG_USER_OR_PASSWORD);
+            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }
     }
 
     private void openFileData() throws SQLException {
-        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, accessModeData, true, true, Constants.CACHE_SIZE_DEFAULT);
+        fileData = new DiskFile(this, databaseName+Constants.SUFFIX_DATA_FILE, accessModeData, true, true, SysProperties.CACHE_SIZE_DEFAULT);
     }
 
     private void openFileIndex() throws SQLException {
@@ -522,7 +524,7 @@ public class Database implements DataHandler {
         addDefaultSetting(SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
         addDefaultSetting(SetTypes.TRACE_LEVEL_FILE, null, traceSystem.getLevelFile());
         addDefaultSetting(SetTypes.TRACE_LEVEL_SYSTEM_OUT, null, traceSystem.getLevelSystemOut());
-        addDefaultSetting(SetTypes.CACHE_SIZE, null, Constants.CACHE_SIZE_DEFAULT);
+        addDefaultSetting(SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
         addDefaultSetting(SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
         removeUnusedStorages();
@@ -530,7 +532,7 @@ public class Database implements DataHandler {
         if(!readOnly) {
             emergencyReserve = openFile(createTempFile(), "rw", false);
             emergencyReserve.autoDelete();
-            emergencyReserve.setLength(Constants.EMERGENCY_SPACE_INITIAL);
+            emergencyReserve.setLength(SysProperties.EMERGENCY_SPACE_INITIAL);
         }
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }
@@ -587,7 +589,7 @@ public class Database implements DataHandler {
     }
 
     public void removeStorage(int id, DiskFile file) {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             Storage s = (Storage) storages.get(id);
             if(s==null || s.getDiskFile() != file) {
                 throw Message.getInternalError();
@@ -601,7 +603,7 @@ public class Database implements DataHandler {
         if(storages.size() > id) {
             storage = (Storage) storages.get(id);
             if(storage != null) {
-                if(Constants.CHECK && storage.getDiskFile() != file) {
+                if(SysProperties.CHECK && storage.getDiskFile() != file) {
                     throw Message.getInternalError();
                 }
             }
@@ -643,7 +645,7 @@ public class Database implements DataHandler {
             meta.lock(session, true);
             meta.removeRow(session, found);
             objectIds.clear(id);
-            if(Constants.CHECK) {
+            if(SysProperties.CHECK) {
                 checkMetaFree(id);
             }
         }
@@ -689,7 +691,7 @@ public class Database implements DataHandler {
             }
         }
         String name = obj.getName();
-        if(Constants.CHECK && map.get(name) != null) {
+        if(SysProperties.CHECK && map.get(name) != null) {
             throw Message.getInternalError("object already exists");
         }
         int id = obj.getId();
@@ -727,7 +729,7 @@ public class Database implements DataHandler {
         User user = (User) users.get(name);
         if (user == null) {
             // TODO security: from the stack trace the attacker now knows the user name is ok
-            throw Message.getSQLException(Message.WRONG_USER_OR_PASSWORD, name);
+            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD, name);
         }
         return user;
     }
@@ -905,7 +907,7 @@ public class Database implements DataHandler {
         } else {
             i = objectIds.nextClearBit(0);
         }
-        if(Constants.CHECK && objectIds.get(i)) {
+        if(SysProperties.CHECK && objectIds.get(i)) {
             throw Message.getInternalError();
         }
         objectIds.set(i);
@@ -1001,7 +1003,7 @@ public class Database implements DataHandler {
     public void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(!map.containsKey(obj.getName())) {
                 throw Message.getInternalError("not found: "+obj.getName());
             }
@@ -1085,7 +1087,7 @@ public class Database implements DataHandler {
     public Schema getSchema(String schemaName) throws SQLException {
         Schema schema = findSchema(schemaName);
         if(schema == null) {
-            throw Message.getSQLException(Message.SCHEMA_NOT_FOUND_1, schemaName);
+            throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
         }
         return schema;
     }
@@ -1094,7 +1096,7 @@ public class Database implements DataHandler {
         String objName = obj.getName();
         int type = obj.getType();
         HashMap map = getMap(type);
-        if(Constants.CHECK && !map.containsKey(objName)) {
+        if(SysProperties.CHECK && !map.containsKey(objName)) {
             throw Message.getInternalError("not found: "+objName);
         }
         Comment comment = findComment(obj);
@@ -1138,7 +1140,7 @@ public class Database implements DataHandler {
         String invalid = getFirstInvalidTable();
         if(invalid != null) {
             obj.getSchema().add(obj);
-            throw Message.getSQLException(Message.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid}, null);
+            throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid}, null);
         }
         int id = obj.getId();
         obj.removeChildrenAndResources(session);
@@ -1166,7 +1168,7 @@ public class Database implements DataHandler {
             synchronized(fileData) {
                 fileData.getCache().setMaxSize(kb);
             }
-            int valueIndex = kb <= 32 ? kb : (kb >>> Constants.CACHE_SIZE_INDEX_SHIFT);
+            int valueIndex = kb <= 32 ? kb : (kb >>> SysProperties.CACHE_SIZE_INDEX_SHIFT);
             synchronized(fileIndex) {
                 fileIndex.getCache().setMaxSize(valueIndex);
             }
@@ -1214,10 +1216,10 @@ public class Database implements DataHandler {
 
     public void checkWritingAllowed() throws SQLException {
         if(readOnly) {
-            throw Message.getSQLException(Message.DATABASE_IS_READ_ONLY);
+            throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
         }
         if(noDiskSpace) {
-            throw Message.getSQLException(Message.NO_DISK_SPACE_AVAILABLE);
+            throw Message.getSQLException(ErrorCode.NO_DISK_SPACE_AVAILABLE);
         }
     }
 
@@ -1244,7 +1246,7 @@ public class Database implements DataHandler {
                 eventListener = (DatabaseEventListener)loadClass(className).newInstance();
                 eventListener.init(databaseURL);
             } catch (Throwable e) {
-                throw Message.getSQLException(Message.ERROR_SETTING_DATABASE_EVENT_LISTENER, new String[]{className}, e);
+                throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER, new String[]{className}, e);
             }
         }
     }
@@ -1254,7 +1256,7 @@ public class Database implements DataHandler {
         if(emergencyReserve != null) {
             sizeAvailable = emergencyReserve.length();
             long newLength = sizeAvailable / 2;
-            if(newLength < Constants.EMERGENCY_SPACE_MIN) {
+            if(newLength < SysProperties.EMERGENCY_SPACE_MIN) {
                 newLength = 0;
                 noDiskSpace = true;
             }
@@ -1390,7 +1392,7 @@ public class Database implements DataHandler {
     }
 
     public void handleInvalidChecksum() throws SQLException {
-        SQLException e = Message.getSQLException(Message.FILE_CORRUPTED_1, "wrong checksum");
+        SQLException e = Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
         if(!recovery) {
             throw e;
         } else {

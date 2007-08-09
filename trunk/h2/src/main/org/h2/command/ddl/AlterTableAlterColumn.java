@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -92,7 +93,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         case RESTART: {
             if(sequence == null) {
-                throw Message.getSQLException(Message.SEQUENCE_NOT_FOUND_1, oldColumn.getSQL());
+                throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, oldColumn.getSQL());
             }
             sequence.setStartValue(newStart);
             db.update(session, sequence);
@@ -124,7 +125,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             checkNoViews();
             if(table.getColumns().length == 1) {
                 // TODO test each sql exception
-                throw Message.getSQLException(Message.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_LAST_COLUMN, oldColumn.getSQL());
             }
             table.checkColumnIsNotReferenced(oldColumn);
             dropSingleColumnIndexes();
@@ -162,7 +163,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         for (int i=0; i<children.size(); i++) {
             DbObject child = (DbObject) children.get(i);
             if(child.getType() == DbObject.TABLE_OR_VIEW) {
-                throw Message.getSQLException(Message.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[]{table.getName(), child.getName()}, null);
+                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[]{table.getName(), child.getName()}, null);
             }
         }
     }
@@ -343,7 +344,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                     if(cols.length == 1) {
                         dropIndex = true;
                     } else {
-                        throw Message.getSQLException(Message.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
+                        throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
                     }
                 }
             }
@@ -364,7 +365,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
             IndexType indexType = index.getIndexType(); 
             if(indexType.isPrimaryKey() || indexType.isHash()) {
-                throw Message.getSQLException(Message.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
+                throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
             }
         }
     }
@@ -375,7 +376,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         LocalResult result = command.query(0);
         result.next();
         if(result.currentRow()[0].getInt() > 0) {
-            throw Message.getSQLException(Message.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL());
+            throw Message.getSQLException(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL());
         }
     }
 

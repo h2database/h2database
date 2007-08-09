@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.MathUtils;
@@ -149,7 +150,7 @@ public abstract class DataPage {
     }    
 
     public void writeValue(Value v) throws SQLException {
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             checkCapacity(8);
         }
         // TODO text output: could be in the Value... classes
@@ -238,7 +239,7 @@ public abstract class DataPage {
         default:
             throw Message.getInternalError("type=" + v.getType());
         }
-        if(Constants.CHECK2) {
+        if(SysProperties.CHECK2) {
             if(pos - start != getValueLen(v)) {
                 throw Message.getInternalError("value size error: got " + (pos-start) + " expected " + getValueLen(v));
             }

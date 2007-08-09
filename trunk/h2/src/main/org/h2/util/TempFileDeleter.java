@@ -9,7 +9,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 public class TempFileDeleter {
@@ -28,7 +28,7 @@ public class TempFileDeleter {
     public static synchronized void deleteFile(Reference ref, String fileName) {
         if(ref != null) {
             String f2 = (String) refMap.remove(ref);
-            if(Constants.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
+            if(SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
                 throw Message.getInternalError("f2:"+f2+" f:"+fileName);
             }
         }
@@ -57,7 +57,7 @@ public class TempFileDeleter {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if(ref != null) {
             String f2 = (String) refMap.remove(ref);
-            if(Constants.CHECK && (f2 == null || !f2.equals(fileName))) {
+            if(SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
                 throw Message.getInternalError("f2:"+f2+" f:"+fileName);
             }
         }

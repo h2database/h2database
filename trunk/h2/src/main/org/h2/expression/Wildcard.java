@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
@@ -39,7 +40,7 @@ public class Wildcard extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        throw Message.getSQLException(Message.SYNTAX_ERROR_1, table);
+        throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
     public void checkMapped() {
@@ -47,7 +48,7 @@ public class Wildcard extends Expression {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        throw Message.getSQLException(Message.SYNTAX_ERROR_1, table);
+        throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {

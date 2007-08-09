@@ -7,7 +7,7 @@ package org.h2.command;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
@@ -75,7 +75,7 @@ public class CommandRemote implements CommandInterface {
             if(!isQuery) {
                 return null;
             }
-            if(id <= session.getCurrentId() - Constants.SERVER_CACHED_OBJECTS) {
+            if(id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
                 prepare(session);
             }
@@ -104,7 +104,7 @@ public class CommandRemote implements CommandInterface {
         checkParameters();        
         synchronized(session) {
             session.checkClosed();
-            if(id <= session.getCurrentId() - Constants.SERVER_CACHED_OBJECTS) {
+            if(id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
                 prepare(session);
             }
@@ -120,7 +120,7 @@ public class CommandRemote implements CommandInterface {
                     if(session.isClustered() || scrollable) {
                         readRows = Integer.MAX_VALUE;
                     } else {
-                        readRows = Constants.SERVER_SMALL_RESULT_SET_SIZE;
+                        readRows = SysProperties.SERVER_SMALL_RESULT_SET_SIZE;
                     }
                     transfer.writeInt(readRows);
                     sendParameters(transfer);
@@ -147,7 +147,7 @@ public class CommandRemote implements CommandInterface {
         checkParameters();
         synchronized(session) {
             session.checkClosed();
-            if(id <= session.getCurrentId() - Constants.SERVER_CACHED_OBJECTS) {
+            if(id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
                 prepare(session);
             }            

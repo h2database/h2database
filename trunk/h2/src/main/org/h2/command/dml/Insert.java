@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.h2.command.Command;
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -171,7 +172,7 @@ public class Insert extends Prepared {
             for(int x=0; x<list.size(); x++) {
                 Expression[] expr = (Expression[])list.get(x);
                 if(expr.length != columns.length) {
-                    throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+                    throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 for(int i=0; i<expr.length; i++) {
                     Expression e = expr[i];
@@ -183,7 +184,7 @@ public class Insert extends Prepared {
         } else {
             query.prepare();
             if(query.getColumnCount() != columns.length) {
-                throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
     }

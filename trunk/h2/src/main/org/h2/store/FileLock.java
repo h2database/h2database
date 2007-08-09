@@ -15,7 +15,8 @@ import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -68,7 +69,7 @@ public class FileLock {
     }
 
     protected void finalize() {
-        if (!Constants.runFinalize) {
+        if (!SysProperties.runFinalize) {
             return;
         }
         if(locked) {
@@ -299,11 +300,11 @@ public class FileLock {
     }
 
     private SQLException getException(Throwable t) {
-        return Message.getSQLException(Message.ERROR_OPENING_DATABASE, null, t);
+        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE, null, t);
     }
 
     private SQLException error(String reason) {
-        return Message.getSQLException(Message.DATABASE_ALREADY_OPEN_1, reason);
+        return Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
     }
     
     public static int getFileLockMethod(String method) throws JdbcSQLException {
@@ -314,7 +315,7 @@ public class FileLock {
         } else if(method.equalsIgnoreCase("SOCKET")) {
             return FileLock.LOCK_SOCKET;
         } else {
-            throw Message.getSQLException(Message.UNSUPPORTED_LOCK_METHOD_1, method);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
     }    
 

@@ -67,6 +67,8 @@ import org.h2.command.dml.Set;
 import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -224,7 +226,7 @@ public class Parser {
             // first, try the fast variant
             p = parse(sql, false);
         } catch(SQLException e) {
-            if(e.getErrorCode() == Message.SYNTAX_ERROR_1) {
+            if(e.getErrorCode() == ErrorCode.SYNTAX_ERROR_1) {
                 // now, get the detailed exception
                 p = parse(sql, true);
             } else {
@@ -549,7 +551,7 @@ public class Parser {
                 // for local temporary tables
                 schema = database.getSchema(session.getCurrentSchemaName());
             } else {
-                throw Message.getSQLException(Message.SCHEMA_NOT_FOUND_1, schemaName);
+                throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
         }
         return schema;
@@ -571,15 +573,15 @@ public class Parser {
                     tableAlias = columnName;
                     columnName = readColumnIdentifier();
                     if(!catalogName.equals(database.getShortName())) {
-                        throw Message.getSQLException(Message.DATABASE_NOT_FOUND_1, catalogName);
+                        throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, catalogName);
                     }
                 }
                 if(!schemaName.equals(filter.getTable().getSchema().getName())) {
-                    throw Message.getSQLException(Message.SCHEMA_NOT_FOUND_1, schemaName);
+                    throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
                 }
             }
             if(!tableAlias.equals(filter.getTableAlias())) {
-                throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
             }
         }
         return filter.getTable().getColumn(columnName);
@@ -680,7 +682,7 @@ public class Parser {
             do {
                 Column column = table.getColumn(readColumnIdentifier());
                 if(!set.add(column)) {
-                    throw Message.getSQLException(Message.DUPLICATE_COLUMN_NAME_1, column.getSQL());
+                    throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
                 }
                 columns.add(column);
             } while(readIf(","));
@@ -1117,7 +1119,7 @@ public class Parser {
         String procedureName = readAliasIdentifier();
         Procedure p = session.getProcedure(procedureName);
         if(p==null) {
-            throw Message.getSQLException(Message.FUNCTION_ALIAS_NOT_FOUND_1, procedureName);
+            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, procedureName);
         }
         command.setProcedure(p);
         if(readIf("(")) {
@@ -1491,7 +1493,7 @@ public class Parser {
                 read("NULL");
                 r = new Comparison(session, type, r, null);
             } else if (readIf("IN")) {
-                if(Constants.OPTIMIZE_IN) {
+                if(SysProperties.OPTIMIZE_IN) {
                     recompileAlways = true;
                 }
                 read("(");
@@ -1681,7 +1683,7 @@ public class Parser {
         FunctionAlias functionAlias = database.findFunctionAlias(name);
         if(functionAlias == null) {
             // TODO compatibility: support 'on the fly java functions' as HSQLDB ( CALL "java.lang.Math.sqrt"(2.0) )
-            throw Message.getSQLException(Message.FUNCTION_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
         int paramCount = functionAlias.getParameterCount();
         Expression[] args = new Expression[paramCount];
@@ -1865,7 +1867,7 @@ public class Parser {
             if(readIf(".")) {
                 String databaseName = schemaName;
                 if(!database.getShortName().equals(databaseName)) {
-                    throw Message.getSQLException(Message.DATABASE_NOT_FOUND_1, databaseName);
+                    throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
                 }
                 schemaName = objectName;
                 objectName = name;
@@ -1891,7 +1893,7 @@ public class Parser {
             if(indexed && currentTokenType == VALUE && currentValue.getType() == Value.INT) {
                 if(indexedParameterList == null) {
                     if(parameters.size()>0) {
-                        throw Message.getSQLException(Message.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                        throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                     }
                     indexedParameterList = new ObjectArray();
                 }
@@ -1910,7 +1912,7 @@ public class Parser {
                 read();
             } else {
                 if(indexedParameterList != null) {
-                    throw Message.getSQLException(Message.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                    throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                 }
                 r = new Parameter(parameters.size());
             }
@@ -2420,7 +2422,7 @@ public class Parser {
         if(!session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
             if(allowed == Constants.ALLOW_LITERALS_NONE || (text &&  allowed != Constants.ALLOW_LITERALS_ALL)) {
-                throw Message.getSQLException(Message.LITERALS_ARE_NOT_ALLOWED);
+                throw Message.getSQLException(ErrorCode.LITERALS_ARE_NOT_ALLOWED);
             }
         }
     }
@@ -2468,7 +2470,7 @@ public class Parser {
         try {
             bd = new BigDecimal(sub);
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, new String[] { sub }, e);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, new String[] { sub }, e);
         }
         checkLiterals(false);
         currentValue = ValueDecimal.get(bd);
@@ -2956,7 +2958,7 @@ public class Parser {
         if(dataType==null) {
             UserDataType userDataType = database.findUserDataType(original);
             if(userDataType == null) {
-                throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, currentToken);
+                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
             } else {
                 templateColumn = userDataType.getColumn();
                 dataType = DataType.getDataType(templateColumn.getType());
@@ -3158,7 +3160,7 @@ public class Parser {
         while(readIf(",")) {
             boolean next = addRoleOrRight(command);
             if(next != isRoleBased) {
-                throw Message.getSQLException(Message.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+                throw Message.getSQLException(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
             }
         }
         if(!isRoleBased) {
@@ -3432,7 +3434,7 @@ public class Parser {
 
     private void checkSchema(Schema old) throws SQLException {
         if(old != null && getSchema() != old) {
-            throw Message.getSQLException(Message.SCHEMA_NAME_MUST_MATCH);
+            throw Message.getSQLException(ErrorCode.SCHEMA_NAME_MUST_MATCH);
         }
     }
 
@@ -3454,7 +3456,7 @@ public class Parser {
         String viewName = readIdentifierWithSchema();
         Table tableView = getSchema().findTableOrView(session, viewName);
         if(!(tableView instanceof TableView)) {
-            throw Message.getSQLException(Message.VIEW_NOT_FOUND_1, viewName);
+            throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
         TableView view = (TableView)tableView;
         command.setView(view);
@@ -3796,7 +3798,7 @@ public class Parser {
                 return table;
             }
         }
-        throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }
     
     private Sequence readSequence() throws SQLException {
@@ -3817,7 +3819,7 @@ public class Parser {
                 return sequence;
             }
         }
-        throw Message.getSQLException(Message.SEQUENCE_NOT_FOUND_1, sequenceName);
+        throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
     }
 
     private Prepared parseAlterTable() throws SQLException {

@@ -6,7 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
@@ -31,7 +31,7 @@ public class ConditionAndOr extends Condition {
         this.andOrType = andOrType;
         this.left = left;
         this.right = right;
-        if(Constants.CHECK && (left == null || right == null)) {
+        if(SysProperties.CHECK && (left == null || right == null)) {
             throw Message.getInternalError();
         }
     }
@@ -127,7 +127,7 @@ public class ConditionAndOr extends Condition {
             right = t;
         }
         // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1 AND (B=2 OR B=3))
-        if(Constants.OPTIMIZE_2_EQUALS && andOrType == AND) {
+        if(SysProperties.OPTIMIZE_TWO_EQUALS && andOrType == AND) {
             // try to add conditions (A=B AND B=1: add A=1)
             if(left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;

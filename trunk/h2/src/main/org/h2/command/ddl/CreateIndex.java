@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -74,12 +75,12 @@ public class CreateIndex extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.INDEX_ALREADY_EXISTS_1, indexName);
+            throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
         IndexType indexType;
         if(primaryKey) {
             if(table.findPrimaryKey() != null) {
-                throw Message.getSQLException(Message.SECOND_PRIMARY_KEY);
+                throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
             }
             indexType = IndexType.createPrimaryKey(persistent, hash);
         } else if(unique) {

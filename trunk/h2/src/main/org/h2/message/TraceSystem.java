@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.util.FileUtils;
 import org.h2.util.SmallLRUCache;
@@ -191,7 +193,7 @@ public class TraceSystem {
         }
         writingErrorLogged = true;
         // TODO translate trace messages
-        SQLException se = Message.getSQLException(Message.LOG_FILE_ERROR_1, new String[] { fileName }, e);
+        SQLException se = Message.getSQLException(ErrorCode.LOG_FILE_ERROR_1, new String[] { fileName }, e);
         // print this error only once
         fileName = null;
         System.out.println(se);
@@ -238,7 +240,7 @@ public class TraceSystem {
     }
     
     protected void finalize() {
-        if(!Constants.runFinalize) {
+        if(!SysProperties.runFinalize) {
             return;
         }        
         close();

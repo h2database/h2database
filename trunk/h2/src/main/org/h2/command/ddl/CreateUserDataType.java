@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
@@ -44,7 +45,7 @@ public class CreateUserDataType extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.USER_DATA_TYPE_ALREADY_EXISTS_1,
+            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,
                     typeName);
         }
         int id = getObjectId(false, true);

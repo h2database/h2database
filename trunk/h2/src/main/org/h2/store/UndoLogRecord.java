@@ -6,6 +6,8 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
@@ -62,7 +64,7 @@ public class UndoLogRecord {
             try {
                 table.removeRow(session, row);
             } catch(SQLException e) {
-                if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == Message.ROW_NOT_FOUND_WHEN_DELETING_1) {
+                if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     // it might have been deleted by another thread
                     // ignore
                 } else {
@@ -75,7 +77,7 @@ public class UndoLogRecord {
                     row.setPos(0);
                     table.addRow(session, row);
                 } catch(SQLException e) {
-                    if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == Message.DUPLICATE_KEY_1) {
+                    if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                         // it might have been added by another thread
                         // ignore
                     } else {
@@ -121,7 +123,7 @@ public class UndoLogRecord {
         }
         buff.check(len);
         int op = buff.readInt();
-        if (Constants.CHECK) {
+        if (SysProperties.CHECK) {
             if (operation != op) {
                 throw Message.getInternalError("operation=" + operation + " op=" + op);
             }

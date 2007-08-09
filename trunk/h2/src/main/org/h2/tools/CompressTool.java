@@ -22,6 +22,7 @@ import org.h2.compress.CompressNo;
 import org.h2.compress.Compressor;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.util.StringUtils;
 
@@ -110,7 +111,7 @@ public class CompressTool {
             compress.expand(in, start, in.length-start, buff, 0, len);
             return buff;
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.COMPRESSION_ERROR, null, e);
+            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
         }
     }
 
@@ -125,7 +126,7 @@ public class CompressTool {
             int start = 1 + getLength(len);
             compress.expand(in, start, in.length-start, out, outPos, len);
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.COMPRESSION_ERROR, null, e);
+            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
         }
     }
     
@@ -226,7 +227,7 @@ public class CompressTool {
         } else if("DEFLATE".equals(algorithm)) {
             return Compressor.DEFLATE;
         } else {
-            throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
         }
     }
     
@@ -239,7 +240,7 @@ public class CompressTool {
         case Compressor.DEFLATE:
             return new CompressDeflate();
         default:
-            throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, ""+algorithm);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, ""+algorithm);
         }
     }
     
@@ -259,7 +260,7 @@ public class CompressTool {
             } else if("LZF".equals(compressionAlgorithm)) {
                 out = new LZFOutputStream(out);
             } else if(compressionAlgorithm != null) {
-                throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+                throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
             }
             return out;
         } catch (IOException e) {
@@ -291,7 +292,7 @@ public class CompressTool {
             } else if("LZF".equals(compressionAlgorithm)) {
                 in = new LZFInputStream(in);
             } else if(compressionAlgorithm != null) {
-                throw Message.getSQLException(Message.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+                throw Message.getSQLException(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
             }
             return in;
         } catch (IOException e) {

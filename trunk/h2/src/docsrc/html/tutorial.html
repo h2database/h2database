@@ -317,8 +317,6 @@ There currently are a few limitations when using the server or cluster mode:
 <li>Statement.cancel() is only supported in embedded mode.
     A connection can only execute one operation at a time in server or cluster mode,
     and is blocked until this operation is finished.
-</li><li>CLOBs and BLOBs are sent to the server in one piece and not as a stream.
-    That means those objects need to fit in memory when using the server or cluster mode.
 </li></ul>
 
 <br /><a name="using_hibernate"></a>

@@ -6,7 +6,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -183,7 +183,7 @@ public class TreeIndex extends Index {
                 x.left = d.left;
             }
 
-            if(Constants.CHECK && (x.right==null || x==null)) {
+            if(SysProperties.CHECK && (x.right==null || x==null)) {
                 throw Message.getInternalError("tree corrupted");
             }
             x.right.parent = x;

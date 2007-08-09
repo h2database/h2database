@@ -12,6 +12,7 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.Map;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.*;
@@ -2710,7 +2711,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("insertRow");
             checkClosed();
             if (insertRow == null) {
-                throw Message.getSQLException(Message.NOT_ON_UPDATABLE_ROW);
+                throw Message.getSQLException(ErrorCode.NOT_ON_UPDATABLE_ROW);
             }
             getUpdatableRow().insertRow(insertRow);
             insertRow = null;
@@ -2729,7 +2730,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("updateRow");
             checkClosed();
             if (insertRow != null) {
-                throw Message.getSQLException(Message.NOT_ON_UPDATABLE_ROW);
+                throw Message.getSQLException(ErrorCode.NOT_ON_UPDATABLE_ROW);
             }
             checkOnValidRow();
             if (updateRow != null) {
@@ -2751,7 +2752,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("deleteRow");
             checkClosed();
             if (insertRow != null) {
-                throw Message.getSQLException(Message.NOT_ON_UPDATABLE_ROW);
+                throw Message.getSQLException(ErrorCode.NOT_ON_UPDATABLE_ROW);
             }
             checkOnValidRow();
             getUpdatableRow().deleteRow(result.currentRow());
@@ -2772,7 +2773,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("refreshRow");
             checkClosed();
             if (insertRow != null) {
-                throw Message.getSQLException(Message.NO_DATA_AVAILABLE);
+                throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
             }
             checkOnValidRow();
             getUpdatableRow().refreshRow(result.currentRow());
@@ -2792,7 +2793,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             debugCodeCall("cancelRowUpdates");
             checkClosed();
             if (insertRow != null) {
-                throw Message.getSQLException(Message.NO_DATA_AVAILABLE);
+                throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
             }
             updateRow = null;
         } catch(Throwable e) {
@@ -2805,7 +2806,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private UpdatableRow getUpdatableRow() throws SQLException {
         UpdatableRow row = new UpdatableRow(conn, result, session);
         if(!row.isUpdatable()) {
-            throw Message.getSQLException(Message.RESULT_SET_NOT_UPDATABLE);
+            throw Message.getSQLException(ErrorCode.RESULT_SET_NOT_UPDATABLE);
         }
         return row;
     }
@@ -2830,7 +2831,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 }
             }
         }
-        throw Message.getSQLException(Message.COLUMN_NOT_FOUND_1, columnName);
+        throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
@@ -2842,7 +2843,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     void checkClosed() throws SQLException {
         if (result == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         if (stat != null) {
             stat.checkClosed();
@@ -2854,7 +2855,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     private void checkOnValidRow() throws SQLException {
         if (result.getRowId() < 0 || result.getRowId() >= result.getRowCount()) {
-            throw Message.getSQLException(Message.NO_DATA_AVAILABLE);
+            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
 
@@ -2910,7 +2911,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     private void resetResult() throws SQLException {
         if(!scrollable) {
-            throw Message.getSQLException(Message.RESULT_SET_NOT_SCROLLABLE);
+            throw Message.getSQLException(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
         }
         result.reset();
     }

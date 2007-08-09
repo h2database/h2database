@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -244,7 +245,7 @@ public class IOUtils {
     }
     
     private static void trace(String method, String fileName, Object o) {
-        if(Constants.TRACE_IO) {
+        if(SysProperties.TRACE_IO) {
             System.out.println("IOUtils." + method + " " + fileName + " " + o);
         }
     }    

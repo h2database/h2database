@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -36,7 +37,7 @@ public class DropConstant extends SchemaCommand {
         Constant constant = getSchema().findConstant(constantName);
         if(constant == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.CONSTANT_NOT_FOUND_1, constantName);
+                throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
             }
         } else {
             db.removeSchemaObject(session, constant);

@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -120,7 +122,7 @@ public class StringUtils {
     }
 
     private static SQLException getFormatException(String s, int i) {
-        return Message.getSQLException(Message.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
+        return Message.getSQLException(ErrorCode.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
     }
 
     public static String javaDecode(String s) throws SQLException {
@@ -300,7 +302,7 @@ public class StringUtils {
                 buff[j++] = (byte)Integer.parseInt(encoded.substring(i+1,i+3),16);
                 i+=2;
             } else {
-                if(Constants.CHECK && (ch > 127 || ch < ' ')) {
+                if(SysProperties.CHECK && (ch > 127 || ch < ' ')) {
                     throw new IllegalArgumentException("unexpected char " + (int)ch + " decoding " + encoded);
                 }
                 buff[j++] = (byte)ch;
@@ -379,7 +381,7 @@ public class StringUtils {
                 return dateFormat.parse(date);
             }
         } catch(ParseException e) {
-            throw Message.getSQLException(Message.PARSE_ERROR_1, date);
+            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, date);
         }
     }
 
@@ -406,7 +408,7 @@ public class StringUtils {
             }
             return df;
         } catch(Exception e) {
-            throw Message.getSQLException(Message.PARSE_ERROR_1, format + "/" + locale + "/" + timezone);
+            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, format + "/" + locale + "/" + timezone);
         }
     }
 

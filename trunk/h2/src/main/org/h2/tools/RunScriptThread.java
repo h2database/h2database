@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedList;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 class RunScriptThread extends Thread {
@@ -68,8 +69,8 @@ class RunScriptThread extends Thread {
                 conn.createStatement().execute("/*"+id+"*/" + sql);
             } catch(SQLException e) {
                 switch(e.getErrorCode()) {
-                case Message.LOCK_TIMEOUT_1:
-                case Message.TABLE_OR_VIEW_ALREADY_EXISTS_1:
+                case ErrorCode.LOCK_TIMEOUT_1:
+                case ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1:
                     break;
                 default:
                     e.printStackTrace();

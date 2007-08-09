@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
@@ -548,7 +549,7 @@ public class DataType {
         case Types.NULL:
             return Value.NULL;
         default:
-            throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, ""+sqlType);
+            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, ""+sqlType);
         }
     }
 
@@ -572,7 +573,7 @@ public class DataType {
         } else if(Integer.class.isAssignableFrom(x) || int.class.isAssignableFrom(x)) {
             return Value.INT;
         } else if(Character.class.isAssignableFrom(x) || char.class.isAssignableFrom(x)) {
-            throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, "char (not supported)");
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
         } else if(Long.class.isAssignableFrom(x) || long.class.isAssignableFrom(x)) {
             return Value.LONG;
         } else if(Float.class.isAssignableFrom(x) || float.class.isAssignableFrom(x)) {
@@ -668,7 +669,7 @@ public class DataType {
             if(Constants.SERIALIZE_JAVA_OBJECTS) {
                 return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             } else {
-                throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
+                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
             }
         }
     }

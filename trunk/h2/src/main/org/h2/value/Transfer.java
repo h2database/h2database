@@ -22,6 +22,8 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
@@ -234,13 +236,13 @@ public class Transfer {
             break;
         case Value.BLOB: {
             long length = v.getPrecision();
-            if(Constants.CHECK && length < 0) {
+            if(SysProperties.CHECK && length < 0) {
                 throw Message.getInternalError("length: " + length);
             }
             writeLong(length);
             InputStream in = v.getInputStream();
             long written = IOUtils.copyAndCloseInput(in, out);
-            if(Constants.CHECK && written != length) {
+            if(SysProperties.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
@@ -248,7 +250,7 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = v.getPrecision();
-            if(Constants.CHECK && length < 0) {
+            if(SysProperties.CHECK && length < 0) {
                 throw Message.getInternalError("length: " + length);
             }
             writeLong(length);
@@ -261,7 +263,7 @@ public class Transfer {
             };
             Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
             long written = IOUtils.copyAndCloseInput(reader, writer);
-            if(Constants.CHECK && written != length) {
+            if(SysProperties.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writer.flush();
@@ -351,7 +353,7 @@ public class Transfer {
             long length = readLong();
             ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());
             if(readInt() != LOB_MAGIC) {
-                throw Message.getSQLException(Message.CONNECTION_BROKEN);
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
             }
             return v;
         }
@@ -359,7 +361,7 @@ public class Transfer {
             long length = readLong();
             ValueLob v = ValueLob.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
             if(readInt() != LOB_MAGIC) {
-                throw Message.getSQLException(Message.CONNECTION_BROKEN);
+                throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
             }
             return v;
         }

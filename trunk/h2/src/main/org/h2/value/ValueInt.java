@@ -7,7 +7,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
@@ -50,7 +51,7 @@ public class ValueInt extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange((long)value + (long)other.value);
         }
         return ValueInt.get(value + other.value);
@@ -58,7 +59,7 @@ public class ValueInt extends Value {
     
     private ValueInt checkRange(long value) throws SQLException {
         if(value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
-            throw Message.getSQLException(Message.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
+            throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
         } else {
             return ValueInt.get((int)value);
         }
@@ -69,7 +70,7 @@ public class ValueInt extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(-(long)value);
         }
         return ValueInt.get(-value);
@@ -77,7 +78,7 @@ public class ValueInt extends Value {
 
     public Value subtract(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange((long)value - (long)other.value);
         }
         return ValueInt.get(value - other.value);
@@ -85,7 +86,7 @@ public class ValueInt extends Value {
 
     public Value multiply(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange((long)value * (long)other.value);
         }        
         return ValueInt.get(value * other.value);
@@ -94,7 +95,7 @@ public class ValueInt extends Value {
     public Value divide(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
         if (other.value == 0) {
-            throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueInt.get(value / other.value);
     }

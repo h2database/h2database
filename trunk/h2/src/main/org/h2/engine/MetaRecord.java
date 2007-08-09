@@ -9,6 +9,7 @@ import java.util.Comparator;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.SearchRow;

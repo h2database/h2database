@@ -11,6 +11,7 @@ import java.util.StringTokenizer;
 import javax.transaction.xa.Xid;
 //#endif
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
@@ -33,13 +34,13 @@ implements Xid
             StringTokenizer tokenizer = new StringTokenizer(tid, "_");
             String prefix = tokenizer.nextToken();
             if(!PREFIX.equals(prefix)) {
-                throw Message.getSQLException(Message.WRONG_XID_FORMAT_1, tid);
+                throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
             }
             formatId = Integer.parseInt(tokenizer.nextToken());
             branchQualifier = ByteUtils.convertStringToBytes(tokenizer.nextToken());
             globalTransactionId = ByteUtils.convertStringToBytes(tokenizer.nextToken());
         } catch(Throwable e) {
-            throw Message.getSQLException(Message.WRONG_XID_FORMAT_1, tid);
+            throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
     }
     

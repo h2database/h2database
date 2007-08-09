@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 
 /**
  * @author Thomas
@@ -55,7 +55,7 @@ public class ObjectArray {
     }
 
     public Object get(int i) {
-        if (Constants.CHECK && i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throwException(i);
         }
         return data[i];
@@ -63,7 +63,7 @@ public class ObjectArray {
 
     public Object remove(int i) {
         // TODO performance: the app should (where possible) remove from end to start, to avoid O(n^2)
-        if (Constants.CHECK && i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throwException(i);
         }
         Object value = data[i];
@@ -75,7 +75,7 @@ public class ObjectArray {
     }
     
     public void removeRange(int from, int to) {
-        if (Constants.CHECK && (to > size || from > to)) {
+        if (SysProperties.CHECK && (to > size || from > to)) {
             throw new ArrayIndexOutOfBoundsException("to=" + to + " from="+from+" size=" + size);
         }
         System.arraycopy(data, to, data, from, size - to);
@@ -99,7 +99,7 @@ public class ObjectArray {
     }
 
     public void add(int i, Object value) {
-        if (Constants.CHECK && i > size) {
+        if (SysProperties.CHECK && i > size) {
             throwException(i);
         }
         ensureCapacity(size);
@@ -113,7 +113,7 @@ public class ObjectArray {
     }
 
     public void set(int i, Object value) {
-        if (Constants.CHECK && i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throwException(i);
         }
         data[i] = value;

@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
@@ -27,7 +28,7 @@ public class DropFunctionAlias extends DefineCommand {
         FunctionAlias functionAlias = db.findFunctionAlias(aliasName);
         if(functionAlias == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
+                throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
             }
         } else {
             db.removeDatabaseObject(session, functionAlias);

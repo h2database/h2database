@@ -6,7 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -95,7 +95,7 @@ public class ConditionIn extends Condition {
             expr = expr.optimize(session);
             return expr;
         }
-        if(Constants.OPTIMIZE_IN) {
+        if(SysProperties.OPTIMIZE_IN) {
             int dataType = left.getType();
             ExpressionVisitor independent = ExpressionVisitor.get(ExpressionVisitor.INDEPENDENT);
             independent.queryLevel = queryLevel;
@@ -121,7 +121,7 @@ public class ConditionIn extends Condition {
     }
     
     public void createIndexConditions(TableFilter filter) {
-        if(!Constants.OPTIMIZE_IN) {
+        if(!SysProperties.OPTIMIZE_IN) {
             return;
         }
         if(min == null && max == null) {

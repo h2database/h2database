@@ -7,6 +7,7 @@ package org.h2.expression;
 import java.sql.SQLException;
 
 import org.h2.command.dml.Query;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -34,7 +35,7 @@ public class Subquery extends Expression {
         try {
             int rowcount = result.getRowCount();
             if(rowcount > 1) {
-                throw Message.getSQLException(Message.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
+                throw Message.getSQLException(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
             }
             Value v;
             if(rowcount <= 0) {

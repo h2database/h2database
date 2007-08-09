@@ -7,7 +7,7 @@ package org.h2.result;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
 import org.h2.message.Message;
 import org.h2.util.ObjectArray;
@@ -196,7 +196,7 @@ public class ResultRemote implements ResultInterface {
         synchronized (session) {
             session.checkClosed();
             try {
-                if(id <= session.getCurrentId() - Constants.SERVER_CACHED_OBJECTS / 2) {
+                if(id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS / 2) {
                     // object is too old - we need to map it to a new id
                     int newId = session.getNextId();
                     session.traceOperation("CHANGE_ID", id);

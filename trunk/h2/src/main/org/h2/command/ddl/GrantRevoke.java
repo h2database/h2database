@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
@@ -50,7 +51,7 @@ public class GrantRevoke extends DefineCommand {
         if(grantee == null) {
             grantee = db.findRole(granteeName);
             if(grantee == null) {
-                throw Message.getSQLException(Message.USER_OR_ROLE_NOT_FOUND_1, granteeName);
+                throw Message.getSQLException(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, granteeName);
             }
         }
     }    
@@ -64,7 +65,7 @@ public class GrantRevoke extends DefineCommand {
                 String name = (String) roleNames.get(i);
                 Role grantedRole = db.findRole(name);
                 if (grantedRole == null) {
-                    throw Message.getSQLException(Message.ROLE_NOT_FOUND_1, name);
+                    throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, name);
                 }
                 if(operationType == GRANT) {
                     grantRole(grantedRole);
@@ -104,13 +105,13 @@ public class GrantRevoke extends DefineCommand {
     
     private void grantRole(Role grantedRole) throws SQLException {
         if(grantee.isRoleGranted(grantedRole)) {
-            throw Message.getSQLException(Message.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
+            throw Message.getSQLException(ErrorCode.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
         }
         if(grantee instanceof Role) {
             Role granteeRole = (Role) grantee;
             if(grantedRole.isRoleGranted(granteeRole)) {
                 // TODO role: should be 'cyclic role grants are not allowed'
-                throw Message.getSQLException(Message.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
+                throw Message.getSQLException(ErrorCode.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
             }
         }
         Database db = session.getDatabase();
@@ -125,11 +126,11 @@ public class GrantRevoke extends DefineCommand {
             Table table = (Table) tables.get(i);        
             Right right = grantee.getRightForTable(table);
             if(right == null) {
-                throw Message.getSQLException(Message.RIGHT_NOT_FOUND);
+                throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
             }
             int mask = right.getRightMask();
             if((mask & rightMask) != rightMask) {
-                throw Message.getSQLException(Message.RIGHT_NOT_FOUND);
+                throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
             }
             int newRight = mask ^ rightMask;
             Database db = session.getDatabase();
@@ -145,7 +146,7 @@ public class GrantRevoke extends DefineCommand {
     private void revokeRole(Role grantedRole) throws SQLException {
         Right right = grantee.getRightForRole(grantedRole);
         if(right == null) {
-            throw Message.getSQLException(Message.RIGHT_NOT_FOUND);
+            throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
         }    
         Database db = session.getDatabase();
         db.removeDatabaseObject(session, right);

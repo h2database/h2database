@@ -6,7 +6,7 @@ package org.h2.value;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.util.StringCache;
 
 public class ValueStringFixed extends ValueStringBase {
@@ -52,7 +52,7 @@ public class ValueStringFixed extends ValueStringBase {
         }
         s = trimRight(s);
         ValueStringFixed obj = new ValueStringFixed(StringCache.get(s));
-        if (s.length() > Constants.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueStringFixed) Value.cache(obj);

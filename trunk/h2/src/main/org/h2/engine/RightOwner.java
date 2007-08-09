@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.table.Table;
 
@@ -86,11 +87,11 @@ public abstract class RightOwner extends DbObject {
     
     public void revokeRole(Session session, Role role) throws SQLException {
         if(grantedRoles == null) {
-            throw Message.getSQLException(Message.RIGHT_NOT_FOUND);
+            throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
         }
         Right right = (Right) grantedRoles.get(role);
         if(right == null) {
-            throw Message.getSQLException(Message.RIGHT_NOT_FOUND);
+            throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
         }
         grantedRoles.remove(role);
         if(grantedRoles.size() == 0) {

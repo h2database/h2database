@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -36,7 +37,7 @@ public class CreateSchema extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.SCHEMA_ALREADY_EXISTS_1, schemaName);
+            throw Message.getSQLException(ErrorCode.SCHEMA_ALREADY_EXISTS_1, schemaName);
         }
         int id = getObjectId(true, true);
         Schema schema = new Schema(db, id, schemaName, user, false);

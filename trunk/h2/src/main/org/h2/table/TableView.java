@@ -7,6 +7,7 @@ package org.h2.table;
 import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -202,7 +203,7 @@ public class TableView extends Table {
     public Index getScanIndex(Session session) throws SQLException {
         if(createException != null) {
             String msg = createException.getMessage();
-            throw Message.getSQLException(Message.VIEW_IS_INVALID_2, new String[]{getSQL(), msg}, createException);
+            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, new String[]{getSQL(), msg}, createException);
         }
         PlanItem item = getBestPlanItem(session, null);
         return item.getIndex();

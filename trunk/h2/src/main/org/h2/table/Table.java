@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -104,7 +105,7 @@ public abstract class Table extends SchemaObject {
             col.setTable(this, i);
             String columnName = col.getName();
             if (columnMap.get(columnName) != null) {
-                throw Message.getSQLException(Message.DUPLICATE_COLUMN_NAME_1,
+                throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1,
                         columnName);
             }
             columnMap.put(columnName, col);
@@ -186,7 +187,7 @@ public abstract class Table extends SchemaObject {
         for(int i=0; constraints != null && i<constraints.size(); i++) {
             Constraint constraint = (Constraint) constraints.get(i);
             if(constraint.containsColumn(col)) {
-                throw Message.getSQLException(Message.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
+                throw Message.getSQLException(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
             }
         }
         ObjectArray indexes = getIndexes();        
@@ -199,7 +200,7 @@ public abstract class Table extends SchemaObject {
                 continue;
             }
             if(index.getColumnIndex(col) >= 0) {
-                throw Message.getSQLException(Message.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
+                throw Message.getSQLException(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
             }
         }
     }    
@@ -240,7 +241,7 @@ public abstract class Table extends SchemaObject {
     public Column getColumn(String columnName) throws SQLException {
         Column column = (Column) columnMap.get(columnName);
         if (column == null) {
-            throw Message.getSQLException(Message.COLUMN_NOT_FOUND_1, columnName);
+            throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
         }
         return column;
     }
@@ -280,7 +281,7 @@ public abstract class Table extends SchemaObject {
         if(index != null) {
             return index;
         }
-        throw Message.getSQLException(Message.INDEX_NOT_FOUND_1, Constants.PRIMARY_KEY_PREFIX);
+        throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, Constants.PRIMARY_KEY_PREFIX);
     }
     
     public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {

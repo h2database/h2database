@@ -6,7 +6,8 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -95,7 +96,7 @@ public class Comparison extends Condition {
             int lt = left.getType(), rt = right.getType();
             if(lt == rt) {
                 if(lt == Value.UNKNOWN) {
-                    throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, getSQL());
+                    throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, getSQL());
                 }
                 dataType = lt;
             } else {
@@ -115,7 +116,7 @@ public class Comparison extends Condition {
                 return ValueExpression.get(getValue(session));
             }
         } else {
-            if(Constants.CHECK && (left==null || right==null)) {
+            if(SysProperties.CHECK && (left==null || right==null)) {
                 throw Message.getInternalError();
             }
             if(left == ValueExpression.NULL || right == ValueExpression.NULL) {

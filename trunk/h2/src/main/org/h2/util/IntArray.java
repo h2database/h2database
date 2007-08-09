@@ -4,7 +4,7 @@
  */
 package org.h2.util;
 
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
@@ -55,14 +55,14 @@ public class IntArray {
     }
 
     public int get(int i) {
-        if (Constants.CHECK && i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
         }
         return data[i];
     }
 
     public int remove(int i) {
-        if (Constants.CHECK &&  i >= size) {
+        if (SysProperties.CHECK &&  i >= size) {
             throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
         }
         int value = data[i];
@@ -80,7 +80,7 @@ public class IntArray {
     }
 
     public void add(int i, int value) {
-        if (Constants.CHECK && i > size) {
+        if (SysProperties.CHECK && i > size) {
             throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
         }
         checkCapacity();
@@ -94,7 +94,7 @@ public class IntArray {
     }
 
     public void set(int i, int value) {
-        if (Constants.CHECK && i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
         }
         data[i] = value;

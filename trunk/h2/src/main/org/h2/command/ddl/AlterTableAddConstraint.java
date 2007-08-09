@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
@@ -63,7 +64,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         Database db = session.getDatabase();
         Table table = getSchema().getTableOrView(session, tableName);   
         if(getSchema().findConstraint(constraintName)!=null) {
-            throw Message.getSQLException(Message.CONSTRAINT_ALREADY_EXISTS_1,
+            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
                     constraintName);
         }
         Constraint constraint;
@@ -126,7 +127,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 refColumns = refTable.getColumns(refColumnNames);
             }
             if(refColumns.length != columns.length) {
-                throw Message.getSQLException(Message.COLUMN_COUNT_DOES_NOT_MATCH);
+                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
             boolean isRefOwner = false;
             if(refIndex != null && refIndex.getTable() == refTable) {

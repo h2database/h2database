@@ -6,6 +6,7 @@ package org.h2.security;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
@@ -32,7 +33,7 @@ public class SecureFileStore extends FileStore {
             this.cipher = new AES();
             this.cipherForInitVector = new AES();
         } else {
-            throw Message.getSQLException(Message.UNSUPPORTED_CIPHER, cipher);
+            throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, cipher);
         }
         this.keyIterations = keyIterations;
         bufferForInitVector = new byte[Constants.FILE_BLOCK_SIZE];

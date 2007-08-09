@@ -6,6 +6,7 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -37,7 +38,7 @@ public class DropTrigger extends SchemaCommand {
         TriggerObject trigger = getSchema().findTrigger(triggerName);
         if(trigger == null) {
             if(!ifExists) {
-                throw Message.getSQLException(Message.TRIGGER_NOT_FOUND_1, triggerName);
+                throw Message.getSQLException(ErrorCode.TRIGGER_NOT_FOUND_1, triggerName);
             }
         } else {
             Table table = trigger.getTable();

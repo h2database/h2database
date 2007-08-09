@@ -14,6 +14,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -48,7 +49,7 @@ public class BackupCommand extends Prepared {
     private void backupTo(String fileName) throws SQLException {
         Database db = session.getDatabase();
         if(!db.isPersistent()) {
-            throw Message.getSQLException(Message.DATABASE_IS_NOT_PERSISTENT);
+            throw Message.getSQLException(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
             String name = db.getName();

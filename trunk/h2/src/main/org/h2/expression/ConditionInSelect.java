@@ -7,6 +7,7 @@ package org.h2.expression;
 import java.sql.SQLException;
 
 import org.h2.command.dml.Query;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -85,7 +86,7 @@ public class ConditionInSelect extends Condition {
         }
         query.prepare();
         if(query.getColumnCount() != 1) {
-            throw Message.getSQLException(Message.SUBQUERY_IS_NOT_SINGLE_COLUMN);
+            throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }        
         // Can not optimize IN(SELECT...): the data may change
         // However, could transform to an inner join

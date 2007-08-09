@@ -7,7 +7,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
@@ -22,7 +23,7 @@ public class ValueByte extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value + other.value);
         }
         return ValueByte.get((byte) (value + other.value));
@@ -30,7 +31,7 @@ public class ValueByte extends Value {
     
     private ValueByte checkRange(int value) throws SQLException {
         if(value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
-            throw Message.getSQLException(Message.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.BYTE).name);
+            throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.BYTE).name);
         } else {
             return ValueByte.get((byte)value);
         }
@@ -41,7 +42,7 @@ public class ValueByte extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(-(int)value);
         }
         return ValueByte.get((byte) (-value));
@@ -49,7 +50,7 @@ public class ValueByte extends Value {
 
     public Value subtract(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value - other.value);
         }        
         return ValueByte.get((byte) (value - other.value));
@@ -57,7 +58,7 @@ public class ValueByte extends Value {
 
     public Value multiply(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(Constants.OVERFLOW_EXCEPTIONS) {
+        if(SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value * other.value);
         }            
         return ValueByte.get((byte) (value * other.value));
@@ -66,7 +67,7 @@ public class ValueByte extends Value {
     public Value divide(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
         if (other.value == 0) {
-            throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+            throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
         return ValueByte.get((byte) (value / other.value));
     }

@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
@@ -244,7 +245,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
 

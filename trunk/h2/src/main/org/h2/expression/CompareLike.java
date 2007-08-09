@@ -7,6 +7,7 @@ package org.h2.expression;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -272,11 +273,11 @@ public class CompareLike extends Condition {
             int type;
             if (escape == c) {
                 if (i >= len - 1) {
-                    throw Message.getSQLException(Message.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
+                    throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 c = p.charAt(++i);
                 if(c != '_' && c != '%' && c != escape) {
-                    throw Message.getSQLException(Message.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
+                    throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 type = MATCH;
                 lastAny = false;

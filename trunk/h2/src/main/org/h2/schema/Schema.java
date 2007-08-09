@@ -7,6 +7,8 @@ package org.h2.schema;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -124,12 +126,12 @@ public class Schema extends DbObject {
     }
 
     public void add(SchemaObject obj) throws SQLException {
-        if(Constants.CHECK && obj.getSchema() != this) {
+        if(SysProperties.CHECK && obj.getSchema() != this) {
             throw Message.getInternalError("wrong schema");
         }
         String name = obj.getName();
         HashMap map = getMap(obj.getType());
-        if(Constants.CHECK && map.get(name) != null) {
+        if(SysProperties.CHECK && map.get(name) != null) {
             throw Message.getInternalError("object already exists");
         }
         map.put(name, obj);
@@ -138,7 +140,7 @@ public class Schema extends DbObject {
     public void rename(SchemaObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
-        if(Constants.CHECK) {
+        if(SysProperties.CHECK) {
             if(!map.containsKey(obj.getName())) {
                 throw Message.getInternalError("not found: "+obj.getName());
             }
@@ -202,7 +204,7 @@ public class Schema extends DbObject {
             table = session.findLocalTempTable(name);
         }
         if (table == null) {
-            throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, name);
         }
         return table;
     }
@@ -210,7 +212,7 @@ public class Schema extends DbObject {
     public Index getIndex(String name) throws JdbcSQLException {
         Index index = (Index) indexes.get(name);
         if (index == null) {
-            throw Message.getSQLException(Message.INDEX_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, name);
         }
         return index;
     }
@@ -218,7 +220,7 @@ public class Schema extends DbObject {
     public Constraint getConstraint(String name) throws SQLException {
         Constraint constraint = (Constraint) constraints.get(name);
         if (constraint == null) {
-            throw Message.getSQLException(Message.CONSTRAINT_NOT_FOUND_1, name);
+            throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, name);
         }
         return constraint;
     }
@@ -226,7 +228,7 @@ public class Schema extends DbObject {
     public Constant getConstant(Session session, String constantName) throws SQLException {
         Constant constant = (Constant) constants.get(constantName);
         if (constant == null) {
-            throw Message.getSQLException(Message.CONSTANT_NOT_FOUND_1, constantName);
+            throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
         }
         return constant;
     }
@@ -234,7 +236,7 @@ public class Schema extends DbObject {
     public Sequence getSequence(String sequenceName) throws SQLException {
         Sequence sequence = (Sequence) sequences.get(sequenceName);
         if (sequence == null) {
-            throw Message.getSQLException(Message.SEQUENCE_NOT_FOUND_1, sequenceName);
+            throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
         }
         return sequence;
     }
@@ -247,7 +249,7 @@ public class Schema extends DbObject {
     public void remove(Session session, SchemaObject obj) throws SQLException {
         String objName = obj.getName();
         HashMap map = getMap(obj.getType());
-        if(Constants.CHECK && !map.containsKey(objName)) {
+        if(SysProperties.CHECK && !map.containsKey(objName)) {
             throw Message.getInternalError("not found: "+objName);
         }
         map.remove(objName);

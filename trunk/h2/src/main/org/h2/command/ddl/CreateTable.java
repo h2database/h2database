@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -90,7 +91,7 @@ public class CreateTable extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(Message.TABLE_OR_VIEW_ALREADY_EXISTS_1, tableName);
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tableName);
         }
         if(asQuery != null) {
             generateColumnFromQuery();
@@ -199,11 +200,11 @@ public class CreateTable extends SchemaCommand {
     public void setPrimaryKeyColumnNames(String[] colNames) throws SQLException {
         if(pkColumnNames != null) {
             if(colNames.length != pkColumnNames.length) {
-                throw Message.getSQLException(Message.SECOND_PRIMARY_KEY);
+                throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
             }
             for(int i=0; i<colNames.length; i++) {
                 if(!colNames[i].equals(pkColumnNames[i])) {
-                    throw Message.getSQLException(Message.SECOND_PRIMARY_KEY);
+                    throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
         }

@@ -16,7 +16,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.h2.engine.Constants;
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Mode;
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
@@ -107,7 +108,7 @@ public abstract class Value {
     public static int getHigherOrder(int t1, int t2) throws SQLException {
         if(t1 == t2) {
             if(t1 == Value.UNKNOWN) {
-                throw Message.getSQLException(Message.UNKNOWN_DATA_TYPE_1, "?, ?");
+                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
             }
             return t1;
         }
@@ -117,14 +118,14 @@ public abstract class Value {
     }
     
     static Value cache(Value v) {
-        if (Constants.OBJECT_CACHE) {
+        if (SysProperties.OBJECT_CACHE) {
             Value[] cache = (Value[]) weakCache.get();
             int hash = v.hashCode();
             if (cache == null) {
-                cache = new Value[Constants.OBJECT_CACHE_SIZE];
+                cache = new Value[SysProperties.OBJECT_CACHE_SIZE];
                 weakCache = new WeakReference(cache);
             }
-            int index = hash & (Constants.OBJECT_CACHE_SIZE - 1);
+            int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             Value cached = cache[index];
             if (cached != null) {
                 if (cached.getType() == v.getType() && v.isEqual(cached)) {
@@ -270,7 +271,7 @@ public abstract class Value {
             case BYTES:
             case JAVA_OBJECT:
             case UUID:
-                throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, getString());
+                throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
             }            
             break;
         }
@@ -366,14 +367,14 @@ public abstract class Value {
             case DOUBLE: {
                 double d = getDouble();
                 if(Double.isInfinite(d) || Double.isNaN(d)) {
-                    throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, ""+d);
+                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, ""+d);
                 }
                 return ValueDecimal.get(new BigDecimal(d));
             }
             case FLOAT: {
                 float f = getFloat();
                 if(Float.isInfinite(f) || Float.isNaN(f)) {
-                    throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, ""+f);
+                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, ""+f);
                 }
                 return ValueDecimal.get(new BigDecimal(f));
             }
@@ -542,7 +543,7 @@ public abstract class Value {
                 throw Message.getInternalError("type=" + type);
             }
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, new String[] { s }, e);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, new String[] { s }, e);
         }
     }
 
@@ -595,21 +596,21 @@ public abstract class Value {
 
     private byte convertToByte(long x) throws SQLException {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
-            throw Message.getSQLException(Message.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (byte) x;
     }
 
     private short convertToShort(long x) throws SQLException {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
-            throw Message.getSQLException(Message.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (short) x;
     }
 
     private int convertToInt(long x) throws SQLException {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
-            throw Message.getSQLException(Message.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         return (int) x;
     }
@@ -617,7 +618,7 @@ public abstract class Value {
     private long convertToLong(double x) throws SQLException {
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and NaN returns 0
-            throw Message.getSQLException(Message.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         if(Mode.getCurrentMode().roundWhenConvertToLong) {
             return Math.round(x);
@@ -628,7 +629,7 @@ public abstract class Value {
 
     private long convertToLong(BigDecimal x) throws SQLException {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
-            throw Message.getSQLException(Message.NUMERIC_VALUE_OUT_OF_RANGE);
+            throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
         if(Mode.getCurrentMode().roundWhenConvertToLong) {
             return Math.round(x.doubleValue());

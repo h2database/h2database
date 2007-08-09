@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -340,7 +341,7 @@ public class Function extends Expression implements FunctionCall {
             varArgs.add(param);
         } else {
             if(index >= args.length) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[] {info.name, "" + args.length}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] {info.name, "" + args.length}, null);
             }
             args[index] = param;
         }
@@ -479,7 +480,7 @@ public class Function extends Expression implements FunctionCall {
         case COT: {
             double d = Math.tan(v0.getDouble());
             if (d == 0.0) {
-                throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+                throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
             }
             return ValueDouble.get(1. / d);
         }
@@ -496,7 +497,7 @@ public class Function extends Expression implements FunctionCall {
         case MOD: {
             int x = v1.getInt();
             if (x == 0.0) {
-                throw Message.getSQLException(Message.DIVISION_BY_ZERO_1, getSQL());
+                throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
             }
             return ValueInt.get(v0.getInt() % x);
         }
@@ -956,7 +957,7 @@ public class Function extends Expression implements FunctionCall {
     private static int getDatePart(String part) throws SQLException {
         Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
         if(p==null) {
-            throw Message.getSQLException(Message.INVALID_VALUE_2, new String[] { "date part", part }, null);
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part }, null);
         }
         return p.intValue();
     }
@@ -1148,7 +1149,7 @@ public class Function extends Expression implements FunctionCall {
         // TODO function hextoraw compatibility with oracle
         int len = s.length();
         if (len % 4 != 0) {
-            throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, s);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
         StringBuffer buff = new StringBuffer(len / 4);
         for (int i = 0; i < len; i += 4) {
@@ -1156,7 +1157,7 @@ public class Function extends Expression implements FunctionCall {
                 char raw = (char) Integer.parseInt(s.substring(i, i + 4), 16);
                 buff.append(raw);
             } catch(NumberFormatException e) {
-                throw Message.getSQLException(Message.DATA_CONVERSION_ERROR_1, s);
+                throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
         }
         return buff.toString();
@@ -1299,7 +1300,7 @@ public class Function extends Expression implements FunctionCall {
             }
             boolean ok = (len >= min) && (len <= max);
             if(!ok) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[]{info.name, min + ".." + max}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, min + ".." + max}, null);
             }
             args = new Expression[len];
             varArgs.toArray(args);
@@ -1307,7 +1308,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if(len>0 && args[len-1] == null) {
-                throw Message.getSQLException(Message.INVALID_PARAMETER_COUNT_2, new String[]{info.name, "" + len}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, "" + len}, null);
             }
         }
     }
@@ -1483,7 +1484,7 @@ public class Function extends Expression implements FunctionCall {
         case CSVREAD: {
             String fileName = args[0].getValue(session).getString();
             if(fileName == null) {
-                throw Message.getSQLException(Message.PARAMETER_NOT_SET_1, "fileName");
+                throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
             String columnList = args.length < 2 ? null : args[1].getValue(session).getString();
             String charset = args.length < 3 ? null : args[2].getValue(session).getString();

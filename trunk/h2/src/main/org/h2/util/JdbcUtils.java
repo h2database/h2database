@@ -14,6 +14,7 @@ import java.sql.Statement;
 import javax.sql.XAConnection;
 //#endif
 
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 public class JdbcUtils {
@@ -73,7 +74,7 @@ public class JdbcUtils {
             try {
                 ClassUtils.loadClass(driver);
             } catch (ClassNotFoundException e) {
-                throw Message.getSQLException(Message.CLASS_NOT_FOUND_1, new String[]{driver}, e);
+                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
             }
         }
         return DriverManager.getConnection(url, user, password);

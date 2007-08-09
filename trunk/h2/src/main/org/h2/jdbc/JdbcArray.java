@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Map;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
@@ -243,7 +244,7 @@ public class JdbcArray extends TraceObject implements Array {
     private void checkClosed() throws SQLException {
         conn.checkClosed();
         if (value == null) {
-            throw Message.getSQLException(Message.OBJECT_CLOSED);
+            throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
     

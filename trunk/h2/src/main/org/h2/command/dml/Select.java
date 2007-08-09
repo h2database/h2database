@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
@@ -72,7 +74,7 @@ public class Select extends Query {
         // TODO compatibility: it seems oracle doesn't check on duplicate aliases; do other databases check it?
 //        String alias = filter.getAlias();
 //        if(filterNames.contains(alias)) {
-//            throw Message.getSQLException(Message.DUPLICATE_TABLE_ALIAS, alias);
+//            throw Message.getSQLException(ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
 //        }
 //        filterNames.add(alias);
         filters.add(filter);
@@ -367,7 +369,7 @@ public class Select extends Query {
                     }
                 }
                 if (filter == null) {
-                    throw Message.getSQLException(Message.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
+                    throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
                 Table t = filter.getTable();
                 String alias = filter.getTableAlias();
@@ -384,7 +386,7 @@ public class Select extends Query {
     }
 
     public void init() throws SQLException {
-        if(Constants.CHECK && checkInit) {
+        if(SysProperties.CHECK && checkInit) {
             throw Message.getInternalError();
         }
         checkInit = true;
@@ -460,7 +462,7 @@ public class Select extends Query {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
-        if(Constants.CHECK && !checkInit) {
+        if(SysProperties.CHECK && !checkInit) {
             throw Message.getInternalError("not initialized");
         }
         isPrepared = true;

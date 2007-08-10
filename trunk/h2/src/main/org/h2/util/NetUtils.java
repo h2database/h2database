@@ -51,7 +51,7 @@ public class NetUtils {
                 return new ServerSocket(port);
             }
         } catch(BindException be) {
-            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_1, new String[]{""+port}, be);
+            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, new String[]{""+port, be.toString()}, be);
         } catch(IOException e) {
             throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }

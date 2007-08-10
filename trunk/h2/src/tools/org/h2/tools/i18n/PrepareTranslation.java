@@ -9,16 +9,20 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Stack;
+import org.h2.server.web.PageParser;
 import org.h2.tools.doc.XMLParser;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
@@ -36,28 +40,51 @@ public class PrepareTranslation {
         prepare(baseDir, path);
         path = "src/main/org/h2/server/web/res";
         prepare(baseDir, path);
-        int todoAllowTranslateHtmlFiles;
         extractFromHtml("src/docsrc/html", "src/docsrc/text");
-        buildHtml("src/docsrc/html", "src/docsrc/text", "de");
+        buildHtml("src/docsrc/text", "docs/html", "ja");
+        buildHtml("src/docsrc/text", "docs/html", "de");
+        buildHtml("src/docsrc/text", "docs/html", "en");
     }
 
-    private static void buildHtml(String htmlDir, String transDir, String language) throws IOException {
-        File[] list = new File(transDir).listFiles();
+    private static void buildHtml(String templateDir, String targetDir, String language) throws IOException {
+        File[] list = new File(templateDir).listFiles();
+        new File(targetDir).mkdirs();
+        ArrayList fileNames = new ArrayList();
         for(int i=0; i<list.length; i++) {
-            String s = list[i].getName();
-            int idx = s.indexOf("_" + language + ".");
-            if(idx >= 0) {
-                String p = list[i].getAbsolutePath();
-                String doc = s.substring(0, idx);
-                Properties transProp = FileUtils.loadProperties(p);
-                Properties origProp = FileUtils.loadProperties(p);
-                buildHtml(htmlDir, doc + ".html", doc + "_" + language + ".html", transProp, origProp);
+            String name = list[i].getName();
+            if(!name.endsWith(".jsp")) {
+                continue;
             }
+            // remove '.jsp'
+            name = name.substring(0, name.length()-4);
+            fileNames.add(name);
         }
-    }
-
-    private static void buildHtml(String htmlDir, String source, String target, Properties transProp, Properties origProp) {
-        
+        for(int i=0; i<list.length; i++) {
+            String name = list[i].getName();
+            if(!name.endsWith(".jsp")) {
+                continue;
+            }
+            // remove '.jsp'
+            name = name.substring(0, name.length()-4);
+            String propName = templateDir + "/" + MAIN_LANGUAGE + "/" + name + "_" + MAIN_LANGUAGE + ".properties";
+            Properties prop = FileUtils.loadProperties(propName);
+            propName = templateDir + "/" + language + "/" + name + "_" + language + ".properties";
+            if((new File(propName)).exists()) {
+                Properties transProp = FileUtils.loadProperties(propName);
+                prop.putAll(transProp);
+            }
+            String template = IOUtils.readStringAndClose(new FileReader(templateDir + "/" + name + ".jsp"), -1);
+            String html = PageParser.parse(null, template, prop);
+            html = StringUtils.replaceAll(html, "lang=\""+MAIN_LANGUAGE+"\"", "lang=\""+ language + "\"");
+            for(int j=0; j<fileNames.size(); j++) {
+                String n = (String) fileNames.get(j);
+                html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
+            }
+            OutputStream out = new FileOutputStream(targetDir + "/" + name + "_" + language + ".html");
+            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            writer.write(html);
+            writer.close();
+        }
     }
 
     private static void extractFromHtml(String dir, String target) throws Exception {
@@ -68,23 +95,31 @@ public class PrepareTranslation {
             if (!name.endsWith(".html")) {
                 continue;
             }
+            // remove '.html'
             name = name.substring(0, name.length() - 5);
-            extract(name, f, target);
+            if(name.indexOf('_') >= 0) {
+                // ignore translated files
+                continue;
+            }
+            String template = extract(name, f, target);
+            FileWriter writer = new FileWriter(target + "/" + name + ".jsp");
+            writer.write(template);
+            writer.close();
         }
     }
 
-    private static boolean isText(String s) {
-        if (s.length() < 2) {
-            return false;
-        }
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (!Character.isDigit(c) && c != '.' && c != '-' && c != '+') {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private static boolean isText(String s) {
+//        if (s.length() < 2) {
+//            return false;
+//        }
+//        for (int i = 0; i < s.length(); i++) {
+//            char c = s.charAt(i);
+//            if (!Character.isDigit(c) && c != '.' && c != '-' && c != '+') {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
     
     private static String getSpace(String s, boolean start) {
         if(start) {
@@ -93,7 +128,7 @@ public class PrepareTranslation {
                     if(i==0) {
                         return "";
                     } else {
-                        return s.substring(0, i - 1);
+                        return s.substring(0, i);
                     }
                 }
             }
@@ -125,7 +160,8 @@ public class PrepareTranslation {
         Stack stack = new Stack();
         String tag = "";
         boolean ignoreEnd = false;
-        String nextKey = "";
+        String nextKey = "";    
+        boolean templateIsCopy = false;
         while (true) {
             int event = parser.next();
             if (event == XMLParser.END_DOCUMENT) {
@@ -134,8 +170,11 @@ public class PrepareTranslation {
                 String s = parser.getText();
                 String trim = s.trim();
                 if (trim.length() == 0) {
-                    template.append(s);
-                    continue;
+                    if(buff.length()>0) {
+                        buff.append(s);
+                    } else {
+                        template.append(s);
+                    }                    
                 } else if ("p".equals(tag) || "li".equals(tag)
                         || "a".equals(tag) || "td".equals(tag)
                         || "th".equals(tag) || "h1".equals(tag)
@@ -147,14 +186,15 @@ public class PrepareTranslation {
                     if(buff.length() == 0) {
                         nextKey = documentName + "_" + (1000 + id++) + "_" + tag;
                         template.append(getSpace(s, true));
-                        
-                        int todo;
-                        template.append(s);
-                        // template.append("${" + nextKey + "}");
-                        
-                        template.append(getSpace(s, false));
+                    } else if(templateIsCopy) {
+                        buff.append(getSpace(s, true));
                     }
-                    buff.append(clean(s));
+                    if(templateIsCopy) {
+                        buff.append(trim);
+                        buff.append(getSpace(s, false));
+                    } else {
+                        buff.append(clean(trim));
+                    }
                 } else if ("pre".equals(tag) || "title".equals(tag)) {
                     // ignore, don't translate
                     template.append(s);
@@ -184,8 +224,15 @@ public class PrepareTranslation {
                         || "h3".equals(tag) || "h4".equals(tag)
                         || "body".equals(tag) || "form".equals(tag)) {
                     if (buff.length() > 0) {
+                        if(templateIsCopy) {
+                            template.append(buff.toString());
+                        } else {
+                            template.append("${" + nextKey + "}");
+                        }
                         add(prop, nextKey, buff);
                     }
+                    template.append(parser.getToken());
+                } else {
                     template.append(parser.getToken());
                 }
                 tag = name;
@@ -193,30 +240,69 @@ public class PrepareTranslation {
                 String name = parser.getName();
                 if ("code".equals(name) || "a".equals(name) || "b".equals(name)
                         || "span".equals(name) || "em".equals(name)) {
-                    if (!ignoreEnd) {
+                    if (ignoreEnd) {
+                        if (buff.length() > 0) {
+                            if(templateIsCopy) {
+                                template.append(buff.toString());
+                            } else {
+                                template.append("${" + nextKey + "}");
+                            }
+                            add(prop, nextKey, buff);
+                        }
+                        template.append(parser.getToken());
+                    } else {
                         if(buff.length() > 0) {
                             buff.append(parser.getToken());
                         }
-                    } else {
-                        template.append(parser.getToken());
                     }
                 } else {
-                    template.append(parser.getToken());
                     if (buff.length() > 0) {
+                        if(templateIsCopy) {
+                            template.append(buff.toString());
+                        } else {
+                            template.append("${" + nextKey + "}");
+                        }
                         add(prop, nextKey, buff);
                     }
+                    template.append(parser.getToken());
                 }
                 tag = (String) stack.pop();
             } else if (event == XMLParser.DTD) {
+                template.append(parser.getToken());
             } else if (event == XMLParser.COMMENT) {
+                template.append(parser.getToken());
             } else {
                 int eventType = parser.getEventType();
                 throw new Exception("Unexpected event " + eventType + " at "
                         + parser.getRemaining());
             }
+//            if(!xml.startsWith(template.toString())) {
+//                System.out.println(nextKey);
+//                System.out.println(template.substring(template.length()-60) +";");
+//                System.out.println(xml.substring(template.length()-60, template.length()));
+//                System.out.println(template.substring(template.length()-55) +";");
+//                System.out.println(xml.substring(template.length()-55, template.length()));
+//                break;
+//            }
         }
-        storeProperties(prop, target + "/" + documentName + ".properties");
-        return template.toString();
+        new File(target + "/" +  MAIN_LANGUAGE).mkdirs();
+        storeProperties(prop, target + "/" +  MAIN_LANGUAGE + "/" + documentName + "_" + MAIN_LANGUAGE + ".properties");
+        String t = template.toString();
+        if(templateIsCopy && !t.equals(xml)) {
+            for(int i=0; i<Math.min(t.length(), xml.length()); i++) {
+                if(t.charAt(i) != xml.charAt(i)) {
+                    int start = Math.max(0, i - 30), end = Math.min(i + 30, xml.length());
+                    t = t.substring(start, end);
+                    xml = xml.substring(start, end);
+                }
+            }
+            System.out.println("xml--------------------------------------------------: ");
+            System.out.println(xml);
+            System.out.println("t---------------------------------------------------: ");
+            System.out.println(t);
+            System.exit(1);
+        }
+        return t;
     }
 
     private static String clean(String text) {

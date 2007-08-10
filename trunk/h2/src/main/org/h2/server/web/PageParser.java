@@ -6,21 +6,22 @@ package org.h2.server.web;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PageParser {
     private WebServer server;
     private String page;
     private int pos;
-    private HashMap settings;
+    private Map settings;
     private int len;
     private StringBuffer result;
 
-    public static String parse(WebServer server, String page, HashMap settings) {
+    public static String parse(WebServer server, String page, Map settings) {
         PageParser block = new PageParser(server, page, settings, 0);
         return block.parse();
     }
 
-    private PageParser(WebServer server, String page, HashMap settings, int pos) {
+    private PageParser(WebServer server, String page, Map settings, int pos) {
         this.server = server;
         this.page = page;
         this.pos = pos;

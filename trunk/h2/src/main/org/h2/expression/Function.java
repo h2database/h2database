@@ -341,7 +341,7 @@ public class Function extends Expression implements FunctionCall {
             varArgs.add(param);
         } else {
             if(index >= args.length) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] {info.name, "" + args.length}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] {info.name, "" + args.length});
             }
             args[index] = param;
         }
@@ -957,7 +957,7 @@ public class Function extends Expression implements FunctionCall {
     private static int getDatePart(String part) throws SQLException {
         Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
         if(p==null) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part }, null);
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part });
         }
         return p.intValue();
     }
@@ -1300,7 +1300,7 @@ public class Function extends Expression implements FunctionCall {
             }
             boolean ok = (len >= min) && (len <= max);
             if(!ok) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, min + ".." + max}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, min + ".." + max});
             }
             args = new Expression[len];
             varArgs.toArray(args);
@@ -1308,7 +1308,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if(len>0 && args[len-1] == null) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, "" + len}, null);
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[]{info.name, "" + len});
             }
         }
     }

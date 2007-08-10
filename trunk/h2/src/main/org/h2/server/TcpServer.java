@@ -8,13 +8,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 
+import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
@@ -51,7 +52,11 @@ public class TcpServer implements Service {
     }
     
     private void initManagementDb() throws SQLException {
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + getManagementDbName(port), "sa", managementPassword);
+        Properties prop = new Properties();
+        prop.setProperty("user", "sa");
+        prop.setProperty("password", managementPassword);
+        // avoid using the driver manager
+        Connection conn = Driver.load().connect("jdbc:h2:" + getManagementDbName(port), prop);
         managementDb = conn;
         Statement stat = null;
         try {

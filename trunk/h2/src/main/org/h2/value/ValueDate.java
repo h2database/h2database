@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
 
 /**
@@ -25,7 +24,7 @@ public class ValueDate extends Value {
     }
 
     public static Date parseDate(String s) throws SQLException {
-        return (Date) DateTimeUtils.parseDateTime(s, Value.DATE, ErrorCode.DATE_CONSTANT_1);
+        return (Date) DateTimeUtils.parseDateTime(s, Value.DATE, ErrorCode.DATE_CONSTANT_2);
     }
 
     public Date getDate() {

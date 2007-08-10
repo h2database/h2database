@@ -142,10 +142,10 @@ public class FileUtils {
             throw Message.getInternalError("rename file old=new");
         }
         if(!oldFile.exists()) {
-            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName + " (not found)", newName}, null);
+            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName + " (not found)", newName});
         }            
         if(newFile.exists()) {
-            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"}, null);
+            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName + " (exists)"});
         }
         for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
             trace("rename", oldName + " >" + newName, null);
@@ -155,7 +155,7 @@ public class FileUtils {
             }
             wait(i);
         }
-        throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName}, null);
+        throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
 
     public static synchronized Properties loadProperties(String fileName) throws IOException {

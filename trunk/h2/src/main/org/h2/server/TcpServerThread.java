@@ -55,7 +55,7 @@ public class TcpServerThread implements Runnable {
                 }
                 if(version != Constants.TCP_DRIVER_VERSION) {
                     throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            new String[] { "" + version, "" + Constants.TCP_DRIVER_VERSION }, null);
+                            new String[] { "" + version, "" + Constants.TCP_DRIVER_VERSION });
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();

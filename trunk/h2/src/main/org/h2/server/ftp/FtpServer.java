@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 
+import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.util.FileUtils;
@@ -177,8 +178,13 @@ public class FtpServer implements Service {
             }
         }
         if(root.startsWith("jdbc:")) {
-            org.h2.Driver.load();
-            Connection conn = DriverManager.getConnection(root);
+            Connection conn;
+            if(root.startsWith("jdbc:h2:")) {
+                // avoid using DriverManager if possible
+                conn = Driver.load().connect(root, new Properties());                
+            } else {
+                conn = DriverManager.getConnection(root);
+            }
             db = new FileSystemDatabase(conn, log);
             root = "/";
         }

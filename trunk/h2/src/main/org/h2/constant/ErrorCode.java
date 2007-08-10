@@ -82,9 +82,9 @@ public class ErrorCode {
     public static final int NULL_NOT_ALLOWED = 90006;
     public static final int OBJECT_CLOSED = 90007;
     public static final int INVALID_VALUE_2 = 90008;
-    public static final int DATE_CONSTANT_1 = 90009;
-    public static final int TIME_CONSTANT_1 = 90010;
-    public static final int TIMESTAMP_CONSTANT_1 = 90011;
+    public static final int DATE_CONSTANT_2 = 90009;
+    public static final int TIME_CONSTANT_2 = 90010;
+    public static final int TIMESTAMP_CONSTANT_2 = 90011;
     public static final int PARAMETER_NOT_SET_1 = 90012;
     public static final int DATABASE_NOT_FOUND_1 = 90013;
     public static final int PARSE_ERROR_1 = 90014;
@@ -137,15 +137,15 @@ public class ErrorCode {
     public static final int COLUMN_MUST_NOT_BE_NULLABLE_1 = 90023;
     public static final int FILE_RENAME_FAILED_2 = 90024;
     public static final int FILE_DELETE_FAILED_1 = 90025;
-    public static final int SERIALIZATION_FAILED = 90026;
-    public static final int DESERIALIZATION_FAILED = 90027;
+    public static final int SERIALIZATION_FAILED_1 = 90026;
+    public static final int DESERIALIZATION_FAILED_1 = 90027;
     public static final int IO_EXCEPTION_1 = 90028;
     public static final int NOT_ON_UPDATABLE_ROW = 90029;
     public static final int FILE_CORRUPTED_1 = 90030;
     public static final int IO_EXCEPTION_2 = 90031;
     public static final int USER_NOT_FOUND_1 = 90032;
     public static final int USER_ALREADY_EXISTS_1 = 90033;
-    public static final int LOG_FILE_ERROR_1 = 90034;
+    public static final int LOG_FILE_ERROR_2 = 90034;
     public static final int SEQUENCE_ALREADY_EXISTS_1 = 90035;
     public static final int SEQUENCE_NOT_FOUND_1 = 90036;
     public static final int VIEW_NOT_FOUND_1 = 90037;
@@ -154,8 +154,8 @@ public class ErrorCode {
     public static final int ADMIN_RIGHTS_REQUIRED = 90040;
     public static final int TRIGGER_ALREADY_EXISTS_1 = 90041;
     public static final int TRIGGER_NOT_FOUND_1 = 90042;
-    public static final int ERROR_CREATING_TRIGGER_OBJECT_2 = 90043;
-    public static final int ERROR_EXECUTING_TRIGGER_2 = 90044;
+    public static final int ERROR_CREATING_TRIGGER_OBJECT_3 = 90043;
+    public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
     public static final int CONSTRAINT_ALREADY_EXISTS_1 = 90045;
     public static final int URL_FORMAT_ERROR_2 = 90046;
     public static final int DRIVER_VERSION_ERROR_2 = 90047;
@@ -172,7 +172,7 @@ public class ErrorCode {
     public static final int DUPLICATE_TABLE_ALIAS = 90058;
     public static final int AMBIGUOUS_COLUMN_NAME_1 = 90059;
     public static final int UNSUPPORTED_LOCK_METHOD_1 = 90060;
-    public static final int EXCEPTION_OPENING_PORT_1 = 90061;
+    public static final int EXCEPTION_OPENING_PORT_2 = 90061;
     public static final int FILE_CREATION_FAILED_1 = 90062;
     public static final int SAVEPOINT_IS_INVALID_1 = 90063;
     public static final int SAVEPOINT_IS_UNNAMED = 90064;
@@ -254,7 +254,7 @@ public class ErrorCode {
     public static final int NOT_ENOUGH_RIGHTS_FOR_1 = 90096;
     public static final int DATABASE_IS_READ_ONLY = 90097;
     public static final int SIMULATED_POWER_OFF = 90098;
-    public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER = 90099;
+    public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER_2 = 90099;
     public static final int NO_DISK_SPACE_AVAILABLE = 90100;
     public static final int WRONG_XID_FORMAT_1 = 90101;
     public static final int UNSUPPORTED_COMPRESSION_OPTIONS_1 = 90102;
@@ -266,7 +266,7 @@ public class ErrorCode {
     public static final int STACK_OVERFLOW = 90108;
     public static final int VIEW_IS_INVALID_2 = 90109;
     public static final int OVERFLOW_FOR_TYPE_1 = 90110;
-    public static final int ERROR_ACCESSING_LINKED_TABLE_1 = 90111;
+    public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
     
     /**
      * When locking was disabled, a row was deleted twice. 

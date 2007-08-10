@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 //#ifdef JDK14
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import javax.sql.XAConnection;
 //#endif
 
@@ -72,7 +75,26 @@ public class JdbcUtils {
     public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
         if(!StringUtils.isNullOrEmpty(driver)) {
             try {
-                ClassUtils.loadClass(driver);
+                Class d = ClassUtils.loadClass(driver);
+                if(java.sql.Driver.class.isAssignableFrom(d)) {
+                    return DriverManager.getConnection(url, user, password);
+                 } else if(javax.naming.Context.class.isAssignableFrom(d)) {
+                     // JNDI context
+                     try {
+                         Context context = (Context) d.newInstance();
+                         DataSource ds = (DataSource) context.lookup(url);
+                         return ds.getConnection(user, password);
+                     } catch (InstantiationException e) {
+                         throw Message.convert(e);
+                     } catch (IllegalAccessException e) {
+                         throw Message.convert(e);
+                     } catch (NamingException e) {
+                         throw Message.convert(e);
+                     }
+                 } else {
+                    // Don't know, but maybe it loaded a JDBC Driver
+                    return DriverManager.getConnection(url, user, password);
+                 }                
             } catch (ClassNotFoundException e) {
                 throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
             }

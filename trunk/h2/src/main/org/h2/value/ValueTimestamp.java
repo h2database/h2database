@@ -36,7 +36,7 @@ public class ValueTimestamp extends Value {
     }
 
     public static Timestamp parseTimestamp(String s) throws SQLException {
-        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_1);
+        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
     }
 
     public int getType() {

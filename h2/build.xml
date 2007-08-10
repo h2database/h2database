@@ -167,7 +167,7 @@
 				</and>
 			</or>
 		</condition>
-		<echo message="${java.version.ok} spec:${java.specification.version} jdk:${jdk}"></echo>
+		<echo message="build-jdk:${java.specification.version} ant-build.properties/jdk:${jdk}"></echo>
 	</target>
 	
 	<target name="jar" depends="compile, compileServlet">

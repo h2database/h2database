@@ -56,7 +56,7 @@ public class TriggerObject extends SchemaObject {
             triggerCallback = (Trigger)obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName());
         } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_2, new String[]{getName(), triggerClassName}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, new String[]{getName(), triggerClassName, e.toString()}, e);
         }
     }
 
@@ -68,7 +68,7 @@ public class TriggerObject extends SchemaObject {
         try {
             triggerCallback.fire(c2, null, null);
         } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_2, new String[]{getName(), triggerClassName}, e);
+            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_3, new String[]{getName(), triggerClassName, e.toString()}, e);
         }
     }
 

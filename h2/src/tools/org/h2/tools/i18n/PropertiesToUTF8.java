@@ -19,7 +19,11 @@ import org.h2.util.StringUtils;
 public class PropertiesToUTF8 {
     
     public static void main(String[] args) throws Exception {
-        File[] list = new File("bin/org/h2/server/web/res").listFiles();
+        convert("bin/org/h2/server/web/res", ".");
+    }
+    
+    private static void convert(String source, String target) throws Exception {
+        File[] list = new File(source).listFiles();
         for(int i=0; list != null && i<list.length; i++) {
             File f = list[i];
             if(!f.getName().endsWith(".properties")) {

@@ -163,7 +163,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         for (int i=0; i<children.size(); i++) {
             DbObject child = (DbObject) children.get(i);
             if(child.getType() == DbObject.TABLE_OR_VIEW) {
-                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[]{table.getName(), child.getName()}, null);
+                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[]{table.getName(), child.getName()});
             }
         }
     }

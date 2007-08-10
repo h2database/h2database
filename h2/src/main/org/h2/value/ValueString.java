@@ -23,7 +23,8 @@ public class ValueString extends ValueStringBase {
     }
 
     protected int compareSecure(Value o, CompareMode mode) {
-        ValueString v = (ValueString) o;
+        // compatibility: the other object could be ValueStringFixed
+        ValueStringBase v = (ValueStringBase) o;
         return mode.compareString(value, v.value, false);
     }
 

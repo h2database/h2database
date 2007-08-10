@@ -196,6 +196,7 @@ public class IntArray {
     }
 
     public void sort() {
+        // insertion sort
         for (int i = 1, j; i < size(); i++) {
             int t = get(i);
             for (j = i - 1; j >= 0 && (get(j) > t); j--) {

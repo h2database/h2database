@@ -63,7 +63,7 @@ public class Message {
      * @return the SQLException object
      */
     public static JdbcSQLException getSQLException(int sqlState, String p1) {
-        return getSQLException(sqlState, new String[] { p1 }, null);
+        return getSQLException(sqlState, new String[] { p1 });
     }
 
     public static String translate(String key, String[] param) {
@@ -84,6 +84,10 @@ public class Message {
         return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
     }
 
+    public static JdbcSQLException getSQLException(int errorCode, String[] param) {
+        return getSQLException(errorCode, param);
+    }
+
     public static SQLException getSyntaxError(String sql, int index) {
         sql = StringUtils.addAsterisk(sql, index);
         return getSQLException(ErrorCode.SYNTAX_ERROR_1, sql);
@@ -91,7 +95,7 @@ public class Message {
 
     public static SQLException getSyntaxError(String sql, int index, String expected) {
         sql = StringUtils.addAsterisk(sql, index);
-        return getSQLException(ErrorCode.SYNTAX_ERROR_2, new String[]{sql, expected}, null);
+        return getSQLException(ErrorCode.SYNTAX_ERROR_2, new String[]{sql, expected});
     }
 
     /**
@@ -102,7 +106,7 @@ public class Message {
      * @return the SQLException object
      */
     public static JdbcSQLException getSQLException(int sqlstate) {
-        return getSQLException(sqlstate, null);
+        return getSQLException(sqlstate, (String)null);
     }
 
     public static JdbcSQLException getUnsupportedException() {
@@ -110,7 +114,7 @@ public class Message {
     }
 
     public static JdbcSQLException getInvalidValueException(String value, String param) {
-        return getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{value, param}, null);
+        return getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{value, param});
     }
 
     public static Error getInternalError(String s) {

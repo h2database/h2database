@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 
 import org.h2.constant.ErrorCode;
-import org.h2.message.Message;
 
 class RunScriptThread extends Thread {
     private int id;

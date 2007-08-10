@@ -211,7 +211,7 @@ public class DateTimeUtils {
                 throw Message.getInternalError("type:"+type);
             }
         } catch(IllegalArgumentException e) {
-            throw Message.getSQLException(errorCode, new String[]{original}, e);
+            throw Message.getSQLException(errorCode, new String[]{original, e.toString()}, e);
         }
     }
 

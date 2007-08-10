@@ -18,7 +18,8 @@ public class ValueStringFixed extends ValueStringBase {
     }
 
     protected int compareSecure(Value o, CompareMode mode) throws SQLException {
-        ValueStringFixed v = (ValueStringFixed) o;
+        // compatibility: the other object could be ValueString
+        ValueStringBase v = (ValueStringBase) o;        
         return mode.compareString(value, v.value, false);
     }
     

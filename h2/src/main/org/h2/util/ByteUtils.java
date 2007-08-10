@@ -170,7 +170,7 @@ public class ByteUtils {
             os.writeObject(obj);
             return out.toByteArray();
         } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED, null, e);
+            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED_1, new String[]{e.toString()}, e);
         }
     }
 
@@ -181,7 +181,7 @@ public class ByteUtils {
             Object obj = is.readObject();
             return obj;
         } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED, null, e);
+            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, new String[]{e.toString()}, e);
         }
     }
 

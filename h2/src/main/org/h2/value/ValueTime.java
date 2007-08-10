@@ -19,7 +19,7 @@ public class ValueTime extends Value {
     }
 
     public static Time parseTime(String s) throws SQLException {
-        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_1);
+        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_2);
     }
 
     public Time getTime() {

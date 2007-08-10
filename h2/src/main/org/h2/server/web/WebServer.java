@@ -56,6 +56,7 @@ public class WebServer implements Service {
     };
     
     private static final String[] GENERIC = new String[] {
+        "Generic JNDI Data Source|javax.naming.InitialContext|java:comp/env/jdbc/Test|sa",
         "Generic Firebird Server|org.firebirdsql.jdbc.FBDriver|jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
         "Generic OneDollarDB|in.co.daffodil.db.jdbc.DaffodilDBDriver|jdbc:daffodilDB_embedded:school;path=C:/temp;create=true|sa",
         "Generic DB2|COM.ibm.db2.jdbc.net.DB2Driver|jdbc:db2://<host>/<db>|" ,
@@ -67,6 +68,7 @@ public class WebServer implements Service {
         "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
         "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|jdbc:derby://localhost:1527/test;create=true|sa",
         "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
+        // this will be listed on top for new installations
         "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
     };
 

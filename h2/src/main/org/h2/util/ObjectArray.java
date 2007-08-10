@@ -166,9 +166,11 @@ public class ObjectArray {
     }
     
     private void sort(Comparator comp, int l, int r) {
+        // quicksort
         int i, j;
         while (r - l > 10) {
-            i = (r + l) >> 1;
+            // randomized pivot to avoid worst case
+            i = RandomUtils.nextInt(r - l - 4) + l + 2;
             if (comp.compare(get(l), get(r)) > 0) {
                 swap(l, r);
             }

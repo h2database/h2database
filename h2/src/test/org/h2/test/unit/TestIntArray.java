@@ -6,13 +6,16 @@ package org.h2.test.unit;
 
 import java.util.Arrays;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.IntArray;
 
 public class TestIntArray extends TestBase {
-
+    
     public void test() throws Exception {
+        testRandom();
+    }
+
+    private void testRandom() throws Exception {
         IntArray array = new IntArray();
         int[] test = new int[0];
         Random random = new Random(1);

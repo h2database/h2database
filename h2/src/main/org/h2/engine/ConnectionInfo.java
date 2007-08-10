@@ -327,7 +327,7 @@ public class ConnectionInfo {
 
     public SQLException getFormatException() {
         String format = Constants.URL_FORMAT;
-        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[]{format, url}, null);
+        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[]{format, url});
     }
 
 }

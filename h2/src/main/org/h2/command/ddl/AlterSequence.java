@@ -36,7 +36,7 @@ public class AlterSequence extends DefineCommand {
     public void setIncrement(long increment) throws SQLException {
         newIncrement = true;
         if(increment == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{"0", "INCREMENT"}, null);
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{"0", "INCREMENT"});
         }
         this.increment = increment;
     }

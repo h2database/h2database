@@ -35,7 +35,7 @@ public class ValueDecimal extends Value {
         if (value == null) {
             throw new IllegalArgumentException();
         } else if(!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
-            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()}, null);
+            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()});
             throw Message.convertToInternal(e);
         }
         this.value = value;

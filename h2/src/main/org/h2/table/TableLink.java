@@ -108,7 +108,7 @@ public class TableLink extends Table {
                     columnMap.put(n, col);
                 }
             } catch(SQLException e) {
-                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[]{originalTable}, e);
+                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[]{originalTable + "(" + e.toString() + ")"}, e);
             } finally {
                 JdbcUtils.closeSilently(stat);
             }

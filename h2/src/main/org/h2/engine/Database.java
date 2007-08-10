@@ -1140,7 +1140,7 @@ public class Database implements DataHandler {
         String invalid = getFirstInvalidTable();
         if(invalid != null) {
             obj.getSchema().add(obj);
-            throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid}, null);
+            throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid});
         }
         int id = obj.getId();
         obj.removeChildrenAndResources(session);
@@ -1246,7 +1246,7 @@ public class Database implements DataHandler {
                 eventListener = (DatabaseEventListener)loadClass(className).newInstance();
                 eventListener.init(databaseURL);
             } catch (Throwable e) {
-                throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER, new String[]{className}, e);
+                throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2, new String[]{className, e.toString()}, e);
             }
         }
     }

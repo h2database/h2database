@@ -4,9 +4,6 @@
  */
 package org.h2.tools.i18n;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -14,10 +11,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -286,7 +281,7 @@ public class PrepareTranslation {
 //            }
         }
         new File(target + "/" +  MAIN_LANGUAGE).mkdirs();
-        storeProperties(prop, target + "/" +  MAIN_LANGUAGE + "/" + documentName + "_" + MAIN_LANGUAGE + ".properties");
+        PropertiesToUTF8.storeProperties(prop, target + "/" +  MAIN_LANGUAGE + "/" + documentName + "_" + MAIN_LANGUAGE + ".properties");
         String t = template.toString();
         if(templateIsCopy && !t.equals(xml)) {
             for(int i=0; i<Math.min(t.length(), xml.length()); i++) {
@@ -340,12 +335,12 @@ public class PrepareTranslation {
         Properties p = FileUtils.loadProperties(main.getAbsolutePath());
         Properties base = FileUtils.loadProperties(baseDir + "/"
                 + main.getName());
-        storeProperties(p, main.getAbsolutePath());
+        PropertiesToUTF8.storeProperties(p, main.getAbsolutePath());
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
             prepare(p, base, trans);
         }
-        storeProperties(p, baseDir + "/" + main.getName());
+        PropertiesToUTF8.storeProperties(p, baseDir + "/" + main.getName());
     }
 
     private static void prepare(Properties main, Properties base, File trans)
@@ -393,27 +388,6 @@ public class PrepareTranslation {
                 p.remove(key);
             }
         }
-        storeProperties(p, trans.getAbsolutePath());
-    }
-
-    static void storeProperties(Properties p, String fileName)
-            throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        p.store(out, null);
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        InputStreamReader reader = new InputStreamReader(in, "ISO8859-1");
-        LineNumberReader r = new LineNumberReader(reader);
-        FileWriter w = new FileWriter(fileName);
-        PrintWriter writer = new PrintWriter(new BufferedWriter(w));
-        while (true) {
-            String line = r.readLine();
-            if (line == null) {
-                break;
-            }
-            if (!line.startsWith("#")) {
-                writer.println(line);
-            }
-        }
-        writer.close();
+        PropertiesToUTF8.storeProperties(p, trans.getAbsolutePath());
     }
 }

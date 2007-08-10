@@ -40,7 +40,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build xx)</h3><ul>
-<li>Google translate did not work for the H2 homepage. It should be fixed now.
+<li>Improved error messages: some tools can't show the root cause of an exception. 
+	Adding the message of the root cause to the message of the thrown exception now where it makes sense.
+</li><li>The H2 Console can now connect to databases using JNDI. The driver class name must be a javax.naming.Context,
+	(for example javax.naming.InitialContext), and the URL the resource name (for example java:comp/env/jdbc/Test).
+	This should also work for linked tables.
+</li><li>Google translate did not work for the H2 homepage. It should be fixed now.
 </li><li>The CONVERT function did not work with views when using UNION.
 </li><li>The build now issues a warning if the source code is switched to the wrong version.
 </li><li>The default lock mode is now read committed instead of serialized.

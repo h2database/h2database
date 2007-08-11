@@ -15,6 +15,8 @@ public class TestTransactionIsolation extends TestBase {
     public void test() throws Exception {
         deleteDb("transactionIsolation");
         conn1 = getConnection("transactionIsolation");
+        check(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);
+        conn1.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         check(conn1.getTransactionIsolation(), Connection.TRANSACTION_SERIALIZABLE);
         conn1.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
         check(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_UNCOMMITTED);

@@ -400,7 +400,7 @@ public class PrepareTranslation {
             String key = (String) it.next();
             String m = base.getProperty(key);
             String t = p.getProperty(key);
-            if(!t.startsWith("#")) {
+            if(t != null && !t.startsWith("#")) {
                 oldTranslations.setProperty(m, t);
             }
         }

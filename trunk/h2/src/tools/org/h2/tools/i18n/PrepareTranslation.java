@@ -30,20 +30,51 @@ public class PrepareTranslation {
 
     public static void main(String[] args) throws Exception {
         String baseDir = "src/docsrc/textbase";
-        String path;
-        path = "src/main/org/h2/res";
-        prepare(baseDir, path);
-        path = "src/main/org/h2/server/web/res";
-        prepare(baseDir, path);
-        extractFromHtml("src/docsrc/html", "src/docsrc/text");
-        buildHtml("src/docsrc/text", "docs/html", "ja");
-        buildHtml("src/docsrc/text", "docs/html", "de");
+        prepare(baseDir, "src/main/org/h2/res");
+        prepare(baseDir, "src/main/org/h2/server/web/res");
+        
+        // convert the txt files to properties files
+        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt", "src/docsrc/text/_docs_de.properties");
+        // PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_ja.utf8.txt", "src/docsrc/text/_docs_ja.properties");
+        
+        // create the .jsp files and extract the text in the main language
+        extractFromHtml("src/docsrc/html", "src/docsrc/text", MAIN_LANGUAGE);
+
+        // add missing translations and create a new baseline
+        prepare(baseDir, "src/docsrc/text");
+
+        // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
+        buildHtml("src/docsrc/text", "docs/html", "de");
+        // buildHtml("src/docsrc/text", "docs/html", "ja");
+        
+        // convert the properies files back to utf8 text files, including the main lanuage (to be used as a template)
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_en.properties", "src/docsrc/text/_docs_en.utf8.txt");
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_de.properties", "src/docsrc/text/_docs_de.utf8.txt");
+        // PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties", "src/docsrc/text/_docs_ja.utf8.txt");
+        
+        // delete temporary files
+        File[] list = new File("src/docsrc/text").listFiles();
+        for(int i=0; i<list.length; i++) {
+            if(!list[i].getName().endsWith(".utf8.txt")) {
+                list[i].delete();
+            }
+        }
     }
 
     private static void buildHtml(String templateDir, String targetDir, String language) throws IOException {
         File[] list = new File(templateDir).listFiles();
         new File(targetDir).mkdirs();
+        // load the main 'translation'
+        String propName = templateDir + "/_docs_" + MAIN_LANGUAGE + ".properties";
+        Properties prop = FileUtils.loadProperties(propName);
+        propName = templateDir + "/_docs_" + language + ".properties";
+        if(!(new File(propName)).exists()) {
+            throw new IOException("Translation not found: " + propName);
+        }
+        Properties transProp = FileUtils.loadProperties(propName);
+        // overload with this language
+        prop.putAll(transProp);
         ArrayList fileNames = new ArrayList();
         for(int i=0; i<list.length; i++) {
             String name = list[i].getName();
@@ -61,13 +92,6 @@ public class PrepareTranslation {
             }
             // remove '.jsp'
             name = name.substring(0, name.length()-4);
-            String propName = templateDir + "/" + MAIN_LANGUAGE + "/" + name + "_" + MAIN_LANGUAGE + ".properties";
-            Properties prop = FileUtils.loadProperties(propName);
-            propName = templateDir + "/" + language + "/" + name + "_" + language + ".properties";
-            if((new File(propName)).exists()) {
-                Properties transProp = FileUtils.loadProperties(propName);
-                prop.putAll(transProp);
-            }
             String template = IOUtils.readStringAndClose(new FileReader(templateDir + "/" + name + ".jsp"), -1);
             String html = PageParser.parse(null, template, prop);
             html = StringUtils.replaceAll(html, "lang=\""+MAIN_LANGUAGE+"\"", "lang=\""+ language + "\"");
@@ -75,14 +99,21 @@ public class PrepareTranslation {
                 String n = (String) fileNames.get(j);
                 html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
             }
-            OutputStream out = new FileOutputStream(targetDir + "/" + name + "_" + language + ".html");
+            html = StringUtils.replaceAll(html, "_" + MAIN_LANGUAGE + ".html\"", ".html\"");
+            String target;
+            if(language.equals(MAIN_LANGUAGE)) {
+                target = targetDir + "/" + name + ".html";
+            } else {
+                target = targetDir + "/" + name + "_" + language + ".html";
+            }
+            OutputStream out = new FileOutputStream(target);
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
             writer.write(html);
             writer.close();
         }
     }
 
-    private static void extractFromHtml(String dir, String target) throws Exception {
+    private static void extractFromHtml(String dir, String target, String language) throws Exception {
         File[] list = new File(dir).listFiles();
         for (int i = 0; i < list.length; i++) {
             File f = list[i];
@@ -280,8 +311,11 @@ public class PrepareTranslation {
 //                break;
 //            }
         }
-        new File(target + "/" +  MAIN_LANGUAGE).mkdirs();
-        PropertiesToUTF8.storeProperties(prop, target + "/" +  MAIN_LANGUAGE + "/" + documentName + "_" + MAIN_LANGUAGE + ".properties");
+        new File(target).mkdirs();
+        String propFileName = target + "/_docs_" + MAIN_LANGUAGE + ".properties";
+        Properties old = FileUtils.loadProperties(propFileName);
+        prop.putAll(old);
+        PropertiesToUTF8.storeProperties(prop, propFileName);
         String t = template.toString();
         if(templateIsCopy && !t.equals(xml)) {
             for(int i=0; i<Math.min(t.length(), xml.length()); i++) {

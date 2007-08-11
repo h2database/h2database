@@ -97,6 +97,8 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 strict xhtml (javadocs,...)
 make docs translatable
 
+add to maven
+
 docs: CACHE_SIZE=200000 maybe too much?
 
 Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar

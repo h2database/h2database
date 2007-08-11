@@ -239,7 +239,7 @@
 #A transaction is started, for example by inserting a row
 
 @advanced_1080_li
-#The transaction is marked 'prepared' by executing the SQL statement<code>PREPARE COMMIT transactionName</code>
+#The transaction is marked 'prepared' by executing the SQL statement <code>PREPARE COMMIT transactionName</code>
 
 @advanced_1081_li
 #The transaction can now be committed or rolled back
@@ -248,10 +248,10 @@
 #If a problem occurs before the transaction was successfully committed or rolled back  (for example because a network problem occurred), the transaction is in the state 'in-doubt'
 
 @advanced_1083_li
-#When re-connecting to the database, the in-doubt transactions can be listed  with<code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+#When re-connecting to the database, the in-doubt transactions can be listed  with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
 
 @advanced_1084_li
-#Each transaction in this list must now be committed or rolled back by executing<code>COMMIT TRANSACTION transactionName</code>or<code>ROLLBACK TRANSACTION transactionName</code>
+#Each transaction in this list must now be committed or rolled back by executing <code>COMMIT TRANSACTION transactionName</code> or <code>ROLLBACK TRANSACTION transactionName</code>
 
 @advanced_1085_li
 #The database needs to be closed and re-opened to apply the changes
@@ -284,7 +284,7 @@
 #Run as Windows Service
 
 @advanced_1095_p
-#Using a native wrapper / adapter, Java applications can be run as a Windows Service. There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc. (<a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a>) is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application. The batch files are located in the directory H2/service.
+#Using a native wrapper / adapter, Java applications can be run as a Windows Service. There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc. ( <a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a> ) is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application. The batch files are located in the directory H2/service.
 
 @advanced_1096_h3
 #Install the Service
@@ -326,7 +326,7 @@
 #ODBC Installation
 
 @advanced_1109_p
-#First, the ODBC driver must be installed. Any recent PostgreSQL ODBC driver should work, however version 8.2.4 or newer is recommended. The Windows version of the PostgreSQL ODBC driver is available at<a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a>.
+#First, the ODBC driver must be installed. Any recent PostgreSQL ODBC driver should work, however version 8.2.4 or newer is recommended. The Windows version of the PostgreSQL ODBC driver is available at <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a> .
 
 @advanced_1110_h3
 #Starting the Server
@@ -341,13 +341,13 @@
 #The PG server can be started and stopped from within a Java application as follows:
 
 @advanced_1114_p
-#By default, only connections from localhost are allowed. To allow remote connections, use<code>-pgAllowOthers true</code>when starting the server.
+#By default, only connections from localhost are allowed. To allow remote connections, use <code>-pgAllowOthers true</code> when starting the server.
 
 @advanced_1115_h3
 #ODBC Configuration
 
 @advanced_1116_p
-#After installing the driver, a new Data Source must be added. In Windows, run<code>odbcad32.exe</code>to open the Data Source Administrator. Then click on 'Add...' and select the PostgreSQL Unicode driver. Then click 'Finish'. You will be able to change the connection properties:
+#After installing the driver, a new Data Source must be added. In Windows, run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...' and select the PostgreSQL Unicode driver. Then click 'Finish'. You will be able to change the connection properties:
 
 @advanced_1117_th
 #Property
@@ -686,7 +686,7 @@
 #SSL/TLS Connections
 
 @advanced_1229_p
-#Remote SSL/TLS connections are supported using the Java Secure Socket Extension (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled. The default cipher suite is<code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
+#Remote SSL/TLS connections are supported using the Java Secure Socket Extension (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled. The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code> .
 
 @advanced_1230_h3
 #HTTPS Connections
@@ -959,31 +959,31 @@
 #AES-128
 
 @advanced_1320_td
-#A block encryption algorithm. See also:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
+#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
 @advanced_1321_td
 #Birthday Paradox
 
 @advanced_1322_td
-#Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
+#Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
 @advanced_1323_td
 #Digest
 
 @advanced_1324_td
-#Protocol to protect a password (but not to protect data). See also:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
+#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
 @advanced_1325_td
 #GCJ
 
 @advanced_1326_td
-#GNU Compiler for Java.<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a>and<a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
+#GNU Compiler for Java. <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
 @advanced_1327_td
 #HTTPS
 
 @advanced_1328_td
-#A protocol to provide security to HTTP connections. See also:<a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
+#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
 @advanced_1329_td
 #Modes of Operation
@@ -995,19 +995,19 @@
 #Salt
 
 @advanced_1332_td
-#Random number to increase the security of passwords.  See also:<a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
+#Random number to increase the security of passwords.  See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
 @advanced_1333_td
 #SHA-256
 
 @advanced_1334_td
-#A cryptographic one-way hash function.  See also:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
+#A cryptographic one-way hash function.  See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
 @advanced_1335_td
 #SQL Injection
 
 @advanced_1336_td
-#A security vulnerability where an application generates SQL statements with embedded user input.  See also:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
+#A security vulnerability where an application generates SQL statements with embedded user input.  See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
 @advanced_1337_td
 #Watermark Attack
@@ -1019,16 +1019,16 @@
 #SSL/TLS
 
 @advanced_1340_td
-#Secure Sockets Layer / Transport Layer Security.  See also:<a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
+#Secure Sockets Layer / Transport Layer Security.  See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
 @advanced_1341_td
 #XTEA
 
 @advanced_1342_td
-#A block encryption algorithm.  See also:<a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
+#A block encryption algorithm.  See also: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
-#Build
+構築
 
 @build_1001_a
 #Portability
@@ -1139,7 +1139,7 @@
 #Google Code
 
 @download_1011_p
-#For details about changes, see the<a href="history.html">Change Log</a>.
+#For details about changes, see the <a href="history.html">Change Log</a> .
 
 @faq_1000_h1
 #Frequently Asked Questions
@@ -1214,7 +1214,7 @@
 #How to Connect to a Database?
 
 @faq_1024_p
-#The database driver is<code>org.h2.Driver</code>, and the database URL starts with<code>jdbc:h2:</code>. To connect to a database using JDBC, use the following code:
+#The database driver is <code>org.h2.Driver</code> , and the database URL starts with <code>jdbc:h2:</code> . To connect to a database using JDBC, use the following code:
 
 @faq_1025_h3
 #Where are the Database Files Stored?
@@ -1295,7 +1295,7 @@
 #The GCJ version is not as stable as the Java version. When running the regression test with the GCJ version, sometimes the application just stops at what seems to be a random point without error message. Currently, the GCJ version is also slower than when using the Sun VM. However, the startup of the GCJ version is faster than when using a VM.
 
 @features_1000_h1
-#Features
+特徴
 
 @features_1001_a
 #Feature List
@@ -2072,7 +2072,7 @@
 #Connecting to an Embedded (Local) Database
 
 @features_1259_p
-#The database URL for connecting to a local database is<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>. The prefix<code>file:</code>is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is suggested to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is suggested to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 
 @features_1260_h3
 #Memory-Only Databases
@@ -2081,13 +2081,13 @@
 #For certain use cases (for example: rapid prototyping, testing, high performance operations, read-only databases), it may not be required to persist (changes to) the data at all. This database supports the memory-only mode, where the data is not persisted.
 
 @features_1262_p
-#In some cases, only one connection to a memory-only database is required. This means the database to be opened is private. In this case, the database URL is<code>jdbc:h2:mem:</code>Opening two connections within the same virtual machine means opening two different (private) databases.
+#In some cases, only one connection to a memory-only database is required. This means the database to be opened is private. In this case, the database URL is <code>jdbc:h2:mem:</code> Opening two connections within the same virtual machine means opening two different (private) databases.
 
 @features_1263_p
-#Sometimes multiple connections to the same memory-only database are required. In this case, the database URL must include a name. Example:<code>jdbc:h2:mem:db1</code>. Accessing the same database in this way only works within the same virtual machine and class loader environment.
+#Sometimes multiple connections to the same memory-only database are required. In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code> . Accessing the same database in this way only works within the same virtual machine and class loader environment.
 
 @features_1264_p
-#It is also possible to access a memory-only database remotely (or from multiple processes in the same machine) using TCP/IP or SSL/TLS. An example database URL is:<code>jdbc:h2:tcp://localhost/mem:db1</code>(using private database remotely is also possible).
+#It is also possible to access a memory-only database remotely (or from multiple processes in the same machine) using TCP/IP or SSL/TLS. An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code> (using private database remotely is also possible).
 
 @features_1265_h2
 #Connecting to a Database with File Encryption
@@ -2126,7 +2126,7 @@
 #Opening a Database Only if it Already Exists
 
 @features_1277_p
-#By default, when an application calls<code>DriverManager.getConnection(url,...)</code>and the database specified in the URL does not yet exist, a new (empty) database is created. In some situations, it is better to restrict creating new database, and only open the database if it already exists. This can be done by adding<code>;ifexists=true</code>to the URL. In this case, if the database does not already exist, an exception is thrown when trying to connect. The connection only succeeds when the database already exists. The complete URL may look like this:
+#By default, when an application calls <code>DriverManager.getConnection(url,...)</code> and the database specified in the URL does not yet exist, a new (empty) database is created. In some situations, it is better to restrict creating new database, and only open the database if it already exists. This can be done by adding <code>;ifexists=true</code> to the URL. In this case, if the database does not already exist, an exception is thrown when trying to connect. The connection only succeeds when the database already exists. The complete URL may look like this:
 
 @features_1278_h2
 #Closing the Database
@@ -2138,7 +2138,7 @@
 #Usually, the database is closed when the last connection to it is closed. In some situations this slows down the application, for example when it is not possible leave the connection open. The automatic closing of the database can be delayed or disabled with the SQL statement SET DB_CLOSE_DELAY &lt;seconds&gt;. The seconds specifies the number of seconds to keep a database open after the last connection to it was closed. For example the following statement will keep the database open for 10 seconds:
 
 @features_1281_p
-#The value -1 means the database is never closed automatically. The value 0 is the default and means the database is closed when the last connection is closed. This setting is persistent and can be set by an administrator only. It is possible to set the value in the database URL:<code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
+#The value -1 means the database is never closed automatically. The value 0 is the default and means the database is closed when the last connection is closed. This setting is persistent and can be set by an administrator only. It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code> .
 
 @features_1282_h3
 #Don't Close the Database when the VM Exits
@@ -2162,7 +2162,7 @@
 #Changing Other Settings when Opening a Connection
 
 @features_1289_p
-#In addition to the settings already described (cipher, file_lock, ifexists, user, password), other database settings can be passed in the database URL. Adding<code>setting=value</code>at the end of an URL is the same as executing the statement<code>SET setting value</code>just after connecting. For a list of settings supported by this database please see the SQL grammar documentation.
+#In addition to the settings already described (cipher, file_lock, ifexists, user, password), other database settings can be passed in the database URL. Adding <code>setting=value</code> at the end of an URL is the same as executing the statement <code>SET setting value</code> just after connecting. For a list of settings supported by this database please see the SQL grammar documentation.
 
 @features_1290_h2
 #Custom File Access Mode
@@ -2171,7 +2171,7 @@
 #Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
 
 @features_1292_p
-#For more information see<a href="advanced.html#durability_problems">Durability Problems</a>. On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
+#For more information see <a href="advanced.html#durability_problems">Durability Problems</a> . On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
 
 @features_1293_h2
 #Multiple Connections
@@ -2435,7 +2435,7 @@
 #Compatibility Modes
 
 @features_1380_p
-#All database engines behave a little bit different. For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL<code>jdbc:h2:~/test;MODE=HSQLDB</code>or the SQL statement<code>SET MODE HSQLDB</code>. Here is the list of currently supported modes and the difference to the regular mode:
+#All database engines behave a little bit different. For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
 
 @features_1381_th
 #Mode
@@ -2489,13 +2489,13 @@
 #The simplest way to enable the trace option is setting it in the database URL. There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, and one for file tracing (TRACE_LEVEL_FILE). The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG. A database URL with both levels set to DEBUG is:
 
 @features_1398_p
-#The trace level can be changed at runtime by executing the SQL command<code>SET TRACE_LEVEL_SYSTEM_OUT level</code>(for System.out tracing) or<code>SET TRACE_LEVEL_FILE level</code>(for file tracing). Example:
+#The trace level can be changed at runtime by executing the SQL command <code>SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing) or <code>SET TRACE_LEVEL_FILE level</code> (for file tracing). Example:
 
 @features_1399_h3
 #Setting the Maximum Size of the Trace File
 
 @features_1400_p
-#When using a high trace level, the trace file can get very big quickly. The size of the file can be limited by executing the SQL statement<code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code>. If the log file exceeds the limit, the file is renamed to .old and a new file is created. If another .old file exists, it is deleted. The default setting is 16 MB. Example:
+#When using a high trace level, the trace file can get very big quickly. The size of the file can be limited by executing the SQL statement <code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code> . If the log file exceeds the limit, the file is renamed to .old and a new file is created. If another .old file exists, it is deleted. The default setting is 16 MB. Example:
 
 @features_1401_h3
 #Java Code Generation
@@ -2600,7 +2600,7 @@
 #Passing the User Name and/or Password in the URL
 
 @features_1435_p
-#Instead of passing the user name as a separate parameter as in<code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code>the user name (and/or password) can be supplied in the URL itself:<code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code>The settings in the URL override the settings passed as a separate parameter.
+#Instead of passing the user name as a separate parameter as in <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
 
 @features_1436_h2
 #User Defined Functions and Stored Procedures
@@ -2720,7 +2720,7 @@
 H2 (for 'Hypersonic 2') is free a Java SQL DBMS. Clustering, embedded and server mode, transactions, referential integrity, views, subqueries, triggers, encryption, and disk based or in-memory operation are supported. A browser based console application is included. If you see this page your browser does not support frames. Please click here to view the<a href="search_ja.html">index</a>.
 
 @history_1000_h1
-#History and Roadmap
+歴�?��?�ロードマップ
 
 @history_1001_a
 #History of this Database Engine
@@ -4784,22 +4784,22 @@ H2 (for 'Hypersonic 2') is free a Java SQL DBMS. Clustering, embedded and server
 インストール
 
 @installation_1001_a
-必要条件
+必�?�?�件
 
 @installation_1002_a
-サポートされているプラットフォーム
+サ�?ート�?�れ�?��?�るプラットフォーム
 
 @installation_1003_a
-ソフトウェアのインストール
+ソフトウェア�?�インストール
 
 @installation_1004_a
-ディレクトリ構成
+ディレクトリ構�?
 
 @installation_1005_h2
-必要条件
+必�?�?�件
 
 @installation_1006_p
-データベースを実行するために、以下のソフトウェアが動作することを確認します。 互換性のあるソフトウェアでも動作しますが、テストはされていません。
+データベースを実行�?�る�?��?�?��?以下�?�ソフトウェア�?�動作�?�る�?��?�を確�?�?��?��?�。 互�?�性�?��?�るソフトウェア�?�も動作�?��?��?��?��?テスト�?��?�れ�?��?��?��?�ん。
 
 @installation_1007_li
 Windows XP, MacOS, or Linux
@@ -4814,22 +4814,22 @@ Sun JDK 1.4 or newer
 Mozilla Firefox 1.5 or newer
 
 @installation_1011_h2
-サポートされているプラットフォーム
+サ�?ート�?�れ�?��?�るプラットフォーム
 
 @installation_1012_p
-このデータベースはJavaで書かれているため、多くの異なったプラットフォームで実行することができます。 Java 1.4 と 1.5でテストされましたが、GCJを使用することでネイティブコードにコンパイルすることもできます。 ソースコードはJava 1.5の特徴は使われていません。現在、データベースはWindows XPでSun JDKを使用して開発、テストされていますが、 おそらく、他の多くのOSと他のJava Runtime Environmentを使用しても動作するでしょう。
+�?��?�データベース�?�Java�?�書�?�れ�?��?�る�?��?�?多�??�?�異�?��?��?�プラットフォーム�?�実行�?�る�?��?��?��?��??�?��?�。 Java 1.4 �?� 1.5�?�テスト�?�れ�?��?��?��?��?GCJを使用�?�る�?��?��?��?イティブコード�?�コンパイル�?�る�?��?�も�?��??�?��?�。 ソースコード�?�Java 1.5�?�特徴�?�使�?れ�?��?��?��?�ん。�?�在�?データベース�?�Windows XP�?�Sun JDKを使用�?��?�開発�?テスト�?�れ�?��?��?��?��?��? �?��??ら�??�?他�?�多�??�?�OS�?�他�?�Java Runtime Environmentを使用�?��?�も動作�?�る�?��?�ょ�?�。
 
 @installation_1013_h2
-ソフトウェアのインストール
+ソフトウェア�?�インストール
 
 @installation_1014_p
-ソフトウェアをインストールするために、インストーラーを実行するか 選択したディレクトリにソフトウェアを解凍します。
+ソフトウェアをインストール�?�る�?��?�?��?インストーラーを実行�?�る�?� �?�択�?��?�ディレクトリ�?�ソフトウェアを解�?�?��?��?�。
 
 @installation_1015_h2
-ディレクトリ構成
+ディレクトリ構�?
 
 @installation_1016_p
-インストール後、下記のディレクトリ構成が作られます:
+インストール後�?下記�?�ディレクトリ構�?�?�作られ�?��?�:
 
 @installation_1017_th
 ディレクトリ
@@ -4880,16 +4880,16 @@ src
 Source files
 
 @license_1000_h1
-#License
+ライセンス
 
 @license_1001_h2
 #Summary and License FAQ
 
 @license_1002_p
-#This license is a modified version of the MPL 1.1 available at<a href="http://www.mozilla.org/MPL">www.mozilla.org/MPL</a>, the changes are
+#This license is a modified version of the MPL 1.1 available at <a href="http://www.mozilla.org/MPL">www.mozilla.org/MPL</a> , the changes are
 
 @license_1003_em
-#underlined</em>. There is a License FAQ section at the Mozilla web site, most of that is applicable to the H2 License as well.
+#underlined</em> . There is a License FAQ section at the Mozilla web site, most of that is applicable to the H2 License as well.
 
 @license_1004_li
 #You can use H2 for free. You can integrate it into your application (including commercial applications),  and you can distribute it.
@@ -4955,7 +4955,7 @@ Source files
 #1.6. "Initial Developer"
 
 @license_1025_p
-#means the individual or entity identified as the Initial Developer in the Source Code  notice required by<a href="#exhibit-a">Exhibit A</a>.
+#means the individual or entity identified as the Initial Developer in the Source Code  notice required by <a href="#exhibit-a">Exhibit A</a> .
 
 @license_1026_b
 #1.7. "Larger Work"
@@ -4991,7 +4991,7 @@ Source files
 #1.10. "Original Code"
 
 @license_1037_p
-#means Source Code of computer software code which is described in the Source Code  notice required by<a href="#exhibit-a">Exhibit A</a>as Original Code, and which,  at the time of its release under this License is not already Covered Code governed  by this License.
+#means Source Code of computer software code which is described in the Source Code  notice required by <a href="#exhibit-a">Exhibit A</a> as Original Code, and which,  at the time of its release under this License is not already Covered Code governed  by this License.
 
 @license_1038_b
 #1.10.1. "Patent Claims"
@@ -5009,7 +5009,7 @@ Source files
 #1.12. "You" (or "Your")
 
 @license_1043_p
-#means an individual or a legal entity exercising rights under, and complying with  all of the terms of, this License or a future version of this License issued under<a href="#section-6.1">Section 6.1.</a>For legal entities, "You" includes any entity  which controls, is controlled by, or is under common control with You. For purposes of  this definition, "control" means (a) the power, direct or indirect, to cause the  direction or management of such entity, whether by contract or otherwise, or (b)  ownership of more than fifty percent (50%) of the outstanding shares or beneficial  ownership of such entity.
+#means an individual or a legal entity exercising rights under, and complying with  all of the terms of, this License or a future version of this License issued under <a href="#section-6.1">Section 6.1.</a> For legal entities, "You" includes any entity  which controls, is controlled by, or is under common control with You. For purposes of  this definition, "control" means (a) the power, direct or indirect, to cause the  direction or management of such entity, whether by contract or otherwise, or (b)  ownership of more than fifty percent (50%) of the outstanding shares or beneficial  ownership of such entity.
 
 @license_1044_h3
 #2. Source Code License
@@ -5027,10 +5027,10 @@ Source files
 #2.1.b. under Patents Claims infringed by the making, using or selling  of Original Code, to make, have made, use, practice, sell, and offer for sale, and/or  otherwise dispose of the Original Code (or portions thereof).
 
 @license_1049_p
-#2.1.c. the licenses granted in this Section 2.1  (<a href="#section-2.1-a">a</a>) and (<a href="#section-2.1-b">b</a>) are effective on  the date Initial Developer first distributes Original Code under the terms of this  License.
+#2.1.c. the licenses granted in this Section 2.1  ( <a href="#section-2.1-a">a</a> ) and ( <a href="#section-2.1-b">b</a> ) are effective on  the date Initial Developer first distributes Original Code under the terms of this  License.
 
 @license_1050_p
-#2.1.d. Notwithstanding Section 2.1 (<a href="#section-2.1-b">b</a>)  above, no patent license is granted: 1) for code that You delete from the Original Code;  2) separate from the Original Code; or 3) for infringements caused by: i) the  modification of the Original Code or ii) the combination of the Original Code with other  software or devices.
+#2.1.d. Notwithstanding Section 2.1 ( <a href="#section-2.1-b">b</a> )  above, no patent license is granted: 1) for code that You delete from the Original Code;  2) separate from the Original Code; or 3) for infringements caused by: i) the  modification of the Original Code or ii) the combination of the Original Code with other  software or devices.
 
 @license_1051_h4
 #2.2. Contributor Grant
@@ -5045,10 +5045,10 @@ Source files
 #2.2.b. under Patent Claims infringed by the making, using, or selling of  Modifications made by that Contributor either alone and/or in combination with its  Contributor Version (or portions of such combination), to make, use, sell, offer for  sale, have made, and/or otherwise dispose of: 1) Modifications made by that Contributor  (or portions thereof); and 2) the combination of Modifications made by that Contributor  with its Contributor Version (or portions of such combination).
 
 @license_1055_p
-#2.2.c. the licenses granted in Sections 2.2  (<a href="#section-2.2-a">a</a>) and 2.2 (<a href="#section-2.2-b">b</a>) are effective  on the date Contributor first makes Commercial Use of the Covered Code.
+#2.2.c. the licenses granted in Sections 2.2  ( <a href="#section-2.2-a">a</a> ) and 2.2 ( <a href="#section-2.2-b">b</a> ) are effective  on the date Contributor first makes Commercial Use of the Covered Code.
 
 @license_1056_p
-#2.2.c. Notwithstanding Section 2.2 (<a href="#section-2.2-b">b</a>)  above, no patent license is granted: 1) for any code that Contributor has deleted from  the Contributor Version; 2) separate from the Contributor Version; 3) for infringements  caused by: i) third party modifications of Contributor Version or ii) the combination of  Modifications made by that Contributor with other software (except as part of the  Contributor Version) or other devices; or 4) under Patent Claims infringed by Covered Code  in the absence of Modifications made by that Contributor.
+#2.2.c. Notwithstanding Section 2.2 ( <a href="#section-2.2-b">b</a> )  above, no patent license is granted: 1) for any code that Contributor has deleted from  the Contributor Version; 2) separate from the Contributor Version; 3) for infringements  caused by: i) third party modifications of Contributor Version or ii) the combination of  Modifications made by that Contributor with other software (except as part of the  Contributor Version) or other devices; or 4) under Patent Claims infringed by Covered Code  in the absence of Modifications made by that Contributor.
 
 @license_1057_h3
 #3. Distribution Obligations
@@ -5057,7 +5057,7 @@ Source files
 #3.1. Application of License
 
 @license_1059_p
-#The Modifications which You create or to which You contribute are governed by the terms of this License, including without limitation Section<a href="#section-2.2">2.2</a>. The Source Code version of Covered Code may be distributed only under the terms of this License or a future version of this License released under Section<a href="#section-6.1">6.1</a>, and You must include a copy of this License with every copy of the Source Code You distribute. You may not offer or impose any terms on any Source Code version that alters or restricts the applicable version of this License or the recipients' rights hereunder. However, You may include an additional document offering the additional rights described in Section<a href="#section-3.5">3.5</a>.
+#The Modifications which You create or to which You contribute are governed by the terms of this License, including without limitation Section <a href="#section-2.2">2.2</a> . The Source Code version of Covered Code may be distributed only under the terms of this License or a future version of this License released under Section <a href="#section-6.1">6.1</a> , and You must include a copy of this License with every copy of the Source Code You distribute. You may not offer or impose any terms on any Source Code version that alters or restricts the applicable version of this License or the recipients' rights hereunder. However, You may include an additional document offering the additional rights described in Section <a href="#section-3.5">3.5</a> .
 
 @license_1060_h4
 #3.2. Availability of Source Code
@@ -5078,7 +5078,7 @@ Source files
 #3.4.a. Third Party Claims:
 
 @license_1066_p
-#If Contributor has knowledge that a license under a third party's intellectual property rights is required to exercise the rights granted by such Contributor under Sections<a href="#section-2.1">2.1</a>or<a href="#section-2.2">2.2</a>, Contributor must include a text file with the Source Code distribution titled "LEGAL" which describes the claim and the party making the claim in sufficient detail that a recipient will know whom to contact. If Contributor obtains such knowledge after the Modification is made available as described in Section<a href="#section-3.2">3.2</a>, Contributor shall promptly modify the LEGAL file in all copies Contributor makes available thereafter and shall take other steps (such as notifying appropriate mailing lists or newsgroups) reasonably calculated to inform those who received the Covered Code that new knowledge has been obtained.
+#If Contributor has knowledge that a license under a third party's intellectual property rights is required to exercise the rights granted by such Contributor under Sections <a href="#section-2.1">2.1</a> or <a href="#section-2.2">2.2</a> , Contributor must include a text file with the Source Code distribution titled "LEGAL" which describes the claim and the party making the claim in sufficient detail that a recipient will know whom to contact. If Contributor obtains such knowledge after the Modification is made available as described in Section <a href="#section-3.2">3.2</a> , Contributor shall promptly modify the LEGAL file in all copies Contributor makes available thereafter and shall take other steps (such as notifying appropriate mailing lists or newsgroups) reasonably calculated to inform those who received the Covered Code that new knowledge has been obtained.
 
 @license_1067_b
 #3.4.b. Contributor APIs:
@@ -5090,19 +5090,19 @@ Source files
 #3.4.c. Representations:
 
 @license_1070_p
-#Contributor represents that, except as disclosed pursuant to Section 3.4 (<a href="#section-3.4-a">a</a>) above, Contributor believes that Contributor's Modifications are Contributor's original creation(s) and/or Contributor has sufficient rights to grant the rights conveyed by this License.
+#Contributor represents that, except as disclosed pursuant to Section 3.4 ( <a href="#section-3.4-a">a</a> ) above, Contributor believes that Contributor's Modifications are Contributor's original creation(s) and/or Contributor has sufficient rights to grant the rights conveyed by this License.
 
 @license_1071_h4
 #3.5. Required Notices
 
 @license_1072_p
-#You must duplicate the notice in<a href="#exhibit-a">Exhibit A</a>in each file of the Source Code. If it is not possible to put such notice in a particular Source Code file due to its structure, then You must include such notice in a location (such as a relevant directory) where a user would be likely to look for such a notice. If You created one or more Modification(s) You may add your name as a Contributor to the notice described in<a href="#exhibit-a">Exhibit A</a>. You must also duplicate this License in any documentation for the Source Code where You describe recipients' rights or ownership rights relating to Covered Code. You may choose to offer, and to charge a fee for, warranty, support, indemnity or liability obligations to one or more recipients of Covered Code. However, You may do so only on Your own behalf, and not on behalf of the Initial Developer or any Contributor. You must make it absolutely clear than any such warranty, support, indemnity or liability obligation is offered by You alone, and You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of warranty, support, indemnity or liability terms You offer.
+#You must duplicate the notice in <a href="#exhibit-a">Exhibit A</a> in each file of the Source Code. If it is not possible to put such notice in a particular Source Code file due to its structure, then You must include such notice in a location (such as a relevant directory) where a user would be likely to look for such a notice. If You created one or more Modification(s) You may add your name as a Contributor to the notice described in <a href="#exhibit-a">Exhibit A</a> . You must also duplicate this License in any documentation for the Source Code where You describe recipients' rights or ownership rights relating to Covered Code. You may choose to offer, and to charge a fee for, warranty, support, indemnity or liability obligations to one or more recipients of Covered Code. However, You may do so only on Your own behalf, and not on behalf of the Initial Developer or any Contributor. You must make it absolutely clear than any such warranty, support, indemnity or liability obligation is offered by You alone, and You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of warranty, support, indemnity or liability terms You offer.
 
 @license_1073_h4
 #3.6. Distribution of Executable Versions
 
 @license_1074_p
-#You may distribute Covered Code in Executable form only if the requirements of Sections<a href="#section-3.1">3.1</a>,<a href="#section-3.2">3.2</a>,<a href="#section-3.3">3.3</a>,<a href="#section-3.4">3.4</a>and<a href="#section-3.5">3.5</a>have been met for that Covered Code, and if You include a notice stating that the Source Code version of the Covered Code is available under the terms of this License, including a description of how and where You have fulfilled the obligations of Section<a href="#section-3.2">3.2</a>. The notice must be conspicuously included in any notice in an Executable version, related documentation or collateral in which You describe recipients' rights relating to the Covered Code. You may distribute the Executable version of Covered Code or ownership rights under a license of Your choice, which may contain terms different from this License, provided that You are in compliance with the terms of this License and that the license for the Executable version does not attempt to limit or alter the recipient's rights in the Source Code version from the rights set forth in this License. If You distribute the Executable version under a different license You must make it absolutely clear that any terms which differ from this License are offered by You alone, not by the Initial Developer or any Contributor. You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of any such terms You offer.
+#You may distribute Covered Code in Executable form only if the requirements of Sections <a href="#section-3.1">3.1</a> , <a href="#section-3.2">3.2</a> , <a href="#section-3.3">3.3</a> , <a href="#section-3.4">3.4</a> and <a href="#section-3.5">3.5</a> have been met for that Covered Code, and if You include a notice stating that the Source Code version of the Covered Code is available under the terms of this License, including a description of how and where You have fulfilled the obligations of Section <a href="#section-3.2">3.2</a> . The notice must be conspicuously included in any notice in an Executable version, related documentation or collateral in which You describe recipients' rights relating to the Covered Code. You may distribute the Executable version of Covered Code or ownership rights under a license of Your choice, which may contain terms different from this License, provided that You are in compliance with the terms of this License and that the license for the Executable version does not attempt to limit or alter the recipient's rights in the Source Code version from the rights set forth in this License. If You distribute the Executable version under a different license You must make it absolutely clear that any terms which differ from this License are offered by You alone, not by the Initial Developer or any Contributor. You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of any such terms You offer.
 
 @license_1075_h4
 #3.7. Larger Works
@@ -5114,13 +5114,13 @@ Source files
 #4. Inability to Comply Due to Statute or Regulation.
 
 @license_1078_p
-#If it is impossible for You to comply with any of the terms of this License with respect to some or all of the Covered Code due to statute, judicial order, or regulation then You must: (a) comply with the terms of this License to the maximum extent possible; and (b) describe the limitations and the code they affect. Such description must be included in the<b>legal</b>file described in Section<a href="#section-3.4">3.4</a>and must be included with all distributions of the Source Code. Except to the extent prohibited by statute or regulation, such description must be sufficiently detailed for a recipient of ordinary skill to be able to understand it.
+#If it is impossible for You to comply with any of the terms of this License with respect to some or all of the Covered Code due to statute, judicial order, or regulation then You must: (a) comply with the terms of this License to the maximum extent possible; and (b) describe the limitations and the code they affect. Such description must be included in the <b>legal</b> file described in Section <a href="#section-3.4">3.4</a> and must be included with all distributions of the Source Code. Except to the extent prohibited by statute or regulation, such description must be sufficiently detailed for a recipient of ordinary skill to be able to understand it.
 
 @license_1079_h3
 #5. Application of this License.
 
 @license_1080_p
-#This License applies to code to which the Initial Developer has attached the notice in<a href="#exhibit-a">Exhibit A</a>and to related Covered Code.
+#This License applies to code to which the Initial Developer has attached the notice in <a href="#exhibit-a">Exhibit A</a> and to related Covered Code.
 
 @license_1081_h3
 #6. Versions of the License.
@@ -5132,7 +5132,7 @@ Source files
 #The
 
 @license_1084_em
-#H2 Group</em>may publish revised and/or new versions of the License from time to time. Each version will be given a distinguishing version number.
+#H2 Group</em> may publish revised and/or new versions of the License from time to time. Each version will be given a distinguishing version number.
 
 @license_1085_h4
 #6.2. Effect of New Versions
@@ -5141,10 +5141,10 @@ Source files
 #Once Covered Code has been published under a particular version of the License, You may always continue to use it under the terms of that version. You may also choose to use such Covered Code under the terms of any subsequent version of the License published by the
 
 @license_1087_em
-#H2 Group</em>. No one other than the
+#H2 Group</em> . No one other than the
 
 @license_1088_em
-#H2 Group</em>has the right to modify the terms applicable to Covered Code created under this License.
+#H2 Group</em> has the right to modify the terms applicable to Covered Code created under this License.
 
 @license_1089_h4
 #6.3. Derivative Works
@@ -5153,10 +5153,10 @@ Source files
 #If You create or use a modified version of this License (which you may only do in order to apply it to code which is not already Covered Code governed by this License), You must (a) rename Your license so that the phrases
 
 @license_1091_em
-#"H2 Group", "H2"</em>or any confusingly similar phrase do not appear in your license (except to note that your license differs from this License) and (b) otherwise make it clear that Your version of the license contains terms which differ from the
+#"H2 Group", "H2"</em> or any confusingly similar phrase do not appear in your license (except to note that your license differs from this License) and (b) otherwise make it clear that Your version of the license contains terms which differ from the
 
 @license_1092_em
-#H2 License</em>. (Filling in the name of the Initial Developer, Original Code or Contributor in the notice described in<a href="#exhibit-a">Exhibit A</a>shall not of themselves be deemed to be modifications of this License.)
+#H2 License</em> . (Filling in the name of the Initial Developer, Original Code or Contributor in the notice described in <a href="#exhibit-a">Exhibit A</a> shall not of themselves be deemed to be modifications of this License.)
 
 @license_1093_h3
 #7. Disclaimer of Warranty
@@ -5174,16 +5174,16 @@ Source files
 #8.2. If You initiate litigation by asserting a patent infringement claim (excluding declaratory judgment actions) against Initial Developer or a Contributor (the Initial Developer or Contributor against whom You file such action is referred to as "Participant") alleging that:
 
 @license_1098_p
-#8.2.a. such Participant's Contributor Version directly or indirectly  infringes any patent, then any and all rights granted by such Participant to You under  Sections<a href="#section-2.1">2.1</a>and/or<a href="#section-2.2">2.2</a>of this  License shall, upon 60 days notice from Participant terminate prospectively, unless if  within 60 days after receipt of notice You either: (i) agree in writing to pay  Participant a mutually agreeable reasonable royalty for Your past and future use of  Modifications made by such Participant, or (ii) withdraw Your litigation claim with  respect to the Contributor Version against such Participant. If within 60 days of  notice, a reasonable royalty and payment arrangement are not mutually agreed upon in  writing by the parties or the litigation claim is not withdrawn, the rights granted by  Participant to You under Sections<a href="#section-2.1">2.1</a>and/or<a href="#section-2.2">2.2</a>automatically terminate at the expiration of the 60 day  notice period specified above.
+#8.2.a. such Participant's Contributor Version directly or indirectly  infringes any patent, then any and all rights granted by such Participant to You under  Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> of this  License shall, upon 60 days notice from Participant terminate prospectively, unless if  within 60 days after receipt of notice You either: (i) agree in writing to pay  Participant a mutually agreeable reasonable royalty for Your past and future use of  Modifications made by such Participant, or (ii) withdraw Your litigation claim with  respect to the Contributor Version against such Participant. If within 60 days of  notice, a reasonable royalty and payment arrangement are not mutually agreed upon in  writing by the parties or the litigation claim is not withdrawn, the rights granted by  Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> automatically terminate at the expiration of the 60 day  notice period specified above.
 
 @license_1099_p
-#8.2.b. any software, hardware, or device, other than such Participant's  Contributor Version, directly or indirectly infringes any patent, then any rights  granted to You by such Participant under Sections 2.1(<a href="#section-2.1-b">b</a>)  and 2.2(<a href="#section-2.2-b">b</a>) are revoked effective as of the date You first  made, used, sold, distributed, or had made, Modifications made by that Participant.
+#8.2.b. any software, hardware, or device, other than such Participant's  Contributor Version, directly or indirectly infringes any patent, then any rights  granted to You by such Participant under Sections 2.1( <a href="#section-2.1-b">b</a> )  and 2.2( <a href="#section-2.2-b">b</a> ) are revoked effective as of the date You first  made, used, sold, distributed, or had made, Modifications made by that Participant.
 
 @license_1100_p
-#8.3. If You assert a patent infringement claim against Participant alleging that such Participant's Contributor Version directly or indirectly infringes any patent where such claim is resolved (such as by license or settlement) prior to the initiation of patent infringement litigation, then the reasonable value of the licenses granted by such Participant under Sections<a href="#section-2.1">2.1</a>or<a href="#section-2.2">2.2</a>shall be taken into account in determining the amount or value of any payment or license.
+#8.3. If You assert a patent infringement claim against Participant alleging that such Participant's Contributor Version directly or indirectly infringes any patent where such claim is resolved (such as by license or settlement) prior to the initiation of patent infringement litigation, then the reasonable value of the licenses granted by such Participant under Sections <a href="#section-2.1">2.1</a> or <a href="#section-2.2">2.2</a> shall be taken into account in determining the amount or value of any payment or license.
 
 @license_1101_p
-#8.4. In the event of termination under Sections<a href="#section-8.1">8.1</a>or<a href="#section-8.2">8.2</a>above, all end user license agreements (excluding distributors and resellers) which have been validly granted by You or any distributor hereunder prior to termination shall survive termination.
+#8.4. In the event of termination under Sections <a href="#section-8.1">8.1</a> or <a href="#section-8.2">8.2</a> above, all end user license agreements (excluding distributors and resellers) which have been validly granted by You or any distributor hereunder prior to termination shall survive termination.
 
 @license_1102_h3
 #9. Limitation of Liability
@@ -5204,13 +5204,13 @@ Source files
 #This License represents the complete agreement concerning subject matter hereof. If any provision of this License is held to be unenforceable, such provision shall be reformed only to the extent necessary to make it enforceable. This License shall be governed by
 
 @license_1108_em
-#Swiss</em>law provisions (except to the extent applicable law, if any, provides otherwise), excluding its conflict-of-law provisions. With respect to disputes in which at least one party is a citizen of, or an entity chartered or registered to do business in
+#Swiss</em> law provisions (except to the extent applicable law, if any, provides otherwise), excluding its conflict-of-law provisions. With respect to disputes in which at least one party is a citizen of, or an entity chartered or registered to do business in
 
 @license_1109_em
-#Switzerland</em>, any litigation relating to this License shall be subject to the jurisdiction of
+#Switzerland</em> , any litigation relating to this License shall be subject to the jurisdiction of
 
 @license_1110_em
-#Switzerland</em>,  with the losing party responsible for costs, including without limitation, court costs and reasonable attorneys' fees and expenses. The application of the United Nations Convention on Contracts for the International Sale of Goods is expressly excluded. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not apply to this License.
+#Switzerland</em> ,  with the losing party responsible for costs, including without limitation, court costs and reasonable attorneys' fees and expenses. The application of the United Nations Convention on Contracts for the International Sale of Goods is expressly excluded. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not apply to this License.
 
 @license_1111_h3
 #12. Responsibility for Claims
@@ -5222,7 +5222,7 @@ Source files
 #13. Multiple-Licensed Code
 
 @license_1114_p
-#Initial Developer may designate portions of the Covered Code as "Multiple-Licensed". "Multiple-Licensed" means that the Initial Developer permits you to utilize portions of the Covered Code under Your choice of this or the alternative licenses, if any, specified by the Initial Developer in the file described in<a href="#exhibit-a">Exhibit A</a>.
+#Initial Developer may designate portions of the Covered Code as "Multiple-Licensed". "Multiple-Licensed" means that the Initial Developer permits you to utilize portions of the Covered Code under Your choice of this or the alternative licenses, if any, specified by the Initial Developer in the file described in <a href="#exhibit-a">Exhibit A</a> .
 
 @license_1115_h3
 #Exhibit A
@@ -5231,19 +5231,19 @@ Source files
 H2 データベース エンジン
 
 @mainWeb_1001_p
-ようこそ、無料のSQLデータベース、H2へ。H2の主な特徴は:
+よ�?��?��??�?無料�?�SQLデータベース�?H2�?�。H2�?�主�?�特徴�?�:
 
 @mainWeb_1002_li
-速度がとても速く、全ての方が無料で使用でき、ソースコードが含まれています
+速度�?��?��?�も速�??�?全�?��?�方�?�無料�?�使用�?��??�?ソースコード�?��?��?�れ�?��?��?��?�
 
 @mainWeb_1003_li
-Javaで書かれています; GCJ (Linux) でコンパイル可能
+Java�?�書�?�れ�?��?��?��?�; GCJ (Linux) �?�コンパイル�?�能
 
 @mainWeb_1004_li
-エンベッド、サーバー、クラスターモードに対応
+エンベッド�?サー�?ー�?クラスターモード�?�対応
 
 @mainWeb_1005_li
-JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
+JDBC�? (部分的�?�) ODBC API; Web クライアントアプリケーション
 
 @mainWeb_1006_h3
 ダウンロード
@@ -5258,19 +5258,19 @@ Windows Installer (2.7 MB)
 All platforms (zip, 3.7 MB)
 
 @mainWeb_1010_a
-全てダウンロード
+全�?�ダウンロード
 
 @mainWeb_1011_td
 &nbsp;&nbsp;&nbsp;
 
 @mainWeb_1012_h3
-サポート
+サ�?ート
 
 @mainWeb_1013_a
-Google グループ: ヘルプとディスカッション
+Google グループ: ヘルプ�?�ディスカッション
 
 @mainWeb_1014_p
-e-mail はこちらから:
+e-mail �?��?��?�ら�?�ら:
 
 @mainWeb_1015_td
 &nbsp;
@@ -5279,7 +5279,7 @@ e-mail はこちらから:
 パフォーマンス
 
 @mainWeb_1017_td
-操作/秒 (高い方がより良い) -<a href="performance.html">このテストについての詳しい情報</a>
+�?作/秒 (高�?�方�?�より良�?�) -<a href="performance.html">�?��?�テスト�?��?��?��?��?�詳�?��?�情報</a>
 
 @mainWeb_1018_td
 &nbsp;
@@ -5291,13 +5291,13 @@ e-mail はこちらから:
 ニュースフィード:
 
 @mainWeb_1021_p
-二種類から選べます:<a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">フルテキスト (Atom)</a>または<a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">ヘッダーのみ (RSS)</a>.
+二種類�?�ら�?��?��?��?�:<a href="http://www.h2database.com/html/newsfeed-atom.xml" target="_blank">フルテキスト (Atom)</a>�?��?��?�<a href="http://www.h2database.com/html/newsfeed-rss.xml" target="_blank">ヘッダー�?��?� (RSS)</a>.
 
 @mainWeb_1022_b
 Email ニュースレター:
 
 @mainWeb_1023_form
-H2 データベース ニュース (Googleアカウントが必要です)  に署名し、ニューリリースについての情報を入手して下さい。 あなたのemailアドレスはこのコンテンツでのみ使用されます。 もしGoogleアカウントを入手したくないのであれば、 こちらのリストに入力して下さい:
+H2 データベース ニュース (Googleアカウント�?�必�?�?��?�)  �?�署�??�?��?ニューリリース�?��?��?��?��?�情報を入手�?��?�下�?��?�。 �?��?��?��?�emailアドレス�?��?��?�コンテンツ�?��?��?�使用�?�れ�?��?�。 も�?�Googleアカウントを入手�?��?��??�?��?��?��?��?�れ�?��? �?��?�ら�?�リスト�?�入力�?��?�下�?��?�:
 
 @mainWeb_1024_form
 Email:
@@ -5306,22 +5306,22 @@ Email:
 &nbsp;
 
 @mainWeb_1026_h3
-寄稿する
+寄稿�?�る
 
 @mainWeb_1027_p
-H2の発展のため、フィードバックやバグ報告を送ったり、H2コンソールアプリケーション (ファイル h2/src/main/org/h2/server/web/res/_text_*.properties)を訳すなど、 投稿することができます。また、下にある PayPal ボタンをクリックすることで 寄付することもできます。 支援者として、あなたの名前が載ります:
+H2�?�発展�?��?��?�?フィード�?ックや�?グ報告を�?�?��?�り�?H2コンソールアプリケーション (ファイル h2/src/main/org/h2/server/web/res/_text_*.properties)を訳�?��?��?��? 投稿�?�る�?��?��?��?��??�?��?�。�?��?��?下�?��?�る PayPal ボタンをクリック�?�る�?��?��?� 寄付�?�る�?��?�も�?��??�?��?�。 支�?�者�?��?��?��?�?��?��?��?��??�?�?�載り�?��?�:
 
 @mainWeb_1028_td
 &nbsp;
 
 @mainWeb_1029_h3
-フィードバック
+フィード�?ック
 
 @mainWeb_1030_td
-質問や要望、その他あらゆるフィードバックはこちらから送信して下さい:
+質�?や�?望�?�??�?�他�?�らゆるフィード�?ック�?��?��?�ら�?�ら�?信�?��?�下�?��?�:
 
 @mainWeb_1031_p
-Email (任意):
+Email (任�?):
 
 @mainWeb_1032_form
 メッセージ:
@@ -5330,7 +5330,7 @@ Email (任意):
 H2 データベース エンジン
 
 @main_1001_p
-ようこそ、無料のSQLデータベース、H2へ
+よ�?��?��??�?無料�?�SQLデータベース�?H2�?�
 
 @main_1002_a
 クイックスタート
@@ -5339,7 +5339,7 @@ H2 データベース エンジン
 Click here to get a fast overview.
 
 @main_1004_a
-チュートリアル
+�?ュートリアル
 
 @main_1005_p
 Go through the samples.
@@ -5351,7 +5351,7 @@ Go through the samples.
 See what this database can do and how to use these features.
 
 @performance_1000_h1
-#Performance
+パフォーマンス
 
 @performance_1001_a
 #Performance Comparison
@@ -6497,7 +6497,7 @@ See what this database can do and how to use these features.
 #Analyze First
 
 @performance_1382_p
-#Before trying to optimize the performance, it is important to know where the time is actually spent. The same is true for memory problems. Premature or 'blind' optimization should be avoided, as it is not an efficient way to solve the problem. There are various ways to analyze the application. In some situations it is possible to compare two implementations and use System.currentTimeMillis() to find out which one is faster. But this does not work for complex applications with many modules, and for memory problems. A very good tool to measure both the memory and the CPU is the<a href="http://www.yourkit.com">YourKit Java Profiler</a>. This tool is also used to optimize the performance and memory footprint of this database engine.
+#Before trying to optimize the performance, it is important to know where the time is actually spent. The same is true for memory problems. Premature or 'blind' optimization should be avoided, as it is not an efficient way to solve the problem. There are various ways to analyze the application. In some situations it is possible to compare two implementations and use System.currentTimeMillis() to find out which one is faster. But this does not work for complex applications with many modules, and for memory problems. A very good tool to measure both the memory and the CPU is the <a href="http://www.yourkit.com">YourKit Java Profiler</a> . This tool is also used to optimize the performance and memory footprint of this database engine.
 
 @performance_1383_h2
 #Database Performance Tuning
@@ -6512,7 +6512,7 @@ See what this database can do and how to use these features.
 #Using the Trace Options
 
 @performance_1387_p
-#If the main performance hot spots are in the database engine, in many cases the performance can be optimized by creating additional indexes, or changing the schema. Sometimes the application does not directly generate the SQL statements, for example if an O/R mapping tool is used. To view the SQL statements and JDBC API calls, you can use the trace options. For more information, see<a href="features.html#trace_options">Using the Trace Options</a>.
+#If the main performance hot spots are in the database engine, in many cases the performance can be optimized by creating additional indexes, or changing the schema. Sometimes the application does not directly generate the SQL statements, for example if an O/R mapping tool is used. To view the SQL statements and JDBC API calls, you can use the trace options. For more information, see <a href="features.html#trace_options">Using the Trace Options</a> .
 
 @performance_1388_h3
 #Index Usage
@@ -6578,10 +6578,10 @@ The database URL<code>jdbc:h2:~/test</code>opens the database 'test' in your use
 H2 コンソール アプリケーション
 
 @quickstartText_1009_p
-このコンソールはブラウザインターフェースを使ってSQL データベースにアクセスします。
+�?��?�コンソール�?�ブラウザインターフェースを使�?��?�SQL データベース�?�アクセス�?��?��?�。
 
 @quickstartText_1010_p
-Windows XPをご使用でなかったり、 期待通りに機能しない場合は、<a href="tutorial.html">チュートリアル</a>内の 詳細説明をご覧下さい。
+Windows XPを�?�使用�?��?��?��?��?�り�? 期待通り�?�機能�?��?��?�場�?��?��?<a href="tutorial.html">�?ュートリアル</a>内�?� 詳細説明を�?�覧下�?��?�。
 
 @quickstartText_1011_h3
 手順
@@ -6590,64 +6590,64 @@ Windows XPをご使用でなかったり、 期待通りに機能しない場合
 インストール
 
 @quickstartText_1013_p
-Windows インストーラーを使用してソフトウェアをインストールしましょう (まだインストールされていない場合)。
+Windows インストーラーを使用�?��?�ソフトウェアをインストール�?��?��?�ょ�?� (�?��?�インストール�?�れ�?��?��?��?�場�?�)。
 
 @quickstartText_1014_h4
-コンソールを起動する
+コンソールを起動�?�る
 
 @quickstartText_1015_p
-<span class="button">スタート</span>、
-<span class="button">すべてのプログラム</span>、
-<span class="button">H2</span>、
-<span class="button">H2 Console (Command Line)</span>をクリックします:
+<span class="button">スタート</span>�?
+<span class="button">�?��?��?��?�プログラム</span>�?
+<span class="button">H2</span>�?
+<span class="button">H2 Console (Command Line)</span>をクリック�?��?��?�:
 
 @quickstartText_1016_p
-コンソールウィンドウが 開きます:
+コンソールウィンドウ�?� 開�??�?��?�:
 
 @quickstartText_1017_p
-新しいブラウザで URL http://localhost:8082/ にアクセスして下さい。 ファイアーウォールによるセキュリティ警告を設定することができます。外部ネットワークから あなたのマシンのデータベースにアクセスされたくないのであれば、ファイアーウォールが他の接続を遮断します。 ローカル接続のみ必要です。
+新�?��?�ブラウザ�?� URL http://localhost:8082/ �?�アクセス�?��?�下�?��?�。 ファイアーウォール�?�よるセキュリティ警告を設定�?�る�?��?��?��?��??�?��?�。外部�?ットワーク�?�ら �?��?��?��?�マシン�?�データベース�?�アクセス�?�れ�?��??�?��?��?��?��?�れ�?��?ファイアーウォール�?�他�?�接続を�?�断�?��?��?�。 ローカル接続�?��?�必�?�?��?�。
 
 @quickstartText_1018_h4
 ログイン
 
 @quickstartText_1019_p
-<span class="button">Generic H2</span>を選び、<span class="button">Connect</span>をクリックします:
+<span class="button">Generic H2</span>を�?��?��?<span class="button">Connect</span>をクリック�?��?��?�:
 
 @quickstartText_1020_p
-ログインされました。
+ログイン�?�れ�?��?��?�。
 
 @quickstartText_1021_h4
 サンプル
 
 @quickstartText_1022_p
-<span class="button">Sample SQL Script</span>をクリックします。:
+<span class="button">Sample SQL Script</span>をクリック�?��?��?�。:
 
 @quickstartText_1023_p
-SQLコマンドがコマンドエリアに表示されます。
+SQLコマンド�?�コマンドエリア�?�表示�?�れ�?��?�。
 
 @quickstartText_1024_h4
-実行する
+実行�?�る
 
 @quickstartText_1025_p
-<span class="button">Run</span>をクリックします:
+<span class="button">Run</span>をクリック�?��?��?�:
 
 @quickstartText_1026_p
-左側のデータベースアイコンの下に、 新しいテーブル TEST が追加されます。動作とステートメントの結果は、スクリプトの下に表示されます。
+左�?��?�データベースアイコン�?�下�?��? 新�?��?�テーブル TEST �?�追加�?�れ�?��?�。動作�?�ステートメント�?��?果�?��?スクリプト�?�下�?�表示�?�れ�?��?�。
 
 @quickstartText_1027_h4
 切断
 
 @quickstartText_1028_p
-<span class="button">Disconnect</span>をクリックします:
+<span class="button">Disconnect</span>をクリック�?��?��?�:
 
 @quickstartText_1029_p
-データベースを閉じます
+データベースを閉�?��?��?�
 
 @quickstartText_1030_h4
 終了
 
 @quickstartText_1031_p
-コンソールウィンドウを閉じます。詳細は<a href="tutorial.html">チュートリアル</a>をご覧下さい。
+コンソールウィンドウを閉�?��?��?�。詳細�?�<a href="tutorial.html">�?ュートリアル</a>を�?�覧下�?��?�。
 
 @search_1000_b
 検索:
@@ -6665,7 +6665,7 @@ Highlight keyword(s)
 インストール
 
 @search_1005_a
-チュートリアル
+�?ュートリアル
 
 @search_1006_a
 特徴
@@ -6677,7 +6677,7 @@ Highlight keyword(s)
 Advanced Topics
 
 @search_1009_b
-参照
+�?�照
 
 @search_1010_a
 SQL文
@@ -6701,7 +6701,7 @@ PDFドキュメント
 構築
 
 @search_1017_a
-歴史とロードマップ
+歴�?��?�ロードマップ
 
 @search_1018_a
 Q&A
@@ -6710,49 +6710,49 @@ Q&A
 ライセンス
 
 @tutorial_1000_h1
-チュートリアル
+�?ュートリアル
 
 @tutorial_1001_a
-起動とH2コンソールの使用
+起動�?�H2コンソール�?�使用
 
 @tutorial_1002_a
-JDBCを使用してデータベースに接続
+JDBCを使用�?��?�データベース�?�接続
 
 @tutorial_1003_a
-新しいデータベースを作成する
+新�?��?�データベースを作�?�?�る
 
 @tutorial_1004_a
-サーバーを使用する
+サー�?ーを使用�?�る
 
 @tutorial_1005_a
-Hibernateを使用する
+Hibernateを使用�?�る
 
 @tutorial_1006_a
-Webアプリケーションで データベースを使用する
+Webアプリケーション�?� データベースを使用�?�る
 
 @tutorial_1007_a
-CSV (Comma Separated Values) サポート
+CSV (Comma Separated Values) サ�?ート
 
 @tutorial_1008_a
-アップグレード、 バックアップ、修復
+アップグレード�? �?ックアップ�?修復
 
 @tutorial_1009_a
-OpenOffice Baseを使用する
+OpenOffice Baseを使用�?�る
 
 @tutorial_1010_a
 Java Web Start / JNLP
 
 @tutorial_1011_h2
-起動とH2コンソールの使用
+起動�?�H2コンソール�?�使用
 
 @tutorial_1012_p
-このアプリケーションはブラウザインターフェースを使ってSQLデータベースにアクセスします。 これは、H2データベース、またはJDBC APIをサポートする別のデータベースであるかもしれません。
+�?��?�アプリケーション�?�ブラウザインターフェースを使�?��?�SQLデータベース�?�アクセス�?��?��?�。 �?�れ�?��?H2データベース�?�?��?��?�JDBC APIをサ�?ート�?�る別�?�データベース�?��?�る�?�も�?�れ�?��?�ん。
 
 @tutorial_1013_p
-これはクライアント / サーバーアプリケーションで、サーバーとクライアントの両方実行されることが必要です。
+�?�れ�?�クライアント / サー�?ーアプリケーション�?��?サー�?ー�?�クライアント�?�両方実行�?�れる�?��?��?�必�?�?��?�。
 
 @tutorial_1014_p
-プラットフォームと環境によって、アプリケーションの起動方法が多数あります:
+プラットフォーム�?�環境�?�よ�?��?��?アプリケーション�?�起動方法�?�多数�?�り�?��?�:
 
 @tutorial_1015_th
 OS
@@ -6764,174 +6764,174 @@ OS
 Windows
 
 @tutorial_1018_td
-[スタート]、 [すべてのプログラム]、 [H2]、 [H2 Console]をクリックします
+[スタート]�? [�?��?��?��?�プログラム]�? [H2]�? [H2 Console]をクリック�?��?��?�
 
 @tutorial_1019_td
-正しく動作したら、 システムトレイにアイコンが追加されます:
+正�?��??動作�?��?�ら�? システムトレイ�?�アイコン�?�追加�?�れ�?��?�:
 
 @tutorial_1020_td
-システムトレイアイコンが表示されなかったら、 Javaが正しくインストールされていないのかもしれません。  (この場合は、 他のアプリケーション起動方法を試して下さい) ブラウザウィンドウが開き、ログインページが表示されます。 (URL: http://localhost:8082/)
+システムトレイアイコン�?�表示�?�れ�?��?��?��?�ら�? Java�?�正�?��??インストール�?�れ�?��?��?��?��?��?�も�?�れ�?��?�ん。  (�?��?�場�?��?��? 他�?�アプリケーション起動方法を試�?��?�下�?��?�) ブラウザウィンドウ�?�開�??�?ログインページ�?�表示�?�れ�?��?�。 (URL: http://localhost:8082/)
 
 @tutorial_1021_td
 Windows
 
 @tutorial_1022_td
-ファイルブラウザを開き、h2/binフォルダまで進み、h2.batをダブルクリックします。
+ファイルブラウザを開�??�?h2/binフォルダ�?��?�進�?��?h2.batをダブルクリック�?��?��?�。
 
 @tutorial_1023_td
-正しく動作したら、システムトレイにアイコンが追加されます。 問題があれば、コンソールウィンドウにエラーメッセージが表示されます。 ブラウザウィンドウが開き、ログインページが表示されます。 (URL: http://localhost:8082/)
+正�?��??動作�?��?�ら�?システムトレイ�?�アイコン�?�追加�?�れ�?��?�。 �?題�?��?�れ�?��?コンソールウィンドウ�?�エラーメッセージ�?�表示�?�れ�?��?�。 ブラウザウィンドウ�?�開�??�?ログインページ�?�表示�?�れ�?��?�。 (URL: http://localhost:8082/)
 
 @tutorial_1024_td
 Any
 
 @tutorial_1025_td
-コンソールウィンドウを開き、'h2/lib'ディレクトリまで進み、下記を実行します:
+コンソールウィンドウを開�??�?'h2/lib'ディレクトリ�?��?�進�?��?下記を実行�?��?��?�:
 
 @tutorial_1026_h3
 ファイアウォール
 
 @tutorial_1027_p
-サーバーを起動させたら、ファイアウォールによるセキュリティ警告を受けるでしょう (1度インストールした場合)。外部ネットワークからあなたのマシンのデータベースにアクセスされたくないのであれば、ファイアーウォールが他の接続を遮断します。ローカルマシンからの接続はまだつながっています。他のコンピュータから、このコンピューターのデータベースにアクセスしたい場合のみ、 ファイアウォールでリモート接続を許可する必要があります。
+サー�?ーを起動�?��?��?�ら�?ファイアウォール�?�よるセキュリティ警告を�?��?�る�?��?�ょ�?� (1度インストール�?��?�場�?�)。外部�?ットワーク�?�ら�?��?��?��?�マシン�?�データベース�?�アクセス�?�れ�?��??�?��?��?��?��?�れ�?��?ファイアーウォール�?�他�?�接続を�?�断�?��?��?�。ローカルマシン�?�ら�?�接続�?��?��?��?��?��?��?��?��?��?��?�。他�?�コンピュータ�?�ら�?�?��?�コンピューター�?�データベース�?�アクセス�?��?��?�場�?��?��?��? ファイアウォール�?�リモート接続を許�?��?�る必�?�?��?�り�?��?�。
 
 @tutorial_1028_p
-小さなファイアーウォールはすでにサーバーに組み込まれています。 デフォルトによるこの構造は、他のコンピューターがサーバーにアクセスすることを許可していません。 これは、好きなように変更することができます (他のコンピューターからの接続を許可します)。
+�?�?��?�ファイアーウォール�?��?��?��?�サー�?ー�?�組�?�込�?�れ�?��?��?��?�。 デフォルト�?�よる�?��?�構造�?��?他�?�コンピューター�?�サー�?ー�?�アクセス�?�る�?��?�を許�?��?��?��?��?��?�ん。 �?�れ�?��?好�??�?�よ�?��?�変更�?�る�?��?��?��?��??�?��?� (他�?�コンピューター�?�ら�?�接続を許�?��?��?��?�)。
 
 @tutorial_1029_h3
-ネイティブ バージョン
+�?イティブ �?ージョン
 
 @tutorial_1030_p
-ネイティブ バージョンはJavaを必要としていません。なぜなら、これはGCJを使用してコンパイルされるからです。しかし、H2は現在、Windows上のGCJプロジェクトでは実行されません。異なったプラットフォームでソフトウェアをコンパイルすることが可能です。
+�?イティブ �?ージョン�?�Javaを必�?�?��?��?��?��?��?�ん。�?��?��?�ら�?�?�れ�?�GCJを使用�?��?�コンパイル�?�れる�?�ら�?��?�。�?��?��?��?H2�?��?�在�?Windows上�?�GCJプロジェクト�?��?�実行�?�れ�?��?�ん。異�?��?��?�プラットフォーム�?�ソフトウェアをコンパイル�?�る�?��?��?��?�能�?��?�。
 
 @tutorial_1031_h3
-Javaをテストする
+Javaをテスト�?�る
 
 @tutorial_1032_p
-インストールしたJavaのバージョンを調べるためには、 コマンドプロンプトを開き、 下記を入力します:
+インストール�?��?�Java�?��?ージョンを調�?�る�?��?�?��?��? コマンドプロンプトを開�??�? 下記を入力�?��?��?�:
 
 @tutorial_1033_p
-もしエラーメッセージが表示されたら、Javaのバイナリディレクトリを環境変数のPathに追加します。
+も�?�エラーメッセージ�?�表示�?�れ�?�ら�?Java�?��?イナリディレクトリを環境変数�?�Path�?�追加�?��?��?�。
 
 @tutorial_1034_h3
 エラーメッセージ 'Port is in use'
 
 @tutorial_1035_p
-ひとつのH2コンソールのみ起動することができます。 そうでなければ、次のようなエラーメッセージが表示されます:
+�?��?��?��?�H2コンソール�?��?�起動�?�る�?��?��?��?��??�?��?�。 �??�?��?��?��?�れ�?��?次�?�よ�?��?�エラーメッセージ�?�表示�?�れ�?��?�:
 <code>Port is in use, maybe another ... server already running on...</code>
-複数のコンソールアプリケーションを同じコンピューターで起動することは可能です (異なったポートを使用します)、しかし、コンソールが複数の同時接続を維持するということは、普通は必要とされていません。
+複数�?�コンソールアプリケーションを�?��?�コンピューター�?�起動�?�る�?��?��?��?�能�?��?� (異�?��?��?��?ートを使用�?��?��?�)�?�?��?��?��?コンソール�?�複数�?��?�時接続を維�?�?�る�?��?��?��?��?��?��?普通�?�必�?�?��?�れ�?��?��?��?�ん。
 
 @tutorial_1036_h3
-他のポートを使用する
+他�?��?ートを使用�?�る
 
 @tutorial_1037_p
-もしポートが他のアプリケーションによって使用されている場合は、H2コンソールを異なったポートで起動したいはずです。これは、.h2.server.properties.ファイル内のポートを変更することにより実行できます。このファイルはユーザディレクトリ内に格納されています (Windowsでは通常、"Documents and Settings/<ユーザ名>")。関連する項目はwebPortです。
+も�?��?ート�?�他�?�アプリケーション�?�よ�?��?�使用�?�れ�?��?�る場�?��?��?H2コンソールを異�?��?��?��?ート�?�起動�?��?��?��?��?��?��?�。�?�れ�?��?.h2.server.properties.ファイル内�?��?ートを変更�?�る�?��?��?�より実行�?��??�?��?�。�?��?�ファイル�?�ユーザディレクトリ内�?�格�?�?�れ�?��?��?��?� (Windows�?��?�通常�?"Documents and Settings/<ユーザ�??>")。関連�?�る項目�?�webPort�?��?�。
 
 @tutorial_1038_h3
-起動成功
+起動�?功
 
 @tutorial_1039_p
-コンソールウィンドウからのサーバー起動が成功したら、新しいウィンドウが開き、 下記のように表示されます:
+コンソールウィンドウ�?�ら�?�サー�?ー起動�?��?功�?��?�ら�?新�?��?�ウィンドウ�?�開�??�? 下記�?�よ�?��?�表示�?�れ�?��?�:
 
 @tutorial_1040_p
-ウィンドウ内をクリックしないで下さい; アプリケーションが遮断されてしまいます (Fast-Edit モードが有効の場合)。
+ウィンドウ内をクリック�?��?��?��?�下�?��?�; アプリケーション�?��?�断�?�れ�?��?��?��?��?��?� (Fast-Edit モード�?�有効�?�場�?�)。
 
 @tutorial_1041_h3
-ブラウザを使用してサーバーに接続
+ブラウザを使用�?��?�サー�?ー�?�接続
 
 @tutorial_1042_p
-サーバーの接続に成功したら、webブラウザを使用してサーバーに接続することができます。ブラウザにはJavaScript、フレーム、カスケードスタイルシート (css)のサポートが必要です。もし同じコンピューターのブラウザでサーバーを起動したら、 http://localhost:8082 へアクセスしてください。他のコンピューターからアプリケーションに接続したい場合は、 サーバーのIPアドレスを用意することが必要です。 例: http://192.168.0.2:8082 サーバー側でSSLを使用したい場合は、URLをHTTPSから始めます。
+サー�?ー�?�接続�?��?功�?��?�ら�?webブラウザを使用�?��?�サー�?ー�?�接続�?�る�?��?��?��?��??�?��?�。ブラウザ�?��?�JavaScript�?フレーム�?カスケードスタイルシート (css)�?�サ�?ート�?�必�?�?��?�。も�?��?��?�コンピューター�?�ブラウザ�?�サー�?ーを起動�?��?�ら�? http://localhost:8082 �?�アクセス�?��?��??�?��?��?�。他�?�コンピューター�?�らアプリケーション�?�接続�?��?��?�場�?��?��? サー�?ー�?�IPアドレスを用�?�?�る�?��?��?�必�?�?��?�。 例: http://192.168.0.2:8082 サー�?ー�?��?�SSLを使用�?��?��?�場�?��?��?URLをHTTPS�?�ら始�?�?��?�。
 
 @tutorial_1043_h3
-複数の同時セッション
+複数�?��?�時セッション
 
 @tutorial_1044_p
-複数の同時ブラウザセッションがサポートされています。 データベースオブジェクトはサーバーに属しているため、同時接続の数はサーバーアプリケーションの利用可能メモリによって制限されています。
+複数�?��?�時ブラウザセッション�?�サ�?ート�?�れ�?��?��?��?�。 データベースオブジェクト�?�サー�?ー�?�属�?��?��?�る�?��?�?�?�時接続�?�数�?�サー�?ーアプリケーション�?�利用�?�能メモリ�?�よ�?��?�制�?�?�れ�?��?��?��?�。
 
 @tutorial_1045_h3
 アプリケーションプロパティ
 
 @tutorial_1046_p
-サーバーを起動するとローカルのホームディレクトリに .h2.server.properties と呼ばれるファイル構成が作成されます。Windowsのインストールでは、このファイルは will be in the directory C:\Documents and Settings\[ユーザ名]のディレクトリ内にあります。このファイルはアプリケーションのセッティングに含まれています。
+サー�?ーを起動�?�る�?�ローカル�?�ホームディレクトリ�?� .h2.server.properties �?�呼�?�れるファイル構�?�?�作�?�?�れ�?��?�。Windows�?�インストール�?��?��?�?��?�ファイル�?� will be in the directory C:\Documents and Settings\[ユーザ�??]�?�ディレクトリ内�?��?�り�?��?�。�?��?�ファイル�?�アプリケーション�?�セッティング�?��?��?�れ�?��?��?��?�。
 
 @tutorial_1047_h3
 ログイン
 
 @tutorial_1048_p
-ログインページでは、データベースに接続するための接続情報を設定する必要があります。 JDBCドライバをデータベースのクラスに設定し、JDBCのURL、ユーザ名とパスワードを入力します。 完了したら [Connect] をクリックします。
+ログインページ�?��?��?データベース�?�接続�?�る�?��?�?�接続情報を設定�?�る必�?�?��?�り�?��?�。 JDBCドライ�?をデータベース�?�クラス�?�設定�?��?JDBC�?�URL�?ユーザ�??�?�パスワードを入力�?��?��?�。 完了�?��?�ら [Connect] をクリック�?��?��?�。
 
 @tutorial_1049_p
-保存された設定をあらかじめ保存し、再び使用することができます。設定はアプリケーションプロパティファイルに記憶されます。
+�?存�?�れ�?�設定を�?�ら�?��?��?�?存�?��?�?�?�使用�?�る�?��?��?��?��??�?��?�。設定�?�アプリケーションプロパティファイル�?�記憶�?�れ�?��?�。
 
 @tutorial_1050_h3
 エラーメッセージ
 
 @tutorial_1051_p
-エラーメッセージは赤で表示されます。 メッセージをクリックすることによって、例外の記録の表示、非表示を切り替えることができます。
+エラーメッセージ�?�赤�?�表示�?�れ�?��?�。 メッセージをクリック�?�る�?��?��?�よ�?��?��?例外�?�記録�?�表示�?�?�表示を切り替�?�る�?��?��?��?��??�?��?�。
 
 @tutorial_1052_h3
-データベースドライバの追加
+データベースドライ�?�?�追加
 
 @tutorial_1053_p
-H2DRIVERSかCLASSPATHの環境変数に、ドライバのJarファイルの位置を追加することにより、データベースドライバの追加を行うことができます。 例 (Windowsの場合): データベースドライバのライブラリに C:\Programs\hsqldb\lib\hsqldb.jar を追加し、H2DRIVERSの環境変数に C:\Programs\hsqldb\lib\hsqldb.jar を設定します。
+H2DRIVERS�?�CLASSPATH�?�環境変数�?��?ドライ�?�?�Jarファイル�?��?置を追加�?�る�?��?��?�より�?データベースドライ�?�?�追加を行�?��?��?��?��?��??�?��?�。 例 (Windows�?�場�?�): データベースドライ�?�?�ライブラリ�?� C:\Programs\hsqldb\lib\hsqldb.jar を追加�?��?H2DRIVERS�?�環境変数�?� C:\Programs\hsqldb\lib\hsqldb.jar を設定�?��?��?�。
 
 @tutorial_1054_p
-複数のドライバを設定することも可能です; それぞれのパスは ';' (Windows) や ':' (他のOS) で区切ります。 パス名内のスペースは有効です。設定は引用されません。
+複数�?�ドライ�?を設定�?�る�?��?�も�?�能�?��?�; �??れ�?�れ�?�パス�?� ';' (Windows) や ':' (他�?�OS) �?�区切り�?��?�。 パス�??内�?�スペース�?�有効�?��?�。設定�?�引用�?�れ�?��?�ん。
 
 @tutorial_1055_p
-ドライバの追加はJavaバージョンのみでサポートされています (この特徴はネイティブバージョンではサポートされていません)。
+ドライ�?�?�追加�?�Java�?ージョン�?��?��?�サ�?ート�?�れ�?��?��?��?� (�?��?�特徴�?��?イティブ�?ージョン�?��?�サ�?ート�?�れ�?��?��?��?�ん)。
 
 @tutorial_1056_h3
-アプリケーションを使用する
+アプリケーションを使用�?�る
 
 @tutorial_1057_p
-アプリケーションは3つのメインパネルを保持しています。上部のツールバー、左側のツリーとクエリ、右側の結果表示パネルです。データベースオブジェクト (例; テーブル) は左側のパネルに一覧表示されます。クエリパネルにSQLコマンドを打ち、 'Run' をクリックします。 コマンドの結果は、コマンドのすぐ下に表示されます。
+アプリケーション�?�3�?��?�メインパ�?ルを�?�?�?��?��?��?��?�。上部�?�ツール�?ー�?左�?��?�ツリー�?�クエリ�?�?��?��?��?果表示パ�?ル�?��?�。データベースオブジェクト (例; テーブル) �?�左�?��?�パ�?ル�?�一覧表示�?�れ�?��?�。クエリパ�?ル�?�SQLコマンドを打�?��? 'Run' をクリック�?��?��?�。 コマンド�?��?果�?��?コマンド�?��?��??下�?�表示�?�れ�?��?�。
 
 @tutorial_1058_h3
-テーブル名、またはカラム名をインサートする
+テーブル�??�?�?��?��?�カラム�??をインサート�?�る
 
 @tutorial_1059_p
-テーブル名やカラム名は、ツリー内のテーブル名、カラム名をクリックすることによってスクリプトにインサートすることができます。クエリが空の時にテーブルをクリックすると、 'SELECT * FROM ...' も同様に追加されます。 クエリを入力している間、使用されているテーブルはツリー内で自動的に拡張されます。例えば、 'SELECT * FROM TEST T WHERE T.' と入力すると、ツリー内のTESTテーブルは自動的に拡張されます。
+テーブル�??やカラム�??�?��?ツリー内�?�テーブル�??�?カラム�??をクリック�?�る�?��?��?�よ�?��?�スクリプト�?�インサート�?�る�?��?��?��?��??�?��?�。クエリ�?�空�?�時�?�テーブルをクリック�?�る�?��? 'SELECT * FROM ...' も�?�様�?�追加�?�れ�?��?�。 クエリを入力�?��?��?�る間�?使用�?�れ�?��?�るテーブル�?�ツリー内�?�自動的�?�拡張�?�れ�?��?�。例�?��?��? 'SELECT * FROM TEST T WHERE T.' �?�入力�?�る�?��?ツリー内�?�TESTテーブル�?�自動的�?�拡張�?�れ�?��?�。
 
 @tutorial_1060_h3
-切断とアプリケーションの終了
+切断�?�アプリケーション�?�終了
 
 @tutorial_1061_p
-ブラウザでは、ツールバーパネルの 'Disconnect' をクリックします。データベースからログアウトします。しかし、サーバーはまだ接続されていて、 新しいセッションを受け入れる準備をしています。
+ブラウザ�?��?��?ツール�?ーパ�?ル�?� 'Disconnect' をクリック�?��?��?�。データベース�?�らログアウト�?��?��?�。�?��?��?��?サー�?ー�?��?��?�接続�?�れ�?��?��?��? 新�?��?�セッションを�?��?�入れる準備を�?��?��?��?��?�。
 
 @tutorial_1062_p
-サーバーを止めるためには、システムトレイアイコンを右クリックし、 [Exit] を選択します。もしアイコンが表示されていないのであれば、 (別の方法で実行した場合) サーバーが実行されたコンソール上で [Ctrl]+[C] を押すか (Windowsの場合)、コンソールウィンドウを閉じます。
+サー�?ーを止�?る�?��?�?��?��?システムトレイアイコンを�?�クリック�?��? [Exit] を�?�択�?��?��?�。も�?�アイコン�?�表示�?�れ�?��?��?��?��?��?��?�れ�?��? (別�?�方法�?�実行�?��?�場�?�) サー�?ー�?�実行�?�れ�?�コンソール上�?� [Ctrl]+[C] を押�?��?� (Windows�?�場�?�)�?コンソールウィンドウを閉�?��?��?�。
 
 @tutorial_1063_h2
-JDBCを使用してデータベースに接続
+JDBCを使用�?��?�データベース�?�接続
 
 @tutorial_1064_p
-データベースに接続するためにJavaアプリケーションに最初に必要なことは、 データベースドライバをロードし、接続することです。簡単な方法は、次のコードを使用します:
+データベース�?�接続�?�る�?��?�?�Javaアプリケーション�?�最�?�?�必�?�?��?��?��?��? データベースドライ�?をロード�?��?接続�?�る�?��?��?��?�。簡�?��?�方法�?��?次�?�コードを使用�?��?��?�:
 
 @tutorial_1065_p
-このコードは最初にドライバをロードして (Class.forName())、 接続を開始します (DriverManager.getConnection())。 このドライバの名前は全てのケースにおいて "org.h2.Driver" です。 データベースに認識されるため、データベースのURLは常に jdbc:h2: から始まります。 getConnection() 内の2番目のパラメーターはユーザ名を指しています ('sa' はこの場合、システム管理者を表しています)。3番目のパラメーターはパスワードです。このデータベースでは、ユーザ名は大文字と小文字を区別していませんが、パスワードは大文字と小文字を区別しています。
+�?��?�コード�?�最�?�?�ドライ�?をロード�?��?� (Class.forName())�? 接続を開始�?��?��?� (DriverManager.getConnection())。 �?��?�ドライ�?�?��??�?�?�全�?��?�ケース�?��?��?��?� "org.h2.Driver" �?��?�。 データベース�?��?識�?�れる�?��?�?データベース�?�URL�?�常�?� jdbc:h2: �?�ら始�?�り�?��?�。 getConnection() 内�?�2番目�?�パラメーター�?�ユーザ�??を指�?��?��?��?��?� ('sa' �?��?��?�場�?��?システム管�?�者を表�?��?��?��?��?�)。3番目�?�パラメーター�?�パスワード�?��?�。�?��?�データベース�?��?��?ユーザ�??�?�大文字�?��?文字を区別�?��?��?��?��?�ん�?��?パスワード�?�大文字�?��?文字を区別�?��?��?��?��?�。
 
 @tutorial_1066_h2
-新しいデータベースを作成する
+新�?��?�データベースを作�?�?�る
 
 @tutorial_1067_p
-初期設定では、データベースの指定されたURLがまだ存在しない場合、自動的に新しい (空の) データベースが作られます。
+�?期設定�?��?��?データベース�?�指定�?�れ�?�URL�?��?��?�存在�?��?��?�場�?��?自動的�?�新�?��?� (空�?�) データベース�?�作られ�?��?�。
 
 @tutorial_1068_h2
-サーバーを使用する
+サー�?ーを使用�?�る
 
 @tutorial_1069_p
-H2は現在、3つのサーバーをサポートしています: Webサーバー、TCPサーバー、ODBCサーバーです。 これらのサーバーは異なった方法で起動します。
+H2�?��?�在�?3�?��?�サー�?ーをサ�?ート�?��?��?��?��?�: Webサー�?ー�?TCPサー�?ー�?ODBCサー�?ー�?��?�。 �?�れら�?�サー�?ー�?�異�?��?��?�方法�?�起動�?��?��?�。
 
 @tutorial_1070_h3
-コマンドラインから起動する
+コマンドライン�?�ら起動�?�る
 
 @tutorial_1071_p
-初期設定でコマンドラインからサーバーを起動させるには、次のように実行します。
+�?期設定�?�コマンドライン�?�らサー�?ーを起動�?��?�る�?��?��?次�?�よ�?��?�実行�?��?��?�。
 
 @tutorial_1072_p
-サーバーはデフォルトオプションで起動します。オプションの一覧を取得するには、次のように実行します。
+サー�?ー�?�デフォルトオプション�?�起動�?��?��?�。オプション�?�一覧を�?�得�?�る�?��?��?次�?�よ�?��?�実行�?��?��?�。
 
 @tutorial_1073_p
-異なったポートの使用が可能なオプションや、サーバーの一部を起動、終了させるオプションなどがあります。 詳細はサーバーツールのAPIドキュメントをご覧下さい。
+異�?��?��?��?ート�?�使用�?��?�能�?�オプションや�?サー�?ー�?�一部を起動�?終了�?��?�るオプション�?��?��?��?�り�?��?�。 詳細�?�サー�?ーツール�?�APIドキュメントを�?�覧下�?��?�。
 
 @tutorial_1074_h3
 #Connecting to the TCP Server
@@ -6949,121 +6949,121 @@ Database URL: jdbc:h2:tcp://localhost/~/test
 #For details about the database URL, see also in Features.
 
 @tutorial_1079_h3
-アプリケーション内で起動する
+アプリケーション内�?�起動�?�る
 
 @tutorial_1080_p
-アプリケーション内からサーバーを起動、終了することも可能です。 以下はサンプルコードです:
+アプリケーション内�?�らサー�?ーを起動�?終了�?�る�?��?�も�?�能�?��?�。 以下�?�サンプルコード�?��?�:
 
 @tutorial_1081_h3
-他の過程からTCPサーバーを終了する
+他�?��?�程�?�らTCPサー�?ーを終了�?�る
 
 @tutorial_1082_p
-TCPサーバーは他の過程から終了することができます。 コマンドラインからサーバーを終了するには、次のように実行します:
+TCPサー�?ー�?�他�?��?�程�?�ら終了�?�る�?��?��?��?��??�?��?�。 コマンドライン�?�らサー�?ーを終了�?�る�?��?��?次�?�よ�?��?�実行�?��?��?�:
 
 @tutorial_1083_p
-ユーザアプリケーションからサーバーを終了するには、次のコードを使用します:
+ユーザアプリケーション�?�らサー�?ーを終了�?�る�?��?��?次�?�コードを使用�?��?��?�:
 
 @tutorial_1084_p
-この機能はサーバー上の System.exit を呼んでいます。この機能は、データベースが次回起動された時のリカバリーを回避するため、データベースへの全ての接続が切断された後に呼ばれます。リモートサーバーを終了するには、サーバー上でリモート接続が可能である必要があります。
+�?��?�機能�?�サー�?ー上�?� System.exit を呼ん�?��?��?��?�。�?��?�機能�?��?データベース�?�次回起動�?�れ�?�時�?�リカ�?リーを回�?��?�る�?��?�?データベース�?��?�全�?��?�接続�?�切断�?�れ�?�後�?�呼�?�れ�?��?�。リモートサー�?ーを終了�?�る�?��?��?サー�?ー上�?�リモート接続�?��?�能�?��?�る必�?�?��?�り�?��?�。
 
 @tutorial_1085_h3
-サーバーの制限
+サー�?ー�?�制�?
 
 @tutorial_1086_p
-現在、サーバーやクラスターモードを使用する時にいくつかの制限があります:
+�?�在�?サー�?ーやクラスターモードを使用�?�る時�?��?��??�?��?��?�制�?�?��?�り�?��?�:
 
 @tutorial_1087_li
-Statement.cancel() はエンベッドモードのみサポートされています。接続はサーバー、またはクラスターモードで1度にひとつのオペレーションで実行され、 このオペレーションが終了するまで接続は遮断されます。
+Statement.cancel() �?�エンベッドモード�?��?�サ�?ート�?�れ�?��?��?��?�。接続�?�サー�?ー�?�?��?��?�クラスターモード�?�1度�?��?��?��?��?�オペレーション�?�実行�?�れ�? �?��?�オペレーション�?�終了�?�る�?��?�接続�?��?�断�?�れ�?��?�。
 
 @tutorial_1088_h2
-Hibernateを使用する
+Hibernateを使用�?�る
 
 @tutorial_1089_p
-このデータベースはHibernate version 3.1 と以降の新しいバージョンをサポートしています。 HSQLDB Dialect、または H2 Dialectは src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内で使用可能です。 H2 dialectは Hibernateのより新しいバージョンに含まれています。H2 dialectが含まれていないバージョンでは、 src\org\hibernate\dialect (Hibernate 3.1の場合) フォルダ内のファイルをコピーし、 H2Dialect.java にファイル名を変更し、 Hibernateを再びコンパイルします。
+�?��?�データベース�?�Hibernate version 3.1 �?�以�?�?�新�?��?��?ージョンをサ�?ート�?��?��?��?��?�。 HSQLDB Dialect�?�?��?��?� H2 Dialect�?� src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内�?�使用�?�能�?��?�。 H2 dialect�?� Hibernate�?�より新�?��?��?ージョン�?��?��?�れ�?��?��?��?�。H2 dialect�?��?��?�れ�?��?��?��?��?ージョン�?��?��? src\org\hibernate\dialect (Hibernate 3.1�?�場�?�) フォルダ内�?�ファイルをコピー�?��? H2Dialect.java �?�ファイル�??を変更�?��? Hibernateを�?�?�コンパイル�?��?��?�。
 
 @tutorial_1090_h2
-Webアプリケーションでデータベースを使用する
+Webアプリケーション�?�データベースを使用�?�る
 
 @tutorial_1091_p
-Webアプリケーション内からデータベースに接続するには様々な方法があります。 以下はTomcatかJBossを使用の場合のいくつかの例です。
+Webアプリケーション内�?�らデータベース�?�接続�?�る�?��?�様々�?�方法�?��?�り�?��?�。 以下�?�Tomcat�?�JBossを使用�?�場�?��?��?��??�?��?��?�例�?��?�。
 
 @tutorial_1092_h3
 エンベッドモード
 
 @tutorial_1093_p
-(現在)最も簡単なソリューションはエンベッドモードでデータベースを使用することです。 それは、アプリケーションが起動する時や (良いソリューションは Servletリスナーを使用します。下記参照)、セッションが起動する時、アプリケーションにおける接続が開始するということを意味します。データベースは、セッションやアプリケーションが同じ過程で実行している限り、多様なセッションやアプリケーションから同時に接続されることが可能です。 多くのServletコンテナは (例； Tomcat) ただひとつのプロセスで利用されるので、問題はありません。 (Tomcatをクラスターモードで起動している場合を除いて)。 Tomcatはマルチスレッドとマルチクラスローダーを使用しています。もし複数のアプリケーションが同じデータベースに同時にアクセスする場合、データベースjarをshared/lib、またはserver/libディレクトリに置く必要があります。 webアプリケーションが起動した時にデータベースを開き、webアプリケーションが終了した時にデータベースを閉じるのが良い方法です。もし複数のアプリケーションを使用する場合、そのうちひとつのアプリケーションをこのように動作することが必要です。アプリケーションでは、セッションごとにひとつの接続を使うか、リクエスト(アクション)ごとにひとつの接続を使うという概念があります。これらの接続はできる限り、使用後に終了させます(しかし、終了させなくても悪くはありません)。
+(�?�在)最も簡�?��?�ソリューション�?�エンベッドモード�?�データベースを使用�?�る�?��?��?��?�。 �??れ�?��?アプリケーション�?�起動�?�る時や (良�?�ソリューション�?� Servletリスナーを使用�?��?��?�。下記�?�照)�?セッション�?�起動�?�る時�?アプリケーション�?��?��?�る接続�?�開始�?�る�?��?��?��?��?�を�?味�?��?��?�。データベース�?��?セッションやアプリケーション�?��?��?��?�程�?�実行�?��?��?�る�?り�?多様�?�セッションやアプリケーション�?�ら�?�時�?�接続�?�れる�?��?��?��?�能�?��?�。 多�??�?�Servletコンテナ�?� (例； Tomcat) �?��?��?��?��?��?�プロセス�?�利用�?�れる�?��?��?�?題�?��?�り�?��?�ん。 (Tomcatをクラスターモード�?�起動�?��?��?�る場�?�を除�?��?�)。 Tomcat�?�マル�?スレッド�?�マル�?クラスローダーを使用�?��?��?��?��?�。も�?�複数�?�アプリケーション�?��?��?�データベース�?��?�時�?�アクセス�?�る場�?��?データベースjarをshared/lib�?�?��?��?�server/libディレクトリ�?�置�??必�?�?��?�り�?��?�。 webアプリケーション�?�起動�?��?�時�?�データベースを開�??�?webアプリケーション�?�終了�?��?�時�?�データベースを閉�?�る�?��?�良�?�方法�?��?�。も�?�複数�?�アプリケーションを使用�?�る場�?��?�??�?��?��?��?��?��?��?�アプリケーションを�?��?�よ�?��?�動作�?�る�?��?��?�必�?�?��?�。アプリケーション�?��?��?セッション�?��?��?��?��?��?��?�接続を使�?��?��?リクエスト(アクション)�?��?��?��?��?��?��?�接続を使�?��?��?��?�概念�?��?�り�?��?�。�?�れら�?�接続�?��?��??る�?り�?使用後�?�終了�?��?��?��?�(�?��?��?��?終了�?��?��?��??�?�も悪�??�?��?�り�?��?�ん)。
 
 @tutorial_1094_h3
-サーバーモード
+サー�?ーモード
 
 @tutorial_1095_p
-サーバーモードは類似していますが、他のプロセスでサーバーを起動させることを許可しています。
+サー�?ーモード�?�類似�?��?��?��?��?��?��?他�?�プロセス�?�サー�?ーを起動�?��?�る�?��?�を許�?��?��?��?��?��?�。
 
 @tutorial_1096_h3
-データベースの起動と終了にServletリスナーを使用する
+データベース�?�起動�?�終了�?�Servletリスナーを使用�?�る
 
 @tutorial_1097_p
-以下を web.xmlファイルに追記して下さい。 (context-paramとfilterの間):
+以下を web.xmlファイル�?�追記�?��?�下�?��?�。 (context-param�?�filter�?�間):
 
 @tutorial_1098_p
 #For details on how to access the database, see the code DbStarter.java
 
 @tutorial_1099_h2
-CSV (Comma Separated Values) サポート
+CSV (Comma Separated Values) サ�?ート
 
 @tutorial_1100_p
-データベースにCSVREADとCSVWRITEの関数を使用することで、 CSVファイルサポートを使用することができ、スタンドアロンツールとしてデータベースの外でCSVライブラリを使用することができます。
+データベース�?�CSVREAD�?�CSVWRITE�?�関数を使用�?�る�?��?��?��? CSVファイルサ�?ートを使用�?�る�?��?��?��?��??�?スタンドアロンツール�?��?��?�データベース�?�外�?�CSVライブラリを使用�?�る�?��?��?��?��??�?��?�。
 
 @tutorial_1101_h3
-データベース内からCSVファイルに書き込む
+データベース内�?�らCSVファイル�?�書�??込む
 
 @tutorial_1102_p
-クエリからCSVファイルを作成するのに、組込み関数 CSVWRITEを使用することができます。例:
+クエリ�?�らCSVファイルを作�?�?�る�?��?��?組込�?�関数 CSVWRITEを使用�?�る�?��?��?��?��??�?��?�。例:
 
 @tutorial_1103_h3
-データベース内からCSVファイルを読み込む
+データベース内�?�らCSVファイルを読�?�込む
 
 @tutorial_1104_p
-CSVREAD関数を使用してCSVファイルを読み込むことができます。 例:
+CSVREAD関数を使用�?��?�CSVファイルを読�?�込む�?��?��?��?��??�?��?�。 例:
 
 @tutorial_1105_h3
-JavaアプリケーションからCSVファイルに書き込む
+Javaアプリケーション�?�らCSVファイル�?�書�??込む
 
 @tutorial_1106_p
-データベースを全く使用しなくても、JavaアプリケーションでCSVツールを使用することができます。 例:
+データベースを全�??使用�?��?��??�?�も�?Javaアプリケーション�?�CSVツールを使用�?�る�?��?��?��?��??�?��?�。 例:
 
 @tutorial_1107_h3
-JavaアプリケーションからCSVファイルを読み込む
+Javaアプリケーション�?�らCSVファイルを読�?�込む
 
 @tutorial_1108_p
-データベースを開かなくてもCSVファイルを読み込むことができます。 例:
+データベースを開�?��?��??�?�もCSVファイルを読�?�込む�?��?��?��?��??�?��?�。 例:
 
 @tutorial_1109_h2
-アップグレード、バックアップ、修復
+アップグレード�?�?ックアップ�?修復
 
 @tutorial_1110_h3
-データベースのアップグレー
+データベース�?�アップグレー
 
 @tutorial_1111_p
-あるバージョンのデータベースエンジンを次のバージョンにアップグレードする際の推奨する方法は、 古いエンジンを使って(SQLスクリプトのフォームでの)データベースのバックアップを作成し、新しいエンジンを使ってSQLスクリプトを実行します。
+�?�る�?ージョン�?�データベースエンジンを次�?��?ージョン�?�アップグレード�?�る際�?�推奨�?�る方法�?��? �?��?�エンジンを使�?��?�(SQLスクリプト�?�フォーム�?��?�)データベース�?��?ックアップを作�?�?��?新�?��?�エンジンを使�?��?�SQLスクリプトを実行�?��?��?�。
 
 @tutorial_1112_h3
-バックアップ
+�?ックアップ
 
 @tutorial_1113_p
-異なった方法のデータベースのバックアップがあります。例えば、データベースファイルをコピーすることが可能です。しかしながら、この方法はデータベースが使用されている間は推奨しません。データベースは人が判読しやすく、極めて大きいというわけではありません。データベースバックアップの推奨する方法は、圧縮したSQLスクリプトを作成することです。この方法は、バックアップツールを使用することで可能です:
+異�?��?��?�方法�?�データベース�?��?ックアップ�?��?�り�?��?�。例�?��?��?データベースファイルをコピー�?�る�?��?��?��?�能�?��?�。�?��?��?��?��?�ら�?�?��?�方法�?�データベース�?�使用�?�れ�?��?�る間�?�推奨�?��?��?�ん。データベース�?�人�?�判読�?�や�?��??�?極�?�?�大�??�?��?��?��?��?�?��?��?��?�り�?��?�ん。データベース�?ックアップ�?�推奨�?�る方法�?��?圧縮�?��?�SQLスクリプトを作�?�?�る�?��?��?��?�。�?��?�方法�?��?�?ックアップツールを使用�?�る�?��?��?��?�能�?��?�:
 
 @tutorial_1114_p
-オプションについての情報は、SQLコマンドスクリプトをご覧下さい。バックアップは遠隔で行えますが、ファイルはサーバー側に作られます。サーバーからファイルを取るのに、ビルトインFTPサーバーを使用することができます。データベースのバックアップを作るのに、SQLコマンドスクリプトを 使用することもできます。
+オプション�?��?��?��?��?�情報�?��?SQLコマンドスクリプトを�?�覧下�?��?�。�?ックアップ�?��?�隔�?�行�?��?��?��?��?ファイル�?�サー�?ー�?��?�作られ�?��?�。サー�?ー�?�らファイルを�?�る�?��?��?ビルトインFTPサー�?ーを使用�?�る�?��?��?��?��??�?��?�。データベース�?��?ックアップを作る�?��?��?SQLコマンドスクリプトを 使用�?�る�?��?�も�?��??�?��?�。
 
 @tutorial_1115_h3
 修復
 
 @tutorial_1116_p
-SQLスクリプトファイルからデータベースを修復するには、RunScriptツールを使用する必要があります:
+SQLスクリプトファイル�?�らデータベースを修復�?�る�?��?��?RunScriptツールを使用�?�る必�?�?��?�り�?��?�:
 
 @tutorial_1117_p
-オプションについての情報は、SQLコマンド RUNSCRIPTをご覧下さい。修復は遠隔で行えますが、サーバー側にファイルが存在する必要があります。サーバーからファイルをコピーするのに、ビルトインFTPサーバーを使用することができます。SQLスクリプトを実行するために、 SQLコマンド RUNSCRIPTを使用することができます。SQLスクリプトファイルには、RUNSCRIPTコマンドのフォーム内に他のスクリプトファイルのリファレンスが含まれています。しかしながら、サーバーモードを使用している時、リファレンススクリプトファイルはサーバー側で利用可能であることが必要です。
+オプション�?��?��?��?��?�情報�?��?SQLコマンド RUNSCRIPTを�?�覧下�?��?�。修復�?��?�隔�?�行�?��?��?��?��?サー�?ー�?��?�ファイル�?�存在�?�る必�?�?��?�り�?��?�。サー�?ー�?�らファイルをコピー�?�る�?��?��?ビルトインFTPサー�?ーを使用�?�る�?��?��?��?��??�?��?�。SQLスクリプトを実行�?�る�?��?�?��? SQLコマンド RUNSCRIPTを使用�?�る�?��?��?��?��??�?��?�。SQLスクリプトファイル�?��?��?RUNSCRIPTコマンド�?�フォーム内�?�他�?�スクリプトファイル�?�リファレンス�?��?��?�れ�?��?��?��?�。�?��?��?��?��?�ら�?サー�?ーモードを使用�?��?��?�る時�?リファレンススクリプトファイル�?�サー�?ー�?��?�利用�?�能�?��?�る�?��?��?�必�?�?��?�。
 
 @tutorial_1118_h3
 #Online Backup
@@ -7075,31 +7075,31 @@ SQLスクリプトファイルからデータベースを修復するには、Ru
 #The Backup tool (org.h2.tools.Backup) can not be used to create a online backup; the database must not be in use while running this program.
 
 @tutorial_1121_h2
-OpenOffice Baseを使用する
+OpenOffice Baseを使用�?�る
 
 @tutorial_1122_p
-OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
+OpenOffice.org Base �?�JDBC API上�?�データベースアクセスをサ�?ート�?��?��?��?��?�。 OpenOffice Baseを使�?��?�H2データベース�?�接続�?�る�?��?�?��?��?最�?�?�OpenOffice�?�JDBCドライ�?を追加�?�る必�?�?��?�り�?��?�。H2データベース�?�接続�?�る手順:
 
 @tutorial_1123_li
-オートスタートを含め、OpenOfficeを終了する
+オートスタートを�?��?�?OpenOfficeを終了�?�る
 
 @tutorial_1124_li
-h2.jar ファイルを <OpenOffice>\program\classes ディレクトリ内にコピーする
+h2.jar ファイルを <OpenOffice>\program\classes ディレクトリ内�?�コピー�?�る
 
 @tutorial_1125_li
-OpenOffice Base を起動する
+OpenOffice Base を起動�?�る
 
 @tutorial_1126_li
-存在するデータベースに接続し、JDBCを選択し、[Next] をクリックする
+存在�?�るデータベース�?�接続�?��?JDBCを�?�択�?��?[Next] をクリック�?�る
 
 @tutorial_1127_li
-データソースURLの例: jdbc:h2:c:/temp/test
+データソースURL�?�例: jdbc:h2:c:/temp/test
 
 @tutorial_1128_li
-JDBCドライバクラス: org.h2.Driver
+JDBCドライ�?クラス: org.h2.Driver
 
 @tutorial_1129_p
-これで、C:/temp ディレクトリ内に格納されているデータベースにアクセス可能です。
+�?�れ�?��?C:/temp ディレクトリ内�?�格�?�?�れ�?��?�るデータベース�?�アクセス�?�能�?��?�。
 
 @tutorial_1130_h2
 #Java Web Start / JNLP

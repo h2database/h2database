@@ -28,9 +28,9 @@ public class SpellChecker {
     private static final String[] SUFFIX = new String[]{
         "html", "java", "sql", "txt", "xml", "jsp", "css", "bat", "csv", "xml", "js", "Driver", "properties", "task", "php", "" };
     private static final String[] IGNORE = new String[]{
-        "cpp", "h", "win", "dev", "def", "nsi", 
-        "gif", "png", "odg", "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar"};
+        "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar"};
     private static final String PREFIX_IGNORE = "abc";
+    private static final String IGNORE_FILE = "mainWeb.html";
     
     public static void main(String[] args) throws IOException {
         String dir = "src";
@@ -102,6 +102,9 @@ public class SpellChecker {
                     ignore = true;
                     break;
                 }
+            }
+            if(fileName.endsWith(IGNORE_FILE)) {
+                ignore = true;
             }
             if(ignore) {
                 return;

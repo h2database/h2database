@@ -14,10 +14,10 @@ function loadFrameset() {
 }
 
 function frameMe(frame) {
-	if(location.host.indexOf('h2database') < 0) {
-		// allow translation
-		return;
-	}
+    if(location.host.indexOf('h2database') < 0) {
+        // allow translation
+        return;
+    }
     var frameset = "frame.html"; // name of the frameset page
     if(frame == null) {
         frame = 'main';

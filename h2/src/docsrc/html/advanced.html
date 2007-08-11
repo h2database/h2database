@@ -107,7 +107,7 @@ This database supports the following transaction isolation levels:
 </p>
 <ul>
 <li><b>Read Committed</b><br />
-	This is the default level.
+    This is the default level.
     Read locks are released immediately.
     Higher concurrency is possible when using this level.<br />
     To enable, execute the SQL statement    'SET LOCK_MODE 3'<br />
@@ -640,7 +640,7 @@ This method does not require a watchdog thread actively polling (reading) the sa
 file every second. The problem with this method is, if the file is stored on a network
 share, two processes (running on different computers) could still open the same
 database files, if they do not have a direct TCP/IP connection.
-<p>
+</p>
 
 <br /><a name="sql_injection"></a>
 <h2>Protection against SQL Injection</h2>
@@ -649,16 +649,20 @@ database files, if they do not have a direct TCP/IP connection.
 This database engine provides a solution for the security vulnerability known as 'SQL Injection'.
 Here is a short description of what SQL injection means.
 Some applications build SQL statements with embedded user input such as:
+</p>
 <pre>
 String sql = "SELECT * FROM USERS WHERE PASSWORD='"+pwd+"'";
 ResultSet rs = conn.createStatement().executeQuery(sql);
 </pre>
+<p>
 If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded,
 it is possible for a user to inject SQL functionality or statements by using specially built input 
 such as (in this example) this password: ' OR ''='. In this case the statement becomes:
+</p>
 <pre>
 SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
 </pre>
+<p>
 Which is always true no matter what the password stored in the database is. 
 For more information about SQL Injection, see Glossary and Links.
 </p>
@@ -667,18 +671,22 @@ For more information about SQL Injection, see Glossary and Links.
 <p>
 SQL Injection is not possible if user input is not directly embedded in SQL statements.
 A simple solution for the problem above is to use a PreparedStatement:
+</p>
 <pre>
 String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
 PreparedStatement prep = conn.prepareStatement(sql);
 prep.setString(1, pwd);
 ResultSet rs = prep.executeQuery();
 </pre>
+<p>
 This database provides a way to enforce usage of parameters when passing user input
 to the database. This is done by disabling embedded literals in SQL statements.
 To do this, execute the statement:
+</p>
 <pre>
 SET ALLOW_LITERALS NONE;
 </pre>
+<p>
 Afterwards, SQL statements with text and number literals are not allowed any more.
 That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail.
 It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate
@@ -695,12 +703,14 @@ Disabling literals also means disabling hard-coded 'constant' literals. This dat
 defining constants using the CREATE CONSTANT command. Constants can be defined only 
 when literals are enabled, but used even when literals are disabled. To avoid name clashes
 with column names, constants can be defined in other schemas:
+</p>
 <pre>
 CREATE SCHEMA CONST AUTHORIZATION SA;
 CREATE CONSTANT CONST.ACTIVE VALUE 'Active';
 CREATE CONSTANT CONST.INACTIVE VALUE 'Inactive';
 SELECT * FROM USERS WHERE TYPE=CONST.ACTIVE;
 </pre>
+<p>
 Even when literals are enabled, it is better to use constants instead
 of hard-coded number or text literals in queries or views. With constants, typos are found at compile
 time, the source code is easier to understand and change.
@@ -709,10 +719,10 @@ time, the source code is easier to understand and change.
 <h3>Using the ZERO() Function</h3>
 <p>
 It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
+</p>
 <pre>
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
-</p>
 
 <br /><a name="security_protocols"></a>
 <h2>Security Protocols</h2>

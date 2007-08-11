@@ -25,7 +25,7 @@ INSERT INTO ITEM VALUES(26,
 </li><li>The per session undo log can now be disabled.
 </li><li>Referential integrity can now be disabled.
 </li><li>To avoid memory problems when using large transactions,
-	h2.defaultMaxMemoryUndo is now 50000.    
+    h2.defaultMaxMemoryUndo is now 50000.    
 </li><li>DEFAULT_MAX_LENGTH_INPLACE_LOB is now 1024.
 </li><li>The cache size is now measured in KB.
 </li><li>Optimization for NOT, boolean columns, and certain joins. 

@@ -48,7 +48,7 @@ public class PrepareTranslation {
         buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
         
-        // convert the properies files back to utf8 text files, including the main lanuage (to be used as a template)
+        // convert the properties files back to utf8 text files, including the main language (to be used as a template)
         PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_en.properties", "src/docsrc/text/_docs_en.utf8.txt");
         PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_de.properties", "src/docsrc/text/_docs_de.utf8.txt");
         PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties", "src/docsrc/text/_docs_ja.utf8.txt");

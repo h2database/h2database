@@ -85,7 +85,7 @@ public class Message {
     }
 
     public static JdbcSQLException getSQLException(int errorCode, String[] param) {
-        return getSQLException(errorCode, param);
+        return getSQLException(errorCode, param, null);
     }
 
     public static SQLException getSyntaxError(String sql, int index) {

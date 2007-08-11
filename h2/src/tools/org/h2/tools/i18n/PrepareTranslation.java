@@ -35,7 +35,7 @@ public class PrepareTranslation {
         
         // convert the txt files to properties files
         PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt", "src/docsrc/text/_docs_de.properties");
-        // PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_ja.utf8.txt", "src/docsrc/text/_docs_ja.properties");
+        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_ja.utf8.txt", "src/docsrc/text/_docs_ja.properties");
         
         // create the .jsp files and extract the text in the main language
         extractFromHtml("src/docsrc/html", "src/docsrc/text", MAIN_LANGUAGE);
@@ -46,12 +46,12 @@ public class PrepareTranslation {
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
         buildHtml("src/docsrc/text", "docs/html", "de");
-        // buildHtml("src/docsrc/text", "docs/html", "ja");
+        buildHtml("src/docsrc/text", "docs/html", "ja");
         
         // convert the properies files back to utf8 text files, including the main lanuage (to be used as a template)
         PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_en.properties", "src/docsrc/text/_docs_en.utf8.txt");
         PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_de.properties", "src/docsrc/text/_docs_de.utf8.txt");
-        // PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties", "src/docsrc/text/_docs_ja.utf8.txt");
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties", "src/docsrc/text/_docs_ja.utf8.txt");
         
         // delete temporary files
         File[] list = new File("src/docsrc/text").listFiles();
@@ -73,8 +73,22 @@ public class PrepareTranslation {
             throw new IOException("Translation not found: " + propName);
         }
         Properties transProp = FileUtils.loadProperties(propName);
-        // overload with this language
-        prop.putAll(transProp);
+        for(Iterator it = transProp.keySet().iterator(); it.hasNext(); ) {
+            String key = (String) it.next();
+            String t = transProp.getProperty(key);
+            // overload with translations, but not the ones starting with #
+            if(!t.startsWith("#")) {
+                prop.put(key, t);
+            }
+        }
+        // add spaces to each token
+        for(Iterator it = prop.keySet().iterator(); it.hasNext(); ) {
+            String key = (String) it.next();
+            String t = prop.getProperty(key);
+            prop.put(key, " " + t + " ");
+        }
+        
+        
         ArrayList fileNames = new ArrayList();
         for(int i=0; i<list.length; i++) {
             String name = list[i].getName();
@@ -238,6 +252,7 @@ public class PrepareTranslation {
                         || "span".equals(name)) {
                     // keep tags if wrapped, but not if this is the wrapper
                     if (buff.length() > 0) {
+                        buff.append(' ');
                         buff.append(parser.getToken().trim());
                         ignoreEnd = false;
                     } else {
@@ -279,6 +294,7 @@ public class PrepareTranslation {
                     } else {
                         if(buff.length() > 0) {
                             buff.append(parser.getToken());
+                            buff.append(' ');
                         }
                     }
                 } else {
@@ -367,8 +383,7 @@ public class PrepareTranslation {
             }
         }
         Properties p = FileUtils.loadProperties(main.getAbsolutePath());
-        Properties base = FileUtils.loadProperties(baseDir + "/"
-                + main.getName());
+        Properties base = FileUtils.loadProperties(baseDir + "/" + main.getName());
         PropertiesToUTF8.storeProperties(p, main.getAbsolutePath());
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
@@ -380,31 +395,55 @@ public class PrepareTranslation {
     private static void prepare(Properties main, Properties base, File trans)
             throws IOException {
         Properties p = FileUtils.loadProperties(trans.getAbsolutePath());
+        Properties oldTranslations = new Properties();
+        for(Iterator it = base.keySet().iterator(); it.hasNext();  ) {
+            String key = (String) it.next();
+            String m = base.getProperty(key);
+            String t = p.getProperty(key);
+            if(!t.startsWith("#")) {
+                oldTranslations.setProperty(m, t);
+            }
+        }
         // add missing keys, using # and the value from the main file
         Iterator it = main.keySet().iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
             String now = main.getProperty(key);
             if (!p.containsKey(key)) {
-                System.out
-                        .println(trans.getName()
-                                + ": key "
-                                + key
-                                + " not found in translation file; added dummy # 'translation'");
-                p.put(key, "#" + now);
+                String t = oldTranslations.getProperty(now);
+                if(t == null) {
+                    System.out
+                            .println(trans.getName()
+                                    + ": key "
+                                    + key
+                                    + " not found in translation file; added dummy # 'translation'");
+                    t = "#" + now;
+                }
+                p.put(key, t);
             } else {
+                String t = p.getProperty(key);
                 String last = base.getProperty(key);
-                if (last != null && !last.equals(now)) {
-                    // main data changed since the last run: review translation
-                    System.out.println(trans.getName() + ": key " + key
-                            + " changed; last=" + last + " now=" + now);
-                    String old = p.getProperty(key);
-                    p.put(key, "#" + now + " #" + old);
+                if (t.startsWith("#")) {
+                    // not translated before
+                    t = oldTranslations.getProperty(now);
+                    if(t == null) {
+                        t =  "#" + now;
+                    }
+                    p.put(key, t);
+                } else if (last != null && !last.equals(now)) {
+                    t = oldTranslations.getProperty(now);
+                    if(t == null) {
+                        // main data changed since the last run: review translation
+                        System.out.println(trans.getName() + ": key " + key
+                                + " changed, please review; last=" + last + " now=" + now);
+                        String old = p.getProperty(key);
+                        t =  "#" + now + " #" + old;
+                    }
+                    p.put(key, t);
                 }
             }
         }
-        // remove keys that don't exist in the main file (deleted or typo in the
-        // key)
+        // remove keys that don't exist in the main file (deleted or typo in the key)
         it = new ArrayList(p.keySet()).iterator();
         while (it.hasNext()) {
             String key = (String) it.next();

@@ -33,7 +33,10 @@ public class PropertiesToUTF8 {
         convert("bin/org/h2/server/web/res", ".");
     }
     
-    private static void propertiesToTextUTF8(String source, String target) throws Exception {
+    static void propertiesToTextUTF8(String source, String target) throws Exception {
+        if(!new File(source).exists()) {
+            return;
+        }
         Properties prop = FileUtils.loadProperties(source);
         FileOutputStream out = new FileOutputStream(target);
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, "UTF-8"));
@@ -48,21 +51,29 @@ public class PropertiesToUTF8 {
         writer.close();
     }
     
-    private static void textUTF8ToProperties(String source, String target) throws Exception {
+    static void textUTF8ToProperties(String source, String target) throws Exception {
+        if(!new File(source).exists()) {
+            return;
+        }
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new FileInputStream(source), "UTF-8"));
         Properties prop = new SortedProperties();
         StringBuffer buff = new StringBuffer();
         String key = null;
         while(true) {
-            String line = reader.readLine().trim();
+            String line = reader.readLine();
             if(line == null) {
                 break;
+            }
+            line = line.trim();
+            if(line.length() == 0) {
+                continue;
             }
             if(line.startsWith("@")) {
                 if(key != null) {
                     prop.setProperty(key, buff.toString());
                     buff.setLength(0);
                 }
+                key = line.substring(1);
             } else {
                 if(buff.length() > 0) {
                     buff.append(System.getProperty("line.separator"));

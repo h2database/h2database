@@ -138,6 +138,7 @@
 		<java classname="org.h2.tools.doc.GenerateDoc" classpath="bin">
 			<arg line="-in src/docsrc/html -out docs/html"/>
 		</java>
+		<java classname="org.h2.tools.i18n.PrepareTranslation" classpath="bin"/>
 		<java classname="org.h2.tools.indexer.Indexer" classpath="bin">
 			<arg line="-dir docs -destDir docs/html"/>
 		</java>

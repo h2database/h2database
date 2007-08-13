@@ -18,7 +18,7 @@ import org.h2.util.FileUtils;
 public class TestFileLock extends TestBase implements Runnable {
 
     int wait;
-    static final int KILL = 10;
+    static final int KILL = 5;
     static final String FILE = BASE_DIR + "/test.lock";
 
     private boolean allowSockets;
@@ -38,7 +38,7 @@ public class TestFileLock extends TestBase implements Runnable {
             Thread.sleep(wait + (int) (Math.random() * wait));
         }
         trace("wait");
-        Thread.sleep(100);
+        Thread.sleep(500);
         stop = true;
         trace("STOP file");
         for (int i = 0; i < threadCount; i++) {
@@ -77,7 +77,7 @@ public class TestFileLock extends TestBase implements Runnable {
                 base.trace(lock + " locked");
                 locks++;
                 if (locks > 1) {
-                    System.err.println("ERROR! LOCKS=" + locks);
+                    System.err.println("ERROR! LOCKS=" + locks + " sockets=" + allowSockets);
                     stop = true;
                 }
                 Thread.sleep(wait + (int) (Math.random() * wait));

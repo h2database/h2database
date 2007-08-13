@@ -38,7 +38,7 @@ public class FileLock {
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket";
     private static final int RANDOM_BYTES = 16;
-    private static final int SLEEP_GAP = 20;
+    private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
 
     private String method, ipAddress;
@@ -49,6 +49,8 @@ public class FileLock {
     private volatile ServerSocket socket;
     private boolean locked;
     private Trace trace;
+    
+    // private java.nio.channels.FileLock fileLock;
 
     public FileLock(TraceSystem traceSystem,  int sleep) {
         this.trace = traceSystem.getTrace(Trace.FILE_LOCK);

@@ -40,7 +40,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build xx)</h3><ul>
-<li>Improved error messages: some tools can't show the root cause of an exception. 
+<li>Some unit tests failed on Linux because the file system works differently. The unit tests are fixed and should work now.
+</li><li>Can now incrementally translate the documentation. See also FAQ.
+</li><li>Improved error messages: some tools can't show the root cause of an exception. 
     Adding the message of the root cause to the message of the thrown exception now where it makes sense.
 </li><li>The H2 Console can now connect to databases using JNDI. The driver class name must be a javax.naming.Context,
     (for example javax.naming.InitialContext), and the URL the resource name (for example java:comp/env/jdbc/Test).
@@ -1120,6 +1122,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support N'text'
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>Support DESCRIBE like MySQL or Oracle (DESC|DESCRIBE {[schema.]object[@connect_identifier]})
+</li><li>Set a connection read only (Connection.setReadOnly)
 </li></ul>
 
 <h3>Not Planned</h3>

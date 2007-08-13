@@ -816,18 +816,19 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>In Version 1.1</h3>
 <ul>
 <li>Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar. Micro version: use build number, staring with 1.1.100
+</li><li>Automatic upgrade if there is a file format change
 </li><li>ALTER TABLE on a table with a LOB could result in 'Cannot delete file' on some systems. Fixed.
 </li><li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
 </li><li>Enable and document optimizations, LOB files in directories
 </li><li>Special methods for DataPage.writeByte / writeShort and so on
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Change the default for NULL || 'x' to NULL
-</li><li>Automatic upgrade if there is a file format change
 </li></ul>
 
 <h3>Priority 1</h3>
 <ul>
 <li>MVCC (Multi Version Concurrency Control)
+</li><li>Read-only databases inside a jar (splitting large files to speed up random access)
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Improve performance for create table (if this is possible)
@@ -836,7 +837,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
 </li><li>Row level locking
-</li><li>Read-only databases inside a jar (splitting large files to speed up random access)
 </li><li>System table: open sessions and locks of a database
 </li><li>Function in management db: list open connections and databases of a (TCP) server
 </li><li>Fix right outer joins
@@ -864,10 +864,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Priority 2</h3>
 <ul>
 <li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
-</li><li>Procedural language / script language
+</li><li>Procedural language / script language (Javascript)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
+</li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
+</li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>System table / function: cache usage
 </li><li>User defined aggregate functions
 </li><li>Add a migration guide (list differences between databases)
@@ -905,7 +907,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
 </li><li>Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
-</li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 </li><li>Make the jar more modular
 </li><li>Drop with restrict (currently cascade is the default)
@@ -963,7 +964,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>LIKE: improved version for larger texts (currently using naive search)
 </li><li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
 </li><li>The Script tool should work with other databases as well
-</li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional)
 </li><li>Default date format for input and output (local date constants)
@@ -1123,6 +1123,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>Support DESCRIBE like MySQL or Oracle (DESC|DESCRIBE {[schema.]object[@connect_identifier]})
 </li><li>Set a connection read only (Connection.setReadOnly)
+</li><li>Read-only sessions (Connection.setReadOnly)
 </li></ul>
 
 <h3>Not Planned</h3>

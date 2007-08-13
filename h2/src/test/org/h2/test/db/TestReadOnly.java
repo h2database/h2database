@@ -5,6 +5,7 @@
 package org.h2.test.db;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -19,16 +20,34 @@ public class TestReadOnly extends TestBase {
         if(config.memory) {
             return;
         }
+        
+        File f = File.createTempFile("test", "temp");
+        check(f.canWrite());
+        f.setReadOnly();
+        check(!f.canWrite());
+        f.delete();
+
+        f = File.createTempFile("test", "temp");
+        RandomAccessFile r = new RandomAccessFile(f, "rw");
+        r.write(1);
+        f.setReadOnly();
+        r.close();
+        check(!f.canWrite());
+        f.delete();
+
         deleteDb("readonly");
         Connection conn = getConnection("readonly");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
+        check(!conn.isReadOnly());
         conn.close();
         
         setReadOnly();
+        
         conn = getConnection("readonly");
+        check(conn.isReadOnly());
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         try {

@@ -129,5 +129,9 @@ public class ConstraintUnique extends Constraint {
     public boolean isBefore() {
         return true;
     }
+    
+    public void checkExistingData(Session session) throws SQLException {
+        // no need to check: when creating the unique index any problems are found
+    }
 
 }

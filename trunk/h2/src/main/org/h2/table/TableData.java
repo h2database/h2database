@@ -48,15 +48,19 @@ public class TableData extends Table implements RecordReader {
     private boolean globalTemporary;
     private final ObjectArray indexes = new ObjectArray();
     private long lastModificationId;
+    private final boolean clustered;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
-            boolean persistent) throws SQLException {
+            boolean persistent, boolean clustered) throws SQLException {
         super(schema, id, tableName, persistent);
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
         setColumns(cols);
-        scanIndex = new ScanIndex(this, id, cols, IndexType.createScan(persistent));
-        indexes.add(scanIndex);
+        this.clustered = clustered;
+        if(!clustered) {
+            scanIndex = new ScanIndex(this, id, cols, IndexType.createScan(persistent));
+            indexes.add(scanIndex);
+        }
         traceLock = database.getTrace(Trace.LOCK);
     }
 
@@ -67,8 +71,8 @@ public class TableData extends Table implements RecordReader {
         }
     }
 
-    public Row getRow(int key) throws SQLException {
-        return scanIndex.getRow(key);
+    public Row getRow(Session session, int key) throws SQLException {
+        return scanIndex.getRow(session, key);
     }
 
     public void addRow(Session session, Row row) throws SQLException {
@@ -152,7 +156,7 @@ public class TableData extends Table implements RecordReader {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
-        if(index.needRebuild()) {
+        if(index.needRebuild() && rowCount > 0) {
             try {
                 Index scan = getScanIndex(session);
                 long remaining = scan.getRowCount();
@@ -278,6 +282,9 @@ public class TableData extends Table implements RecordReader {
         if(lockMode == Constants.LOCK_MODE_OFF) {
             return;
         }
+        if(SysProperties.MVCC) {
+            return;
+        }
         long max = System.currentTimeMillis() + session.getLockTimeout();
         synchronized(database) {
             while (true) {
@@ -401,7 +408,7 @@ public class TableData extends Table implements RecordReader {
         }
     }
 
-    public Record read(DataPage s) throws SQLException {
+    public Record read(Session session, DataPage s) throws SQLException {
         int len = s.readInt();
         Value[] data = new Value[len];
         for(int i=0; i<len; i++) {
@@ -474,6 +481,10 @@ public class TableData extends Table implements RecordReader {
 
     public long getMaxDataModificationId() {
         return lastModificationId;
+    }
+    
+    public boolean isClustered() {
+        return clustered;
     }
 
 }

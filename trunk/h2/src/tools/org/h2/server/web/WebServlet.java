@@ -31,7 +31,7 @@ public class WebServlet extends HttpServlet {
         Enumeration en = config.getInitParameterNames();
         ArrayList list = new ArrayList();
         while(en.hasMoreElements()) {
-            String name = (String) en.nextElement();
+            String name = en.nextElement().toString();
             String value = config.getInitParameter(name);
             if(!name.startsWith("-")) {
                 name = "-" + name;
@@ -90,13 +90,13 @@ public class WebServlet extends HttpServlet {
         Properties attributes = new Properties();
         Enumeration en = req.getAttributeNames();
         while(en.hasMoreElements()) {
-            String name = (String) en.nextElement();
-            String value = (String) req.getAttribute(name);
+            String name = en.nextElement().toString();
+            String value = req.getAttribute(name).toString();
             attributes.put(name, value);
         }
         en = req.getParameterNames();
         while(en.hasMoreElements()) {
-            String name = (String) en.nextElement();
+            String name = en.nextElement().toString();
             String value = req.getParameter(name);
             attributes.put(name, value);
         }

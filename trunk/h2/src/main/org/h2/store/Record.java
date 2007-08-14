@@ -6,6 +6,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Session;
 import org.h2.util.CacheObject;
 
 /**
@@ -13,6 +14,7 @@ import org.h2.util.CacheObject;
  */
 public abstract class Record extends CacheObject {
     private boolean deleted;
+    private int sessionId;
     private int storageId;
     private int lastLog = LogSystem.LOG_WRITTEN;
     private int lastPos = LogSystem.LOG_WRITTEN;
@@ -34,9 +36,19 @@ public abstract class Record extends CacheObject {
         return false;
     }
 
-    public void setDeleted(boolean deleted) {
+    public void setDeleted(Session session, boolean deleted) {
+        this.sessionId = session.getId();
         this.deleted = deleted;
     }
+    
+    public int getSessionId() {
+        int testing;
+        return sessionId;
+    }
+    
+    public void commit() {
+        this.sessionId = 0;
+    }    
 
     public boolean getDeleted() {
         return deleted;

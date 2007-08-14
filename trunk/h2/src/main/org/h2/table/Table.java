@@ -450,8 +450,14 @@ public abstract class Table extends SchemaObject {
         return false;
     }
 
-    public void setCheckForeignKeyConstraints(boolean b) {
-        checkForeignKeyConstraints = b;
+    public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting) throws SQLException {
+        if(enabled && checkExisting) {
+            for(int i=0; i<constraints.size(); i++) {
+                Constraint c = (Constraint) constraints.get(i);
+                c.checkExistingData(session);
+            }
+        }
+        checkForeignKeyConstraints = enabled;
     }
 
     public boolean getCheckForeignKeyConstraints() {
@@ -486,6 +492,10 @@ public abstract class Table extends SchemaObject {
 
     public void setOnCommitTruncate(boolean onCommitTruncate) {
         this.onCommitTruncate = onCommitTruncate;
+    }
+
+    public boolean isClustered() {
+        return false;
     }
 
 }

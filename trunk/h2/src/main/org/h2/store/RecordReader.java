@@ -5,10 +5,11 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+import org.h2.engine.Session;
 
 /**
  * @author Thomas
  */
 public interface RecordReader {
-    Record read(DataPage s) throws SQLException;
+    Record read(Session session, DataPage s) throws SQLException;
 }

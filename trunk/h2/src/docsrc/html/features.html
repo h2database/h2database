@@ -1312,7 +1312,7 @@ of a database and re-build the database from the script.
 The database keeps most frequently used data and index pages in the main memory.
 The amount of memory used for caching can be changed using the setting 
 CACHE_SIZE. This setting can be set in the database connection URL 
-(jdbc:h2:~/test;CACHE_SIZE=200000), or it can be changed at runtime using
+(jdbc:h2:~/test;CACHE_SIZE=131072), or it can be changed at runtime using
 SET CACHE_SIZE size.
 </p><p>
 This database supports two cache page replacement algorithms: LRU (the default) and

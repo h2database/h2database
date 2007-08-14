@@ -358,7 +358,7 @@ public class DiskFile implements CacheWriter {
         return ((long)block * BLOCK_SIZE) + OFFSET;
     }
 
-    synchronized Record getRecordIfStored(int pos, RecordReader reader, int storageId) throws SQLException {
+    synchronized Record getRecordIfStored(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
         try {
             int owner = getPageOwner(getPage(pos));
             if(owner != storageId) {
@@ -377,10 +377,10 @@ public class DiskFile implements CacheWriter {
         } catch (Exception e) {
             return null;
         }
-        return getRecord(pos, reader, storageId);
+        return getRecord(session, pos, reader, storageId);
     }
     
-    synchronized Record getRecord(int pos, RecordReader reader, int storageId) throws SQLException {
+    synchronized Record getRecord(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
         if(file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
@@ -413,7 +413,7 @@ public class DiskFile implements CacheWriter {
                 s.readInt();
             }
             s.check(blockCount*BLOCK_SIZE);
-            Record r = reader.read(s);
+            Record r = reader.read(session, s);
             r.setStorageId(storageId);
             r.setPos(pos);
             r.setBlockCount(blockCount);

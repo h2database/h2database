@@ -73,17 +73,17 @@ public class UndoLogRecord {
             }
             break;
         case DELETE:
-                try {
-                    row.setPos(0);
-                    table.addRow(session, row);
-                } catch(SQLException e) {
-                    if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                        // it might have been added by another thread
-                        // ignore
-                    } else {
-                        throw e;
-                    }
+            try {
+                row.setPos(0);
+                table.addRow(session, row);
+            } catch(SQLException e) {
+                if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+                    // it might have been added by another thread
+                    // ignore
+                } else {
+                    throw e;
                 }
+            }
             break;
         default:
             throw Message.getInternalError("op=" + operation);
@@ -139,5 +139,9 @@ public class UndoLogRecord {
 
     public Table getTable() {
         return table;
+    }
+
+    public void commit() {
+        row.commit();
     }
 }

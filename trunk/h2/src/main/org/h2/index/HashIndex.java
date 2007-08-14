@@ -106,7 +106,7 @@ public class HashIndex extends Index {
             int key = first.getValue(columns[0].getColumnId()).getInt();
             int pos = intMap.get(key);
             if(pos != IntIntHashMap.NOT_FOUND) {
-                result = tableData.getRow(pos);
+                result = tableData.getRow(session, pos);
             } else {
                 result = null;
             }
@@ -115,7 +115,7 @@ public class HashIndex extends Index {
             if (pos == null) {
                 result = null;
             } else {
-                result = tableData.getRow(pos.intValue());
+                result = tableData.getRow(session, pos.intValue());
             }
         }
         return new HashCursor(result);

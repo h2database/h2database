@@ -45,6 +45,7 @@ public abstract class Constraint extends SchemaObject {
     public abstract String  getCreateSQLWithoutIndexes();
     public abstract boolean isBefore();
     public abstract String getShortDescription();
+    public abstract void checkExistingData(Session session) throws SQLException;
     
     public Table getTable() {
         return table;

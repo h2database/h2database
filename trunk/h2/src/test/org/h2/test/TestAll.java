@@ -94,9 +94,15 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-add to maven
+add MVCC
 
-docs: CACHE_SIZE=200000 maybe too much?
+test and document fulltext search
+
+improve documentation of mixed mode
+
+clustered tables (test)
+
+add to maven
 
 Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
 

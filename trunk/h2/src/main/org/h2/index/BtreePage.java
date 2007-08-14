@@ -39,8 +39,8 @@ public abstract class BtreePage extends Record {
     abstract SearchRow remove(Session session, Row row, int level) throws SQLException;
     abstract BtreePage split(Session session, int splitPoint) throws SQLException;
     abstract boolean findFirst(BtreeCursor cursor, SearchRow row) throws SQLException;
-    abstract SearchRow getFirst() throws SQLException;
-    abstract SearchRow getLast() throws SQLException;
+    abstract SearchRow getFirst(Session session) throws SQLException;
+    abstract SearchRow getLast(Session session) throws SQLException;
     abstract void next(BtreeCursor cursor, int i) throws SQLException;
     abstract void first(BtreeCursor cursor) throws SQLException;
     abstract int getRealByteCount() throws SQLException;

@@ -41,6 +41,7 @@ public class CreateTable extends SchemaCommand {
     private boolean onCommitTruncate;
     private Query asQuery;
     private String comment;
+    private boolean clustered;
 
     public CreateTable(Session session, Schema schema) {
         super(session, schema);
@@ -120,7 +121,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistent);
+        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
@@ -233,6 +234,10 @@ public class CreateTable extends SchemaCommand {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public void setClustered(boolean clustered) {
+        this.clustered = clustered;
     }
 
 }

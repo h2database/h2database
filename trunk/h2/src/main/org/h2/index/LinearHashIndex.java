@@ -65,7 +65,7 @@ public class LinearHashIndex extends Index implements RecordReader {
             truncate(session);
             needRebuild = true;
         } else {
-            head = (LinearHashHead) storage.getRecord(pos);
+            head = (LinearHashHead) storage.getRecord(session, pos);
         }
     }
 
@@ -149,16 +149,16 @@ public class LinearHashIndex extends Index implements RecordReader {
         record.key = key;
         record.home = home;
         record.value = value;
-        int free = getNextFree(home);
+        int free = getNextFree(session, home);
         while (true) {
 
-            LinearHashBucket bucket = getBucket(index);
+            LinearHashBucket bucket = getBucket(session, index);
             if (bucket.getRecordSize() < RECORDS_PER_BUCKET) {
                 addRecord(session, bucket, record);
                 break;
             }
             // this bucket is full
-            int foreign = getForeignHome(index);
+            int foreign = getForeignHome(session, index);
             if (foreign >= 0 && foreign != home) {
                 // move out foreign records - add this record - add foreign
                 // records again
@@ -174,7 +174,7 @@ public class LinearHashIndex extends Index implements RecordReader {
                 continue;
             }
 
-            int nextFree = getNextFree(free);
+            int nextFree = getNextFree(session, free);
             if (nextFree < 0) {
                 // trace.debug("split because no chain " + head.bucketCount);
                 split(session);
@@ -183,32 +183,32 @@ public class LinearHashIndex extends Index implements RecordReader {
             }
 
             // it's possible that the bucket was removed from the cache (if searching for a bucket with space scanned many buckets)
-            bucket = getBucket(index);
+            bucket = getBucket(session, index);
 
             bucket.setNext(session, free);
             free = nextFree;
-            if (getForeignHome(free) >= 0) {
+            if (getForeignHome(session, free) >= 0) {
                 throw Message.getInternalError("next already linked");
             }
             index = bucket.getNextBucket();
         }
     }
 
-    private int getNextFree(int excluding) throws SQLException {
+    private int getNextFree(Session session, int excluding) throws SQLException {
         for (int i = head.bucketCount - 1; i >= 0; i--) {
-            LinearHashBucket bucket = getBucket(i);
+            LinearHashBucket bucket = getBucket(session, i);
             if (bucket.getRecordSize() >= RECORDS_PER_BUCKET) {
                 continue;
             }
-            if (getForeignHome(i) < 0 && i != excluding) {
+            if (getForeignHome(session, i) < 0 && i != excluding) {
                 return i;
             }
         }
         return -1;
     }
 
-    private int getForeignHome(int bucketId) throws SQLException {
-        LinearHashBucket bucket = getBucket(bucketId);
+    private int getForeignHome(Session session, int bucketId) throws SQLException {
+        LinearHashBucket bucket = getBucket(session, bucketId);
         for (int i = 0; i < bucket.getRecordSize(); i++) {
             LinearHashEntry record = bucket.getRecord(i);
             if (record.home != bucketId) {
@@ -247,8 +247,8 @@ public class LinearHashIndex extends Index implements RecordReader {
 
     // moves all records of a bucket to the array (including chained)
     private void moveOut(Session session, int home, ObjectArray storeIn) throws SQLException {
-        LinearHashBucket bucket = getBucket(home);
-        int foreign = getForeignHome(home);
+        LinearHashBucket bucket = getBucket(session, home);
+        int foreign = getForeignHome(session, home);
         while (true) {
             for (int i = 0; i < bucket.getRecordSize(); i++) {
                 LinearHashEntry r = bucket.getRecord(i);
@@ -263,7 +263,7 @@ public class LinearHashIndex extends Index implements RecordReader {
                 // and therefore all home records have been found
                 // (and it would be an error to set next to -1)
                 moveOut(session, foreign, storeIn);
-                if(SysProperties.CHECK && getBucket(foreign).getNextBucket() != -1) {
+                if(SysProperties.CHECK && getBucket(session, foreign).getNextBucket() != -1) {
                     throw Message.getInternalError("moveOut "+foreign);
                 }
                 return;
@@ -276,7 +276,7 @@ public class LinearHashIndex extends Index implements RecordReader {
                 break;
             }
             bucket.setNext(session, -1);
-            bucket = getBucket(next);
+            bucket = getBucket(session, next);
         }
     }
 
@@ -315,10 +315,10 @@ public class LinearHashIndex extends Index implements RecordReader {
 //        }
     }
 
-    private boolean isEquals(LinearHashEntry r, int hash, Value key) throws SQLException {
+    private boolean isEquals(Session session, LinearHashEntry r, int hash, Value key) throws SQLException {
         if (r.hash == hash) {
             if(r.key == null) {
-                r.key = getKey(tableData.getRow(r.value));
+                r.key = getKey(tableData.getRow(session, r.value));
             }
             if(database.compareTypeSave(r.key, key)==0) {
                 return true;
@@ -327,21 +327,21 @@ public class LinearHashIndex extends Index implements RecordReader {
         return false;
     }
 
-    private int get(Value key) throws SQLException {
+    private int get(Session session, Value key) throws SQLException {
         int hash = key.hashCode();
         int home = getPos(hash);
-        LinearHashBucket bucket = getBucket(home);
+        LinearHashBucket bucket = getBucket(session, home);
         while (true) {
             for (int i = 0; i < bucket.getRecordSize(); i++) {
                 LinearHashEntry r = bucket.getRecord(i);
-                if(isEquals(r, hash, key)) {
+                if(isEquals(session, r, hash, key)) {
                     return r.value;
                 }
             }
             if (bucket.getNextBucket() < 0) {
                 return -1;
             }
-            bucket = getBucket(bucket.getNextBucket());
+            bucket = getBucket(session, bucket.getNextBucket());
         }
     }
 
@@ -364,10 +364,10 @@ public class LinearHashIndex extends Index implements RecordReader {
         int home = getPos(hash);
         int now = home;
         while (true) {
-            LinearHashBucket bucket = getBucket(now);
+            LinearHashBucket bucket = getBucket(session, now);
             for (int i = 0; i < bucket.getRecordSize(); i++) {
                 LinearHashEntry r = bucket.getRecord(i);
-                if(isEquals(r, hash, key)) {
+                if(isEquals(session, r, hash, key)) {
                     removeRecord(session, bucket, i);
                     if (home != now) {
                         ObjectArray old = new ObjectArray();
@@ -389,7 +389,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         return i * blocksPerBucket + firstBucketBlock;
     }
 
-    private LinearHashBucket getBucket(int i) throws SQLException {
+    private LinearHashBucket getBucket(Session session, int i) throws SQLException {
         readCount++;
         if(SysProperties.CHECK && i >= head.bucketCount) {
             throw Message.getInternalError("get="+i+" max="+head.bucketCount);
@@ -398,7 +398,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         // return (LinearHashBucket) buckets.get(i);
         i = getBlockId(i);
         // System.out.println("getBucket "+i);
-        LinearHashBucket bucket = (LinearHashBucket) storage.getRecord(i);
+        LinearHashBucket bucket = (LinearHashBucket) storage.getRecord(session, i);
         return bucket;
     }
 
@@ -430,7 +430,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         storage.updateRecord(session, bucket);
     }
 
-    public Record read(DataPage s) throws SQLException {
+    public Record read(Session session, DataPage s) throws SQLException {
         char c = (char)s.readByte();
         if (c == 'B') {
             return new LinearHashBucket(this, s);
@@ -449,7 +449,7 @@ public class LinearHashIndex extends Index implements RecordReader {
 
     public void add(Session session, Row row) throws SQLException {
         Value key = getKey(row);
-        if(get(key) != -1) {
+        if(get(session, key) != -1) {
             // TODO index duplicate key for hash indexes: is this allowed?
             throw getDuplicateKeyException();
         }
@@ -482,11 +482,11 @@ public class LinearHashIndex extends Index implements RecordReader {
             // TODO hash index: should additionally check if values are the same
             throw Message.getInternalError();
         }
-        int key = get(getKey(first));
+        int key = get(session, getKey(first));
         if(key == -1) {
             return new LinearHashCursor(null);
         }
-        return new LinearHashCursor(tableData.getRow(key));
+        return new LinearHashCursor(tableData.getRow(session, key));
     }
 
     public long getCost(int[] masks) throws SQLException {

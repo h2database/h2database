@@ -51,12 +51,12 @@ public class BtreeIndex extends Index implements RecordReader {
             truncate(session);
             needRebuild = true;
         } else {
-            Record rec = storage.getRecordIfStored(headPos);
+            Record rec = storage.getRecordIfStored(session, headPos);
             if(rec != null && (rec instanceof BtreeHead)) {
                 head = (BtreeHead) rec;
             }
             if(head != null && head.getConsistent()) {
-                setRoot((BtreePage) storage.getRecord(head.getRootPosition()));
+                setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
                 needRebuild = false;
                 rowCount = table.getRowCount();
             } else {
@@ -114,8 +114,8 @@ public class BtreeIndex extends Index implements RecordReader {
         storage.addRecord(session, p, Storage.ALLOCATE_POS);
     }
 
-    public BtreePage getPage(int i) throws SQLException {
-        return (BtreePage) storage.getRecord(i);
+    public BtreePage getPage(Session session, int i) throws SQLException {
+        return (BtreePage) storage.getRecord(session, i);
     }
 
     public void flush(Session session) throws SQLException {
@@ -178,11 +178,11 @@ public class BtreeIndex extends Index implements RecordReader {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         if(first==null) {
-            BtreeCursor cursor = new BtreeCursor(this, last);
+            BtreeCursor cursor = new BtreeCursor(session, this, last);
             root.first(cursor);
             return cursor;
         } else {
-            BtreeCursor cursor = new BtreeCursor(this, last);
+            BtreeCursor cursor = new BtreeCursor(session, this, last);
             if (!root.findFirst(cursor, first)) {
                 cursor.setCurrentRow(null);
             }
@@ -203,12 +203,12 @@ public class BtreeIndex extends Index implements RecordReader {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount());
     }
 
-    public Record read(DataPage s) throws SQLException {
+    public Record read(Session session, DataPage s) throws SQLException {
         char c = (char) s.readByte();
         if (c == 'N') {
             return new BtreeNode(this, s);
         } else if (c == 'L') {
-            return new BtreeLeaf(this, s);
+            return new BtreeLeaf(this, session, s);
         } else if (c == 'H') {
             return new BtreeHead(s);
         } else {
@@ -237,8 +237,8 @@ public class BtreeIndex extends Index implements RecordReader {
         return rows;
     }
 
-    public Row getRow(int pos) throws SQLException {
-        return tableData.getRow(pos);
+    public Row getRow(Session session, int pos) throws SQLException {
+        return tableData.getRow(session, pos);
     }
 
     private void flushHead(Session session) throws SQLException {
@@ -297,7 +297,7 @@ public class BtreeIndex extends Index implements RecordReader {
             }
             return ValueNull.INSTANCE;
         } else {
-            SearchRow row = root.getLast();
+            SearchRow row = root.getLast(session);
             if(row != null) {
                 Value v = row.getValue(columnIndex[0]);
                 return v;

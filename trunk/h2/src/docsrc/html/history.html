@@ -40,7 +40,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0 / TODO (Build xx)</h3><ul>
-<li>Some unit tests failed on Linux because the file system works differently. The unit tests are fixed and should work now.
+<li>Check and foreign key constraints now checks if the existing data is consistent (this can be disabled by appending NOCHECK).
+	It is also possible to check existing data when re-enabling referential integrity for a table.
+</li><li>Some unit tests failed on Linux because the file system works differently. The unit tests are fixed and should work now.
 </li><li>Can now incrementally translate the documentation. See also FAQ.
 </li><li>Improved error messages: some tools can't show the root cause of an exception. 
     Adding the message of the root cause to the message of the thrown exception now where it makes sense.
@@ -845,13 +847,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Shutdown compact
 </li><li>Optimization of distinct with index: select distinct name from test
-</li><li>Forum: email notification doesn't work? test or disable or document
 </li><li>Document server mode, embedded mode, web app mode, dual mode (server+embedded)
 </li><li>Stop the server: close all open databases first
 </li><li>SET variable { TO | = } { value | 'value' | DEFAULT }
 </li><li>Running totals: select @running:=if(@previous=t.ID,@running,0)+t.NUM as TOTAL, @previous:=t.ID
-</li><li>Option to globally disable / enable referential integrity checks
-</li><li>Support SET REFERENTIAL_INTEGRITY {TRUE|FALSE}
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
@@ -1123,6 +1122,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>Support DESCRIBE like MySQL or Oracle (DESC|DESCRIBE {[schema.]object[@connect_identifier]})
 </li><li>Set a connection read only (Connection.setReadOnly)
+</li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
+</li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Read-only sessions (Connection.setReadOnly)
 </li></ul>
 

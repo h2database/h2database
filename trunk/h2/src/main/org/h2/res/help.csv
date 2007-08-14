@@ -148,9 +148,11 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint
+ALTER TABLE tableName ADD constraint [CHECK|NOCHECK]
 ","
 Adds a constraint to a table.
+If NOCHECK is specified, the existing data is not checked for consistency (the default is to check consistency for existing data).
+It is not possible to disable checking for unique constraints.
 ","
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
@@ -243,11 +245,11 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
 
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE tableName SET REFERENTIAL_INTEGRITY [TRUE|FALSE]
+ALTER TABLE tableName SET REFERENTIAL_INTEGRITY {FALSE | TRUE [CHECK|NOCHECK]}
 ","
 Disables or enables referential integrity checking for a table.
-Enabling it does not check existing data.
-Use SET REFERENTIAL_INTEGRITY to disable it for all tables.
+Enabling it does not check existing data, except if CHECK is specified.
+Use SET REFERENTIAL_INTEGRITY to disable it for all tables (the global flag and the flag for each table are independent).
 ","
 ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "

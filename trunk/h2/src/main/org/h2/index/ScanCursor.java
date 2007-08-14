@@ -6,6 +6,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
@@ -16,10 +17,16 @@ import org.h2.result.SearchRow;
 public class ScanCursor implements Cursor {
     private ScanIndex scan;
     private Row row;
+    private final Session session;
 
-    ScanCursor(ScanIndex scan) {
+    ScanCursor(Session session, ScanIndex scan) {
+        this.session = session;
         this.scan = scan;
         row = null;
+    }
+    
+    Session getSession() {
+        return session;
     }
 
     public Row get() {
@@ -35,7 +42,7 @@ public class ScanCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        row = scan.getNextRow(row);
+        row = scan.getNextRow(session, row);
         return row != null;
     }
 }

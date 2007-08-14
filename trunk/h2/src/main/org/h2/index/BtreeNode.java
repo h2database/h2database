@@ -56,12 +56,12 @@ public class BtreeNode extends BtreePage {
         this.pageData = pageData;
     }
 
-    protected SearchRow getData(int i) throws SQLException {
+    protected SearchRow getData(Session session, int i) throws SQLException {
         SearchRow r = (SearchRow) pageData.get(i);
         if(r == null) {
             int p = pageChildren.get(i+1);
-            BtreePage page = index.getPage(p);
-            r = page.getFirst();
+            BtreePage page = index.getPage(session, p);
+            r = page.getFirst(session);
             pageData.set(i, r);
         }
         return r;
@@ -91,7 +91,7 @@ public class BtreeNode extends BtreePage {
             }
         }
         int at = l;
-        BtreePage page = index.getPage(pageChildren.get(at));
+        BtreePage page = index.getPage(session, pageChildren.get(at));
         int splitPoint = page.add(newRow, session);
         if (splitPoint == 0) {
             return 0;
@@ -130,7 +130,7 @@ public class BtreeNode extends BtreePage {
         }
         int at = l;
         // merge is not implemented to allow concurrent usage of btrees
-        BtreePage page = index.getPage(pageChildren.get(at));
+        BtreePage page = index.getPage(session, pageChildren.get(at));
         SearchRow first = page.remove(session, oldRow, level+1);
         if(first == null) {
             // the first row didn't change - nothing to do here
@@ -216,7 +216,7 @@ public class BtreeNode extends BtreePage {
             }
         }
         if(l>=pageData.size()) {
-            BtreePage page = index.getPage(pageChildren.get(l));
+            BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(l));
             cursor.push(this, l);
             boolean result = page.findFirst(cursor, compare);
             if(result) {
@@ -225,7 +225,7 @@ public class BtreeNode extends BtreePage {
             cursor.pop();
             return false;
         }
-        BtreePage page = index.getPage(pageChildren.get(l));
+        BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(l));
         cursor.push(this, l);
         if(page.findFirst(cursor, compare)) {
             return true;
@@ -236,7 +236,7 @@ public class BtreeNode extends BtreePage {
             SearchRow row = getData(i);
             int comp = index.compareRows(row, compare);
             if (comp >=0) {
-                page = index.getPage(pageChildren.get(i));
+                page = index.getPage(cursor.getSession(), pageChildren.get(i));
                 cursor.push(this, i);
                 if(page.findFirst(cursor, compare)) {
                     return true;
@@ -244,7 +244,7 @@ public class BtreeNode extends BtreePage {
                 cursor.pop();
             }
         }
-        page = index.getPage(pageChildren.get(i));
+        page = index.getPage(cursor.getSession(), pageChildren.get(i));
         cursor.push(this, i);
         boolean result = page.findFirst(cursor, compare);
         if(result) {
@@ -258,7 +258,7 @@ public class BtreeNode extends BtreePage {
         i++;
         if (i <= pageData.size()) {
             cursor.setStackPosition(i);
-            BtreePage page = index.getPage(pageChildren.get(i));
+            BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(i));
             page.first(cursor);
             return;
         }
@@ -278,7 +278,7 @@ public class BtreeNode extends BtreePage {
 
     public void first(BtreeCursor cursor) throws SQLException {
         cursor.push(this, 0);
-        BtreePage page = index.getPage(pageChildren.get(0));
+        BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(0));
         page.first(cursor);
     }
 
@@ -331,24 +331,24 @@ public class BtreeNode extends BtreePage {
         return size + index.getRecordOverhead();
     }
 
-    SearchRow getLast() throws SQLException {
+    SearchRow getLast(Session session) throws SQLException {
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
         }
         for(int i=pageChildren.size()-1; i>=0; i--) {
-            BtreePage page = index.getPage(pageChildren.get(i));
+            BtreePage page = index.getPage(session, pageChildren.get(i));
             if(page != null) {
-                return page.getLast();
+                return page.getLast(session);
             }
         }
         return null;
     }
 
-    SearchRow getFirst() throws SQLException {
+    SearchRow getFirst(Session session) throws SQLException {
         for(int i=0; i<pageChildren.size(); i++) {
-            BtreePage page = index.getPage(pageChildren.get(i));
+            BtreePage page = index.getPage(session, pageChildren.get(i));
             if(page != null) {
-                return page.getFirst();
+                return page.getFirst(session);
             }
         }
         return null;

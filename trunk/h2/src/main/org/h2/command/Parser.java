@@ -3359,7 +3359,7 @@ public class Parser {
             columns.add(new Column(cols[i], Value.STRING, 0, 0));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, false);
+        recursiveTable = schema.createTable(tempViewName, id, columns, false, false);
         recursiveTable.setTemporary(true);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
@@ -3842,6 +3842,11 @@ public class Parser {
             AlterTableAddConstraint command = new AlterTableAddConstraint(session, table.getSchema());
             command.setTableName(table.getName());
             command.setType(type);
+            if(readIf("CHECK")) {
+                command.setCheckExisting(true);
+            } else if(readIf("NOCHECK")) {
+                command.setCheckExisting(false);
+            }
             return command;
         } else if(readIf("RENAME")) {
             read("TO");
@@ -4045,6 +4050,12 @@ public class Parser {
             }
             return null;
         }
+        if(readIf("NOCHECK")) {
+            command.setCheckExisting(false);
+        } else {
+            readIf("CHECK");
+            command.setCheckExisting(true);
+        }
         command.setTableName(tableName);
         command.setConstraintName(name);
         command.setComment(comment);
@@ -4192,6 +4203,9 @@ public class Parser {
             } else if(readIf("NOT")) {
                 read("LOGGED");
             }
+        }
+        if(readIf("CLUSTERED")) {
+            command.setClustered(true);
         }
         return command;
     }

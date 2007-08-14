@@ -54,12 +54,12 @@ public class Storage {
         recordCount++;
     }
 
-    public Record getRecord(int pos) throws SQLException {
-        return file.getRecord(pos, reader, id);
+    public Record getRecord(Session session, int pos) throws SQLException {
+        return file.getRecord(session, pos, reader, id);
     }
 
-    public Record getRecordIfStored(int pos) throws SQLException {
-        return file.getRecordIfStored(pos, reader, id);
+    public Record getRecordIfStored(Session session, int pos) throws SQLException {
+        return file.getRecordIfStored(session, pos, reader, id);
     }
 
     /**
@@ -110,7 +110,7 @@ public class Storage {
     }
 
     public void updateRecord(Session session, Record record) throws SQLException {
-        record.setDeleted(false);
+        record.setDeleted(session, false);
         file.updateRecord(session, record);
     }
 
@@ -118,7 +118,7 @@ public class Storage {
         record.setStorageId(id);
         int size = file.getRecordOverhead() + record.getByteCount(dummy);
         size = MathUtils.roundUp(size, DiskFile.BLOCK_SIZE);
-        record.setDeleted(false);
+        record.setDeleted(session, false);
         int blockCount = size / DiskFile.BLOCK_SIZE;
         if(pos == ALLOCATE_POS) {
             pos = allocate(blockCount);
@@ -133,11 +133,11 @@ public class Storage {
     }
 
     public void removeRecord(Session session, int pos) throws SQLException {
-        Record record = getRecord(pos);
+        Record record = getRecord(session, pos);
         if(SysProperties.CHECK && record.getDeleted()) {
             throw Message.getInternalError("duplicate delete " + pos);
         }
-        record.setDeleted(true);
+        record.setDeleted(session, true);
         int blockCount = record.getBlockCount();
         free(pos, blockCount);
         recordCount--;

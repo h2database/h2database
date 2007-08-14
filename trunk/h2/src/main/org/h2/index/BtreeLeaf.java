@@ -30,7 +30,7 @@ public class BtreeLeaf extends BtreePage {
     private boolean writePos;
     private int cachedRealByteCount;
 
-    BtreeLeaf(BtreeIndex index, DataPage s) throws SQLException {
+    BtreeLeaf(BtreeIndex index, Session session,DataPage s) throws SQLException {
         super(index);
         writePos = s.readByte() == 'P';
         if(writePos) {
@@ -38,7 +38,7 @@ public class BtreeLeaf extends BtreePage {
             // should be 1, but may not be 1
             pageData = new ObjectArray(size);
             for(int i=0; i<size; i++) {
-                Row r = index.getRow(s.readInt());
+                Row r = index.getRow(session, s.readInt());
                 pageData.add(r);
             }
         } else {
@@ -258,7 +258,7 @@ public class BtreeLeaf extends BtreePage {
         return size;
     }
 
-    SearchRow getLast() throws SQLException {
+    SearchRow getLast(Session sessioni) throws SQLException {
         if(pageData.size()==0) {
             if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
@@ -268,7 +268,7 @@ public class BtreeLeaf extends BtreePage {
         return (SearchRow)pageData.get(pageData.size()-1);
     }
 
-    SearchRow getFirst() throws SQLException {
+    SearchRow getFirst(Session session) throws SQLException {
         if(pageData.size()==0) {
             if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");

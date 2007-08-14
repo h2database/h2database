@@ -214,6 +214,10 @@ public class Comparison extends Condition {
             return BIGGER;
         case SMALLER:
             return BIGGER_EQUAL;
+        case IS_NULL:
+            return IS_NOT_NULL;
+        case IS_NOT_NULL:
+            return IS_NULL;
         default:
             throw Message.getInternalError("type="+compareType);
         }

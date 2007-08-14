@@ -191,6 +191,12 @@ public class Session implements SessionInterface {
             logSystem.commit(this);
         }
         if(undoLog.size() > 0) {
+            if(SysProperties.MVCC) {
+                while (undoLog.size() > 0) {
+                    UndoLogRecord entry = undoLog.getAndRemoveLast();
+                    entry.commit();
+                }
+            }
             undoLog.clear();
         }
         if(!ddl) {
@@ -287,7 +293,7 @@ public class Session implements SessionInterface {
         // otherwise rollback will try to rollback a not-inserted row
         if(SysProperties.CHECK) {
             int lockMode = database.getLockMode();
-            if(lockMode != Constants.LOCK_MODE_OFF) {
+            if(lockMode != Constants.LOCK_MODE_OFF && !SysProperties.MVCC) {
                 if(locks.indexOf(log.getTable())<0 && log.getTable().getTableType() != Table.TABLE_LINK) {
                     throw Message.getInternalError();
                 }

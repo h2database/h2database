@@ -198,7 +198,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // can't just use this table, because most column objects are 'shared' with the old table
         // still need a new id because using 0 would mean: the new table tries to use the rows of the table 0 (the script table)
         int id = -1;
-        TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent);
+        TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false);
         newTable.setComment(table.getComment());
         execute(newTable.getCreateSQL());
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
@@ -274,7 +274,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         buff.append(" FROM ");
         buff.append(table.getSQL());
         String sql = buff.toString();
-        newTable.setCheckForeignKeyConstraints(false);
+        newTable.setCheckForeignKeyConstraints(session, false, false);
         try {
             execute(sql);
         } catch(SQLException e) {
@@ -282,7 +282,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             execute("DROP TABLE " + newTable.getSQL());
             throw e;
         }
-        newTable.setCheckForeignKeyConstraints(true);
+        newTable.setCheckForeignKeyConstraints(session, true, false);
         String tableName = table.getName();
         table.setModified();
         for(int i=0; i<columns.length; i++) {

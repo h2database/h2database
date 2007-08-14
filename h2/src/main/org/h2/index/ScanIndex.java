@@ -81,9 +81,9 @@ public class ScanIndex extends Index {
         }
     }
 
-    public Row getRow(int key) throws SQLException {
+    public Row getRow(Session session, int key) throws SQLException {
         if(storage != null) {
-            return (Row) storage.getRecord(key);
+            return (Row) storage.getRecord(session, key);
         }
         return (Row) rows.get(key);
     }
@@ -139,7 +139,7 @@ public class ScanIndex extends Index {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        return new ScanCursor(this);
+        return new ScanCursor(session, this);
     }
 
     public long getCost(int[] masks) throws SQLException {
@@ -150,7 +150,7 @@ public class ScanIndex extends Index {
         return cost;
     }
 
-    Row getNextRow(Row row) throws SQLException {
+    Row getNextRow(Session session, Row row) throws SQLException {
         if(storage == null) {
             int key;
             if (row == null) {
@@ -173,7 +173,7 @@ public class ScanIndex extends Index {
         if (pos < 0) {
             return null;
         }
-        return (Row) storage.getRecord(pos);
+        return (Row) storage.getRecord(session, pos);
     }
 
     public int getColumnIndex(Column col) {

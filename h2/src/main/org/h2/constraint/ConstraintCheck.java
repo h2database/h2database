@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -55,6 +56,7 @@ public class ConstraintCheck extends Constraint {
         }
         buff.append(" CHECK");
         buff.append(StringUtils.enclose(expr.getSQL()));
+        buff.append(" NOCHECK");
         return buff.toString();
     }    
     
@@ -110,6 +112,24 @@ public class ConstraintCheck extends Constraint {
 
     public boolean isBefore() {
         return true;
+    }
+
+    public void checkExistingData(Session session) throws SQLException {
+        if(session.getDatabase().isStarting()) {
+            // don't check at startup
+            return;
+        }
+        StringBuffer buff = new StringBuffer();
+        buff.append("SELECT 1 FROM ");
+        buff.append(filter.getTable().getSQL());
+        buff.append(" WHERE NOT(");
+        buff.append(expr.getSQL());
+        buff.append(")");
+        String sql = buff.toString();
+        LocalResult r = session.prepare(sql).query(1);
+        if(r.next()) {
+            throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
+        }
     }
     
 }

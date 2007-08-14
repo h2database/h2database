@@ -255,8 +255,8 @@ public class Schema extends DbObject {
         map.remove(objName);
     }
     
-    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent) throws SQLException {
-        return new TableData(this, tempName, id, newColumns, persistent);
+    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent, boolean clustered) throws SQLException {
+        return new TableData(this, tempName, id, newColumns, persistent, clustered);
     }
 
     public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {

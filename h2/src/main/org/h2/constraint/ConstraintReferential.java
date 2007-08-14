@@ -16,6 +16,7 @@ import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -129,6 +130,7 @@ public class ConstraintReferential extends Constraint {
             buff.append(" ON UPDATE ");
             appendAction(buff, updateAction);
         }
+        buff.append(" NOCHECK");
         return buff.toString();
     }
     
@@ -530,5 +532,48 @@ public class ConstraintReferential extends Constraint {
     public boolean isBefore() {
         return false;
     }        
+    
+    public void checkExistingData(Session session) throws SQLException {
+        if(session.getDatabase().isStarting()) {
+            // don't check at startup
+            return;
+        }
+        StringBuffer buff = new StringBuffer();
+        buff.append("SELECT 1 FROM (SELECT ");
+        for(int i=0; i<columns.length; i++) {
+            if(i>0) {
+                buff.append(", ");
+            }
+            buff.append(columns[i].getSQL());
+        }
+        buff.append(" FROM ");
+        buff.append(table.getSQL());
+        buff.append(" ORDER BY ");
+        for(int i=0; i<columns.length; i++) {
+            if(i>0) {
+                buff.append(", ");
+            }
+            buff.append(columns[i].getSQL());
+        }
+        buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
+        buff.append(refTable.getSQL());
+        buff.append(" P WHERE ");
+        for(int i=0; i<columns.length; i++) {
+            if(i>0) {
+                buff.append(" AND ");
+            }
+            buff.append("C.");
+            buff.append(columns[i].getSQL());
+            buff.append("=");
+            buff.append("P.");
+            buff.append(refColumns[i].getSQL());
+        }
+        buff.append(")");
+        String sql = buff.toString();
+        LocalResult r = session.prepare(sql).query(1);
+        if(r.next()) {
+            throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, getShortDescription());
+        }
+    }
     
 }

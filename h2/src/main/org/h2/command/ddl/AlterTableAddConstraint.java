@@ -47,6 +47,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private Expression checkExpression;
     private Index index, refIndex;
     private String comment;
+    private boolean checkExisting;
 
     public AlterTableAddConstraint(Session session, Schema schema) {
         super(session, schema);
@@ -81,6 +82,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             check.setExpression(checkExpression);
             check.setTableFilter(filter);
             constraint = check;
+            if(checkExisting) {
+                check.checkExistingData(session);
+            }
             break;
         }
         case UNIQUE: {
@@ -151,6 +155,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             ref.setRefTable(refTable);
             ref.setRefColumns(refColumns);
             ref.setRefIndex(refIndex, isRefOwner);
+            if(checkExisting) {
+                ref.checkExistingData(session);
+            }
             constraint = ref;
             refTable.addConstraint(constraint);
             ref.setDeleteAction(session, deleteAction);
@@ -158,10 +165,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         case REFERENTIAL_INTEGRITY_TRUE:
-            table.setCheckForeignKeyConstraints(true);
+            table.setCheckForeignKeyConstraints(session, true, checkExisting);
             return 0;
         case REFERENTIAL_INTEGRITY_FALSE:
-            table.setCheckForeignKeyConstraints(false);
+            table.setCheckForeignKeyConstraints(session, false, false);
             return 0;
         default:
             throw Message.getInternalError("type="+type);
@@ -302,6 +309,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
     
     public void setComment(String comment) {
         this.comment = comment;
+    }
+    
+    public void setCheckExisting(boolean b) {
+        this.checkExisting = b;
     }
     
 }

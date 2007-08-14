@@ -7,6 +7,7 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -21,11 +22,17 @@ public class BtreeCursor implements Cursor {
     private Row currentRow;
     private boolean first;
     private SearchRow last;
+    private Session session;
 
-    BtreeCursor(BtreeIndex index, SearchRow last) {
+    BtreeCursor(Session session, BtreeIndex index, SearchRow last) {
+        this.session = session;
         this.index = index;
         this.last = last;
         first = true;
+    }
+    
+    Session getSession() {
+        return session;
     }
 
     void setStackPosition(int position) {
@@ -55,7 +62,7 @@ public class BtreeCursor implements Cursor {
     
     public Row get() throws SQLException {
         if(currentRow == null && currentSearchRow != null) {
-            currentRow = index.getRow(currentSearchRow.getPos());
+            currentRow = index.getRow(session, currentSearchRow.getPos());
         }
         return currentRow;
     }
@@ -71,13 +78,24 @@ public class BtreeCursor implements Cursor {
     public boolean next() throws SQLException {
         if (first) {
             first = false;
-            return currentSearchRow != null;
+        } else {
+            top.page.next(this, top.position);
+            if(currentSearchRow != null && last != null) {
+                if (index.compareRows(currentSearchRow, last) > 0) {
+                    currentSearchRow = null;
+                    currentRow = null;
+                }
+            }
         }
-        top.page.next(this, top.position);
-        if(currentSearchRow != null && last != null) {
-            if (index.compareRows(currentSearchRow, last) > 0) {
-                currentSearchRow = null;
-                currentRow = null;
+        if(SysProperties.MVCC) {
+            if(currentSearchRow != null) {
+                while(true) {
+                    Row r = get();
+                    int sessionId = r.getSessionId();
+                    if(sessionId == 0 || sessionId == session.getId()) {
+                        break;
+                    }
+                }
             }
         }
         return currentSearchRow != null;

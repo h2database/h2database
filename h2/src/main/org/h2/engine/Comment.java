@@ -11,7 +11,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
-public class Comment extends DbObject {
+public class Comment extends DbObjectBase {
 
     private final int objectType;
     private final String objectName;

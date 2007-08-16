@@ -17,7 +17,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 
-public class TreeIndex extends Index {
+public class TreeIndex extends BaseIndex {
 
     private TreeNode root;
     private TableData tableData;
@@ -340,17 +340,18 @@ public class TreeIndex extends Index {
         return true;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         if(first) {
             // TODO optimization: this loops through NULL values
             Cursor cursor = find(session, null, null);
             while(cursor.next()) {
-                Value v = cursor.get().getValue(columnIndex[0]);
+                SearchRow row = cursor.getSearchRow();
+                Value v = row.getValue(columnIndex[0]);
                 if(v != ValueNull.INSTANCE) {
-                    return v;
+                    return row;
                 }
             }
-            return ValueNull.INSTANCE;
+            return null;
         } else {
             TreeNode x = root, n;
             while (x != null) {
@@ -361,10 +362,9 @@ public class TreeIndex extends Index {
                 x = n;
             }
             if(x != null) {
-                Value v = x.row.getValue(columnIndex[0]);
-                return v;
+                return x.row;
             }
-            return ValueNull.INSTANCE;
+            return null;
         }
     }
 

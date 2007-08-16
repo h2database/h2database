@@ -7,7 +7,6 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -238,7 +237,7 @@ public class Select extends Query {
                 // can't use the scan index
                 continue;
             }
-            if(index.indexType.isHash()) {
+            if(index.getIndexType().isHash()) {
                 continue;
             }
             Column[] indexCols = index.getColumns();
@@ -490,7 +489,7 @@ public class Select extends Query {
         if(sort != null && !isQuickQuery && !isGroupQuery && !distinct) {
             Index index = getSortIndex();
             Index current = topTableFilter.getIndex();
-            if(index != null && (current.indexType.isScan() || current == index)) {
+            if(index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
                 sort = null;
             }

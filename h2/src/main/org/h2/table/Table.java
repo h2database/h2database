@@ -6,7 +6,6 @@ package org.h2.table;
 
 import java.sql.SQLException;
 import java.util.HashMap;
-
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
@@ -23,7 +22,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
+import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.UndoLogRecord;
@@ -36,7 +35,7 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 
-public abstract class Table extends SchemaObject {
+public abstract class Table extends SchemaObjectBase {
     
     public static final int TYPE_CACHED = 0, TYPE_MEMORY = 1;
     
@@ -317,7 +316,7 @@ public abstract class Table extends SchemaObject {
         ObjectArray indexes = getIndexes();  
         if(indexes != null) {
             remove(indexes, index);
-            if(index.indexType.isPrimaryKey()) {
+            if(index.getIndexType().isPrimaryKey()) {
                 Column[] cols = index.getColumns();
                 for(int i=0; i<cols.length; i++) {
                     cols[i].setPrimaryKey(false);

@@ -14,7 +14,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
-public class Sequence extends SchemaObject {
+public class Sequence extends SchemaObjectBase {
     private static final int BLOCK_INCREMENT = 32;
     private long value = 1;
     private long valueWithMargin;

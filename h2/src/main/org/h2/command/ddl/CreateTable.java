@@ -5,7 +5,6 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;

@@ -11,7 +11,7 @@ import org.h2.message.Trace;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
-public class UserDataType extends DbObject {
+public class UserDataType extends DbObjectBase {
     
     private Column column;
 

@@ -60,7 +60,6 @@ public class BtreeNode extends BtreePage {
         SearchRow r = (SearchRow) pageData.get(i);
         if(r == null) {
             int p = pageChildren.get(i+1);
-            // MVCC: get the committed data
             Session session = index.getDatabase().getSystemSession();
             BtreePage page = index.getPage(session, p);
             r = page.getFirst(session);

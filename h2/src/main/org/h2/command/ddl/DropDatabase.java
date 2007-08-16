@@ -5,7 +5,6 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Role;

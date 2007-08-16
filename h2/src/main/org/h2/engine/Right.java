@@ -10,7 +10,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
-public class Right extends DbObject {
+public class Right extends DbObjectBase {
     
     public static final int SELECT = 1, DELETE = 2, INSERT = 4, UPDATE = 8, ALL = 15;
     

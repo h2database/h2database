@@ -7,7 +7,6 @@ package org.h2.table;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -22,6 +21,7 @@ import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinearHashIndex;
+import org.h2.index.MultiVersionIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
 import org.h2.message.Message;
@@ -83,7 +83,7 @@ public class TableData extends Table implements RecordReader {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
                 if(SysProperties.CHECK) {
-                    long rc = index.getRowCount();
+                    long rc = index.getRowCount(session);
                     if(rc != rowCount+1) {
                         throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
                     }
@@ -96,7 +96,7 @@ public class TableData extends Table implements RecordReader {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
                     if(SysProperties.CHECK) {
-                        long rc = index.getRowCount();
+                        long rc = index.getRowCount(session);
                         if(rc != rowCount) {
                             throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
                         }
@@ -156,10 +156,13 @@ public class TableData extends Table implements RecordReader {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
+        if(SysProperties.MVCC) {
+            index = new MultiVersionIndex(index, this);
+        }
         if(index.needRebuild() && rowCount > 0) {
             try {
                 Index scan = getScanIndex(session);
-                long remaining = scan.getRowCount();
+                long remaining = scan.getRowCount(session);
                 long total = remaining;
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
@@ -253,7 +256,7 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);
             if(SysProperties.CHECK) {
-                long rc = index.getRowCount();
+                long rc = index.getRowCount(session);
                 if(rc != rowCount-1) {
                     throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
                 }
@@ -268,7 +271,7 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.truncate(session);
             if(SysProperties.CHECK) {
-                long rc = index.getRowCount();
+                long rc = index.getRowCount(session);
                 if(rc != 0) {
                     throw Message.getInternalError("rowCount expected 0 got "+rc);
                 }

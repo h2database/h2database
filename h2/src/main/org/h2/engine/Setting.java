@@ -10,7 +10,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
-public class Setting extends DbObject {
+public class Setting extends DbObjectBase {
     
     private int intValue;
     private String stringValue;

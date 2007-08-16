@@ -23,7 +23,7 @@ import org.h2.value.ValueLob;
 /**
  * @author Thomas
  */
-public class ScanIndex extends Index {
+public class ScanIndex extends BaseIndex {
     private int firstFree = -1;
     private ObjectArray rows = new ObjectArray();
     private Storage storage;
@@ -193,7 +193,7 @@ public class ScanIndex extends Index {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

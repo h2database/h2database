@@ -10,6 +10,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.ObjectArray;
+import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -110,9 +111,11 @@ public class SortOrder {
     }
 
     private void sort(ObjectArray rows, int l, int r) throws SQLException {
+        // quicksort
         int i, j;
         while (r - l > 10) {
-            i = (r + l) >> 1;
+            // randomized pivot to avoid worst case
+            i = RandomUtils.nextInt(r - l - 4) + l + 2;
             if (compare((Value[]) rows.get(l), (Value[]) rows.get(r)) > 0) {
                 swap(rows, l, r);
             }

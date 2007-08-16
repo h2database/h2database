@@ -46,7 +46,7 @@ public class FunctionIndex extends Index {
         return new FunctionCursor(result);
     }
 
-    public long getCost(int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) throws SQLException {
         if(masks != null) {
             throw Message.getUnsupportedException();
         }

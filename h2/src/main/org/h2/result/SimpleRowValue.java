@@ -4,6 +4,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Session;
 import org.h2.value.Value;
 
 public class SimpleRowValue implements SearchRow {
@@ -12,6 +13,8 @@ public class SimpleRowValue implements SearchRow {
     private int index;
     private int virtualColumnCount;
     private Value data;
+    private int sessionId;
+    private boolean deleted;
     
     public SimpleRowValue(int columnCount) {
         this.virtualColumnCount = columnCount;
@@ -35,4 +38,18 @@ public class SimpleRowValue implements SearchRow {
         data = v;
     }
 
+    public boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Session session, boolean deleted) {
+        this.sessionId = session.getId();
+        this.deleted = deleted;
+    }
+    
+    public int getSessionId() {
+        int testing;
+        return sessionId;
+    }
+    
 }

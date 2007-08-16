@@ -242,7 +242,7 @@ public class TableLink extends Table {
         }
     }
 
-    public long getRowCount() throws SQLException {
+    public long getRowCount(Session session) throws SQLException {
         PreparedStatement prep = getPreparedStatement("SELECT COUNT(*) FROM "+originalTable);
         ResultSet rs = prep.executeQuery();
         rs.next();

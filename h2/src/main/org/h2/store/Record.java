@@ -6,6 +6,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.util.CacheObject;
 
@@ -80,6 +81,12 @@ public abstract class Record extends CacheObject {
     public boolean canRemove() {
         if((isChanged() && !isLogWritten()) || isPinned()) {
             return false;
+        }
+        if(SysProperties.MVCC) {
+            // TODO not required if we write the log only when committed
+            if(sessionId != 0) {
+                return false;
+            }
         }
         return true;
     }

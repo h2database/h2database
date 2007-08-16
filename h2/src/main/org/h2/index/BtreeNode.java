@@ -56,10 +56,12 @@ public class BtreeNode extends BtreePage {
         this.pageData = pageData;
     }
 
-    protected SearchRow getData(Session session, int i) throws SQLException {
+    protected SearchRow getData(int i) throws SQLException {
         SearchRow r = (SearchRow) pageData.get(i);
         if(r == null) {
             int p = pageChildren.get(i+1);
+            // MVCC: get the committed data
+            Session session = index.getDatabase().getSystemSession();
             BtreePage page = index.getPage(session, p);
             r = page.getFirst(session);
             pageData.set(i, r);

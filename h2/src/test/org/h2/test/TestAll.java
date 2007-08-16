@@ -94,6 +94,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
+table with constraint
+alter the table
+add data
+-> object is closed
+
+CREATE TABLE TEST(ID INT, PARENT INT, CONSTRAINT A FOREIGN KEY(PARENT) REFERENCES(ID));
+ALTER TABLE TEST ALTER COLUMN PARENT BIGINT;
+INSERT INTO TEST VALUES(1, 1, 1);
+
+
 add MVCC
 
 test and document fulltext search

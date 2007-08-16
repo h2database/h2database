@@ -4,6 +4,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Session;
 import org.h2.value.Value;
 
 public interface SearchRow {
@@ -13,5 +14,8 @@ public interface SearchRow {
     int getColumnCount();
     void setValue(int idx, Value v);
     void setPos(int pos);
+    void setDeleted(Session session, boolean deleted);
+    int getSessionId();
+    boolean getDeleted();
     
 }

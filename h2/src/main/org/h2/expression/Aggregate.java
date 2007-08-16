@@ -155,7 +155,7 @@ public class Aggregate extends Expression {
             switch(type) {
             case COUNT_ALL:
                 Table table = select.getTopTableFilter().getTable();
-                return ValueLong.get(table.getRowCount());
+                return ValueLong.get(table.getRowCount(session));
             case MIN:
             case MAX:
                 boolean first = type == MIN;

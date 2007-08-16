@@ -175,7 +175,7 @@ public class TableView extends Table {
         throw Message.getUnsupportedException();
     }
     
-    public long getRowCount() {
+    public long getRowCount(Session session) {
         throw Message.getInternalError();
     }
 

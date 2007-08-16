@@ -42,7 +42,7 @@ public class RangeIndex extends Index {
         return new RangeCursor(start, end);
     }
 
-    public long getCost(int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) throws SQLException {
         return 1;
     }
     

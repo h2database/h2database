@@ -252,11 +252,11 @@ public abstract class Table extends SchemaObject {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(null);
+        item.cost = item.getIndex().getCost(session, null);
         ObjectArray indexes = getIndexes();               
         for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            long cost = index.getCost(masks);
+            double cost = index.getCost(session, masks);
             if (cost < item.cost) {
                 item.cost = cost;
                 item.setIndex(index);
@@ -440,7 +440,7 @@ public abstract class Table extends SchemaObject {
     
     public abstract boolean canGetRowCount();
     public abstract boolean canDrop();
-    public abstract long getRowCount() throws SQLException;
+    public abstract long getRowCount(Session session) throws SQLException;
 
     public boolean getGlobalTemporary() {
         return false;

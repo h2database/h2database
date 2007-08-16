@@ -5,147 +5,61 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
-
-import org.h2.command.Parser;
-import org.h2.message.Message;
-import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
-/**
- * @author Thomas
- */
+public interface DbObject {
+    public static final int INDEX = 1;
+    public static final int SEQUENCE = 3;
+    public static final int TABLE_OR_VIEW = 0;
+    public static final int TRIGGER = 4;
+    public static final int USER = 2;
+    public static final int CONSTRAINT = 5;
+    public static final int FUNCTION_ALIAS = 9;
+    public static final int RIGHT = 8;
+    public static final int ROLE = 7;
+    public static final int SETTING = 6;
+    public static final int CONSTANT = 11;
+    public static final int SCHEMA = 10;
+    public static final int COMMENT = 13;
+    public static final int USER_DATATYPE = 12;
 
-public abstract class DbObject {
-    
-    public static final int TABLE_OR_VIEW=0, INDEX=1, USER=2, SEQUENCE=3, TRIGGER=4;
-    public static final int CONSTRAINT = 5, SETTING = 6, ROLE = 7, RIGHT = 8, FUNCTION_ALIAS = 9;
-    public static final int SCHEMA = 10, CONSTANT = 11;
-    public static final int USER_DATATYPE = 12, COMMENT = 13;
+    public abstract void setModified();
 
-    private int id;
-    protected Database database;
-    protected Trace trace;
-    private String objectName;
-    private long modificationId;
-    private boolean temporary;
-    protected String comment;
+    public abstract long getModificationId();
 
-    protected DbObject(Database database, int id, String name, String traceModule) {
-        this.database = database;
-        this.trace = database.getTrace(traceModule);
-        this.id = id;
-        this.objectName = name;
-        this.modificationId = database.getModificationMetaId();
-    }
+    public abstract String getSQL();
 
-    public void setModified() {
-        this.modificationId = database == null ? -1 : database.getNextModificationMetaId();
-    }
+    public abstract ObjectArray getChildren();
 
-    public long getModificationId() {
-        return modificationId;
-    }
+    public abstract Database getDatabase();
 
-    protected void setObjectName(String name) {
-        objectName = name;
-    }
+    public abstract int getId();
 
-    public String getSQL() {
-        return Parser.quoteIdentifier(objectName);
-    }
-
-    public ObjectArray getChildren() {
-        return null;
-    }
-
-    public Database getDatabase() {
-        return database;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getName() {
-        return objectName;
-    }
+    public abstract String getName();
 
     public abstract String getCreateSQLForCopy(Table table, String quotedName);
+
     public abstract String getCreateSQL();
+
     public abstract String getDropSQL();
-    
+
     public abstract int getType();
-    public abstract void removeChildrenAndResources(Session session) throws SQLException;
+
+    public abstract void removeChildrenAndResources(Session session)
+            throws SQLException;
+
     public abstract void checkRename() throws SQLException;
 
-    protected void invalidate() {
-        setModified();
-        id = -1;
-        database = null;
-        trace = null;
-        objectName = null;
-    }
+    public abstract void rename(String newName) throws SQLException;
 
-    protected int getHeadPos() {
-        return 0;
-    }
+    public abstract boolean getTemporary();
 
-    public void rename(String newName) throws SQLException {
-        checkRename();
-        objectName = newName;
-        setModified();
-    }
+    public abstract void setTemporary(boolean temporary);
 
-    public boolean getTemporary() {
-        return temporary;
-    }
+    public abstract void setComment(String comment);
 
-    public void setTemporary(boolean temporary) {
-        this.temporary = temporary;
-    }
+    public abstract String getComment();
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    static int getCreateOrder(int type) {
-        switch(type) {
-        case SETTING:
-            return 0;
-        case USER:
-            return 1;
-        case SCHEMA:
-            return 2;
-        case USER_DATATYPE:
-            return 3;
-        case SEQUENCE:
-            return 4;
-        case CONSTANT:
-            return 5;
-        case FUNCTION_ALIAS:
-            return 6;
-        case TABLE_OR_VIEW:
-            return 7;
-        case INDEX:
-            return 8;
-        case CONSTRAINT:
-            return 9;
-        case TRIGGER:
-            return 10;
-        case ROLE:
-            return 11;
-        case RIGHT:
-            return 12;
-        case COMMENT:
-            return 13;
-        default:
-            throw Message.getInternalError("type="+type);
-        }
-    }
-
+    public abstract int getHeadPos();
 }

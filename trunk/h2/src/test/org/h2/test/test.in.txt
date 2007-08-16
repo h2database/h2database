@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+set autocommit false;
+> ok
+
 CREATE TABLE A(ID INT PRIMARY KEY, SK INT);
 > ok
 
@@ -30,6 +33,9 @@ ALTER TABLE A SET REFERENTIAL_INTEGRITY TRUE CHECK;
 > exception
 
 DROP TABLE A;
+> ok
+
+set autocommit true;
 > ok
 
 CREATE TABLE PARENT(ID INT);

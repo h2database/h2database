@@ -94,15 +94,20 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 
 /*
 
-table with constraint
-alter the table
-add data
--> object is closed
+CREATE TABLE Parent(ID INT PRIMARY KEY, Name VARCHAR);
+CREATE TABLE Child(ID INT, P INT, PRIMARY KEY(ID, P));
+ALTER TABLE Child ADD FOREIGN KEY(ID) REFERENCES Parent(ID);
+ALTER TABLE Child ADD FOREIGN KEY(P) REFERENCES Parent(ID);
+INSERT INTO Parent VALUES(1,  '0'), (2,  '0'), (3,  '0');
+INSERT INTO Child VALUES(2, 1);
+ALTER TABLE Parent ALTER COLUMN Name BOOLEAN NULL;
+DELETE FROM Parent WHERE ID=3;
+DROP TABLE Parent, Child;
 
-CREATE TABLE TEST(ID INT, PARENT INT, CONSTRAINT A FOREIGN KEY(PARENT) REFERENCES(ID));
-ALTER TABLE TEST ALTER COLUMN PARENT BIGINT;
-INSERT INTO TEST VALUES(1, 1, 1);
 
+only admins can use nested tables:
+CREATE USER TEST PASSWORD 'TEST';
+SELECT * FROM (SELECT * FROM DUAL);
 
 add MVCC
 

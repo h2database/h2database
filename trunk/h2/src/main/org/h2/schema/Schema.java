@@ -6,7 +6,6 @@ package org.h2.schema;
 
 import java.sql.SQLException;
 import java.util.HashMap;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -16,7 +15,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.index.BaseIndex;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;

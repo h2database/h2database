@@ -23,7 +23,7 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 
-public class LinkedIndex extends Index {
+public class LinkedIndex extends BaseIndex {
 
     private TableLink link;
     private String originalTable;
@@ -161,7 +161,7 @@ public class LinkedIndex extends Index {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         // TODO optimization: could get the first or last value (in any case; maybe not optimized)
         throw Message.getUnsupportedException();
     }

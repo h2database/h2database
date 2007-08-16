@@ -13,8 +13,10 @@ import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.DbObjectBase;
 import org.h2.engine.Session;
 import org.h2.engine.User;
+import org.h2.index.BaseIndex;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
@@ -24,7 +26,7 @@ import org.h2.table.TableData;
 import org.h2.table.TableLink;
 import org.h2.util.ObjectArray;
 
-public class Schema extends DbObject {
+public class Schema extends DbObjectBase {
 
     private User owner;
     private boolean system;

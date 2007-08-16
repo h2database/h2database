@@ -87,17 +87,6 @@ public class BtreeCursor implements Cursor {
                 }
             }
         }
-        if(SysProperties.MVCC) {
-            if(currentSearchRow != null) {
-                while(true) {
-                    Row r = get();
-                    int sessionId = r.getSessionId();
-                    if(sessionId == 0 || sessionId == session.getId()) {
-                        break;
-                    }
-                }
-            }
-        }
         return currentSearchRow != null;
     }
 

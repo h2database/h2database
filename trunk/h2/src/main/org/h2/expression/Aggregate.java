@@ -16,6 +16,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.message.Message;
+import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -160,7 +161,8 @@ public class Aggregate extends Expression {
             case MAX:
                 boolean first = type == MIN;
                 Index index = getColumnIndex(first);
-                Value v = index.findFirstOrLast(session, first);
+                SearchRow row = index.findFirstOrLast(session, first);
+                Value v = row.getValue(index.getColumns()[0].getColumnId());
                 return v;
             default:
                 throw Message.getInternalError("type="+type);

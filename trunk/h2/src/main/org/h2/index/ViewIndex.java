@@ -5,7 +5,6 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -18,11 +17,11 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
-import org.h2.util.SmallLRUCache;
 import org.h2.util.ObjectArray;
+import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 
-public class ViewIndex extends Index {
+public class ViewIndex extends BaseIndex {
 
     private String querySQL;
     private ObjectArray originalParameters;
@@ -232,7 +231,7 @@ public class ViewIndex extends Index {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

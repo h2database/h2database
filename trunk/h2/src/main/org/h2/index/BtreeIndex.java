@@ -26,7 +26,7 @@ import org.h2.value.ValueNull;
 /**
  * @author Thomas
  */
-public class BtreeIndex extends Index implements RecordReader {
+public class BtreeIndex extends BaseIndex implements RecordReader {
 
     // TODO index / btree: tune page size
     // final static int MAX_PAGE_SIZE = 256;
@@ -164,17 +164,12 @@ public class BtreeIndex extends Index implements RecordReader {
 
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
-        if(SysProperties.MVCC) {
+        if(rowCount == 1) {
+            // TODO performance: maybe improve truncate performance in this case
+            truncate(session);
+        } else {
             root.remove(session, row, 0);
             rowCount--;
-        } else {
-            if(rowCount == 1) {
-                // TODO performance: maybe improve truncate performance in this case
-                truncate(session);
-            } else {
-                root.remove(session, row, 0);
-                rowCount--;
-            }
         }
     }
 
@@ -188,7 +183,7 @@ public class BtreeIndex extends Index implements RecordReader {
             return cursor;
         } else {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
-            if (!root.findFirst(cursor, first)) {
+            if (getRowCount(session)==0 || !root.findFirst(cursor, first)) {
                 cursor.setCurrentRow(null);
             }
             return cursor;
@@ -290,24 +285,20 @@ public class BtreeIndex extends Index implements RecordReader {
         return true;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         if(first) {
-            // TODO optimization: this loops through NULL values
+            // TODO optimization: this loops through NULL elements
             Cursor cursor = find(session, null, null);
             while(cursor.next()) {
-                Value v = cursor.get().getValue(columnIndex[0]);
+                SearchRow row = cursor.getSearchRow();
+                Value v = row.getValue(columnIndex[0]);
                 if(v != ValueNull.INSTANCE) {
-                    return v;
+                    return row;
                 }
             }
-            return ValueNull.INSTANCE;
+            return null;
         } else {
-            SearchRow row = root.getLast(session);
-            if(row != null) {
-                Value v = row.getValue(columnIndex[0]);
-                return v;
-            }
-            return ValueNull.INSTANCE;
+            return root.getLast(session);
         }
     }
 

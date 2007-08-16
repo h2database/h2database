@@ -5,7 +5,6 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.expression.FunctionCall;
 import org.h2.message.Message;
@@ -14,9 +13,8 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
-import org.h2.value.Value;
 
-public class FunctionIndex extends Index {
+public class FunctionIndex extends BaseIndex {
     
     private FunctionTable functionTable;
     private LocalResult result;
@@ -73,7 +71,7 @@ public class FunctionIndex extends Index {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

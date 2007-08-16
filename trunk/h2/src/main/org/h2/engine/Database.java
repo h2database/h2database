@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;

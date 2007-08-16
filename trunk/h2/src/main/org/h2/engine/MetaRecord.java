@@ -35,8 +35,8 @@ public class MetaRecord {
             public int compare(Object o1, Object o2) {
                 MetaRecord m1 = (MetaRecord)o1;
                 MetaRecord m2 = (MetaRecord)o2;
-                int c1 = DbObject.getCreateOrder(m1.getObjectType());
-                int c2 = DbObject.getCreateOrder(m2.getObjectType());
+                int c1 = DbObjectBase.getCreateOrder(m1.getObjectType());
+                int c2 = DbObjectBase.getCreateOrder(m2.getObjectType());
                 if(c1 != c2) {
                     return c1 - c2;
                 }

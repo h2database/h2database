@@ -15,7 +15,7 @@ import org.h2.table.RangeTable;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
-public class RangeIndex extends Index {
+public class RangeIndex extends BaseIndex {
     
     private long min, max; 
     
@@ -70,8 +70,8 @@ public class RangeIndex extends Index {
         return true;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
-        return ValueLong.get(first ? min : max); 
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
+        return new Row(new Value[]{ValueLong.get(first ? min : max)}, 0);
     }
 
 }

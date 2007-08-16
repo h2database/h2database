@@ -23,7 +23,7 @@ import org.h2.value.Value;
  * @author Thomas
  */
 
-public class TriggerObject extends SchemaObject {
+public class TriggerObject extends SchemaObjectBase {
 
     public static final int INSERT=1, UPDATE=2, DELETE=4;
     public static final int DEFAULT_QUEUE_SIZE = 1024;

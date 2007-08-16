@@ -4,15 +4,12 @@
  */
 package org.h2.result;
 
-import org.h2.engine.Session;
 import org.h2.value.Value;
 
 public class SimpleRow implements SearchRow {
     
     private int pos;
     private Value[] data;
-    private int sessionId;
-    private boolean deleted;
 
     public SimpleRow(Value[] data) {
         this.data = data;
@@ -38,18 +35,4 @@ public class SimpleRow implements SearchRow {
         return data[i];
     }
 
-    public boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Session session, boolean deleted) {
-        this.sessionId = session.getId();
-        this.deleted = deleted;
-    }
-    
-    public int getSessionId() {
-        int testing;
-        return sessionId;
-    }
-    
 }

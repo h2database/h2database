@@ -21,7 +21,7 @@ import org.h2.value.ValueArray;
 /**
  * @author Thomas
  */
-public class HashIndex extends Index {
+public class HashIndex extends BaseIndex {
 
     private ValueHashMap rows;
     private IntIntHashMap intMap;
@@ -145,7 +145,7 @@ public class HashIndex extends Index {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

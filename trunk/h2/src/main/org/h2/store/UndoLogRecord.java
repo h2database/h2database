@@ -15,6 +15,7 @@ import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.table.Table;
+import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
@@ -141,7 +142,12 @@ public class UndoLogRecord {
         return table;
     }
 
-    public void commit() {
+    public void commit() throws SQLException {
+        ObjectArray list = table.getIndexes();
+        for(int i=0; i<list.size(); i++) {
+            Index index = (Index) list.get(i);
+            index.commit(row);
+        }
         row.commit();
     }
 }

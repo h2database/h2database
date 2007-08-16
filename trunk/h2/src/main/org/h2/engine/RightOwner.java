@@ -12,7 +12,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.table.Table;
 
-public abstract class RightOwner extends DbObject {
+public abstract class RightOwner extends DbObjectBase {
 
     // key: role; value: right
     private HashMap grantedRoles;

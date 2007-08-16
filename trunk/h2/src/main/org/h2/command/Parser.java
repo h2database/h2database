@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
 import java.util.HashSet;
-
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;

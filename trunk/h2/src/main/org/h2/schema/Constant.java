@@ -14,7 +14,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.value.Value;
 
-public class Constant extends SchemaObject {
+public class Constant extends SchemaObjectBase {
     
     private Value value;
     private ValueExpression expression;

@@ -315,7 +315,7 @@ The selectivity can be set manually with ALTER TABLE ALTER COLUMN SELECTIVITY.
 The manual values are overwritten by this statement.
 The selectivity is available in the INFORMATION_SCHEMA.COLUMNS table.
 ","
-ANALYZE TOP 1000
+ANALYZE SAMPLE_SIZE 1000
 "
 
 "Commands (DDL)","COMMENT","

@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.text.Collator;
 import java.util.Locale;
 import java.util.Properties;
-
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;

@@ -27,7 +27,7 @@ import org.h2.value.ValueArray;
 /**
  * @author Thomas
  */
-public class LinearHashIndex extends Index implements RecordReader {
+public class LinearHashIndex extends BaseIndex implements RecordReader {
 
     // TODO index / linear hash: tune page size
     // private static final int MAX_PAGE_SIZE = 256;
@@ -535,7 +535,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         return false;
     }
 
-    public Value findFirstOrLast(Session session, boolean first) throws SQLException {
+    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

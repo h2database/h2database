@@ -12,14 +12,14 @@ import org.h2.index.Index;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
-import org.h2.schema.SchemaObject;
+import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
  * @author Thomas
  */
-public abstract class Constraint extends SchemaObject {
+public abstract class Constraint extends SchemaObjectBase {
     
     public static final String CHECK = "CHECK", REFERENTIAL = "REFERENTIAL", UNIQUE = "UNIQUE";
     protected Table table;

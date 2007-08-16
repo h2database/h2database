@@ -19,7 +19,7 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
-public class FunctionAlias extends DbObject {
+public class FunctionAlias extends DbObjectBase {
 
     private boolean hasConnectionParam;
     private String className;

@@ -6,21 +6,8 @@ package org.h2.schema;
 
 import org.h2.engine.DbObject;
 
-public abstract class SchemaObject extends DbObject {
+public interface SchemaObject extends DbObject {
+    public abstract Schema getSchema();
 
-    private Schema schema;
-    
-    protected SchemaObject(Schema schema, int id, String name, String traceModule) {
-        super(schema.getDatabase(), id, name, traceModule);
-        this.schema = schema;
-    }
-    
-    public Schema getSchema() {
-        return schema;
-    }
-    
-    public String getSQL() {
-        return schema.getSQL() + "." + super.getSQL();
-    }
-    
+    public abstract String getSQL();
 }

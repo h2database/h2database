@@ -96,7 +96,7 @@ public class TableFilter implements ColumnResolver {
         if (indexConditions.size() == 0) {
             item = new PlanItem();
             item.setIndex(table.getScanIndex(session));
-            item.cost = item.getIndex().getCost(null);
+            item.cost = item.getIndex().getCost(session, null);
         } else {
             int len = table.getColumns().length;
             int[] masks = new int[len];

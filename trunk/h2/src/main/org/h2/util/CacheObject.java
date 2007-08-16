@@ -58,9 +58,7 @@ public abstract class CacheObject {
         return false;
     }    
     
-    public boolean canRemove() {
-        return true;
-    }
+    abstract public boolean canRemove();
     
     /*
      * Get the estimated memory size.

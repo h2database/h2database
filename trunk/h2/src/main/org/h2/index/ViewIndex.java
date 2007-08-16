@@ -212,13 +212,6 @@ public class ViewIndex extends Index {
         return query;
     }
     
-    public long getCost(int[] masks) throws SQLException {
-        if(masks != null) {
-            throw Message.getUnsupportedException();
-        }
-        return Long.MAX_VALUE;
-    }
-
     public void remove(Session session) throws SQLException {
         throw Message.getUnsupportedException();
     }

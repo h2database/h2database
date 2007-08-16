@@ -59,7 +59,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         firstBucketBlock = 4;
         storage = database.getStorage(id, diskFile);
         storage.setReader(this);
-        rowCount = table.getRowCount();
+        rowCount = table.getRowCount(session);
         int pos = storage.getNext(null);
         if(pos == -1) {
             truncate(session);
@@ -489,7 +489,7 @@ public class LinearHashIndex extends Index implements RecordReader {
         return new LinearHashCursor(tableData.getRow(session, key));
     }
 
-    public long getCost(int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
             Column column = columns[i];
             int index = column.getColumnId();

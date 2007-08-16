@@ -30,7 +30,7 @@ public class BtreeLeaf extends BtreePage {
     private boolean writePos;
     private int cachedRealByteCount;
 
-    BtreeLeaf(BtreeIndex index, Session session,DataPage s) throws SQLException {
+    BtreeLeaf(BtreeIndex index, Session session, DataPage s) throws SQLException {
         super(index);
         writePos = s.readByte() == 'P';
         if(writePos) {
@@ -60,7 +60,18 @@ public class BtreeLeaf extends BtreePage {
             if (comp == 0) {
                 if(index.indexType.isUnique()) {
                     if(!index.isNull(newRow)) {
-                        throw index.getDuplicateKeyException();
+                        if(SysProperties.MVCC) {
+                            int todoMVCC;
+                            // currently, throw a duplicate row exception even if another transaction 
+                            // updated or deleted the same row and did not yet commit - PostgreSQL waits but in most cases transactions are committed
+                            if(row.getDeleted() && row.getSessionId() == session.getId()) {
+                                // ignore: deleted
+                            } else {
+                                throw index.getDuplicateKeyException();
+                            }
+                        } else {
+                            throw index.getDuplicateKeyException();
+                        }
                     }
                 }
                 comp = index.compareKeys(row, newRow);
@@ -251,7 +262,9 @@ public class BtreeLeaf extends BtreePage {
         int size = 2 + dummy.getIntLen() * (len+1);
         for (int i = 0; i < len; i++) {
             SearchRow row = (SearchRow) pageData.get(i);
-            size += getRowSize(dummy, row);
+            if(!row.getDeleted()) {
+                size += getRowSize(dummy, row);
+            }
         }
         size += index.getRecordOverhead();
         cachedRealByteCount = size;

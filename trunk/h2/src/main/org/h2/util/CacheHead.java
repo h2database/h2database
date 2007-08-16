@@ -17,4 +17,8 @@ public class CacheHead extends CacheObject {
     public void write(DataPage buff) throws SQLException {
     }
 
+    public boolean canRemove() {
+        return false;
+    }
+
 }

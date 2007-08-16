@@ -872,11 +872,11 @@ SET MAX_LENGTH_INPLACE_LOB int
 Sets the maximum size of an in-place LOB object. LOB objects larger
 that this size are stored in a separate file, otherwise stored
 directly in the database (in-place).
-The default max size is 128.
+The default max size is 1024.
 This setting is persistent.
 Admin rights are required to execute this command.
 ","
-SET MAX_LENGTH_INPLACE_LOB 512
+SET MAX_LENGTH_INPLACE_LOB 128
 "
 
 "Commands (Other)","SET MAX_LOG_SIZE","

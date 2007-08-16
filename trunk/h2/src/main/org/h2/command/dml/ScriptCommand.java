@@ -205,7 +205,7 @@ public class ScriptCommand extends ScriptBase {
                 add(sql, false);
                 if(Table.TABLE.equals(tableType)) {
                     if(table.canGetRowCount()) {
-                        String rowcount = "-- " + table.getRowCount() + " = SELECT COUNT(*) FROM " + table.getSQL();
+                        String rowcount = "-- " + table.getRowCount(session) + " = SELECT COUNT(*) FROM " + table.getSQL();
                         add(rowcount, false);
                     }
                     if(data) {

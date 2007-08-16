@@ -75,7 +75,7 @@ public abstract class Index extends SchemaObject {
     public abstract void add(Session session, Row row) throws SQLException;
     public abstract void remove(Session session, Row row) throws SQLException;
     public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
-    public abstract long getCost(int[] masks) throws SQLException;
+    public abstract double getCost(Session session, int[] masks) throws SQLException;
     public abstract void remove(Session session) throws SQLException;
     public abstract void truncate(Session session) throws SQLException;
     public abstract boolean canGetFirstOrLast(boolean first);

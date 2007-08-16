@@ -735,7 +735,7 @@ public class Database implements DataHandler {
     }
 
     public synchronized Session createSession(User user) {
-        Session session = new Session(this, user, nextSessionId++);
+        Session session = new Session(this, user, ++nextSessionId);
         sessions.add(session);
         traceSystem.getTrace(Trace.SESSION).info("connecting #" + session.getId() + " to " + databaseName);
         if(delayedCloser != null) {

@@ -121,7 +121,7 @@ public class HashIndex extends Index {
         return new HashCursor(result);
     }
 
-    public long getCost(int[] masks) {
+    public double getCost(Session session, int[] masks) {
         for (int i = 0; i < columns.length; i++) {
             Column column = columns[i];
             int index = column.getColumnId();

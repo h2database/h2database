@@ -58,7 +58,7 @@ public class BtreeIndex extends Index implements RecordReader {
             if(head != null && head.getConsistent()) {
                 setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
                 needRebuild = false;
-                rowCount = table.getRowCount();
+                rowCount = table.getRowCount(session);
             } else {
                 truncate(session);
                 needRebuild = true;
@@ -164,12 +164,17 @@ public class BtreeIndex extends Index implements RecordReader {
 
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
-        if(rowCount == 1) {
-            // TODO performance: maybe improve truncate performance in this case
-            truncate(session);
-        } else {
+        if(SysProperties.MVCC) {
             root.remove(session, row, 0);
             rowCount--;
+        } else {
+            if(rowCount == 1) {
+                // TODO performance: maybe improve truncate performance in this case
+                truncate(session);
+            } else {
+                root.remove(session, row, 0);
+                rowCount--;
+            }
         }
     }
 
@@ -199,8 +204,8 @@ public class BtreeIndex extends Index implements RecordReader {
         }
     }
 
-    public long getCost(int[] masks) throws SQLException {
-        return 10 * getCostRangeIndex(masks, tableData.getRowCount());
+    public double getCost(Session session, int[] masks) throws SQLException {
+        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session));
     }
 
     public Record read(Session session, DataPage s) throws SQLException {

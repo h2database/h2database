@@ -243,7 +243,7 @@ public class TableData extends Table implements RecordReader {
         return true;
     }
 
-    public long getRowCount() {
+    public long getRowCount(Session session) {
         return rowCount;
     }
 

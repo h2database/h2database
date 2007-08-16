@@ -84,7 +84,7 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public long getRowCount() throws SQLException {
+    public long getRowCount(Session session) throws SQLException {
         return max - min;
     }
 

@@ -113,7 +113,7 @@ public class FunctionTable extends Table {
         return false;
     }
 
-    public long getRowCount() throws SQLException {
+    public long getRowCount(Session session) throws SQLException {
         throw Message.getInternalError();
     }
 

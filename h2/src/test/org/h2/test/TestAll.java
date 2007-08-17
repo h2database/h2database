@@ -104,12 +104,16 @@ ALTER TABLE Parent ALTER COLUMN Name BOOLEAN NULL;
 DELETE FROM Parent WHERE ID=3;
 DROP TABLE Parent, Child;
 
+add link to:
+http://zvikico.typepad.com/problog/2007/08/h2-database-eng.html
 
 only admins can use nested tables:
 CREATE USER TEST PASSWORD 'TEST';
 SELECT * FROM (SELECT * FROM DUAL);
 
 add MVCC
+
+improve documentation of 'mixed mode' usage.
 
 test and document fulltext search
 

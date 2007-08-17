@@ -162,7 +162,12 @@ public class Aggregate extends Expression {
                 boolean first = type == MIN;
                 Index index = getColumnIndex(first);
                 SearchRow row = index.findFirstOrLast(session, first);
-                Value v = row.getValue(index.getColumns()[0].getColumnId());
+                Value v;
+                if(row == null) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = row.getValue(index.getColumns()[0].getColumnId());
+                }
                 return v;
             default:
                 throw Message.getInternalError("type="+type);

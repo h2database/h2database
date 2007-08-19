@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -199,7 +200,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         int id = -1;
         TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false);
         newTable.setComment(table.getComment());
-        execute(newTable.getCreateSQL());
+        execute(newTable.getCreateSQL(), true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
         ObjectArray children = table.getChildren();
         for (int i=0; i<children.size(); i++) {
@@ -226,7 +227,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 sql = child.getCreateSQLForCopy(newTable, quotedName);     
             }            
             if(sql != null) {
-                execute(sql);
+                execute(sql, true);
             }
         }
         StringBuffer columnList = new StringBuffer();
@@ -275,10 +276,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String sql = buff.toString();
         newTable.setCheckForeignKeyConstraints(session, false, false);
         try {
-            execute(sql);
+            execute(sql, false);
         } catch(SQLException e) {
             unlinkSequences(newTable);
-            execute("DROP TABLE " + newTable.getSQL());
+            execute("DROP TABLE " + newTable.getSQL(), true);
             throw e;
         }
         newTable.setCheckForeignKeyConstraints(session, true, false);
@@ -292,7 +293,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 columns[i].setSequence(null);
             }
         }
-        execute("DROP TABLE " + table.getSQL());
+        execute("DROP TABLE " + table.getSQL(), true);
         db.renameSchemaObject(session, newTable, tableName);
         children = newTable.getChildren();
         for (int i=0; i<children.size(); i++) {
@@ -323,9 +324,13 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
     
-    private void execute(String sql) throws SQLException {
+    private void execute(String sql, boolean ddl) throws SQLException {
         Prepared command = session.prepare(sql);
         command.update();
+        if(ddl && SysProperties.MVCC) {
+            // TODO this should work without MVCC, but avoid risks at the moment
+            session.commit(true);
+        }
     }
     
     private void dropSingleColumnIndexes() throws SQLException {

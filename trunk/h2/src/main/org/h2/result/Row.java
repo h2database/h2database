@@ -65,5 +65,23 @@ public class Row extends Record implements SearchRow {
     public int getMemorySize() {
         return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
     }
+    
+    public String toString() {
+        int testing;
+        StringBuffer buff = new StringBuffer(data.length*5);
+        buff.append('(');
+        for(int i=0; i<data.length; i++) {
+            if(i>0) {
+                buff.append(", ");
+            }
+            buff.append(data[i].getSQL());
+        }
+        buff.append(')');
+        buff.append(" /* pos: " + getPos() + "*/ ");
+        if(getDeleted()) {
+            buff.append(" /* deleted /*");
+        }
+        return buff.toString();
+    }
 
 }

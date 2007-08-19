@@ -35,6 +35,7 @@ import org.h2.store.FileStore;
 import org.h2.store.LogSystem;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
+import org.h2.store.UndoLogRecord;
 import org.h2.store.WriterThread;
 import org.h2.table.Column;
 import org.h2.table.MetaTable;
@@ -517,16 +518,16 @@ public class Database implements DataHandler {
             rec.execute(this, systemSession, eventListener);
         }
         // try to recompile the views that are invalid
-        recompileInvalidViews();
+        recompileInvalidViews(systemSession);
         starting = false;
-        addDefaultSetting(SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
-        addDefaultSetting(SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
-        addDefaultSetting(SetTypes.TRACE_LEVEL_FILE, null, traceSystem.getLevelFile());
-        addDefaultSetting(SetTypes.TRACE_LEVEL_SYSTEM_OUT, null, traceSystem.getLevelSystemOut());
-        addDefaultSetting(SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
-        addDefaultSetting(SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
-        addDefaultSetting(SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
-        removeUnusedStorages();
+        addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
+        addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
+        addDefaultSetting(systemSession, SetTypes.TRACE_LEVEL_FILE, null, traceSystem.getLevelFile());
+        addDefaultSetting(systemSession, SetTypes.TRACE_LEVEL_SYSTEM_OUT, null, traceSystem.getLevelSystemOut());
+        addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
+        addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
+        addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
+        removeUnusedStorages(systemSession);
         systemSession.commit(true);
         if(!readOnly) {
             emergencyReserve = openFile(createTempFile(), "rw", false);
@@ -536,7 +537,7 @@ public class Database implements DataHandler {
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }
 
-    private void recompileInvalidViews() {
+    private void recompileInvalidViews(Session session) {
         boolean recompileSuccessful;
         do {
             recompileSuccessful = false;
@@ -547,7 +548,7 @@ public class Database implements DataHandler {
                     TableView view = (TableView) obj;
                     if(view.getInvalid()) {
                         try {
-                            view.recompile(systemSession);
+                            view.recompile(session);
                         } catch(Throwable e) {
                             // ignore
                         }
@@ -560,18 +561,18 @@ public class Database implements DataHandler {
         } while(recompileSuccessful);
     }
 
-    private void removeUnusedStorages() throws SQLException {
+    private void removeUnusedStorages(Session session) throws SQLException {
         if(persistent) {
             for(int i=0; i<storages.size(); i++) {
                 Storage storage = (Storage) storages.get(i);
                 if(storage != null && storage.getRecordReader()==null) {
-                    storage.delete(systemSession);
+                    storage.delete(session);
                 }
             }
         }
     }
 
-    private void addDefaultSetting(int type, String stringValue, int intValue) throws SQLException {
+    private void addDefaultSetting(Session session, int type, String stringValue, int intValue) throws SQLException {
         if(readOnly) {
             return;
         }
@@ -583,7 +584,7 @@ public class Database implements DataHandler {
             } else {
                 setting.setStringValue(stringValue);
             }
-            addDatabaseObject(systemSession, setting);
+            addDatabaseObject(session, setting);
         }
     }
 
@@ -632,20 +633,27 @@ public class Database implements DataHandler {
         objectIds.set(obj.getId());
         meta.lock(session, true);
         meta.addRow(session, r);
+        if(SysProperties.MVCC) {
+            // TODO this should work without MVCC, but avoid risks at the moment
+            session.log(meta, UndoLogRecord.INSERT, r);
+        }
     }
 
     private void removeMeta(Session session, int id) throws SQLException {
         SearchRow r = meta.getTemplateSimpleRow(false);
         r.setValue(0, ValueInt.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
-        cursor.next();
-        Row found = cursor.get();
-        if(found!=null) {
+        if(cursor.next()) {
+            Row found = cursor.get();
             meta.lock(session, true);
             meta.removeRow(session, found);
+            if(SysProperties.MVCC) {
+                // TODO this should work without MVCC, but avoid risks at the moment
+                session.log(meta, UndoLogRecord.DELETE, found);
+            }
             objectIds.clear(id);
             if(SysProperties.CHECK) {
-                checkMetaFree(id);
+                checkMetaFree(session, id);
             }
         }
     }
@@ -878,12 +886,11 @@ public class Database implements DataHandler {
         storages = new ObjectArray();
     }
 
-    private void checkMetaFree(int id) throws SQLException {
+    private void checkMetaFree(Session session, int id) throws SQLException {
         SearchRow r = meta.getTemplateSimpleRow(false);
         r.setValue(0, ValueInt.get(id));
-        Cursor cursor = metaIdIndex.find(systemSession, r, r);
-        cursor.next();
-        if(cursor.getPos() != Cursor.POS_NO_ROW) {
+        Cursor cursor = metaIdIndex.find(session, r, r);
+        if(cursor.next()) {
             throw Message.getInternalError();
         }
     }
@@ -1108,14 +1115,14 @@ public class Database implements DataHandler {
         removeMeta(session, id);
     }
 
-    private String getFirstInvalidTable() {
+    private String getFirstInvalidTable(Session session) {
         String conflict = null;
         try {
             ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
             for(int i=0; i<list.size(); i++) {
                 Table t = (Table)list.get(i);
                 conflict = t.getSQL();
-                systemSession.prepare(t.getCreateSQL());
+                session.prepare(t.getCreateSQL());
             }
         } catch(SQLException e) {
             return conflict;
@@ -1136,7 +1143,7 @@ public class Database implements DataHandler {
             removeDatabaseObject(session, comment);
         }        
         obj.getSchema().remove(session, obj);
-        String invalid = getFirstInvalidTable();
+        String invalid = getFirstInvalidTable(session);
         if(invalid != null) {
             obj.getSchema().add(obj);
             throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{obj.getSQL(), invalid});

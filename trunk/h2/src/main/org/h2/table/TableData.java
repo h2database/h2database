@@ -237,6 +237,11 @@ public class TableData extends Table implements RecordReader {
         }
         for(int i=0; i<list.size(); i++) {
             Row r = (Row) list.get(i);
+            if(SysProperties.MVCC) {
+                // when adding referential integrity to a table, the index is created first, and the rows are inserted to this index
+                // if the session is not set, it would look like an insert from another session
+                r.setDeleted(session, false);
+            }
             index.add(session, r);
         }
         list.clear();

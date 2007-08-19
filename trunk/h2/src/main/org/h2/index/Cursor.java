@@ -11,8 +11,6 @@ import org.h2.result.SearchRow;
 
 
 public interface Cursor {
-    
-    int POS_NO_ROW = -1;
 
     Row get() throws SQLException;
     SearchRow getSearchRow() throws SQLException;

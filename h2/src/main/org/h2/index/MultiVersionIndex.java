@@ -1,6 +1,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -14,17 +15,21 @@ import org.h2.util.ObjectArray;
 
 public class MultiVersionIndex implements Index {
     
-    private Index base;
-    private TreeIndex delta;
+    private final Index base;
+    private final TreeIndex delta;
+    private final TableData table;
     
     public MultiVersionIndex(Index base, TableData table) throws SQLException { 
         this.base = base;
+        this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
         this.delta = new TreeIndex(table, -1, "DELTA" ,base.getColumns(), deltaIndexType);
     }    
 
     public void add(Session session, Row row) throws SQLException {
         base.add(session, row);
+        // for example rolling back an delete operation
+        removeIfExists(session, row);
         delta.add(session, row);
     }
 
@@ -55,10 +60,27 @@ public class MultiVersionIndex implements Index {
     public boolean needRebuild() {
         return base.needRebuild();
     }
+    
+    private boolean removeIfExists(Session session, Row row) throws SQLException {
+        // maybe it was inserted by the same session just before
+        Cursor c = delta.find(session, row, row);
+        while(c.next()) {
+            Row r = c.get();
+            if(r.getPos() == row.getPos()) {
+                delta.remove(session, row);
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void remove(Session session, Row row) throws SQLException {
         base.remove(session, row);
-        delta.add(session, row);
+        if(removeIfExists(session, row)) {
+            // added and deleted in the same transaction: no change
+        } else {
+            delta.add(session, row);
+        }
     }
 
     public void remove(Session session) throws SQLException {
@@ -71,7 +93,7 @@ public class MultiVersionIndex implements Index {
     }
     
     public void commit(Row row) throws SQLException {
-        delta.remove(null, row);
+        removeIfExists(null, row);
     }
 
     public int compareKeys(SearchRow rowData, SearchRow compare) {
@@ -127,6 +149,7 @@ public class MultiVersionIndex implements Index {
     }
 
     public long getRowCount(Session session) {
+        // TODO 
         return base.getRowCount(session);
     }
 
@@ -143,7 +166,8 @@ public class MultiVersionIndex implements Index {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        base.removeChildrenAndResources(session);
+        table.removeIndex(this);
+        remove(session);
     }
 
     public String getSQL() {

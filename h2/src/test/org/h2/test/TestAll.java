@@ -92,6 +92,10 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();      
 
+        
+//int testMVCC;        
+//        System.setProperty("h2.mvcc", "true");
+        
 /*
 
 CREATE TABLE Parent(ID INT PRIMARY KEY, Name VARCHAR);

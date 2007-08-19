@@ -33,7 +33,7 @@ public class TreeCursor implements Cursor {
     }
     
     public int getPos() {
-        return node == null ? -1 : node.row.getPos();
+        return node.row.getPos();
     }
 
     public boolean next() throws SQLException {

@@ -1126,6 +1126,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Read-only sessions (Connection.setReadOnly)
 </li><li>Support compatibility for jdbc:hsqldb:res:
+</li><li>In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li></ul>
 
 <h3>Not Planned</h3>

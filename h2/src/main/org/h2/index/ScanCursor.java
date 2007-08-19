@@ -39,7 +39,7 @@ public class ScanCursor implements Cursor {
     }
 
     public int getPos() {
-        return row == null ? -1 : row.getPos();
+        return row.getPos();
     }
 
     public boolean next() throws SQLException {

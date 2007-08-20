@@ -243,7 +243,16 @@
 			<include name="pom.xml" />
 			<include name="h2-${version.name.maven}.jar" />
 		</jar>
-	</target>	
+	</target>
+
+	<target name="mavenUploadCentral" depends="jar">
+		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
+		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pomUpload.xml">
+			<filterset>
+				<filter token="version" value="${version.name.maven}"/>
+		    </filterset>
+		</copy>
+	</target>
 
 	<target name="mavenUploadLocal" depends="jar">
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">

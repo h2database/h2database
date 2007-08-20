@@ -83,9 +83,11 @@ public class TableData extends Table implements RecordReader {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
                 if(SysProperties.CHECK) {
-                    long rc = index.getRowCount(session);
-                    if(rc != rowCount+1) {
-                        throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
+                    if(!SysProperties.MVCC) {
+                        long rc = index.getRowCount(session);
+                        if(rc != rowCount+1) {
+                            throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
+                        }
                     }
                 }
             }
@@ -96,9 +98,11 @@ public class TableData extends Table implements RecordReader {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
                     if(SysProperties.CHECK) {
-                        long rc = index.getRowCount(session);
-                        if(rc != rowCount) {
-                            throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
+                        if(!SysProperties.MVCC) {
+                            long rc = index.getRowCount(session);
+                            if(rc != rowCount) {
+                                throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
+                            }
                         }
                     }
                 }
@@ -252,6 +256,9 @@ public class TableData extends Table implements RecordReader {
     }
 
     public long getRowCount(Session session) {
+        if(SysProperties.MVCC) {
+            return getScanIndex(session).getRowCount(session);
+        }
         return rowCount;
     }
 
@@ -261,9 +268,11 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);
             if(SysProperties.CHECK) {
-                long rc = index.getRowCount(session);
-                if(rc != rowCount-1) {
-                    throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
+                if(!SysProperties.MVCC) {
+                    long rc = index.getRowCount(session);
+                    if(rc != rowCount-1) {
+                        throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
+                    }
                 }
             }
         }

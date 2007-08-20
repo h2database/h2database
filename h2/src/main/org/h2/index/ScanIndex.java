@@ -6,6 +6,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -15,6 +16,7 @@ import org.h2.result.SearchRow;
 import org.h2.store.Storage;
 import org.h2.table.Column;
 import org.h2.table.TableData;
+import org.h2.util.IntIntHashMap;
 import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -29,10 +31,15 @@ public class ScanIndex extends BaseIndex {
     private Storage storage;
     private TableData tableData;
     private boolean containsLargeObject;
+    private int rowCountDiff;
+    private IntIntHashMap sessionRowCount;
 
     public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType)
             throws SQLException {
         super(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        if(SysProperties.MVCC) {
+            sessionRowCount = new IntIntHashMap();
+        }
         tableData = table;
         Database db = table.getDatabase();
         if(!db.isPersistent() || id < 0) {
@@ -114,7 +121,20 @@ public class ScanIndex extends BaseIndex {
                 rows.set(key, row);
             }
         }
+        incrementRowCount(session, 1);
         rowCount++;
+    }
+    
+    private void incrementRowCount(Session session, int count) {
+        if(SysProperties.MVCC) {
+            int id = session.getId();
+            int current = sessionRowCount.get(id);
+            if(current == -1) {
+                current = 0;
+            }
+            sessionRowCount.put(id, current + count);
+            rowCountDiff += count;
+        }
     }
 
     public void remove(Session session, Row row) throws SQLException {
@@ -135,6 +155,7 @@ public class ScanIndex extends BaseIndex {
             rows.set(key, free);
             firstFree = key;
         }
+        incrementRowCount(session, -1);
         rowCount--;
     }
 
@@ -148,6 +169,19 @@ public class ScanIndex extends BaseIndex {
             cost *= 10;
         }
         return cost;
+    }
+    
+    public long getRowCount(Session session) {
+        if(SysProperties.MVCC) {
+            long count = sessionRowCount.get(session.getId());
+            if(count == -1) {
+                count = 0;
+            }
+            count += super.getRowCount(session);
+            count -= rowCountDiff;
+            return count;
+        }
+        return super.getRowCount(session);
     }
 
     Row getNextRow(Session session, Row row) throws SQLException {

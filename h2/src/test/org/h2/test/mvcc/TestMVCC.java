@@ -33,17 +33,11 @@ public class TestMVCC {
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
 
-        s1.execute("CREATE TABLE A(ID INT PRIMARY KEY, SK INT)");
-        s1.execute("INSERT INTO A VALUES(1, 2)");
-        test(s1, "SELECT 1 FROM (SELECT SK FROM PUBLIC.A ORDER BY SK) C WHERE NOT EXISTS(SELECT 1 FROM PUBLIC.A P WHERE C.SK=P.ID)", "1");
-        c1.commit();
-        test(s1, "SELECT 1 FROM (SELECT SK FROM PUBLIC.A ORDER BY SK) C WHERE NOT EXISTS(SELECT 1 FROM PUBLIC.A P WHERE C.SK=P.ID)", "1");
-        try {
-            s1.execute("ALTER TABLE A ADD CONSTRAINT AC FOREIGN KEY(SK) REFERENCES A(ID)");
-            throw new Exception("unexpected success");
-        } catch(SQLException e) {
-            // expected
-        }
+        s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");
+        s1.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
+        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        test(s1, "SELECT COUNT(*) FROM TEST", "1");
+        s1.execute("DROP TABLE TEST");
         c1.commit();
 
         s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");

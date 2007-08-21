@@ -1,4 +1,28 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE Parent(ID INT PRIMARY KEY, Name VARCHAR);
+> ok
+
+CREATE TABLE Child(ID INT);
+> ok
+
+ALTER TABLE Child ADD FOREIGN KEY(ID) REFERENCES Parent(ID);
+> ok
+
+INSERT INTO Parent VALUES(1,  '0'), (2,  '0'), (3,  '0');
+> update count: 3
+
+INSERT INTO Child VALUES(1);
+> update count: 1
+
+ALTER TABLE Parent ALTER COLUMN Name BOOLEAN NULL;
+> ok
+
+DELETE FROM Parent WHERE ID=3;
+> update count: 1
+
+DROP TABLE Parent, Child;
+> ok
+
 set autocommit false;
 > ok
 

@@ -56,7 +56,7 @@ public abstract class Expression {
         return getValue(session).getBoolean();
     }
 
-    public void createIndexConditions(TableFilter filter) throws SQLException {
+    public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
         // default is do nothing
     }
 

@@ -248,7 +248,7 @@ public class ExpressionColumn extends Expression {
         return 2;
     }
     
-    public void createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if(filter == tf && column.getType() == Value.BOOLEAN) {
             IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(true)));

@@ -39,7 +39,7 @@ public class ValueExpression extends Expression {
         return value.getType();
     }
     
-    public void createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(Session session, TableFilter filter) {
         if(value.getType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean)value).getBoolean().booleanValue();
             if(!v) {

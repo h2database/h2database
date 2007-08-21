@@ -40,12 +40,12 @@ public class Delete extends Prepared {
     }
 
     public int update() throws SQLException {
-        tableFilter.startQuery();
+        tableFilter.startQuery(session);
         tableFilter.reset();
         Table table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
         table.fireBefore(session);
-        table.lock(session, true);
+        table.lock(session, true, false);
         ObjectArray rows = new ObjectArray();
         setCurrentRowNumber(0);
         while (tableFilter.next()) {
@@ -94,7 +94,7 @@ public class Delete extends Prepared {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);
-            condition.createIndexConditions(tableFilter);
+            condition.createIndexConditions(session, tableFilter);
         }
         PlanItem item = tableFilter.getBestPlanItem(session);
         tableFilter.setPlanItem(item);

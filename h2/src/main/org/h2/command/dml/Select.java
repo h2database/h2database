@@ -320,10 +320,10 @@ public class Select extends Query {
         if(distinct) {
             result.setDistinct();
         }
-        topTableFilter.startQuery();
+        topTableFilter.startQuery(session);
         topTableFilter.reset();
         // TODO lock tables of sub queries
-        topTableFilter.lock(session, isForUpdate);
+        topTableFilter.lock(session, isForUpdate, isForUpdate);
         if(isQuickQuery) {
             queryQuick(columnCount, result);
         } else if(isGroupQuery) {
@@ -477,7 +477,7 @@ public class Select extends Query {
             condition = condition.optimize(session);
             for (int j = 0; j < filters.size(); j++) {
                 TableFilter f = (TableFilter) filters.get(j);
-                condition.createIndexConditions(f);
+                condition.createIndexConditions(session, f);
             }
         }
         if(condition == null && isGroupQuery && groupIndex == null && havingIndex<0 && filters.size()==1) {

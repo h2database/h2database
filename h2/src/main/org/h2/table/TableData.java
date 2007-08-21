@@ -83,7 +83,7 @@ public class TableData extends Table implements RecordReader {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
                 if(SysProperties.CHECK) {
-                    if(!SysProperties.MVCC) {
+                    if(!database.isMultiVersion()) {
                         long rc = index.getRowCount(session);
                         if(rc != rowCount+1) {
                             throw Message.getInternalError("rowCount expected "+(rowCount+1)+" got "+rc);
@@ -98,7 +98,7 @@ public class TableData extends Table implements RecordReader {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
                     if(SysProperties.CHECK) {
-                        if(!SysProperties.MVCC) {
+                        if(!database.isMultiVersion()) {
                             long rc = index.getRowCount(session);
                             if(rc != rowCount) {
                                 throw Message.getInternalError("rowCount expected "+(rowCount)+" got "+rc);
@@ -160,7 +160,7 @@ public class TableData extends Table implements RecordReader {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
-        if(SysProperties.MVCC) {
+        if(database.isMultiVersion()) {
             index = new MultiVersionIndex(index, this);
         }
         if(index.needRebuild() && rowCount > 0) {
@@ -241,11 +241,6 @@ public class TableData extends Table implements RecordReader {
         }
         for(int i=0; i<list.size(); i++) {
             Row r = (Row) list.get(i);
-            if(SysProperties.MVCC) {
-                // when adding referential integrity to a table, the index is created first, and the rows are inserted to this index
-                // if the session is not set, it would look like an insert from another session
-                r.setDeleted(session, false);
-            }
             index.add(session, r);
         }
         list.clear();
@@ -256,7 +251,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     public long getRowCount(Session session) {
-        if(SysProperties.MVCC) {
+        if(database.isMultiVersion()) {
             return getScanIndex(session).getRowCount(session);
         }
         return rowCount;
@@ -268,7 +263,7 @@ public class TableData extends Table implements RecordReader {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);
             if(SysProperties.CHECK) {
-                if(!SysProperties.MVCC) {
+                if(!database.isMultiVersion()) {
                     long rc = index.getRowCount(session);
                     if(rc != rowCount-1) {
                         throw Message.getInternalError("rowCount expected "+(rowCount-1)+" got "+rc);
@@ -294,12 +289,9 @@ public class TableData extends Table implements RecordReader {
         rowCount = 0;
     }
 
-    public void lock(Session session, boolean exclusive) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         int lockMode = database.getLockMode();
         if(lockMode == Constants.LOCK_MODE_OFF) {
-            return;
-        }
-        if(SysProperties.MVCC) {
             return;
         }
         long max = System.currentTimeMillis() + session.getLockTimeout();
@@ -310,6 +302,9 @@ public class TableData extends Table implements RecordReader {
                 }
                 if (exclusive) {
                     if (lockExclusive == null) {
+                        if(!force && database.isMultiVersion()) {
+                            return;
+                        }
                         if (lockShared.isEmpty()) {
                             traceLock(session, exclusive, "ok");
                             session.addLock(this);
@@ -322,6 +317,9 @@ public class TableData extends Table implements RecordReader {
                         }
                     }
                 } else {
+                    if(!force && database.isMultiVersion()) {
+                        return;
+                    }
                     if (lockExclusive == null) {
                         if(lockMode == Constants.LOCK_MODE_READ_COMMITTED && !SysProperties.multiThreadedKernel) {
                             // READ_COMMITTED read locks are acquired but they are released immediately

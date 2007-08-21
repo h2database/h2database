@@ -258,7 +258,7 @@ public class BtreeLeaf extends BtreePage {
         return size;
     }
 
-    SearchRow getLast(Session sessioni) throws SQLException {
+    SearchRow getLast(Session session) throws SQLException {
         if(pageData.size()==0) {
             if(!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");

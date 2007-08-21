@@ -56,7 +56,7 @@ public class Update extends Prepared {
     }
 
     public int update() throws SQLException {
-        tableFilter.startQuery();
+        tableFilter.startQuery(session);
         tableFilter.reset();
         // TODO optimization: update old / new list: maybe use a linked list (to avoid array allocation)
         ObjectArray oldRows = new ObjectArray();
@@ -64,7 +64,7 @@ public class Update extends Prepared {
         Table table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.UPDATE);
         table.fireBefore(session);
-        table.lock(session, true);
+        table.lock(session, true, false);
         int columnCount = table.getColumns().length;
         // get the old rows, compute the new rows
         setCurrentRowNumber(0);
@@ -145,7 +145,7 @@ public class Update extends Prepared {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
             condition = condition.optimize(session);
-            condition.createIndexConditions(tableFilter);
+            condition.createIndexConditions(session, tableFilter);
         }
         for (int i = 0; i < expressions.length; i++) {
             Expression expr = expressions[i];

@@ -246,7 +246,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return table;
     }
 
-    public void commit(Row row) throws SQLException {
+    public void commit(int operation, Row row) throws SQLException {
     }
 
 }

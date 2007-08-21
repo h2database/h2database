@@ -136,7 +136,7 @@ public class TableView extends Table {
     public void checkRename() throws SQLException {
     }
 
-    public void lock(Session session, boolean exclusive) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         // exclusive lock means: the view will be dropped
     }
 

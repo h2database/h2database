@@ -5,8 +5,6 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -19,10 +17,12 @@ public class ScanCursor implements Cursor {
     private ScanIndex scan;
     private Row row;
     private final Session session;
+    private final boolean multiVersion;
 
-    ScanCursor(Session session, ScanIndex scan) {
+    ScanCursor(Session session, ScanIndex scan, boolean multiVersion) {
         this.session = session;
         this.scan = scan;
+        this.multiVersion = multiVersion;
         row = null;
     }
     
@@ -43,7 +43,7 @@ public class ScanCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        if(SysProperties.MVCC) {
+        if(multiVersion) {
             while(true) {
                 row = scan.getNextRow(session, row);
                 if(row == null) {

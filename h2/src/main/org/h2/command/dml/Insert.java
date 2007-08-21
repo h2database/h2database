@@ -84,7 +84,7 @@ public class Insert extends Prepared {
                 table.fireBefore(session);
                 table.validateConvertUpdateSequence(session, newRow);
                 table.fireBeforeRow(session, null, newRow);
-                table.lock(session, true);
+                table.lock(session, true, false);
                 table.addRow(session, newRow);
                 session.log(table, UndoLogRecord.INSERT, newRow);
                 table.fireAfter(session);
@@ -95,7 +95,7 @@ public class Insert extends Prepared {
             LocalResult rows = query.query(0);
             count = 0;
             table.fireBefore(session);
-            table.lock(session, true);
+            table.lock(session, true, false);
             while(rows.next()) {
                 checkCancelled();
                 count++;

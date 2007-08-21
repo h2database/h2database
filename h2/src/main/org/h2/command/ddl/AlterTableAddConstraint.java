@@ -70,7 +70,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         Constraint constraint;
         session.getUser().checkRight(table, Right.ALL);
-        table.lock(session, true);
+        table.lock(session, true, true);
         switch(type) {
         case CHECK: {
             int id = getObjectId(true, true);
@@ -215,6 +215,17 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
     
+    private Index getIndex(Table t, Column[] cols) {
+        ObjectArray list = t.getIndexes();
+        for(int i=0; i<list.size(); i++) {
+            Index index = (Index) list.get(i);
+            if(canUseIndex(index, t, cols)) {
+                return index;
+            }
+        }
+        return null;
+    }
+    
     private boolean canUseUniqueIndex(Index index, Table table, Column[] cols) {
         if(index.getTable() != table || !index.getIndexType().isUnique()) {
             return false;
@@ -238,22 +249,15 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private Index getIndex(Table t, Column[] cols) {
-        ObjectArray list = t.getIndexes();
-        for(int i=0; i<list.size(); i++) {
-            Index index = (Index) list.get(i);
-            if(canUseIndex(index, t, cols)) {
-                return index;
-            }
-        }
-        return null;
-    }
-    
     private boolean canUseIndex(Index index, Table table, Column[] cols) {
         if(index.getTable() != table || index.getCreateSQL() == null) {
             // can't use the scan index or index of another table
             return false;
         }
+        if(index.getIndexType().belongsToConstraint()) {
+            // the constraint might be dropped (also in an alter table statement)
+            return false;
+        }        
         Column[] indexCols = index.getColumns();
         if(indexCols.length < cols.length) {
             return false;

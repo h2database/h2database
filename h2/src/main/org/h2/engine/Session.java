@@ -5,6 +5,7 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -191,10 +192,16 @@ public class Session implements SessionInterface {
             logSystem.commit(this);
         }
         if(undoLog.size() > 0) {
-            if(SysProperties.MVCC) {
+            if(database.isMultiVersion()) {
+                ArrayList rows = new ArrayList();
                 while (undoLog.size() > 0) {
                     UndoLogRecord entry = undoLog.getAndRemoveLast();
                     entry.commit();
+                    rows.add(entry.getRow());
+                }
+                for(int i=0; i<rows.size(); i++) {
+                    Row r = (Row) rows.get(i);
+                    r.commit();
                 }
             }
             undoLog.clear();
@@ -293,7 +300,7 @@ public class Session implements SessionInterface {
         // otherwise rollback will try to rollback a not-inserted row
         if(SysProperties.CHECK) {
             int lockMode = database.getLockMode();
-            if(lockMode != Constants.LOCK_MODE_OFF && !SysProperties.MVCC) {
+            if(lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
                 if(locks.indexOf(log.getTable())<0 && log.getTable().getTableType() != Table.TABLE_LINK) {
                     throw Message.getInternalError();
                 }

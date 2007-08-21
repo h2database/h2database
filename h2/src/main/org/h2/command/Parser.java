@@ -3636,6 +3636,10 @@ public class Parser {
             readIfEqualOrTo();            
             read();
             return new NoOperation(session);
+        } else if(readIf("MVCC")) {
+            readIfEqualOrTo();            
+            read();
+            return new NoOperation(session);
         } else if(readIf("ACCESS_MODE_LOG")) {
             readIfEqualOrTo();
             read();

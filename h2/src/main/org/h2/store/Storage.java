@@ -139,7 +139,7 @@ public class Storage {
         }
         record.setDeleted(session, true);
         int blockCount = record.getBlockCount();
-        if(SysProperties.MVCC) {
+        if(database.isMultiVersion()) {
             int todoMustFreeSpaceOnCommit;
         } else {
             free(pos, blockCount);

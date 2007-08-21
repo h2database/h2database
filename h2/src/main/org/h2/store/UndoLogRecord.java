@@ -146,8 +146,11 @@ public class UndoLogRecord {
         ObjectArray list = table.getIndexes();
         for(int i=0; i<list.size(); i++) {
             Index index = (Index) list.get(i);
-            index.commit(row);
+            index.commit(operation, row);
         }
-        row.commit();
+    }
+    
+    public Row getRow() {
+        return row;
     }
 }

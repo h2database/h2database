@@ -118,7 +118,7 @@ public abstract class Table extends SchemaObjectBase {
         columnMap.put(newName, column);
     }
 
-    public abstract void lock(Session session, boolean exclusive) throws SQLException;
+    public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
     public abstract void close(Session session) throws SQLException;
     public abstract void unlock(Session s);
     public abstract Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType, int headPos, String comment) throws SQLException;

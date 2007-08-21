@@ -258,9 +258,14 @@ public class TestIndex extends TestBase {
         ResultSet rs = stat.executeQuery(sql);
         int cols = rs.getMetaData().getColumnCount();
         while(rs.next()) {
+            StringBuffer buff = new StringBuffer();
             for(int i=0; i<cols; i++) {
-                trace("["+i+"]="+rs.getString(i+1));
+                if(i>0) {
+                    buff.append(", ");
+                }
+                buff.append("["+i+"]="+rs.getString(i+1));
             }
+            trace(buff.toString());
         }
         trace("---done---");
     }

@@ -39,7 +39,7 @@ public abstract class TestBase {
         config.beforeTest();
     }
 
-    protected void stopServerIfRequired() {
+    protected void stopServerIfRequired() throws SQLException {
         config.afterTest();
     }
     
@@ -569,8 +569,10 @@ public abstract class TestBase {
         ArrayList list2 = new ArrayList();
         while(rs1.next()) {
             check(rs2.next());
-            list1.add(rs1.getString(1));
-            list2.add(rs2.getString(1));
+            String s1 = rs1.getString(1);
+            list1.add(s1);
+            String s2 = rs2.getString(1);
+            list2.add(s2);
         }
         for(int i=0; i<list1.size(); i++) {
             String s = (String)list1.get(i);

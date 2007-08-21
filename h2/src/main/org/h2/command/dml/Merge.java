@@ -121,7 +121,7 @@ public class Merge extends Prepared {
             LocalResult rows = query.query(0);
             count = 0;
             table.fireBefore(session);
-            table.lock(session, true);
+            table.lock(session, true, false);
             while(rows.next()) {
                 checkCancelled();
                 count++;
@@ -164,7 +164,7 @@ public class Merge extends Prepared {
             table.fireBefore(session);
             table.validateConvertUpdateSequence(session, row);
             table.fireBeforeRow(session, null, row);
-            table.lock(session, true);
+            table.lock(session, true, false);
             table.addRow(session, row);
             session.log(table, UndoLogRecord.INSERT, row);
             table.fireAfter(session);

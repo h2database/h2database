@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -61,7 +60,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Database db = session.getDatabase();
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
-        table.lock(session, true);
+        table.lock(session, true, true);
         Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
         switch(type) {
         case NOT_NULL: {
@@ -327,7 +326,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private void execute(String sql, boolean ddl) throws SQLException {
         Prepared command = session.prepare(sql);
         command.update();
-        if(ddl && SysProperties.MVCC) {
+        if(ddl && session.getDatabase().isMultiVersion()) {
             // TODO this should work without MVCC, but avoid risks at the moment
             session.commit(true);
         }

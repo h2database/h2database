@@ -32,7 +32,6 @@ public class TestScriptSimple extends TestBase {
                 break;
             }
             sql = sql.trim();
-//            System.out.println(sql);
             if("@reconnect".equals(sql.toLowerCase())) {
                 reconnect();
             } else if(sql.length() == 0) {

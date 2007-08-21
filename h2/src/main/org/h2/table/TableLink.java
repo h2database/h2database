@@ -212,7 +212,7 @@ public class TableLink extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public void lock(Session session, boolean exclusive) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         // nothing to do
     }
     

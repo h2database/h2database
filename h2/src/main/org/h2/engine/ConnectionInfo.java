@@ -46,7 +46,7 @@ public class ConnectionInfo {
                 "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", 
                 "CIPHER", "CREATE", "CACHE_TYPE",
                 "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS", 
-                "PASSWORD", "RECOVER", "STORAGE", "USER"
+                "PASSWORD", "RECOVER", "STORAGE", "USER", "MVCC"
         };
         for(int i=0; i<connectionTime.length; i++) {
             String key = connectionTime[i];

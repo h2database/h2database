@@ -140,6 +140,7 @@ public class Database implements DataHandler {
     private boolean indexSummaryValid = true;
     private String accessModeLog, accessModeData;
     private boolean referentialIntegrity = true;
+    private boolean multiVersion;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);
@@ -172,6 +173,7 @@ public class Database implements DataHandler {
         if(ignoreSummary != null) {
             this.recovery = true;
         }
+        this.multiVersion = ci.removeProperty("MVCC", false) || SysProperties.MVCC;
         boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT, TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
@@ -464,7 +466,7 @@ public class Database implements DataHandler {
         publicRole = new Role(this, 0, Constants.PUBLIC_ROLE_NAME, true);
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
-        systemSession = new Session(this, systemUser, 0);
+        systemSession = new Session(this, systemUser, ++nextSessionId);
         // TODO storage: antivir scans .script files, maybe other scanners scan .db files?
         ObjectArray cols = new ObjectArray();
         Column columnId = new Column("ID", Value.INT, 0, 0);
@@ -631,9 +633,9 @@ public class Database implements DataHandler {
         MetaRecord rec = new MetaRecord(obj);
         rec.setRecord(r);
         objectIds.set(obj.getId());
-        meta.lock(session, true);
+        meta.lock(session, true, true);
         meta.addRow(session, r);
-        if(SysProperties.MVCC) {
+        if(isMultiVersion()) {
             // TODO this should work without MVCC, but avoid risks at the moment
             session.log(meta, UndoLogRecord.INSERT, r);
         }
@@ -645,9 +647,9 @@ public class Database implements DataHandler {
         Cursor cursor = metaIdIndex.find(session, r, r);
         if(cursor.next()) {
             Row found = cursor.get();
-            meta.lock(session, true);
+            meta.lock(session, true, true);
             meta.removeRow(session, found);
-            if(SysProperties.MVCC) {
+            if(isMultiVersion()) {
                 // TODO this should work without MVCC, but avoid risks at the moment
                 session.log(meta, UndoLogRecord.DELETE, found);
             }
@@ -1522,6 +1524,10 @@ public class Database implements DataHandler {
     
     public boolean isStarting() {
         return starting;
+    }
+    
+    public boolean isMultiVersion() {
+        return multiVersion;
     }
 
 }

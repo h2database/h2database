@@ -82,11 +82,9 @@ public abstract class Record extends CacheObject {
         if((isChanged() && !isLogWritten()) || isPinned()) {
             return false;
         }
-        if(SysProperties.MVCC) {
-            // TODO not required if we write the log only when committed
-            if(sessionId != 0) {
-                return false;
-            }
+        // TODO not required if we write the log only when committed
+        if(sessionId != 0) {
+            return false;
         }
         return true;
     }

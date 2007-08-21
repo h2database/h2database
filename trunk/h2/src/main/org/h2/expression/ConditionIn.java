@@ -120,7 +120,7 @@ public class ConditionIn extends Condition {
         return this;
     }
     
-    public void createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(Session session, TableFilter filter) {
         if(!SysProperties.OPTIMIZE_IN) {
             return;
         }

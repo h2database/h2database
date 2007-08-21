@@ -67,6 +67,6 @@ public interface Index extends SchemaObject {
 
     public abstract Table getTable();
 
-    public abstract void commit(Row row) throws SQLException;
+    public abstract void commit(int operation, Row row) throws SQLException;
 
 }

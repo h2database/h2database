@@ -175,7 +175,7 @@ public class ScriptCommand extends ScriptBase {
             });
             for(int i=0; i<tables.size(); i++) {
                 Table table = (Table) tables.get(i);
-                table.lock(session, false);
+                table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if(sql == null) {
                     // null for metadata tables
@@ -195,7 +195,7 @@ public class ScriptCommand extends ScriptBase {
             }
             for(int i=0; i<tables.size(); i++) {
                 Table table = (Table) tables.get(i);
-                table.lock(session, false);
+                table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if(sql == null) {
                     // null for metadata tables

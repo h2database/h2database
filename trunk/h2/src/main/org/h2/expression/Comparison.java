@@ -228,7 +228,7 @@ public class Comparison extends Condition {
         return new Comparison(session, type, left, right);
     }
 
-    public void createIndexConditions(TableFilter filter) {
+    public void createIndexConditions(Session session, TableFilter filter) {
         if(right==null) {
             // TODO index usage: IS [NOT] NULL index usage is possible
             return;

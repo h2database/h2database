@@ -59,7 +59,7 @@ public class DropTable extends SchemaCommand {
             if(!table.canDrop()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
-            table.lock(session, true);
+            table.lock(session, true, true);
         }
         if(next != null) {
             next.prepareDrop();

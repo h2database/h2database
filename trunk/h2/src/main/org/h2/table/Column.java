@@ -91,9 +91,11 @@ public class Column {
     }
 
     public Value computeValue(Session session, Row row) throws SQLException {
-        computeTableFilter.setSession(session);
-        computeTableFilter.set(row);
-        return defaultExpression.getValue(session);
+        synchronized(this) {
+            computeTableFilter.setSession(session);
+            computeTableFilter.set(row);
+            return defaultExpression.getValue(session);
+        }
     }
 
     public void setComputed(boolean computed, Expression expression) {
@@ -154,7 +156,9 @@ public class Column {
             if(defaultExpression == null) {
                 value = ValueNull.INSTANCE;
             } else {
-                value = defaultExpression.getValue(session).convertTo(type);
+                synchronized(this) {
+                    value = defaultExpression.getValue(session).convertTo(type);
+                }
                 if(primaryKey) {
                     session.setLastIdentity(value);
                 }
@@ -162,7 +166,9 @@ public class Column {
         }
         if (value == ValueNull.INSTANCE) {
             if(convertNullToDefault) {
-                value = defaultExpression.getValue(session).convertTo(type);
+                synchronized(this) {
+                    value = defaultExpression.getValue(session).convertTo(type);
+                }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
                 if(Mode.getCurrentMode().convertInsertNullToZero) {
@@ -186,7 +192,10 @@ public class Column {
         }
         if(checkConstraint != null) {
             resolver.setValue(value);
-            Value v = checkConstraint.getValue(session);
+            Value v;
+            synchronized(this) {
+                v = checkConstraint.getValue(session);
+            }
             // Both TRUE and NULL are ok
             if(Boolean.FALSE.equals(v.getBoolean())) {
                 throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
@@ -393,7 +402,9 @@ public class Column {
         expr = expr.optimize(session);
         resolver.setValue(ValueNull.INSTANCE);
         // check if the column is mapped
-        expr.getValue(session);
+        synchronized(this) {
+            expr.getValue(session);
+        }
         if(checkConstraint == null) {
             checkConstraint = expr;
         } else {

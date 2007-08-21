@@ -43,7 +43,7 @@ public class DropView extends SchemaCommand {
                 throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);
-            view.lock(session, true);
+            view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
         }
         return 0;

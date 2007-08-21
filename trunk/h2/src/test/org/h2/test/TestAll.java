@@ -7,6 +7,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.constant.SysProperties;
 import org.h2.server.TcpServer;
 import org.h2.test.jdbc.*;
 import org.h2.test.jdbc.xa.TestXA;
@@ -42,6 +43,7 @@ import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.FileUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -92,24 +94,23 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         TestAll test = new TestAll();
         test.printSystem();      
 
-        
-//int testMVCC;        
-//        System.setProperty("h2.mvcc", "true");
+
+int testMVCC;        
+        System.setProperty("h2.mvcc", "true");
         
 /*
 
-CREATE TABLE Parent(ID INT PRIMARY KEY, Name VARCHAR);
-CREATE TABLE Child(ID INT, P INT, PRIMARY KEY(ID, P));
-ALTER TABLE Child ADD FOREIGN KEY(ID) REFERENCES Parent(ID);
-ALTER TABLE Child ADD FOREIGN KEY(P) REFERENCES Parent(ID);
-INSERT INTO Parent VALUES(1,  '0'), (2,  '0'), (3,  '0');
-INSERT INTO Child VALUES(2, 1);
-ALTER TABLE Parent ALTER COLUMN Name BOOLEAN NULL;
-DELETE FROM Parent WHERE ID=3;
-DROP TABLE Parent, Child;
-
 add link to:
 http://zvikico.typepad.com/problog/2007/08/h2-database-eng.html
+
+m2-repo
+
+m.i.a.
+
+documented?:
+problem: new table created with constraints (so pointing to the same index), then constraint deleted: index is deleted (even though it is used).
+Another problem: two constraints using the same index, one constraint is deleted.
+Possible solution: never delete indexes? What about unique indexes? Create another index if one exists but it belongs to a constraint?
 
 only admins can use nested tables:
 CREATE USER TEST PASSWORD 'TEST';
@@ -572,6 +573,10 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         testAll();
         
     }
+    
+    public boolean isMVCC() {
+        return SysProperties.MVCC;
+    }
 
     void testAll() throws Exception {
         DeleteDbFiles.execute(TestBase.BASE_DIR, null, true);
@@ -621,14 +626,18 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         new TestCsv().runTest(this);
         new TestFunctions().runTest(this);
         new TestIndex().runTest(this);
-        new TestLinkedTable().runTest(this);
+        if(!SysProperties.MVCC) {
+            new TestLinkedTable().runTest(this);
+        }
         new TestListener().runTest(this);
         new TestLob().runTest(this);
         new TestLogFile().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
-        new TestMultiThread().runTest(this);
+        if(!SysProperties.MVCC) {
+            new TestMultiThread().runTest(this);
+        }
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestPowerOff().runTest(this);
@@ -665,6 +674,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
     }
 
     public void beforeTest() throws SQLException {
+        FileUtils.deleteRecursive("trace.db");
         if(networked) {
             TcpServer.logInternalErrors = true;
             String[] args = ssl ? new String[]{"-tcpSSL", "true"} : new String[0];
@@ -678,7 +688,8 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         }
     }
 
-    public void afterTest() {
+    public void afterTest() throws SQLException {
+        FileUtils.deleteRecursive("trace.db");
         if(networked && server != null) {
             server.stop();
         }

@@ -13,6 +13,14 @@ public class TestTransactionIsolation extends TestBase {
     Connection conn1, conn2;
 
     public void test() throws Exception {
+        if(config.isMVCC()) {
+            // no tests yet
+        } else {
+            testTableLevelLocking();
+        }
+    }
+    
+    void testTableLevelLocking() throws Exception {
         deleteDb("transactionIsolation");
         conn1 = getConnection("transactionIsolation");
         check(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);

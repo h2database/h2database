@@ -63,7 +63,7 @@ public class CreateIndex extends SchemaCommand {
         boolean persistent = db.isPersistent();
         Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
-        table.lock(session, true);
+        table.lock(session, true, true);
         if(!table.isPersistent()) {
             persistent = false;
         }

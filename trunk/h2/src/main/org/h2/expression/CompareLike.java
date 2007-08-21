@@ -113,11 +113,10 @@ public class CompareLike extends Condition {
         return esc;
     }
 
-    public void createIndexConditions(TableFilter filter) throws SQLException {
+    public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
         if(regexp) {
             return;
         }
-        Session session = filter.getSession();
         if(!(left instanceof ExpressionColumn)) {
             return;
         }

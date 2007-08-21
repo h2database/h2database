@@ -69,21 +69,17 @@ public class TableFilter implements ColumnResolver {
         return select;
     }
 
-    public Session getSession() {
-        return session;
-    }
-
     public Table getTable() {
         return table;
     }
 
-    public void lock(Session session, boolean exclusive) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         if(!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
-        table.lock(session, exclusive);
+        table.lock(session, exclusive, force);
         for(int i=0; joins != null && i<joins.size(); i++) {
-            getTableFilter(i).lock(session, exclusive);
+            getTableFilter(i).lock(session, exclusive, force);
         }
     }
     
@@ -166,15 +162,16 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
-    public void startQuery() {
+    public void startQuery(Session session) throws SQLException {
+        this.session = session;
         scanCount = 0;
         for(int i=0; joins != null && i<joins.size(); i++) {
             TableFilter join = getTableFilter(i);
-            join.startQuery();
+            join.startQuery(session);
         }
     }
 
-    public void reset() throws SQLException {
+    public void reset() {
         for(int i=0; joins != null && i<joins.size(); i++) {
             TableFilter join = getTableFilter(i);
             join.reset();
@@ -372,7 +369,7 @@ public class TableFilter implements ColumnResolver {
     private void mapAndAddFilter(Expression on) throws SQLException {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
-        on.createIndexConditions(this);
+        on.createIndexConditions(session, this);
         for(int i=0; joins != null && i<joins.size(); i++) {
             TableFilter join = getTableFilter(i);
             join.mapAndAddFilter(on);

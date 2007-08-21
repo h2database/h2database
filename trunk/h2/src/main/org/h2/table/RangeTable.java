@@ -42,7 +42,7 @@ public class RangeTable extends Table {
         return NAME + "(" + min + ", " + max + ")";
     }    
 
-    public void lock(Session session, boolean exclusive) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
     }
 
     public void close(Session session) throws SQLException {

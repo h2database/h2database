@@ -30,7 +30,7 @@ public class TruncateTable extends DefineCommand {
             throw Message.getSQLException(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL());
         } else {
             session.getUser().checkRight(table, Right.DELETE);
-            table.lock(session, true);
+            table.lock(session, true, true);
             table.truncate(session);
         }
         return 0;

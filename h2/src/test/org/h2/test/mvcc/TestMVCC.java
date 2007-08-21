@@ -23,6 +23,8 @@ public class TestMVCC {
         // TODO Prio 2: getFirst / getLast in MultiVersionIndex
         // TODO Prio 2: Support snapshot isolation (currently read-committed, not repeatable read)
         
+        // TODO test: one thread appends, the other selects new data (select * from test where id > ?) and deletes
+        
         System.setProperty("h2.mvcc", "true");
         DeleteDbFiles.execute(null, "test", true);
         Class.forName("org.h2.Driver");

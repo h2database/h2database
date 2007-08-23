@@ -5,7 +5,10 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -32,6 +35,7 @@ public class ScanIndex extends BaseIndex {
     private boolean containsLargeObject;
     private int rowCountDiff;
     private HashMap sessionRowCount;
+    private HashSet deleted;
 
     public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType)
             throws SQLException {
@@ -122,12 +126,20 @@ public class ScanIndex extends BaseIndex {
                 rows.set(key, row);
             }
         }
-        incrementRowCount(session.getId(), 1);
+        if(database.isMultiVersion()) {
+            if(deleted != null) {
+                deleted.add(row);
+            }
+            incrementRowCount(session.getId(), 1);
+        }
         rowCount++;
     }
     
     public void commit(int operation, Row row) throws SQLException {
         if(database.isMultiVersion()) {
+            if(deleted != null && operation == UndoLogRecord.DELETE) {
+                deleted.remove(row);
+            }
             incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);
         }
     }    
@@ -160,7 +172,13 @@ public class ScanIndex extends BaseIndex {
             rows.set(key, free);
             firstFree = key;
         }
-        incrementRowCount(session.getId(), -1);
+        if(database.isMultiVersion()) {
+            if(deleted == null) {
+                deleted = new HashSet();
+            }
+            deleted.add(row);
+            incrementRowCount(session.getId(), -1);
+        }
         rowCount--;
     }
 
@@ -234,4 +252,8 @@ public class ScanIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
+    public Iterator getDeleted() {
+        return deleted == null ? Collections.EMPTY_LIST.iterator() : deleted.iterator();
+    }
+    
 }

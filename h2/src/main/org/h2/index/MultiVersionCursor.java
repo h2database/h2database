@@ -31,120 +31,130 @@ public class MultiVersionCursor implements Cursor {
     }
     
     private void loadNext(boolean base) throws SQLException {
-        if(base) {
-            if(baseCursor.next()) {
-                baseRow = baseCursor.getSearchRow();
+        synchronized(index) {
+            if(base) {
+                if(baseCursor.next()) {
+                    baseRow = baseCursor.getSearchRow();
+                } else {
+                    baseRow = null;
+                }
             } else {
-                baseRow = null;
-            }
-        } else {
-            if(deltaCursor.next()) {
-                deltaRow = deltaCursor.get();
-            } else {
-                deltaRow = null;
+                if(deltaCursor.next()) {
+                    deltaRow = deltaCursor.get();
+                } else {
+                    deltaRow = null;
+                }
             }
         }
     }
 
     public Row get() throws SQLException {
-        if(SysProperties.CHECK && end) {
-            throw Message.getInternalError();
+        synchronized(index) {
+            if(SysProperties.CHECK && end) {
+                throw Message.getInternalError();
+            }
+            return onBase ? baseCursor.get() : deltaCursor.get();
         }
-        return onBase ? baseCursor.get() : deltaCursor.get();
     }
 
     public int getPos() {
-        if(SysProperties.CHECK && end) {
-            throw Message.getInternalError();
+        synchronized(index) {
+            if(SysProperties.CHECK && end) {
+                throw Message.getInternalError();
+            }
+            return onBase ? baseCursor.getPos() : deltaCursor.getPos();
         }
-        return onBase ? baseCursor.getPos() : deltaCursor.getPos();
     }
 
     public SearchRow getSearchRow() throws SQLException {
-        if(SysProperties.CHECK && end) {
-            throw Message.getInternalError();
+        synchronized(index) {
+            if(SysProperties.CHECK && end) {
+                throw Message.getInternalError();
+            }
+            return onBase ? baseCursor.getSearchRow() : deltaCursor.getSearchRow();
         }
-        return onBase ? baseCursor.getSearchRow() : deltaCursor.getSearchRow();
     }
 
     public boolean next() throws SQLException {
-        if(SysProperties.CHECK && end) {
-            throw Message.getInternalError();
-        }
-        while(true) {
-            if(needNewDelta) {
-                loadNext(false);
-                needNewDelta = false;
+        synchronized(index) {
+            if(SysProperties.CHECK && end) {
+                throw Message.getInternalError();
             }
-            if(needNewBase) {
-                loadNext(true);
-                needNewBase = false;
-            }
-            if(deltaRow == null) {
-                if(baseRow == null) {
-                    end = true;
-                    return false;
-                } else {
-                    onBase = true;
-                    needNewBase = true;
-                    return true;
+            while(true) {
+                if(needNewDelta) {
+                    loadNext(false);
+                    needNewDelta = false;
                 }
-            }
-            boolean isThisSession = deltaRow.getSessionId() == session.getId();
-            boolean isDeleted = deltaRow.getDeleted();
-            if(isThisSession && isDeleted) {
-                needNewDelta = true;
-                continue;
-            }
-            if(baseRow == null) {
-                if(isDeleted) {
-                    if(isThisSession) {
+                if(needNewBase) {
+                    loadNext(true);
+                    needNewBase = false;
+                }
+                if(deltaRow == null) {
+                    if(baseRow == null) {
                         end = true;
                         return false;
                     } else {
-                        // the row was deleted by another session: return it
-                        onBase = false;
-                        needNewDelta = true;
+                        onBase = true;
+                        needNewBase = true;
                         return true;
                     }
                 }
-                throw Message.getInternalError();
-            }
-            int compare = index.compareRows(deltaRow, baseRow);
-            if(compare == 0) {
-                compare = index.compareKeys(deltaRow, baseRow);
-            }
-            if(compare == 0) {
-                if(isDeleted) {
-                    if(isThisSession) {
-                        throw Message.getInternalError();
-                    } else {
-                        // another session updated the row: must be deleted in base as well
-                        throw Message.getInternalError();
+                boolean isThisSession = deltaRow.getSessionId() == session.getId();
+                boolean isDeleted = deltaRow.getDeleted();
+                if(isThisSession && isDeleted) {
+                    needNewDelta = true;
+                    continue;
+                }
+                if(baseRow == null) {
+                    if(isDeleted) {
+                        if(isThisSession) {
+                            end = true;
+                            return false;
+                        } else {
+                            // the row was deleted by another session: return it
+                            onBase = false;
+                            needNewDelta = true;
+                            return true;
+                        }
                     }
-                } else {
-                    if(isThisSession) {
-                        onBase = false;
-                        needNewBase = true;
-                        needNewDelta = true;
-                        return true;
+                    throw Message.getInternalError();
+                }
+                int compare = index.compareRows(deltaRow, baseRow);
+                if(compare == 0) {
+                    compare = index.compareKeys(deltaRow, baseRow);
+                }
+                if(compare == 0) {
+                    if(isDeleted) {
+                        if(isThisSession) {
+                            throw Message.getInternalError();
+                        } else {
+                            // another session updated the row: must be deleted in base as well
+                            throw Message.getInternalError();
+                        }
                     } else {
-                        // another session inserted the row: ignore
-                        needNewBase = true;
-                        needNewDelta = true;
-                        continue;
+                        if(isThisSession) {
+                            onBase = false;
+                            needNewBase = true;
+                            needNewDelta = true;
+                            return true;
+                        } else {
+                            // another session inserted the row: ignore
+                            needNewBase = true;
+                            needNewDelta = true;
+                            continue;
+                        }
                     }
                 }
-            }
-            if(compare > 0) {
-                needNewBase = true;
+                if(compare > 0) {
+                    needNewBase = true;
+                    return true;
+                }
+                if(!isDeleted) {
+                    throw Message.getInternalError();
+                }
+                needNewDelta = true;
                 return true;
             }
-            if(!isDeleted) {
-                throw Message.getInternalError();
-            }
-            needNewDelta = true;
-            return true;
         }
     }
 }

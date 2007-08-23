@@ -5,6 +5,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -18,11 +19,15 @@ public class ScanCursor implements Cursor {
     private Row row;
     private final Session session;
     private final boolean multiVersion;
+    private Iterator deleted;
 
     ScanCursor(Session session, ScanIndex scan, boolean multiVersion) {
         this.session = session;
         this.scan = scan;
         this.multiVersion = multiVersion;
+        if(multiVersion) {
+            deleted = scan.getDeleted();
+        }
         row = null;
     }
     
@@ -45,11 +50,15 @@ public class ScanCursor implements Cursor {
     public boolean next() throws SQLException {
         if(multiVersion) {
             while(true) {
-                row = scan.getNextRow(session, row);
+                if(deleted.hasNext()) {
+                    row = (Row) deleted.next();
+                } else {
+                    row = scan.getNextRow(session, row);
+                }
                 if(row == null) {
                     break;
                 }
-                if(row.getSessionId() == 0 || row.getSessionId() == session.getId()) {
+                if(row.getSessionId() == 0 || row.getSessionId() == session.getId() || row.getDeleted()) {
                     break;
                 }
             }

@@ -95,26 +95,16 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         test.printSystem();      
 
 
-int testMVCC;        
-        System.setProperty("h2.mvcc", "true");
+//int testMVCC;        
+//        System.setProperty("h2.mvcc", "true");
         
 /*
-
-add link to:
-http://zvikico.typepad.com/problog/2007/08/h2-database-eng.html
-
-m2-repo
-
-m.i.a.
-
-documented?:
-problem: new table created with constraints (so pointing to the same index), then constraint deleted: index is deleted (even though it is used).
-Another problem: two constraints using the same index, one constraint is deleted.
-Possible solution: never delete indexes? What about unique indexes? Create another index if one exists but it belongs to a constraint?
 
 only admins can use nested tables:
 CREATE USER TEST PASSWORD 'TEST';
 SELECT * FROM (SELECT * FROM DUAL);
+
+m2-repo
 
 add MVCC
 
@@ -122,11 +112,11 @@ improve documentation of 'mixed mode' usage.
 
 test and document fulltext search
 
-improve documentation of mixed mode
-
-clustered tables (test)
+clustered tables: test, document
 
 add to maven
+
+Switching off and switching on constraints could be made transactional.
 
 Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
 
@@ -652,6 +642,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);
         new TestTwoPhaseCommit().runTest(this);
+        new TestView().runTest(this);
 
         // server
         new TestNestedLoop().runTest(this);

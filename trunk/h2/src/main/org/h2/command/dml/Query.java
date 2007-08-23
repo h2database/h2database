@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
@@ -51,15 +52,16 @@ public abstract class Query extends Prepared {
     }
     
     public final boolean sameResultAsLast(Session session, Value[] params, Value[] lastParams, long lastEvaluated) throws SQLException {
+        Database db = session.getDatabase();
         for(int i=0; i<params.length; i++) {
-            if(!session.getDatabase().areEqual(lastParams[i], params[i])) {
+            if(!db.areEqual(lastParams[i], params[i])) {
                 return false;
             }
         }
         if(!isEverything(ExpressionVisitor.DETERMINISTIC) || !isEverything(ExpressionVisitor.INDEPENDENT)) {
             return false;
         }
-        if(getMaxDataModificationId() > lastEvaluated) {
+        if(db.getModificationDataId() > lastEvaluated && getMaxDataModificationId() > lastEvaluated) {
             return false;
         }
         return true;

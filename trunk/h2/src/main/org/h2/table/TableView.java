@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -16,7 +17,9 @@ import org.h2.index.ViewIndex;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.util.IntArray;
 import org.h2.util.ObjectArray;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -28,7 +31,10 @@ public class TableView extends Table {
     private Query viewQuery;
     private ViewIndex index;
     private boolean recursive;
-    private SQLException createException; 
+    private SQLException createException;
+    private SmallLRUCache indexCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
+    private long lastModificationCheck;
+    private long maxDataModificationId;
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false);
@@ -101,7 +107,12 @@ public class TableView extends Table {
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
-        Index i2 = new ViewIndex(this, index, session, masks);
+        IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
+        ViewIndex i2 = (ViewIndex) indexCache.get(masksArray);
+        if(i2 == null || i2.getSession() != session) {
+            i2 = new ViewIndex(this, index, session, masks);
+            indexCache.put(masksArray, i2);
+        }
         item.setIndex(i2);
         return item;
     }
@@ -233,7 +244,14 @@ public class TableView extends Table {
         if(viewQuery == null) {
             return Long.MAX_VALUE;
         }
-        return viewQuery.getMaxDataModificationId();
+        // if nothing was modified in the database since the last check, and the last is known, then we don't need to check again
+        // this speeds up nested views
+        long dbMod = database.getModificationDataId();
+        if(dbMod > lastModificationCheck && maxDataModificationId <= dbMod) {
+            maxDataModificationId = viewQuery.getMaxDataModificationId();
+            lastModificationCheck = dbMod;
+        }
+        return maxDataModificationId;
     }
 
     public Index getUniqueIndex() {

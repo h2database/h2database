@@ -259,6 +259,12 @@ public class TableData extends Table implements RecordReader {
 
     public void removeRow(Session session, Row row) throws SQLException {
         lastModificationId = database.getNextModificationDataId();
+        if(database.isMultiVersion()) {
+            if(row.getDeleted()) {
+                int testingWrongExceptionConcurrentUpdateOrSo;
+                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1);
+            }
+        }
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = (Index) indexes.get(i);
             index.remove(session, row);

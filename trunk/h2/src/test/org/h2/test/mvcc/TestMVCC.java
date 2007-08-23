@@ -19,6 +19,7 @@ public class TestMVCC {
     }
     
     void test() throws Exception {
+        // TODO Prio 1: exception when deleting / updating the same in two transactions
         // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
         // TODO Prio 1: make unit test work
         // TODO Prio 1: free up disk space (for deleted rows and old versions of updated rows) on commit
@@ -42,6 +43,24 @@ public class TestMVCC {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
+
+        s1.execute("CREATE TABLE TEST(ID INT)");
+        s1.execute("INSERT INTO TEST VALUES(1)");
+        c1.commit();
+//        test(s2, "SELECT COUNT(*) FROM TEST", "1");
+System.out.println(s1.executeUpdate("DELETE FROM TEST"));
+        ResultSet rs = s2.executeQuery("SELECT * FROM TEST");
+        while(rs.next()) {
+            System.out.println(" " + rs.getString(1));
+        }
+        // 
+        test(s2, "SELECT COUNT(*) FROM TEST", "1");
+System.out.println(s2.executeUpdate("DELETE FROM TEST"));
+        test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        c1.commit();
+        c2.commit();
+        s1.execute("DROP TABLE TEST");
 
         s1.execute("CREATE TABLE TEST(ID INT)");
         s1.execute("INSERT INTO TEST VALUES(1)");
@@ -98,19 +117,69 @@ public class TestMVCC {
         c1.commit();
         
         Random random = new Random(1);
-        s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        for(int i=0; i<100; i++) {
-            switch(random.nextInt(3)) {
+        s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");
+        Statement s;
+        Connection c;
+        for(int i=0; i<1000; i++) {
+            if(random.nextBoolean()) {
+                s = s1;
+                c = c1;
+            } else {
+                s = s2;
+                c = c2;
+            }
+            switch(random.nextInt(5)) {
             case 0:
-                s1.execute("INSERT INTO TEST VALUES("+ i + ", 'Hello')");
+                s.execute("INSERT INTO TEST(NAME) VALUES('Hello')");
                 break;
             case 1:
-                s1.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
+                s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
                 break;
             case 2:
-                s1.execute("DELETE FROM TEST WHERE ID=" + random.nextInt(i));
+                s.execute("DELETE FROM TEST WHERE ID=" + random.nextInt(i));
+                break;
+            case 3:
+                c.commit();
+                break;
+            case 4:
+                c.rollback();
                 break;
             }
+            s1.execute("SELECT * FROM TEST ORDER BY ID");
+            s2.execute("SELECT * FROM TEST ORDER BY ID");
+        }
+        s1.execute("DROP TABLE TEST");
+        c1.commit();
+        c2.commit();
+        
+        random = new Random(1);
+        s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        for(int i=0; i<1000; i++) {
+            if(random.nextBoolean()) {
+                s = s1;
+                c = c1;
+            } else {
+                s = s2;
+                c = c2;
+            }
+            switch(random.nextInt(5)) {
+            case 0:
+                s.execute("INSERT INTO TEST VALUES("+ i + ", 'Hello')");
+                break;
+            case 1:
+                s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
+                break;
+            case 2:
+                s.execute("DELETE FROM TEST WHERE ID=" + random.nextInt(i));
+                break;
+            case 3:
+                c.commit();
+                break;
+            case 4:
+                c.rollback();
+                break;
+            }
+            s1.execute("SELECT * FROM TEST ORDER BY ID");
             s2.execute("SELECT * FROM TEST ORDER BY ID");
         }
         s1.execute("DROP TABLE TEST");

@@ -30,6 +30,7 @@ public class ViewIndex extends BaseIndex {
     private int[] masks;
     private String planSQL;
     private Query query;
+    private Session session;
     
     public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
         super(view, 0, null, null, IndexType.createNonUnique(false));
@@ -45,9 +46,14 @@ public class ViewIndex extends BaseIndex {
         this.originalParameters = index.originalParameters;
         this.recursive = index.recursive;
         this.masks = masks;
+        this.session = session;
         columns = new Column[0];
         query = getQuery(session, masks);
         planSQL =  query.getPlanSQL();
+    }
+    
+    public Session getSession() {
+        return session;
     }
 
     public String getPlanSQL() {

@@ -42,11 +42,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 / TODO (Build xx)</h3><ul>
 <li>New experimental feature MVCC (multi version concurrency control). 
     Can be set as a option when opening the database (jdbc:h2:test;MVCC=TRUE) 
-    or as a system property (-Dh2.mvcc=true).
+    or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
+</li><li>Creating more than 10 views that depend on each other was very slow. Reconnecting was slow as well. Fixed.
 </li><li>When used as as Servlet, the H2 Console did not work with SSL (using Tomcat). Fixed.
 </li><li>When altering a table with foreign key constraint, if there was no manual index created 
-    for the referenced columns, the automatically created index was dropped while still being used.
-    Fixed.
+    for the referenced columns, the automatically created index was dropped while still being used. Fixed.
 </li><li>Check and foreign key constraints now checks if the existing data is consistent (this can be disabled by appending NOCHECK).
     It is also possible to check existing data when re-enabling referential integrity for a table.
 </li><li>Some unit tests failed on Linux because the file system works differently. The unit tests are fixed and should work now.
@@ -1137,6 +1137,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Provide a simple, lightweight O/R mapping tool
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Data compression for in-memory database
+</li><li>Trace: write os, file system, vm,... when opening the database
+</li><li>Trace: write dangerous operations (set log 0,...) in every case (including when opening the database)
 </li></ul>
 
 <h3>Not Planned</h3>

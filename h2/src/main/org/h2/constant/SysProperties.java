@@ -54,7 +54,7 @@ public class SysProperties {
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
     public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");
-    public static String baseDir = getStringSetting("h2.baseDir", null);
+    private static String baseDir = getStringSetting("h2.baseDir", null);
     public static boolean multiThreadedKernel = getBooleanSetting("h2.multiThreadedKernel", false);
     public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it

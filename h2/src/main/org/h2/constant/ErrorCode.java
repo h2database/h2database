@@ -122,11 +122,10 @@ public class ErrorCode {
      * conn = null;
      * The connection was not closed by the application and is garbage collected
      * </pre>
-     * 
      * Correct:
-     * 
      * <pre>
      * conn.close();
+     * </pre>
      * 
      */
     public static final int TRACE_CONNECTION_NOT_CLOSED = 90018;

@@ -451,7 +451,7 @@ public abstract class Table extends SchemaObjectBase {
 
     public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting) throws SQLException {
         if(enabled && checkExisting) {
-            for(int i=0; i<constraints.size(); i++) {
+            for(int i=0; constraints != null && i<constraints.size(); i++) {
                 Constraint c = (Constraint) constraints.get(i);
                 c.checkExistingData(session);
             }

@@ -7,7 +7,7 @@ package org.h2.schema;
 import org.h2.engine.DbObject;
 
 public interface SchemaObject extends DbObject {
-    public abstract Schema getSchema();
+    Schema getSchema();
 
-    public abstract String getSQL();
+    String getSQL();
 }

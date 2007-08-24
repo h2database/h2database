@@ -436,9 +436,7 @@ public class Database implements DataHandler {
             log = new LogSystem(this, databaseName, readOnly, accessModeLog);
             openFileData();
             openFileIndex();
-            if(!readOnly) {
-                log.recover();
-            }
+            log.recover();
             fileData.init();
             try {
                 fileIndex.init();

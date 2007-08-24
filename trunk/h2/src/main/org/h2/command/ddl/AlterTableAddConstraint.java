@@ -33,8 +33,6 @@ import org.h2.util.ObjectArray;
 public class AlterTableAddConstraint extends SchemaCommand {
 
     public static final int CHECK = 0, UNIQUE = 1, REFERENTIAL = 2, PRIMARY_KEY = 3;
-    public static final int REFERENTIAL_INTEGRITY_TRUE = 4;
-    public static final int REFERENTIAL_INTEGRITY_FALSE = 5;
     private int type;
     private String constraintName;
     private String tableName;
@@ -164,12 +162,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
             ref.setUpdateAction(session, updateAction);
             break;
         }
-        case REFERENTIAL_INTEGRITY_TRUE:
-            table.setCheckForeignKeyConstraints(session, true, checkExisting);
-            return 0;
-        case REFERENTIAL_INTEGRITY_FALSE:
-            table.setCheckForeignKeyConstraints(session, false, false);
-            return 0;
         default:
             throw Message.getInternalError("type="+type);
         }

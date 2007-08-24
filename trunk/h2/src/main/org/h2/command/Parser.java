@@ -48,6 +48,7 @@ import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
+import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.Delete;
@@ -801,7 +802,9 @@ public class Parser {
                     s = session;
                 }
                 String tempViewName = s.getNextTempViewName();
-                table = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s, false);
+                TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s, false);
+                v.setOwner(session.getUser());
+                table = v;
                 if(s != database.getSystemSession()) {
                     table.setOnCommitDrop(true);
                 }
@@ -3837,15 +3840,13 @@ public class Parser {
             read("REFERENTIAL_INTEGRITY");
             int type;
             if(readIf("TRUE")) {
-                type = AlterTableAddConstraint.REFERENTIAL_INTEGRITY_TRUE;
+                type = AlterTableSet.REFERENTIAL_INTEGRITY_TRUE;
             } else {
                 read("FALSE");
-                type = AlterTableAddConstraint.REFERENTIAL_INTEGRITY_FALSE;
+                type = AlterTableSet.REFERENTIAL_INTEGRITY_FALSE;
             }
-            AlterTableAddConstraint command = new AlterTableAddConstraint(session, table.getSchema());
-            command.setTableName(table.getName());
-            command.setType(type);
-            if(readIf("CHECK")) {
+            AlterTableSet command = new AlterTableSet(session, table.getSchema(), type);
+            command.setTableName(table.getName());            if(readIf("CHECK")) {
                 command.setCheckExisting(true);
             } else if(readIf("NOCHECK")) {
                 command.setCheckExisting(false);

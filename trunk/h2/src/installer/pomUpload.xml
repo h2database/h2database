@@ -19,10 +19,4 @@
     </scm>
     <dependencies>
     </dependencies>
-    <distributionManagement>
-    	<repository>
-      		<id>ftp-repository</id>
-      		<url>ftp://h2database.com/httpdocs/m2-repo</url>
-    	</repository>
-  	</distributionManagement>
 </project> 

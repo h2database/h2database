@@ -128,7 +128,7 @@ public class ScanIndex extends BaseIndex {
         }
         if(database.isMultiVersion()) {
             if(deleted != null) {
-                deleted.add(row);
+                deleted.remove(row);
             }
             incrementRowCount(session.getId(), 1);
         }

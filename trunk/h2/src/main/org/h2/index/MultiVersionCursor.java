@@ -16,22 +16,24 @@ public class MultiVersionCursor implements Cursor {
     private final MultiVersionIndex index;
     private final Session session;
     private final Cursor baseCursor, deltaCursor;
+    private final Object sync;
     private SearchRow baseRow;
     private Row deltaRow;
     private boolean onBase;
     private boolean end;
     private boolean needNewDelta, needNewBase;
     
-    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta) throws SQLException {
+    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) throws SQLException {
         this.session = session;
         this.index = index;
         this.baseCursor = base;
         this.deltaCursor = delta;
+        this.sync = sync;
         needNewDelta = needNewBase = true;
     }
     
     private void loadNext(boolean base) throws SQLException {
-        synchronized(index) {
+        synchronized(sync) {
             if(base) {
                 if(baseCursor.next()) {
                     baseRow = baseCursor.getSearchRow();
@@ -49,7 +51,7 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public Row get() throws SQLException {
-        synchronized(index) {
+        synchronized(sync) {
             if(SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
@@ -58,7 +60,7 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public int getPos() {
-        synchronized(index) {
+        synchronized(sync) {
             if(SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
@@ -67,7 +69,7 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public SearchRow getSearchRow() throws SQLException {
-        synchronized(index) {
+        synchronized(sync) {
             if(SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
@@ -76,7 +78,7 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        synchronized(index) {
+        synchronized(sync) {
             if(SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
@@ -99,7 +101,12 @@ public class MultiVersionCursor implements Cursor {
                         return true;
                     }
                 }
-                boolean isThisSession = deltaRow.getSessionId() == session.getId();
+                int sessionId = deltaRow.getSessionId();
+                if(sessionId == 0) {
+                    int testing;
+                    System.out.println("sessionId==0");
+                }
+                boolean isThisSession = sessionId == session.getId();
                 boolean isDeleted = deltaRow.getDeleted();
                 if(isThisSession && isDeleted) {
                     needNewDelta = true;

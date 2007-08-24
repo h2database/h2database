@@ -58,7 +58,7 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter type.
-     * Always returns Types.VARCHAR everything can be passed as a VARCHAR.
+     * Always returns Types.VARCHAR as everything can be passed as a VARCHAR.
      *
      * @return Types.VARCHAR
      */

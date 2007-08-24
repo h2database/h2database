@@ -248,6 +248,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 ALTER TABLE tableName SET REFERENTIAL_INTEGRITY {FALSE | TRUE [CHECK|NOCHECK]}
 ","
 Disables or enables referential integrity checking for a table.
+This command can be used inside a transaction.
 Enabling it does not check existing data, except if CHECK is specified.
 Use SET REFERENTIAL_INTEGRITY to disable it for all tables (the global flag and the flag for each table are independent).
 ","

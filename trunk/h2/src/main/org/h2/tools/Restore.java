@@ -130,6 +130,9 @@ public class Restore {
                 if(originalDbName == null) {
                     throw new IOException("No database named " + db + " found");
                 }
+                if(originalDbName.startsWith(File.separator)) {
+                    originalDbName = originalDbName.substring(1);
+                }                
             }
             in = FileUtils.openFileInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);

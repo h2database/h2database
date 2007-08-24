@@ -47,7 +47,7 @@ public class LogSystem {
         this.database = database;
         this.readOnly = readOnly;
         this.accessMode = accessMode;
-        if (database == null || readOnly) {
+        if (database == null) {
             return;
         }
         this.fileNamePrefix = fileNamePrefix;
@@ -107,19 +107,29 @@ public class LogSystem {
         for (int i = 0; i < activeLogs.size(); i++) {
             LogFile l = (LogFile) activeLogs.get(i);
             if (l.getFirstUncommittedPos() == LOG_WRITTEN) {
-                closeOldFile(l);
+                // must remove the log file first
+                // if we don't do that, the file is closed but still in the list
                 activeLogs.remove(i);
                 i--;
+                closeOldFile(l);
             }
         }
     }
 
     public void close() throws SQLException {
-        if(database == null || readOnly) {
+        if(database == null) {
             return;
         }
         synchronized (database) {
             if(closed) {
+                return;
+            }
+            if(readOnly) {
+                for (int i = 0; i < activeLogs.size(); i++) {
+                    LogFile l = (LogFile) activeLogs.get(i);
+                    l.close(false);
+                }
+                closed = true;                
                 return;
             }
             // TODO refactor flushing and closing files when we know what to do exactly
@@ -202,7 +212,7 @@ public class LogSystem {
             boolean fileChanged = undo.size() > 0;
             undo = null;
             storages.clear();
-            if (fileChanged && !containsInDoubtTransactions()) {
+            if (!readOnly && fileChanged && !containsInDoubtTransactions()) {
                 checkpoint();
             }
             return fileChanged;

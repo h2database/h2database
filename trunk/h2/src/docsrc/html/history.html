@@ -43,6 +43,12 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <li>New experimental feature MVCC (multi version concurrency control). 
     Can be set as a option when opening the database (jdbc:h2:test;MVCC=TRUE) 
     or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
+</li><li>The backup tool (org.h2.tools.Backup) did not work. The restore tool did not work when the -db parameter was used. Fixed.
+	The documentation of the backup tool has been changed: only one database may be backed up at any time.
+</li><li>Opening large read-only databases was very slow. Fixed.
+</li><li>New Japanese translation of the error messages thanks to Ikemoto Masahiro. Thanks a lot!
+</li><li>Disabling / enabling referential integrity for a table can now be used inside a transaction.
+</li><li>Rights checking for dynamic tables (SELECT * FROM (SELECT ...)) did not work. Fixed.
 </li><li>Creating more than 10 views that depend on each other was very slow. Reconnecting was slow as well. Fixed.
 </li><li>When used as as Servlet, the H2 Console did not work with SSL (using Tomcat). Fixed.
 </li><li>When altering a table with foreign key constraint, if there was no manual index created 

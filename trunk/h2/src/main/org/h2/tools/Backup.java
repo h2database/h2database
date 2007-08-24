@@ -38,7 +38,7 @@ public class Backup {
      * <li>-help or -? (print the list of options)
      * </li><li>-file filename (the default is backup.zip)
      * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (all databases if no name is specified)
+     * </li><li>-db database name (not required if there is only one database)
      * </li><li>-quiet does not print progress information
      * </li></ul>
      * 
@@ -76,7 +76,7 @@ public class Backup {
      * 
      * @param zipFileName the name of the backup file
      * @param directory the directory name
-     * @param db the database name (null for all databases)
+     * @param db the database name (null if there is only one database)
      * @param quiet don't print progress information
      * @throws SQLException
      */    
@@ -101,7 +101,6 @@ public class Backup {
                 String fileName = (String) list.get(i);
                 if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                     base = FileUtils.getParent(fileName);
-                    base = FileUtils.getAbsolutePath(fileName);
                 }
             }
             for(int i=0; i<list.size(); i++) {

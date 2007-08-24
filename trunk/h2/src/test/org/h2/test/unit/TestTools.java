@@ -7,6 +7,8 @@ package org.h2.test.unit;
 import java.sql.*;
 
 import org.h2.test.TestBase;
+import org.h2.tools.Backup;
+import org.h2.tools.Restore;
 import org.h2.tools.Script;
 import org.h2.tools.ChangePassword;
 import org.h2.tools.DeleteDbFiles;
@@ -22,7 +24,8 @@ public class TestTools extends TestBase {
         testResourceGenerator();
         testChangePassword();
         testServer();
-        testBackupRunscript();
+        testScriptRunscript();
+        testBackupRestore();
     }
     
     private void testManagementDb() throws Exception {
@@ -35,7 +38,7 @@ public class TestTools extends TestBase {
         }
     }
     
-    private void testBackupRunscript() throws Exception {
+    private void testScriptRunscript() throws Exception {
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + BASE_DIR+ "/utils";
         String user = "sa", password = "abc";
@@ -51,6 +54,27 @@ public class TestTools extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         checkFalse(rs.next());
         conn.close();
+    }
+    
+    private void testBackupRestore() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + BASE_DIR+ "/utils";
+        String user = "sa", password = "abc";
+        String fileName = BASE_DIR + "/b2.zip";
+        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        Connection conn = DriverManager.getConnection(url, user, password);
+        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        conn.close();
+        Backup.main(new String[]{"-file", fileName, "-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        Restore.main(new String[]{"-file", fileName, "-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils", "sa", "abc");
+        ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+        check(rs.next());
+        checkFalse(rs.next());
+        conn.close();
+        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
     }
     
     private void testResourceGenerator() throws Exception {

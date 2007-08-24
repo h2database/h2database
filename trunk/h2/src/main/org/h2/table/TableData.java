@@ -78,6 +78,9 @@ public class TableData extends Table implements RecordReader {
     public void addRow(Session session, Row row) throws SQLException {
         int i = 0;
         lastModificationId = database.getNextModificationDataId();
+        if(database.isMultiVersion()) {
+            row.setSessionId(session.getId());
+        }
         try {
             for (; i < indexes.size(); i++) {
                 Index index = (Index) indexes.get(i);
@@ -261,8 +264,14 @@ public class TableData extends Table implements RecordReader {
         lastModificationId = database.getNextModificationDataId();
         if(database.isMultiVersion()) {
             if(row.getDeleted()) {
-                int testingWrongExceptionConcurrentUpdateOrSo;
-                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1);
+                throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
+            }
+            int old = row.getSessionId();
+            int newId = session.getId();
+            if(old == 0) {
+                row.setSessionId(newId);
+            } else if(old != newId) {
+                throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
         }
         for (int i = indexes.size() - 1; i >= 0; i--) {

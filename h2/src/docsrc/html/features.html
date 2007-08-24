@@ -991,7 +991,7 @@ will always enable the trace mode when connecting.
 If the database files are read-only, then the database is read-only as well.
 It is not possible to create new tables, add or modify data in this database.
 Only SELECT statements are allowed.
-To create a read-only database, close the database so that the log file is deleted.
+To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file.
 Then, make the database files read-only using the operating system.
 When you open the database now, it is read-only.
 There are two ways an application can find out a database is read-only:

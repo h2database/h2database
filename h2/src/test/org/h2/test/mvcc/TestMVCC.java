@@ -19,9 +19,8 @@ public class TestMVCC {
     }
     
     void test() throws Exception {
-        // TODO Prio 1: exception when deleting / updating the same in two transactions
-        // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
         // TODO Prio 1: make unit test work
+        // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
         // TODO Prio 1: free up disk space (for deleted rows and old versions of updated rows) on commit
         // TODO Prio 1: ScanIndex: never remove uncommitted data from cache (lost sessionId)
         // TODO Prio 1: Test with Hibernate
@@ -43,20 +42,35 @@ public class TestMVCC {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
+        
+        s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        s1.execute("INSERT INTO TEST VALUES(1, 'Test')");
+        c1.commit();
+        test(s1, "select max(id) from test", "1");
+        s1.execute("INSERT INTO TEST VALUES(2, 'World')");
+        c1.rollback();
+        test(s1, "select max(id) from test", "1");
+        c1.commit();
+        c2.commit();
+        s1.execute("DROP TABLE TEST");
+
+        
+        s1.execute("create table test as select * from table(id int=(1, 2))");
+        s1.execute("update test set id=1 where id=1");
+        s1.execute("select max(id) from test");
+        test(s1, "select max(id) from test", "2");
+        c1.commit();
+        c2.commit();
+        s1.execute("DROP TABLE TEST");
 
         s1.execute("CREATE TABLE TEST(ID INT)");
         s1.execute("INSERT INTO TEST VALUES(1)");
         c1.commit();
-//        test(s2, "SELECT COUNT(*) FROM TEST", "1");
-System.out.println(s1.executeUpdate("DELETE FROM TEST"));
-        ResultSet rs = s2.executeQuery("SELECT * FROM TEST");
-        while(rs.next()) {
-            System.out.println(" " + rs.getString(1));
-        }
-        // 
         test(s2, "SELECT COUNT(*) FROM TEST", "1");
-System.out.println(s2.executeUpdate("DELETE FROM TEST"));
+        s1.executeUpdate("DELETE FROM TEST");
+        test(s2, "SELECT COUNT(*) FROM TEST", "1");
         test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        c1.commit();
         test(s2, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
         c2.commit();

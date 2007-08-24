@@ -13,6 +13,7 @@ import org.h2.security.SHA256;
 import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
+import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
@@ -77,6 +78,14 @@ public class User extends RightOwner {
         if(table instanceof MetaTable || table instanceof RangeTable) {
             // everybody has access to the metadata information
             return;
+        }
+        if(Table.VIEW.equals(table.getTableType())) {
+            TableView v = (TableView) table;
+            if(v.getOwner() == this) {
+                // the owner of a view has access:
+                // SELECT * FROM (SELECT * FROM ...)
+                return;
+            }
         }
         if(!isRightGrantedRecursive(table, rightMask)) {
             throw Message.getSQLException(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());

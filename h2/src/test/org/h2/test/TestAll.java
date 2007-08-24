@@ -100,11 +100,27 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
-only admins can use nested tables:
-CREATE USER TEST PASSWORD 'TEST';
-SELECT * FROM (SELECT * FROM DUAL);
+CREATE TABLE TEST(BIRTH TIMESTAMP);
+INSERT INTO TEST VALUES('2006-04-03 10:20:30'), ('2006-04-03 10:20:31');
+SELECT CAST(BIRTH AS DATE) B
+FROM TEST GROUP BY CAST(BIRTH AS DATE)
+HAVING CAST(BIRTH AS DATE) = '2004-05-05';
+SELECT 1 FROM (SELECT CAST(BIRTH AS DATE) B
+FROM TEST GROUP BY CAST(BIRTH AS DATE)) A
+WHERE A.B = '2004-05-05';
+DROP TABLE TEST;
 
-m2-repo
+CREATE TABLE TEST (ID integer NOT NULL PRIMARY KEY);
+@LOOP 1000 INSERT INTO TEST VALUES(?);
+CREATE VIEW TESTVIEW AS SELECT src.ID as VID FROM TEST AS h 
+INNER JOIN TEST AS src ON h.ID = src.ID GROUP BY src.ID;
+-- slow
+SELECT COUNT(*) FROM TESTVIEW AS S LEFT JOIN TESTVIEW AS T ON S.VID = T.VID;
+DROP VIEW TESTVIEW;
+DROP TABLE TEST;
+
+add to maven
+http://maven.apache.org/guides/mini/guide-central-repository-upload.html
 
 add MVCC
 
@@ -113,8 +129,6 @@ improve documentation of 'mixed mode' usage.
 test and document fulltext search
 
 clustered tables: test, document
-
-add to maven
 
 Switching off and switching on constraints could be made transactional.
 

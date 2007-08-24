@@ -322,7 +322,6 @@ public class Select extends Query {
         }
         topTableFilter.startQuery(session);
         topTableFilter.reset();
-        // TODO lock tables of sub queries
         topTableFilter.lock(session, isForUpdate, isForUpdate);
         if(isQuickQuery) {
             queryQuick(columnCount, result);

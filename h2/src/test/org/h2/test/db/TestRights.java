@@ -26,20 +26,32 @@ public class TestRights extends TestBase {
 
         // rights on tables and views
         executeSuccess("CREATE USER PASS_READER PASSWORD 'abc'");
+        executeSuccess("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         executeSuccess("CREATE TABLE PASS(ID INT PRIMARY KEY, NAME VARCHAR, PASSWORD VARCHAR)");
         executeSuccess("CREATE VIEW PASS_NAME AS SELECT ID, NAME FROM PASS");
         executeSuccess("GRANT SELECT ON PASS_NAME TO PASS_READER");
+        executeSuccess("GRANT SELECT, INSERT, UPDATE ON TEST TO PASS_READER");
         conn.close();
         
         conn = getConnection("rights", "PASS_READER", "abc");
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
+        executeSuccess("SELECT * FROM (SELECT * FROM PASS_NAME)");
+        executeSuccess("SELECT (SELECT NAME FROM PASS_NAME) P FROM PASS_NAME");
+        executeError("SELECT (SELECT PASSWORD FROM PASS) P FROM PASS_NAME");
         executeError("SELECT * FROM PASS");
+        executeError("INSERT INTO TEST SELECT 1, PASSWORD FROM PASS");
+        executeError("INSERT INTO TEST VALUES(SELECT PASSWORD FROM PASS)");
+        executeError("UPDATE TEST SET NAME=(SELECT PASSWORD FROM PASS)");
+        executeError("DELETE FROM TEST WHERE NAME=(SELECT PASSWORD FROM PASS)");
+        executeError("SELECT * FROM (SELECT * FROM PASS)");
+        executeError("CREATE VIEW X AS SELECT * FROM PASS_READER");
         conn.close();
         
         conn = getConnection("rights");
         stat = conn.createStatement();
         
+        executeSuccess("DROP TABLE TEST");
         executeSuccess("CREATE USER TEST PASSWORD 'abc'");
         executeSuccess("ALTER USER TEST ADMIN TRUE");
         executeSuccess("CREATE TABLE TEST(ID INT)");
@@ -103,6 +115,7 @@ public class TestRights extends TestBase {
         executeError("DELETE FROM ROLE_TABLE");
         executeError("SELECT * FROM HIDDEN");
         executeError("UPDATE TEST SET ID=0");
+        executeError("CALL SELECT MIN(PASSWORD) FROM PASS");
         executeSuccess("SELECT * FROM SUB_TABLE");
         executeSuccess("INSERT INTO SUB_TABLE VALUES(1)");
         executeError("DELETE FROM SUB_TABLE");

@@ -194,14 +194,16 @@ public class Session implements SessionInterface {
         if(undoLog.size() > 0) {
             if(database.isMultiVersion()) {
                 ArrayList rows = new ArrayList();
-                while (undoLog.size() > 0) {
-                    UndoLogRecord entry = undoLog.getAndRemoveLast();
-                    entry.commit();
-                    rows.add(entry.getRow());
-                }
-                for(int i=0; i<rows.size(); i++) {
-                    Row r = (Row) rows.get(i);
-                    r.commit();
+                synchronized(database) {
+                    while (undoLog.size() > 0) {
+                        UndoLogRecord entry = undoLog.getAndRemoveLast();
+                        entry.commit();
+                        rows.add(entry.getRow());
+                    }
+                    for(int i=0; i<rows.size(); i++) {
+                        Row r = (Row) rows.get(i);
+                        r.commit();
+                    }
                 }
             }
             undoLog.clear();

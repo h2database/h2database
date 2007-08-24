@@ -52,6 +52,10 @@ public class ScanCursor implements Cursor {
             while(true) {
                 if(deleted.hasNext()) {
                     row = (Row) deleted.next();
+                    if(row.getDeleted() && row.getSessionId() == session.getId()) {
+                        row = null;
+                        continue;
+                    }
                 } else {
                     row = scan.getNextRow(session, row);
                 }

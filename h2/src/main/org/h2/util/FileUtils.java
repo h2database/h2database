@@ -244,9 +244,6 @@ public class FileUtils {
         if(file.exists()) {
             for(int i=0; i<SysProperties.MAX_FILE_RETRY; i++) {
                 trace("delete", fileName, null);
-                if(fileName.indexOf("1459.146") >= 0) {
-                    new Error(fileName).printStackTrace();
-                }
                 boolean ok = file.delete();
                 if(ok) {
                     return;

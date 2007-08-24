@@ -110,7 +110,7 @@ public class Storage {
     }
 
     public void updateRecord(Session session, Record record) throws SQLException {
-        record.setDeleted(session, false);
+        record.setDeleted(false);
         file.updateRecord(session, record);
     }
 
@@ -118,7 +118,7 @@ public class Storage {
         record.setStorageId(id);
         int size = file.getRecordOverhead() + record.getByteCount(dummy);
         size = MathUtils.roundUp(size, DiskFile.BLOCK_SIZE);
-        record.setDeleted(session, false);
+        record.setDeleted(false);
         int blockCount = size / DiskFile.BLOCK_SIZE;
         if(pos == ALLOCATE_POS) {
             pos = allocate(blockCount);
@@ -137,7 +137,7 @@ public class Storage {
         if(SysProperties.CHECK && record.getDeleted()) {
             throw Message.getInternalError("duplicate delete " + pos);
         }
-        record.setDeleted(session, true);
+        record.setDeleted(true);
         int blockCount = record.getBlockCount();
         if(database.isMultiVersion()) {
             int todoMustFreeSpaceOnCommit;

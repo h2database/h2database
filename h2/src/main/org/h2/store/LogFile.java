@@ -66,7 +66,9 @@ public class LogFile {
         unwritten = new ObjectArray();
         try {
             readHeader();
-            writeHeader();
+            if(!log.getDatabase().getReadOnly()) {
+                writeHeader();
+            }
             pos = getBlock();  
             firstUncommittedPos = pos;
         } catch(SQLException e) {
@@ -173,7 +175,7 @@ public class LogFile {
         return s;
     }
 
-    private boolean redoOrUndo(boolean undo) throws SQLException {
+    private boolean redoOrUndo(boolean undo, boolean readOnly) throws SQLException {
         int pos = getBlock();
         DataPage in = readPage();
         int blocks = in.readInt();
@@ -209,6 +211,9 @@ public class LogFile {
                 throw Message.getInternalError("can't undo summary");
             }
         }
+        if(readOnly && type != 'S') {
+            return true;
+        }
         if(undo) {
             if(logSystem.isSessionCommitted(sessionId, id, pos)) {
                 logSystem.removeSession(sessionId);
@@ -216,7 +221,9 @@ public class LogFile {
             }
         } else {
             if(type != 'S') {
-                logSystem.addUndoLogRecord(this, pos, sessionId);
+                if(!readOnly) {
+                    logSystem.addUndoLogRecord(this, pos, sessionId);
+                }
             }
         }
         int storageId = in.readInt();
@@ -286,6 +293,7 @@ public class LogFile {
     }
     
     public void redoAllGoEnd() throws SQLException {
+        boolean readOnly = logSystem.getDatabase().getReadOnly();
         long length = file.length();
         if(length<=FileStore.HEADER_LENGTH) {
             return;
@@ -298,7 +306,7 @@ public class LogFile {
                 if((long)pos * BLOCK_SIZE >= length) {
                     break;
                 }
-                boolean more = redoOrUndo(false);
+                boolean more = redoOrUndo(false, readOnly);
                 if(!more) {
                     break;
                 }
@@ -326,7 +334,7 @@ public class LogFile {
     
     void undo(int pos) throws SQLException {
         go(pos);
-        redoOrUndo(true);
+        redoOrUndo(true, false);
     }
 
     void flush() throws SQLException {

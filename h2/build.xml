@@ -245,16 +245,23 @@
 		</jar>
 	</target>
 
-	<target name="mavenUploadCentral" depends="jar">
+	<target name="mavenDeployCentral" depends="jar">
 		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pomUpload.xml">
 			<filterset>
 				<filter token="version" value="${version.name.maven}"/>
 		    </filterset>
 		</copy>
+		<exec executable="mvn.bat">
+			<arg value="deploy:deploy-file"/>
+			<arg value="-Dfile=bin/h2.jar"/>
+			<arg value="-Durl=file://C:/data/h2database/m2-repo"/>
+			<arg value="-Dpackaging=jar"/>
+			<arg value="-DpomFile=bin/pom.xml"/>
+		</exec>
 	</target>
 
-	<target name="mavenUploadLocal" depends="jar">
+	<target name="mavenInstallLocal" depends="jar">
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
 			<filterset>
 				<filter token="version" value="1.0-SNAPSHOT"/>
@@ -264,8 +271,6 @@
 			<arg value="install:install-file"/>
 			<arg value="-Dversion=1.0-SNAPSHOT"/>
 			<arg value="-Dfile=bin/h2.jar"/>
-			<arg value="-DgroupId=org.h2database"/>
-			<arg value="-DartifactId=h2"/>
 			<arg value="-Dpackaging=jar"/>
 			<arg value="-DpomFile=bin/pom.xml"/>
 		</exec>

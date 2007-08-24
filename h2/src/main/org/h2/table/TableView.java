@@ -10,6 +10,7 @@ import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
+import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -35,6 +36,7 @@ public class TableView extends Table {
     private SmallLRUCache indexCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
+    private User owner;
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false);
@@ -44,7 +46,7 @@ public class TableView extends Table {
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
-
+    
     private void initColumnsAndTables(Session session) throws SQLException {
         Column[] cols;
         removeViewFromTables();
@@ -274,5 +276,13 @@ public class TableView extends Table {
             t.addView(this);
         }
     }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
     
+    public User getOwner() {
+        return owner;
+    }
+
 }

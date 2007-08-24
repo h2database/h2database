@@ -55,14 +55,15 @@ public class TableFilter implements ColumnResolver {
     private boolean outerJoin;
     private boolean foundOne;
     private Expression fullCondition;
-    private final boolean rightsChecked;
 
-    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) {
+    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) throws SQLException {
         this.session = session;
         this.table = table;
         this.alias = alias;
-        this.rightsChecked = rightsChecked;
         this.select = select;
+        if(!rightsChecked) {
+            session.getUser().checkRight(table, Right.SELECT);
+        }
     }
     
     public Select getSelect() {
@@ -74,9 +75,6 @@ public class TableFilter implements ColumnResolver {
     }
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
-        if(!rightsChecked) {
-            session.getUser().checkRight(table, Right.SELECT);
-        }
         table.lock(session, exclusive, force);
         for(int i=0; joins != null && i<joins.size(); i++) {
             getTableFilter(i).lock(session, exclusive, force);

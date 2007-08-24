@@ -30,7 +30,7 @@ import org.h2.constant.SysProperties;
  * - Maybe increase TCP_DRIVER_VERSION
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
- * - No TODO in the docs
+ * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
@@ -66,8 +66,8 @@ import org.h2.constant.SysProperties;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 56;
-    private static final String BUILD = "2007-08-02";
+    public static final int BUILD_ID = 57;
+    private static final String BUILD = "2007-08-25";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

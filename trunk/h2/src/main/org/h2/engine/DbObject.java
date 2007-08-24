@@ -9,57 +9,56 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
 public interface DbObject {
-    public static final int INDEX = 1;
-    public static final int SEQUENCE = 3;
-    public static final int TABLE_OR_VIEW = 0;
-    public static final int TRIGGER = 4;
-    public static final int USER = 2;
-    public static final int CONSTRAINT = 5;
-    public static final int FUNCTION_ALIAS = 9;
-    public static final int RIGHT = 8;
-    public static final int ROLE = 7;
-    public static final int SETTING = 6;
-    public static final int CONSTANT = 11;
-    public static final int SCHEMA = 10;
-    public static final int COMMENT = 13;
-    public static final int USER_DATATYPE = 12;
+    int INDEX = 1;
+    int SEQUENCE = 3;
+    int TABLE_OR_VIEW = 0;
+    int TRIGGER = 4;
+    int USER = 2;
+    int CONSTRAINT = 5;
+    int FUNCTION_ALIAS = 9;
+    int RIGHT = 8;
+    int ROLE = 7;
+    int SETTING = 6;
+    int CONSTANT = 11;
+    int SCHEMA = 10;
+    int COMMENT = 13;
+    int USER_DATATYPE = 12;
 
-    public abstract void setModified();
+    void setModified();
 
-    public abstract long getModificationId();
+    long getModificationId();
 
-    public abstract String getSQL();
+    String getSQL();
 
-    public abstract ObjectArray getChildren();
+    ObjectArray getChildren();
 
-    public abstract Database getDatabase();
+    Database getDatabase();
 
-    public abstract int getId();
+    int getId();
 
-    public abstract String getName();
+    String getName();
 
-    public abstract String getCreateSQLForCopy(Table table, String quotedName);
+    String getCreateSQLForCopy(Table table, String quotedName);
 
-    public abstract String getCreateSQL();
+    String getCreateSQL();
 
-    public abstract String getDropSQL();
+    String getDropSQL();
 
-    public abstract int getType();
+    int getType();
 
-    public abstract void removeChildrenAndResources(Session session)
-            throws SQLException;
+    void removeChildrenAndResources(Session session) throws SQLException;
 
-    public abstract void checkRename() throws SQLException;
+    void checkRename() throws SQLException;
 
-    public abstract void rename(String newName) throws SQLException;
+    void rename(String newName) throws SQLException;
 
-    public abstract boolean getTemporary();
+    boolean getTemporary();
 
-    public abstract void setTemporary(boolean temporary);
+    void setTemporary(boolean temporary);
 
-    public abstract void setComment(String comment);
+    void setComment(String comment);
 
-    public abstract String getComment();
+    String getComment();
 
-    public abstract int getHeadPos();
+    int getHeadPos();
 }

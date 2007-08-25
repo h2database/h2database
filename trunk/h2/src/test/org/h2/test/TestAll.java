@@ -124,6 +124,8 @@ http://maven.apache.org/guides/mini/guide-central-repository-upload.html
 
 add MVCC
 
+don't create @~ of not translated
+
 improve documentation of 'mixed mode' usage.
 
 test and document fulltext search

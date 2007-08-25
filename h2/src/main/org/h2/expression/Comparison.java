@@ -334,17 +334,20 @@ public class Comparison extends Condition {
 
     public Comparison getAdditional(Session session, Comparison other) {
         if(compareType == other.compareType && compareType == EQUAL) {
+            boolean lc = left.isConstant(), rc = right.isConstant();
+            boolean l2c = other.left.isConstant(), r2c = other.right.isConstant();
             String l = left.getSQL();
             String l2 = other.left.getSQL();
             String r = right.getSQL();
             String r2 = other.right.getSQL();
-            if(l.equals(l2)) {
+            // must not compare constants. example: NOT(B=2 AND B=3)
+            if(!(rc && r2c) && l.equals(l2)) {
                 return new Comparison(session, EQUAL, right, other.right);
-            } else if(l.equals(r2)) {
+            } else if(!(rc && l2c) && l.equals(r2)) {
                 return new Comparison(session, EQUAL, right, other.left);
-            } else if(r.equals(l2)) {
+            } else if(!(lc && r2c) && r.equals(l2)) {
                 return new Comparison(session, EQUAL, left, other.right);
-            } else if(r.equals(r2)) {
+            } else if(!(lc && l2c) && r.equals(r2)) {
                 return new Comparison(session, EQUAL, left, other.left);
             }
         }

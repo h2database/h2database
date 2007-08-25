@@ -38,7 +38,6 @@ import org.h2.constant.SysProperties;
  *
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all javadoc files are in the index
- * - run PrepareTranslation (or add to ant docs)
  * - ant docs
  * - PDF (15 min)
  *      - footer
@@ -79,7 +78,7 @@ public class Constants {
     public static final int VERSION_JDBC_MINOR = 0;
 
     public static String getVersion() {
-        return VERSION_MAJOR + "." + VERSION_MINOR+ " (" + BUILD + ")";
+        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID + " (" + BUILD + ")";
     }
 
     public static final int NULL_SORT_LOW = 1, NULL_SORT_HIGH = 2;

@@ -10,6 +10,47 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(27,
+'New version available: 1.0.57 (2007-08-25)', '2007-08-25 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>
+The default lock mode is now read committed instead of serialized.
+</li><li>The build now issues a warning if the source code is switched to the wrong version.
+</li><li>The H2 Console can now connect to databases using JNDI. 
+</li><li>New experimental feature MVCC (multi version concurrency control). 
+</li><li>The version number is now major.minor.micro where micro is the build number. 
+</li><li>New Japanese translation of the error messages thanks to Ikemoto Masahiro.
+</li><li>Disabling / enabling referential integrity for a table can now be used inside a transaction.
+</li><li>Check and foreign key constraints now checks if the existing data is consistent.
+</li><li>Can now incrementally translate the documentation.
+</li><li>Improved error messages.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>
+Some unit tests failed on Linux because the file system works differently. 
+</li><li>Rights checking for dynamic tables (SELECT * FROM (SELECT ...)) did not work. 
+</li><li>More than 10 views that depend on each other was very slow. 
+</li><li>When used as as Servlet, the H2 Console did not work with SSL (using Tomcat). 
+</li><li>Problem when altering a table with foreign key constraint, if there was no manual index.
+</li><li>The backup tool (org.h2.tools.Backup) did not work. 
+</li><li>Opening large read-only databases was very slow. Fixed.
+</li><li>OpenOffice compatibility: support database name in column names.
+</li><li>The column name C_CURRENT_TIMESTAMP did not work in the last release.
+</li><li>Two-phase commit: commit with transaction name was only supported in the recovery scan. 
+</li><li>PG server: data was truncated when reading large VARCHAR columns and decimal columns.
+</li><li>PG server: error when the same database was accessed multiple times using the PostgreSQL ODBC driver.
+</li><li>Some file operations didn''t work for files in the root directory. 
+</li><li>In the Restore tool, the parameter -file did not work.
+</li><li>The CONVERT function did not work with views when using UNION.
+</li><li>Google translate did not work for the H2 homepage.
+</li></ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+');
+
 INSERT INTO ITEM VALUES(26,
 'New version available: 1.0 / 2007-08-02', '2007-08-02 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -370,264 +411,6 @@ INSERT INTO ITEM VALUES(19,
 </li><li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
 </li><li>It was possible to drop the sequence of a temporary tables with DROP 
     ALL OBJECTS, resulting in a null pointer exception afterwards.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(18,
-'New version available: 1.0 / 2006-12-17', '2006-12-17 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Large BLOB and CLOB support for the server and the cluster mode. 
-    Larger objects will temporarily be buffered on the client side.
-</li><li>Can be compiled with JDK 1.6.
-     However, only very few of the JDBC 4.0 features are implemented so far.
-</li><li>Table aliases are now supported in DELETE and UPDATE. 
-    Example: DELETE FROM TEST T0.
-</li><li>The RunScript tool can now include other files using a new syntax: 
-    @INCLUDE fileName. This is only required for server and cluster modes.
-    It was already possible to use embedded RUNSCRIPT statements, 
-    but those are always executed locally.
-</li><li>When the database URL contains ;RECOVERY=TRUE then 
-    the index file is now deleted if it was not closed before.
-</li><li>Deleting old temp files now uses a phantom reference queue. 
-    Generally, temp files should now be deleted earlier.
-</li><li>Opening a large database is now much faster 
-    even when using the default log mode (LOG=1), 
-    if the database was previously closed.
-</li><li>Support for indexed parameters in PreparedStatements: 
-    UPDATE TEST SET NAME = ?2 WHERE ID = ?1
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Unfortunately, the Hibernate dialect has changed due to a change 
-    in the meta data in the last release (INFORMATION_SCHEMA.SEQUENCES).
-</li><li>String.toUpperCase and toLowerCase can not be used to parse commands.
-    Now using toUpperCase(Locale.ENGLISH) or Character.toUpperCase(..).
-</li><li>The scale of a NUMERIC(1) column is now 0. It used to be 32767.
-</li><li>PreparedStatement.setObject(x, y, Types.OTHER) does now 
-    serialize the object in every case (even for Integer).
-</li><li>EXISTS subqueries with parameters were not re-evaluated 
-    when the prepared statement was reused. This could lead to incorrect results.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(17,
-'New version available: 1.0 / 2006-12-03', '2006-12-03 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>New connection time setting CACHE_TYPE=TQ to use the 2Q page replacement 
-    algorithm. 2Q should be more resistant to table scan.
-</li><li>Improved performance for CREATE INDEX (about 10%).
-</li><li>Optimization: The left and right side of a AND and OR conditions are now 
-    ordered by the expected cost.
-</li><li>Java functions returning a result set (such as CSVREAD) now can be used in 
-    a SELECT statement like a table. The behaviour has been changed: Now first 
-    call contains the values if set, but the connection URL is different 
-    (jdbc:columnlist:connection instead of jdbc:default:connection).
-</li><li>The service wrapper is now included in the default installation and documented.
-</li><li>New system function SESSION_ID().
-</li><li>Mixing certain data types in an operation, for example VARCHAR and 
-    TIMESTAMP, now converts both expressions to TIMESTAMP.
-</li><li>Change behaviour: If both sides of a comparison are parameters with unknown 
-    data type, then an exception is thrown now. The same happens for UNION 
-    SELECT if both columns are parameters.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>There was a bug in the database encryption algorithm. 
-    Pattern of repeated encrypted bytes where generated for empty blocks in the 
-    file. If you have an encrypted database, you will need to decrypt the database 
-    using the org.h2.tools.ChangePassword (using the old database engine), and 
-    encrypt the database using the new engine. Alternatively, you can use the 
-    Backup and RunScript tools or the SQL commands SCRIPT and RUNSCRIPT.
-</li><li>Deeply nested views where slow to execute, because the query was parsed 
-    many times. Fixed.
-</li><li>The SQL statement COMMENT did not work as expected. If you already have 
-    comments in the database, it is recommended to backup and restore the 
-    database, using the Backup and RunScript tools or the SQL commands SCRIPT 
-    and RUNSCRIPT.
-</li><li>Server: In some situations, calling close() on a ResultSet or Statement threw 
-    an exception. This has been fixed.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(16,
-'New version available: 1.0 / 2006-11-20', '2006-11-20 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>New SQL statement SET SCHEMA to change the current schema of this session.
-</li><li>New system function SCHEMA() to get the current schema.
-</li><li>SCRIPT: New option BLOCKSIZE to split BLOB and CLOB data into separate blocks, to avoid OutOfMemory problems.
-</li><li>CURRVAL and NEXTVAL functions: New optional sequence name parameter.
-</li><li>The default cache size is now 65536 pages instead of 32768.
-</li><li>New optimization to reuse subquery results. Can be disabled with SET OPTIMIZE_REUSE_RESULTS 0.
-</li><li>EXPLAIN... results are now formatted on multiple lines so they are easier to read.
-</li><li>The Spanish translation was completed by Miguel Angel. Thanks a lot! Translations to other languages are always welcome.
-</li><li>The Recovery tool has been improved. It now creates a SQL script file that can be executed directly.
-</li><li>LENGTH now returns the precision for CLOB, BLOB, and BINARY (and is therefore faster).
-</li><li>The built-in FTP server can now access a virtual directory stored in a database.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>When using the READ_COMMITTED isolation level, a transaction now waits until there are no write locks.
-</li><li>INSERT INTO ... SELECT ... and ALTER TABLE with CLOB and/or BLOB data did not work.
-</li><li>CSV tool: the methods setFieldSeparatorWrite and setRowSeparatorWrite where not accessible.
-</li><li>ALTER TABLE ADD did throw a strange message if the table contained views. Now the message is better, 
-    but it is still not possible to do that if views on this table exist.
-</li><li>ALTER TABLE: If there was a foreign key in another table that references to the change table, the constraint was dropped.
-</li><li>Direct links to the Javadoc were not working.
-</li><li>Inserting rows into linked tables did not work for HSQLDB when the value was NULL.
-</li><li>Oracle SYNONYM tables are now listed in the H2 Console.
-</li><li>CREATE LINKED TABLE didn''t work for Oracle SYNONYM tables.
-</li><li>When using the server version, when not closing result sets or using nested DatabaseMetaData result sets, the connection could break.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(15,
-'New version available: 1.0 / 2006-11-03', '2006-11-03 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>New SQL statement COMMENT ON ... IS ...
-</li><li>Two simple full text search implementations (Lucene and native) are now included. 
-    This is work in progress, and currently undocumented. 
-    See test/org/h2/samples/fullTextSearch.sql and History for more details.
-</li><li>Index names of referential constraints are now prefixed with the constraint name.
-</li><li>Improved search functionality in the HTML documentation (highlight).
-</li><li>Triggers can now be defined on a list of actions.
-</li><li>On some systems (for example, some Linux VFAT and USB flash disk drivers), 
-    RandomAccessFile.setLength does not work correctly. 
-    A workaround for this problem has been implemented.
-</li><li>DatabaseMetaData.getTableTypes now also returns SYSTEM TABLE and TABLE VIEW.
-    Please tell me if this breaks other applications or tools.
-</li><li>Java functions with Blob or Clob parameters are now supported.
-</li><li>Added a ''remarks'' column to most system tables. 
-</li><li>New system table INFORMATION_SCHEMA.TRIGGERS
-</li><li>PostgreSQL compatibility: Support for the date format 2006-09-22T13:18:17.061
-</li><li>MySQL compatibility: ResultSet.getString("PEOPLE.NAME") is now supported.
-</li><li>JDBC 4.0 driver auto discovery: When using JDK 1.6, 
-    Class.forName("org.h2.Driver") is no longer required.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Wide b-tree indexes (with large VARCHAR columns for example) could get corrupted.
-</li><li>If a custom shutdown hook was installed, and the database was called at shutdown, 
-    a NullPointException was thrown. 
-    Now, a error message with instructions how to fix this is thrown.
-</li><li>If SHUTDOWN was called and DB_CLOSE_DELAY was set, the database was not closed.
-</li><li>Subqueries with order by outside the column list didn''t work correctly.
-</li><li>Linked Tables: Only the first column was linked when linking to PostgreSQL.
-</li><li>Sequences: When the database is not closed normally, the value was not set correctly.
-</li><li>The optimization for IN(SELECT...) was too aggressive.
-</li><li>Blob.getBytes skipped the wrong number of bytes.
-</li><li>Group by a function didn''t work if a column alias was specified in the select list.
-</li><li>LOCK_MODE 0 (READ_UNCOMMITTED) did not work when using multiple connections.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(14,
-'New version available: 1.0 / 2006-10-10', '2006-10-10 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Support for DOMAIN (user defined data types).
-</li><li>Support for UUID.
-</li><li>Function aliases may now optionally include parameter classes.
-</li><li>A small FTP server is now included (disabled by default).
-</li><li>Can now compile everything with JDK 1.6 (however, only very few of the JDBC 4.0 features are implemented currently).
-</li><li>The multi-threaded kernel can not be enabled using SET MULTI_THREADED 1.
-    A new tests has been written for this feature, and additional synchronization has been added.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Could not re-connect to a database when ALLOW_LITERALS or COMPRESS_LOB was set.
-</li><li>Opening and closing connections in many threads sometimes failed.
-</li><li>Reconnect didn''t work after renaming a user if rights were granted for this user.
-</li><li>GROUP BY an formula or function didn''t work if the same expression was used in the select list.
-</li><li>Redundant () in a IN subquery is now supported: where id in ((select id from test)).
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(13,
-'New version available: 1.0 / 2006-09-24', '2006-09-24 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Protection against SQL injection: New command SET ALLOW_LITERALS {NONE|ALL|NUMBERS}.
-    With SET ALLOW_LITERALS NONE, SQL injections are not possible because literals in SQL statements are rejected;
-    User input must be set using parameters (''?'') in this case.
-</li><li>New concept ''Constants'': New SQL statements CREATE CONSTANT and DROP CONSTANT.
-</li><li>CREATE TABLE ... AS SELECT ... is now supported.
-</li><li>New data type OTHER (alternative names OBJECT and JAVA_OBJECT). When using this data type,
-    Java Objects are automatically serialized and deserialized in the JDBC layer.
-</li><li>Improved performance for MetaData calls
-</li><li>Improved BatchUpdateException
-</li><li>DatabaseMetaData.getProcedures and getProcedureColumns are implemented now
-</li><li>An exception is now thrown on unknown setting in the database URL (which are most likely typos)
-</li><li>The log size is now automatically increased to at least 10% of the data file.
-</li><li>Backup and Runscript tools now support options (for compression and so on)
-</li><li>InetAddress.getByName("127.0.0.1")  instead of InetAddress.getLocalHost() is now used to get the loopback address
-</li><li>CREATE SCHEMA: The authorization part is now optional.
-</li><li>DROP TABLE: Can now drop more than one column in one step: DROP TABLE A, B
-</li><li>LOBs are now automatically converted to files by default.
-</li><li> Optimizations for WHERE ... IN(...) and SELECT MIN(..), MAX(..) are now enabled by default.
-</li><li>New system function LOCK_MODE()
-</li><li>Connection.setTransactionIsolation and getTransactionIsolation now set / get the LOCK_MODE of the database.
-</li><li>New LOCK_MODE 3 (READ_COMMITTED). Table level locking, but only when writing (no read locks).
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Wide b-tree indexes (with large VARCHAR columns for example) with a long common prefix (where many
-    rows start with the same text) could get corrupted. Fixed.
-</li><li>Reading from compressed LOBs didn''t work in some cases. Fixed.
-</li><li>CLOB / BLOB: Copying LOB data directly from one table to another, and altering a table with with LOBs did not work,
-    the BLOB data was deleted when the old table was deleted. Fixed.
-</li><li>[NOT] EXISTS(SELECT ... EXCEPT SELECT ...) did not work in all cases. Fixed.
-</li><li>Functions returning a result set are now called as documented.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(12,
-'New version available: 1.0 / 2006-09-10', '2006-09-10 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>SET IGNORECASE is now supported for compatibility with HSQLDB.
-</li><li>New SQL statement DROP ALL OBJECTS [DELETE FILES] to drop all tables, sequences and so on.
-</li><li>Improved OpenOffice compatibility.
-</li><li>New setting SET COMPRESS_LOB {NO|LZF|DEFLATE} to automatically compress BLOB and CLOB data.
-</li><li>The script can now be compressed. Syntax: SCRIPT TO ''file'' COMPRESSION {DEFLATE|LZF|ZIP|GZIP}.
-</li><li>Now an exception is thrown when the an overflow occurs for mathematical operations (sum, multiply and so on) for the data type selected.
-    This was implemented in the previous version but is now enabled by default.
-</li><li>Updated the performance test so that Firebird can be tested as well. Results are not included currently,
-    information how to best test Firebird should be sent to the support address or posted in the Forum.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>ORDER BY an expression didn''t work when using GROUP BY at the same time.
-</li><li>A problem with referential constraints in the SCRIPT file has been fixed.
-</li><li>Console: The setting ;hsqldb.default_table_type=cached was added to the H2 database instead of the HSQLDB database.
-</li><li>Docs: The cross references in the SQL grammar docs where broken in the last release.
-</li><li>Deleting many rows from a table with a self-referencing constraint with ''on delete cascade'' did not work.
-</li><li>ROWNUM didn''t always work as expected when using subqueries.
-</li><li>Correlated subqueries: It is now possible to use columns of the outer query in the select list of the inner query.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 ');

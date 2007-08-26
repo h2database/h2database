@@ -45,7 +45,7 @@ public class PrepareTranslation {
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
-        buildHtml("src/docsrc/text", "docs/html", "de");
+        // buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
         
         // convert the properties files back to utf8 text files, including the main language (to be used as a template)

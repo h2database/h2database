@@ -39,7 +39,22 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0.57 (2008-08-25)</h3><ul>
+<h3>Version 1.0.x (2007-09-x)</h3><ul>
+<li>A database can now be opened even if class of a user defined function is not in the classpath.
+    Trying to call the function will throws an exception.
+</li><li>User defined functions and constants may not overload built-in functions and constants.
+    This didn't work before, but now trying to create such an object didn't fail.
+</li><li>Improved MultiDimension tool (for spatial queries): in the last few releases the tool was actually 
+    slower than using a regular query (because index lookup got faster, and because the tool didn't 
+    support prepared statements) Now the tool generates prepared statements, 
+    and the performance is better again (about 5 times faster for a reasonable amount of data).
+</li><li>Adding a foreign key or when re-enabling referential integrity for a table failed when checking
+    was enabled and the reference contained NULL.
+</li><li>For PgServer, character encoding other than UTF-8 did not work correctly. Fixed.
+</li><li>Using a function in a GROUP BY expression that is used in a view as a condition did not always work.
+</li></ul>
+
+<h3>Version 1.0.57 (2007-08-25)</h3><ul>
 <li>New experimental feature MVCC (multi version concurrency control). 
     Can be set as a option when opening the database (jdbc:h2:test;MVCC=TRUE) 
     or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
@@ -488,6 +503,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 </li><li>Document, implement tool for long running transactions using user defined compensation statements
 </li><li>Support SET TABLE DUAL READONLY
+</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>Setting for MAX_QUERY_TIME (default no limit?)
 </li><li>GCJ: what is the state now?
@@ -653,7 +669,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 </li><li>Build script for the embedded functionality only (h2embedded.jar)
 </li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
-</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>Support using a unique index for IS NULL (including linked tables)
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
@@ -705,6 +720,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Trace: write os, file system, vm,... when opening the database
 </li><li>Trace: write dangerous operations (set log 0,...) in every case (including when opening the database)
 </li><li>ParameterMetaData should return correct data type where possible (INSERT for example) 
+</li><li>Support indexes for views (probably requires materialized views)
+</li><li>Linked tables that point to the same database should share the connection
 </li></ul>
 
 <h3>Not Planned</h3>

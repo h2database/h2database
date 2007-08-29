@@ -5,6 +5,7 @@
 package org.h2.util;
 
 public class MemoryFile {
+    private int supportCompression;
     private String name;
     private int length;
     private byte[] data;

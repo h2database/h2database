@@ -130,7 +130,7 @@ public class DateTimeUtils {
                 int s1 = s.indexOf('-', 1);
                 int s2 = s.indexOf('-', s1 + 1);
                 if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s);
+                    throw Message.getSQLException(errorCode, new String[]{s, "format yyyy-mm-dd"});
                 }
                 year = Integer.parseInt(s.substring(0, s1));
                 month = Integer.parseInt(s.substring(s1 + 1, s2));
@@ -143,7 +143,7 @@ public class DateTimeUtils {
                 int s2 = s.indexOf(':', s1 + 1);
                 int s3 = s.indexOf('.', s2 + 1);
                 if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, s);
+                    throw Message.getSQLException(errorCode, new String[]{s, "format hh:mm:ss"});
                 }
                 
                 if(s.endsWith("Z")) {
@@ -158,7 +158,7 @@ public class DateTimeUtils {
                         String tzName = "GMT" + s.substring(timezoneStart);
                         tz = TimeZone.getTimeZone(tzName);
                         if(!tz.getID().equals(tzName)) {
-                            throw Message.getSQLException(errorCode, s + " " + tz.getID() + "/" + tzName);
+                            throw Message.getSQLException(errorCode, new String[]{s, tz.getID() + " <>" + tzName});
                         }
                         s = s.substring(0, timezoneStart).trim();
                     }

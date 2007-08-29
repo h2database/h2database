@@ -1932,7 +1932,9 @@ public class Parser {
             String name = currentToken;
             if(currentTokenQuoted) {
                 read();
-                if(readIf(".")) {
+                if (readIf("(")) {
+                    r = readFunction(name);
+                } else if(readIf(".")) {
                     r = readTermObjectDot(name);
                 } else {
                     r = new ExpressionColumn(database, currentSelect, null, null, name);
@@ -3064,7 +3066,7 @@ public class Parser {
         } else if(readIf("VIEW")) {
             return parseCreateView(force);
         } else if (readIf("ALIAS")) {
-             return parseCreateFunctionAlias();
+             return parseCreateFunctionAlias(force);
         } else if (readIf("SEQUENCE")) {
             return  parseCreateSequence();
         } else if (readIf("USER")) {
@@ -3243,6 +3245,9 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String constantName = readIdentifierWithSchema();
         Schema schema = getSchema();
+        if(isKeyword(constantName)) {
+            throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
+        }
         read("VALUE");
         Expression expr = readExpression();
         CreateConstant command = new CreateConstant(session, schema);
@@ -3340,10 +3345,15 @@ public class Parser {
         return command;
     }
 
-    private CreateFunctionAlias parseCreateFunctionAlias() throws SQLException {
+    private CreateFunctionAlias parseCreateFunctionAlias(boolean force) throws SQLException {
         boolean ifNotExists = readIfNoExists();
         CreateFunctionAlias command = new CreateFunctionAlias(session);
-        command.setAliasName(readUniqueIdentifier());
+        command.setForce(force);
+        String name = readUniqueIdentifier();
+        if(isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
+            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
+        }
+        command.setAliasName(name);
         command.setIfNotExists(ifNotExists);
         read("FOR");
         command.setJavaClassMethod(readUniqueIdentifier());

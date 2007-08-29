@@ -547,6 +547,14 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(" FROM ");
         buff.append(table.getSQL());
+        buff.append(" WHERE ");
+        for(int i=0; i<columns.length; i++) {
+            if(i > 0) {
+                buff.append(" AND ");
+            }
+            buff.append(columns[i].getSQL());
+            buff.append(" IS NOT NULL ");
+        }
         buff.append(" ORDER BY ");
         for(int i=0; i<columns.length; i++) {
             if(i>0) {

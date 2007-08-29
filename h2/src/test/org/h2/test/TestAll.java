@@ -100,29 +100,11 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
         
 /*
 
-problem with news mailing list
+shrink newsletter list (migrate to google groups)
 
-CREATE TABLE TEST(BIRTH TIMESTAMP);
-INSERT INTO TEST VALUES('2006-04-03 10:20:30'), ('2006-04-03 10:20:31');
-SELECT CAST(BIRTH AS DATE) B
-FROM TEST GROUP BY CAST(BIRTH AS DATE)
-HAVING CAST(BIRTH AS DATE) = '2004-05-05';
-SELECT 1 FROM (SELECT CAST(BIRTH AS DATE) B
-FROM TEST GROUP BY CAST(BIRTH AS DATE)) A
-WHERE A.B = '2004-05-05';
-DROP TABLE TEST;
-
-CREATE TABLE TEST (ID integer NOT NULL PRIMARY KEY);
-@LOOP 1000 INSERT INTO TEST VALUES(?);
-CREATE VIEW TESTVIEW AS SELECT src.ID as VID FROM TEST AS h 
-INNER JOIN TEST AS src ON h.ID = src.ID GROUP BY src.ID;
--- slow
-SELECT COUNT(*) FROM TESTVIEW AS S LEFT JOIN TESTVIEW AS T ON S.VID = T.VID;
-DROP VIEW TESTVIEW;
-DROP TABLE TEST;
-
-add to maven
+see if maven repository is ok, document
 http://maven.apache.org/guides/mini/guide-central-repository-upload.html
+http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/1.0.57/
 
 add MVCC
 
@@ -130,13 +112,9 @@ don't create @~ of not translated
 
 improve documentation of 'mixed mode' usage.
 
-test and document fulltext search
+test performance and document fulltext search
 
 clustered tables: test, document
-
-Switching off and switching on constraints could be made transactional.
-
-Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
 
 search for japanese: works, but is it ok?
 pdf: first page looks empty (because the top part is empty) - title on the top?

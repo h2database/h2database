@@ -92,14 +92,6 @@ public class MultiVersionIndex implements Index {
             if(removeIfExists(session, row)) {
                 // added and deleted in the same transaction: no change
             } else {
-int testing;
-if(row.getSessionId() == 0) {
-    System.out.println("stop! " + row);
-    System.out.flush();
-    new Error().printStackTrace();    
-    
-Runtime.getRuntime().halt(1); 
-}
                 delta.add(session, row);
             }
         }

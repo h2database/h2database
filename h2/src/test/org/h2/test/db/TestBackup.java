@@ -38,6 +38,7 @@ public class TestBackup extends TestBase {
         
         stat1.execute("backup to '" + BASE_DIR + "/backup.zip'");
         conn2.rollback();
+        compareDatabases(stat1, stat2);
         
         Restore.execute(BASE_DIR + "/backup.zip", BASE_DIR, "restored", true);
         conn3 = getConnection("restored");

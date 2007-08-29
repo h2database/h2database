@@ -43,6 +43,16 @@ public class TestMVCC {
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
         
+        
+        s1.execute("create table test(id int primary key, name varchar(255))");
+        s2.execute("insert into test values(4, 'Hello')");
+        c2.rollback();
+        test(s1, "select count(*) from test where name = 'Hello'", "0");
+        test(s2, "select count(*) from test where name = 'Hello'", "0");
+        c1.commit();
+        c2.commit();
+        s1.execute("DROP TABLE TEST");
+        
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Test')");
         c1.commit();

@@ -367,6 +367,9 @@ public class Recover implements DataHandler {
                     }
                     sb.append(v.getSQL());
                 } catch(Exception e) {
+                    if(log) {
+                        logError("log data", e);
+                    }
                     writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                     continue;
                 } catch(OutOfMemoryError e) {
@@ -813,7 +816,7 @@ public class Recover implements DataHandler {
      * INTERNAL
      */
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
-        return null;
+        return FileStore.open(this, name, "rw", Constants.MAGIC_FILE_HEADER.getBytes());
     }
 
     /**

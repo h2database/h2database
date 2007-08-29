@@ -90,15 +90,15 @@ public class PgServerThread implements Runnable {
     }
     
     private String readString() throws IOException {
-        StringBuffer buff = new StringBuffer();
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
         while(true) {
             int x = dataIn.read();
             if(x <= 0) {
                 break;
             }
-            buff.append((char)x);
+            buff.write(x);
         }
-        return buff.toString();
+        return new String(buff.toByteArray(), getEncoding());
     }
     
     private int readInt() throws IOException {
@@ -676,7 +676,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void writeString(String s) throws IOException {
-        write(s.getBytes("UTF-8"));
+        write(s.getBytes(getEncoding()));
         write(0);
     }
     

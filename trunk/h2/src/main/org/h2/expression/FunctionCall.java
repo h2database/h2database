@@ -13,7 +13,7 @@ import org.h2.value.ValueResultSet;
 public interface FunctionCall {
 
     String getName();
-    int getParameterCount();
+    int getParameterCount() throws SQLException;
     ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException;
     int getType();
     Expression optimize(Session session) throws SQLException;

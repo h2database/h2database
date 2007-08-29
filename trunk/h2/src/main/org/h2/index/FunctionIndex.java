@@ -36,11 +36,8 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(result == null) {
-            result = functionTable.getResult(session);
-        } else {
-            result.reset();
-        }
+        // TODO sometimes result.reset() would be enough (but not when parameters are used)
+        result = functionTable.getResult(session);
         return new FunctionCursor(result);
     }
 

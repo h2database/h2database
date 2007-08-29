@@ -102,10 +102,6 @@ public class MultiVersionCursor implements Cursor {
                     }
                 }
                 int sessionId = deltaRow.getSessionId();
-                if(sessionId == 0) {
-                    int testing;
-                    System.out.println("sessionId==0");
-                }
                 boolean isThisSession = sessionId == session.getId();
                 boolean isDeleted = deltaRow.getDeleted();
                 if(isThisSession && isDeleted) {

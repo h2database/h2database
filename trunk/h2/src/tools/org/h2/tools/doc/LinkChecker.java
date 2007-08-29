@@ -57,7 +57,7 @@ public class LinkChecker {
         ArrayList errors = new ArrayList();
         for(Iterator it = links.keySet().iterator(); it.hasNext(); ) {
             String link = (String) it.next();
-            if(!link.startsWith("http") && !link.endsWith("h2.pdf")) {
+            if(!link.startsWith("http") && !link.endsWith("h2.pdf") && link.indexOf("_ja.") < 0) {
                 if(targets.get(link) == null) {
                     errors.add(links.get(link) + ": missing link " + link);
                 }

@@ -19,14 +19,14 @@ public class ScanCursor implements Cursor {
     private Row row;
     private final Session session;
     private final boolean multiVersion;
-    private Iterator deleted;
+    private Iterator delta;
 
     ScanCursor(Session session, ScanIndex scan, boolean multiVersion) {
         this.session = session;
         this.scan = scan;
         this.multiVersion = multiVersion;
         if(multiVersion) {
-            deleted = scan.getDeleted();
+            delta = scan.getDelta();
         }
         row = null;
     }
@@ -50,9 +50,9 @@ public class ScanCursor implements Cursor {
     public boolean next() throws SQLException {
         if(multiVersion) {
             while(true) {
-                if(deleted.hasNext()) {
-                    row = (Row) deleted.next();
-                    if(row.getDeleted() && row.getSessionId() == session.getId()) {
+                if(delta.hasNext()) {
+                    row = (Row) delta.next();
+                    if(!row.getDeleted() || row.getSessionId() == session.getId()) {
                         row = null;
                         continue;
                     }

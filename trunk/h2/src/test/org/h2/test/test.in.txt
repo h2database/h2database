@@ -1,4 +1,58 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create alias "SYSDATE" for "java.lang.Integer.parseInt(java.lang.String)";
+> exception
+
+create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
+> exception
+
+create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
+> exception
+
+CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B));
+> ok
+
+CREATE TABLE CHILD(A INT, B INT, CONSTRAINT CP FOREIGN KEY(A, B) REFERENCES PARENT(A, B));
+> ok
+
+INSERT INTO PARENT VALUES(1, 2);
+> update count: 1
+
+INSERT INTO CHILD VALUES(2, NULL), (NULL, 3), (NULL, NULL), (1, 2);
+> update count: 4
+
+set autocommit false;
+> ok
+
+ALTER TABLE CHILD SET REFERENTIAL_INTEGRITY FALSE;
+> ok
+
+ALTER TABLE CHILD SET REFERENTIAL_INTEGRITY TRUE CHECK;
+> ok
+
+set autocommit true;
+> ok
+
+DROP TABLE CHILD, PARENT;
+> ok
+
+CREATE TABLE TEST(BIRTH TIMESTAMP);
+> ok
+
+INSERT INTO TEST VALUES('2006-04-03 10:20:30'), ('2006-04-03 10:20:31'), ('2006-05-05 00:00:00'), ('2006-07-03 22:30:00'), ('2006-07-03 22:31:00');
+> update count: 5
+
+SELECT * FROM (SELECT CAST(BIRTH AS DATE) B
+FROM TEST GROUP BY CAST(BIRTH AS DATE)) A
+WHERE A.B >= '2006-05-05';
+> B
+> ----------
+> 2006-05-05
+> 2006-07-03
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
 CREATE TABLE Parent(ID INT PRIMARY KEY, Name VARCHAR);
 > ok
 
@@ -33,6 +87,9 @@ ALTER TABLE A ADD CONSTRAINT AC FOREIGN KEY(SK) REFERENCES A(ID);
 > ok
 
 INSERT INTO A VALUES(1, 1);
+> update count: 1
+
+INSERT INTO A VALUES(-2, NULL);
 > update count: 1
 
 ALTER TABLE A SET REFERENTIAL_INTEGRITY FALSE;
@@ -3925,8 +3982,8 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------
-> CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt"
+> ----------------------------------------------------
+> CREATE FORCE ALIAS MY_SQRT FOR "java.lang.Math.sqrt"
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN
 > rows: 2
 

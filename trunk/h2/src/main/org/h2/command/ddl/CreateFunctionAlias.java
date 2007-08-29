@@ -17,7 +17,8 @@ public class CreateFunctionAlias extends DefineCommand {
     private String aliasName;
     private String javaClassMethod;
     private boolean ifNotExists;
-    
+    private boolean force;
+
     public CreateFunctionAlias(Session session) {
         super(session);
     }
@@ -32,7 +33,7 @@ public class CreateFunctionAlias extends DefineCommand {
             }
         } else {
             int id = getObjectId(false, true);
-            FunctionAlias functionAlias = new FunctionAlias(db, id, aliasName, javaClassMethod);
+            FunctionAlias functionAlias = new FunctionAlias(db, id, aliasName, javaClassMethod, force);
             db.addDatabaseObject(session, functionAlias);
         }
         return 0;
@@ -48,6 +49,10 @@ public class CreateFunctionAlias extends DefineCommand {
 
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
     }
 
 }

@@ -12,9 +12,30 @@ import org.h2.test.TestBase;
 public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
+        testLinkDrop();
         testLinkSchema();
         testLinkEmitUpdates();
         testLinkTable();
+    }
+    
+    private void testLinkDrop() throws Exception {
+        Class.forName("org.h2.Driver");
+        Connection connA = DriverManager.getConnection("jdbc:h2:mem:a");
+        Statement statA = connA.createStatement();
+        statA.execute("CREATE TABLE TEST(ID INT)");
+        Connection connB = DriverManager.getConnection("jdbc:h2:mem:b");
+        Statement statB = connB.createStatement();
+        statB.execute("CREATE LINKED TABLE TEST_LINK('', 'jdbc:h2:mem:a', '', '', 'TEST')");
+        connA.close();
+        // the connection should be closed now 
+        // (and the table should disappear because the last connection was closed)
+        statB.execute("DROP TABLE TEST_LINK");
+        connA = DriverManager.getConnection("jdbc:h2:mem:a");
+        statA = connA.createStatement();
+        // table should not exist now
+        statA.execute("CREATE TABLE TEST(ID INT)");
+        connA.close();
+        connB.close();
     }
     
     private void testLinkEmitUpdates() throws Exception {

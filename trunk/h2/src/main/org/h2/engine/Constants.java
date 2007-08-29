@@ -57,7 +57,8 @@ import org.h2.constant.SysProperties;
  * - Test with hibernate
  * - Scan for viruses
  * - Newsletter: send to h2database-news@googlegroups.com (http://groups.google.com/group/h2database-news)
- * - newsletter: prepare, send (always send to BCC!!)
+ * - Newsletter: prepare, send (always send to BCC!!)
+ * - Newsletter: send to google groups, but without 'to unsubscribe...'
  * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
  * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
  * 

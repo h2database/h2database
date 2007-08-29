@@ -9,8 +9,6 @@ import java.io.File;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.test.TestBase;
-import org.h2.util.FileUtils;
-
 
 /**
  * @author Thomas
@@ -28,12 +26,17 @@ public class TestFileLock extends TestBase implements Runnable {
     public TestFileLock() {}
 
     public void test() throws Exception {
-        new File(FILE).delete();
+        test(false);
+        test(true);
+    }
+    
+    void test(boolean allowSockets) throws Exception {
         int threadCount = getSize(3, 5);
         wait = getSize(20, 200);
         Thread[] threads = new Thread[threadCount];
+        new File(FILE).delete();
         for (int i = 0; i < threadCount; i++) {
-            threads[i] = new Thread(new TestFileLock(this, false));
+            threads[i] = new Thread(new TestFileLock(this, allowSockets));
             threads[i].start();
             Thread.sleep(wait + (int) (Math.random() * wait));
         }
@@ -41,21 +44,6 @@ public class TestFileLock extends TestBase implements Runnable {
         Thread.sleep(500);
         stop = true;
         trace("STOP file");
-        for (int i = 0; i < threadCount; i++) {
-            threads[i].join();
-        }
-        check(locks, 0);
-        FileUtils.delete(FILE);
-        stop = false;
-        for (int i = 0; i < threadCount; i++) {
-            threads[i] = new Thread(new TestFileLock(this, true));
-            threads[i].start();
-            Thread.sleep(wait + (int) (Math.random() * wait));
-        }
-        trace("wait");
-        Thread.sleep(100);
-        stop = true;
-        trace("STOP sockets");
         for (int i = 0; i < threadCount; i++) {
             threads[i].join();
         }

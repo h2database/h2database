@@ -594,7 +594,7 @@ public class Select extends Query {
             }
         }
         if(having != null) {
-            // could be set after addGlobalCondition
+            // could be set in addGlobalCondition
             // in this case the query is not run directly, just getPlanSQL is called
             Expression h = having;
             buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
@@ -685,16 +685,26 @@ public class Select extends Query {
         col = col.getNonAliasExpression();
         Expression comp = new Comparison(session, comparisonType, col, expr);
         comp = comp.optimize(session);
+        boolean addToCondition = true;
         if(isGroupQuery) {
-            if(havingIndex >= 0) {
-                having = (Expression) expressions.get(havingIndex);
+            for(int i=0; groupIndex != null && i<groupIndex.length; i++) {
+                if(groupIndex[i] == columnId) {
+                    addToCondition = true;
+                    break;
+                }
             }
-            if(having == null) {
-                having = comp;
-            } else {
-                having = new ConditionAndOr(ConditionAndOr.AND, having, comp);
+            if(!addToCondition) {
+                if(havingIndex >= 0) {
+                    having = (Expression) expressions.get(havingIndex);
+                }
+                if(having == null) {
+                    having = comp;
+                } else {
+                    having = new ConditionAndOr(ConditionAndOr.AND, having, comp);
+                }
             }
-        } else {
+        }
+        if(addToCondition) {
             if(condition == null) {
                 condition = comp;
             } else {

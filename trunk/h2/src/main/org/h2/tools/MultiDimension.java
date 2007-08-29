@@ -4,9 +4,13 @@
  */
 package org.h2.tools;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import org.h2.util.StringUtils;
 
 /**
  * A tool to help an application execute multi-dimensional range queries.
@@ -89,10 +93,60 @@ public class MultiDimension {
 //        return n;
 //    }
 
-
+    /**
+     * Generates an optimized multi-dimensional range query.
+     * The query contains parameters. It can only be used with the H2 database.
+     *
+     * @param table the table name
+     * @param columns the list of columns
+     * @param scalarColumn the column name of the computed scalar column
+     * @return the query
+     */
+    public String generatePreparedQuery(String table, String scalarColumn, String[] columns) {
+        StringBuffer buff = new StringBuffer("SELECT D.* FROM ");
+        buff.append(StringUtils.quoteIdentifier(table));
+        buff.append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ");
+        buff.append(StringUtils.quoteIdentifier(scalarColumn));
+        buff.append(" BETWEEN _FROM_ AND _TO_");
+        for(int i=0; i<columns.length; i++) {
+            buff.append(" AND ");
+            buff.append(StringUtils.quoteIdentifier(columns[i]));
+            buff.append("+1 BETWEEN ?+1 AND ?+1");
+        }
+        return buff.toString();
+    }
+    
+    /**
+     * Executes a prepared query that was generated using generatePreparedQuery.
+     * 
+     * @param prep the prepared statement
+     * @param min the lower values
+     * @param max the upper values
+     * @return the result set
+     */
+    public ResultSet getResult(PreparedStatement prep, int[] min, int[] max) throws SQLException {
+        long[][] ranges = getMortonRanges(min, max);
+        int len = ranges.length;
+        Long[] from = new Long[len];
+        Long[] to = new Long[len];
+        for(int i=0; i<len; i++) {
+            from[i] = new Long(ranges[i][0]);
+            to[i] = new Long(ranges[i][1]);
+        }
+        prep.setObject(1, from);
+        prep.setObject(2, to);
+        len = min.length;
+        for(int i=0, idx = 3; i<len; i++) {
+            prep.setInt(idx++, min[i]);
+            prep.setInt(idx++, max[i]);
+        }
+        return prep.executeQuery();
+    }
 
     /**
      * Generates an optimized multi-dimensional range query.
+     * This query is database independent, however the performance is
+     * not as good as when using generatePreparedQuery
      *
      * @param table the table name
      * @param columns the list of columns
@@ -101,7 +155,7 @@ public class MultiDimension {
      * @param scalarColumn the column name of the computed scalar column
      * @return the query
      */
-    public String getMultiDimensionalQuery(String table, String scalarColumn, String[] columns, int[] min, int[] max) {
+    public String generateQuery(String table, String scalarColumn, String[] columns, int[] min, int[] max) {
         long[][] ranges = getMortonRanges(min, max);
         StringBuffer buff = new StringBuffer("SELECT * FROM (");
         for(int i=0; i<ranges.length; i++) {

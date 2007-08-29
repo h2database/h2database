@@ -26,9 +26,9 @@ public class FunctionAlias extends DbObjectBase {
     private String methodName;
     private Method javaMethod;
     private int paramCount;
-    private final int dataType;
+    private int dataType;
 
-    public FunctionAlias(Database db, int id, String name, String javaClassMethod) throws SQLException {
+    public FunctionAlias(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
         super(db, id, name, Trace.FUNCTION);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
@@ -37,6 +37,15 @@ public class FunctionAlias extends DbObjectBase {
         }
         className = javaClassMethod.substring(0, lastDot);
         methodName = javaClassMethod.substring(lastDot + 1);
+        if(!force) {
+            load();
+        }
+    }
+    
+    private synchronized void load() throws SQLException {
+        if(javaMethod != null) {
+            return;
+        }
         Class javaClass;
         try {
             javaClass = database.loadClass(className);
@@ -94,7 +103,8 @@ public class FunctionAlias extends DbObjectBase {
         return buff.toString();
     }
 
-    public Class[] getColumnClasses() {
+    public Class[] getColumnClasses() throws SQLException {
+        load();
         return javaMethod.getParameterTypes();
     }
 
@@ -112,7 +122,7 @@ public class FunctionAlias extends DbObjectBase {
     
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
-        buff.append("CREATE ALIAS ");
+        buff.append("CREATE FORCE ALIAS ");
         buff.append(getSQL());
         buff.append(" FOR ");
         buff.append(Parser.quoteIdentifier(className + "." + methodName));
@@ -137,59 +147,59 @@ public class FunctionAlias extends DbObjectBase {
         return getValue(session, args, false);
     }
 
-    public Value getValue(Session session, Expression[] args, boolean columnList) throws SQLException {
-        synchronized(this) {
-            Class[] paramClasses = javaMethod.getParameterTypes();
-            Object[] params = new Object[paramClasses.length];
-            int p = 0;
-            if(hasConnectionParam && params.length > 0) {
-                params[p++] = session.createConnection(columnList);
-            }
-            for(int a=0; a<args.length && p<params.length; a++, p++) {
-                Class paramClass = paramClasses[p];
-                int type = DataType.getTypeFromClass(paramClass);
-                Value v = args[a].getValue(session);
-                v = v.convertTo(type);
-                Object o = v.getObject();
-                if(o == null) {
-                    if(paramClass.isPrimitive()) {
-                        if(columnList) {
-                            // if the column list is requested, the parameters may be null
-                            // need to set to default value otherwise the function can't be called at all
-                            o = DataType.getDefaultForPrimitiveType(paramClass);
-                        } else {
-                            // NULL for a java primitive: return NULL
-                            return ValueNull.INSTANCE;
-                        }
-                    }
-                } else {
-                    if(!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
-                        o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
-                    }
-                }
-                params[p] = o;
-            }
-            boolean old = session.getAutoCommit();
-            try {
-                session.setAutoCommit(false);
-                try {
-                    Object returnValue;
-                    returnValue = javaMethod.invoke(null, params);
-                    if(returnValue == null) {
+    public synchronized Value getValue(Session session, Expression[] args, boolean columnList) throws SQLException {
+        load();
+        Class[] paramClasses = javaMethod.getParameterTypes();
+        Object[] params = new Object[paramClasses.length];
+        int p = 0;
+        if(hasConnectionParam && params.length > 0) {
+            params[p++] = session.createConnection(columnList);
+        }
+        for(int a=0; a<args.length && p<params.length; a++, p++) {
+            Class paramClass = paramClasses[p];
+            int type = DataType.getTypeFromClass(paramClass);
+            Value v = args[a].getValue(session);
+            v = v.convertTo(type);
+            Object o = v.getObject();
+            if(o == null) {
+                if(paramClass.isPrimitive()) {
+                    if(columnList) {
+                        // if the column list is requested, the parameters may be null
+                        // need to set to default value otherwise the function can't be called at all
+                        o = DataType.getDefaultForPrimitiveType(paramClass);
+                    } else {
+                        // NULL for a java primitive: return NULL
                         return ValueNull.INSTANCE;
                     }
-                    Value ret = DataType.convertToValue(session, returnValue, dataType);
-                    return ret.convertTo(dataType);
-                } catch (Exception e) {
-                    throw Message.convert(e);
                 }
-            } finally {
-                session.setAutoCommit(old);
+            } else {
+                if(!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
+                    o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
+                }
             }
+            params[p] = o;
+        }
+        boolean old = session.getAutoCommit();
+        try {
+            session.setAutoCommit(false);
+            try {
+                Object returnValue;
+                returnValue = javaMethod.invoke(null, params);
+                if(returnValue == null) {
+                    return ValueNull.INSTANCE;
+                }
+                Value ret = DataType.convertToValue(session, returnValue, dataType);
+                return ret.convertTo(dataType);
+            } catch (Exception e) {
+                throw Message.convert(e);
+            }
+        } finally {
+            session.setAutoCommit(old);
         }
     }
 
-    public int getParameterCount() {
+    public int getParameterCount() throws SQLException {
+        load();
         return paramCount;
     }
 

@@ -35,7 +35,7 @@ public class ScanIndex extends BaseIndex {
     private boolean containsLargeObject;
     private int rowCountDiff;
     private HashMap sessionRowCount;
-    private HashSet deleted;
+    private HashSet delta;
 
     public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType)
             throws SQLException {
@@ -127,8 +127,12 @@ public class ScanIndex extends BaseIndex {
             }
         }
         if(database.isMultiVersion()) {
-            if(deleted != null) {
-                deleted.remove(row);
+            if(delta == null) {
+                delta = new HashSet();
+            }
+            boolean wasDeleted = delta.remove(row);
+            if(!wasDeleted) {
+                delta.add(row);
             }
             incrementRowCount(session.getId(), 1);
         }
@@ -137,8 +141,8 @@ public class ScanIndex extends BaseIndex {
     
     public void commit(int operation, Row row) throws SQLException {
         if(database.isMultiVersion()) {
-            if(deleted != null && operation == UndoLogRecord.DELETE) {
-                deleted.remove(row);
+            if(delta != null && operation == UndoLogRecord.DELETE) {
+                delta.remove(row);
             }
             incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);
         }
@@ -173,10 +177,13 @@ public class ScanIndex extends BaseIndex {
             firstFree = key;
         }
         if(database.isMultiVersion()) {
-            if(deleted == null) {
-                deleted = new HashSet();
+            if(delta == null) {
+                delta = new HashSet();
             }
-            deleted.add(row);
+            boolean wasAdded = delta.remove(row);
+            if(!wasAdded) {
+                delta.add(row);
+            }
             incrementRowCount(session.getId(), -1);
         }
         rowCount--;
@@ -252,8 +259,8 @@ public class ScanIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
-    public Iterator getDeleted() {
-        return deleted == null ? Collections.EMPTY_LIST.iterator() : deleted.iterator();
+    public Iterator getDelta() {
+        return delta == null ? Collections.EMPTY_LIST.iterator() : delta.iterator();
     }
     
 }

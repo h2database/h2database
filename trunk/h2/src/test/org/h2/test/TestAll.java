@@ -216,8 +216,6 @@ document SET SEARCH_PATH, BEGIN, EXECUTE, $ parameters
 
 Complete Javadocs for Messages and add to docs
 
-Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar
-
 write tests using the PostgreSQL JDBC driver
 
 JDK 1.6: Desktop.isDesktopSupported, browse(URI uri)

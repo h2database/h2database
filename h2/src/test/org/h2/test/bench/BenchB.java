@@ -63,9 +63,9 @@ public class BenchB implements Bench, Runnable {
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
-            }            
+            }
         }
         db.commit();
         prep = db.prepare(
@@ -74,9 +74,9 @@ public class BenchB implements Bench, Runnable {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
             db.update(prep, "insertTellers");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
-            }                  
+            }
         }
         db.commit();
         int len = accounts * scale;
@@ -86,7 +86,7 @@ public class BenchB implements Bench, Runnable {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
             db.update(prep, "insertAccounts");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
             }      
         }
@@ -118,7 +118,7 @@ public class BenchB implements Bench, Runnable {
     
     public void run() {
         int accountsPerBranch = accounts / branches;
-        for(int i=0; i<master.transactionPerClient; i++) {
+        for (int i = 0; i < master.transactionPerClient; i++) {
             int branch = random.nextInt(master.branches);
             int teller = random.nextInt(master.tellers);
             int account;
@@ -132,7 +132,7 @@ public class BenchB implements Bench, Runnable {
         }
         try {
             conn.close();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // ignore
         }
     }
@@ -147,7 +147,7 @@ public class BenchB implements Bench, Runnable {
             // SELECT ABALANCE FROM ACCOUNTS WHERE AID=?
             selectAccount.setInt(1, account);
             ResultSet rs = selectAccount.executeQuery();
-            while(rs.next()) {
+            while (rs.next()) {
                 rs.getInt(1);
             }
             
@@ -168,7 +168,7 @@ public class BenchB implements Bench, Runnable {
             insertHistory.setInt(4, delta);
             insertHistory.executeUpdate();
             conn.commit();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -188,13 +188,13 @@ public class BenchB implements Bench, Runnable {
     
     private void processTransactions() throws Exception {
         Thread[] threads = new Thread[clients];
-        for(int i=0; i<clients; i++) {
+        for (int i = 0; i < clients; i++) {
             threads[i] = new Thread(new BenchB(this, i));
         }
-        for(int i=0; i<clients; i++) {
+        for (int i = 0; i < clients; i++) {
             threads[i].start();
         }
-        for(int i=0; i<clients; i++) {
+        for (int i = 0; i < clients; i++) {
             threads[i].join();
         }
     }

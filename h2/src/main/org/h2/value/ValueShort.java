@@ -23,17 +23,17 @@ public class ValueShort extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value + other.value);
-        }        
+        }
         return ValueShort.get((short) (value + other.value));
     }
-    
+
     private ValueShort checkRange(int value) throws SQLException {
-        if(value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
+        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
         } else {
-            return ValueShort.get((short)value);
+            return ValueShort.get((short) value);
         }
     }       
 
@@ -42,23 +42,23 @@ public class ValueShort extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(-(int)value);
-        }        
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange(-(int) value);
+        }
         return ValueShort.get((short) (-value));
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value - other.value);
-        }             
+        }
         return ValueShort.get((short) (value - other.value));
     }
 
     public Value multiply(Value v) throws SQLException {
         ValueShort other = (ValueShort) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value * other.value);
         }                 
         return ValueShort.get((short) (value * other.value));
@@ -125,7 +125,7 @@ public class ValueShort extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueShort && value == ((ValueShort)v).value;
+        return v instanceof ValueShort && value == ((ValueShort) v).value;
     }
 
 }

@@ -21,7 +21,7 @@ import org.h2.util.StringUtils;
 public class Engine {
     // TODO use a 'engine'/'master' database to allow shut down the server, view & kill sessions and so on
 
-    private static final Engine instance = new Engine();
+    private static final Engine INSTANCE = new Engine();
     private final HashMap databases = new HashMap();
 
     private Engine() {
@@ -29,51 +29,52 @@ public class Engine {
     }
 
     public static Engine getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
         // may not remove properties here, otherwise they are lost if it is required to call it twice
         String name = ci.getName();
         Database database;
-        if(ci.isUnnamed()) {
+        if (ci.isUnnamed()) {
             database = null;
         } else {
             database = (Database) databases.get(name);
         }
         User user = null;
         boolean opened = false;
-        if(database == null) {
-            if(ifExists && !Database.exists(name)) {
+        if (database == null) {
+            if (ifExists && !Database.exists(name)) {
                 throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, name);
             }
             database = new Database(name, ci, cipher);
             opened = true;
-            if(database.getAllUsers().size()==0) {
+            if (database.getAllUsers().size() == 0) {
                 // users is the last thing we add, so if no user is around, the database is not initialized correctly
                 user = new User(database, database.allocateObjectId(false, true), ci.getUserName(), false);
                 user.setAdmin(true);
                 user.setUserPasswordHash(ci.getUserPasswordHash());
                 database.setMasterUser(user);
             }
-            if(!ci.isUnnamed()) {
+            if (!ci.isUnnamed()) {
                 databases.put(name, database);
             }
         }
-        synchronized(database) {
-            if(database.isClosing()) {
+        synchronized (database) {
+            if (database.isClosing()) {
                 return null;
             }
-            if(user == null) {
+            if (user == null) {
                 try {
                     database.checkFilePasswordHash(cipher, ci.getFilePasswordHash());
                     user = database.getUser(ci.getUserName());
                     user.checkUserPasswordHash(ci.getUserPasswordHash());
-                    if(opened && !user.getAdmin()) {
-                        // reset - because the user is not an admin, and has no right to listen to exceptions
+                    if (opened && !user.getAdmin()) {
+                        // reset - because the user is not an admin, and has no
+                        // right to listen to exceptions
                         database.setEventListener(null);
                     }
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     database.removeSession(null);
                     throw e;
                 }
@@ -89,29 +90,30 @@ public class Engine {
         boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
         Session session;
-        while(true) {
+        while (true) {
             session = openSession(ci, ifExists, cipher);
-            if(session != null) {
+            if (session != null) {
                 break;
             }
             // we found a database that is currently closing
             // wait a bit to avoid a busy loop (the method is synchronized)
             try {
                 Thread.sleep(1);
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 // ignore
             }
         }
         String[] keys = ci.getKeys();
         session.setAllowLiterals(true);
-        for(int i=0; i<keys.length; i++) {
+        for (int i = 0; i < keys.length; i++) {
             String setting = keys[i];
             String value = ci.getProperty(setting);
             try {
-                CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " " + value);
+                CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "
+                        + value);
                 command.executeUpdate();
-            } catch(SQLException e) {
-                if(!ignoreUnknownSetting) {
+            } catch (SQLException e) {
+                if (!ignoreUnknownSetting) {
                     session.close();
                     throw e;
                 }
@@ -125,15 +127,15 @@ public class Engine {
 
     private void checkClustering(ConnectionInfo ci, Database database) throws SQLException {
         String clusterSession = ci.getProperty(SetTypes.CLUSTER, null);
-        if(Constants.CLUSTERING_DISABLED.equals(clusterSession)) {
+        if (Constants.CLUSTERING_DISABLED.equals(clusterSession)) {
             // in this case, no checking is made
             // (so that a connection can be made to disable/change clustering)
             return;
         }
         String clusterDb = database.getCluster();
-        if(!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
-            if(!StringUtils.equals(clusterSession, clusterDb)) {
-                if(clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
+        if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
+            if (!StringUtils.equals(clusterSession, clusterDb)) {
+                if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
                     throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
                 } else {
                     throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);

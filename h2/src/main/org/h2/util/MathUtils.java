@@ -20,33 +20,37 @@ public class MathUtils {
         return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);   
     }
     
+    public static long roundUpLong(long x, long blockSizePowerOf2) {
+        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);   
+    }
+    
     public static void checkPowerOf2(int len) {
-        if((len & (len-1)) != 0 && len > 0) {
+        if ((len & (len - 1)) != 0 && len > 0) {
             throw Message.getInternalError("not a power of 2: " + len);
         }
     }
-    
+
     public static int nextPowerOf2(int x) {
         long i = 1;
-        while(i < x && i < (Integer.MAX_VALUE/2)) {
+        while (i < x && i < (Integer.MAX_VALUE / 2)) {
             i += i;
         }
         return (int) i;
     }
     
     public static long scaleUp50Percent(long start, long min, long blockSize) {
-        while(start < min) {
+        while (start < min) {
             start += start / 2;
-            start += start % blockSize;                    
+            start += start % blockSize;
         }
         return start;
     }
-    
+
     public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {
-        if(scale > Constants.BIG_DECIMAL_SCALE_MAX) {
-            throw Message.getInvalidValueException(""+scale, "scale");
-        } else if(scale < 0) {
-            throw Message.getInvalidValueException(""+scale, "scale");
+        if (scale > Constants.BIG_DECIMAL_SCALE_MAX) {
+            throw Message.getInvalidValueException("" + scale, "scale");
+        } else if (scale < 0) {
+            throw Message.getInvalidValueException("" + scale, "scale");
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }
@@ -68,9 +72,9 @@ public class MathUtils {
     }
     
     public static int convertLongToInt(long l) {
-        if(l<=Integer.MIN_VALUE) {
+        if (l <= Integer.MIN_VALUE) {
             return Integer.MIN_VALUE;
-        } else if(l>=Integer.MAX_VALUE) {
+        } else if (l >= Integer.MAX_VALUE) {
             return Integer.MAX_VALUE;
         } else {
             return (int) l;

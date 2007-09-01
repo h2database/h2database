@@ -54,7 +54,7 @@ abstract class ValueStringBase extends Value {
     }   
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueString && value.equals(((ValueString)v).value);
+        return v instanceof ValueString && value.equals(((ValueString) v).value);
     }    
 
 }

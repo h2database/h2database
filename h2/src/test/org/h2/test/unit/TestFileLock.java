@@ -17,7 +17,7 @@ public class TestFileLock extends TestBase implements Runnable {
 
     int wait;
     static final int KILL = 5;
-    static final String FILE = BASE_DIR + "/test.lock";
+    static final String FILE = baseDir + "/test.lock";
 
     private boolean allowSockets;
     private static volatile int locks;

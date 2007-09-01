@@ -33,8 +33,8 @@ public class Right extends DbObjectBase {
     }
     
     private boolean appendRight(StringBuffer buff, int right, int mask, String name, boolean comma) {
-        if((right & mask) != 0) {
-            if(comma) {
+        if ((right & mask) != 0) {
+            if (comma) {
                 buff.append(", ");
             }
             buff.append(name);
@@ -42,10 +42,10 @@ public class Right extends DbObjectBase {
         }
         return comma;
     }
-    
+
     public String getRights() {
         StringBuffer buff = new StringBuffer();
-        if(grantedRight == ALL) {
+        if (grantedRight == ALL) {
             buff.append("ALL");
         } else {
             boolean comma = false;
@@ -56,27 +56,27 @@ public class Right extends DbObjectBase {
         }
         return buff.toString();
     }
-    
+
     public Role getGrantedRole() {
         return grantedRole;
     }
-    
+
     public Table getGrantedTable() {
         return grantedTable;
     }
-    
+
     public DbObject getGrantee() {
         return grantee;
-    } 
-    
+    }
+
     public String getDropSQL() {
         return null;
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuffer buff = new StringBuffer();
         buff.append("GRANT ");
-        if(grantedRole != null) {
+        if (grantedRole != null) {
             buff.append(grantedRole.getSQL());
         } else {
             buff.append(getRights());
@@ -88,7 +88,7 @@ public class Right extends DbObjectBase {
         buff.append(grantee.getSQL());
         return buff.toString();
     }
-    
+
     public String getCreateSQL() {
         return getCreateSQLForCopy(grantedTable, null);
     }
@@ -98,7 +98,7 @@ public class Right extends DbObjectBase {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        if(grantedTable != null) {
+        if (grantedTable != null) {
             grantee.revokeRight(grantedTable);
         } else {
             grantee.revokeRole(session, grantedRole);
@@ -112,7 +112,7 @@ public class Right extends DbObjectBase {
     public void checkRename() throws SQLException {
         throw Message.getInternalError();
     }
-    
+
     public void setRightMask(int rightMask) {
         grantedRight = rightMask;
     }

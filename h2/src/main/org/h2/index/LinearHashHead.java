@@ -33,7 +33,7 @@ public class LinearHashHead extends Record {
     }
 
     public void write(DataPage buff) throws SQLException {
-        buff.writeByte((byte)'H');       
+        buff.writeByte((byte) 'H');
         buff.writeInt(baseSize);
         buff.writeInt(nextToSplit);
         buff.writeInt(recordCount);

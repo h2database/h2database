@@ -16,16 +16,16 @@ public class DbColumn {
         name = rs.getString("COLUMN_NAME");
         String type = rs.getString("TYPE_NAME");
         int size = rs.getInt("COLUMN_SIZE");
-        if(size > 0) {
-            type += "("+size;
+        if (size > 0) {
+            type += "(" + size;
             int prec = rs.getInt("DECIMAL_DIGITS");
-            if(prec > 0) {
+            if (prec > 0) {
                 type += ", " + prec;
             }
             type += ")";
         }
-        if(rs.getInt("NULLABLE") == DatabaseMetaData.columnNoNulls) {
-            type +=" NOT NULL";
+        if (rs.getInt("NULLABLE") == DatabaseMetaData.columnNoNulls) {
+            type += " NOT NULL";
         }
         dataType = type;
     }

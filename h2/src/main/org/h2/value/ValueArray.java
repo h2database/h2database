@@ -29,7 +29,8 @@ public class ValueArray extends Value {
         for (int i = 0; i < values.length;) {
             h = h * 31 + values[i++].hashCode();
         }
-        return hash = h;
+        hash = h;
+        return h;
     }
 
     public Value[] getList() {
@@ -135,14 +136,14 @@ public class ValueArray extends Value {
     
     public int getDisplaySize() {
         int size = 0;
-        for(int i=0; i<values.length; i++) {
+        for (int i = 0; i < values.length; i++) {
             size += values[i].getDisplaySize();
         }
         return size;
     }
 
     protected boolean isEqual(Value o) {
-        if(!(o instanceof ValueArray)) {
+        if (!(o instanceof ValueArray)) {
             return false;
         }
         ValueArray v = (ValueArray) o;
@@ -153,7 +154,7 @@ public class ValueArray extends Value {
             return false;
         }
         for (int i = 0; i < values.length; i++) {
-            if(!values[i].isEqual(v.values[i])) {
+            if (!values[i].isEqual(v.values[i])) {
                 return false;
             }
         }

@@ -21,18 +21,18 @@ public abstract class HashBase {
     }
 
     protected void checkSizePut() throws SQLException {
-        if(deletedCount > size) {
+        if (deletedCount > size) {
             rehash(level);
         }
-        if(size + deletedCount >= maxSize) {
-            rehash(level+1);
+        if (size + deletedCount >= maxSize) {
+            rehash(level + 1);
         }
     }
 
     protected void checkSizeRemove() throws SQLException {
-        if(size < minSize && level>0) {
-            rehash(level-1);
-        } else if(deletedCount > maxDeleted) {
+        if (size < minSize && level > 0) {
+            rehash(level - 1);
+        } else if (deletedCount > maxDeleted) {
             rehash(level);
         }
     }
@@ -45,7 +45,7 @@ public abstract class HashBase {
         level = newLevel;
         len = 2 << level;
         mask = len - 1;
-        maxSize = (int)(len * MAX_LOAD / 100L);
+        maxSize = (int) (len * MAX_LOAD / 100L);
         deletedCount = 0;
         maxDeleted = 20 + len / 2;
     }

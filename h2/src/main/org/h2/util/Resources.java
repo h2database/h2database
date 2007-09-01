@@ -27,13 +27,13 @@ public class Resources {
     }
 
     void run(String outDir, String inDir) throws Exception {
-        if(outDir == null) {
+        if (outDir == null) {
             outDir = "bin";
         }
-        if(inDir == null) {
+        if (inDir == null) {
             inDir = "src/main";
         }
-        if(new File(outDir + "/org/h2/util").exists()) {
+        if (new File(outDir + "/org/h2/util").exists()) {
             String file = outDir + "/org/h2/util/ResourceData.java";
             PrintWriter out = new PrintWriter(new FileWriter(file));
             out.println("package org.h2.util;");
@@ -52,12 +52,12 @@ public class Resources {
     void generate(PrintWriter out, String inDir, String packageName) throws Exception {
         File dir = new File(inDir);
         String[] list = dir.list();
-        for(int i=0; list != null && i<list.length; i++) {
+        for (int i = 0; list != null && i < list.length; i++) {
             File f = new File(dir, list[i]);
-            if(!f.isFile()) {
+            if (!f.isFile()) {
                 continue;
             }
-            if(list[i].endsWith(".java")) {
+            if (list[i].endsWith(".java")) {
                 continue;
             }
             String name = "/" + packageName.replace('.', '/') + "/res/" + f.getName();
@@ -69,7 +69,7 @@ public class Resources {
             out.print("new String[]{");
             do {
                 String s2;
-                if(s.length() < 65000) {
+                if (s.length() < 65000) {
                     s2 = s;
                     s = null;
                 } else {
@@ -78,14 +78,14 @@ public class Resources {
                 }
                 out.print(StringUtils.quoteJavaString(s2));
                 out.println(", ");
-            } while(s != null);
+            } while (s != null);
             out.println("});");
         }
     }
 
     static void add(String name, String[] data) {
         StringBuffer buff = new StringBuffer();
-        for(int i=0; i<data.length; i++) {
+        for (int i = 0; i < data.length; i++) {
             buff.append(data[i]);
         }
         FILES.put(name, ByteUtils.convertBinStringToBytes(buff.toString()));
@@ -93,10 +93,10 @@ public class Resources {
 
     public static byte[] get(String name) throws IOException {
         byte[] data;
-        if(FILES.size() == 0) {
+        if (FILES.size() == 0) {
             // TODO web: security (check what happens with files like 'lpt1.txt' on windows)
             InputStream in = Resources.class.getResourceAsStream(name);
-            if(in == null) {
+            if (in == null) {
                 data = null;
             } else {
                 data = IOUtils.readBytesAndClose(in, 0);

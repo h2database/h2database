@@ -22,38 +22,38 @@ public abstract class CacheObject {
             public int compare(Object a, Object b) {
                 int pa = ((CacheObject) a).getPos();
                 int pb = ((CacheObject) b).getPos();
-                return pa==pb ? 0 : (pa<pb ? -1 : 1);
+                return pa == pb ? 0 : (pa < pb ? -1 : 1);
             }
-        });        
+        });
     }
-    
+
     public void setBlockCount(int size) {
         this.blockCount = size;
     }
-    
+
     public int getBlockCount() {
         return blockCount;
     }
-    
+
     public void setPos(int pos) {
-        if(SysProperties.CHECK && (previous!=null || next!=null || chained!=null)) {
+        if (SysProperties.CHECK && (previous != null || next != null || chained != null)) {
             throw Message.getInternalError("setPos too late");
         }
         this.pos = pos;
     }
-    
+
     public int getPos() {
         return pos;
-    }    
+    }
 
     public boolean isChanged() {
         return changed;
     }
-    
+
     public void setChanged(boolean b) {
         changed = b;
-    }   
-        
+    }
+
     public boolean isPinned() {
         return false;
     }    

@@ -4,8 +4,12 @@
  */
 package org.h2.server.web;
 
-import javax.servlet.*;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 public class DbStarter implements ServletContextListener {
     

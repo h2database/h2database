@@ -35,7 +35,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public Value getParamValue() throws SQLException {
-        if(value == null) {
+        if (value == null) {
             // to allow parameters in function tables
             return ValueNull.INSTANCE;
         } else {

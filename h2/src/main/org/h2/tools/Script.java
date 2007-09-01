@@ -58,23 +58,23 @@ public class Script {
         String password = "";
         String file = "backup.sql";
         String options1 = null, options2 = null;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-url")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-url")) {
                 url = args[++i];
-            } else if(args[i].equals("-user")) {
+            } else if (args[i].equals("-user")) {
                 user = args[++i];
-            } else if(args[i].equals("-password")) {
+            } else if (args[i].equals("-password")) {
                 password = args[++i];
-            } else if(args[i].equals("-script")) {
+            } else if (args[i].equals("-script")) {
                 file = args[++i];
-            } else if(args[i].equals("-options")) {
+            } else if (args[i].equals("-options")) {
                 StringBuffer buff1 = new StringBuffer();
                 StringBuffer buff2 = new StringBuffer();
                 i++;
-                for(; i<args.length; i++) {
+                for (; i < args.length; i++) {
                     String a = args[i];
                     String upper = StringUtils.toUpperEnglish(a);
-                    if(upper.startsWith("NO") || "DROP".equals(upper)) {
+                    if (upper.startsWith("NO") || "DROP".equals(upper)) {
                         buff1.append(' ');
                         buff1.append(args[i]);
                     } else {
@@ -89,13 +89,13 @@ public class Script {
                 return;
             }
         }
-        if(url==null || user==null || file == null) {
+        if (url == null || user == null || file == null) {
             showUsage();
             return;
-        }        
-        if(options1 != null) {
+        }
+        if (options1 != null) {
             executeScript(url, user, password, file, options1, options2);
-        } else {       
+        } else {
             execute(url, user, password, file);
         }
     }
@@ -138,12 +138,12 @@ public class Script {
             fileWriter = FileUtils.openFileWriter(fileName, false);
             PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
             ResultSet rs = stat.executeQuery("SCRIPT");
-            while(rs.next()) {
+            while (rs.next()) {
                 String s = rs.getString(1);
                 writer.println(s + ";");
             }
             writer.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         } finally {
             JdbcUtils.closeSilently(stat);

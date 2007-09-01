@@ -317,7 +317,7 @@ public class ErrorCode {
      * INTERNAL
      */
     public static String getState(int errorCode) {
-        switch(errorCode) {
+        switch (errorCode) {
         // 02: no data
         case NO_DATA_AVAILABLE: return "02000";
 
@@ -352,9 +352,9 @@ public class ErrorCode {
 
         case FEATURE_NOT_SUPPORTED: return "HYC00";
         case LOCK_TIMEOUT_1: return "HYT00";
-
+        default:
+            return "" + errorCode;
         }
-        return "" + errorCode;
     }
     
 }

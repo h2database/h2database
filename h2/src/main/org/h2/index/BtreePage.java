@@ -21,7 +21,8 @@ import org.h2.value.Value;
  */
 public abstract class BtreePage extends Record {
     // TODO btree: make sure the indexed data is at most half this size! (and find a solution to work around this problem!)
-    // TODO memory: the btree page needs a lot of memory (in the cache) - probably better not use ObjectArray but array; not Row but ValueList / Value (for single key index), int array for row pos
+    // TODO memory: the btree page needs a lot of memory (in the cache) - probably better not use ObjectArray but array; 
+    // not Row but ValueList / Value (for single key index), int array for row pos
 
     protected static final int BLOCKS_PER_PAGE = 1024 / DiskFile.BLOCK_SIZE;
 
@@ -50,15 +51,15 @@ public abstract class BtreePage extends Record {
     }
 
     public int getByteCount(DataPage dummy) throws SQLException {
-        return DiskFile.BLOCK_SIZE*BLOCKS_PER_PAGE;
+        return DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE;
     }
 
     int getSplitPoint() throws SQLException {
-        if(pageData.size() == 1) {
+        if (pageData.size() == 1) {
             return 0;
         }
         int size = getRealByteCount();
-        if(size >= DiskFile.BLOCK_SIZE*BLOCKS_PER_PAGE) {
+        if (size >= DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE) {
             return pageData.size() / 2;
         }
         return 0;

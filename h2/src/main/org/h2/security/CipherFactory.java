@@ -22,7 +22,7 @@ public class CipherFactory {
     }
 
     public static SHA256 getHash(String algorithm) throws SQLException {
-        if("SHA256".equalsIgnoreCase(algorithm)) {
+        if ("SHA256".equalsIgnoreCase(algorithm)) {
             return new SHA256();
         } else {
             throw Message.getInvalidValueException(algorithm, "algorithm");

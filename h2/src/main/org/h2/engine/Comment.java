@@ -68,7 +68,7 @@ public class Comment extends DbObjectBase {
         buff.append(' ');
         buff.append(objectName);
         buff.append(" IS ");
-        if(commentText == null) {
+        if (commentText == null) {
             buff.append("NULL");
         } else {
             buff.append(StringUtils.quoteStringSQL(commentText));

@@ -29,7 +29,7 @@ public class ValueDate extends Value {
 
     public Date getDate() {
         // this class is mutable - must copy the object
-        return (Date)value.clone();
+        return (Date) value.clone();
     }
     
     public Date getDateNoCopy() {
@@ -89,7 +89,7 @@ public class ValueDate extends Value {
     }
 
     protected boolean isEqual(Value v) {
-        return v instanceof ValueDate && value.equals(((ValueDate)v).value);
+        return v instanceof ValueDate && value.equals(((ValueDate) v).value);
     }
 
 }

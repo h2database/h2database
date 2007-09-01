@@ -73,17 +73,17 @@ public class Session implements SessionInterface {
 
     public Session() {
     }
-    
+
     public Table findLocalTempTable(String name) {
         Table t = null;
-        if(t == null && localTempTables != null) {
+        if (t == null && localTempTables != null) {
             t = (Table) localTempTables.get(name);
         }
         return t;
     }
 
     public ObjectArray getLocalTempTables() {
-        if(localTempTables == null) {
+        if (localTempTables == null) {
             return new ObjectArray();
         }
         ObjectArray list = new ObjectArray(localTempTables.values());
@@ -91,10 +91,10 @@ public class Session implements SessionInterface {
     }
 
     public void addLocalTempTable(Table table) throws SQLException {
-        if(localTempTables == null) {
+        if (localTempTables == null) {
             localTempTables = new HashMap();
         }
-        if(localTempTables.get(table.getName()) != null) {
+        if (localTempTables.get(table.getName()) != null) {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
         }
         localTempTables.put(table.getName(), table);
@@ -106,10 +106,10 @@ public class Session implements SessionInterface {
     }
 
     protected void finalize() {
-        if(!SysProperties.runFinalize) {
+        if (!SysProperties.runFinalize) {
             return;
         }
-        if(database != null) {
+        if (database != null) {
             throw Message.getInternalError("not closed", stackTrace);
         }
     }
@@ -148,7 +148,7 @@ public class Session implements SessionInterface {
         this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
-    
+
     public CommandInterface prepareCommand(String sql) throws SQLException {
         return prepareLocal(sql);
     }
@@ -164,7 +164,7 @@ public class Session implements SessionInterface {
     }
 
     public Command prepareLocal(String sql) throws SQLException {
-        if(database == null) {
+        if (database == null) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
         Parser parser = new Parser(this);
@@ -180,27 +180,28 @@ public class Session implements SessionInterface {
     }
 
     public void setPowerOffCount(int count) {
-        if(database != null) {
+        if (database != null) {
             database.setPowerOffCount(count);
         }
     }
 
     public void commit(boolean ddl) throws SQLException {
         currentTransactionName = null;
-        if(containsUncommitted()) {
-            // need to commit even if rollback is not possible (create/drop table and so on)
+        if (containsUncommitted()) {
+            // need to commit even if rollback is not possible (create/drop
+            // table and so on)
             logSystem.commit(this);
         }
-        if(undoLog.size() > 0) {
-            if(database.isMultiVersion()) {
+        if (undoLog.size() > 0) {
+            if (database.isMultiVersion()) {
                 ArrayList rows = new ArrayList();
-                synchronized(database) {
+                synchronized (database) {
                     while (undoLog.size() > 0) {
                         UndoLogRecord entry = undoLog.getAndRemoveLast();
                         entry.commit();
                         rows.add(entry.getRow());
                     }
-                    for(int i=0; i<rows.size(); i++) {
+                    for (int i = 0; i < rows.size(); i++) {
                         Row r = (Row) rows.get(i);
                         r.commit();
                     }
@@ -208,19 +209,21 @@ public class Session implements SessionInterface {
             }
             undoLog.clear();
         }
-        if(!ddl) {
-            // do not clean the temp tables if the last command was a create/drop
+        if (!ddl) {
+            // do not clean the temp tables if the last command was a
+            // create/drop
             cleanTempTables(false);
-            if(autoCommitAtTransactionEnd) {
+            if (autoCommitAtTransactionEnd) {
                 autoCommit = true;
                 autoCommitAtTransactionEnd = false;
             }
         }
-        if(unlinkSet != null && unlinkSet.size() > 0) {
-            // need to flush the log file, because we can't unlink lobs if the commit record is not written
+        if (unlinkSet != null && unlinkSet.size() > 0) {
+            // need to flush the log file, because we can't unlink lobs if the
+            // commit record is not written
             logSystem.flush();
             Iterator it = unlinkSet.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Value v = (Value) it.next();
                 v.unlink();
             }
@@ -236,12 +239,12 @@ public class Session implements SessionInterface {
             rollbackTo(0);
             needCommit = true;
         }
-        if(locks.size() > 0 || needCommit) {
+        if (locks.size() > 0 || needCommit) {
             logSystem.commit(this);
         }
         cleanTempTables(false);
         unlockAll();
-        if(autoCommitAtTransactionEnd) {
+        if (autoCommitAtTransactionEnd) {
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
@@ -252,13 +255,13 @@ public class Session implements SessionInterface {
             UndoLogRecord entry = undoLog.getAndRemoveLast();
             entry.undo(this);
         }
-        if(savepoints != null) {
+        if (savepoints != null) {
             String[] names = new String[savepoints.size()];
             savepoints.keySet().toArray(names);
-            for(int i=0; i<names.length; i++) {
+            for (int i = 0; i < names.length; i++) {
                 String name = names[i];
                 Integer id = (Integer) savepoints.get(names[i]);
-                if(id.intValue() > index) {
+                if (id.intValue() > index) {
                     savepoints.remove(name);
                 }
             }
@@ -274,7 +277,7 @@ public class Session implements SessionInterface {
     }
 
     public void close() throws SQLException {
-        if(database != null) {
+        if (database != null) {
             try {
                 cleanTempTables(true);
                 database.removeSession(this);
@@ -285,14 +288,14 @@ public class Session implements SessionInterface {
     }
 
     public void addLock(Table table) {
-        if(SysProperties.CHECK) {
-            if(locks.indexOf(table)>=0) {
+        if (SysProperties.CHECK) {
+            if (locks.indexOf(table) >= 0) {
                 throw Message.getInternalError();
             }
         }
         locks.add(table);
     }
-    
+
     public void log(Table table, short type, Row row) throws SQLException {
         log(new UndoLogRecord(table, type, row));
     }
@@ -300,23 +303,23 @@ public class Session implements SessionInterface {
     private void log(UndoLogRecord log) throws SQLException {
         // called _after_ the row was inserted successfully into the table,
         // otherwise rollback will try to rollback a not-inserted row
-        if(SysProperties.CHECK) {
+        if (SysProperties.CHECK) {
             int lockMode = database.getLockMode();
-            if(lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
-                if(locks.indexOf(log.getTable())<0 && log.getTable().getTableType() != Table.TABLE_LINK) {
+            if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
+                if (locks.indexOf(log.getTable()) < 0 && log.getTable().getTableType() != Table.TABLE_LINK) {
                     throw Message.getInternalError();
                 }
             }
         }
-        if(undoLogEnabled) {
+        if (undoLogEnabled) {
             undoLog.add(log);
         }
     }
-    
+
     public void unlockReadLocks() {
-        for(int i=0; i<locks.size(); i++) {
-            Table t = (Table)locks.get(i);
-            if(!t.isLockedExclusively()) {
+        for (int i = 0; i < locks.size(); i++) {
+            Table t = (Table) locks.get(i);
+            if (!t.isLockedExclusively()) {
                 t.unlock(this);
                 locks.remove(i);
                 i--;
@@ -325,29 +328,29 @@ public class Session implements SessionInterface {
     }
 
     private void unlockAll() throws SQLException {
-        if(SysProperties.CHECK) {
-            if(undoLog.size() > 0) {
+        if (SysProperties.CHECK) {
+            if (undoLog.size() > 0) {
                 throw Message.getInternalError();
             }
         }
-        for(int i=0; i<locks.size(); i++) {
-            Table t = (Table)locks.get(i);
+        for (int i = 0; i < locks.size(); i++) {
+            Table t = (Table) locks.get(i);
             t.unlock(this);
         }
         locks.clear();
         savepoints = null;
     }
-    
+
     private void cleanTempTables(boolean closeSession) throws SQLException {
-        if(localTempTables != null && localTempTables.size()>0) {
+        if (localTempTables != null && localTempTables.size() > 0) {
             ObjectArray list = new ObjectArray(localTempTables.values());
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 Table table = (Table) list.get(i);
-                if(closeSession || table.isOnCommitDrop()) {
+                if (closeSession || table.isOnCommitDrop()) {
                     table.setModified();
                     localTempTables.remove(table.getName());
                     table.removeChildrenAndResources(this);
-                } else if(table.isOnCommitTruncate()) {
+                } else if (table.isOnCommitTruncate()) {
                     table.truncate(this);
                 }
             }
@@ -355,17 +358,17 @@ public class Session implements SessionInterface {
     }
 
     public Random getRandom() {
-        if(random == null) {
+        if (random == null) {
             random = new Random();
         }
         return random;
     }
 
     public Trace getTrace() {
-        if(traceModuleName == null) {
+        if (traceModuleName == null) {
             traceModuleName = Trace.JDBC + "[" + id + "]";
         }
-        if(database == null) {
+        if (database == null) {
             return new TraceSystem(null, false).getTrace(traceModuleName);
         }
         return database.getTrace(traceModuleName);
@@ -404,18 +407,18 @@ public class Session implements SessionInterface {
     }
 
     public void addSavepoint(String name) {
-        if(savepoints == null) {
+        if (savepoints == null) {
             savepoints = new HashMap();
         }
         savepoints.put(name, ObjectUtils.getInteger(getLogId()));
     }
 
     public void rollbackToSavepoint(String name) throws SQLException {
-        if(savepoints == null) {
+        if (savepoints == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
-        Integer id = (Integer)savepoints.get(name);
-        if(id==null) {
+        Integer id = (Integer) savepoints.get(name);
+        if (id == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         int i = id.intValue();
@@ -423,16 +426,17 @@ public class Session implements SessionInterface {
     }
 
     public void prepareCommit(String transactionName) throws SQLException {
-        if(containsUncommitted()) {
-            // need to commit even if rollback is not possible (create/drop table and so on)
+        if (containsUncommitted()) {
+            // need to commit even if rollback is not possible (create/drop
+            // table and so on)
             logSystem.prepareCommit(this, transactionName);
         }
         currentTransactionName = transactionName;
     }
 
     public void setPreparedTransaction(String transactionName, boolean commit) throws SQLException {
-        if(currentTransactionName != null && currentTransactionName.equals(transactionName)) {
-            if(commit) {
+        if (currentTransactionName != null && currentTransactionName.equals(transactionName)) {
+            if (commit) {
                 commit(false);
             } else {
                 rollback();
@@ -441,15 +445,15 @@ public class Session implements SessionInterface {
             ObjectArray list = logSystem.getInDoubtTransactions();
             int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
-            for(int i=0; list!=null && i<list.size(); i++) {
-                InDoubtTransaction p = (InDoubtTransaction)list.get(i);
-                if(p.getTransaction().equals(transactionName)) {
+            for (int i = 0; list != null && i < list.size(); i++) {
+                InDoubtTransaction p = (InDoubtTransaction) list.get(i);
+                if (p.getTransaction().equals(transactionName)) {
                     p.setState(state);
                     found = true;
                     break;
                 }
             }
-            if(!found) {
+            if (!found) {
                 throw Message.getSQLException(ErrorCode.TRANSACTION_NOT_FOUND_1, transactionName);
             }
         }
@@ -464,17 +468,17 @@ public class Session implements SessionInterface {
     }
 
     public void throttle() {
-        if(throttle == 0) {
+        if (throttle == 0) {
             return;
         }
         long time = System.currentTimeMillis();
-        if(lastThrottle + Constants.THROTTLE_DELAY > time) {
+        if (lastThrottle + Constants.THROTTLE_DELAY > time) {
             return;
         }
         lastThrottle = time + throttle;
         try {
             Thread.sleep(throttle);
-        } catch(Exception e) {
+        } catch (Exception e) {
             // ignore
         }
     }
@@ -484,7 +488,7 @@ public class Session implements SessionInterface {
     }
 
     public void checkCancelled() throws SQLException {
-        if(currentCommand != null) {
+        if (currentCommand != null) {
             currentCommand.checkCancelled();
         }
     }
@@ -504,74 +508,74 @@ public class Session implements SessionInterface {
     public String getCurrentSchemaName() {
         return currentSchemaName;
     }
-    
+
     public JdbcConnection createConnection(boolean columnList) throws SQLException {
         String url;
-        if(columnList) {
+        if (columnList) {
             url = Constants.CONN_URL_COLUMNLIST;
         } else {
             url = Constants.CONN_URL_INTERNAL;
         }
         return new JdbcConnection(this, getUser().getName(), url);
     }
-    
+
     public DataHandler getDataHandler() {
         return database;
     }
 
     public void unlinkAtCommit(Value v) {
-        if(unlinkSet == null) {
+        if (unlinkSet == null) {
             unlinkSet = new HashSet();
         }
         unlinkSet.add(v);
     }
-    
+
     public void unlinkAtCommitStop(Value v) {
-        if(unlinkSet != null) {
+        if (unlinkSet != null) {
             unlinkSet.remove(v);
         }
     }
-    
+
     public String getNextTempViewName() {
         return "TEMP_VIEW_" + tempViewIndex++;
     }
 
     public void addProcedure(Procedure procedure) {
-        if(procedures == null) {
+        if (procedures == null) {
             procedures = new HashMap();
         }
         procedures.put(procedure.getName(), procedure);
     }
-    
+
     public void removeProcedure(String name) {
-        if(procedures != null) {
+        if (procedures != null) {
             procedures.remove(name);
         }
     }
 
     public Procedure getProcedure(String name) {
-        if(procedures == null) {
+        if (procedures == null) {
             return null;
         }
         return (Procedure) procedures.get(name);
     }
-    
+
     public void setSchemaSearchPath(String[] schemas) {
         this.schemaSearchPath = schemas;
     }
-    
+
     public String[] getSchemaSearchPath() {
         return schemaSearchPath;
     }
-    
+
     public int hashCode() {
         return serialId;
     }
 
     public void setUndoLogEnabled(boolean b) {
-        this.undoLogEnabled  = b;
+        this.undoLogEnabled = b;
     }
-    
+
     public boolean getUndoLogEnabled() {
         return undoLogEnabled;
     }

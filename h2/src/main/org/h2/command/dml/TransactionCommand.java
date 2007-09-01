@@ -92,7 +92,7 @@ public class TransactionCommand extends Prepared {
             session.getDatabase().setPowerOffCount(1);
             try {
                 session.getDatabase().checkPowerOff();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore
             }
             break;
@@ -103,12 +103,12 @@ public class TransactionCommand extends Prepared {
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();
             Session[] sessions = db.getSessions();
-            for(int i=0; i<sessions.length; i++) {
+            for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
-                synchronized(s) {
+                synchronized (s) {
                     s.rollback();
                 }
-                if(s != session) {
+                if (s != session) {
                     s.close();
                 }
             }

@@ -61,7 +61,7 @@ public class Transfer {
     }
 
     public Transfer writeBoolean(boolean x) throws IOException {
-        out.writeByte((byte)(x ? 1 : 0));
+        out.writeByte((byte) (x ? 1 : 0));
         return this;
     }
 
@@ -120,7 +120,7 @@ public class Transfer {
         } else {
             int len = s.length();
             out.writeInt(len);
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 out.writeChar(s.charAt(i));
             }
         }
@@ -134,7 +134,7 @@ public class Transfer {
         }
         // TODO optimize: StringBuffer is synchronized, maybe use a char array (but that means more memory)
         StringBuffer buff = new StringBuffer(len);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             buff.append(in.readChar());
         }
         String s = buff.toString();
@@ -143,7 +143,7 @@ public class Transfer {
     }
 
     public Transfer writeBytes(byte[] data) throws IOException {
-        if(data == null) {
+        if (data == null) {
             writeInt(-1);
         } else {
             writeInt(data.length);
@@ -154,7 +154,7 @@ public class Transfer {
 
     public byte[] readBytes() throws IOException {
         int len = readInt();
-        if(len == -1) {
+        if (len == -1) {
             return null;
         }
         byte[] b = new byte[len];
@@ -163,13 +163,13 @@ public class Transfer {
     }
 
     public void close() {
-        if(socket != null) {
+        if (socket != null) {
             try {
                 out.flush();
-                if(socket != null) {
+                if (socket != null) {
                     socket.close();
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 TraceSystem.traceThrowable(e);
             } finally {
                 socket = null;
@@ -180,7 +180,7 @@ public class Transfer {
     public void writeValue(Value v) throws IOException, SQLException {
         int type = v.getType();
         writeInt(type);
-        switch(type) {
+        switch (type) {
         case Value.NULL:
             break;
         case Value.BYTES:
@@ -236,13 +236,13 @@ public class Transfer {
             break;
         case Value.BLOB: {
             long length = v.getPrecision();
-            if(SysProperties.CHECK && length < 0) {
+            if (SysProperties.CHECK && length < 0) {
                 throw Message.getInternalError("length: " + length);
             }
             writeLong(length);
             InputStream in = v.getInputStream();
             long written = IOUtils.copyAndCloseInput(in, out);
-            if(SysProperties.CHECK && written != length) {
+            if (SysProperties.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
@@ -250,7 +250,7 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = v.getPrecision();
-            if(SysProperties.CHECK && length < 0) {
+            if (SysProperties.CHECK && length < 0) {
                 throw Message.getInternalError("length: " + length);
             }
             writeLong(length);
@@ -259,11 +259,12 @@ public class Transfer {
             // but, this will also flush the output stream, and this slows things down
             // so construct an output stream that will ignore this chained flush call
             java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
-                public void flush() {} 
+                public void flush() {
+                }
             };
             Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
             long written = IOUtils.copyAndCloseInput(reader, writer);
-            if(SysProperties.CHECK && written != length) {
+            if (SysProperties.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);
             }
             writer.flush();
@@ -271,30 +272,30 @@ public class Transfer {
             break;
         }
         case Value.ARRAY: {
-            Value[] list = ((ValueArray)v).getList();
+            Value[] list = ((ValueArray) v).getList();
             writeInt(list.length);
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 writeValue(list[i]);
             }
             break;
         }
         case Value.RESULT_SET: {
-            ResultSet rs = ((ValueResultSet)v).getResultSet();
+            ResultSet rs = ((ValueResultSet) v).getResultSet();
             rs.beforeFirst();
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
             writeInt(columnCount);
-            for(int i=0; i<columnCount; i++) {
+            for (int i = 0; i < columnCount; i++) {
                 writeString(meta.getColumnName(i + 1));
                 writeInt(meta.getColumnType(i + 1));
                 writeInt(meta.getPrecision(i + 1));
                 writeInt(meta.getScale(i + 1));
             }
-            while(rs.next()) {
+            while (rs.next()) {
                 writeBoolean(true);
-                for(int i=0; i<columnCount; i++) {
+                for (int i = 0; i < columnCount; i++) {
                     int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
-                    Value val = DataType.readValue(session, rs, i+1, t);
+                    Value val = DataType.readValue(session, rs, i + 1, t);
                     writeValue(val);
                 }
             }
@@ -303,7 +304,7 @@ public class Transfer {
             break;
         }
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
     }
 
@@ -342,7 +343,7 @@ public class Transfer {
         case Value.LONG:
             return ValueLong.get(readLong());
         case Value.SHORT:
-            return ValueShort.get((short)readInt());
+            return ValueShort.get((short) readInt());
         case Value.STRING:
             return ValueString.get(readString());
         case Value.STRING_IGNORECASE:
@@ -352,7 +353,7 @@ public class Transfer {
         case Value.BLOB: {
             long length = readLong();
             ValueLob v = ValueLob.createBlob(in, length, session.getDataHandler());
-            if(readInt() != LOB_MAGIC) {
+            if (readInt() != LOB_MAGIC) {
                 throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
             }
             return v;
@@ -360,7 +361,7 @@ public class Transfer {
         case Value.CLOB: {
             long length = readLong();
             ValueLob v = ValueLob.createClob(new ExactUTF8InputStreamReader(in), length, session.getDataHandler());
-            if(readInt() != LOB_MAGIC) {
+            if (readInt() != LOB_MAGIC) {
                 throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
             }
             return v;
@@ -368,7 +369,7 @@ public class Transfer {
         case Value.ARRAY: {
             int len = readInt();
             Value[] list = new Value[len];
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
             return ValueArray.get(list);
@@ -376,15 +377,15 @@ public class Transfer {
         case Value.RESULT_SET: {
             SimpleResultSet rs = new SimpleResultSet();
             int columns = readInt();
-            for(int i=0; i<columns; i++) {
+            for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(), readInt(), readInt(), readInt());
             }
-            while(true) {
-                if(!readBoolean()) {
+            while (true) {
+                if (!readBoolean()) {
                     break;
                 }
                 Object[] o = new Object[columns];
-                for(int i=0; i<columns; i++) {
+                for (int i = 0; i < columns; i++) {
                     o[i] = readValue().getObject();
                 }
                 rs.addRow(o);

@@ -34,7 +34,7 @@ public class HashIndex extends BaseIndex {
     }
 
     private void reset() {
-        if(columns.length == 1 && columns[0].getType() == Value.INT) {
+        if (columns.length == 1 && columns[0].getType() == Value.INT) {
             intMap = new IntIntHashMap();
         } else {
             rows = new ValueHashMap(table.getDatabase());
@@ -54,7 +54,7 @@ public class HashIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        if(intMap!=null) {
+        if (intMap != null) {
             int key = row.getValue(columns[0].getColumnId()).getInt();
             intMap.put(key, row.getPos());
         } else {
@@ -71,7 +71,7 @@ public class HashIndex extends BaseIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        if(intMap!=null) {
+        if (intMap != null) {
             int key = row.getValue(columns[0].getColumnId()).getInt();
             intMap.remove(key);
         } else {
@@ -97,15 +97,15 @@ public class HashIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(first == null || last == null) {
+        if (first == null || last == null) {
             // TODO hash index: should additionally check if values are the same
             throw Message.getInternalError();
         }
         Row result;
-        if(intMap!=null) {
+        if (intMap != null) {
             int key = first.getValue(columns[0].getColumnId()).getInt();
             int pos = intMap.get(key);
-            if(pos != IntIntHashMap.NOT_FOUND) {
+            if (pos != IntIntHashMap.NOT_FOUND) {
                 result = tableData.getRow(session, pos);
             } else {
                 result = null;

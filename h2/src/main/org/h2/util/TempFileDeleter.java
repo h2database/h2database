@@ -26,17 +26,17 @@ public class TempFileDeleter {
     }
 
     public static synchronized void deleteFile(Reference ref, String fileName) {
-        if(ref != null) {
+        if (ref != null) {
             String f2 = (String) refMap.remove(ref);
-            if(SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
-                throw Message.getInternalError("f2:"+f2+" f:"+fileName);
+            if (SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
+                throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
             }
         }
-        if(fileName != null && FileUtils.exists(fileName)) {
+        if (fileName != null && FileUtils.exists(fileName)) {
             try {
                 FileUtils.trace("TempFileDeleter.deleteFile", fileName, null);
                 FileUtils.delete(fileName);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // TODO log such errors?
             }
         }
@@ -44,9 +44,9 @@ public class TempFileDeleter {
     }
     
     public static void deleteUnused() {
-        while(true) {
+        while (true) {
             Reference ref = queue.poll();
-            if(ref == null) {
+            if (ref == null) {
                 break;
             }
             deleteFile(ref, null);
@@ -55,10 +55,10 @@ public class TempFileDeleter {
 
     public static void stopAutoDelete(Reference ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
-        if(ref != null) {
+        if (ref != null) {
             String f2 = (String) refMap.remove(ref);
-            if(SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
-                throw Message.getInternalError("f2:"+f2+" f:"+fileName);
+            if (SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
+                throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
             }
         }
         deleteUnused();

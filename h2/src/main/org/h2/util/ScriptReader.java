@@ -38,42 +38,42 @@ public class ScriptReader {
     }
     
     public String readStatement() throws SQLException {
-        if(end) {
+        if (end) {
             return null;
         }
         StringBuffer buff = new StringBuffer();
         int c = read();
-        while(true) {
-            if(c<0) {
+        while (true) {
+            if (c < 0) {
                 end = true;
                 return buff.length() == 0 ? null : buff.toString();
-            } else if(c==';') {
+            } else if (c == ';') {
                 break;
             }
             switch (c) {
             case '\'':
-                buff.append((char)c);
-                while(true) {
+                buff.append((char) c);
+                while (true) {
                     c = read();
-                    if(c<0) {
+                    if (c < 0) {
                         break;
-                    } 
-                    buff.append((char)c);
-                    if(c=='\'') {
+                    }
+                    buff.append((char) c);
+                    if (c == '\'') {
                         break;
                     }
                 }
                 c = read();
                 break;
             case '"':
-                buff.append((char)c);
-                while(true) {
+                buff.append((char) c);
+                while (true) {
                     c = read();
-                    if(c<0) {
+                    if (c < 0) {
                         break;
-                    } 
-                    buff.append((char)c);
-                    if(c=='\"') {
+                    }
+                    buff.append((char) c);
+                    if (c == '\"') {
                         break;
                     }
                 }
@@ -82,31 +82,31 @@ public class ScriptReader {
             case '/': {
                 int last = c;
                 c = read();
-                if(c=='*') {
+                if (c == '*') {
                     // block comment
                     insideRemark = true;
                     blockRemark = true;
-                    if(!skipRemarks) {
-                        buff.append((char)last);
-                        buff.append((char)c);
+                    if (!skipRemarks) {
+                        buff.append((char) last);
+                        buff.append((char) c);
                     }
-                    while(true) {
+                    while (true) {
                         c = read();
-                        if(c<0) {
+                        if (c < 0) {
                             break;
-                        } 
-                        if(!skipRemarks) {
-                            buff.append((char)c);
                         }
-                        if(c=='*') {
+                        if (!skipRemarks) {
+                            buff.append((char) c);
+                        }
+                        if (c == '*') {
                             c = read();
-                            if(c<0) {
+                            if (c < 0) {
                                 break;
                             }
-                            if(!skipRemarks) {
-                                buff.append((char)c);
+                            if (!skipRemarks) {
+                                buff.append((char) c);
                             }
-                            if(c == '/') {
+                            if (c == '/') {
                                 insideRemark = false;
                                 break;
                             }
@@ -117,61 +117,61 @@ public class ScriptReader {
                     // single line comment
                     insideRemark = true;
                     blockRemark = false;
-                    if(!skipRemarks) {
-                        buff.append((char)last);
-                        buff.append((char)c);
+                    if (!skipRemarks) {
+                        buff.append((char) last);
+                        buff.append((char) c);
                     }
-                    while(true) {
+                    while (true) {
                         c = read();
-                        if(c<0) {
+                        if (c < 0) {
                             break;
-                        } 
-                        if(!skipRemarks) {
-                            buff.append((char)c);
                         }
-                        if(c=='\r' || c=='\n') {
+                        if (!skipRemarks) {
+                            buff.append((char) c);
+                        }
+                        if (c == '\r' || c == '\n') {
                             insideRemark = false;
                             break;
                         }
                     }
                     c = read();
                 } else {
-                    buff.append((char)last);
+                    buff.append((char) last);
                 }
                 break;
             }
             case '-': {
                 int last = c;
                 c = read();
-                if(c=='-') {
+                if (c == '-') {
                     // single line comment
                     insideRemark = true;
                     blockRemark = false;
-                    if(!skipRemarks) {
-                        buff.append((char)last);
-                        buff.append((char)c);
+                    if (!skipRemarks) {
+                        buff.append((char) last);
+                        buff.append((char) c);
                     }
-                    while(true) {
+                    while (true) {
                         c = read();
-                        if(c<0) {
+                        if (c < 0) {
                             break;
-                        } 
-                        if(!skipRemarks) {
-                            buff.append((char)c);
                         }
-                        if(c=='\r' || c=='\n') {
+                        if (!skipRemarks) {
+                            buff.append((char) c);
+                        }
+                        if (c == '\r' || c == '\n') {
                             insideRemark = false;
                             break;
                         }
                     }
                     c = read();
                 } else {
-                    buff.append((char)last);
+                    buff.append((char) last);
                 }
                 break;
             }
             default:
-                buff.append((char)c);
+                buff.append((char) c);
                 c = read();
             }
         }

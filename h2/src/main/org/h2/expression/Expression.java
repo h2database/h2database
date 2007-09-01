@@ -93,7 +93,7 @@ public abstract class Expression {
     }
     
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
-        if(!addedToFilter && !outerJoin && isEverything(ExpressionVisitor.EVALUATABLE)) {
+        if (!addedToFilter && !outerJoin && isEverything(ExpressionVisitor.EVALUATABLE)) {
             filter.addFilterCondition(this, false);
             addedToFilter = true;
         }

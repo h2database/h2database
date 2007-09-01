@@ -5,7 +5,7 @@
 package org.h2.test.bench;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.PreparedStatement;
 import java.util.Random;
 
 /**
@@ -57,7 +57,7 @@ public class BenchA implements Bench {
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
             }            
         }
@@ -67,7 +67,7 @@ public class BenchA implements Bench {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
             db.update(prep, "insertTellers");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
             }                  
         }
@@ -78,7 +78,7 @@ public class BenchA implements Bench {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
             db.update(prep, "insertAccounts");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
             }      
         }

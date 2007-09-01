@@ -37,15 +37,15 @@ public class RangeIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        long start = Math.max(min, first==null ? min : first.getValue(0).getLong());
-        long end = Math.min(max, last==null ? max : last.getValue(0).getLong());
+        long start = Math.max(min, first == null ? min : first.getValue(0).getLong());
+        long end = Math.min(max, last == null ? max : last.getValue(0).getLong());
         return new RangeCursor(start, end);
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
         return 1;
     }
-    
+
     public String getCreateSQL() {
         return null;
     }
@@ -71,7 +71,7 @@ public class RangeIndex extends BaseIndex {
     }
 
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
-        return new Row(new Value[]{ValueLong.get(first ? min : max)}, 0);
+        return new Row(new Value[] { ValueLong.get(first ? min : max) }, 0);
     }
 
 }

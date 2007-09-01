@@ -26,14 +26,14 @@ public class Plan {
         System.arraycopy(filters, 0, this.filters, 0, count);
         ObjectArray allCond = new ObjectArray();
         ObjectArray all = new ObjectArray();
-        if(condition != null) {
+        if (condition != null) {
             allCond.add(condition);
         }
-        for(int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             TableFilter f = filters[i];
             do {
                 all.add(f);
-                if(f.getJoinCondition() != null) {
+                if (f.getJoinCondition() != null) {
                     allCond.add(f.getJoinCondition());
                 }
                 f = f.getJoin();
@@ -54,10 +54,10 @@ public class Plan {
     }
 
     public void removeUnusableIndexConditions() {
-        for(int i=0; i<allFilters.length; i++) {
+        for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, true);
-            if(i < allFilters.length - 1) {
+            if (i < allFilters.length - 1) {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)
@@ -65,7 +65,7 @@ public class Plan {
             }
             f.removeUnusableIndexConditions();
         }
-        for(int i=0; i<allFilters.length; i++) {
+        for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, false);
         }
@@ -81,15 +81,15 @@ public class Plan {
             cost += cost * item.cost;
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
-            if(on != null) {
-                if(!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
+            if (on != null) {
+                if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
                     invalidPlan = true;
                     break;
                 }
             }
         }
-        if(invalidPlan) {
-            cost = 1./0.; // Infinity
+        if (invalidPlan) {
+            cost = 1. / 0.; // Infinity
         }
         for (int i = 0; i < allFilters.length; i++) {
             setEvaluatable(allFilters[i], false);
@@ -98,7 +98,7 @@ public class Plan {
     }
 
     private void setEvaluatable(TableFilter filter, boolean b) {
-        for(int j=0; j<allConditions.length; j++) {
+        for (int j = 0; j < allConditions.length; j++) {
             allConditions[j].setEvaluatable(filter, b);
         }
     }

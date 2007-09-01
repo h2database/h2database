@@ -34,12 +34,12 @@ public class DropView extends SchemaCommand {
         // TODO rights: what rights are required to drop a view?
         session.commit(true);
         Table view = getSchema().findTableOrView(session, viewName);
-        if(view == null) {
-            if(!ifExists) {
+        if (view == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
         } else {
-            if(!view.getTableType().equals(Table.VIEW)) {
+            if (!view.getTableType().equals(Table.VIEW)) {
                 throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);

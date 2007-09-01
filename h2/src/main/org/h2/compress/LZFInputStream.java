@@ -18,7 +18,7 @@ public class LZFInputStream extends InputStream {
     
     public LZFInputStream(InputStream in) throws IOException {
         this.in = in;
-        if(readInt() != LZFOutputStream.MAGIC) {
+        if (readInt() != LZFOutputStream.MAGIC) {
             throw new IOException("Not an LZFInputStream");
         }
     }
@@ -28,14 +28,14 @@ public class LZFInputStream extends InputStream {
     }
     
     private void fillBuffer() throws IOException {
-        if(buffer != null && pos < bufferLength) {
+        if (buffer != null && pos < bufferLength) {
             return;
         }
         int len = readInt();
-        if(decompress == null) {
+        if (decompress == null) {
             // EOF
             this.bufferLength = 0;
-        } else if(len < 0) {
+        } else if (len < 0) {
             len = -len;
             buffer = ensureSize(buffer, len);
             readFully(buffer, len);
@@ -45,11 +45,7 @@ public class LZFInputStream extends InputStream {
             int size = readInt();
             readFully(inBuffer, len);
             buffer = ensureSize(buffer, size);
-            try {
-                decompress.expand(inBuffer, 0, len, buffer, 0, size);
-            } catch(Exception e) {
-                throw new IOException("Error decompressing bytes");
-            }
+            decompress.expand(inBuffer, 0, len, buffer, 0, size);
             this.bufferLength = size;
         }
         pos = 0;
@@ -57,7 +53,7 @@ public class LZFInputStream extends InputStream {
     
     private void readFully(byte[] buff, int len) throws IOException {
         int off = 0;
-        while(len > 0) {
+        while (len > 0) {
             int l = in.read(buff, off, len);
             len -= l;
             off += l;
@@ -66,35 +62,35 @@ public class LZFInputStream extends InputStream {
     
     private int readInt() throws IOException {
         int x = in.read();
-        if(x<0) {
+        if (x < 0) {
             close();
             decompress = null;
             return 0;
         }
-        x = (x<< 24) + (in.read() << 16) + (in.read() << 8) + in.read();
+        x = (x << 24) + (in.read() << 16) + (in.read() << 8) + in.read();
         return x;
     }
 
     public int read() throws IOException {
         fillBuffer();
-        if(pos >= bufferLength) {
+        if (pos >= bufferLength) {
             return -1;
         }
         return buffer[pos++] & 255;
     }
-    
+
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
-    
+
     public int read(byte[] b, int off, int len) throws IOException {
-        if(len == 0) {
+        if (len == 0) {
             return 0;
         }
         int read = 0;
-        while(len > 0) {
+        while (len > 0) {
             int r = readBlock(b, off, len);
-            if(r < 0) {
+            if (r < 0) {
                 break;
             }
             read += r;
@@ -106,7 +102,7 @@ public class LZFInputStream extends InputStream {
     
     public int readBlock(byte[] b, int off, int len) throws IOException {
         fillBuffer();
-        if(pos >= bufferLength) {
+        if (pos >= bufferLength) {
             return -1;
         }
         int max = Math.min(len, bufferLength - pos);

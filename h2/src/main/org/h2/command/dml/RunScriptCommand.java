@@ -31,16 +31,16 @@ public class RunScriptCommand extends ScriptBase {
             openInput();
             Reader reader = new InputStreamReader(in, charset);
             ScriptReader r = new ScriptReader(reader);
-            while(true) {
+            while (true) {
                 String sql = r.readStatement();
-                if(sql == null) {
+                if (sql == null) {
                     break;
                 }
                 execute(sql);
                 count++;
             }
             reader.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, null);
         } finally {
             closeIO();
@@ -51,15 +51,15 @@ public class RunScriptCommand extends ScriptBase {
     private void execute(String sql) throws SQLException {
         try {
             Prepared command = session.prepare(sql);
-            if(command.isQuery()) {
+            if (command.isQuery()) {
                 command.query(0);
             } else {
                 command.update();
             }
-            if(session.getAutoCommit()) {
+            if (session.getAutoCommit()) {
                 session.commit(false);
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw Message.addSQL(e, sql);
         }
     }

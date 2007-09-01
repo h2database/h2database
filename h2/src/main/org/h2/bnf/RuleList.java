@@ -20,31 +20,31 @@ public class RuleList implements Rule {
     
     RuleList(Rule first, Rule next, boolean or) {
         list = new ArrayList();
-        if(first instanceof RuleList && ((RuleList)first).or == or) {
-            list.addAll(((RuleList)first).list);
+        if (first instanceof RuleList && ((RuleList) first).or == or) {
+            list.addAll(((RuleList) first).list);
         } else {
             list.add(first);
         }
-        if(next instanceof RuleList && ((RuleList)next).or == or) {
-            list.addAll(((RuleList)next).list);
+        if (next instanceof RuleList && ((RuleList) next).or == or) {
+            list.addAll(((RuleList) next).list);
         } else {
             list.add(next);
         }
-        if(!or && Bnf.COMBINE_KEYWORDS) {
-            for(int i=0; i<list.size()-1; i++) {
+        if (!or && Bnf.COMBINE_KEYWORDS) {
+            for (int i = 0; i < list.size() - 1; i++) {
                 Rule r1 = (Rule) list.get(i);
-                Rule r2 = (Rule) list.get(i+1);
-                if(!(r1 instanceof RuleElement) || !(r2 instanceof RuleElement)) {
+                Rule r2 = (Rule) list.get(i + 1);
+                if (!(r1 instanceof RuleElement) || !(r2 instanceof RuleElement)) {
                     continue;
                 }
                 RuleElement re1 = (RuleElement) r1;
                 RuleElement re2 = (RuleElement) r2;
-                if(!re1.isKeyword() || !re2.isKeyword()) {
+                if (!re1.isKeyword() || !re2.isKeyword()) {
                     continue;
                 }
                 re1 = re1.merge(re2);
                 list.set(i, re1);
-                list.remove(i+1);
+                list.remove(i + 1);
                 i--;
             }
         }
@@ -52,19 +52,19 @@ public class RuleList implements Rule {
     }
     
     public String random(Bnf config, int level) {
-        if(or) {
-            if(level > 10) {
-                if(level > 1000) {
+        if (or) {
+            if (level > 10) {
+                if (level > 1000) {
                     // better than stack overflow
                     throw new Error();
                 }
                 return get(0).random(config, level);
             }
             int idx = config.getRandom().nextInt(list.size());
-            return get(idx).random(config, level+1);
+            return get(idx).random(config, level + 1);
         } else {
             StringBuffer buff = new StringBuffer();
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 buff.append(get(i).random(config, level+1));
             }
             return buff.toString();
@@ -72,7 +72,7 @@ public class RuleList implements Rule {
     }
     
     private Rule get(int idx) {
-        return ((Rule)list.get(idx));
+        return ((Rule) list.get(idx));
     }
 
     public String name() {
@@ -80,12 +80,12 @@ public class RuleList implements Rule {
     }
 
     public Rule last() {
-        return get(list.size()-1);
+        return get(list.size() - 1);
     }
 
     public void setLinks(HashMap ruleMap) {
-        if(!mapSet) {
-            for(int i=0; i<list.size(); i++) {
+        if (!mapSet) {
+            for (int i = 0; i < list.size(); i++) {
                 get(i).setLinks(ruleMap);
             }
             mapSet = true;
@@ -93,22 +93,22 @@ public class RuleList implements Rule {
     }
     
     public String matchRemove(String query, Sentence sentence) {
-        if(query.length()==0) {
+        if (query.length() == 0) {
             return null;
         }
-        if(or) {
-            for(int i=0; i<list.size(); i++) {
+        if (or) {
+            for (int i = 0; i < list.size(); i++) {
                 String s = get(i).matchRemove(query, sentence);
-                if(s != null) {
+                if (s != null) {
                     return s;
                 }
             }
             return null;
         } else {
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 Rule r = get(i);
                 query = r.matchRemove(query, sentence);
-                if(query == null) {
+                if (query == null) {
                     return null;
                 }
             }
@@ -117,19 +117,19 @@ public class RuleList implements Rule {
     }
 
     public void addNextTokenList(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             // 
-        }        
-        if(or) {
-            for(int i=0; i<list.size(); i++) {
+        }
+        if (or) {
+            for (int i = 0; i < list.size(); i++) {
                 get(i).addNextTokenList(query, sentence);
             }
         } else {
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 Rule r = get(i);
                 r.addNextTokenList(query, sentence);
                 query = r.matchRemove(query, sentence);
-                if(query == null) {
+                if (query == null) {
                     break;
                 }
             }

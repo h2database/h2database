@@ -33,7 +33,7 @@ public class TestPowerOff extends TestBase {
             return;
         }
         if(config.big) {
-            dir = BASE_DIR;
+            dir = baseDir;
         } else {
             dir = "inmemory:";
         }

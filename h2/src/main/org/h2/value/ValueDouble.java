@@ -123,7 +123,7 @@ public class ValueDouble extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueDouble && value == ((ValueDouble)v).value;
+        return v instanceof ValueDouble && value == ((ValueDouble) v).value;
     } 
 
 }

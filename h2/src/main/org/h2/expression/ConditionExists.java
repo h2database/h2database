@@ -51,24 +51,26 @@ public class ConditionExists extends Condition {
     }
 
     public void updateAggregate(Session session) {
-        // TODO exists: is it allowed that the subquery contains aggregates? probably not
-        // select id from test group by id having exists (select * from test2 where id=count(test.id))
+        // TODO exists: is it allowed that the subquery contains aggregates?
+        // probably not
+        // select id from test group by id having exists (select * from test2
+        // where id=count(test.id))
     }
-    
+
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        query.mapColumns(resolver, level+1);
+        query.mapColumns(resolver, level + 1);
     }
-    
+
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         query.setEvaluatable(tableFilter, b);
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
         return query.isEverything(visitor);
-    }    
-    
+    }
+
     public int getCost() {
-        return 10 + (int)(10 * query.getCost());
+        return 10 + (int) (10 * query.getCost());
     }
 
 }

@@ -20,23 +20,23 @@ public class FileStoreOutputStream extends OutputStream {
     
     public FileStoreOutputStream(FileStore store, DataHandler handler, String compressionAlgorithm) {
         this.store = store;
-        if(compressionAlgorithm != null) {
+        if (compressionAlgorithm != null) {
             compress = CompressTool.getInstance();
             this.compressionAlgorithm = compressionAlgorithm;
-        }        
+        }
         page = DataPage.create(handler, Constants.FILE_BLOCK_SIZE);
     }
 
     public void write(byte[] buff) throws IOException {
         write(buff, 0, buff.length);
     }
-    
+
     public void write(byte[] buff, int off, int len) throws IOException {
-        if(len > 0) {
+        if (len > 0) {
             try {
                 page.reset();
-                if(compress != null) {
-                    if(off != 0 || len != buff.length) {
+                if (compress != null) {
+                    if (off != 0 || len != buff.length) {
                         byte[] b2 = new byte[len];
                         System.arraycopy(buff, off, b2, 0, len);
                         buff = b2;
@@ -54,14 +54,14 @@ public class FileStoreOutputStream extends OutputStream {
                 }
                 page.fillAligned();
                 store.write(page.getBytes(), 0, page.length());
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 throw Message.convertToIOException(e);
             }
         }
     }
-    
+
     public void close() throws IOException {
-        if(store != null) {
+        if (store != null) {
             try {
                 store.close();
             } finally {
@@ -69,7 +69,7 @@ public class FileStoreOutputStream extends OutputStream {
             }
         }
     }
-    
+
     public void write(int b) throws IOException {
         throw new IOException("this method is not implemented");
     }

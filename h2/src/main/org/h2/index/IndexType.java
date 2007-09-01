@@ -66,7 +66,7 @@ public class IndexType {
         StringBuffer buff = new StringBuffer();
         if (isPrimaryKey) {
             buff.append("PRIMARY KEY");
-            if(isHash) {
+            if (isHash) {
                 buff.append(" HASH");
             }
         } else {

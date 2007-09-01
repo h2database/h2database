@@ -45,7 +45,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1.execute("grant select, insert on testSchema.parent to testRole");
         stat1.execute("grant testRole to testUser");
 
-        String sql = "script to '"+BASE_DIR+"/backup.2.sql'";
+        String sql = "script to '"+baseDir+"/backup.2.sql'";
         if(password) {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
@@ -54,7 +54,7 @@ public class TestRunscript extends TestBase implements Trigger {
         deleteDb("runscriptRestore");
         conn2 = getConnection("runscriptRestore");
         stat2 = conn2.createStatement();
-        sql = "runscript from '"+BASE_DIR+"/backup.2.sql'";
+        sql = "runscript from '"+baseDir+"/backup.2.sql'";
         if(password) {
             sql += " CIPHER AES PASSWORD 'wrongPassword'";
         }
@@ -66,12 +66,12 @@ public class TestRunscript extends TestBase implements Trigger {
                 checkNotGeneralException(e);
             }
         }
-        sql = "runscript from '"+BASE_DIR+"/backup.2.sql'";
+        sql = "runscript from '"+baseDir+"/backup.2.sql'";
         if(password) {
             sql += " CIPHER AES PASSWORD 't1e2s3t4'";
         }
         stat2.execute(sql);
-        stat2.execute("script to '"+BASE_DIR+"/backup.3.sql'");
+        stat2.execute("script to '"+baseDir+"/backup.3.sql'");
 
         compareDatabases(stat1, stat2);
 

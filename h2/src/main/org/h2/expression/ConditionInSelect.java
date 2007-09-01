@@ -39,7 +39,7 @@ public class ConditionInSelect extends Condition {
 
     public Value getValue(Session session) throws SQLException {
         Value l = left.getValue(session);
-        if(l == ValueNull.INSTANCE) {
+        if (l == ValueNull.INSTANCE) {
             return l;
         }
         query.setSession(session);
@@ -47,26 +47,26 @@ public class ConditionInSelect extends Condition {
         boolean hasNull = false;
         boolean result = all;
         try {
-            while(rows.next()) {
+            while (rows.next()) {
                 boolean value;
                 Value r = rows.currentRow()[0];
-                if(r == ValueNull.INSTANCE) {
+                if (r == ValueNull.INSTANCE) {
                     value = false;
                     hasNull = true;
                 } else {
                     value = Comparison.compareNotNull(database, l, r, compareType);
                 }
-                if(!value && all) {
+                if (!value && all) {
                     result = false;
                     break;
-                } else if(value && !all) {
+                } else if (value && !all) {
                     result = true;
                     break;
                 }
             }
-            if(!result && hasNull) {
+            if (!result && hasNull) {
                 return ValueNull.INSTANCE;
-            }            
+            }
             return ValueBoolean.get(result);
         } finally {
             rows.close();
@@ -75,19 +75,19 @@ public class ConditionInSelect extends Condition {
 
     public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {
         left.mapColumns(resolver, queryLevel);
-        query.mapColumns(resolver, queryLevel+1);
+        query.mapColumns(resolver, queryLevel + 1);
         this.queryLevel = Math.max(queryLevel, this.queryLevel);
     }
 
     public Expression optimize(Session session) throws SQLException {
         left = left.optimize(session);
-        if(left == ValueExpression.NULL) {
+        if (left == ValueExpression.NULL) {
             return left;
         }
         query.prepare();
-        if(query.getColumnCount() != 1) {
+        if (query.getColumnCount() != 1) {
             throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
-        }        
+        }
         // Can not optimize IN(SELECT...): the data may change
         // However, could transform to an inner join
         return this;
@@ -108,16 +108,18 @@ public class ConditionInSelect extends Condition {
     }
 
     public void updateAggregate(Session session) {
-        // TODO exists: is it allowed that the subquery contains aggregates? probably not
-        // select id from test group by id having 1 in (select * from test2 where id=count(test.id))
+        // TODO exists: is it allowed that the subquery contains aggregates?
+        // probably not
+        // select id from test group by id having 1 in (select * from test2
+        // where id=count(test.id))
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && query.isEverything(visitor);
     }
-    
+
     public int getCost() {
-        return left.getCost() + 10 + (int)(10 * query.getCost());
+        return left.getCost() + 10 + (int) (10 * query.getCost());
     }
 
 }

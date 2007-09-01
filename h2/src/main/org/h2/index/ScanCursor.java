@@ -25,12 +25,12 @@ public class ScanCursor implements Cursor {
         this.session = session;
         this.scan = scan;
         this.multiVersion = multiVersion;
-        if(multiVersion) {
+        if (multiVersion) {
             delta = scan.getDelta();
         }
         row = null;
     }
-    
+
     Session getSession() {
         return session;
     }
@@ -48,21 +48,21 @@ public class ScanCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        if(multiVersion) {
-            while(true) {
-                if(delta.hasNext()) {
+        if (multiVersion) {
+            while (true) {
+                if (delta.hasNext()) {
                     row = (Row) delta.next();
-                    if(!row.getDeleted() || row.getSessionId() == session.getId()) {
+                    if (!row.getDeleted() || row.getSessionId() == session.getId()) {
                         row = null;
                         continue;
                     }
                 } else {
                     row = scan.getNextRow(session, row);
                 }
-                if(row == null) {
+                if (row == null) {
                     break;
                 }
-                if(row.getSessionId() == 0 || row.getSessionId() == session.getId() || row.getDeleted()) {
+                if (row.getSessionId() == 0 || row.getSessionId() == session.getId() || row.getDeleted()) {
                     break;
                 }
             }

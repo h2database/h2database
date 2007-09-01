@@ -24,7 +24,7 @@ public class ValueTime extends Value {
 
     public Time getTime() {
         // this class is mutable - must copy the object
-        return (Time)value.clone();
+        return (Time) value.clone();
     }
     
     public Time getTimeNoCopy() {
@@ -83,7 +83,7 @@ public class ValueTime extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueTime && value.equals(((ValueTime)v).value);
+        return v instanceof ValueTime && value.equals(((ValueTime) v).value);
     }
     
 }

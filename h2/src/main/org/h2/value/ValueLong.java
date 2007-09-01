@@ -36,7 +36,7 @@ public class ValueLong extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             long result = value + other.value;
             int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
@@ -44,21 +44,21 @@ public class ValueLong extends Value {
             // if the operands have different signs overflow can not occur
             // if the operands have the same sign, and the result has a different sign, then it is an overflow
             // it can not be an overflow when one of the operands is 0
-            if(sv!=so || sr==so || sv==0 || so==0) {
+            if (sv != so || sr == so || sv == 0 || so == 0) {
                 return ValueLong.get(result);
             }
             throw getOverflow();
         }
         return ValueLong.get(value + other.value);
     }
-    
+
     public int getSignum() {
         return value == 0 ? 0 : (value < 0 ? -1 : 1);
     }
 
     public Value negate() throws SQLException {
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            if(value == Long.MIN_VALUE) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            if (value == Long.MIN_VALUE) {
                 throw getOverflow();
             }
         }
@@ -71,12 +71,12 @@ public class ValueLong extends Value {
 
     public Value subtract(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             int sv = value == 0 ? 0 : (value < 0 ? -1 : 1);
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
             // if the operands have the same sign, then overflow can not occur
             // if the second operand is 0, then overflow can not occur
-            if(sv==so || so==0) {
+            if (sv == so || so == 0) {
                 return ValueLong.get(value - other.value);            
             }
             // now, if the other value is Long.MIN_VALUE, it must be an overflow 
@@ -92,12 +92,12 @@ public class ValueLong extends Value {
 
     public Value multiply(Value v) throws SQLException {
         ValueLong other = (ValueLong) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             long result = value * other.value;
-            if(value == 0 || value == 1 || other.value == 0 || other.value == 1) {
+            if (value == 0 || value == 1 || other.value == 0 || other.value == 1) {
                 return ValueLong.get(result);
             }
-            if(isInteger(value) && isInteger(other.value)) {
+            if (isInteger(value) && isInteger(other.value)) {
                 return ValueLong.get(result);
             }
             // just checking one case is not enough: Long.MIN_VALUE * -1
@@ -108,7 +108,7 @@ public class ValueLong extends Value {
             BigInteger bv = new BigInteger("" + value);
             BigInteger bo = new BigInteger("" + other.value);
             BigInteger br = bv.multiply(bo);
-            if(br.compareTo(MIN) < 0 || br.compareTo(MAX) > 0) {
+            if (br.compareTo(MIN) < 0 || br.compareTo(MAX) > 0) {
                 throw getOverflow();
             }
             return ValueLong.get(br.longValue());
@@ -180,7 +180,7 @@ public class ValueLong extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueLong && value == ((ValueLong)v).value;
+        return v instanceof ValueLong && value == ((ValueLong) v).value;
     }
 
 }

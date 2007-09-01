@@ -46,7 +46,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCodeCall("getArray");
             checkClosed();
             return get();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -64,7 +64,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkMap(map);
             checkClosed();
             return get();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -84,7 +84,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCode("getArray(" + index + ", " + count + ");");
             checkClosed();
             return get(index, count);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -106,7 +106,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return get(index, count);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -122,7 +122,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCodeCall("getBaseType");
             checkClosed();
             return Types.NULL;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -138,7 +138,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCodeCall("getBaseTypeName");
             checkClosed();
             return "NULL";
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -154,7 +154,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCodeCall("getResultSet");
             checkClosed();
             return getResultSet(get(), 0);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -172,7 +172,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return getResultSet(get(), 0);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -192,7 +192,7 @@ public class JdbcArray extends TraceObject implements Array {
             debugCode("getResultSet("+index+", " + count+");");
             checkClosed();
             return getResultSet(get(index, count), index);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -214,7 +214,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return getResultSet(get(index, count), index);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -232,7 +232,7 @@ public class JdbcArray extends TraceObject implements Array {
         rs.addColumn("INDEX", Types.BIGINT, 0, 0);
         // TODO array result set: there are multiple data types possible
         rs.addColumn("VALUE", Types.NULL, 0, 0);
-        for(int i=0; i<array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             Object[] row = new Object[2];
             row[0] = ObjectUtils.getLong(offset + i + 1);
             row[1] = array[i];
@@ -254,19 +254,21 @@ public class JdbcArray extends TraceObject implements Array {
 
     private Object[] get(long index, int count) throws SQLException {
         Object[] array = get();
-        if(count < 0 || count > array.length) {
-            throw Message.getInvalidValueException(""+count, "count (1.."+array.length+")");
+        if (count < 0 || count > array.length) {
+            throw Message.getInvalidValueException("" + count, "count (1.."
+                    + array.length + ")");
         }
-        if(index < 1 || index > array.length) {
-            throw Message.getInvalidValueException(""+index, "index (1.."+array.length+")");
+        if (index < 1 || index > array.length) {
+            throw Message.getInvalidValueException("" + index, "index (1.."
+                    + array.length + ")");
         }
         Object[] subset = new Object[count];
-        System.arraycopy(array, (int)(index - 1), subset, 0, count);
+        System.arraycopy(array, (int) (index - 1), subset, 0, count);
         return subset;
     }
     
     private void checkMap(Map map) throws SQLException {
-        if(map != null && map.size()>0) {
+        if (map != null && map.size() > 0) {
             throw Message.getUnsupportedException();
         }
     }

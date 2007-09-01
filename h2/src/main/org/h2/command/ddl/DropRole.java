@@ -30,12 +30,12 @@ public class DropRole extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        if(roleName.equals(Constants.PUBLIC_ROLE_NAME)) {
+        if (roleName.equals(Constants.PUBLIC_ROLE_NAME)) {
             throw Message.getSQLException(ErrorCode.ROLE_CAN_NOT_BE_DROPPED_1, roleName);
         }
         Role role = db.findRole(roleName);
-        if(role == null) {
-            if(!ifExists) {
+        if (role == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, roleName);
             }
         } else {

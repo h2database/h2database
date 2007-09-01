@@ -86,7 +86,8 @@ public class AES implements BlockCipher {
 
     public void setKey(byte[] key) {
         for (int i = 0, j = 0; i < 4; i++) {
-            encKey[i] = decKey[i] = ((key[j++] & 255) << 24) | ((key[j++] & 255) << 16) | ((key[j++] & 255) << 8) | (key[j++] & 255);
+            encKey[i] = decKey[i] = ((key[j++] & 255) << 24) | ((key[j++] & 255) << 16) | ((key[j++] & 255) << 8)
+                    | (key[j++] & 255);
         }
         int e = 0;
         for (int i = 0; i < 10; i++, e += 4) {
@@ -116,19 +117,19 @@ public class AES implements BlockCipher {
     }
 
     public void encrypt(byte[] buff, int off, int len) {
-        if(SysProperties.CHECK && (len % ALIGN != 0)) {
-            throw Message.getInternalError("unaligned len "+len);
+        if (SysProperties.CHECK && (len % ALIGN != 0)) {
+            throw Message.getInternalError("unaligned len " + len);
         }
-        for(int i=off; i<off+len; i+=16) {
+        for (int i = off; i < off + len; i += 16) {
             encryptBlock(buff, buff, i);
         }
     }
 
     public void decrypt(byte[] bytes, int off, int len) {
-        if(SysProperties.CHECK && (len % ALIGN != 0)) {
-            throw Message.getInternalError("unaligned len "+len);
+        if (SysProperties.CHECK && (len % ALIGN != 0)) {
+            throw Message.getInternalError("unaligned len " + len);
         }
-        for(int i=off; i<off+len; i+=16) {
+        for (int i = off; i < off + len; i += 16) {
             decryptBlock(bytes, bytes, i);
         }
     }

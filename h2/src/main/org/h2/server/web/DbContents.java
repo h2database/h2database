@@ -16,12 +16,12 @@ public class DbContents {
     DbSchema[] schemas;
     DbSchema defaultSchema;
     boolean isOracle, isH2, isPostgreSQL, isMySQL, isDerby, isFirebird, isSQLite;
-    
+
     void readContents(DatabaseMetaData meta) throws SQLException {
         String prod = StringUtils.toLowerEnglish(meta.getDatabaseProductName());
         isSQLite = prod.indexOf("sqlite") >= 0;
         String url = meta.getURL();
-        if(url != null) {
+        if (url != null) {
             isH2 = url.startsWith("jdbc:h2:");
             isOracle = url.startsWith("jdbc:oracle:");
             isPostgreSQL = url.startsWith("jdbc:postgresql:");
@@ -33,44 +33,45 @@ public class DbContents {
         String defaultSchemaName = getDefaultSchemaName(meta);
         String[] schemaNames = getSchemaNames(meta);
         schemas = new DbSchema[schemaNames.length];
-        for(int i=0; i<schemaNames.length; i++) {
+        for (int i = 0; i < schemaNames.length; i++) {
             String schemaName = schemaNames[i];
-            boolean isDefault = defaultSchemaName==null || defaultSchemaName.equals(schemaName);
+            boolean isDefault = defaultSchemaName == null || defaultSchemaName.equals(schemaName);
             DbSchema schema = new DbSchema(this, schemaName, isDefault);
-            if(schema.isDefault) {
+            if (schema.isDefault) {
                 defaultSchema = schema;
             }
             schemas[i] = schema;
-            String[] tableTypes =  new String[]{"TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW", "TABLE LINK", "SYNONYM"};
+            String[] tableTypes = new String[] { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW", "TABLE LINK",
+                    "SYNONYM" };
             schema.readTables(meta, tableTypes);
         }
-        if(defaultSchema == null) {
+        if (defaultSchema == null) {
             String best = null;
-            for(int i=0; i<schemas.length; i++) {
-                if("dbo".equals(schemas[i].name)) {
+            for (int i = 0; i < schemas.length; i++) {
+                if ("dbo".equals(schemas[i].name)) {
                     // MS SQL Server
                     defaultSchema = schemas[i];
                     break;
                 }
-                if(defaultSchema == null || best == null || schemas[i].name.length() < best.length()) {
+                if (defaultSchema == null || best == null || schemas[i].name.length() < best.length()) {
                     best = schemas[i].name;
                     defaultSchema = schemas[i];
                 }
             }
         }
     }
-    
+
     private String[] getSchemaNames(DatabaseMetaData meta) throws SQLException {
-        if(isMySQL) {
-            return new String[]{""};
-        } else if(isFirebird) {
-            return new String[]{null};
+        if (isMySQL) {
+            return new String[] { "" };
+        } else if (isFirebird) {
+            return new String[] { null };
         }
         ResultSet rs = meta.getSchemas();
         ArrayList schemas = new ArrayList();
-        while(rs.next()) {
+        while (rs.next()) {
             String schema = rs.getString("TABLE_SCHEM");
-            if(schema == null) {
+            if (schema == null) {
                 continue;
             }
             schemas.add(schema);
@@ -80,45 +81,43 @@ public class DbContents {
         schemas.toArray(list);
         return list;
     }
-    
+
     private String getDefaultSchemaName(DatabaseMetaData meta) throws SQLException {
-        String defaultSchemaName = "";            
+        String defaultSchemaName = "";
         try {
-            if(isOracle) {
+            if (isOracle) {
                 return meta.getUserName();
-            } else if(isPostgreSQL) {
+            } else if (isPostgreSQL) {
                 return "public";
-            } else if(isMySQL) {
+            } else if (isMySQL) {
                 return "";
-            } else if(isDerby) {
+            } else if (isDerby) {
                 return StringUtils.toUpperEnglish(meta.getUserName());
-            } else if(isFirebird) {
+            } else if (isFirebird) {
                 return null;
             }
             ResultSet rs = meta.getSchemas();
             int index = rs.findColumn("IS_DEFAULT");
-            while(rs.next()) {
-                if(rs.getBoolean(index)) {
+            while (rs.next()) {
+                if (rs.getBoolean(index)) {
                     defaultSchemaName = rs.getString("TABLE_SCHEM");
                 }
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // IS_DEFAULT not found
         }
         return defaultSchemaName;
     }
-    
+
     String quoteIdentifier(String identifier) {
-        if(identifier == null) {
+        if (identifier == null) {
             return null;
         }
-        if(isH2) {
+        if (isH2) {
             return Parser.quoteIdentifier(identifier);
         } else {
             return StringUtils.toUpperEnglish(identifier);
-//        } else {
-//            return Generator.quoteIdentifierAlways(identifier);
         }
     }
-    
+
 }

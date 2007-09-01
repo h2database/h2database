@@ -50,13 +50,13 @@ public class Delete extends Prepared {
         setCurrentRowNumber(0);
         while (tableFilter.next()) {
             checkCancelled();
-            setCurrentRowNumber(rows.size()+1);
+            setCurrentRowNumber(rows.size() + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 Row row = tableFilter.get();
                 rows.add(row);
             }
         }
-        if(table.fireRow()) {
+        if (table.fireRow()) {
             for (int i = 0; i < rows.size(); i++) {
                 checkCancelled();
                 Row row = (Row) rows.get(i);
@@ -69,7 +69,7 @@ public class Delete extends Prepared {
             table.removeRow(session, row);
             session.log(table, UndoLogRecord.DELETE, row);
         }
-        if(table.fireRow()) {
+        if (table.fireRow()) {
             for (int i = 0; i < rows.size(); i++) {
                 checkCancelled();
                 Row row = (Row) rows.get(i);
@@ -84,7 +84,7 @@ public class Delete extends Prepared {
         StringBuffer buff = new StringBuffer();
         buff.append("DELETE FROM ");
         buff.append(tableFilter.getPlanSQL(false));
-        if(condition != null) {
+        if (condition != null) {
             buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
         }
         return buff.toString();
@@ -104,7 +104,7 @@ public class Delete extends Prepared {
     public boolean isTransactional() {
         return true;
     }
-    
+
     public LocalResult queryMeta() {
         return null;
     }

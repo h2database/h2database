@@ -18,11 +18,11 @@ public class CreateSchema extends DefineCommand {
     private String schemaName;
     private String authorization;
     private boolean ifNotExists;
-    
+
     public CreateSchema(Session session) {
         super(session);
     }
-    
+
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }
@@ -33,7 +33,7 @@ public class CreateSchema extends DefineCommand {
         Database db = session.getDatabase();
         User user = db.getUser(authorization);
         user.checkAdmin();
-        if(db.findSchema(schemaName) != null) {
+        if (db.findSchema(schemaName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -54,4 +54,3 @@ public class CreateSchema extends DefineCommand {
     }
 
 }
-

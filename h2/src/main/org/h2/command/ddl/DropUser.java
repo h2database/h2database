@@ -34,12 +34,12 @@ public class DropUser extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         User user = db.findUser(userName);
-        if(user == null) {
-            if(!ifExists) {
+        if (user == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, userName);
             }
         } else {
-            if(user == session.getUser()) {
+            if (user == session.getUser()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
             }
             db.removeDatabaseObject(session, user);

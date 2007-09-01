@@ -19,14 +19,14 @@ import org.h2.util.JdbcUtils;
 public class TestXA extends TestBase {
     private static final String DB_NAME1 = "xadb1";
     private static final String DB_NAME2 = "xadb2";
-    private static final String DB_URL1 = "jdbc:h2:file:" + BASE_DIR + "/" + DB_NAME1;
-    private static final String DB_URL2 = "jdbc:h2:file:" + BASE_DIR + "/" + DB_NAME2;
+    private static final String DB_URL1 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME1;
+    private static final String DB_URL2 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME2;
 
     public void test() throws Exception {
-        deleteDb(BASE_DIR, "xa");
+        deleteDb(baseDir, "xa");
         testXA(true);
-        deleteDb(BASE_DIR, DB_NAME1);
-        deleteDb(BASE_DIR, DB_NAME2);
+        deleteDb(baseDir, DB_NAME1);
+        deleteDb(baseDir, DB_NAME2);
         testXA(false);
     }
     

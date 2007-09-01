@@ -49,13 +49,13 @@ public class LinkedIndex extends BaseIndex {
         StringBuffer buff = new StringBuffer("INSERT INTO ");
         buff.append(originalTable);
         buff.append(" VALUES(");
-        for(int i=0, j=0; i<row.getColumnCount(); i++) {
+        for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
             Value v = row.getValue(i);
-            if(j>0) {
+            if (j > 0) {
                 buff.append(',');
             }
             j++;
-            if(isNull(v)) {
+            if (isNull(v)) {
                 buff.append("NULL");
             } else {
                 buff.append('?');
@@ -65,76 +65,76 @@ public class LinkedIndex extends BaseIndex {
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
-            for(int i=0, j=0; i<row.getColumnCount(); i++) {
+            for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
-                if(v != null && v != ValueNull.INSTANCE) {
-                    v.set(prep, j+1);
+                if (v != null && v != ValueNull.INSTANCE) {
+                    v.set(prep, j + 1);
                     j++;
                 }
             }
             prep.executeUpdate();
             rowCount++;
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw wrapException(sql, e);
         }
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         StringBuffer buff = new StringBuffer();
-        for(int i=0; first != null && i<first.getColumnCount(); i++) {
+        for (int i = 0; first != null && i < first.getColumnCount(); i++) {
             Value v = first.getValue(i);
-            if(v != null) {
-                if(buff.length() != 0) {
+            if (v != null) {
+                if (buff.length() != 0) {
                     buff.append(" AND ");
                 }
                 buff.append(table.getColumn(i).getSQL());
                 buff.append(">=?");
             }
         }
-        for(int i=0; last != null && i<last.getColumnCount(); i++) {
+        for (int i = 0; last != null && i < last.getColumnCount(); i++) {
             Value v = last.getValue(i);
-            if(v != null) {
-                if(buff.length() != 0) {
+            if (v != null) {
+                if (buff.length() != 0) {
                     buff.append(" AND ");
                 }
                 buff.append(table.getColumn(i).getSQL());
                 buff.append("<=?");
             }
         }
-        if(buff.length() > 0) {
+        if (buff.length() > 0) {
             buff.insert(0, " WHERE ");
         }
-        buff.insert(0, "SELECT * FROM "+originalTable + " T");
+        buff.insert(0, "SELECT * FROM " + originalTable + " T");
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
-            int j=0;
-            for(int i=0; first != null && i<first.getColumnCount(); i++) {
+            int j = 0;
+            for (int i = 0; first != null && i < first.getColumnCount(); i++) {
                 Value v = first.getValue(i);
-                if(v != null) {
-                    v.set(prep, j+1);
+                if (v != null) {
+                    v.set(prep, j + 1);
                     j++;
                 }
             }
-            for(int i=0; last != null && i<last.getColumnCount(); i++) {
+            for (int i = 0; last != null && i < last.getColumnCount(); i++) {
                 Value v = last.getValue(i);
-                if(v != null) {
-                    v.set(prep, j+1);
+                if (v != null) {
+                    v.set(prep, j + 1);
                     j++;
                 }
             }
             ResultSet rs = prep.executeQuery();
             return new LinkedCursor(table, rs, session);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw wrapException(sql, e);
         }
     }
-    
+
     public int getLookupCost(int rowCount) {
-        for(int i=0, j = 1; ; i++) {
+        for (int i = 0, j = 1;; i++) {
             j *= 10;
-            if(j>rowCount) {
-                return i+1;
+            if (j > rowCount) {
+                return i + 1;
             }
         }
     }
@@ -148,7 +148,7 @@ public class LinkedIndex extends BaseIndex {
 
     public void truncate(Session session) throws SQLException {
     }
-    
+
     public void checkRename() throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -156,27 +156,28 @@ public class LinkedIndex extends BaseIndex {
     public boolean needRebuild() {
         return false;
     }
-    
+
     public boolean canGetFirstOrLast(boolean first) {
         return false;
     }
 
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
-        // TODO optimization: could get the first or last value (in any case; maybe not optimized)
+        // TODO optimization: could get the first or last value (in any case;
+        // maybe not optimized)
         throw Message.getUnsupportedException();
     }
-    
+
     public void remove(Session session, Row row) throws SQLException {
         StringBuffer buff = new StringBuffer("DELETE FROM ");
         buff.append(originalTable);
         buff.append(" WHERE ");
-        for(int i=0; i<row.getColumnCount(); i++) {
-            if(i>0) {
+        for (int i = 0; i < row.getColumnCount(); i++) {
+            if (i > 0) {
                 buff.append("AND ");
             }
             buff.append(table.getColumn(i).getSQL());
             Value v = row.getValue(i);
-            if(isNull(v)) {
+            if (isNull(v)) {
                 buff.append(" IS NULL ");
             } else {
                 buff.append("=? ");
@@ -185,20 +186,20 @@ public class LinkedIndex extends BaseIndex {
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
-            for(int i=0, j=0; i<row.getColumnCount(); i++) {
+            for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
                 Value v = row.getValue(i);
-                if(!isNull(v)) {
-                    v.set(prep, j+1);
+                if (!isNull(v)) {
+                    v.set(prep, j + 1);
                     j++;
                 }
             }
             int count = prep.executeUpdate();
             rowCount -= count;
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw wrapException(sql, e);
         }
     }
-    
+
     public void update(Session session, Row oldRow, Row newRow) throws SQLException {
         StringBuffer buff = new StringBuffer("UPDATE ");
         buff.append(originalTable).append(" SET ");
@@ -209,13 +210,13 @@ public class LinkedIndex extends BaseIndex {
             buff.append(table.getColumn(i).getSQL()).append("=?");
         }
         buff.append(" WHERE ");
-        for(int i=0; i<oldRow.getColumnCount(); i++) {
-            if(i>0) {
+        for (int i = 0; i < oldRow.getColumnCount(); i++) {
+            if (i > 0) {
                 buff.append("AND ");
             }
             buff.append(table.getColumn(i).getSQL());
             Value v = oldRow.getValue(i);
-            if(isNull(v)) {
+            if (isNull(v)) {
                 buff.append(" IS NULL ");
             } else {
                 buff.append("=? ");
@@ -225,25 +226,25 @@ public class LinkedIndex extends BaseIndex {
         try {
             int j = 1;
             PreparedStatement prep = link.getPreparedStatement(sql);
-            for (int i=0; i<newRow.getColumnCount(); i++) {
+            for (int i = 0; i < newRow.getColumnCount(); i++) {
                 newRow.getValue(i).set(prep, j);
                 j++;
             }
-            for(int i=0; i<oldRow.getColumnCount(); i++) {
+            for (int i = 0; i < oldRow.getColumnCount(); i++) {
                 Value v = oldRow.getValue(i);
-                if(!isNull(v)) {
+                if (!isNull(v)) {
                     v.set(prep, j);
                     j++;
                 }
             }
             prep.executeUpdate();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw wrapException(sql, e);
         }
     }
-    
+
     private SQLException wrapException(String sql, SQLException e) {
-        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[]{sql, e.toString()}, e);
+        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[] { sql, e.toString() }, e);
     }
 
 }

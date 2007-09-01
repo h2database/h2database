@@ -35,8 +35,8 @@ public class DropConstant extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Constant constant = getSchema().findConstant(constantName);
-        if(constant == null) {
-            if(!ifExists) {
+        if (constant == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
             }
         } else {

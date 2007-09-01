@@ -122,7 +122,7 @@ public class RunScript {
         }
         // }
         time = System.currentTimeMillis() - time;
-        if(showTime) {
+        if (showTime) {
             System.out.println("Done in " + time + " ms");
         }
     }
@@ -178,7 +178,7 @@ public class RunScript {
             sql = sql.trim();
             if (sql.startsWith("@") && StringUtils.toUpperEnglish(sql).startsWith("@INCLUDE")) {
                 sql = sql.substring("@INCLUDE".length()).trim();
-                if(!FileUtils.isAbsolute(sql)) {
+                if (!FileUtils.isAbsolute(sql)) {
                     sql = path + File.separator + sql;
                 }
                 execute(conn, threadMap, sql, continueOnError, charsetName);
@@ -201,7 +201,7 @@ public class RunScript {
                 }
             } else {
                 try {
-                    if(sql.trim().length()>0) {
+                    if (sql.trim().length() > 0) {
                         stat.execute(sql);
                     }
                 } catch (SQLException e) {

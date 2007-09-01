@@ -27,7 +27,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
     }
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase)v).value);
+        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
     }    
 
     public int hashCode() {
@@ -52,7 +52,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         }
         ValueStringIgnoreCase cache = (ValueStringIgnoreCase) Value.cache(obj);
         // the cached object could have the wrong case (it would still be 'equal', but we don't like to store it)
-        if(cache.value.equals(s)) {
+        if (cache.value.equals(s)) {
             return cache;
         } else {
             return obj;

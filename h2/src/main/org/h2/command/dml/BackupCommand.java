@@ -29,17 +29,17 @@ import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 
 public class BackupCommand extends Prepared {
-    
+
     private String fileName;
-    
+
     public BackupCommand(Session session) {
         super(session);
     }
-    
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    
+
     public int update() throws SQLException {
         session.getUser().checkAdmin();
         backupTo(fileName);
@@ -48,7 +48,7 @@ public class BackupCommand extends Prepared {
 
     private void backupTo(String fileName) throws SQLException {
         Database db = session.getDatabase();
-        if(!db.isPersistent()) {
+        if (!db.isPersistent()) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
@@ -67,9 +67,10 @@ public class BackupCommand extends Prepared {
                 backupDiskFile(out, fn, db.getIndexFile());
                 ObjectArray list = log.getActiveLogFiles();
                 int max = list.size();
-                // synchronize on the database, to avoid concurrent temp file creation / deletion / backup
-                synchronized(db.getLobSyncObject()) {
-                    for(int i=0; i<list.size(); i++) {
+                // synchronize on the database, to avoid concurrent temp file
+                // creation / deletion / backup
+                synchronized (db.getLobSyncObject()) {
+                    for (int i = 0; i < list.size(); i++) {
                         LogFile lf = (LogFile) list.get(i);
                         fn = lf.getFileName();
                         backupFile(out, base, fn);
@@ -78,9 +79,9 @@ public class BackupCommand extends Prepared {
                     String prefix = db.getDatabasePath();
                     String dir = FileUtils.getParent(prefix);
                     ArrayList fileList = FileLister.getDatabaseFiles(dir, name, true);
-                    for(int i=0; i<fileList.size(); i++) {
+                    for (int i = 0; i < fileList.size(); i++) {
                         fn = (String) fileList.get(i);
-                        if(fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                        if (fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
                             backupFile(out, base, fn);
                         }
                     }
@@ -90,31 +91,31 @@ public class BackupCommand extends Prepared {
             } finally {
                 log.updateKeepFiles(-1);
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
     }
-    
+
     private void backupDiskFile(ZipOutputStream out, String fileName, DiskFile file) throws SQLException, IOException {
         Database db = session.getDatabase();
         fileName = FileUtils.getFileName(fileName);
         out.putNextEntry(new ZipEntry(fileName));
         int pos = -1;
         int max = file.getReadCount();
-        while(true) {
+        while (true) {
             pos = file.copyDirect(pos, out);
-            if(pos < 0) {
+            if (pos < 0) {
                 break;
             }
             db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
         }
         out.closeEntry();
     }
-    
+
     private void backupFile(ZipOutputStream out, String base, String fn) throws SQLException, IOException {
         String f = FileUtils.getAbsolutePath(fn);
         base = FileUtils.getAbsolutePath(base);
-        if(!f.startsWith(base)) {
+        if (!f.startsWith(base)) {
             throw Message.getInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());

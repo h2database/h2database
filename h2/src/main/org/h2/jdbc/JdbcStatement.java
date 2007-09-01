@@ -29,7 +29,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected SessionInterface session;
     protected JdbcResultSet resultSet;
     protected int maxRows;
-    protected boolean escapeProcessing=true;
+    protected boolean escapeProcessing = true;
     protected int queryTimeout;
     protected boolean queryTimeoutSet;
     protected int fetchSize;
@@ -50,19 +50,19 @@ public class JdbcStatement extends TraceObject implements Statement {
     public ResultSet executeQuery(String sql) throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
-            if(debug()) {
+            if (debug()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
                 debugCodeCall("executeQuery", sql);
             }
             checkClosed();
             closeOld();
-            if(escapeProcessing) {
-                sql=conn.translateSQL(sql);
+            if (escapeProcessing) {
+                sql = conn.translateSQL(sql);
             }
-            CommandInterface command=conn.prepareCommand(sql);
+            CommandInterface command = conn.prepareCommand(sql);
             ResultInterface result;
             boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
-            synchronized(session) {
+            synchronized (session) {
                 setExecutingStatement(command);
                 try {
                     result = command.executeQuery(maxRows, scrollable);
@@ -73,7 +73,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             command.close();
             resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             return resultSet;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -100,11 +100,11 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("executeUpdate", sql);
             checkClosed();
             closeOld();
-            if(escapeProcessing) {
+            if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
             CommandInterface command = conn.prepareCommand(sql);
-            synchronized(session) {
+            synchronized (session) {
                 setExecutingStatement(command);
                 try {
                     updateCount = command.executeUpdate();
@@ -114,7 +114,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             command.close();
             return updateCount;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -133,20 +133,20 @@ public class JdbcStatement extends TraceObject implements Statement {
     public boolean execute(String sql) throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
-            if(debug()) {
+            if (debug()) {
                 debugCodeCall("execute", sql);
             }
             checkClosed();
             closeOld();
-            if(escapeProcessing) {
+            if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
-            CommandInterface command=conn.prepareCommand(sql);
+            CommandInterface command = conn.prepareCommand(sql);
             boolean returnsResultSet;
-            synchronized(session) {
+            synchronized (session) {
                 setExecutingStatement(command);
                 try {
-                    if(command.isQuery()) {
+                    if (command.isQuery()) {
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
@@ -161,7 +161,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             command.close();
             return returnsResultSet;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -174,13 +174,13 @@ public class JdbcStatement extends TraceObject implements Statement {
     public ResultSet getResultSet() throws SQLException {
         try {
             checkClosed();
-            if(resultSet != null) {
+            if (resultSet != null) {
                 int id = resultSet.getTraceId();
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
             }
             debugCodeCall("getResultSet");
             return resultSet;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -198,7 +198,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getUpdateCount");
             checkClosed();
             return updateCount;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -212,10 +212,10 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("close");
             closeOld();
-            if(conn != null) {
+            if (conn != null) {
                 conn = null;
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -230,7 +230,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getConnection");
             checkClosed();
             return conn;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -246,7 +246,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getWarnings");
             checkClosed();
             return null;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -259,7 +259,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("clearWarnings");
             checkClosed();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -278,7 +278,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosed();
             closeOld();
             return false;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -293,7 +293,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setCursorName", name);
             checkClosed();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -309,7 +309,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setFetchDirection", direction);
             checkClosed();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -325,7 +325,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getFetchDirection");
             checkClosed();
             return ResultSet.FETCH_FORWARD;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -341,7 +341,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getMaxRows");
             checkClosed();
             return maxRows;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -356,11 +356,11 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setMaxRows", maxRows);
             checkClosed();
-            if(maxRows < 0) {
+            if (maxRows < 0) {
                 throw Message.getInvalidValueException(""+maxRows, "maxRows");
             }
             this.maxRows = maxRows;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -378,12 +378,12 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setFetchSize", rows);
             checkClosed();
-            if(rows<0 || (rows>0 && maxRows>0 && rows>maxRows)) {
-                throw Message.getInvalidValueException(""+rows, "rows");
+            if (rows < 0 || (rows > 0 && maxRows > 0 && rows > maxRows)) {
+                throw Message.getInvalidValueException("" + rows, "rows");
             }
-            fetchSize=rows;
-            fetchSizeSet=true;
-        } catch(Throwable e) {
+            fetchSize = rows;
+            fetchSizeSet = true;
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -399,7 +399,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getFetchSize");
             checkClosed();
             return fetchSize;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -415,7 +415,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getResultSetConcurrency");
             checkClosed();
             return ResultSet.CONCUR_UPDATABLE;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -431,7 +431,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getResultSetType");
             checkClosed();
             return resultSetType;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -447,7 +447,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getMaxFieldSize");
             checkClosed();
             return 0;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -463,7 +463,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setMaxFieldSize", max);
             checkClosed();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -477,12 +477,12 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public void setEscapeProcessing(boolean enable) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setEscapeProcessing("+enable+");");
             }
             checkClosed();
-            escapeProcessing=enable;
-        } catch(Throwable e) {
+            escapeProcessing = enable;
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -502,13 +502,13 @@ public class JdbcStatement extends TraceObject implements Statement {
             // executingCommand can be reset  by another thread
             CommandInterface c = executingCommand;
             try {
-                if(c != null) {
+                if (c != null) {
                     c.cancel();
                 }
             } finally {
                 setExecutingStatement(null);
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -524,7 +524,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getQueryTimeout");
             checkClosed();
             return queryTimeout;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -541,12 +541,12 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("setQueryTimeout", seconds);
             checkClosed();
-            if(seconds<0) {
-                throw Message.getInvalidValueException(""+seconds, "seconds");
+            if (seconds < 0) {
+                throw Message.getInvalidValueException("" + seconds, "seconds");
             }
-            queryTimeout=seconds;
-            queryTimeoutSet=true;
-        } catch(Throwable e) {
+            queryTimeout = seconds;
+            queryTimeoutSet = true;
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -558,14 +558,14 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("addBatch", sql);
             checkClosed();
-            if(escapeProcessing) {
+            if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
-            if(batchCommands == null) {
+            if (batchCommands == null) {
                 batchCommands = new ObjectArray();
             }
             batchCommands.add(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -578,7 +578,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("clearBatch");
             checkClosed();
             batchCommands = null;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -592,17 +592,17 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("executeBatch");
             checkClosed();
-            if(batchCommands == null) {
+            if (batchCommands == null) {
                 // TODO batch: check what other database do if no commands are set
                 batchCommands = new ObjectArray();
             }
             int[] result = new int[batchCommands.size()];
             boolean error = false;
-            for(int i=0; i<batchCommands.size(); i++) {
+            for (int i = 0; i < batchCommands.size(); i++) {
                 String sql = (String) batchCommands.get(i);
                 try {
                     result[i] = executeUpdate(sql);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     logAndConvert(e);
 //#ifdef JDK14
                     result[i] = Statement.EXECUTE_FAILED;
@@ -611,11 +611,11 @@ public class JdbcStatement extends TraceObject implements Statement {
                 }
             }
             batchCommands = null;
-            if(error) {
+            if (error) {
                 throw new BatchUpdateException(result);
             }
             return result;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -631,7 +631,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getGeneratedKeys");
             checkClosed();
             return conn.getGeneratedKeys(this);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -643,7 +643,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("getMoreResults");
             throw Message.getUnsupportedException();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -661,11 +661,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("executeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
             }
             return executeUpdate(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -683,11 +683,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
             return executeUpdate(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -705,11 +705,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public int executeUpdate(String sql, String[] columnNames) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
             return executeUpdate(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -727,11 +727,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("execute("+quote(sql)+", "+autoGeneratedKeys+");");
             }
             return execute(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -749,11 +749,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public boolean execute(String sql, int[] columnIndexes) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("execute("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
             return execute(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -771,11 +771,11 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public boolean execute(String sql, String[] columnNames) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("execute("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
             return execute(sql);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -791,7 +791,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("getResultSetHoldability");
             checkClosed();
             return ResultSet.HOLD_CURSORS_OVER_COMMIT;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -808,7 +808,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     void checkClosed() throws SQLException {
-        if(conn == null) {
+        if (conn == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         conn.checkClosed();
@@ -816,14 +816,14 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     void closeOld() throws SQLException {
         try {
-            if(!closedByResultSet) {
-                if(resultSet != null) {
+            if (!closedByResultSet) {
+                if (resultSet != null) {
                     resultSet.closeInternal();
                 }
             }
         } finally {
             resultSet = null;
-            updateCount=-1;
+            updateCount = -1;
         }
     }
 
@@ -841,7 +841,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("isClosed");
             return conn == null;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -884,7 +884,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param poolable the requested value
      */
     public void setPoolable(boolean poolable) throws SQLException {
-        if(debug()) {
+        if (debug()) {
             debugCode("setPoolable("+poolable+");");
         }
     }

@@ -8,7 +8,25 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Date;
+import java.sql.Ref;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+//#ifdef JDK16
+/*
+import java.sql.NClob;
+import java.sql.RowId;
+import java.sql.SQLXML;
+*/
+//#endif
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
@@ -94,7 +112,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param row the row as an array of objects
      */
     public void addRow(Object[] row) throws SQLException {
-        if(rows == null) {
+        if (rows == null) {
             throw new SQLException("Cannot add a row when using RowSource", "21S02");
         }
         rows.add(row);
@@ -153,7 +171,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         rows = null;
         columns = null;
         rowId = -1;
-        if(source != null) {
+        if (source != null) {
             source.close();
             source = null;
         }
@@ -168,7 +186,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         if (source != null) {
             rowId++;
             currentRow = source.readRow();
-            if(currentRow != null) {
+            if (currentRow != null) {
                 return true;
             }
         } else if (rows != null && rowId < rows.size()) {
@@ -189,7 +207,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public void beforeFirst() throws SQLException {
         rowId = -1;
-        if(source != null) {
+        if (source != null) {
             source.reset();
         }
     }
@@ -210,10 +228,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public byte getByte(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             o = Byte.decode(o.toString());
         }
-        return o == null ? 0 : ((Number)o).byteValue();
+        return o == null ? 0 : ((Number) o).byteValue();
     }
 
     /**
@@ -223,10 +241,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public double getDouble(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             return Double.parseDouble(o.toString());
         }
-        return o == null ? 0 : ((Number)o).doubleValue();
+        return o == null ? 0 : ((Number) o).doubleValue();
     }
 
     /**
@@ -236,10 +254,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public float getFloat(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             return Float.parseFloat(o.toString());
         }
-        return o == null ? 0 : ((Number)o).floatValue();
+        return o == null ? 0 : ((Number) o).floatValue();
     }
 
     /**
@@ -249,10 +267,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public int getInt(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             o = Integer.decode(o.toString());
         }
-        return o == null ? 0 : ((Number)o).intValue();
+        return o == null ? 0 : ((Number) o).intValue();
     }
 
     /**
@@ -262,10 +280,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public long getLong(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             o = Long.decode(o.toString());
         }
-        return o == null ? 0 : ((Number)o).longValue();
+        return o == null ? 0 : ((Number) o).longValue();
     }
 
     /**
@@ -275,10 +293,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public short getShort(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Number)) {
+        if (o != null && !(o instanceof Number)) {
             o = Short.decode(o.toString());
         }
-        return o == null ? 0 : ((Number)o).shortValue();
+        return o == null ? 0 : ((Number) o).shortValue();
     }
 
     /**
@@ -288,10 +306,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public boolean getBoolean(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof Boolean)) {
+        if (o != null && !(o instanceof Boolean)) {
             o = Boolean.valueOf(o.toString());
         }
-        return o == null ? false : ((Boolean)o).booleanValue();
+        return o == null ? false : ((Boolean) o).booleanValue();
     }
 
     /**
@@ -417,10 +435,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if(o != null && !(o instanceof BigDecimal)) {
+        if (o != null && !(o instanceof BigDecimal)) {
             o = new BigDecimal(o.toString());
         }
-        return (BigDecimal)o;
+        return (BigDecimal) o;
     }
 
     /**

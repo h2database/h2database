@@ -24,7 +24,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         this.functionAlias = functionAlias;
         this.args = args;
     }
-    
+
     public Value getValue(Session session) throws SQLException {
         return functionAlias.getValue(session, args);
     }
@@ -32,15 +32,15 @@ public class JavaFunction extends Expression implements FunctionCall {
     public int getType() {
         return functionAlias.getDataType();
     }
-    
+
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
         for (int i = 0; i < args.length; i++) {
             args[i].mapColumns(resolver, level);
-        }        
+        }
     }
 
     public Expression optimize(Session session) throws SQLException {
-        for(int i=0; i<args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
         }
@@ -53,7 +53,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             if (e != null) {
                 e.setEvaluatable(tableFilter, b);
             }
-        }        
+        }
     }
 
     public int getScale() {
@@ -85,7 +85,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             if (e != null) {
                 e.updateAggregate(session);
             }
-        }        
+        }
     }
 
     public FunctionAlias getFunctionAlias() {
@@ -108,10 +108,11 @@ public class JavaFunction extends Expression implements FunctionCall {
     public Expression[] getArgs() {
         return args;
     }
-    
+
     public boolean isEverything(ExpressionVisitor visitor) {
-        if(visitor.type == ExpressionVisitor.DETERMINISTIC) {
-            // TODO optimization: some functions are deterministic, but we don't know (no setting for that)
+        if (visitor.type == ExpressionVisitor.DETERMINISTIC) {
+            // TODO optimization: some functions are deterministic, but we don't
+            // know (no setting for that)
             return false;
         }
         for (int i = 0; i < args.length; i++) {
@@ -119,13 +120,13 @@ public class JavaFunction extends Expression implements FunctionCall {
             if (e != null && !e.isEverything(visitor)) {
                 return false;
             }
-        }    
+        }
         return true;
     }
-    
+
     public int getCost() {
         int cost = functionAlias.hasConnectionParam() ? 25 : 5;
-        for(int i=0; i<args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             cost += args[i].getCost();
         }
         return cost;

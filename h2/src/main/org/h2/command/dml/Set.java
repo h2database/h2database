@@ -59,7 +59,7 @@ public class Set extends Prepared {
         switch (type) {
         case SetTypes.MAX_LOG_SIZE:
             session.getUser().checkAdmin();
-            session.getDatabase().setMaxLogSize((long)getIntValue() * 1024 * 1024);
+            session.getDatabase().setMaxLogSize((long) getIntValue() * 1024 * 1024);
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.LOCK_TIMEOUT:
@@ -103,7 +103,7 @@ public class Set extends Prepared {
         case SetTypes.MODE:
             session.getUser().checkAdmin();
             Mode mode = Mode.getMode(stringValue);
-            if(mode == null) {
+            if (mode == null) {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
             }
             Mode.setCurrentMode(mode);
@@ -111,27 +111,27 @@ public class Set extends Prepared {
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
             ObjectArray array = database.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-            for(int i=0; i<array.size(); i++) {
+            for (int i = 0; i < array.size(); i++) {
                 Table table = (Table) array.get(i);
-                if(table.getCreateSQL() != null) {
+                if (table.getCreateSQL() != null) {
                     throw Message.getSQLException(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
                 }
             }
             CompareMode compareMode;
             StringBuffer buff = new StringBuffer(stringValue);
-            if(stringValue.equals(CompareMode.OFF)) {
+            if (stringValue.equals(CompareMode.OFF)) {
                 compareMode = new CompareMode(null, null);
             } else {
                 Collator coll = CompareMode.getCollator(stringValue);
                 compareMode = new CompareMode(coll, stringValue);
                 buff.append(" STRENGTH ");
-                if(getIntValue() == Collator.IDENTICAL) {
+                if (getIntValue() == Collator.IDENTICAL) {
                     buff.append("IDENTICAL");
-                } else if(getIntValue() == Collator.PRIMARY) {
+                } else if (getIntValue() == Collator.PRIMARY) {
                     buff.append("PRIMARY");
-                } else if(getIntValue() == Collator.SECONDARY) {
+                } else if (getIntValue() == Collator.SECONDARY) {
                     buff.append("SECONDARY");
-                } else if(getIntValue() == Collator.TERTIARY) {
+                } else if (getIntValue() == Collator.TERTIARY) {
                     buff.append("TERTIARY");
                 }
                 coll.setStrength(getIntValue());
@@ -181,25 +181,25 @@ public class Set extends Prepared {
         }
         case SetTypes.LOG: {
             int value = getIntValue();
-            if(value<0 || value>2) {
-                throw Message.getInvalidValueException(""+getIntValue(), "LOG");
+            if (value < 0 || value > 2) {
+                throw Message.getInvalidValueException("" + getIntValue(), "LOG");
             }
-            if(value==0) {
+            if (value == 0) {
                 session.getUser().checkAdmin();
             }
             database.setLog(value);
             break;
         }
         case SetTypes.THROTTLE: {
-            if(getIntValue() < 0) {
-                throw Message.getInvalidValueException(""+getIntValue(), "THROTTLE");
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "THROTTLE");
             }
             session.setThrottle(getIntValue());
             break;
         }
         case SetTypes.MAX_MEMORY_UNDO: {
-            if(getIntValue() < 0) {
-                throw Message.getInvalidValueException(""+getIntValue(), "MAX_MEMORY_UNDO");
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
             }
             session.getUser().checkAdmin();
             database.setMaxMemoryUndo(getIntValue());
@@ -207,8 +207,8 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
-            if(getIntValue() < 0) {
-                throw Message.getInvalidValueException(""+getIntValue(), "MAX_LENGTH_INPLACE_LOB");
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
             }
             session.getUser().checkAdmin();
             database.setMaxLengthInplaceLob(getIntValue());
@@ -225,8 +225,8 @@ public class Set extends Prepared {
         case SetTypes.ALLOW_LITERALS: {
             session.getUser().checkAdmin();
             int value = getIntValue();
-            if(value < 0 || value > 2) {
-                throw Message.getInvalidValueException(""+getIntValue(), "ALLOW_LITERALS");
+            if (value < 0 || value > 2) {
+                throw Message.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
             }
             database.setAllowLiterals(value);
             addOrUpdateSetting(name, null, value);
@@ -248,8 +248,8 @@ public class Set extends Prepared {
         }
         case SetTypes.UNDO_LOG: {
             int value = getIntValue();
-            if(value < 0 || value > 1) {
-                throw Message.getInvalidValueException(""+getIntValue(), "UNDO_LOG");
+            if (value < 0 || value > 1) {
+                throw Message.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
             }
             session.setUndoLogEnabled(value == 1);
             break;
@@ -257,8 +257,8 @@ public class Set extends Prepared {
         case SetTypes.REFERENTIAL_INTEGRITY: {
             session.getUser().checkAdmin();
             int value = getIntValue();
-            if(value < 0 || value > 1) {
-                throw Message.getInvalidValueException(""+getIntValue(), "REFERENTIAL_INTEGRITY");
+            if (value < 0 || value > 1) {
+                throw Message.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
             }
             database.setReferentialIntegrity(value == 1);
             break;
@@ -284,28 +284,28 @@ public class Set extends Prepared {
 
     private void addOrUpdateSetting(String name, String s, int v) throws SQLException {
         Database database = session.getDatabase();
-        if(database.getReadOnly()) {
+        if (database.getReadOnly()) {
             return;
         }
         Setting setting = database.findSetting(name);
         boolean addNew = false;
-        if(setting == null) {
+        if (setting == null) {
             addNew = true;
             int id = getObjectId(false, true);
             setting = new Setting(database, id, name);
         }
-        if(s != null) {
-            if(!addNew && setting.getStringValue().equals(s)) {
+        if (s != null) {
+            if (!addNew && setting.getStringValue().equals(s)) {
                 return;
             }
             setting.setStringValue(s);
         } else {
-            if(!addNew && setting.getIntValue() == v) {
+            if (!addNew && setting.getIntValue() == v) {
                 return;
             }
             setting.setIntValue(v);
         }
-        if(addNew) {
+        if (addNew) {
             database.addDatabaseObject(session, setting);
         } else {
             database.update(session, setting);

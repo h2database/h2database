@@ -77,12 +77,11 @@ public class CreateTrigger extends SchemaCommand {
         // TODO rights: what rights are required to create a trigger?
         session.commit(true);
         Database db = session.getDatabase();
-        if(getSchema().findTrigger(triggerName)!=null) {
+        if (getSchema().findTrigger(triggerName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.TRIGGER_ALREADY_EXISTS_1,
-                    triggerName);
+            throw Message.getSQLException(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
         }
         int id = getObjectId(false, true);
         Table table = getSchema().getTableOrView(session, tableName);

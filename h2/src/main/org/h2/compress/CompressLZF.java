@@ -72,7 +72,7 @@ public class CompressLZF implements Compressor {
 
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         int inPos = 0;
-        if(hashTab == null) {
+        if (hashTab == null) {
             hashTab = new int[HASH_SIZE];
         } else {
             System.arraycopy(empty, 0, hashTab, 0, HASH_SIZE);

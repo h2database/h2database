@@ -48,23 +48,23 @@ public class CreateCluster {
         String user = null;
         String password = "";
         String serverlist = null;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-urlSource")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-urlSource")) {
                 urlSource = args[++i];
-            } else if(args[i].equals("-urlTarget")) {
+            } else if (args[i].equals("-urlTarget")) {
                 urlTarget = args[++i];
-            } else if(args[i].equals("-user")) {
+            } else if (args[i].equals("-user")) {
                 user = args[++i];
-            } else if(args[i].equals("-password")) {
+            } else if (args[i].equals("-password")) {
                 password = args[++i];
-            } else if(args[i].equals("-serverlist")) {
+            } else if (args[i].equals("-serverlist")) {
                 serverlist = args[++i];
             } else {
                 showUsage();
                 return;
             }
         }
-        if(urlSource==null || urlTarget==null || user==null || serverlist==null) {
+        if (urlSource == null || urlTarget == null || user == null || serverlist == null) {
             showUsage();
             return;
         }
@@ -95,11 +95,11 @@ public class CreateCluster {
                 conn = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE", user, password);
                 conn.close();
                 exists = true;
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // database does not exists - ok
                 exists = false;
             }
-            if(exists) {
+            if (exists) {
                 throw new SQLException("Target database must not yet exist. Please delete it first");
             }
             

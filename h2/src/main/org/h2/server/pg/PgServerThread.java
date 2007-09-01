@@ -91,9 +91,9 @@ public class PgServerThread implements Runnable {
     
     private String readString() throws IOException {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        while(true) {
+        while (true) {
             int x = dataIn.read();
-            if(x <= 0) {
+            if (x <= 0) {
                 break;
             }
             buff.write(x);
@@ -118,16 +118,16 @@ public class PgServerThread implements Runnable {
     }
     
     private void error(String message, Exception e) {
-        if(e != null) {
+        if (e != null) {
             server.logError(e);
         }
     }
-    
+
     private void process() throws IOException {
         int x;
-        if(initDone) {
+        if (initDone) {
             x = dataInRaw.read();
-            if(x < 0) {
+            if (x < 0) {
                 stop = true;
                 return;
             }
@@ -139,34 +139,34 @@ public class PgServerThread implements Runnable {
         byte[] data = new byte[len];
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
-        switch(x) {
+        switch (x) {
         case 0:
             server.log("Init");
             int version = readInt();
-            if(version == 80877102) {
+            if (version == 80877102) {
                 server.log("CancelRequest (not supported)");
-                server.log(" pid: "+readInt());
-                server.log(" key: "+readInt());
+                server.log(" pid: " + readInt());
+                server.log(" key: " + readInt());
                 error("CancelRequest", null);
-            } else if(version == 80877103) {
+            } else if (version == 80877103) {
                 server.log("SSLRequest");
                 out.write('N');
             } else {
-                 server.log("StartupMessage");
-                 server.log(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
-                while(true) {
+                server.log("StartupMessage");
+                server.log(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
+                while (true) {
                     String param = readString();
-                    if(param.length() == 0) {
+                    if (param.length() == 0) {
                         break;
                     }
                     String value = readString();
-                    if("user".equals(param)) {
+                    if ("user".equals(param)) {
                         this.userName = value;
-                    } else if("database".equals(param)) {
+                    } else if ("database".equals(param)) {
                         this.databaseName = value;
-                    } else if("client_encoding".equals(param)) {
+                    } else if ("client_encoding".equals(param)) {
                         clientEncoding = value;
-                    } else if("DateStyle".equals(param)) {
+                    } else if ("DateStyle".equals(param)) {
                         dateStyle = value;
                     }
                     // server.log(" param " + param + "=" + value);
@@ -180,7 +180,8 @@ public class PgServerThread implements Runnable {
             String password = readString();
             try {
                 String url = "jdbc:h2:" + databaseName + ";MODE=PostgreSQL";
-                // can not do this because when called inside DriverManager.getConnection, a deadlock occurs
+                // can not do this because when called inside
+                // DriverManager.getConnection, a deadlock occurs
                 // conn = DriverManager.getConnection(url, userName, password);
                 Properties prop = new Properties();
                 prop.setProperty("user", userName);
@@ -188,7 +189,7 @@ public class PgServerThread implements Runnable {
                 conn = Driver.load().connect(url, prop);
                 initDb();
                 sendAuthenticationOk();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
                 stop = true;
             }
@@ -201,7 +202,7 @@ public class PgServerThread implements Runnable {
             p.sql = getSQL(readString());
             int count = readShort();
             p.paramType = new int[count];
-            for(int i=0; i<count; i++) {
+            for (int i = 0; i < count; i++) {
                 int type = readInt();
                 checkType(type);
                 p.paramType[i] = type;
@@ -210,7 +211,7 @@ public class PgServerThread implements Runnable {
                 p.prep = conn.prepareStatement(p.sql);
                 prepared.put(p.name, p);
                 sendParseComplete();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 sendErrorResponse(e);
             }
             break;
@@ -221,7 +222,7 @@ public class PgServerThread implements Runnable {
             portal.name = readString();
             String prepName = readString();
             Prepared prep = (Prepared) prepared.get(prepName);
-            if(prep == null) {
+            if (prep == null) {
                 sendErrorResponse("Portal not found");
                 break;
             }
@@ -230,23 +231,23 @@ public class PgServerThread implements Runnable {
             portals.put(portal.name, portal);
             int formatCodeCount = readShort();
             int[] formatCodes = new int[formatCodeCount];
-            for(int i=0; i<formatCodeCount; i++) {
+            for (int i = 0; i < formatCodeCount; i++) {
                 formatCodes[i] = readShort();
             }
             int paramCount = readShort();
-            for(int i=0; i<paramCount; i++) {
+            for (int i = 0; i < paramCount; i++) {
                 int paramLen = readInt();
                 byte[] d2 = new byte[paramLen];
                 readFully(d2);
                 try {
                     setParameter(portal.prep, i, d2, formatCodes);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     sendErrorResponse(e);
                 }
             }
-            int resultCodeCount  = readShort();
+            int resultCodeCount = readShort();
             portal.resultColumnFormat = new int[resultCodeCount];
-            for(int i=0; i<resultCodeCount; i++) {
+            for (int i = 0; i < resultCodeCount; i++) {
                 portal.resultColumnFormat[i] = readShort();
             }
             sendBindComplete();
@@ -257,23 +258,23 @@ public class PgServerThread implements Runnable {
             String name = readString();
             server.log("Describe");
             PreparedStatement prep;
-            if(type == 'S') {
+            if (type == 'S') {
                 Prepared p = (Prepared) prepared.get(name);
-                if(p == null) {
+                if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
                 }
                 prep = p.prep;
                 sendParameterDescription(p);
-            } else if(type == 'P') {
+            } else if (type == 'P') {
                 Portal p = (Portal) portals.get(name);
-                if(p == null) {
+                if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
                 }
                 prep = p.prep;
                 try {
                     ResultSetMetaData meta = prep.getMetaData();
                     sendRowDescription(meta);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     sendErrorResponse(e);
                 }
             } else {
@@ -286,7 +287,7 @@ public class PgServerThread implements Runnable {
             String name = readString();
             server.log("Execute");
             Portal p = (Portal) portals.get(name);
-            if(p == null) {
+            if (p == null) {
                 sendErrorResponse("Portal not found: " + name);
                 break;
             }
@@ -296,22 +297,22 @@ public class PgServerThread implements Runnable {
             try {
                 prep.setMaxRows(maxRows);
                 boolean result = prep.execute();
-                if(result) {
+                if (result) {
                     try {
                         ResultSet rs = prep.getResultSet();
                         ResultSetMetaData meta = rs.getMetaData();
                         sendRowDescription(meta);
-                        while(rs.next()) {
+                        while (rs.next()) {
                             sendDataRow(p.resultColumnFormat, rs);
                         }
                         sendCommandComplete(p.sql, 0);
-                    } catch(SQLException e) {
+                    } catch (SQLException e) {
                         sendErrorResponse(e);
                     }
                 } else {
                     sendCommandComplete(p.sql, prep.getUpdateCount());
                 }
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 sendErrorResponse(e);
             }
             break;
@@ -325,28 +326,28 @@ public class PgServerThread implements Runnable {
             server.log("Query");
             String query = readString();
             ScriptReader reader = new ScriptReader(new StringReader(query));
-            while(true) {
+            while (true) {
                 Statement stat = null;
                 try {
                     String s = reader.readStatement();
-                    if(s == null) {
+                    if (s == null) {
                         break;
                     }
                     s = getSQL(s);
                     stat = conn.createStatement();
                     boolean result = stat.execute(s);
-                    if(result) {
+                    if (result) {
                         ResultSet rs = stat.getResultSet();
                         ResultSetMetaData meta = rs.getMetaData();
-                        sendRowDescription(meta);                        
-                        while(rs.next()) {
+                        sendRowDescription(meta);
+                        while (rs.next()) {
                             sendDataRow(null, rs);
                         }
                         sendCommandComplete(s, 0);
                     } else {
                         sendCommandComplete(s, stat.getUpdateCount());
                     }
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     sendErrorResponse(e);
                 } finally {
                     JdbcUtils.closeSilently(stat);
@@ -361,45 +362,45 @@ public class PgServerThread implements Runnable {
             break;
         }
         default:
-            error("Unsupported: " + x + " (" + (char)x + ")", null);
+            error("Unsupported: " + x + " (" + (char) x + ")", null);
             break;
         }
     }
-    
+
     private void checkType(int type) {
-        if(types.contains(ObjectUtils.getInteger(type))) {
+        if (types.contains(ObjectUtils.getInteger(type))) {
             error("Unsupported type: " + type, null);
         }
     }
 
     private String getSQL(String s) {
         String lower = s.toLowerCase();
-        if(lower.startsWith("show max_identifier_length")) {
+        if (lower.startsWith("show max_identifier_length")) {
             s = "CALL 63";
-        } else if(lower.startsWith("set client_encoding to")) {
+        } else if (lower.startsWith("set client_encoding to")) {
             s = "set DATESTYLE ISO";
         }
         // s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
-        if(server.getLog()) {
+        if (server.getLog()) {
             server.log(s + ";");
         }
         return s;
     }
-    
+
     private void sendCommandComplete(String sql, int updateCount) throws IOException {
         startMessage('C');
         sql = sql.trim().toUpperCase();
         // TODO remove remarks at the beginning
         String tag;
-        if(sql.startsWith("INSERT")) {
+        if (sql.startsWith("INSERT")) {
             tag = "INSERT 0 " + updateCount;
-        } else if(sql.startsWith("DELETE")) {
+        } else if (sql.startsWith("DELETE")) {
             tag = "DELETE " + updateCount;
-        } else if(sql.startsWith("UPDATE")) {
+        } else if (sql.startsWith("UPDATE")) {
             tag = "UPDATE " + updateCount;
-        } else if(sql.startsWith("SELECT") || sql.startsWith("CALL")) {
+        } else if (sql.startsWith("SELECT") || sql.startsWith("CALL")) {
             tag = "SELECT";
-        } else if(sql.startsWith("BEGIN")) {
+        } else if (sql.startsWith("BEGIN")) {
             tag = "BEGIN";
         } else {
             error("check command tag: " + sql, null);
@@ -413,14 +414,14 @@ public class PgServerThread implements Runnable {
         try {
             int columns = rs.getMetaData().getColumnCount();
             String[] values = new String[columns];
-            for(int i=0; i<columns; i++) {
+            for (int i = 0; i < columns; i++) {
                 values[i] = rs.getString(i + 1);
             }
             startMessage('D');
             writeShort(columns);
-            for(int i=0; i<columns; i++) {
+            for (int i = 0; i < columns; i++) {
                 String s = values[i];
-                if(s == null) {
+                if (s == null) {
                     writeInt(-1);
                 } else {
                     // TODO write Binary data
@@ -430,13 +431,13 @@ public class PgServerThread implements Runnable {
                 }
             }
             sendMessage();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             sendErrorResponse(e);
         }
     }
-    
+
     private String getEncoding() {
-        if("UNICODE".equals(clientEncoding)) {
+        if ("UNICODE".equals(clientEncoding)) {
             return "UTF-8";
         }
         return clientEncoding;
@@ -446,18 +447,18 @@ public class PgServerThread implements Runnable {
         boolean text = (i >= formatCodes.length) || (formatCodes[i] == 0);
         String s;
         try {
-            if(text) {
+            if (text) {
                 s = new String(d2, getEncoding());
             } else {
                 server.logError(new SQLException("Binary format not supported"));
                 s = new String(d2, getEncoding());
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             error("conversion error", e);
             s = null;
         }
         // if(server.getLog()) {
-        //  server.log(" " + i + ": " + s);
+        // server.log(" " + i + ": " + s);
         // }
         prep.setString(i + 1, s);
     }
@@ -484,9 +485,9 @@ public class PgServerThread implements Runnable {
             int count = meta.getParameterCount();
             startMessage('t');
             writeShort(count);
-            for(int i=0; i<count; i++) {
+            for (int i = 0; i < count; i++) {
                 int type;
-                if(p.paramType != null && p.paramType[i] != 0) {
+                if (p.paramType != null && p.paramType[i] != 0) {
                     type = p.paramType[i];
                 } else {
                     type = TYPE_STRING;
@@ -495,7 +496,7 @@ public class PgServerThread implements Runnable {
                 writeInt(type);
             }
             sendMessage();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             sendErrorResponse(e);
         }
     }
@@ -507,14 +508,14 @@ public class PgServerThread implements Runnable {
 
     private void sendRowDescription(ResultSetMetaData meta) throws IOException {
         try {
-            if(meta == null) {
+            if (meta == null) {
                 sendNoData();
             } else {
                 int columns = meta.getColumnCount();
                 int[] types = new int[columns];
                 int[] precision = new int[columns];
                 String[] names = new String[columns];
-                for(int i=0; i<columns; i++) {
+                for (int i = 0; i < columns; i++) {
                     names[i] = meta.getColumnName(i + 1);
                     int type = meta.getColumnType(i + 1);
                     precision[i] = meta.getColumnDisplaySize(i + 1);
@@ -523,7 +524,7 @@ public class PgServerThread implements Runnable {
                 }
                 startMessage('T');
                 writeShort(columns);
-                for(int i=0; i<columns; i++) {
+                for (int i = 0; i < columns; i++) {
                     writeString(names[i].toLowerCase());
                     writeInt(0); // object ID
                     writeShort(0); // attribute number of the column
@@ -532,19 +533,20 @@ public class PgServerThread implements Runnable {
                     writeInt(getModifier(types[i])); // pg_attribute.atttypmod
                     writeShort(0); // text
                 }
-                sendMessage();        
+                sendMessage();
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             sendErrorResponse(e);
         }
     }
-    
+
     private int getTypeSize(int type, int precision) {
-        switch(type) {
+        switch (type) {
         case Types.VARCHAR:
             return Math.max(255, precision + 10);
+        default:
+            return precision + 4;
         }
-        return precision + 4;
     }
     
     private int getModifier(int type) {
@@ -581,10 +583,10 @@ public class PgServerThread implements Runnable {
             rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
             boolean tableFound = rs.next();
             stat = conn.createStatement();
-            if(tableFound) {
+            if (tableFound) {
                 rs = stat.executeQuery("SELECT VERSION FROM PG_CATALOG.PG_VERSION");
-                if(rs.next()) {
-                    if(rs.getInt(1) == 1) {
+                if (rs.next()) {
+                    if (rs.getInt(1) == 1) {
                         // already installed
                         stat.execute("set search_path = PUBLIC, pg_catalog");
                         return;
@@ -593,17 +595,17 @@ public class PgServerThread implements Runnable {
             }
             r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
             ScriptReader reader = new ScriptReader(new BufferedReader(r));
-            while(true) {
+            while (true) {
                 String sql = reader.readStatement();
-                if(sql == null) {
+                if (sql == null) {
                     break;
                 }
                 stat.execute(sql);
             }
             reader.close();
-            
+
             rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
-            while(rs.next()) {
+            while (rs.next()) {
                 types.add(ObjectUtils.getInteger(rs.getInt(1)));
             }
         } finally {
@@ -617,11 +619,11 @@ public class PgServerThread implements Runnable {
         try {
             stop = true;
             JdbcUtils.closeSilently(conn);
-            if(socket != null) {
+            if (socket != null) {
                 socket.close();
             }
             server.log("Close");
-        } catch(Exception e) {
+        } catch (Exception e) {
             server.logError(e);
         }
         conn = null;
@@ -656,12 +658,12 @@ public class PgServerThread implements Runnable {
         startMessage('Z');
         char c;
         try {
-            if(conn.getAutoCommit()) {
+            if (conn.getAutoCommit()) {
                 c = 'I'; // idle
             } else {
                 c = 'T'; // in a transaction block
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             c = 'E'; // failed transaction block
         }
         write((byte) c);

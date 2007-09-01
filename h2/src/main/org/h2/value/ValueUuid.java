@@ -21,7 +21,7 @@ public class ValueUuid extends Value {
     }
 
     public int hashCode() {
-        return (int)((high >>> 32) ^ high ^ (low >>> 32) ^ low);
+        return (int) ((high >>> 32) ^ high ^ (low >>> 32) ^ low);
     }
 
     public static ValueUuid getNewRandom() {
@@ -33,7 +33,7 @@ public class ValueUuid extends Value {
     }
 
     public static ValueUuid get(byte[] binary) {
-        if(binary.length < 32) {
+        if (binary.length < 32) {
             return get(ByteUtils.convertBytesToString(binary));
         }
         long high = ByteUtils.readLong(binary, 0);
@@ -47,17 +47,17 @@ public class ValueUuid extends Value {
 
     public static ValueUuid get(String s) {
         long high = 0, low = 0;
-        int i=0;
-        for(int j=0; i<s.length() && j<16; i++) {
+        int i = 0;
+        for (int j = 0; i < s.length() && j < 16; i++) {
             char ch = s.charAt(i);
-            if(ch != '-') {
+            if (ch != '-') {
                 high = (high << 4) | Character.digit(ch, 16);
                 j++;
             }
         }
-        for(int j=0; i<s.length() && j<16; i++) {
+        for (int j = 0; i < s.length() && j < 16; i++) {
             char ch = s.charAt(i);
-            if(ch != '-') {
+            if (ch != '-') {
                 low = (low << 4) | Character.digit(ch, 16);
                 j++;
             }
@@ -82,9 +82,9 @@ public class ValueUuid extends Value {
     }
 
     private void appendHex(StringBuffer buff, long x, int bytes) {
-        for (int i = bytes*8-4; i >= 0; i-=8) {
-            buff.append(Integer.toHexString((int)(x >> i) & 0xf));
-            buff.append(Integer.toHexString((int)(x >> (i-4)) & 0xf));
+        for (int i = bytes * 8 - 4; i >= 0; i -= 8) {
+            buff.append(Integer.toHexString((int) (x >> i) & 0xf));
+            buff.append(Integer.toHexString((int) (x >> (i - 4)) & 0xf));
         }
     }
 
@@ -122,9 +122,9 @@ public class ValueUuid extends Value {
 
     public byte[] getBytes() {
         byte[] buff = new byte[16];
-        for(int i=0; i<8; i++) {
-            buff[i] = (byte)((high >> (8*(8-i))) & 255);
-            buff[8+i] = (byte)((low >> (8*(8-i))) & 255);
+        for (int i = 0; i < 8; i++) {
+            buff[i] = (byte) ((high >> (8 * (8 - i))) & 255);
+            buff[8 + i] = (byte) ((low >> (8 * (8 - i))) & 255);
         }
         return buff;
     }

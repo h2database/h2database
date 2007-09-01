@@ -38,17 +38,17 @@ public class ObjectArray {
         size = collection.size();
         data = new Object[size];
         Iterator it = collection.iterator();
-        for(int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             data[i] = it.next();
         }
     }
-    
+
     private void throwException(int index) {
         throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
     }
 
     public void add(Object value) {
-        if(size >= data.length) {
+        if (size >= data.length) {
             ensureCapacity(size);
         }
         data[size++] = value;
@@ -80,7 +80,7 @@ public class ObjectArray {
         }
         System.arraycopy(data, to, data, from, size - to);
         size -= to - from;
-        for(int i=size + (to-from) - 1; i>=size; i--) {
+        for (int i = size + (to - from) - 1; i >= size; i--) {
             data[i] = null;
         }
     }
@@ -124,16 +124,16 @@ public class ObjectArray {
     }
 
     public void toArray(Object[] array) {
-        for(int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             array[i] = data[i];
         }
     }
 
     public void clear() {
-        if(data.length > SIZE_SHRINK) {
+        if (data.length > SIZE_SHRINK) {
             data = new Object[SIZE_INIT];
         } else {
-            for(int i=0; i<size; i++) {
+            for (int i = 0; i < size; i++) {
                 data[i] = null;
             }
         }
@@ -141,8 +141,8 @@ public class ObjectArray {
     }
 
     public int indexOf(Object o) {
-        for(int i=0; i<size; i++) {
-            if(data[i] == o) {
+        for (int i = 0; i < size; i++) {
+            if (data[i] == o) {
                 return i;
             }
         }
@@ -150,21 +150,21 @@ public class ObjectArray {
     }
 
     public void addAll(ObjectArray list) {
-        for(int i=0; i<list.size; i++) {
+        for (int i = 0; i < list.size; i++) {
             add(list.get(i));
         }
     }
-    
+
     private void swap(int l, int r) {
         Object t = data[r];
         data[r] = data[l];
         data[l] = t;
     }
-    
+
     public void sort(Comparator comp) {
-        sort(comp, 0, size-1);
+        sort(comp, 0, size - 1);
     }
-    
+
     private void sort(Comparator comp, int l, int r) {
         // quicksort
         int i, j;

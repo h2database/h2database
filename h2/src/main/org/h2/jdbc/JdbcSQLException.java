@@ -40,11 +40,11 @@ public class JdbcSQLException extends SQLException {
     }
     
     private static String buildMessage(String message, String sql, String state) {
-        if(message == null) {
+        if (message == null) {
             message = "";
         }
         StringBuffer buff = new StringBuffer(message);
-        if(sql != null) {
+        if (sql != null) {
             buff.append("; SQL statement: ");
             buff.append(sql);
         }
@@ -70,7 +70,7 @@ public class JdbcSQLException extends SQLException {
         }
 */
 //#endif    
-        if(getNextException() != null) {
+        if (getNextException() != null) {
             getNextException().printStackTrace();
         }
     }
@@ -81,7 +81,7 @@ public class JdbcSQLException extends SQLException {
      * @param s the print writer
      */
     public void printStackTrace(PrintWriter s) {
-        if(s!=null) {
+        if (s != null) {
             super.printStackTrace(s);
 //#ifdef JDK13
 /*
@@ -90,7 +90,7 @@ public class JdbcSQLException extends SQLException {
             }
 */
 //#endif    
-            if(getNextException() != null) {
+            if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
         }
@@ -102,7 +102,7 @@ public class JdbcSQLException extends SQLException {
      * @param s the print stream
      */
     public void printStackTrace(PrintStream s) {
-        if(s!=null) {
+        if (s != null) {
             super.printStackTrace(s);
 //#ifdef JDK13
 /*
@@ -111,7 +111,7 @@ public class JdbcSQLException extends SQLException {
             }
 */
 //#endif    
-            if(getNextException() != null) {
+            if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
         }
@@ -139,7 +139,7 @@ public class JdbcSQLException extends SQLException {
      * @return the string representation
      */    
     public String toString() {
-        if(trace == null) {
+        if (trace == null) {
             return super.toString();
         } else {
             return trace;

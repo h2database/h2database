@@ -123,7 +123,7 @@ public class ValueFloat extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueFloat && value == ((ValueFloat)v).value;
+        return v instanceof ValueFloat && value == ((ValueFloat) v).value;
     }
 
 }

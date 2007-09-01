@@ -30,30 +30,30 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
 /**
- * Small FTP Server. Intended for ad-hoc networks in a secure environment.
- * See also http://cr.yp.to/ftp.html http://www.ftpguide.com/
+ * Small FTP Server. Intended for ad-hoc networks in a secure environment. See
+ * also http://cr.yp.to/ftp.html http://www.ftpguide.com/
  */
 public class FtpServer implements Service {
-    
+
     public static final String DEFAULT_ROOT = "ftp";
     public static final String DEFAULT_READ = "guest";
     public static final String DEFAULT_WRITE = "sa";
     public static final String DEFAULT_WRITE_PASSWORD = "sa";
-    
+
     private ServerSocket serverSocket;
     private int port = Constants.DEFAULT_FTP_PORT;
     private int openConnectionCount;
     private int maxConnectionCount = 100;
-    
+
     private SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
     private SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-    
+
     private String root = DEFAULT_ROOT;
     private String writeUserName = DEFAULT_WRITE, writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
     private HashMap tasks = new HashMap();
-    
+
     private FileSystemDatabase db;
     private boolean log;
     private boolean allowTask;
@@ -64,7 +64,7 @@ public class FtpServer implements Service {
             while (serverSocket != null) {
                 Socket s = serverSocket.accept();
                 boolean stop;
-                synchronized(this) {
+                synchronized (this) {
                     openConnectionCount++;
                     stop = openConnectionCount > maxConnectionCount;
                 }
@@ -75,9 +75,9 @@ public class FtpServer implements Service {
             logError(e);
         }
     }
-    
+
     void closeConnection() {
-        synchronized(this) {
+        synchronized (this) {
             openConnectionCount--;
         }
     }
@@ -86,26 +86,26 @@ public class FtpServer implements Service {
         ServerSocket dataSocket = new ServerSocket(0);
         return dataSocket;
     }
-    
+
     void appendFile(StringBuffer buff, FileObject f) {
         buff.append(f.isDirectory() ? 'd' : '-');
         buff.append(f.canRead() ? 'r' : '-');
         buff.append(f.canWrite() ? 'w' : '-');
         buff.append("------- 1 owner group ");
         String size = String.valueOf(f.length());
-        for(int i = size.length(); i < 15; i++) {
+        for (int i = size.length(); i < 15; i++) {
             buff.append(' ');
         }
         buff.append(size);
         buff.append(' ');
         Date now = new Date(), mod = new Date(f.lastModified());
         String date;
-        if(mod.after(now) || Math.abs((now.getTime() - mod.getTime())/1000/60/60/24) > 180) {
-            synchronized(dateFormatOld) {
+        if (mod.after(now) || Math.abs((now.getTime() - mod.getTime()) / 1000 / 60 / 60 / 24) > 180) {
+            synchronized (dateFormatOld) {
                 date = dateFormatOld.format(mod);
             }
         } else {
-            synchronized(dateFormatNew) {
+            synchronized (dateFormatNew) {
                 date = dateFormatNew.format(mod);
             }
         }
@@ -116,41 +116,41 @@ public class FtpServer implements Service {
     }
 
     String formatLastModified(FileObject file) {
-        synchronized(dateFormat) {
+        synchronized (dateFormat) {
             return dateFormat.format(new Date(file.lastModified()));
         }
-    }     
-    
+    }
+
     FileObject getFile(String path) {
-        if(path.indexOf("..") > 0) {
+        if (path.indexOf("..") > 0) {
             path = "/";
         }
-        while(path.startsWith("/") && root.endsWith("/")) {
+        while (path.startsWith("/") && root.endsWith("/")) {
             path = path.substring(1);
         }
-        while(path.endsWith("/")) {
-            path = path.substring(0, path.length()-1);
+        while (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
         }
         log("file: " + root + path);
-        if(db != null) {
+        if (db != null) {
             return FileObjectDatabase.get(db, root + path);
         } else {
             return FileObjectNative.get(root + path);
         }
     }
-    
+
     String getDirectoryListing(FileObject directory, boolean listDirectories) {
         FileObject[] list = directory.listFiles();
         StringBuffer buff = new StringBuffer();
-        for(int i=0; list != null && i<list.length; i++) {
+        for (int i = 0; list != null && i < list.length; i++) {
             FileObject f = list[i];
-            if(f.isFile() || (f.isDirectory() && listDirectories)) {
+            if (f.isFile() || (f.isDirectory() && listDirectories)) {
                 appendFile(buff, f);
             }
         }
         return buff.toString();
     }
-    
+
     public boolean checkUserPassword(String userName, String password) {
         return userName.equals(this.writeUserName) && password.equals(this.writePassword);
     }
@@ -160,28 +160,28 @@ public class FtpServer implements Service {
     }
 
     public void init(String[] args) throws Exception {
-        for(int i=0; args != null && i<args.length; i++) {
-            if("-ftpPort".equals(args[i])) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if ("-ftpPort".equals(args[i])) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else if("-ftpDir".equals(args[i])) {
+            } else if ("-ftpDir".equals(args[i])) {
                 root = FileUtils.translateFileName(args[++i]);
-            } else if("-ftpRead".equals(args[i])) {
+            } else if ("-ftpRead".equals(args[i])) {
                 readUserName = args[++i];
-            } else if("-ftpWrite".equals(args[i])) {
+            } else if ("-ftpWrite".equals(args[i])) {
                 writeUserName = args[++i];
-            } else if("-ftpWritePassword".equals(args[i])) {
+            } else if ("-ftpWritePassword".equals(args[i])) {
                 writePassword = args[++i];
-            } else if("-log".equals(args[i])) {
+            } else if ("-log".equals(args[i])) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
-            } else if("-ftpTask".equals(args[i])) {
+            } else if ("-ftpTask".equals(args[i])) {
                 allowTask = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
-        if(root.startsWith("jdbc:")) {
+        if (root.startsWith("jdbc:")) {
             Connection conn;
-            if(root.startsWith("jdbc:h2:")) {
+            if (root.startsWith("jdbc:h2:")) {
                 // avoid using DriverManager if possible
-                conn = Driver.load().connect(root, new Properties());                
+                conn = Driver.load().connect(root, new Properties());
             } else {
                 conn = DriverManager.getConnection(root);
             }
@@ -191,7 +191,7 @@ public class FtpServer implements Service {
     }
 
     public String getURL() {
-        return "ftp://localhost:"+port;
+        return "ftp://localhost:" + port;
     }
 
     public void start() throws SQLException {
@@ -202,23 +202,23 @@ public class FtpServer implements Service {
     public void stop() {
         try {
             serverSocket.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             logError(e);
         }
         serverSocket = null;
     }
 
     public boolean isRunning() {
-        if(serverSocket == null) {
+        if (serverSocket == null) {
             return false;
         }
         try {
             Socket s = NetUtils.createLoopbackSocket(port, false);
             s.close();
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             return false;
-        }        
+        }
     }
 
     public boolean getAllowOthers() {
@@ -228,13 +228,13 @@ public class FtpServer implements Service {
     public String getType() {
         return "FTP";
     }
-    
+
     void log(String s) {
-        if(log) {
+        if (log) {
             System.out.println(s);
         }
     }
-    
+
     void logError(Throwable e) {
         if (log) {
             e.printStackTrace();
@@ -248,11 +248,11 @@ public class FtpServer implements Service {
     void startTask(FileObject file) throws IOException {
         stopTask(file);
         String processName = file.getName();
-        if(file.getName().endsWith(".zip.task")) {
+        if (file.getName().endsWith(".zip.task")) {
             log("expand: " + file.getName());
             Process p = Runtime.getRuntime().exec("jar -xf " + file.getName(), null, new File(root));
             String processFile = root + "/" + processName;
-            new StreamRedirect(processFile, p.getInputStream(), null).start();            
+            new StreamRedirect(processFile, p.getInputStream(), null).start();
             return;
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -263,7 +263,7 @@ public class FtpServer implements Service {
         String command = prop.getProperty("command");
         String outFile = processName.substring(0, processName.length() - TASK_SUFFIX.length());
         String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");
-        String outputFile= root + "/" + prop.getProperty("output", outFile + ".out.txt");
+        String outputFile = root + "/" + prop.getProperty("output", outFile + ".out.txt");
         String processFile = root + "/" + processName;
         log("start process: " + processName + " / " + command);
         Process p = Runtime.getRuntime().exec(command, null, new File(root));
@@ -271,42 +271,42 @@ public class FtpServer implements Service {
         new StreamRedirect(processFile, p.getInputStream(), outputFile).start();
         tasks.put(processName, p);
     }
-    
+
     private static class StreamRedirect extends Thread {
         private InputStream in;
         private OutputStream out;
         private String outFile;
         private String processFile;
-        
+
         StreamRedirect(String processFile, InputStream in, String outFile) {
             this.processFile = processFile;
             this.in = in;
             this.outFile = outFile;
         }
-        
+
         private void openOutput() {
-            if(outFile != null) {
+            if (outFile != null) {
                 try {
                     this.out = FileUtils.openFileOutputStream(outFile);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // ignore
                 }
                 outFile = null;
             }
         }
-        
+
         public void run() {
-            while(true) {
+            while (true) {
                 try {
                     int x = in.read();
-                    if(x < 0) {
+                    if (x < 0) {
                         break;
                     }
                     openOutput();
-                    if(out != null) {
+                    if (out != null) {
                         out.write(x);
                     }
-                } catch(IOException e) {
+                } catch (IOException e) {
                     // ignore
                 }
             }
@@ -320,10 +320,10 @@ public class FtpServer implements Service {
         String processName = file.getName();
         log("kill process: " + processName);
         Process p = (Process) tasks.remove(processName);
-        if(p == null) {
+        if (p == null) {
             return;
         }
         p.destroy();
-    }    
+    }
 
 }

@@ -50,7 +50,7 @@ public class ConstraintCheck extends Constraint {
         buff.append(table.getSQL());
         buff.append(" ADD CONSTRAINT ");
         buff.append(quotedName);
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
@@ -85,12 +85,12 @@ public class ConstraintCheck extends Constraint {
     }
     
     public void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException {
-        if(newRow == null) {
+        if (newRow == null) {
             return;
         }
         filter.set(newRow);
         // Both TRUE and NULL are ok
-        if(Boolean.FALSE.equals(expr.getValue(session).getBoolean())) {
+        if (Boolean.FALSE.equals(expr.getValue(session).getBoolean())) {
             throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
         }
     }
@@ -100,7 +100,8 @@ public class ConstraintCheck extends Constraint {
     }
 
     public boolean containsColumn(Column col) {
-        // TODO check constraints / containsColumn: this is cheating, maybe the column is not referenced
+        // TODO check constraints / containsColumn: this is cheating, maybe the
+        // column is not referenced
         String s = col.getSQL();
         String sql = getCreateSQL();
         return sql.indexOf(s) >= 0;
@@ -115,7 +116,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     public void checkExistingData(Session session) throws SQLException {
-        if(session.getDatabase().isStarting()) {
+        if (session.getDatabase().isStarting()) {
             // don't check at startup
             return;
         }
@@ -127,9 +128,9 @@ public class ConstraintCheck extends Constraint {
         buff.append(")");
         String sql = buff.toString();
         LocalResult r = session.prepare(sql).query(1);
-        if(r.next()) {
+        if (r.next()) {
             throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
         }
     }
-    
+
 }

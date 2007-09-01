@@ -25,17 +25,17 @@ public class FileStoreInputStream extends InputStream {
     public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) throws SQLException {
         this.store = store;
         this.alwaysClose = alwaysClose;
-        if(compression) {
+        if (compression) {
             compress = CompressTool.getInstance();
         }
         page = DataPage.create(handler, Constants.FILE_BLOCK_SIZE);
         try {
-            if(store.length() <= FileStore.HEADER_LENGTH) {
+            if (store.length() <= FileStore.HEADER_LENGTH) {
                 close();
             } else {
                 fillBuffer();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, store.name);
         }
     }
@@ -47,15 +47,15 @@ public class FileStoreInputStream extends InputStream {
     public int read(byte[] buff) throws IOException {
         return read(buff, 0, buff.length);
     }
-    
+
     public int read(byte[] b, int off, int len) throws IOException {
-        if(len == 0) {
+        if (len == 0) {
             return 0;
         }
         int read = 0;
-        while(len > 0) {
+        while (len > 0) {
             int r = readBlock(b, off, len);
-            if(r < 0) {
+            if (r < 0) {
                 break;
             }
             read += r;
@@ -64,10 +64,10 @@ public class FileStoreInputStream extends InputStream {
         }
         return read == 0 ? -1 : read;
     }
-    
+
     public int readBlock(byte[] buff, int off, int len) throws IOException {
         fillBuffer();
-        if(endOfFile) {
+        if (endOfFile) {
             return -1;
         }
         int l = Math.min(remainingInBuffer, len);
@@ -75,31 +75,31 @@ public class FileStoreInputStream extends InputStream {
         remainingInBuffer -= l;
         return l;
     }
-    
+
     private void fillBuffer() throws IOException {
-        if(remainingInBuffer > 0 || endOfFile) {
+        if (remainingInBuffer > 0 || endOfFile) {
             return;
         }
         page.reset();
         try {
             store.openFile();
-            if(store.length() == store.getFilePointer()) {
+            if (store.length() == store.getFilePointer()) {
                 close();
                 return;
             }
             store.readFully(page.getBytes(), 0, Constants.FILE_BLOCK_SIZE);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }
         page.reset();
         remainingInBuffer = page.readInt();
-        if(remainingInBuffer<0) {
+        if (remainingInBuffer < 0) {
             close();
             return;
         }
         page.checkCapacity(remainingInBuffer);
         // get the length to read
-        if(compress != null) {
+        if (compress != null) {
             page.checkCapacity(page.getIntLen());
             page.readInt();
         }
@@ -112,7 +112,7 @@ public class FileStoreInputStream extends InputStream {
             store.readFully(page.getBytes(), Constants.FILE_BLOCK_SIZE, len);
             page.reset();
             page.readInt();
-            if(compress != null) {
+            if (compress != null) {
                 int uncompressed = page.readInt();
                 byte[] buff = new byte[remainingInBuffer];
                 page.read(buff, 0, remainingInBuffer);
@@ -121,16 +121,16 @@ public class FileStoreInputStream extends InputStream {
                 compress.expand(buff, page.getBytes(), 0);
                 remainingInBuffer = uncompressed;
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }
-        if(alwaysClose) {
+        if (alwaysClose) {
             store.closeFile();
         }
     }
-    
+
     public void close() throws IOException {
-        if(store != null) {
+        if (store != null) {
             try {
                 store.close();
                 endOfFile = true;
@@ -139,21 +139,21 @@ public class FileStoreInputStream extends InputStream {
             }
         }
     }
-    
+
     protected void finalize() {
         if (!SysProperties.runFinalize) {
             return;
-        }    
+        }
         try {
             close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             // ignore
         }
     }
-    
+
     public int read() throws IOException {
         fillBuffer();
-        if(endOfFile) {
+        if (endOfFile) {
             return -1;
         }
         int i = page.readByte() & 0xff;

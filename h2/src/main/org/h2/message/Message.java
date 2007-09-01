@@ -32,17 +32,17 @@ public class Message {
     static {
         try {
             byte[] messages = Resources.get("/org/h2/res/_messages_en.properties");
-            if(messages != null) {
+            if (messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
             String language = Locale.getDefault().getLanguage();
-            if(!"en".equals(language)) {
+            if (!"en".equals(language)) {
                 byte[] translations = Resources.get("/org/h2/res/_messages_"+language+".properties");
                 // message: translated message + english (otherwise certain applications don't work)
-                if(translations != null) {
+                if (translations != null) {
                     Properties p = new Properties();
                     p.load(new ByteArrayInputStream(translations));
-                    for(Iterator it = p.entrySet().iterator(); it.hasNext(); ) {
+                    for (Iterator it = p.entrySet().iterator(); it.hasNext();) {
                         Entry e = (Entry) it.next();
                         String key = (String) e.getKey();
                         MESSAGES.put(key, e.getValue() + "\n" + MESSAGES.getProperty(key));
@@ -68,7 +68,7 @@ public class Message {
 
     public static String translate(String key, String[] param) {
         String message = MESSAGES.getProperty(key);
-        if(message == null) {
+        if (message == null) {
             message = "(Message " +key+ " not found)";
         }
         if (param != null) {
@@ -106,7 +106,7 @@ public class Message {
      * @return the SQLException object
      */
     public static JdbcSQLException getSQLException(int sqlstate) {
-        return getSQLException(sqlstate, (String)null);
+        return getSQLException(sqlstate, (String) null);
     }
 
     public static JdbcSQLException getUnsupportedException() {
@@ -137,9 +137,9 @@ public class Message {
     }
 
     public static SQLException addSQL(SQLException e, String sql) {
-        if(e instanceof JdbcSQLException) {
+        if (e instanceof JdbcSQLException) {
             JdbcSQLException j = (JdbcSQLException) e;
-            if(j.getSQL() != null) {
+            if (j.getSQL() != null) {
                 return j;
             }
             return new JdbcSQLException(j.getOriginalMessage(), j.getSQL(), 
@@ -153,26 +153,26 @@ public class Message {
     }
 
     public static SQLException convert(Throwable e) {
-        if(e instanceof InternalException) {
-            e = ((InternalException)e).getOriginalCause();
+        if (e instanceof InternalException) {
+            e = ((InternalException) e).getOriginalCause();
         }
-        if(e instanceof SQLException) {
-            return (SQLException)e;
-        } else if(e instanceof InvocationTargetException) {
-            InvocationTargetException te = (InvocationTargetException)e;
+        if (e instanceof SQLException) {
+            return (SQLException) e;
+        } else if (e instanceof InvocationTargetException) {
+            InvocationTargetException te = (InvocationTargetException) e;
             Throwable t = te.getTargetException();
-            if(t instanceof SQLException) {
-                return (SQLException)t;
+            if (t instanceof SQLException) {
+                return (SQLException) t;
             }
             return getSQLException(ErrorCode.EXCEPTION_IN_FUNCTION, null, e);
-        } else if(e instanceof IOException) {
-            return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[]{e.toString()}, e);
+        } else if (e instanceof IOException) {
+            return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[] { e.toString() }, e);
         }
         return getSQLException(ErrorCode.GENERAL_ERROR_1, new String[]{e.toString()}, e);
     }
     
     public static SQLException convertIOException(IOException e, String message) {
-        if(message == null) {
+        if (message == null) {
             return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[]{e.toString()}, e);
         } else {
             return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[]{e.toString(), message}, e);
@@ -188,9 +188,9 @@ public class Message {
     }
 
     public static IOException convertToIOException(Throwable e) {
-        if(e instanceof JdbcSQLException) {
-            JdbcSQLException e2 = (JdbcSQLException)e;
-            if(e2.getOriginalCause() != null) {
+        if (e instanceof JdbcSQLException) {
+            JdbcSQLException e2 = (JdbcSQLException) e;
+            if (e2.getOriginalCause() != null) {
                 e = e2.getOriginalCause();
             }
         }

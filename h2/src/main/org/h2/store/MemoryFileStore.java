@@ -22,7 +22,7 @@ public class MemoryFileStore extends FileStore {
     }
 
     public void close() {
-        // nothing to do
+        memFile.close();
     }
     
     public long getFilePointer() {
@@ -53,9 +53,11 @@ public class MemoryFileStore extends FileStore {
     }    
     
     public void closeFile() throws IOException {
+        memFile.close();
     }
 
     public void openFile() throws IOException {
+        memFile.open();
     }    
 
 }

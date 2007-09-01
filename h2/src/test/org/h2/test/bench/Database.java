@@ -61,40 +61,42 @@ class Database {
     }
     
     void startServer() throws Exception {
-        if(url.startsWith("jdbc:h2:tcp:")) {
+        if (url.startsWith("jdbc:h2:tcp:")) {
             serverH2 = Server.createTcpServer(new String[0]).start();
             Thread.sleep(100);
-        } else if(url.startsWith("jdbc:derby://")) {
+        } else if (url.startsWith("jdbc:derby://")) {
             serverDerby = Class.forName("org.apache.derby.drda.NetworkServerControl").newInstance();
-            Method m = serverDerby.getClass().getMethod("start", new Class[]{PrintWriter.class});
-            m.invoke(serverDerby, new Object[]{null});
+            Method m = serverDerby.getClass().getMethod("start", new Class[] { PrintWriter.class });
+            m.invoke(serverDerby, new Object[] { null });
             // serverDerby = new NetworkServerControl();
             // serverDerby.start(null);
             Thread.sleep(100);
-        } else if(url.startsWith("jdbc:hsqldb:hsql:")) {
-            if(!serverHSQLDB) {
+        } else if (url.startsWith("jdbc:hsqldb:hsql:")) {
+            if (!serverHSQLDB) {
                 Class c = Class.forName("org.hsqldb.Server");
-                Method m = c.getMethod("main", new Class[]{String[].class});
-                m.invoke(null, new Object[]{new String[]{"-database.0", "data/mydb;hsqldb.default_table_type=cached", "-dbname.0", "xdb"}});
-                // org.hsqldb.Server.main(new String[]{"-database.0", "mydb", "-dbname.0", "xdb"});
+                Method m = c.getMethod("main", new Class[] { String[].class });
+                m.invoke(null, new Object[] { new String[] { "-database.0",
+                        "data/mydb;hsqldb.default_table_type=cached", "-dbname.0", "xdb" } });
+                // org.hsqldb.Server.main(new String[]{"-database.0", "mydb",
+                // "-dbname.0", "xdb"});
                 serverHSQLDB = true;
                 Thread.sleep(100);
             }
         }
     }
-    
+
     void stopServer() throws Exception {
-        if(serverH2 != null) {
+        if (serverH2 != null) {
             serverH2.stop();
             serverH2 = null;
         }
-        if(serverDerby != null) {
-            Method m = serverDerby.getClass().getMethod("shutdown", new Class[]{});
+        if (serverDerby != null) {
+            Method m = serverDerby.getClass().getMethod("shutdown", new Class[] {});
             // cast for JDK 1.5
-            m.invoke(serverDerby, (Object[])null);
+            m.invoke(serverDerby, (Object[]) null);
             // serverDerby.shutdown();
             serverDerby = null;
-        } else if(serverHSQLDB) {
+        } else if (serverHSQLDB) {
             // can not shut down (shutdown calls System.exit)
             // openConnection();
             // update("SHUTDOWN");
@@ -102,7 +104,7 @@ class Database {
             // serverHSQLDB = false;
         }
     }
-    
+
     static Database parse(TestPerformance test, int id, String dbString) {
         try {
             StringTokenizer tokenizer = new StringTokenizer(dbString, ",");
@@ -115,30 +117,34 @@ class Database {
             db.url = tokenizer.nextToken().trim();
             db.user = tokenizer.nextToken().trim();
             db.password = "";
-            if(tokenizer.hasMoreTokens()) {
+            if (tokenizer.hasMoreTokens()) {
                 db.password = tokenizer.nextToken().trim();
             }
             System.out.println("Loaded successfully: " + db.name);
             return db;
-        } catch(Exception e) {
-            System.out.println("Cannot load database " + dbString +" :" + e.toString());
+        } catch (Exception e) {
+            System.out.println("Cannot load database " + dbString + " :" + e.toString());
             return null;
         }
     }
-    
+
     Connection getConnection() throws Exception {
         Connection conn = DriverManager.getConnection(url, user, password);
-        if(url.startsWith("jdbc:derby:")) {
+        if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
             Statement stat = null;
             try {
                 stat = conn.createStatement();
-                // stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageCacheSize', '64')");
-                // stat.execute("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize', '8192')");
+                // stat.execute("CALL
+                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageCacheSize',
+                // '64')");
+                // stat.execute("CALL
+                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize',
+                // '8192')");
             } finally {
                 JdbcUtils.closeSilently(stat);
             }
-        } else if(url.startsWith("jdbc:hsqldb:")) {
+        } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
             Statement stat = null;
             try {
@@ -168,10 +174,10 @@ class Database {
     public void setTranslations(Properties prop) {
         String id = url.substring("jdbc:".length());
         id = id.substring(0, id.indexOf(':'));
-        for(Iterator it = prop.keySet().iterator(); it.hasNext(); ) {
-            String key = (String)it.next();
-            if(key.startsWith(id + ".")) {
-                String pattern = key.substring(id.length()+1);
+        for (Iterator it = prop.keySet().iterator(); it.hasNext();) {
+            String key = (String) it.next();
+            if (key.startsWith(id + ".")) {
+                String pattern = key.substring(id.length() + 1);
                 pattern = StringUtils.replaceAll(pattern, "_", " ");
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
@@ -186,7 +192,7 @@ class Database {
     }
     
     public String getSQL(String sql) {
-        for(int i=0; i<replace.size(); i++) {
+        for (int i = 0; i < replace.size(); i++) {
             String[] pair = (String[]) replace.get(i);
             String pattern = pair[0];
             String replace = pair[1];
@@ -194,16 +200,16 @@ class Database {
         }
         return sql;
     }
-    
+
     void start(Bench bench, String action) {
         this.action = bench.getName() + ": " + action;
         this.startTime = System.currentTimeMillis();
     }
-    
+
     void end() {
         long time = System.currentTimeMillis() - startTime;
-        log(action, "ms", (int)time);
-        if(test.collect) {
+        log(action, "ms", (int) time);
+        if (test.collect) {
             totalTime += time;
         }
     }
@@ -215,7 +221,7 @@ class Database {
             // ignore - table may not exist
         }
     }
-    
+
     public void update(PreparedStatement prep, String log) throws Exception {
         test.log(log);
         prep.executeUpdate();
@@ -224,8 +230,8 @@ class Database {
 
     public void update(String sql) throws Exception {
         sql = getSQL(sql);
-        if(sql.trim().length()>0) {
-            executedStatements++;        
+        if (sql.trim().length() > 0) {
+            executedStatements++;
             stat.execute(sql);
         } else {
             System.out.println("?");
@@ -235,9 +241,9 @@ class Database {
     public void setAutoCommit(boolean b) throws Exception {
         conn.setAutoCommit(b);
     }
-    
+
     public void commit() throws Exception {
-        conn.commit(); 
+        conn.commit();
     }
 
     public void rollback() throws Exception {
@@ -245,7 +251,7 @@ class Database {
     }
 
     void trace(String action, int i, int max) {
-      if (trace) {
+        if (trace) {
             long time = System.currentTimeMillis();
             if (i == 0 || lastTrace == 0) {
                 lastTrace = time;
@@ -255,14 +261,14 @@ class Database {
             }
         }
     }
-    
+
     void logMemory(Bench bench, String action) {
         log(bench.getName() + ": " + action, "MB", TestBase.getMemoryUsed());
     }
-    
+
     void log(String action, String scale, int value) {
-        if(test.collect) {
-            results.add(new Object[]{action, scale, new Integer(value)});
+        if (test.collect) {
+            results.add(new Object[] { action, scale, new Integer(value) });
         }
     }
 
@@ -281,9 +287,9 @@ class Database {
         ResultSet rs = prep.executeQuery();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        while(rs.next()) {
-            for(int i=0; i<columnCount; i++) {
-                rs.getString(i+1);
+        while (rs.next()) {
+            for (int i = 0; i < columnCount; i++) {
+                rs.getString(i + 1);
             }
         }
     }

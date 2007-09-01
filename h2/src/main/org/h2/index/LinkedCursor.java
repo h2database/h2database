@@ -48,15 +48,15 @@ public class LinkedCursor implements Cursor {
 
     public boolean next() throws SQLException {
         boolean result = rs.next();
-        if(!result) {
+        if (!result) {
             rs.close();
             current = null;
             return false;
         }
         current = table.getTemplateRow();
-        for(int i=0; i<current.getColumnCount(); i++) {
+        for (int i = 0; i < current.getColumnCount(); i++) {
             Column col = table.getColumn(i);
-            Value v = DataType.readValue(session, rs, i+1, col.getType());
+            Value v = DataType.readValue(session, rs, i + 1, col.getType());
             current.setValue(i, v);
         }
         return true;

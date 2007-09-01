@@ -21,7 +21,7 @@ import org.h2.value.ValueTimestamp;
 public class DateTimeUtils {
     
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
-        if(x != null) {
+        if (x != null) {
             Timestamp y = new Timestamp(getLocalTime(x, calendar));
             // fix the nano seconds
             y.setNanos(x.getNanos());
@@ -63,22 +63,22 @@ public class DateTimeUtils {
     }
 
     private static long getUniversalTime(Calendar source, java.util.Date x) throws SQLException {
-        if(source == null) {
+        if (source == null) {
             throw Message.getInvalidValueException("calendar", null);
         }
-        source = (Calendar)source.clone();
-        Calendar universal=Calendar.getInstance();
+        source = (Calendar) source.clone();
+        Calendar universal = Calendar.getInstance();
         source.setTime(x);
         convertTime(source, universal);
         return universal.getTime().getTime();
     }
 
     private static long getLocalTime(java.util.Date x, Calendar target) throws SQLException {
-        if(target == null) {
+        if (target == null) {
             throw Message.getInvalidValueException("calendar", null);
         }
-        target = (Calendar)target.clone();
-        Calendar local=Calendar.getInstance();
+        target = (Calendar) target.clone();
+        Calendar local = Calendar.getInstance();
         local.setTime(x);
         convertTime(local, target);
         return target.getTime().getTime();
@@ -101,7 +101,7 @@ public class DateTimeUtils {
     public static Time convertTimeToCalendar(Time x, Calendar calendar) throws SQLException {
         return x == null ? null : new Time(getLocalTime(x, calendar));
     }
-    
+
     public static java.util.Date parseDateTime(String original, int type, int errorCode) throws SQLException {
         String s = original;
         if (s == null) {
@@ -110,27 +110,27 @@ public class DateTimeUtils {
         try {
             int timeStart = 0;
             TimeZone tz = null;
-            if(type == Value.TIME) {
+            if (type == Value.TIME) {
                 timeStart = 0;
             } else {
                 timeStart = s.indexOf(' ') + 1;
-                if(timeStart <= 0) {
+                if (timeStart <= 0) {
                     // ISO 8601 compatibility
                     timeStart = s.indexOf('T') + 1;
                 }
             }
-            
+
             int year = 1970, month = 1, day = 1;
             if (type != Value.TIME) {
                 // support +year
-                if(s.startsWith("+")) {
+                if (s.startsWith("+")) {
                     s = s.substring(1);
                 }
                 // start at position 1 to support -year
                 int s1 = s.indexOf('-', 1);
                 int s2 = s.indexOf('-', s1 + 1);
-                if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, new String[]{s, "format yyyy-mm-dd"});
+                if (s1 <= 0 || s2 <= s1) {
+                    throw Message.getSQLException(errorCode, new String[] { s, "format yyyy-mm-dd" });
                 }
                 year = Integer.parseInt(s.substring(0, s1));
                 month = Integer.parseInt(s.substring(s1 + 1, s2));
@@ -142,28 +142,28 @@ public class DateTimeUtils {
                 int s1 = s.indexOf(':', timeStart);
                 int s2 = s.indexOf(':', s1 + 1);
                 int s3 = s.indexOf('.', s2 + 1);
-                if(s1 <= 0 || s2 <= s1) {
-                    throw Message.getSQLException(errorCode, new String[]{s, "format hh:mm:ss"});
+                if (s1 <= 0 || s2 <= s1) {
+                    throw Message.getSQLException(errorCode, new String[] { s, "format hh:mm:ss" });
                 }
-                
-                if(s.endsWith("Z")) {
-                    s = s.substring(0, s.length()-1);
+
+                if (s.endsWith("Z")) {
+                    s = s.substring(0, s.length() - 1);
                     tz = TimeZone.getTimeZone("UTC");
                 } else {
                     int timezoneStart = s.indexOf('+', s2 + 1);
-                    if(timezoneStart < 0) {
+                    if (timezoneStart < 0) {
                         timezoneStart = s.indexOf('-', s2 + 1);
                     }
-                    if(timezoneStart >= 0) {
+                    if (timezoneStart >= 0) {
                         String tzName = "GMT" + s.substring(timezoneStart);
                         tz = TimeZone.getTimeZone(tzName);
-                        if(!tz.getID().equals(tzName)) {
-                            throw Message.getSQLException(errorCode, new String[]{s, tz.getID() + " <>" + tzName});
+                        if (!tz.getID().equals(tzName)) {
+                            throw Message.getSQLException(errorCode, new String[] { s, tz.getID() + " <>" + tzName });
                         }
                         s = s.substring(0, timezoneStart).trim();
                     }
                 }
-                
+
                 hour = Integer.parseInt(s.substring(timeStart, s1));
                 minute = Integer.parseInt(s.substring(s1 + 1, s2));
                 if (s3 < 0) {
@@ -175,29 +175,29 @@ public class DateTimeUtils {
                 }
             }
             Calendar c;
-            if(tz == null) {
+            if (tz == null) {
                 c = Calendar.getInstance();
             } else {
                 c = Calendar.getInstance(tz);
             }
             c.setLenient(false);
             long time;
-            if(year <= 0) {
+            if (year <= 0) {
                 c.set(Calendar.ERA, GregorianCalendar.BC);
                 c.set(Calendar.YEAR, 1 - year);
             } else {
                 c.set(Calendar.YEAR, year);
-            }            
+            }
             c.set(Calendar.MONTH, month - 1); // january is 0
             c.set(Calendar.DAY_OF_MONTH, day);
             c.set(Calendar.HOUR_OF_DAY, hour);
             c.set(Calendar.MINUTE, minute);
             c.set(Calendar.SECOND, second);
-            if(type != Value.TIMESTAMP) {
+            if (type != Value.TIMESTAMP) {
                 c.set(Calendar.MILLISECOND, nano / 1000000);
             }
             time = c.getTime().getTime();
-            switch(type) {
+            switch (type) {
             case Value.DATE:
                 return new java.sql.Date(time);
             case Value.TIME:
@@ -208,9 +208,9 @@ public class DateTimeUtils {
                 return ts;
             }
             default:
-                throw Message.getInternalError("type:"+type);
+                throw Message.getInternalError("type:" + type);
             }
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw Message.getSQLException(errorCode, new String[]{original, e.toString()}, e);
         }
     }

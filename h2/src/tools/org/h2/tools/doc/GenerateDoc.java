@@ -22,11 +22,11 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 public class GenerateDoc {
-    
+
     public static void main(String[] args) throws Exception {
         new GenerateDoc().run(args);
     }
-    
+
     String inDir = "src/docsrc/html";
     String outDir = "docs/html";
     Connection conn;
@@ -35,10 +35,10 @@ public class GenerateDoc {
 
     void run(String[] args) throws Exception {
         System.out.println(getClass().getName());
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-in")) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-in")) {
                 inDir = args[++i];
-            } else if(args[i].equals("-out")) {
+            } else if (args[i].equals("-out")) {
                 outDir = args[++i];
             }
         }
@@ -51,29 +51,33 @@ public class GenerateDoc {
         map("commandsDDL", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DDL)' ORDER BY ID");
         map("commandsOther", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (Other)' ORDER BY ID");
         map("otherGrammar", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Other Grammar' ORDER BY ID");
-        map("functionsAggregate", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Aggregate)' ORDER BY ID");
-        map("functionsNumeric", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Numeric)' ORDER BY ID");
+        map("functionsAggregate",
+                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Aggregate)' ORDER BY ID");
+        map("functionsNumeric",
+                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Numeric)' ORDER BY ID");
         map("functionsString", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (String)' ORDER BY ID");
-        map("functionsTimeDate", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Time and Date)' ORDER BY ID");
+        map("functionsTimeDate",
+                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Time and Date)' ORDER BY ID");
         map("functionsSystem", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (System)' ORDER BY ID");
-        map("functionsAll", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
+        map("functionsAll",
+                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
         map("dataTypes", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Data Types%' ORDER BY SECTION, ID");
         process("grammar");
         process("functions");
         process("datatypes");
         conn.close();
     }
-    
+
     void process(String fileName) throws Exception {
-        FileOutputStream out = new FileOutputStream(outDir + "/"+fileName+".html");
-        FileInputStream in = new FileInputStream(inDir + "/"+fileName+".jsp");
+        FileOutputStream out = new FileOutputStream(outDir + "/" + fileName + ".html");
+        FileInputStream in = new FileInputStream(inDir + "/" + fileName + ".jsp");
         byte[] bytes = IOUtils.readBytesAndClose(in, 0);
         String page = new String(bytes);
         page = PageParser.parse(null, page, session);
         out.write(page.getBytes());
         out.close();
     }
-    
+
     void map(String key, String sql) throws Exception {
         ResultSet rs = null;
         Statement stat = null;
@@ -81,16 +85,16 @@ public class GenerateDoc {
             stat = conn.createStatement();
             rs = stat.executeQuery(sql);
             ArrayList list = new ArrayList();
-            while(rs.next()) {
+            while (rs.next()) {
                 HashMap map = new HashMap();
                 ResultSetMetaData meta = rs.getMetaData();
-                for(int i=0; i<meta.getColumnCount(); i++) {
-                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i+1));
-                    String value = rs.getString(i+1);
+                for (int i = 0; i < meta.getColumnCount(); i++) {
+                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));
+                    String value = rs.getString(i + 1);
                     map.put(k, PageParser.escapeHtml(value));
                 }
                 String topic = rs.getString("TOPIC");
-                String syntax =  rs.getString("SYNTAX");
+                String syntax = rs.getString("SYNTAX");
                 syntax = PageParser.escapeHtml(syntax);
                 syntax = StringUtils.replaceAll(syntax, "<br />", "");
                 syntax = bnf.getSyntax(topic, syntax);

@@ -45,12 +45,12 @@ public class ConvertTraceFile {
         String traceFile = "test.trace.db";
         String javaClass = "Test";
         String script = "test.sql";
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-traceFile")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-traceFile")) {
                 traceFile = args[++i];
-            } else if(args[i].equals("-javaClass")) {
+            } else if (args[i].equals("-javaClass")) {
                 javaClass = args[++i];
-            } else if(args[i].equals("-script")) {
+            } else if (args[i].equals("-script")) {
                 script = args[++i];
             } else {
                 showUsage();
@@ -59,7 +59,7 @@ public class ConvertTraceFile {
         }
         try {
             convertFile(traceFile, javaClass, script);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, traceFile);
         }
     }
@@ -79,18 +79,18 @@ public class ConvertTraceFile {
         javaWriter.println("import java.sql.*;");
         javaWriter.println("import java.math.*;");
         javaWriter.println("import java.util.Calendar;");
-        javaWriter.println("public class " +javaClassName+ " {");
+        javaWriter.println("public class " + javaClassName + " {");
         javaWriter.println("    public static void main(String[] args) throws Exception {");
         javaWriter.println("        Class.forName(\"org.h2.Driver\");");
-        while(true) {
+        while (true) {
             String line = reader.readLine();
-            if(line == null) {
+            if (line == null) {
                 break;
             }
-            if(line.startsWith("/**/")) {
+            if (line.startsWith("/**/")) {
                 line = "        " + line.substring(4);
                 javaWriter.println(line);
-            } else if(line.startsWith("/*SQL*/")) {
+            } else if (line.startsWith("/*SQL*/")) {
                 line = line.substring("/*SQL*/".length());
                 scriptWriter.println(line);
             }

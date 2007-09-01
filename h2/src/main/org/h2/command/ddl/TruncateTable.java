@@ -19,14 +19,14 @@ public class TruncateTable extends DefineCommand {
     public TruncateTable(Session session) {
         super(session);
     }
-    
+
     public void setTable(Table table) {
         this.table = table;
     }
-    
+
     public int update() throws SQLException {
         session.commit(true);
-        if(!table.canTruncate()) {
+        if (!table.canTruncate()) {
             throw Message.getSQLException(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL());
         } else {
             session.getUser().checkRight(table, Right.DELETE);

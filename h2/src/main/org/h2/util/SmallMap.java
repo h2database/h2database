@@ -23,16 +23,16 @@ public class SmallMap {
     }
 
     public int addObject(int id, Object o) {
-        if(map.size() > maxElements * 2) {
+        if (map.size() > maxElements * 2) {
             Iterator it = map.keySet().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Integer k = (Integer) it.next();
-                if(k.intValue() + maxElements < lastId) {
+                if (k.intValue() + maxElements < lastId) {
                     it.remove();
                 }
             }
         }
-        if(id > lastId) {
+        if (id > lastId) {
             lastId = id;
         }
         map.put(ObjectUtils.getInteger(id), o);
@@ -54,7 +54,7 @@ public class SmallMap {
             return cache;
         }
         Object obj = map.get(ObjectUtils.getInteger(id));
-        if(obj == null && !ifAvailable) {
+        if (obj == null && !ifAvailable) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
         return obj;

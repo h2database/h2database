@@ -47,7 +47,7 @@ public class WebSession {
     }
     
     public Object get(String key) {
-        if("sessions".equals(key)) {
+        if ("sessions".equals(key)) {
             return server.getSessions();
         }
         return map.get(key);
@@ -88,7 +88,7 @@ public class WebSession {
             // bnf.updateTopic("name", new String[]{""});
             newBnf.linkStatements();
             bnf = newBnf;
-        } catch(Exception e) {
+        } catch (Exception e) {
             // ok we don't have the bnf
             e.printStackTrace();
         }        
@@ -99,27 +99,27 @@ public class WebSession {
     }
     
     void addCommand(String sql) {
-        if(sql == null) {
+        if (sql == null) {
             return;
         }
         sql = sql.trim();
-        if(sql.length() == 0) {
+        if (sql.length() == 0) {
             return;
         }
-        if(commandHistory.size() > MAX_HISTORY) {
+        if (commandHistory.size() > MAX_HISTORY) {
             commandHistory.remove(0);
         }
         int idx = commandHistory.indexOf(sql);
-        if(idx >= 0) {
+        if (idx >= 0) {
             commandHistory.remove(idx);
         }
         commandHistory.add(sql);
     }
-    
+
     ArrayList getCommands() {
         return commandHistory;
     }
-    
+
     public HashMap getInfo() {
         HashMap m = new HashMap();
         m.putAll(map);
@@ -127,8 +127,8 @@ public class WebSession {
         try {
             m.put("url", conn == null ? "not connected" : conn.getMetaData().getURL());
             m.put("user", conn == null ? "-" : conn.getMetaData().getUserName());
-            m.put("lastQuery", commandHistory.size()==0 ? "" : commandHistory.get(0));
-            m.put("executing", executingStatement==null ? "no" : "yes");
+            m.put("lastQuery", commandHistory.size() == 0 ? "" : commandHistory.get(0));
+            m.put("executing", executingStatement == null ? "no" : "yes");
         } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }
@@ -137,7 +137,7 @@ public class WebSession {
 
     void setConnection(Connection conn) throws SQLException {
         this.conn = conn;
-        if(conn == null) {
+        if (conn == null) {
             meta = null;
         } else {
             meta = conn.getMetaData();

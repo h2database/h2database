@@ -66,10 +66,10 @@ public class DataType {
 
     static {
 //#ifdef JDK14
-        if(TYPE_BOOLEAN != Types.BOOLEAN) {
+        if (TYPE_BOOLEAN != Types.BOOLEAN) {
             new Exception("Types.BOOLEAN: " + Types.BOOLEAN).printStackTrace();
         }
-        if(TYPE_DATALINK != Types.DATALINK) {
+        if (TYPE_DATALINK != Types.DATALINK) {
             new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
         }
         
@@ -224,9 +224,9 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 2
         );
-        for(int i=0; i<typesByValueType.length; i++) {
+        for (int i = 0; i < typesByValueType.length; i++) {
             DataType dt = typesByValueType[i];
-            if(dt == null) {
+            if (dt == null) {
                 throw Message.getInternalError("unmapped type " + i);
             }
             Value.getOrder(i);
@@ -234,7 +234,7 @@ public class DataType {
     }
 
     private static void add(int type, int sqlType, String jdbc, DataType dataType, String[] names, int memory) {
-        for(int i=0; i<names.length; i++) {
+        for (int i = 0; i < names.length; i++) {
             DataType dt = new DataType();
             dt.type = type;
             dt.sqlType = sqlType;
@@ -255,14 +255,14 @@ public class DataType {
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
             dt.memory = memory;
-            for(int j=0; j<types.size(); j++) {
+            for (int j = 0; j < types.size(); j++) {
                 DataType t2 = (DataType) types.get(j);
-                if(t2.sqlType == dt.sqlType) {
+                if (t2.sqlType == dt.sqlType) {
                     dt.sqlTypePos++;
                 }
             }
             typesByName.put(dt.name, dt);
-            if(typesByValueType[type] == null) {
+            if (typesByValueType[type] == null) {
                 typesByValueType[type] = dt;
             }
             types.add(dt);
@@ -278,7 +278,7 @@ public class DataType {
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;
         dataType.defaultScale = defaultScale;
-        if(needsPrecisionAndScale) {
+        if (needsPrecisionAndScale) {
             dataType.params = "PRECISION,SCALE";
             dataType.supportsPrecision = true;
             dataType.supportsScale = true;
@@ -324,118 +324,118 @@ public class DataType {
         }
         case Value.BYTES: {
             byte[] buff = rs.getBytes(columnIndex);
-            v = buff==null ? (Value)ValueNull.INSTANCE : ValueBytes.getNoCopy(buff);
+            v = buff == null ? (Value) ValueNull.INSTANCE : ValueBytes.getNoCopy(buff);
             break;
         }
         case Value.UUID: {
             byte[] buff = rs.getBytes(columnIndex);
-            v = buff==null ? (Value)ValueNull.INSTANCE : ValueUuid.get(buff);
+            v = buff == null ? (Value) ValueNull.INSTANCE : ValueUuid.get(buff);
             break;
         }
         case Value.BOOLEAN: {
             boolean value = rs.getBoolean(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueBoolean.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueBoolean.get(value);
             break;
         }
         case Value.BYTE: {
             byte value = rs.getByte(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueByte.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueByte.get(value);
             break;
         }
         case Value.DATE: {
             Date value = rs.getDate(columnIndex);
-            v = value == null ? (Value)ValueNull.INSTANCE : ValueDate.get(value);
+            v = value == null ? (Value) ValueNull.INSTANCE : ValueDate.get(value);
             break;
         }
         case Value.TIME: {
             Time value = rs.getTime(columnIndex);
-            v = value == null ? (Value)ValueNull.INSTANCE : ValueTime.get(value);
+            v = value == null ? (Value) ValueNull.INSTANCE : ValueTime.get(value);
             break;
         }
         case Value.TIMESTAMP: {
             Timestamp value = rs.getTimestamp(columnIndex);
-            v = value == null ? (Value)ValueNull.INSTANCE : ValueTimestamp.get(value);
+            v = value == null ? (Value) ValueNull.INSTANCE : ValueTimestamp.get(value);
             break;
         }
         case Value.DECIMAL: {
             BigDecimal value = rs.getBigDecimal(columnIndex);
-            v = value == null ? (Value)ValueNull.INSTANCE : ValueDecimal.get(value);
+            v = value == null ? (Value) ValueNull.INSTANCE : ValueDecimal.get(value);
             break;
         }
         case Value.DOUBLE: {
             double value = rs.getDouble(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueDouble.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueDouble.get(value);
             break;
         }
         case Value.FLOAT: {
             float value = rs.getFloat(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueFloat.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueFloat.get(value);
             break;
         }
         case Value.INT: {
             int value = rs.getInt(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueInt.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueInt.get(value);
             break;
         }
         case Value.LONG: {
             long value = rs.getLong(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueLong.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueLong.get(value);
             break;
         }
         case Value.SHORT: {
             short value = rs.getShort(columnIndex);
-            v = rs.wasNull() ? (Value)ValueNull.INSTANCE : ValueShort.get(value);
+            v = rs.wasNull() ? (Value) ValueNull.INSTANCE : ValueShort.get(value);
             break;
         }
         case Value.STRING_IGNORECASE: {
             String s = rs.getString(columnIndex);
-            v = (s == null) ? (Value)ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
+            v = (s == null) ? (Value) ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
             break;
         }
         case Value.STRING_FIXED: {
             String s = rs.getString(columnIndex);
-            v = (s == null) ? (Value)ValueNull.INSTANCE : ValueStringFixed.get(s);
+            v = (s == null) ? (Value) ValueNull.INSTANCE : ValueStringFixed.get(s);
             break;
         }
         case Value.STRING: {
             String s = rs.getString(columnIndex);
-            v = (s == null) ? (Value)ValueNull.INSTANCE : ValueString.get(s);
+            v = (s == null) ? (Value) ValueNull.INSTANCE : ValueString.get(s);
             break;
         }
         case Value.CLOB: {
-            if(session == null) {
+            if (session == null) {
                 v = ValueLob.createSmallLob(Value.CLOB, StringUtils.utf8Encode(rs.getString(columnIndex)));
             } else {
                 Reader in = rs.getCharacterStream(columnIndex);
-                v = (in == null) ? (Value)ValueNull.INSTANCE : ValueLob.createClob(in, -1, session.getDataHandler());
+                v = (in == null) ? (Value) ValueNull.INSTANCE : ValueLob.createClob(in, -1, session.getDataHandler());
             }
             break;
         }
         case Value.BLOB: {
-            if(session == null) {
+            if (session == null) {
                 v = ValueLob.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
             } else {
                 InputStream in = rs.getBinaryStream(columnIndex);
-                v = (in == null) ? (Value)ValueNull.INSTANCE :  ValueLob.createBlob(in, -1, session.getDataHandler());
+                v = (in == null) ? (Value) ValueNull.INSTANCE : ValueLob.createBlob(in, -1, session.getDataHandler());
             }
             break;
         }
         case Value.JAVA_OBJECT: {
             byte[] buff = rs.getBytes(columnIndex);
-            v = buff==null ? (Value)ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
+            v = buff == null ? (Value) ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
             break;
         }
         case Value.ARRAY: {
             Array array = rs.getArray(columnIndex);
-            if(array == null) {
+            if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            Object[] list = (Object[])array.getArray();
-            if(list == null) {
+            Object[] list = (Object[]) array.getArray();
+            if (list == null) {
                 return ValueNull.INSTANCE;
             }
             Value[] values = new Value[list.length];
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 values[i] = DataType.convertToValue(session, list[i], Value.NULL);
             }
             v = ValueArray.get(values);
@@ -493,7 +493,7 @@ public class DataType {
 
     public static DataType getDataType(int type) {
         DataType dt = typesByValueType[type];
-        if(dt == null) {
+        if (dt == null) {
             dt = typesByValueType[Value.NULL];
         }
         return dt;
@@ -555,52 +555,52 @@ public class DataType {
 
     public static int getTypeFromClass(Class x) throws SQLException {
         // TODO refactor: too many if/else in functions, can reduce!
-        if(x==null) {
+        if (x == null) {
             return Value.NULL;
         }
-        if(ResultSet.class.isAssignableFrom(x)) {
+        if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
-        } else if(String.class.isAssignableFrom(x)) {
+        } else if (String.class.isAssignableFrom(x)) {
             return Value.STRING;
-        } else if(BigDecimal.class.isAssignableFrom(x)) {
+        } else if (BigDecimal.class.isAssignableFrom(x)) {
             return Value.DECIMAL;
-        } else if(Boolean.class.isAssignableFrom(x) || boolean.class.isAssignableFrom(x)) {
+        } else if (Boolean.class.isAssignableFrom(x) || boolean.class.isAssignableFrom(x)) {
             return Value.BOOLEAN;
-        } else if(Byte.class.isAssignableFrom(x) || byte.class.isAssignableFrom(x)) {
+        } else if (Byte.class.isAssignableFrom(x) || byte.class.isAssignableFrom(x)) {
             return Value.BYTE;
-        } else if(Short.class.isAssignableFrom(x) || short.class.isAssignableFrom(x)) {
+        } else if (Short.class.isAssignableFrom(x) || short.class.isAssignableFrom(x)) {
             return Value.SHORT;
-        } else if(Integer.class.isAssignableFrom(x) || int.class.isAssignableFrom(x)) {
+        } else if (Integer.class.isAssignableFrom(x) || int.class.isAssignableFrom(x)) {
             return Value.INT;
-        } else if(Character.class.isAssignableFrom(x) || char.class.isAssignableFrom(x)) {
+        } else if (Character.class.isAssignableFrom(x) || char.class.isAssignableFrom(x)) {
             throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
-        } else if(Long.class.isAssignableFrom(x) || long.class.isAssignableFrom(x)) {
+        } else if (Long.class.isAssignableFrom(x) || long.class.isAssignableFrom(x)) {
             return Value.LONG;
-        } else if(Float.class.isAssignableFrom(x) || float.class.isAssignableFrom(x)) {
+        } else if (Float.class.isAssignableFrom(x) || float.class.isAssignableFrom(x)) {
             return Value.FLOAT;
-        } else if(Double.class.isAssignableFrom(x) || double.class.isAssignableFrom(x)) {
+        } else if (Double.class.isAssignableFrom(x) || double.class.isAssignableFrom(x)) {
             return Value.DOUBLE;
-        } else if(byte[].class.isAssignableFrom(x)) {
+        } else if (byte[].class.isAssignableFrom(x)) {
             return Value.BYTES;
-        } else if(Date.class.isAssignableFrom(x)) {
+        } else if (Date.class.isAssignableFrom(x)) {
             return Value.DATE;
-        } else if(Time.class.isAssignableFrom(x)) {
+        } else if (Time.class.isAssignableFrom(x)) {
             return Value.TIME;
-        } else if(Timestamp.class.isAssignableFrom(x)) {
+        } else if (Timestamp.class.isAssignableFrom(x)) {
             return Value.TIMESTAMP;
-        } else if(java.util.Date.class.isAssignableFrom(x)) {
+        } else if (java.util.Date.class.isAssignableFrom(x)) {
             return Value.TIMESTAMP;
-        } else if(java.io.Reader.class.isAssignableFrom(x)) {
+        } else if (java.io.Reader.class.isAssignableFrom(x)) {
             return Value.CLOB;
-        } else if(java.sql.Clob.class.isAssignableFrom(x)) {
+        } else if (java.sql.Clob.class.isAssignableFrom(x)) {
             return Value.CLOB;
-        } else if(java.io.InputStream.class.isAssignableFrom(x)) {
+        } else if (java.io.InputStream.class.isAssignableFrom(x)) {
             return Value.BLOB;
-        } else if(java.sql.Blob.class.isAssignableFrom(x)) {
+        } else if (java.sql.Blob.class.isAssignableFrom(x)) {
             return Value.BLOB;
-        } else if(Object[].class.isAssignableFrom(x)) {
+        } else if (Object[].class.isAssignableFrom(x)) {
             return Value.ARRAY;
-        } else if(Void.TYPE==x) {
+        } else if (Void.TYPE == x) {
             return Value.NULL;
         } else {
             return Value.JAVA_OBJECT;
@@ -608,65 +608,65 @@ public class DataType {
     }
 
     public static Value convertToValue(SessionInterface session, Object x, int type) throws SQLException {
-        if(x==null) {
+        if (x == null) {
             return ValueNull.INSTANCE;
         }
-        if(type == Value.JAVA_OBJECT) {
+        if (type == Value.JAVA_OBJECT) {
             // serialize JAVA_OBJECT, even if the type is known
-            if(Constants.SERIALIZE_JAVA_OBJECTS) {
+            if (Constants.SERIALIZE_JAVA_OBJECTS) {
                 return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             }
         }
-        if(x instanceof String) {
-            return ValueString.get((String)x);
-        } else if(x instanceof BigDecimal) {
-            return ValueDecimal.get((BigDecimal)x);
-        } else if(x instanceof Boolean) {
-            return ValueBoolean.get(((Boolean)x).booleanValue());
-        } else if(x instanceof Byte) {
-            return ValueByte.get(((Byte)x).byteValue());
-        } else if(x instanceof Short) {
-            return ValueShort.get(((Short)x).shortValue());
-        } else if(x instanceof Integer) {
-            return ValueInt.get(((Integer)x).intValue());
-        } else if(x instanceof Long) {
-            return ValueLong.get(((Long)x).longValue());
-        } else if(x instanceof Float) {
-            return ValueFloat.get(((Float)x).floatValue());
-        } else if(x instanceof Double) {
-            return ValueDouble.get(((Double)x).doubleValue());
-        } else if(x instanceof byte[]) {
-            return ValueBytes.get((byte[])x);
-        } else if(x instanceof Date) {
-            return ValueDate.get((Date)x);
-        } else if(x instanceof Time) {
-            return ValueTime.get((Time)x);
-        } else if(x instanceof Timestamp) {
-            return ValueTimestamp.get((Timestamp)x);
-        } else if(x instanceof java.util.Date) {
-            return ValueTimestamp.get(new Timestamp(((java.util.Date)x).getTime()));
-        } else if(x instanceof java.io.Reader) {
-            return ValueLob.createClob((java.io.Reader)x, -1, session.getDataHandler());
-        } else if(x instanceof java.sql.Clob) {
-            return ValueLob.createClob(((java.sql.Clob)x).getCharacterStream(), -1, session.getDataHandler());
-        } else if(x instanceof java.io.InputStream) {
-            return ValueLob.createBlob((java.io.InputStream)x, -1, session.getDataHandler());
-        } else if(x instanceof java.sql.Blob) {
-            return ValueLob.createBlob(((java.sql.Blob)x).getBinaryStream(), -1, session.getDataHandler());
-        } else if(x instanceof ResultSet) {
-            return ValueResultSet.get((ResultSet)x);
-        } else if(x instanceof Object[]) {
+        if (x instanceof String) {
+            return ValueString.get((String) x);
+        } else if (x instanceof BigDecimal) {
+            return ValueDecimal.get((BigDecimal) x);
+        } else if (x instanceof Boolean) {
+            return ValueBoolean.get(((Boolean) x).booleanValue());
+        } else if (x instanceof Byte) {
+            return ValueByte.get(((Byte) x).byteValue());
+        } else if (x instanceof Short) {
+            return ValueShort.get(((Short) x).shortValue());
+        } else if (x instanceof Integer) {
+            return ValueInt.get(((Integer) x).intValue());
+        } else if (x instanceof Long) {
+            return ValueLong.get(((Long) x).longValue());
+        } else if (x instanceof Float) {
+            return ValueFloat.get(((Float) x).floatValue());
+        } else if (x instanceof Double) {
+            return ValueDouble.get(((Double) x).doubleValue());
+        } else if (x instanceof byte[]) {
+            return ValueBytes.get((byte[]) x);
+        } else if (x instanceof Date) {
+            return ValueDate.get((Date) x);
+        } else if (x instanceof Time) {
+            return ValueTime.get((Time) x);
+        } else if (x instanceof Timestamp) {
+            return ValueTimestamp.get((Timestamp) x);
+        } else if (x instanceof java.util.Date) {
+            return ValueTimestamp.get(new Timestamp(((java.util.Date) x).getTime()));
+        } else if (x instanceof java.io.Reader) {
+            return ValueLob.createClob((java.io.Reader) x, -1, session.getDataHandler());
+        } else if (x instanceof java.sql.Clob) {
+            return ValueLob.createClob(((java.sql.Clob) x).getCharacterStream(), -1, session.getDataHandler());
+        } else if (x instanceof java.io.InputStream) {
+            return ValueLob.createBlob((java.io.InputStream) x, -1, session.getDataHandler());
+        } else if (x instanceof java.sql.Blob) {
+            return ValueLob.createBlob(((java.sql.Blob) x).getBinaryStream(), -1, session.getDataHandler());
+        } else if (x instanceof ResultSet) {
+            return ValueResultSet.get((ResultSet) x);
+        } else if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());
             Object[] o = (Object[]) x;
             int len = o.length;
             Value[] v = new Value[len];
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
             return ValueArray.get(v);
         } else {
-            if(Constants.SERIALIZE_JAVA_OBJECTS) {
+            if (Constants.SERIALIZE_JAVA_OBJECTS) {
                 return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
             } else {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
@@ -679,14 +679,14 @@ public class DataType {
     }
 
     public static boolean isLargeObject(int type) {
-        if(type == Value.BLOB || type == Value.CLOB) {
+        if (type == Value.BLOB || type == Value.CLOB) {
             return true;
         }
         return false;
     }
 
     public static boolean supportsAdd(int type) {
-        switch(type) {
+        switch (type) {
         case Value.BYTE:
         case Value.DECIMAL:
         case Value.DOUBLE:
@@ -695,36 +695,38 @@ public class DataType {
         case Value.LONG:
         case Value.SHORT:
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 
     public static Object getDefaultForPrimitiveType(Class clazz) {
-        if(clazz == Boolean.TYPE) {
+        if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
-        } else if(clazz == Byte.TYPE) {
-            return ObjectUtils.getByte((byte)0);
-        } else if(clazz == Character.TYPE) {
-            return ObjectUtils.getCharacter((char)0);
-        } else if(clazz == Short.TYPE) {
-            return ObjectUtils.getShort((short)0);
-        } else if(clazz == Integer.TYPE) {
+        } else if (clazz == Byte.TYPE) {
+            return ObjectUtils.getByte((byte) 0);
+        } else if (clazz == Character.TYPE) {
+            return ObjectUtils.getCharacter((char) 0);
+        } else if (clazz == Short.TYPE) {
+            return ObjectUtils.getShort((short) 0);
+        } else if (clazz == Integer.TYPE) {
             return ObjectUtils.getInteger(0);
-        } else if(clazz == Long.TYPE) {
+        } else if (clazz == Long.TYPE) {
             return ObjectUtils.getLong(0);
-        } else if(clazz == Float.TYPE) {
+        } else if (clazz == Float.TYPE) {
             return ObjectUtils.getFloat(0);
-        } else if(clazz == Double.TYPE) {
+        } else if (clazz == Double.TYPE) {
             return ObjectUtils.getDouble(0);
         } else {
-            throw Message.getInternalError("primitive="+ clazz.toString());
+            throw Message.getInternalError("primitive=" + clazz.toString());
         }
     }
 
-    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass) throws JdbcSQLException {
-        if(paramClass == java.sql.Blob.class) {
+    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
+            throws JdbcSQLException {
+        if (paramClass == java.sql.Blob.class) {
             return new JdbcBlob(session, conn, v, 0);
-        } else if(paramClass == Clob.class) {
+        } else if (paramClass == Clob.class) {
             return new JdbcClob(session, conn, v, 0);
         } else {
             throw Message.getUnsupportedException();

@@ -46,7 +46,7 @@ public class DbContextRule implements Rule {
     }
 
     public void addNextTokenList(String query, Sentence sentence) {
-        switch(type) {
+        switch (type) {
         case TABLE:
             addTable(query, sentence);
             break;
@@ -62,6 +62,7 @@ public class DbContextRule implements Rule {
         case COLUMN:
             addColumn(query, sentence);
             break;
+        default:
         }
     }
     
@@ -69,31 +70,31 @@ public class DbContextRule implements Rule {
         String q = StringUtils.toUpperEnglish(query.trim());
         HashMap map = sentence.getAliases();
         HashSet set = new HashSet();
-        if(map != null) {
-            for(Iterator it = map.entrySet().iterator(); it.hasNext();) {
+        if (map != null) {
+            for (Iterator it = map.entrySet().iterator(); it.hasNext();) {
                 Map.Entry entry = (Entry) it.next();
                 String alias = (String) entry.getKey();
                 DbTableOrView table = (DbTableOrView) entry.getValue();
                 set.add(StringUtils.toUpperEnglish(table.name));
-                if(q.length()==0 || alias.startsWith(q)) {
-                    if(q.length() < alias.length()) {
+                if (q.length() == 0 || alias.startsWith(q)) {
+                    if (q.length() < alias.length()) {
                         sentence.add(alias + ".", alias.substring(q.length()) + ".", Sentence.CONTEXT);
                     }
                 }
             }
         }
         HashSet tables = sentence.getTables();
-        if(tables != null) {
-            for(Iterator it = tables.iterator(); it.hasNext(); ) {
-                DbTableOrView table = (DbTableOrView)it.next();
+        if (tables != null) {
+            for (Iterator it = tables.iterator(); it.hasNext();) {
+                DbTableOrView table = (DbTableOrView) it.next();
                 String tableName = StringUtils.toUpperEnglish(table.name);
             //DbTableOrView[] tables = contents.defaultSchema.tables;
             //for(int i=0; i<tables.length; i++) {
             //    DbTableOrView table = tables[i];
             //    String tableName = StringUtils.toUpperEnglish(table.name);
-                if(!set.contains(tableName)) {
-                    if(q.length()==0 || tableName.startsWith(q)) {
-                        if(q.length() < tableName.length()) {
+                if (!set.contains(tableName)) {
+                    if (q.length() == 0 || tableName.startsWith(q)) {
+                        if (q.length() < tableName.length()) {
                             sentence.add(tableName + ".", tableName.substring(q.length()) + ".", Sentence.CONTEXT);
                         }
                     }
@@ -101,9 +102,9 @@ public class DbContextRule implements Rule {
             }
         }
     }
-    
+
     private void addNewTableAlias(String query, Sentence sentence) {
-        if(SUGGEST_TABLE_ALIAS) {
+        if (SUGGEST_TABLE_ALIAS) {
             // good when testing!
             if (query.length() > 3) {
                 return;
@@ -148,9 +149,9 @@ public class DbContextRule implements Rule {
     private void addTable(String query, Sentence sentence) {
         DbSchema schema = contents.defaultSchema;
         String text = StringUtils.toUpperEnglish(sentence.text).trim();
-        if(text.endsWith(".")) {
-            for(int i=0; i<contents.schemas.length; i++) {
-                if(text.endsWith(StringUtils.toUpperEnglish(contents.schemas[i].name)+".")) {
+        if (text.endsWith(".")) {
+            for (int i = 0; i < contents.schemas.length; i++) {
+                if (text.endsWith(StringUtils.toUpperEnglish(contents.schemas[i].name) + ".")) {
                     schema = contents.schemas[i];
                     break;
                 }
@@ -158,28 +159,28 @@ public class DbContextRule implements Rule {
         }
         String q = StringUtils.toUpperEnglish(query.trim());
         DbTableOrView[] tables = schema.tables;
-        for(int i=0; i<tables.length; i++) {
+        for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];
-            if(q.length()==0 || StringUtils.toUpperEnglish(table.name).startsWith(q)) {
-                if(q.length() < table.quotedName.length()) {
+            if (q.length() == 0 || StringUtils.toUpperEnglish(table.name).startsWith(q)) {
+                if (q.length() < table.quotedName.length()) {
                     sentence.add(table.quotedName, table.quotedName.substring(q.length()), Sentence.CONTEXT);
                 }
             }
         }
     }
-    
+
     private void addColumn(String query, Sentence sentence) {
         String tableName = query;
         String columnPattern = "";
-        if(query.trim().length()==0) {
+        if (query.trim().length() == 0) {
             tableName = null;
-            if(sentence.text.trim().endsWith(".")) {
+            if (sentence.text.trim().endsWith(".")) {
                 return;
             }
         } else {
             tableName = StringUtils.toUpperEnglish(query.trim());
-            if(tableName.endsWith(".")) {
-                tableName = tableName.substring(0, tableName.length()-1);
+            if (tableName.endsWith(".")) {
+                tableName = tableName.substring(0, tableName.length() - 1);
             } else {
                 columnPattern = StringUtils.toUpperEnglish(query.trim());
                 tableName = null;
@@ -187,56 +188,56 @@ public class DbContextRule implements Rule {
         }
         HashSet set = null;
         HashMap aliases = sentence.getAliases();
-        if(tableName == null && sentence.getTables() != null) {
+        if (tableName == null && sentence.getTables() != null) {
             set = sentence.getTables();
         }
         DbTableOrView table = null;
-        if(tableName != null && aliases != null && aliases.get(tableName) != null) {
+        if (tableName != null && aliases != null && aliases.get(tableName) != null) {
             table = (DbTableOrView) aliases.get(tableName);
             tableName = StringUtils.toUpperEnglish(table.name);
         }
-        if(tableName == null) {
-            if(set == null && aliases == null) {
+        if (tableName == null) {
+            if (set == null && aliases == null) {
                 return;
             }
-            if((set != null && set.size()>1) || (aliases != null && aliases.size()>1)) {
+            if ((set != null && set.size() > 1) || (aliases != null && aliases.size() > 1)) {
                 return;
             }
         }
-        if(table == null) {
+        if (table == null) {
             DbTableOrView[] tables = contents.defaultSchema.tables;
-            for(int i=0; i<tables.length; i++) {
+            for (int i = 0; i < tables.length; i++) {
                 DbTableOrView tab = tables[i];
                 String t = StringUtils.toUpperEnglish(tab.name);
-                if(tableName != null && !tableName.equals(t)) {
+                if (tableName != null && !tableName.equals(t)) {
                     continue;
                 }
-                if(set != null && !set.contains(tab)) {
+                if (set != null && !set.contains(tab)) {
                     continue;
                 }
                 table = tab;
                 break;
             }
         }
-        if(table != null) {
-            for(int j=0; j<table.columns.length; j++) {
+        if (table != null) {
+            for (int j = 0; j < table.columns.length; j++) {
                 String columnName = table.columns[j].name;
-                if(!StringUtils.toUpperEnglish(columnName).startsWith(columnPattern)) {
+                if (!StringUtils.toUpperEnglish(columnName).startsWith(columnPattern)) {
                     continue;
                 }
-                if(columnPattern.length() < columnName.length()) {
+                if (columnPattern.length() < columnName.length()) {
                     sentence.add(columnName, columnName.substring(columnPattern.length()), Sentence.CONTEXT);
-                }                
+                }
             }
         }
     }
-    
+
     public String matchRemove(String query, Sentence sentence) {
-        if(query.length()==0) {
+        if (query.length() == 0) {
             return null;
         }
         String s;
-        switch(type) {
+        switch (type) {
         case TABLE:
             s = matchTable(query, sentence);
             break;
@@ -253,104 +254,104 @@ public class DbContextRule implements Rule {
             s = matchColumn(query, sentence);
             break;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
         return s;
     }
-    
+
     public String matchTable(String query, Sentence sentence) {
         String up = StringUtils.toUpperEnglish(query);
         DbTableOrView[] tables = contents.defaultSchema.tables;
         String best = null;
         DbTableOrView bestTable = null;
-        for(int i=0; i<tables.length; i++) {
+        for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];
             String tableName = StringUtils.toUpperEnglish(table.name);
-            if(up.startsWith(tableName)) {
-                if(best == null || tableName.length() > best.length()) {
+            if (up.startsWith(tableName)) {
+                if (best == null || tableName.length() > best.length()) {
                     best = tableName;
                     bestTable = table;
                 }
             }
         }
-        if(best == null) {
+        if (best == null) {
             return null;
         }
         sentence.addTable(bestTable);
         query = query.substring(best.length());
-//        while(query.length()>0 && Character.isWhitespace(query.charAt(0))) {
-//            query = query.substring(1);
-//        }
+        // while(query.length()>0 && Character.isWhitespace(query.charAt(0))) {
+        // query = query.substring(1);
+        // }
         return query;
     }
 
     public String matchColumnAlias(String query, Sentence sentence, boolean add) {
         String up = StringUtils.toUpperEnglish(query);
-        int i=0;
-        if(query.indexOf(' ')<0) {
+        int i = 0;
+        if (query.indexOf(' ') < 0) {
             return null;
         }
-        for(; i<up.length(); i++) {
+        for (; i < up.length(); i++) {
             char ch = up.charAt(i);
-            if(ch != '_' && !Character.isLetterOrDigit(ch)) {
+            if (ch != '_' && !Character.isLetterOrDigit(ch)) {
                 break;
             }
         }
-        if(i==0) {
+        if (i == 0) {
             return null;
         }
         String alias = up.substring(0, i);
-        if(Parser.isKeyword(alias)) {
+        if (Parser.isKeyword(alias)) {
             return null;
         }
         return query.substring(alias.length());
     }
-    
+
     public String matchTableAlias(String query, Sentence sentence, boolean add) {
         String up = StringUtils.toUpperEnglish(query);
-        int i=0;
-        if(query.indexOf(' ')<0) {
+        int i = 0;
+        if (query.indexOf(' ') < 0) {
             return null;
         }
-        for(; i<up.length(); i++) {
+        for (; i < up.length(); i++) {
             char ch = up.charAt(i);
-            if(ch != '_' && !Character.isLetterOrDigit(ch)) {
+            if (ch != '_' && !Character.isLetterOrDigit(ch)) {
                 break;
             }
         }
-        if(i==0) {
+        if (i == 0) {
             return null;
         }
         String alias = up.substring(0, i);
-        if(Parser.isKeyword(alias)) {
+        if (Parser.isKeyword(alias)) {
             return null;
         }
-        if(add) {
+        if (add) {
             sentence.addAlias(alias, sentence.getLastTable());
         }
         HashMap map = sentence.getAliases();
-        if((map != null && map.containsKey(alias)) || (sentence.getLastTable() == null)) {
-            if(add && query.length() == alias.length()) {
+        if ((map != null && map.containsKey(alias)) || (sentence.getLastTable() == null)) {
+            if (add && query.length() == alias.length()) {
                 return query;
             }
             query = query.substring(alias.length());
             return query;
         } else {
             HashSet tables = sentence.getTables();
-            if(tables != null) {
+            if (tables != null) {
                 String best = null;
-                for(Iterator it = tables.iterator(); it.hasNext(); ) {
-                    DbTableOrView table = (DbTableOrView)it.next();
+                for (Iterator it = tables.iterator(); it.hasNext();) {
+                    DbTableOrView table = (DbTableOrView) it.next();
                     String tableName = StringUtils.toUpperEnglish(table.name);
                 //DbTableOrView[] tables = contents.defaultSchema.tables;
                 //for(int i=0; i<tables.length; i++) {
                 //    DbTableOrView table = tables[i];
                 //    String tableName = StringUtils.toUpperEnglish(table.name);
-                    if(alias.startsWith(tableName) && (best==null || tableName.length()>best.length())) {
+                    if (alias.startsWith(tableName) && (best == null || tableName.length() > best.length())) {
                         best = tableName;
                     }
                 }
-                if(best != null) {
+                if (best != null) {
                     query = query.substring(best.length());
                     return query;
                 }
@@ -364,16 +365,16 @@ public class DbContextRule implements Rule {
         HashSet set = sentence.getTables();
         DbTableOrView[] tables = contents.defaultSchema.tables;
         String best = null;
-        for(int i=0; i<tables.length; i++) {
+        for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];
-            if(set != null && !set.contains(table)) {
+            if (set != null && !set.contains(table)) {
                 continue;
             }
-            for(int j=0; j<table.columns.length; j++) {
+            for (int j = 0; j < table.columns.length; j++) {
                 String name = StringUtils.toUpperEnglish(table.columns[j].name);
-                if(up.startsWith(name)) {
+                if (up.startsWith(name)) {
                     String b = query.substring(name.length());
-                    if(best == null || b.length() < best.length()) {
+                    if (best == null || b.length() < best.length()) {
                         best = b;
                     }
                 }

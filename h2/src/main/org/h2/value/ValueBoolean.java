@@ -77,7 +77,7 @@ public class ValueBoolean extends Value {
     }
 
     protected boolean isEqual(Value v) {
-        return v instanceof ValueBoolean && value.booleanValue() == ((ValueBoolean)v).value.booleanValue();
+        return v instanceof ValueBoolean && value.booleanValue() == ((ValueBoolean) v).value.booleanValue();
     }
 
 }

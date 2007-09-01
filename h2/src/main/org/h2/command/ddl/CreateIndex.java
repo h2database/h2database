@@ -64,26 +64,26 @@ public class CreateIndex extends SchemaCommand {
         Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
-        if(!table.isPersistent()) {
+        if (!table.isPersistent()) {
             persistent = false;
         }
         int id = getObjectId(true, false);
-        if(indexName == null) {
+        if (indexName == null) {
             indexName = getSchema().getUniqueIndexName("INDEX_");
         }
-        if(getSchema().findIndex(indexName) != null) {
+        if (getSchema().findIndex(indexName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
         IndexType indexType;
-        if(primaryKey) {
-            if(table.findPrimaryKey() != null) {
+        if (primaryKey) {
+            if (table.findPrimaryKey() != null) {
                 throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
             }
             indexType = IndexType.createPrimaryKey(persistent, hash);
-        } else if(unique) {
+        } else if (unique) {
             indexType = IndexType.createUnique(persistent, hash);
         } else {
             indexType = IndexType.createNonUnique(persistent);

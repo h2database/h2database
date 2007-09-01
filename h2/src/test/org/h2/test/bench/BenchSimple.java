@@ -24,11 +24,11 @@ public class BenchSimple implements Bench {
         db.update("CREATE TABLE TEST(ID INT NOT NULL PRIMARY KEY, NAME VARCHAR(255))");
         db.commit();
         PreparedStatement prep = db.prepare("INSERT INTO TEST VALUES(?, ?)");
-        for(int i=0; i<records; i++) {
+        for (int i = 0; i < records; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Hello World " + i);
             db.update(prep, "insertTest");
-            if(i%commitEvery==0) {
+            if (i % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -51,7 +51,7 @@ public class BenchSimple implements Bench {
         
         db.start(this, "Query (random)");
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
-        for(int i=0; i<records; i++) {
+        for (int i = 0; i < records; i++) {
             prep.setInt(1, random.nextInt(records));
             db.queryReadResult(prep);
         }
@@ -59,7 +59,7 @@ public class BenchSimple implements Bench {
         
         db.start(this, "Query (sequential)");
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
-        for(int i=0; i<records; i++) {
+        for (int i = 0; i < records; i++) {
             prep.setInt(1, i);
             db.queryReadResult(prep);
         }
@@ -67,7 +67,7 @@ public class BenchSimple implements Bench {
 
         db.start(this, "Update (random)");
         prep = db.prepare("UPDATE TEST SET NAME=? WHERE ID=?");
-        for(int i=0; i<records; i++) {
+        for (int i = 0; i < records; i++) {
             prep.setString(1, "Hallo Welt");
             prep.setInt(2, i);
             db.update(prep, "updateTest");
@@ -77,17 +77,17 @@ public class BenchSimple implements Bench {
         db.start(this, "Delete (sequential)");
         prep = db.prepare("DELETE FROM TEST WHERE ID=?");
         // delete only 50%
-        for(int i=0; i<records; i+=2) {
+        for (int i = 0; i < records; i += 2) {
             prep.setInt(1, i);
             db.update(prep, "deleteTest");
         }
         db.end();
-        
+
         db.closeConnection();
-        
+
         db.openConnection();
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
-        for(int i=0; i<records; i++) {
+        for (int i = 0; i < records; i++) {
             prep.setInt(1, random.nextInt(records));
             db.queryReadResult(prep);
         }        

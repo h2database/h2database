@@ -24,11 +24,11 @@ import org.h2.message.TraceSystem;
  */
 public class Driver implements java.sql.Driver {
 
-    private static final Driver instance = new Driver();
+    private static final Driver INSTANCE = new Driver();
 
     static {
         try {
-            DriverManager.registerDriver(instance);
+            DriverManager.registerDriver(INSTANCE);
         } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }
@@ -104,7 +104,7 @@ public class Driver implements java.sql.Driver {
      * INTERNAL
      */
     public static Driver load() {
-        return instance;
+        return INSTANCE;
     }
 
 }

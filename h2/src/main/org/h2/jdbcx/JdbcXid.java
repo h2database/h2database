@@ -33,13 +33,13 @@ implements Xid
         try {
             StringTokenizer tokenizer = new StringTokenizer(tid, "_");
             String prefix = tokenizer.nextToken();
-            if(!PREFIX.equals(prefix)) {
+            if (!PREFIX.equals(prefix)) {
                 throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
             }
             formatId = Integer.parseInt(tokenizer.nextToken());
             branchQualifier = ByteUtils.convertStringToBytes(tokenizer.nextToken());
             globalTransactionId = ByteUtils.convertStringToBytes(tokenizer.nextToken());
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
     }

@@ -27,8 +27,8 @@ public class CreateFunctionAlias extends DefineCommand {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        if(db.findFunctionAlias(aliasName) != null) {
-            if(!ifNotExists) {
+        if (db.findFunctionAlias(aliasName) != null) {
+            if (!ifNotExists) {
                 throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
             }
         } else {

@@ -40,14 +40,14 @@ import org.h2.value.ValueUuid;
  * @author Thomas
  */
 public abstract class DataPage {
-    
+
     static final boolean CHECKSUM = true;
     protected DataHandler handler;
     protected byte[] data;
     protected int pos;
-    
+
     public static DataPage create(DataHandler handler, int capacity) {
-        if(handler.getTextStorage()) {
+        if (handler.getTextStorage()) {
             return new DataPageText(handler, new byte[capacity]);
         } else {
             return new DataPageBinary(handler, new byte[capacity]);
@@ -55,7 +55,7 @@ public abstract class DataPage {
     }
 
     public static DataPage create(DataHandler handler, byte[] buff) {
-        if(handler.getTextStorage()) {
+        if (handler.getTextStorage()) {
             return new DataPageText(handler, buff);
         } else {
             return new DataPageBinary(handler, buff);
@@ -65,7 +65,7 @@ public abstract class DataPage {
     protected DataPage(DataHandler handler, int capacity) {
         this(handler, new byte[capacity]);
     }
-    
+
     protected DataPage(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;
@@ -73,16 +73,20 @@ public abstract class DataPage {
 
     public void checkCapacity(int plus) {
         if (pos + plus >= data.length) {
-            byte[] d = new byte[(data.length+plus) * 2];
-            // must copy everything, because pos could be 0 and data may be still required
+            byte[] d = new byte[(data.length + plus) * 2];
+            // must copy everything, because pos could be 0 and data may be
+            // still required
             System.arraycopy(data, 0, d, 0, data.length);
             data = d;
         }
     }
-    
+
     public abstract void updateChecksum();
+
     public abstract void check(int len) throws SQLException;
+
     public abstract int getFillerLength();
+
     public abstract void setInt(int pos, int x);
 
     public int length() {
@@ -112,13 +116,13 @@ public abstract class DataPage {
         page.pos = len;
         return page;
     }
-    
+
     public void write(byte[] buff, int off, int len) {
         checkCapacity(len);
         System.arraycopy(buff, 0, data, pos, len);
         pos += len;
     }
-    
+
     public void read(byte[] buff, int off, int len) {
         System.arraycopy(data, pos, buff, off, len);
         pos += len;
@@ -133,24 +137,30 @@ public abstract class DataPage {
     }
 
     public abstract void writeInt(int x);
+
     public abstract int readInt();
+
     public abstract int getIntLen();
+
     public abstract int getLongLen(long x);
+
     public abstract int getStringLen(String s);
+
     public abstract String readString();
+
     public abstract void writeString(String s);
 
     public long readLong() {
-        return ((long)(readInt()) << 32) + (readInt() & 0xffffffffL);
+        return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
     }
 
     public void writeLong(long x) {
-        writeInt((int)(x >>> 32));
-        writeInt((int)x);
-    }    
+        writeInt((int) (x >>> 32));
+        writeInt((int) x);
+    }
 
     public void writeValue(Value v) throws SQLException {
-        if(SysProperties.CHECK) {
+        if (SysProperties.CHECK) {
             checkCapacity(8);
         }
         // TODO text output: could be in the Value... classes
@@ -159,7 +169,7 @@ public abstract class DataPage {
             return;
         }
         int start = pos;
-        data[pos++] = (byte)(v.getType() + 'a');
+        data[pos++] = (byte) (v.getType() + 'a');
         switch (v.getType()) {
         case Value.BOOLEAN:
         case Value.BYTE:
@@ -194,7 +204,7 @@ public abstract class DataPage {
             break;
         }
         case Value.UUID: {
-            ValueUuid uuid = (ValueUuid)v;
+            ValueUuid uuid = (ValueUuid) v;
             writeLong(uuid.getHigh());
             writeLong(uuid.getLow());
             break;
@@ -212,16 +222,18 @@ public abstract class DataPage {
             break;
         case Value.BLOB:
         case Value.CLOB: {
-            ValueLob lob = (ValueLob)v;
+            ValueLob lob = (ValueLob) v;
             lob.convertToFileIfRequired(handler);
             byte[] small = lob.getSmall();
-            if(small == null) {
-                // TODO lob: currently use -2 for historical reasons (-1 didn't store precision)
+            if (small == null) {
+                // TODO lob: currently use -2 for historical reasons (-1 didn't
+                // store precision)
                 writeInt(-2);
                 writeInt(lob.getTableId());
                 writeInt(lob.getObjectId());
                 writeLong(lob.getPrecision());
-                writeByte((byte)(lob.useCompression() ? 1 : 0)); // compression flag
+                writeByte((byte) (lob.useCompression() ? 1 : 0)); // compression
+                                                                    // flag
             } else {
                 writeInt(small.length);
                 write(small, 0, small.length);
@@ -229,9 +241,9 @@ public abstract class DataPage {
             break;
         }
         case Value.ARRAY: {
-            Value[] list = ((ValueArray)v).getList();
+            Value[] list = ((ValueArray) v).getList();
             writeInt(list.length);
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 writeValue(list[i]);
             }
             break;
@@ -239,13 +251,14 @@ public abstract class DataPage {
         default:
             throw Message.getInternalError("type=" + v.getType());
         }
-        if(SysProperties.CHECK2) {
-            if(pos - start != getValueLen(v)) {
-                throw Message.getInternalError("value size error: got " + (pos-start) + " expected " + getValueLen(v));
+        if (SysProperties.CHECK2) {
+            if (pos - start != getValueLen(v)) {
+                throw Message
+                        .getInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v));
             }
         }
     }
-    
+
     public int getValueLen(Value v) throws SQLException {
         if (v == ValueNull.INSTANCE) {
             return 1;
@@ -285,13 +298,13 @@ public abstract class DataPage {
             Timestamp ts = v.getTimestampNoCopy();
             return 1 + getLongLen(ts.getTime()) + getIntLen();
         }
-        case Value.BLOB: 
-        case Value.CLOB:{
+        case Value.BLOB:
+        case Value.CLOB: {
             int len = 1;
-            ValueLob lob = (ValueLob)v;
-            lob.convertToFileIfRequired(handler);            
+            ValueLob lob = (ValueLob) v;
+            lob.convertToFileIfRequired(handler);
             byte[] small = lob.getSmall();
-            if(small != null) {
+            if (small != null) {
                 len += getIntLen() + small.length;
             } else {
                 len += getIntLen() + getIntLen() + getIntLen() + getLongLen(lob.getPrecision()) + 1;
@@ -299,13 +312,13 @@ public abstract class DataPage {
             return len;
         }
         case Value.ARRAY: {
-            Value[] list = ((ValueArray)v).getList();
+            Value[] list = ((ValueArray) v).getList();
             int len = 1 + getIntLen();
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 len += getValueLen(list[i]);
             }
             return len;
-        }            
+        }
         default:
             throw Message.getInternalError("type=" + v.getType());
         }
@@ -313,17 +326,17 @@ public abstract class DataPage {
 
     public Value readValue() throws SQLException {
         int type = data[pos++];
-        if(type == '-') {
+        if (type == '-') {
             return ValueNull.INSTANCE;
-        }      
+        }
         type = (type - 'a');
         switch (type) {
         case Value.BOOLEAN:
             return ValueBoolean.get(readInt() == 1);
         case Value.BYTE:
-            return ValueByte.get((byte)readInt());
+            return ValueByte.get((byte) readInt());
         case Value.SHORT:
-            return ValueShort.get((short)readInt());
+            return ValueShort.get((short) readInt());
         case Value.INT:
             return ValueInt.get(readInt());
         case Value.LONG:
@@ -367,7 +380,7 @@ public abstract class DataPage {
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readInt();
-            if(smallLen >= 0) {
+            if (smallLen >= 0) {
                 byte[] small = new byte[smallLen];
                 read(small, 0, smallLen);
                 return ValueLob.createSmallLob(type, small);
@@ -376,8 +389,9 @@ public abstract class DataPage {
                 int objectId = readInt();
                 long precision = 0;
                 boolean compression = false;
-                // TODO lob: -2 is for historical reasons (-1 didn't store precision)
-                if(smallLen == -2) {
+                // TODO lob: -2 is for historical reasons (-1 didn't store
+                // precision)
+                if (smallLen == -2) {
                     precision = readLong();
                     compression = readByte() == 1;
                 }
@@ -387,7 +401,7 @@ public abstract class DataPage {
         case Value.ARRAY: {
             int len = readInt();
             Value[] list = new Value[len];
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
             return ValueArray.get(list);
@@ -396,13 +410,13 @@ public abstract class DataPage {
             throw Message.getInternalError("type=" + type);
         }
     }
-    
+
     public abstract void fill(int len);
 
     public void fillAligned() {
         // TODO datapage: fillAligned should not use a fixed constant '2'
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
-        fill(MathUtils.roundUp(pos+2, Constants.FILE_BLOCK_SIZE));
+        fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
     }
 
     public void setPos(int pos) {

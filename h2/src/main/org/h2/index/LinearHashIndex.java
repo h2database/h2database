@@ -61,7 +61,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
         storage.setReader(this);
         rowCount = table.getRowCount(session);
         int pos = storage.getNext(null);
-        if(pos == -1) {
+        if (pos == -1) {
             truncate(session);
             needRebuild = true;
         } else {
@@ -240,7 +240,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 
     private void addAll(Session session, ObjectArray records) throws SQLException {
         for (int i = 0; i < records.size(); i++) {
-            LinearHashEntry r = (LinearHashEntry)records.get(i);
+            LinearHashEntry r = (LinearHashEntry) records.get(i);
             add(session, r.key, r.value);
         }
     }
@@ -263,14 +263,14 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
                 // and therefore all home records have been found
                 // (and it would be an error to set next to -1)
                 moveOut(session, foreign, storeIn);
-                if(SysProperties.CHECK && getBucket(session, foreign).getNextBucket() != -1) {
-                    throw Message.getInternalError("moveOut "+foreign);
+                if (SysProperties.CHECK && getBucket(session, foreign).getNextBucket() != -1) {
+                    throw Message.getInternalError("moveOut " + foreign);
                 }
                 return;
             }
             int next = bucket.getNextBucket();
-            if(SysProperties.CHECK && next >= head.bucketCount) {
-                throw Message.getInternalError("next="+next+" max="+head.bucketCount);
+            if (SysProperties.CHECK && next >= head.bucketCount) {
+                throw Message.getInternalError("next=" + next + " max=" + head.bucketCount);
             }
             if (next < 0) {
                 break;
@@ -317,10 +317,10 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 
     private boolean isEquals(Session session, LinearHashEntry r, int hash, Value key) throws SQLException {
         if (r.hash == hash) {
-            if(r.key == null) {
+            if (r.key == null) {
                 r.key = getKey(tableData.getRow(session, r.value));
             }
-            if(database.compareTypeSave(r.key, key)==0) {
+            if (database.compareTypeSave(r.key, key) == 0) {
                 return true;
             }
         }
@@ -334,7 +334,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
         while (true) {
             for (int i = 0; i < bucket.getRecordSize(); i++) {
                 LinearHashEntry r = bucket.getRecord(i);
-                if(isEquals(session, r, hash, key)) {
+                if (isEquals(session, r, hash, key)) {
                     return r.value;
                 }
             }
@@ -367,7 +367,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
             LinearHashBucket bucket = getBucket(session, now);
             for (int i = 0; i < bucket.getRecordSize(); i++) {
                 LinearHashEntry r = bucket.getRecord(i);
-                if(isEquals(session, r, hash, key)) {
+                if (isEquals(session, r, hash, key)) {
                     removeRecord(session, bucket, i);
                     if (home != now) {
                         ObjectArray old = new ObjectArray();
@@ -391,8 +391,8 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 
     private LinearHashBucket getBucket(Session session, int i) throws SQLException {
         readCount++;
-        if(SysProperties.CHECK && i >= head.bucketCount) {
-            throw Message.getInternalError("get="+i+" max="+head.bucketCount);
+        if (SysProperties.CHECK && i >= head.bucketCount) {
+            throw Message.getInternalError("get=" + i + " max=" + head.bucketCount);
         }
         // trace.debug("read " + i);
         // return (LinearHashBucket) buckets.get(i);
@@ -408,15 +408,15 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
         // bucket.setPos(buckets.size());
         // buckets.add(bucket);
         //System.out.println("addBucket "+bucket.getPos());
-        if(SysProperties.CHECK && bucket.getBlockCount() > blocksPerBucket) {
-            throw Message.getInternalError("blocks="+bucket.getBlockCount());
+        if (SysProperties.CHECK && bucket.getBlockCount() > blocksPerBucket) {
+            throw Message.getInternalError("blocks=" + bucket.getBlockCount());
         }
         head.bucketCount++;
     }
 
     private void removeBucket(Session session) throws SQLException {
         // buckets.remove(head.bucketCount-1);
-        int pos = getBlockId(head.bucketCount-1);
+        int pos = getBlockId(head.bucketCount - 1);
         //System.out.println("removeBucket "+pos);
         storage.removeRecord(session, pos);
         head.bucketCount--;
@@ -431,7 +431,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
     }
 
     public Record read(Session session, DataPage s) throws SQLException {
-        char c = (char)s.readByte();
+        char c = (char) s.readByte();
         if (c == 'B') {
             return new LinearHashBucket(this, s);
         } else if (c == 'H') {
@@ -449,7 +449,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 
     public void add(Session session, Row row) throws SQLException {
         Value key = getKey(row);
-        if(get(session, key) != -1) {
+        if (get(session, key) != -1) {
             // TODO index duplicate key for hash indexes: is this allowed?
             throw getDuplicateKeyException();
         }
@@ -478,12 +478,12 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(first == null || last == null) {
+        if (first == null || last == null) {
             // TODO hash index: should additionally check if values are the same
             throw Message.getInternalError();
         }
         int key = get(session, getKey(first));
-        if(key == -1) {
+        if (key == -1) {
             return new LinearHashCursor(null);
         }
         return new LinearHashCursor(tableData.getRow(session, key));

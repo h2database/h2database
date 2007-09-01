@@ -29,7 +29,7 @@ public class DropTable extends SchemaCommand {
     }
 
     public void addNextDropTable(DropTable next) {
-        if(this.next == null) {
+        if (this.next == null) {
             this.next = next;
         } else {
             this.next.addNextDropTable(next);
@@ -38,7 +38,7 @@ public class DropTable extends SchemaCommand {
 
     public void setIfExists(boolean b) {
         ifExists = b;
-        if(next != null) {
+        if (next != null) {
             next.setIfExists(b);
         }
     }
@@ -50,31 +50,32 @@ public class DropTable extends SchemaCommand {
     private void prepareDrop() throws SQLException {
         table = getSchema().findTableOrView(session, tableName);
         // TODO drop table: drops views as well (is this ok?)
-        if(table == null) {
-            if(!ifExists) {
+        if (table == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
             }
         } else {
             session.getUser().checkRight(table, Right.ALL);
-            if(!table.canDrop()) {
+            if (!table.canDrop()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
             table.lock(session, true, true);
         }
-        if(next != null) {
+        if (next != null) {
             next.prepareDrop();
         }
     }
 
     private void executeDrop() throws SQLException {
-        // need to get the table again, because it may be dropped already meanwhile (dependent object, or same object)
+        // need to get the table again, because it may be dropped already
+        // meanwhile (dependent object, or same object)
         table = getSchema().findTableOrView(session, tableName);
-        if(table != null) {
+        if (table != null) {
             table.setModified();
             Database db = session.getDatabase();
             db.removeSchemaObject(session, table);
         }
-        if(next != null) {
+        if (next != null) {
             next.executeDrop();
         }
     }

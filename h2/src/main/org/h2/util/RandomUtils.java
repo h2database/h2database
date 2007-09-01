@@ -26,20 +26,18 @@ public class RandomUtils {
     }
     
     public static long getSecureLong() {
-        if(secureRandom == null) {
+        if (secureRandom == null) {
             byte[] buff = SecureRandom.getSeed(8);
             return ByteUtils.readLong(buff, 0);
         }
         return secureRandom.nextLong();
     }
-    
-    
 
     public static byte[] getSecureBytes(int len) {
-        if(secureRandom == null) {
+        if (secureRandom == null) {
             return SecureRandom.getSeed(len);
         }
-        if(len <= 0) {
+        if (len <= 0) {
             len = 1;
         }
         byte[] buff = new byte[len];

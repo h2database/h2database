@@ -33,9 +33,8 @@ public class ValueStringFixed extends ValueStringBase {
         return s;
     }
     
-    
     protected boolean isEqual(Value v) {
-        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase)v).value);
+        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
     }    
 
     public int hashCode() {

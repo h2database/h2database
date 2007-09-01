@@ -19,7 +19,7 @@ public class Sequence extends SchemaObjectBase {
     private long value = 1;
     private long valueWithMargin;
     private long increment = 1;
-    private boolean belongsToTable; 
+    private boolean belongsToTable;
 
     public Sequence(Schema schema, int id, String name, boolean belongsToTable) {
         super(schema, id, name, Trace.SEQUENCE);
@@ -30,7 +30,7 @@ public class Sequence extends SchemaObjectBase {
         this.value = value;
         this.valueWithMargin = value;
     }
-    
+
     public boolean getBelongsToTable() {
         return belongsToTable;
     }
@@ -40,22 +40,22 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public void setIncrement(long inc) throws JdbcSQLException {
-        if(increment == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{"0", "INCREMENT"}, null);
+        if (increment == 0) {
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" }, null);
         }
         this.increment = inc;
     }
-    
+
     public String getDropSQL() {
-        if(getBelongsToTable()) {
+        if (getBelongsToTable()) {
             return null;
         }
         return "DROP SEQUENCE IF EXISTS " + getSQL();
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
-    }    
+    }
 
     public synchronized String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
@@ -63,31 +63,31 @@ public class Sequence extends SchemaObjectBase {
         buff.append(getSQL());
         buff.append(" START WITH ");
         buff.append(value);
-        if(increment != 1) {
+        if (increment != 1) {
             buff.append(" INCREMENT BY ");
             buff.append(increment);
         }
-        if(belongsToTable) {
+        if (belongsToTable) {
             buff.append(" BELONGS_TO_TABLE");
         }
         return buff.toString();
     }
 
     public synchronized long getNext() throws SQLException {
-        if((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
-            valueWithMargin += increment*BLOCK_INCREMENT;
+        if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
+            valueWithMargin += increment * BLOCK_INCREMENT;
             flush();
         }
         long v = value;
         value += increment;
         return v;
     }
-    
+
     public void flush() throws SQLException {
-        // can not use the session, because it must be committed immediately 
+        // can not use the session, because it must be committed immediately
         // otherwise other threads can not access the sys table.
         Session s = database.getSystemSession();
-        synchronized(this) {
+        synchronized (this) {
             // just for this case, use the value with the margin for the script
             long realValue = value;
             try {

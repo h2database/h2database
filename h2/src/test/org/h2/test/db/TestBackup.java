@@ -36,11 +36,11 @@ public class TestBackup extends TestBase {
         stat2.execute("insert into test values(4, 'fourth (uncommitted)')");
         stat2.execute("insert into testlob values(2, ' ', '00')");
         
-        stat1.execute("backup to '" + BASE_DIR + "/backup.zip'");
+        stat1.execute("backup to '" + baseDir + "/backup.zip'");
         conn2.rollback();
         compareDatabases(stat1, stat2);
         
-        Restore.execute(BASE_DIR + "/backup.zip", BASE_DIR, "restored", true);
+        Restore.execute(baseDir + "/backup.zip", baseDir, "restored", true);
         conn3 = getConnection("restored");
         stat3 = conn3.createStatement();
         compareDatabases(stat1, stat3);

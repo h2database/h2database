@@ -32,7 +32,7 @@ public class TestBigResult extends TestBase {
         // rs.close();
         conn.close();
         deleteDb("bigResult");
-        ArrayList files = FileLister.getDatabaseFiles(BASE_DIR, "bigResult", true);
+        ArrayList files = FileLister.getDatabaseFiles(baseDir, "bigResult", true);
         if(files.size() > 0) {
             error("file not deleted: " + files.get(0));
         }

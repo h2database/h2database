@@ -39,15 +39,15 @@ public class ViewCursor implements Cursor {
 
     public boolean next() throws SQLException {
         boolean res = result.next();
-        if(!res) {
+        if (!res) {
             result.reset();
             current = null;
             return false;
         }
         current = table.getTemplateRow();
         Value[] values = result.currentRow();
-        for(int i=0; i<current.getColumnCount(); i++) {
-            Value v = i<values.length ? values[i] : ValueNull.INSTANCE;
+        for (int i = 0; i < current.getColumnCount(); i++) {
+            Value v = i < values.length ? values[i] : ValueNull.INSTANCE;
             current.setValue(i, v);
         }
         return true;

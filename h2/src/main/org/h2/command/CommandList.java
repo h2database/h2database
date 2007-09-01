@@ -28,7 +28,7 @@ public class CommandList extends Command {
     
     private void executeRemaining() throws SQLException {
         Command command = session.prepareLocal(remaining);
-        if(command.isQuery()) {
+        if (command.isQuery()) {
             command.query(0);
         } else {
             command.update();

@@ -48,7 +48,7 @@ public class Setting extends DbObjectBase {
         buff.append("SET ");
         buff.append(getSQL());
         buff.append(' ');
-        if(stringValue != null) {
+        if (stringValue != null) {
             buff.append(stringValue);
         } else {
             buff.append(intValue);

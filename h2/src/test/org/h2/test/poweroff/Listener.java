@@ -28,10 +28,10 @@ public class Listener implements Runnable {
     }
 
     public void run() {
-        while(true) {
+        while (true) {
             try {
                 Thread.sleep(10000);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // ignore
             }
             System.out.println("Max=" + maxValue);

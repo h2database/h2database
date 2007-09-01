@@ -4,8 +4,12 @@
  */
 package org.h2.test.mvcc;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Random;
+
 import org.h2.tools.DeleteDbFiles;
 
 public class TestMVCC {
@@ -144,15 +148,15 @@ public class TestMVCC {
         s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");
         Statement s;
         Connection c;
-        for(int i=0; i<1000; i++) {
-            if(random.nextBoolean()) {
+        for (int i = 0; i < 1000; i++) {
+            if (random.nextBoolean()) {
                 s = s1;
                 c = c1;
             } else {
                 s = s2;
                 c = c2;
             }
-            switch(random.nextInt(5)) {
+            switch (random.nextInt(5)) {
             case 0:
                 s.execute("INSERT INTO TEST(NAME) VALUES('Hello')");
                 break;
@@ -168,6 +172,7 @@ public class TestMVCC {
             case 4:
                 c.rollback();
                 break;
+            default:
             }
             s1.execute("SELECT * FROM TEST ORDER BY ID");
             s2.execute("SELECT * FROM TEST ORDER BY ID");
@@ -175,20 +180,20 @@ public class TestMVCC {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
+
         random = new Random(1);
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        for(int i=0; i<1000; i++) {
-            if(random.nextBoolean()) {
+        for (int i = 0; i < 1000; i++) {
+            if (random.nextBoolean()) {
                 s = s1;
                 c = c1;
             } else {
                 s = s2;
                 c = c2;
             }
-            switch(random.nextInt(5)) {
+            switch (random.nextInt(5)) {
             case 0:
-                s.execute("INSERT INTO TEST VALUES("+ i + ", 'Hello')");
+                s.execute("INSERT INTO TEST VALUES(" + i + ", 'Hello')");
                 break;
             case 1:
                 s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
@@ -202,6 +207,7 @@ public class TestMVCC {
             case 4:
                 c.rollback();
                 break;
+            default:
             }
             s1.execute("SELECT * FROM TEST ORDER BY ID");
             s2.execute("SELECT * FROM TEST ORDER BY ID");
@@ -252,15 +258,15 @@ public class TestMVCC {
 
     private void test(Statement stat, String sql, String expected) throws Exception {
         ResultSet rs = stat.executeQuery(sql);
-        if(rs.next()) {
+        if (rs.next()) {
             String s = rs.getString(1);
-            if(expected == null) {
+            if (expected == null) {
                 throw new Error("expected: no rows, got: " + s);
-            } else if(!expected.equals(s)) {
+            } else if (!expected.equals(s)) {
                 throw new Error("expected: " + expected + ", got: " + s);
             }
         } else {
-            if(expected != null) {
+            if (expected != null) {
                 throw new Error("expected: " + expected + ", got: no rows");
             }
         }

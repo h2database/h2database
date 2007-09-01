@@ -24,14 +24,14 @@ public abstract class RightOwner extends DbObjectBase {
     }
 
     public boolean isRoleGranted(Role grantedRole) {
-        if(grantedRoles != null) {
+        if (grantedRoles != null) {
             Iterator it = grantedRoles.keySet().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Role role = (Role) it.next();
-                if(role == grantedRole) {
+                if (role == grantedRole) {
                     return true;
                 }
-                if(role.isRoleGranted(grantedRole)) {
+                if (role.isRoleGranted(grantedRole)) {
                     return true;
                 }
             }
@@ -41,73 +41,73 @@ public abstract class RightOwner extends DbObjectBase {
     
     protected boolean isRightGrantedRecursive(Table table, int rightMask) {
         Right right;
-        if(grantedRights != null) {
+        if (grantedRights != null) {
             right = (Right) grantedRights.get(table);
-            if(right != null) {
-                if((right.getRightMask() & rightMask) == rightMask) {
+            if (right != null) {
+                if ((right.getRightMask() & rightMask) == rightMask) {
                     return true;
                 }
             }
         }
-        if(grantedRoles != null) {
+        if (grantedRoles != null) {
             Iterator it = grantedRoles.keySet().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 RightOwner role = (RightOwner) it.next();
-                if(role.isRightGrantedRecursive(table, rightMask)) {
+                if (role.isRightGrantedRecursive(table, rightMask)) {
                     return true;
                 }
             }
         }
         return false;
     }
-    
+
     public void grantRight(Table table, Right right) {
-        if(grantedRights == null) {
+        if (grantedRights == null) {
             grantedRights = new HashMap();
         }
         grantedRights.put(table, right);
     }
-    
+
     public void revokeRight(Table table) {
-        if(grantedRights == null) {
+        if (grantedRights == null) {
             return;
         }
         grantedRights.remove(table);
-        if(grantedRights.size() == 0) {
+        if (grantedRights.size() == 0) {
             grantedRights = null;
         }
     }
-    
+
     public void grantRole(Session session, Role role, Right right) {
-        if(grantedRoles == null) {
+        if (grantedRoles == null) {
             grantedRoles = new HashMap();
         }
         grantedRoles.put(role, right);
-    }    
-    
+    }
+
     public void revokeRole(Session session, Role role) throws SQLException {
-        if(grantedRoles == null) {
+        if (grantedRoles == null) {
             throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
         }
         Right right = (Right) grantedRoles.get(role);
-        if(right == null) {
+        if (right == null) {
             throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
         }
         grantedRoles.remove(role);
-        if(grantedRoles.size() == 0) {
+        if (grantedRoles.size() == 0) {
             grantedRoles = null;
         }
     }
-    
+
     public Right getRightForTable(Table table) {
-        if(grantedRights == null) {
+        if (grantedRights == null) {
             return null;
         }
         return (Right) grantedRights.get(table);
     }
-    
+
     public Right getRightForRole(Role role) {
-        if(grantedRoles == null) {
+        if (grantedRoles == null) {
             return null;
         }
         return (Right) grantedRoles.get(role);

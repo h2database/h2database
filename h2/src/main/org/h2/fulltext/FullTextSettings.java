@@ -46,7 +46,7 @@ public class FullTextSettings {
     public String convertWord(String word) {
         // TODO this is locale specific, document
         word = word.toUpperCase();
-        if(ignoreList.contains(word)) {
+        if (ignoreList.contains(word)) {
             return null;
         }
         return word;
@@ -55,7 +55,7 @@ public class FullTextSettings {
     static FullTextSettings getInstance(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         FullTextSettings setting = (FullTextSettings) settings.get(path);
-        if(setting == null) {
+        if (setting == null) {
             setting = new FullTextSettings();
             settings.put(path, setting);
         }

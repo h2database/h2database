@@ -4,7 +4,10 @@
  */
 package org.h2.jdbc;
 
-import java.sql.*;
+import java.sql.ParameterMetaData;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.SessionInterface;
@@ -33,7 +36,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterCount");
             checkClosed();
             return paramCount;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -50,7 +53,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterMode", param);
             checkParameterIndex(param);
             return parameterModeIn;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -67,7 +70,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterType", param);
             checkParameterIndex(param);
             return Types.VARCHAR;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -83,7 +86,7 @@ implements ParameterMetaData
             debugCodeCall("getPrecision", param);
             checkParameterIndex(param);
             return 0;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -99,7 +102,7 @@ implements ParameterMetaData
             debugCodeCall("getScale", param);
             checkParameterIndex(param);
             return 0;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -115,7 +118,7 @@ implements ParameterMetaData
             debugCodeCall("isNullable", param);
             checkParameterIndex(param);
             return ResultSetMetaData.columnNullableUnknown;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -131,7 +134,7 @@ implements ParameterMetaData
             debugCodeCall("isSigned", param);
             checkParameterIndex(param);
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -147,7 +150,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterClassName", param);
             checkParameterIndex(param);
             return String.class.getName();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -163,7 +166,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterTypeName", param);
             checkParameterIndex(param);
             return "VARCHAR";
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }

@@ -4,17 +4,111 @@
  */
 package org.h2.util;
 
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.h2.compress.CompressLZF;
+import org.h2.constant.ErrorCode;
+import org.h2.message.Message;
+
 public class MemoryFile {
-    private int supportCompression;
+    private static final int CACHE_SIZE = 8;
+    private static final boolean COMPRESS = true;
+    private static final int BLOCK_SIZE_SHIFT = 16;
+    private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
+    private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private String name;
-    private int length;
-    private byte[] data;
-    private int pos;
+    private long length;
+    private long pos;
     private byte[] magic;
+    private byte[][] data;
+    
+    private static final CompressLZF LZF = new CompressLZF();
+    private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
+
+//#ifdef JDK14
+    static class Cache extends LinkedHashMap {
+        private static final long serialVersionUID = 5549197956072850355L;
+        private int size;
+      
+        public Cache(int size) {
+            this.size = size;
+        }
+
+        protected boolean removeEldestEntry(Map.Entry eldest) {
+            if (size() < size) {
+                return false;
+            }
+            CompressItem c = (CompressItem) eldest.getKey();
+            compress(c.data, c.l);
+            return true;
+        }
+    }
+
+    static class CompressItem {
+        byte[][] data;
+        int l;
+
+        public int hashCode() {
+            return data.hashCode() ^ l;
+        }
+
+        public boolean equals(Object o) {
+            if (o instanceof CompressItem) {
+                CompressItem c = (CompressItem) o;
+                return c.data == data && c.l == l;
+            }
+            return false;
+        }
+    }
+    private static final Cache LATER = new Cache(CACHE_SIZE);
+//#endif
+    
+    
+    private static void compressLater(byte[][] data, int l) {
+//#ifdef JDK14
+        CompressItem c = new CompressItem();
+        c.data = data;
+        c.l = l;
+        synchronized (LZF) {
+            LATER.put(c, c);
+        }
+//#endif
+    }
+    
+    private static void expand(byte[][] data, int i) {
+        if (!COMPRESS) {
+            return;
+        }
+        byte[] d = data[i];
+        if (d.length == BLOCK_SIZE) {
+            return;
+        }
+        byte[] out = new byte[BLOCK_SIZE];
+        synchronized (LZF) {
+            LZF.expand(d, 0, d.length, out, 0, BLOCK_SIZE);
+        }
+        data[i] = out;
+    }
+
+    private static void compress(byte[][] data, int i) {
+        if (!COMPRESS) {
+            return;
+        }
+        byte[] d = data[i];
+        synchronized (LZF) {
+            int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
+            if (len <= BLOCK_SIZE) {
+                d = new byte[len];
+                System.arraycopy(BUFFER, 0, d, 0, len);
+                data[i] = d;
+            }
+        }
+    }
     
     MemoryFile(String name) {
         this.name = name;
-        data = new byte[16];
+        data = new byte[0][];
     }
     
     public String getName() {
@@ -30,37 +124,80 @@ public class MemoryFile {
     }
     
     public void setLength(long l) {
-        length = (int)l;
+        if (l < length) {
+            pos = Math.min(pos, l);
+            changeLength(l);
+            long end = MathUtils.roundUpLong(l, BLOCK_SIZE);
+            if (end != l) {
+                int lastBlock = (int) (l >>> BLOCK_SIZE_SHIFT);
+                expand(data, lastBlock);
+                byte[] d = data[lastBlock];
+                for (int i = (int) (l & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
+                    d[i] = 0;
+                }
+                compressLater(data, lastBlock);
+            }
+        } else {
+            changeLength(l);
+        }
     }
     
     public void seek(long pos) {
-        this.pos = (int)pos;
-    }
-    
-    public void write(byte[] b, int off, int len) {
-        if(pos+len > length) {
-            length = pos+len;
-        }
-        if(pos+len > data.length) {
-            byte[] n = new byte[length*2];
-            System.arraycopy(data, 0, n, 0, data.length);
-            data = n;
-        }
-        System.arraycopy(b, off, data, pos, len);
-        pos += len;
+        this.pos = (int) pos;
     }
 
-    public void readFully(byte[] b, int off, int len) {
-        if(pos+len > length) {
-            length = pos+len;
+    private void changeLength(long len) {
+        length = len;
+        len = MathUtils.roundUpLong(len, BLOCK_SIZE);
+        int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
+        if (blocks != data.length) {
+            byte[][] n = new byte[blocks][];
+            System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
+            for (int i = data.length; i < blocks; i++) {
+                n[i] = new byte[BLOCK_SIZE];
+                compressLater(n, i);
+            }
+            data = n;
         }
-        if(pos+len > data.length) {
-            byte[] n = new byte[length*2];
-            System.arraycopy(data, 0, n, 0, data.length);
-            data = n;            
+
+    }
+
+    private void readWrite(byte[] b, int off, int len, boolean write) throws SQLException {
+        long end = pos + len;
+        if (end > length) {
+            if (write) {
+                changeLength(end);
+            } else {
+                if (len == 0) {
+                    return;
+                }
+                throw Message.getSQLException(ErrorCode.IO_EXCEPTION_1, "EOF");
+            }
         }
-        System.arraycopy(data, pos, b, off, len);
-        pos += len;
+        while (len > 0) {
+            int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
+            int id = (int) (pos >>> BLOCK_SIZE_SHIFT);
+            expand(data, id);
+            byte[] block = data[id];
+            int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
+            if (write) {
+                System.arraycopy(b, off, block, blockOffset, l);
+            } else {
+                System.arraycopy(block, blockOffset, b, off, l);
+            }
+            compressLater(data, id);
+            off += l;
+            pos += l;
+            len -= l;
+        }
+    }
+    
+    public void write(byte[] b, int off, int len) throws SQLException {
+        readWrite(b, off, len, true);
+    }
+
+    public void readFully(byte[] b, int off, int len) throws SQLException {
+        readWrite(b, off, len, false);
     }
     
     public long getFilePointer() {
@@ -73,5 +210,12 @@ public class MemoryFile {
     
     public byte[] getMagic() {
         return magic;
+    }
+
+    public void close() {
+        pos = 0;
+    }
+
+    public void open() {
     }
 }

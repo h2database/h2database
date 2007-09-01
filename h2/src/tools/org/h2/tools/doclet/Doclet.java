@@ -27,8 +27,8 @@ public class Doclet {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
         String destDir = "docs/javadoc";
-        for(int i=0; i<options.length; i++) {
-            if(options[i][0].equals("destdir")) {
+        for (int i = 0; i < options.length; i++) {
+            if (options[i][0].equals("destdir")) {
                 destDir = options[i][1];
             }
         }
@@ -40,7 +40,7 @@ public class Doclet {
     }
 
     private static String getClass(String name) {
-        if(name.startsWith("Jdbc")) {
+        if (name.startsWith("Jdbc")) {
             return name.substring(4);
         }
         return name;
@@ -48,34 +48,38 @@ public class Doclet {
 
     private static void processClass(String destDir, ClassDoc clazz) throws IOException {
         String packageName = clazz.containingPackage().name();
-        String dir = destDir +"/"+ packageName.replace('.', '/');
+        String dir = destDir + "/" + packageName.replace('.', '/');
         (new File(dir)).mkdirs();
         String fileName = dir + "/" + clazz.name() + ".html";
         String className = getClass(clazz.name());
         FileWriter out = new FileWriter(fileName);
         PrintWriter writer = new PrintWriter(new BufferedWriter(out));
-        writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">");
+        writer
+                .println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">");
         String language = "en";
-        writer.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\""+language+"\" xml:lang=\""+language+"\">");
+        writer.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"" + language + "\" xml:lang=\"" + language
+                + "\">");
         writer.println("<head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
         writer.println(className);
-        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"../../../stylesheet.css\" /></head><body>");
-        writer.println("<table class=\"content\"><tr class=\"content\"><td class=\"content\"><div class=\"contentDiv\">");
+        writer
+                .println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"../../../stylesheet.css\" /></head><body>");
+        writer
+                .println("<table class=\"content\"><tr class=\"content\"><td class=\"content\"><div class=\"contentDiv\">");
 
-        writer.println("<h1>"+className+"</h1>");
-        writer.println(clazz.commentText()+"<br /><br />");
+        writer.println("<h1>" + className + "</h1>");
+        writer.println(clazz.commentText() + "<br /><br />");
 
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator() {
             public int compare(Object a, Object b) {
-                return ((MethodDoc)a).name().compareTo(((MethodDoc)b).name());
+                return ((MethodDoc) a).name().compareTo(((MethodDoc) b).name());
             }
         });
         writer.println("<table><tr><th colspan=\"2\">Methods</th></tr>");
-        for(int i=0; i<methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
-            if(skipMethod(method)) {
+            if (skipMethod(method)) {
                 continue;
             }
             String type = getTypeName(method.isStatic(), method.returnType());
@@ -83,8 +87,8 @@ public class Doclet {
             Parameter[] params = method.parameters();
             StringBuffer buff = new StringBuffer();
             buff.append('(');
-            for(int j=0; j<params.length; j++) {
-                if(j>0) {
+            for (int j = 0; j < params.length; j++) {
+                if (j > 0) {
                     buff.append(", ");
                 }
                 buff.append(getTypeName(false, params[j].type()));
@@ -92,64 +96,64 @@ public class Doclet {
                 buff.append(params[j].name());
             }
             buff.append(')');
-            if(isDeprecated(method)) {
+            if (isDeprecated(method)) {
                 name = "<span class=\"deprecated\">" + name + "</span>";
             }
-            writer.println("<a href=\"#r" + i + "\">" + name + "</a>"+buff.toString());
+            writer.println("<a href=\"#r" + i + "\">" + name + "</a>" + buff.toString());
             String firstSentence = getFirstSentence(method.firstSentenceTags());
-            if(firstSentence != null) {
-                writer.println("<div class=\"methodText\">"+firstSentence+"</div>");
+            if (firstSentence != null) {
+                writer.println("<div class=\"methodText\">" + firstSentence + "</div>");
             }
             writer.println("</td></tr>");
         }
         writer.println("</table>");
         FieldDoc[] fields = clazz.fields();
-        if(clazz.interfaces().length > 0) {
+        if (clazz.interfaces().length > 0) {
             fields = clazz.interfaces()[0].fields();
         }
         Arrays.sort(fields, new Comparator() {
             public int compare(Object a, Object b) {
-                return ((FieldDoc)a).name().compareTo(((FieldDoc)b).name());
+                return ((FieldDoc) a).name().compareTo(((FieldDoc) b).name());
             }
         });
-        int fieldId=0;
-        for(int i=0; i<fields.length; i++) {
+        int fieldId = 0;
+        for (int i = 0; i < fields.length; i++) {
             FieldDoc field = fields[i];
-            if(!field.isFinal() || !field.isStatic() || !field.isPublic()) {
+            if (!field.isFinal() || !field.isStatic() || !field.isPublic()) {
                 continue;
             }
-            if(fieldId==0) {
+            if (fieldId == 0) {
                 writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
             String name = field.name();
             String type = getTypeName(true, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
-            //writer.println("<a href=\"#f" + fieldId + "\">" + name + "</a>");
+            // writer.println("<a href=\"#f" + fieldId + "\">" + name + "</a>");
             writer.println(name + " = " + field.constantValueExpression());
             String text = field.commentText();
-            if(text != null) {
-                writer.println("<div class=\"methodText\">"+text+"</div>");
+            if (text != null) {
+                writer.println("<div class=\"methodText\">" + text + "</div>");
             }
             writer.println("</td></tr>");
             fieldId++;
         }
-        if(fieldId > 0) {
+        if (fieldId > 0) {
             writer.println("</table>");
         }
 
-        for(int i=0; i<methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
-            if(skipMethod(method)) {
+            if (skipMethod(method)) {
                 continue;
             }
             String type = getTypeName(method.isStatic(), method.returnType());
-            writer.println("<a name=\"r"+i+"\"></a>");
+            writer.println("<a name=\"r" + i + "\"></a>");
             Parameter[] params = method.parameters();
             StringBuffer buff = new StringBuffer();
             buff.append('(');
-            for(int j=0; j<params.length; j++) {
-                if(j>0) {
+            for (int j = 0; j < params.length; j++) {
+                if (j > 0) {
                     buff.append(", ");
                 }
                 buff.append(getTypeName(false, params[j].type()));
@@ -158,56 +162,57 @@ public class Doclet {
             }
             buff.append(')');
             ClassDoc[] exceptions = method.thrownExceptions();
-            if(exceptions.length>0) {
+            if (exceptions.length > 0) {
                 buff.append(" throws ");
-                for(int k=0; k<exceptions.length; k++) {
-                    if(k>0) {
+                for (int k = 0; k < exceptions.length; k++) {
+                    if (k > 0) {
                         buff.append(", ");
                     }
                     buff.append(exceptions[k].typeName());
                 }
             }
-            if(isDeprecated(method)) {
+            if (isDeprecated(method)) {
                 name = "<span class=\"deprecated\">" + name + "</span>";
             }
-            writer.println("<h4>"+ type + " <span class=\"methodName\">"+name+"</span>" + buff.toString()+"</h4>");
+            writer.println("<h4>" + type + " <span class=\"methodName\">" + name + "</span>" + buff.toString()
+                    + "</h4>");
             writer.println(method.commentText());
             ParamTag[] paramTags = method.paramTags();
             boolean space = false;
-            for(int j=0; j<paramTags.length; j++) {
-                if(!space) {
+            for (int j = 0; j < paramTags.length; j++) {
+                if (!space) {
                     writer.println("<br /><br />");
                     space = true;
                 }
                 String p = paramTags[j].parameterName() + " - " + paramTags[j].parameterComment();
-                if(j==0) {
+                if (j == 0) {
                     writer.println("<div class=\"itemTitle\">Parameters:</div>");
                 }
-                writer.println("<div class=\"item\">"+p+"</div>");
+                writer.println("<div class=\"item\">" + p + "</div>");
             }
             Tag[] returnTags = method.tags("return");
-            if(returnTags != null && returnTags.length>0) {
-                if(!space) {
+            if (returnTags != null && returnTags.length > 0) {
+                if (!space) {
                     writer.println("<br /><br />");
                     space = true;
                 }
                 writer.println("<div class=\"itemTitle\">Returns:</div>");
-                writer.println("<div class=\"item\">"+returnTags[0].text()+"</div>");
+                writer.println("<div class=\"item\">" + returnTags[0].text() + "</div>");
             }
-            ThrowsTag[] throwsTags =  method.throwsTags();
-            if(throwsTags != null && throwsTags.length > 0) {
-                if(!space) {
+            ThrowsTag[] throwsTags = method.throwsTags();
+            if (throwsTags != null && throwsTags.length > 0) {
+                if (!space) {
                     writer.println("<br /><br />");
                     space = true;
                 }
                 writer.println("<div class=\"itemTitle\">Throws:</div>");
-                for(int j=0; j<throwsTags.length; j++) {
+                for (int j = 0; j < throwsTags.length; j++) {
                     String p = throwsTags[j].exceptionName();
                     String c = throwsTags[j].exceptionComment();
-                    if(c.length() > 0) {
+                    if (c.length() > 0) {
                         p += " - " + c;
                     }
-                    writer.println("<div class=\"item\">"+p+"</div>");
+                    writer.println("<div class=\"item\">" + p + "</div>");
                 }
             }
             writer.println("<hr />");
@@ -219,17 +224,18 @@ public class Doclet {
 
     private static boolean skipMethod(MethodDoc method) {
         String name = method.name();
-        if(!method.isPublic() || name.equals("finalize")) {
+        if (!method.isPublic() || name.equals("finalize")) {
             return true;
         }
-        if(method.getRawCommentText().startsWith("@deprecated INTERNAL")) {
+        if (method.getRawCommentText().startsWith("@deprecated INTERNAL")) {
             return true;
         }
         String firstSentence = getFirstSentence(method.firstSentenceTags());
-        if(firstSentence==null || firstSentence.trim().length()==0) {
-            throw new Error("undocumented method? " + name+ " " + method.containingClass().name()+" "+method.getRawCommentText());
+        if (firstSentence == null || firstSentence.trim().length() == 0) {
+            throw new Error("undocumented method? " + name + " " + method.containingClass().name() + " "
+                    + method.getRawCommentText());
         }
-        if(firstSentence.startsWith("INTERNAL")) {
+        if (firstSentence.startsWith("INTERNAL")) {
             return true;
         }
         return false;
@@ -237,7 +243,7 @@ public class Doclet {
 
     private static String getFirstSentence(Tag[] tags) {
         String firstSentence = null;
-        if(tags.length>0) {
+        if (tags.length > 0) {
             Tag first = tags[0];
             firstSentence = first.text();
         }
@@ -246,7 +252,7 @@ public class Doclet {
 
     private static String getTypeName(boolean isStatic, Type type) {
         String s = type.typeName() + type.dimension();
-        if(isStatic) {
+        if (isStatic) {
             s = "static " + s;
         }
         return s;
@@ -255,9 +261,9 @@ public class Doclet {
     private static boolean isDeprecated(MethodDoc method) {
         Tag[] tags = method.tags();
         boolean deprecated = false;
-        for(int j=0; j<tags.length; j++) {
+        for (int j = 0; j < tags.length; j++) {
             Tag t = tags[j];
-            if(t.kind().equals("@deprecated")) {
+            if (t.kind().equals("@deprecated")) {
                 deprecated = true;
             }
         }

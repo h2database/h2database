@@ -32,48 +32,55 @@ public class FunctionAlias extends DbObjectBase {
         super(db, id, name, Trace.FUNCTION);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
-        if(lastDot < 0) {
+        if (lastDot < 0) {
             throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
         }
         className = javaClassMethod.substring(0, lastDot);
         methodName = javaClassMethod.substring(lastDot + 1);
-        if(!force) {
+        try {
+            // at least try to load the class, otherwise the data type is not
+            // initialized if it could be
             load();
+        } catch (SQLException e) {
+            if (!force) {
+                throw e;
+            }
         }
     }
-    
+
     private synchronized void load() throws SQLException {
-        if(javaMethod != null) {
+        if (javaMethod != null) {
             return;
         }
         Class javaClass;
         try {
             javaClass = database.loadClass(className);
         } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{className + " (" + methodName + ")"}, e);
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className + " (" + methodName
+                    + ")" }, e);
         }
         Method[] methods = javaClass.getMethods();
-        for(int i=0; i<methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
-            if(!Modifier.isStatic(m.getModifiers())) {
+            if (!Modifier.isStatic(m.getModifiers())) {
                 continue;
             }
-            if(m.getName().equals(methodName)) {
+            if (m.getName().equals(methodName)) {
                 javaMethod = m;
                 break;
-            } else if(getMethodSignature(m).equals(methodName)) {
+            } else if (getMethodSignature(m).equals(methodName)) {
                 javaMethod = m;
                 break;
             }
         }
-        if(javaMethod == null) {
+        if (javaMethod == null) {
             throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
         }
         Class[] paramClasses = javaMethod.getParameterTypes();
         paramCount = paramClasses.length;
-        if(paramCount > 0) {
+        if (paramCount > 0) {
             Class paramClass = paramClasses[0];
-            if(Connection.class.isAssignableFrom(paramClass)) {
+            if (Connection.class.isAssignableFrom(paramClass)) {
                 hasConnectionParam = true;
                 paramCount--;
             }
@@ -87,12 +94,12 @@ public class FunctionAlias extends DbObjectBase {
         buff.append(m.getName());
         buff.append('(');
         Class[] params = m.getParameterTypes();
-        for(int i=0; i<params.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < params.length; i++) {
+            if (i > 0) {
                 buff.append(", ");
             }
             Class p = params[i];
-            if(p.isArray()) {
+            if (p.isArray()) {
                 buff.append(p.getComponentType().getName());
                 buff.append("[]");
             } else {
@@ -119,7 +126,7 @@ public class FunctionAlias extends DbObjectBase {
     public String getDropSQL() {
         return "DROP ALIAS IF EXISTS " + getSQL();
     }
-    
+
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE FORCE ALIAS ");
@@ -152,20 +159,22 @@ public class FunctionAlias extends DbObjectBase {
         Class[] paramClasses = javaMethod.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         int p = 0;
-        if(hasConnectionParam && params.length > 0) {
+        if (hasConnectionParam && params.length > 0) {
             params[p++] = session.createConnection(columnList);
         }
-        for(int a=0; a<args.length && p<params.length; a++, p++) {
+        for (int a = 0; a < args.length && p < params.length; a++, p++) {
             Class paramClass = paramClasses[p];
             int type = DataType.getTypeFromClass(paramClass);
             Value v = args[a].getValue(session);
             v = v.convertTo(type);
             Object o = v.getObject();
-            if(o == null) {
-                if(paramClass.isPrimitive()) {
-                    if(columnList) {
-                        // if the column list is requested, the parameters may be null
-                        // need to set to default value otherwise the function can't be called at all
+            if (o == null) {
+                if (paramClass.isPrimitive()) {
+                    if (columnList) {
+                        // if the column list is requested, the parameters may
+                        // be null
+                        // need to set to default value otherwise the function
+                        // can't be called at all
                         o = DataType.getDefaultForPrimitiveType(paramClass);
                     } else {
                         // NULL for a java primitive: return NULL
@@ -173,7 +182,7 @@ public class FunctionAlias extends DbObjectBase {
                     }
                 }
             } else {
-                if(!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
+                if (!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
                     o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
                 }
             }
@@ -185,7 +194,7 @@ public class FunctionAlias extends DbObjectBase {
             try {
                 Object returnValue;
                 returnValue = javaMethod.invoke(null, params);
-                if(returnValue == null) {
+                if (returnValue == null) {
                     return ValueNull.INSTANCE;
                 }
                 Value ret = DataType.convertToValue(session, returnValue, dataType);
@@ -210,7 +219,7 @@ public class FunctionAlias extends DbObjectBase {
     public String getJavaMethodName() {
         return this.methodName;
     }
-    
+
     public boolean hasConnectionParam() {
         return this.hasConnectionParam;
     }

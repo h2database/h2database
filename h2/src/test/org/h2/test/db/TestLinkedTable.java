@@ -43,15 +43,15 @@ public class TestLinkedTable extends TestBase {
         deleteDb("linked2");
         Class.forName("org.h2.Driver");
 
-        Connection conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        Connection conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         
-        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked2", "sa2", "def");
         Statement stat2 = conn2.createStatement();
-        String link = "CREATE LINKED TABLE TEST_LINK_U('', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST') EMIT UPDATES";
+        String link = "CREATE LINKED TABLE TEST_LINK_U('', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', 'TEST') EMIT UPDATES";
         stat2.execute(link);
-        link = "CREATE LINKED TABLE TEST_LINK_DI('', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST')";
+        link = "CREATE LINKED TABLE TEST_LINK_DI('', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', 'TEST')";
         stat2.execute(link);
         stat2.executeUpdate("INSERT INTO TEST_LINK_U VALUES(1, 'Hello')");
         stat2.executeUpdate("INSERT INTO TEST_LINK_DI VALUES(2, 'World')");
@@ -82,13 +82,13 @@ public class TestLinkedTable extends TestBase {
         deleteDb("linked2");
         Class.forName("org.h2.Driver");
 
-        Connection conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        Connection conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST1(ID INT PRIMARY KEY)");
         
-        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked2", "sa2", "def");
         Statement stat2 = conn2.createStatement();
-        String link = "CALL LINK_SCHEMA('LINKED', '', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'PUBLIC')";
+        String link = "CALL LINK_SCHEMA('LINKED', '', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', 'PUBLIC')";
         stat2.execute(link);
         stat2.executeQuery("SELECT * FROM LINKED.TEST1");
         
@@ -106,7 +106,7 @@ public class TestLinkedTable extends TestBase {
         deleteDb("linked2");
         Class.forName("org.h2.Driver");
         
-        Connection conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        Connection conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TEMP TABLE TEST_TEMP(ID INT PRIMARY KEY)");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(200), XT TINYINT, XD DECIMAL(10,2), XTS TIMESTAMP, XBY BINARY(255), XBO BIT, XSM SMALLINT, XBI BIGINT, XBL BLOB, XDA DATE, XTI TIME, XCL CLOB, XDO DOUBLE)");
@@ -119,7 +119,7 @@ public class TestLinkedTable extends TestBase {
         stat.execute("SELECT * FROM TEST_TEMP");
         conn.close();
         
-        conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked1", "sa1", "abc");
+        conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked1", "sa1", "abc");
         stat = conn.createStatement();        
         testRow(stat, "TEST");
         try {
@@ -130,10 +130,10 @@ public class TestLinkedTable extends TestBase {
         }
         conn.close();
         
-        conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked2", "sa2", "def");
         stat = conn.createStatement();
-        stat.execute("CREATE LINKED TABLE IF NOT EXISTS LINK_TEST('org.h2.Driver', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST')");
-        stat.execute("CREATE LINKED TABLE IF NOT EXISTS LINK_TEST('org.h2.Driver', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', 'TEST')");
+        stat.execute("CREATE LINKED TABLE IF NOT EXISTS LINK_TEST('org.h2.Driver', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', 'TEST')");
+        stat.execute("CREATE LINKED TABLE IF NOT EXISTS LINK_TEST('org.h2.Driver', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', 'TEST')");
         testRow(stat, "LINK_TEST");
         ResultSet rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         ResultSetMetaData meta = rs.getMetaData();
@@ -141,7 +141,7 @@ public class TestLinkedTable extends TestBase {
         check(200, meta.getPrecision(2));
         
         conn.close();
-        conn = DriverManager.getConnection("jdbc:h2:"+BASE_DIR+"/linked2", "sa2", "def");
+        conn = DriverManager.getConnection("jdbc:h2:"+baseDir+"/linked2", "sa2", "def");
         stat = conn.createStatement();
         
         stat.execute("INSERT INTO LINK_TEST VALUES(3, 'Link Test', 30, 100.05, '2005-12-31 12:34:56.789', X'FFEECC33', FALSE, 1, -1234567890123456789, X'4455FF', DATE '9999-12-31', TIME '23:59:59', 'George', -2.5)");
@@ -186,7 +186,7 @@ public class TestLinkedTable extends TestBase {
         
         stat.execute("DROP TABLE LINK_TEST");
         
-        stat.execute("CREATE LINKED TABLE LINK_TEST('org.h2.Driver', 'jdbc:h2:"+BASE_DIR+"/linked1', 'sa1', 'abc', '(SELECT COUNT(*) FROM TEST)')");
+        stat.execute("CREATE LINKED TABLE LINK_TEST('org.h2.Driver', 'jdbc:h2:"+baseDir+"/linked1', 'sa1', 'abc', '(SELECT COUNT(*) FROM TEST)')");
         rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         rs.next();
         check(rs.getInt(1), 3);

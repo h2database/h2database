@@ -40,39 +40,39 @@ public class Test {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
-            if(writeDelay0) {
+            if (writeDelay0) {
                 stat.execute("SET WRITE_DELAY 0");
             }
-            System.out.println(url +" started");
-        } catch(Exception e) {
-            System.out.println(url +": " + e.toString());
+            System.out.println(url + " started");
+        } catch (Exception e) {
+            System.out.println(url + ": " + e.toString());
             return;
         }
         try {
             ResultSet rs = stat.executeQuery("SELECT MAX(ID) FROM TEST");
             rs.next();
-            System.out.println(url+": MAX(ID)=" + rs.getInt(1));
+            System.out.println(url + ": MAX(ID)=" + rs.getInt(1));
             stat.execute("DROP TABLE TEST");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // ignore
         }
         try {
             stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
             prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
-        } catch(SQLException e) {
-            System.out.println(url +": " + e.toString());
+        } catch (SQLException e) {
+            System.out.println(url + ": " + e.toString());
         }
     }
 
     private void insert(int id) {
         try {
-            if(prep != null) {
+            if (prep != null) {
                 prep.setInt(1, id);
                 prep.setString(2, "World " + id);
                 prep.execute();
             }
-        } catch(SQLException e) {
-            System.out.println(url +": " + e.toString());
+        } catch (SQLException e) {
+            System.out.println(url + ": " + e.toString());
         }
     }
 
@@ -118,7 +118,7 @@ public class Test {
         FileUtils.setLength(write, fileSize);
         write.seek(0);
         int i = 0;
-         FileDescriptor fd = write.getFD();
+        FileDescriptor fd = write.getFD();
         while (true) {
             if (write.getFilePointer() >= fileSize) {
                 break;
@@ -134,17 +134,17 @@ public class Test {
 
     void testDatabases(DataOutputStream out) throws Exception {
         Test[] dbs = new Test[] {
-            new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
-            new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),
-            new Test("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test4", "sa", "", false),
-//            new Test("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test", "sa", ""),
-            new Test("org.postgresql.Driver", "jdbc:postgresql:test", "sa", "sa", false),
-            new Test("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:test;create=true", "sa", "", false),
-            new Test("org.h2.Driver", "jdbc:h2:test5", "sa", "", true),
-            new Test("org.h2.Driver", "jdbc:h2:test6", "sa", "", false),
-        };
-        for(int i=0; ; i++) {
-            for(int j=0; j<dbs.length; j++) {
+                new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
+                new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),
+                new Test("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test4", "sa", "", false),
+                // new Test("com.mysql.jdbc.Driver",
+                // "jdbc:mysql://localhost/test", "sa", ""),
+                new Test("org.postgresql.Driver", "jdbc:postgresql:test", "sa", "sa", false),
+                new Test("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:test;create=true", "sa", "", false),
+                new Test("org.h2.Driver", "jdbc:h2:test5", "sa", "", true),
+                new Test("org.h2.Driver", "jdbc:h2:test6", "sa", "", false), };
+        for (int i = 0;; i++) {
+            for (int j = 0; j < dbs.length; j++) {
                 dbs[j].insert(i);
             }
             out.writeInt(i);

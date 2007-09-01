@@ -52,10 +52,10 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             needRebuild = true;
         } else {
             Record rec = storage.getRecordIfStored(session, headPos);
-            if(rec != null && (rec instanceof BtreeHead)) {
+            if (rec != null && (rec instanceof BtreeHead)) {
                 head = (BtreeHead) rec;
             }
-            if(head != null && head.getConsistent()) {
+            if (head != null && head.getConsistent()) {
                 setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
                 needRebuild = false;
                 rowCount = table.getRowCount(session);
@@ -84,10 +84,11 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     private void setChanged(Session session) throws SQLException {
-        if(head != null && !database.getLogIndexChanges()) {
-            // maybe there was a checkpoint, need to invalidate the summary in this case too
+        if (head != null && !database.getLogIndexChanges()) {
+            // maybe there was a checkpoint, need to invalidate the summary in
+            // this case too
             database.invalidateIndexSummary();
-            if(head.getConsistent()) {
+            if (head.getConsistent()) {
                 deletePage(session, head);
                 head.setConsistent(false);
                 flushHead(session);
@@ -97,7 +98,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     void updatePage(Session session, Record p) throws SQLException {
-        if(database.getLogIndexChanges()) {
+        if (database.getLogIndexChanges()) {
             storage.addRecord(session, p, p.getPos());
         } else {
             storage.updateRecord(session, p);
@@ -105,7 +106,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     void deletePage(Session session, Record p) throws SQLException {
-        if(database.getLogIndexChanges()) {
+        if (database.getLogIndexChanges()) {
             storage.removeRecord(session, p.getPos());
         }
     }
@@ -120,12 +121,13 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     public void flush(Session session) throws SQLException {
         lastChange = 0;
-        if(storage != null) {
+        if (storage != null) {
             storage.flushFile();
             deletePage(session, head);
             // if we log index changes now, then the index is consistent
-            // if we don't log index changes, then the index is only consistent if there are no in doubt transactions
-            if(database.getLogIndexChanges() || !database.getLog().containsInDoubtTransactions()) {
+            // if we don't log index changes, then the index is only consistent
+            // if there are no in doubt transactions
+            if (database.getLogIndexChanges() || !database.getLog().containsInDoubtTransactions()) {
                 head.setConsistent(true);
             }
             flushHead(session);
@@ -164,7 +166,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
-        if(rowCount == 1) {
+        if (rowCount == 1) {
             // TODO performance: maybe improve truncate performance in this case
             truncate(session);
         } else {
@@ -174,16 +176,16 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(SysProperties.CHECK && storage == null) {
+        if (SysProperties.CHECK && storage == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
-        if(first==null) {
+        if (first == null) {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
             root.first(cursor);
             return cursor;
         } else {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
-            if (getRowCount(session)==0 || !root.findFirst(cursor, first)) {
+            if (getRowCount(session) == 0 || !root.findFirst(cursor, first)) {
                 cursor.setCurrentRow(null);
             }
             return cursor;
@@ -191,10 +193,10 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     public int getLookupCost(int rowCount) {
-        for(int i=0, j = 1; ; i++) {
+        for (int i = 0, j = 1;; i++) {
             j *= BtreePage.BLOCKS_PER_PAGE;
-            if(j>rowCount) {
-                return (i+1);
+            if (j > rowCount) {
+                return (i + 1);
             }
         }
     }
@@ -222,10 +224,10 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         for (int i = 0; i < len; i++) {
             int pos = s.readInt();
             SearchRow r;
-            if(pos < 0) {
+            if (pos < 0) {
                 r = null;
             } else {
-                r = table.getTemplateSimpleRow(columns.length==1);
+                r = table.getTemplateSimpleRow(columns.length == 1);
                 r.setPos(pos);
                 for (int j = 0; j < columns.length; j++) {
                     int idx = columns[j].getColumnId();
@@ -243,10 +245,10 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     private void flushHead(Session session) throws SQLException {
         updatePage(session, head);
-        if(!database.getLogIndexChanges() && !database.getReadOnly()) {
+        if (!database.getLogIndexChanges() && !database.getReadOnly()) {
             storage.flushRecord(head);
         }
-        trace.debug("Index " + getSQL() + " head consistent="+head.getConsistent());
+        trace.debug("Index " + getSQL() + " head consistent=" + head.getConsistent());
     }
 
     public void truncate(Session session) throws SQLException {
@@ -286,13 +288,13 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     }
 
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
-        if(first) {
+        if (first) {
             // TODO optimization: this loops through NULL elements
             Cursor cursor = find(session, null, null);
-            while(cursor.next()) {
+            while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();
                 Value v = row.getValue(columnIndex[0]);
-                if(v != ValueNull.INSTANCE) {
+                if (v != ValueNull.INSTANCE) {
                     return row;
                 }
             }

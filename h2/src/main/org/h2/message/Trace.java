@@ -71,22 +71,20 @@ public class Trace {
 
     public void infoSQL(String sql) {
         sql = replaceNewline(sql);
-        
-        
-        if(sql.startsWith("/*")) {
+        if (sql.startsWith("/*")) {
             sql = sql.substring(sql.indexOf("*/") + 2).trim();
         }
         traceSystem.write(TraceSystem.INFO, module, lineSeparator + "/*SQL*/" + sql, null);
     }
-    
+
     private String replaceNewline(String s) {
-        if(s.indexOf('\r') < 0 && s.indexOf('\n') < 0) {
+        if (s.indexOf('\r') < 0 && s.indexOf('\n') < 0) {
             return s;
         }
         StringBuffer buff = new StringBuffer(s.length());
-        for(int i=0; i<s.length(); i++) {
+        for (int i = 0; i < s.length(); i++) {
             char ch = s.charAt(i);
-            if(ch == '\r' || ch == '\n') {
+            if (ch == '\r' || ch == '\n') {
                 ch = ' ';
             }
             buff.append(ch);

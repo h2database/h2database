@@ -63,10 +63,10 @@ public class SysProperties {
     
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);
-        if(s != null) {
+        if (s != null) {
             try {
                 return Boolean.valueOf(s).booleanValue();
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
             }
         }
         return defaultValue;
@@ -79,10 +79,10 @@ public class SysProperties {
     
     private static int getIntSetting(String name, int defaultValue) {
         String s = System.getProperty(name);
-        if(s != null) {
+        if (s != null) {
             try {
                 return Integer.decode(s).intValue();
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
             }
         }
         return defaultValue;
@@ -92,7 +92,7 @@ public class SysProperties {
      * INTERNAL
      */
     public static void setBaseDir(String dir) {
-        if(!dir.endsWith("/")) {
+        if (!dir.endsWith("/")) {
             dir += "/";
         }
         baseDir = dir;

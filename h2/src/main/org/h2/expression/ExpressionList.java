@@ -13,16 +13,16 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
 public class ExpressionList extends Expression {
-    
+
     private Expression[] list;
-    
+
     public ExpressionList(Expression[] list) {
         this.list = list;
     }
 
     public Value getValue(Session session) throws SQLException {
         Value[] v = new Value[list.length];
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
         }
         return ValueArray.get(v);
@@ -33,28 +33,28 @@ public class ExpressionList extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             list[i].mapColumns(resolver, level);
         }
     }
 
     public Expression optimize(Session session) throws SQLException {
         boolean allConst = true;
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             Expression e = list[i].optimize(session);
-            if(!e.isConstant()) {
+            if (!e.isConstant()) {
                 allConst = false;
             }
             list[i] = e;
         }
-        if(allConst) {
+        if (allConst) {
             return ValueExpression.get(getValue(session));
         }
         return this;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             list[i].setEvaluatable(tableFilter, b);
         }
     }
@@ -88,16 +88,16 @@ public class ExpressionList extends Expression {
 
     public boolean isEverything(ExpressionVisitor visitor) {
         for (int i = 0; i < list.length; i++) {
-            if(!list[i].isEverything(visitor)) {
+            if (!list[i].isEverything(visitor)) {
                 return false;
             }
         }
         return true;
     }
-    
+
     public int getCost() {
         int cost = 1;
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             cost += list[i].getCost();
         }
         return cost;

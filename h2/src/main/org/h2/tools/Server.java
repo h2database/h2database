@@ -109,7 +109,7 @@ public class Server implements Runnable {
      */
     public static void main(String[] args) throws SQLException {
         int exitCode = new Server().run(args);
-        if(exitCode != 0) {
+        if (exitCode != 0) {
             System.exit(exitCode);
         }
     }
@@ -121,75 +121,75 @@ public class Server implements Runnable {
         String tcpPassword = "";
         String tcpShutdownServer = "";
         boolean startDefaultServers = true;
-        for(int i=0; args != null && i<args.length; i++) {
+        for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
-            if("-?".equals(a) || "-help".equals(a)) {
+            if ("-?".equals(a) || "-help".equals(a)) {
                 showUsage();
                 return EXIT_ERROR;
-            } else if("-web".equals(a)) {
+            } else if ("-web".equals(a)) {
                 startDefaultServers = false;
                 webStart = true;
-            } else if("-tcp".equals(a)) {
+            } else if ("-tcp".equals(a)) {
                 startDefaultServers = false;
                 tcpStart = true;
-            } else if("-pg".equals(a)) {
+            } else if ("-pg".equals(a)) {
                 startDefaultServers = false;
                 pgStart = true;
-            } else if("-ftp".equals(a)) {
+            } else if ("-ftp".equals(a)) {
                 startDefaultServers = false;
                 ftpStart = true;
-            } else if("-tcpShutdown".equals(a)) {
+            } else if ("-tcpShutdown".equals(a)) {
                 startDefaultServers = false;
                 tcpShutdown = true;
                 tcpShutdownServer = args[++i];
-            } else if("-tcpPassword".equals(a)) {
+            } else if ("-tcpPassword".equals(a)) {
                 tcpPassword = args[++i];
-            } else if("-tcpShutdownForce".equals(a)) {
+            } else if ("-tcpShutdownForce".equals(a)) {
                 tcpShutdownForce = true;
-            } else if("-browser".equals(a)) {
+            } else if ("-browser".equals(a)) {
                 startDefaultServers = false;
                 browserStart = true;
             }
         }
         int exitCode = 0;
-        if(startDefaultServers) {
+        if (startDefaultServers) {
             tcpStart = true;
             pgStart = true;
             webStart = true;
             browserStart = true;
         }
         // TODO server: maybe use one single properties file?
-        if(tcpShutdown) {
+        if (tcpShutdown) {
             System.out.println("Shutting down TCP Server at " + tcpShutdownServer);
             shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce);
         }
-        if(tcpStart) {
+        if (tcpStart) {
             Server tcp = createTcpServer(args);
             try {
                 tcp.start();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
                 exitCode = EXIT_ERROR;
             }
             System.out.println(tcp.getStatus());
         }
-        if(pgStart) {
+        if (pgStart) {
             Server pg = createPgServer(args);
             try {
                 pg.start();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
                 exitCode = EXIT_ERROR;
-            }            
+            }
             System.out.println(pg.getStatus());
         }
-        if(webStart) {
+        if (webStart) {
             Server web = createWebServer(args);
             try {
                 web.start();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
                 exitCode = EXIT_ERROR;
@@ -198,19 +198,19 @@ public class Server implements Runnable {
             // start browser anyway (even if the server is already running) 
             // because some people don't look at the output, 
             // but are wondering why nothing happens
-            if(browserStart) {
+            if (browserStart) {
                 StartBrowser.openURL(web.getURL());
             }
         }
-        if(ftpStart) {
+        if (ftpStart) {
             Server ftp = createFtpServer(args);
             try {
                 ftp.start();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore (status is displayed)
                 e.printStackTrace();
                 exitCode = EXIT_ERROR;
-            }       
+            }
             System.out.println(ftp.getStatus());
         }
         return exitCode;
@@ -228,10 +228,10 @@ public class Server implements Runnable {
     public static void shutdownTcpServer(String url, String password, boolean force) throws SQLException {
         int port = Constants.DEFAULT_SERVER_PORT;
         int idx = url.indexOf(':', "jdbc:h2:".length());
-        if(idx >= 0) {
-            String p = url.substring(idx+1);
+        if (idx >= 0) {
+            String p = url.substring(idx + 1);
             idx = p.indexOf('/');
-            if(idx >= 0) {
+            if (idx >= 0) {
                 p = p.substring(0, idx);
             }
             port = MathUtils.decodeInt(p);
@@ -239,10 +239,10 @@ public class Server implements Runnable {
         String db = TcpServer.getManagementDbName(port);
         try {
             org.h2.Driver.load();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw Message.convert(e);
         }
-        for(int i=0; i<2; i++) {
+        for (int i = 0; i < 2; i++) {
             Connection conn = null;
             PreparedStatement prep = null;
             try {
@@ -253,16 +253,16 @@ public class Server implements Runnable {
                 prep.setInt(3, force ? TcpServer.SHUTDOWN_FORCE : TcpServer.SHUTDOWN_NORMAL);
                 try {
                     prep.execute();
-                } catch(SQLException e) {
-                    if(force) {
+                } catch (SQLException e) {
+                    if (force) {
                         // ignore
                     } else {
                         throw e;
                     }
                 }
                 break;
-            } catch(SQLException e) {
-                if(i == 1) {
+            } catch (SQLException e) {
+                if (i == 1) {
                     throw e;
                 }
             } finally {
@@ -271,20 +271,20 @@ public class Server implements Runnable {
             }
         }
     }
-    
+
     String getStatus() {
         StringBuffer buff = new StringBuffer();
-        if(isRunning()) {
-             buff.append(service.getType());
-             buff.append(" server running on ");
-             buff.append(service.getURL());
-             buff.append(" (");
-             if(service.getAllowOthers()) {
-                 buff.append("others can connect");
-             } else {
-                 buff.append("only local connections");
-             }
-             buff.append(")");
+        if (isRunning()) {
+            buff.append(service.getType());
+            buff.append(" server running on ");
+            buff.append(service.getURL());
+            buff.append(" (");
+            if (service.getAllowOthers()) {
+                buff.append("others can connect");
+            } else {
+                buff.append("only local connections");
+            }
+            buff.append(")");
         } else {
             buff.append("Port is in use, maybe another " + service.getType() + " server already running on ");
             buff.append(service.getURL());
@@ -338,19 +338,19 @@ public class Server implements Runnable {
         Thread t = new Thread(this);
         t.setName(name + " (" + service.getURL() + ")");
         t.start();
-        for(int i=1; i<64; i+=i) {
+        for (int i = 1; i < 64; i += i) {
             wait(i);
-            if(isRunning()) {
+            if (isRunning()) {
                 return this;
             }
         }
         throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
     }
-    
+
     private static void wait(int i) {
         try {
             // sleep at most 4096 ms
-            long sleep = (long)i * (long)i;
+            long sleep = (long) i * (long) i;
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             // ignore
@@ -386,7 +386,7 @@ public class Server implements Runnable {
         this.service = service;
         try {
             service.init(args);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw Message.convert(e);
         }
     }

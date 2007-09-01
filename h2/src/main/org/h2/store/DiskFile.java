@@ -72,33 +72,34 @@ public class DiskFile implements CacheWriter {
         this.dataFile = dataFile;
         this.logChanges = logChanges;
         String cacheType = database.getCacheType();
-        if(Cache2Q.TYPE_NAME.equals(cacheType)) {
+        if (Cache2Q.TYPE_NAME.equals(cacheType)) {
             this.cache = new Cache2Q(this, cacheSize);
         } else {
             this.cache = new CacheLRU(this, cacheSize);
         }
         rowBuff = DataPage.create(database, BLOCK_SIZE);
-        // TODO: the overhead is larger in the log file, so this value is too high :-(
+        // TODO: the overhead is larger in the log file, so this value is too
+        // high :-(
         recordOverhead = 4 * rowBuff.getIntLen() + 1 + rowBuff.getFillerLength();
         freeBlock = DataPage.create(database, BLOCK_SIZE);
         freeBlock.fill(BLOCK_SIZE);
         freeBlock.updateChecksum();
         try {
-            if(FileUtils.exists(fileName)) {
+            if (FileUtils.exists(fileName)) {
                 file = database.openFile(fileName, mode, true);
                 long length = file.length();
                 database.notifyFileSize(length);
-                int blocks = (int)((length - OFFSET) / BLOCK_SIZE);
+                int blocks = (int) ((length - OFFSET) / BLOCK_SIZE);
                 setBlockCount(blocks);
             } else {
                 create();
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             close();
             throw e;
         }
     }
-    
+
     private void reset() {
         used = new BitField();
         deleted = new BitField();
@@ -111,7 +112,7 @@ public class DiskFile implements CacheWriter {
     private void setBlockCount(int count) {
         fileBlockCount = count;
         int pages = getPage(count);
-        while(pages >= pageOwners.size()) {
+        while (pages >= pageOwners.size()) {
             pageOwners.add(-1);
         }
     }
@@ -121,7 +122,7 @@ public class DiskFile implements CacheWriter {
     }
 
     private void create() throws SQLException {
-        file =  database.openFile(fileName, mode, false);
+        file = database.openFile(fileName, mode, false);
         DataPage header = DataPage.create(database, OFFSET);
         file.seek(FileStore.HEADER_LENGTH);
         header.fill(OFFSET);
@@ -130,8 +131,8 @@ public class DiskFile implements CacheWriter {
     }
 
     private void freeUnusedPages() throws SQLException {
-        for(int i=0; i<pageOwners.size(); i++) {
-            if(pageOwners.get(i) != -1 && isPageFree(i)) {
+        for (int i = 0; i < pageOwners.size(); i++) {
+            if (pageOwners.get(i) != -1 && isPageFree(i)) {
                 setPageOwner(i, -1);
             }
         }
@@ -141,13 +142,13 @@ public class DiskFile implements CacheWriter {
         try {
             ByteArrayOutputStream buff = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(buff);
-            int blocks = (int)((file.length() - OFFSET) / BLOCK_SIZE);
+            int blocks = (int) ((file.length() - OFFSET) / BLOCK_SIZE);
             out.writeInt(blocks);
-            for(int i=0, x = 0; i<blocks / 8; i++) {
+            for (int i = 0, x = 0; i < blocks / 8; i++) {
                 int mask = 0;
-                for(int j=0; j<8; j++) {
-                    if(used.get(x)) {
-                        mask |= 1 << j ;
+                for (int j = 0; j < 8; j++) {
+                    if (used.get(x)) {
+                        mask |= 1 << j;
                     }
                     x++;
                 }
@@ -155,20 +156,20 @@ public class DiskFile implements CacheWriter {
             }
             out.writeInt(pageOwners.size());
             ObjectArray storages = new ObjectArray();
-            for(int i=0; i<pageOwners.size(); i++) {
+            for (int i = 0; i < pageOwners.size(); i++) {
                 int s = pageOwners.get(i);
                 out.writeInt(s);
-                if(s >= 0 && (s >= storages.size() || storages.get(s) == null)) {
+                if (s >= 0 && (s >= storages.size() || storages.get(s) == null)) {
                     Storage storage = database.getStorage(s, this);
-                    while(storages.size() <= s) {
+                    while (storages.size() <= s) {
                         storages.add(null);
                     }
                     storages.set(s, storage);
                 }
             }
-            for(int i=0; i<storages.size(); i++) {
+            for (int i = 0; i < storages.size(); i++) {
                 Storage storage = (Storage) storages.get(i);
-                if(storage != null) {
+                if (storage != null) {
                     out.writeInt(i);
                     out.writeInt(storage.getRecordCount());
                 }
@@ -177,15 +178,16 @@ public class DiskFile implements CacheWriter {
             out.close();
             byte[] b2 = buff.toByteArray();
             return b2;
-        } catch(IOException e) {
-            // will probably never happen, because only in-memory structures are used
+        } catch (IOException e) {
+            // will probably never happen, because only in-memory structures are
+            // used
             return null;
         }
     }
 
     private boolean isPageFree(int page) {
-        for(int i=page * BLOCKS_PER_PAGE; i < (page+1) * BLOCKS_PER_PAGE; i++) {
-            if(used.get(i)) {
+        for (int i = page * BLOCKS_PER_PAGE; i < (page + 1) * BLOCKS_PER_PAGE; i++) {
+            if (used.get(i)) {
                 return false;
             }
         }
@@ -193,11 +195,11 @@ public class DiskFile implements CacheWriter {
     }
 
     public synchronized void initFromSummary(byte[] summary) {
-        if(summary == null || summary.length==0) {
+        if (summary == null || summary.length == 0) {
             ObjectArray list = database.getAllStorages();
-            for(int i=0; i<list.size(); i++) {
-                Storage s = (Storage)list.get(i);
-                if(s != null && s.getDiskFile() == this) {
+            for (int i = 0; i < list.size(); i++) {
+                Storage s = (Storage) list.get(i);
+                if (s != null && s.getDiskFile() == this) {
                     database.removeStorage(s.getId(), this);
                 }
             }
@@ -206,7 +208,7 @@ public class DiskFile implements CacheWriter {
             init = false;
             return;
         }
-        if(database.getRecovery() || initAlreadyTried) {
+        if (database.getRecovery() || initAlreadyTried) {
             return;
         }
         initAlreadyTried = true;
@@ -214,15 +216,17 @@ public class DiskFile implements CacheWriter {
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
             int b2 = in.readInt();
-            if(b2 > fileBlockCount) {
-                database.getTrace(Trace.DATABASE).info("unexpected size " + b2 + " when initializing summary for " +fileName+" expected:" + fileBlockCount);
+            if (b2 > fileBlockCount) {
+                database.getTrace(Trace.DATABASE).info(
+                        "unexpected size " + b2 + " when initializing summary for " + fileName + " expected:"
+                                + fileBlockCount);
                 return;
             }
             stage++;
-            for(int i=0, x = 0; i<b2 / 8; i++) {
+            for (int i = 0, x = 0; i < b2 / 8; i++) {
                 int mask = in.read();
-                for(int j=0; j<8; j++) {
-                    if((mask & (1 << j)) != 0) {
+                for (int j = 0; j < 8; j++) {
+                    if ((mask & (1 << j)) != 0) {
                         used.set(x);
                     }
                     x++;
@@ -231,11 +235,11 @@ public class DiskFile implements CacheWriter {
             stage++;
             int len = in.readInt();
             ObjectArray storages = new ObjectArray();
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 int s = in.readInt();
-                if(s>=0) {
+                if (s >= 0) {
                     Storage storage = database.getStorage(s, this);
-                    while(storages.size() <= s) {
+                    while (storages.size() <= s) {
                         storages.add(null);
                     }
                     storages.set(s, storage);
@@ -244,9 +248,9 @@ public class DiskFile implements CacheWriter {
                 setPageOwner(i, s);
             }
             stage++;
-            while(true) {
+            while (true) {
                 int s = in.readInt();
-                if(s < 0) {
+                if (s < 0) {
                     break;
                 }
                 int recordCount = in.readInt();
@@ -257,19 +261,20 @@ public class DiskFile implements CacheWriter {
             freeUnusedPages();
             init = true;
         } catch (Exception e) {
-            database.getTrace(Trace.DATABASE).error("error initializing summary for " +fileName+" size:" +summary.length + " stage:"+stage, e);
+            database.getTrace(Trace.DATABASE).error(
+                    "error initializing summary for " + fileName + " size:" + summary.length + " stage:" + stage, e);
             // ignore - init is still false in this case
         }
     }
 
     public synchronized void init() throws SQLException {
-        if(init) {
+        if (init) {
             return;
         }
         ObjectArray storages = database.getAllStorages();
-        for(int i=0; i<storages.size(); i++) {
+        for (int i = 0; i < storages.size(); i++) {
             Storage s = (Storage) storages.get(i);
-            if(s != null && s.getDiskFile() == this) {
+            if (s != null && s.getDiskFile() == this) {
                 s.setRecordCount(0);
             }
         }
@@ -279,7 +284,7 @@ public class DiskFile implements CacheWriter {
         long time = 0;
         for (int i = 0; i < fileBlockCount;) {
             long t2 = System.currentTimeMillis();
-            if(t2 > time + 10) {
+            if (t2 > time + 10) {
                 time = t2;
                 database.setProgress(DatabaseEventListener.STATE_SCAN_FILE, this.fileName, i, fileBlockCount);
             }
@@ -287,15 +292,15 @@ public class DiskFile implements CacheWriter {
             file.readFully(buff, 0, blockHeaderLen);
             s.reset();
             int blockCount = s.readInt();
-            if(SysProperties.CHECK && blockCount < 0) {
+            if (SysProperties.CHECK && blockCount < 0) {
                 throw Message.getInternalError();
             }
-            if(blockCount == 0) {
+            if (blockCount == 0) {
                 setUnused(i, 1);
                 i++;
             } else {
                 int id = s.readInt();
-                if(SysProperties.CHECK && id < 0) {
+                if (SysProperties.CHECK && id < 0) {
                     throw Message.getInternalError();
                 }
                 Storage storage = database.getStorage(id, this);
@@ -312,17 +317,18 @@ public class DiskFile implements CacheWriter {
         database.checkPowerOff();
         ObjectArray list = cache.getAllChanged();
         CacheObject.sort(list);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Record rec = (Record) list.get(i);
             writeBack(rec);
         }
-        // TODO flush performance: maybe it would be faster to write records in the same loop
-        for(int i=0; i<fileBlockCount; i++) {
+        // TODO flush performance: maybe it would be faster to write records in
+        // the same loop
+        for (int i = 0; i < fileBlockCount; i++) {
             i = deleted.nextSetBit(i);
-            if(i < 0) {
+            if (i < 0) {
                 break;
             }
-            if(deleted.get(i)) {
+            if (deleted.get(i)) {
                 writeDirectDeleted(i, 1);
                 deleted.clear(i);
             }
@@ -331,7 +337,7 @@ public class DiskFile implements CacheWriter {
 
     public synchronized void close() throws SQLException {
         SQLException closeException = null;
-        if(!database.getReadOnly()) {
+        if (!database.getReadOnly()) {
             try {
                 flush();
             } catch (SQLException e) {
@@ -339,12 +345,13 @@ public class DiskFile implements CacheWriter {
             }
         }
         cache.clear();
-        // continue with close even if flush was not possible (file storage problem)
-        if(file != null) {
+        // continue with close even if flush was not possible (file storage
+        // problem)
+        if (file != null) {
             file.closeSilently();
             file = null;
         }
-        if(closeException != null) {
+        if (closeException != null) {
             throw closeException;
         }
         readCount = writeCount = 0;
@@ -353,15 +360,16 @@ public class DiskFile implements CacheWriter {
     private void go(int block) throws SQLException {
         file.seek(getFilePos(block));
     }
-    
+
     private long getFilePos(int block) {
-        return ((long)block * BLOCK_SIZE) + OFFSET;
+        return ((long) block * BLOCK_SIZE) + OFFSET;
     }
 
-    synchronized Record getRecordIfStored(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
+    synchronized Record getRecordIfStored(Session session, int pos, RecordReader reader, int storageId)
+            throws SQLException {
         try {
             int owner = getPageOwner(getPage(pos));
-            if(owner != storageId) {
+            if (owner != storageId) {
                 return null;
             }
             go(pos);
@@ -371,7 +379,7 @@ public class DiskFile implements CacheWriter {
             DataPage s = DataPage.create(database, buff);
             s.readInt(); // blockCount
             int id = s.readInt();
-            if(id != storageId) {
+            if (id != storageId) {
                 return null;
             }
         } catch (Exception e) {
@@ -379,14 +387,14 @@ public class DiskFile implements CacheWriter {
         }
         return getRecord(session, pos, reader, storageId);
     }
-    
+
     synchronized Record getRecord(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
-        if(file == null) {
+        if (file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
-        synchronized(this) {
+        synchronized (this) {
             Record record = (Record) cache.get(pos);
-            if(record != null) {
+            if (record != null) {
                 return record;
             }
             readCount++;
@@ -397,13 +405,14 @@ public class DiskFile implements CacheWriter {
             DataPage s = DataPage.create(database, buff);
             int blockCount = s.readInt();
             int id = s.readInt();
-            if(SysProperties.CHECK && storageId != id) {
-                throw Message.getInternalError("File ID mismatch got="+id+" expected="+storageId+" pos="+pos+" "+logChanges+" "+this +" blockCount:"+blockCount);
+            if (SysProperties.CHECK && storageId != id) {
+                throw Message.getInternalError("File ID mismatch got=" + id + " expected=" + storageId + " pos=" + pos
+                        + " " + logChanges + " " + this + " blockCount:" + blockCount);
             }
-            if(SysProperties.CHECK && blockCount == 0) {
-                throw Message.getInternalError("0 blocks to read pos="+pos);
+            if (SysProperties.CHECK && blockCount == 0) {
+                throw Message.getInternalError("0 blocks to read pos=" + pos);
             }
-            if(blockCount > 1) {
+            if (blockCount > 1) {
                 byte[] b2 = new byte[blockCount * BLOCK_SIZE];
                 System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
                 buff = b2;
@@ -412,7 +421,7 @@ public class DiskFile implements CacheWriter {
                 s.readInt();
                 s.readInt();
             }
-            s.check(blockCount*BLOCK_SIZE);
+            s.check(blockCount * BLOCK_SIZE);
             Record r = reader.read(session, s);
             r.setStorageId(storageId);
             r.setPos(pos);
@@ -423,46 +432,46 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized int allocate(Storage storage, int blockCount) throws SQLException {
-        if(file == null) {
+        if (file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
-        blockCount = getPage(blockCount+BLOCKS_PER_PAGE-1)*BLOCKS_PER_PAGE;
+        blockCount = getPage(blockCount + BLOCKS_PER_PAGE - 1) * BLOCKS_PER_PAGE;
         int lastPage = getPage(getBlockCount());
         int pageCount = getPage(blockCount);
         int pos = -1;
         boolean found = false;
         for (int i = 0; i < lastPage; i++) {
             found = true;
-            for(int j = i; j < i + pageCount; j++) {
-                if(j >= lastPage || getPageOwner(j) != -1) {
+            for (int j = i; j < i + pageCount; j++) {
+                if (j >= lastPage || getPageOwner(j) != -1) {
                     found = false;
                     break;
                 }
             }
-            if(found) {
+            if (found) {
                 pos = i * BLOCKS_PER_PAGE;
                 break;
             }
         }
-        if(!found) {
+        if (!found) {
             int max = getBlockCount();
             pos = MathUtils.roundUp(max, BLOCKS_PER_PAGE);
-            if(rowBuff instanceof DataPageText) {
-                if(pos > max) {
-                    writeDirectDeleted(max, pos-max);
+            if (rowBuff instanceof DataPageText) {
+                if (pos > max) {
+                    writeDirectDeleted(max, pos - max);
                 }
                 writeDirectDeleted(pos, blockCount);
             } else {
-                long min = ((long)pos + blockCount) * BLOCK_SIZE ;
+                long min = ((long) pos + blockCount) * BLOCK_SIZE;
                 min = MathUtils.scaleUp50Percent(128 * 1024, min, 8 * 1024) + OFFSET;
-                if(min > file.length()) {
+                if (min > file.length()) {
                     file.setLength(min);
                     database.notifyFileSize(min);
                 }
             }
         }
         setBlockOwner(storage, pos, blockCount, false);
-        for(int i=0; i<blockCount; i++) {
+        for (int i = 0; i < blockCount; i++) {
             storage.free(i + pos, 1);
         }
         return pos;
@@ -472,13 +481,13 @@ public class DiskFile implements CacheWriter {
         if (pos + blockCount > fileBlockCount) {
             setBlockCount(pos + blockCount);
         }
-        if(!inUse) {
+        if (!inUse) {
             setUnused(pos, blockCount);
         }
-        for(int i = getPage(pos); i <= getPage(pos+blockCount-1); i++) {
+        for (int i = getPage(pos); i <= getPage(pos + blockCount - 1); i++) {
             setPageOwner(i, storage.getId());
         }
-        if(inUse) {
+        if (inUse) {
             used.setRange(pos, blockCount, true);
             deleted.setRange(pos, blockCount, false);
         }
@@ -490,8 +499,9 @@ public class DiskFile implements CacheWriter {
         }
         for (int i = pos; i < pos + blockCount; i++) {
             used.clear(i);
-            if((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
-                // if this is the first page of a block and if the whole page is free
+            if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
+                // if this is the first page of a block and if the whole page is
+                // free
                 setPageOwner(getPage(i), -1);
             }
         }
@@ -502,7 +512,7 @@ public class DiskFile implements CacheWriter {
     }
 
     int getPageOwner(int page) {
-        if(page * BLOCKS_PER_PAGE > fileBlockCount || page >= pageOwners.size()) {
+        if (page * BLOCKS_PER_PAGE > fileBlockCount || page >= pageOwners.size()) {
             return -1;
         }
         return pageOwners.get(page);
@@ -510,24 +520,25 @@ public class DiskFile implements CacheWriter {
 
     void setPageOwner(int page, int storageId) throws SQLException {
         int old = pageOwners.get(page);
-        if(old == storageId) {
+        if (old == storageId) {
             return;
         }
-        if(SysProperties.CHECK &&  old >= 0 && storageId >= 0 && old != storageId) {
-            for(int i=0; i<BLOCKS_PER_PAGE; i++) {
-                if(used.get(i + page*BLOCKS_PER_PAGE)) {
+        if (SysProperties.CHECK && old >= 0 && storageId >= 0 && old != storageId) {
+            for (int i = 0; i < BLOCKS_PER_PAGE; i++) {
+                if (used.get(i + page * BLOCKS_PER_PAGE)) {
                     throw Message.getInternalError("double allocation");
                 }
             }
         }
-        if(old >= 0) {
+        if (old >= 0) {
             database.getStorage(old, this).removePage(page);
-            if(!logChanges) {
-                // need to clean the page, otherwise it may never get cleaned and can become corrupted
+            if (!logChanges) {
+                // need to clean the page, otherwise it may never get cleaned
+                // and can become corrupted
                 writeDirectDeleted(page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
             }
         }
-        if(storageId >= 0) {
+        if (storageId >= 0) {
             database.getStorage(storageId, this).addPage(page);
         }
         pageOwners.set(page, storageId);
@@ -570,7 +581,7 @@ public class DiskFile implements CacheWriter {
     public synchronized void writeBack(CacheObject obj) throws SQLException {
         writeCount++;
         Record record = (Record) obj;
-        synchronized(this) {
+        synchronized (this) {
             int blockCount = record.getBlockCount();
             record.prepareWrite();
             go(record.getPos());
@@ -598,29 +609,29 @@ public class DiskFile implements CacheWriter {
         record.setChanged(true);
         int pos = record.getPos();
         Record old = (Record) cache.update(pos, record);
-        if(SysProperties.CHECK) {
-            if(old != null) {
-                if(old!=record) {
+        if (SysProperties.CHECK) {
+            if (old != null) {
+                if (old != record) {
                     database.checkPowerOff();
-                    throw Message.getInternalError("old != record old="+old+" new="+record);
+                    throw Message.getInternalError("old != record old=" + old + " new=" + record);
                 }
                 int blockCount = record.getBlockCount();
-                for(int i=0; i<blockCount; i++) {
-                    if(deleted.get(i + pos)) {
-                        throw Message.getInternalError("update marked as deleted: " + (i+pos));
+                for (int i = 0; i < blockCount; i++) {
+                    if (deleted.get(i + pos)) {
+                        throw Message.getInternalError("update marked as deleted: " + (i + pos));
                     }
                 }
             }
         }
-        if(logChanges) {
+        if (logChanges) {
             log.add(session, this, record);
         }
     }
 
     synchronized void writeDirectDeleted(int recordId, int blockCount) throws SQLException {
-        synchronized(this) {
+        synchronized (this) {
             go(recordId);
-            for(int i=0; i<blockCount; i++) {
+            for (int i = 0; i < blockCount; i++) {
                 file.write(freeBlock.getBytes(), 0, freeBlock.length());
             }
             free(recordId, blockCount);
@@ -632,10 +643,10 @@ public class DiskFile implements CacheWriter {
         file.write(data, offset, BLOCK_SIZE);
         setBlockOwner(storage, pos, 1, true);
     }
-    
+
     public synchronized int copyDirect(int pos, OutputStream out) throws SQLException {
         try {
-            if(pos < 0) {
+            if (pos < 0) {
                 // read the header
                 byte[] buffer = new byte[OFFSET];
                 file.seek(0);
@@ -643,7 +654,7 @@ public class DiskFile implements CacheWriter {
                 out.write(buffer);
                 return 0;
             }
-            if(pos >= fileBlockCount) {
+            if (pos >= fileBlockCount) {
                 return -1;
             }
             int blockSize = DiskFile.BLOCK_SIZE;
@@ -654,21 +665,21 @@ public class DiskFile implements CacheWriter {
             file.readFully(buff, 0, blockSize);
             s.reset();
             int blockCount = s.readInt();
-            if(SysProperties.CHECK && blockCount < 0) {
+            if (SysProperties.CHECK && blockCount < 0) {
                 throw Message.getInternalError();
             }
-            if(blockCount == 0) {
+            if (blockCount == 0) {
                 blockCount = 1;
             }
             int id = s.readInt();
-            if(SysProperties.CHECK && id < 0) {
+            if (SysProperties.CHECK && id < 0) {
                 throw Message.getInternalError();
             }
             s.checkCapacity(blockCount * blockSize);
-            if(blockCount > 1) {
+            if (blockCount > 1) {
                 file.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
             }
-            if(file.isEncrypted()) {
+            if (file.isEncrypted()) {
                 s.reset();
                 go(pos);
                 file.readFullyDirect(s.getBytes(), 0, blockCount * blockSize);
@@ -677,11 +688,11 @@ public class DiskFile implements CacheWriter {
             return pos + blockCount;
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
-        } 
+        }
     }
 
     synchronized void removeRecord(Session session, int pos, Record record, int blockCount) throws SQLException {
-        if(logChanges) {
+        if (logChanges) {
             log.add(session, this, record);
         }
         cache.remove(pos);
@@ -690,7 +701,7 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized void addRecord(Session session, Record record) throws SQLException {
-        if(logChanges) {
+        if (logChanges) {
             log.add(session, this, record);
         }
         cache.put(record);
@@ -713,25 +724,26 @@ public class DiskFile implements CacheWriter {
 
     public synchronized void truncateStorage(Session session, Storage storage, IntArray pages) throws SQLException {
         int storageId = storage.getId();
-        // make sure the cache records of this storage are not flushed to disk afterwards
+        // make sure the cache records of this storage are not flushed to disk
+        // afterwards
         ObjectArray list = cache.getAllChanged();
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Record r = (Record) list.get(i);
-            if(r.getStorageId() == storageId) {
+            if (r.getStorageId() == storageId) {
                 r.setChanged(false);
             }
         }
         int[] pagesCopy = new int[pages.size()];
         // can not use pages directly, because setUnused removes rows from there
         pages.toArray(pagesCopy);
-        for(int i=0; i<pagesCopy.length; i++) {
+        for (int i = 0; i < pagesCopy.length; i++) {
             int page = pagesCopy[i];
-            if(logChanges) {
+            if (logChanges) {
                 log.addTruncate(session, this, storageId, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
             }
-            for(int j=0; j<BLOCKS_PER_PAGE; j++) {
+            for (int j = 0; j < BLOCKS_PER_PAGE; j++) {
                 Record r = (Record) cache.find(page * BLOCKS_PER_PAGE + j);
-                if(r != null) {
+                if (r != null) {
                     cache.remove(r.getPos());
                 }
             }
@@ -741,7 +753,7 @@ public class DiskFile implements CacheWriter {
     }
 
     public synchronized void sync() {
-        if(file != null) {
+        if (file != null) {
             file.sync();
         }
     }
@@ -756,7 +768,7 @@ public class DiskFile implements CacheWriter {
 
     synchronized void addRedoLog(Storage storage, int recordId, int blockCount, DataPage rec) throws SQLException {
         byte[] data = null;
-        if(rec != null) {
+        if (rec != null) {
             DataPage all = rowBuff;
             all.reset();
             all.writeInt(blockCount);
@@ -765,18 +777,18 @@ public class DiskFile implements CacheWriter {
             // the buffer may have some additional fillers - just ignore them
             all.fill(blockCount * BLOCK_SIZE);
             all.updateChecksum();
-            if(SysProperties.CHECK && all.length() != BLOCK_SIZE * blockCount) {
-                throw Message.getInternalError("blockCount:" + blockCount + " length: " + all.length()*BLOCK_SIZE);
+            if (SysProperties.CHECK && all.length() != BLOCK_SIZE * blockCount) {
+                throw Message.getInternalError("blockCount:" + blockCount + " length: " + all.length() * BLOCK_SIZE);
             }
             data = new byte[all.length()];
             System.arraycopy(all.getBytes(), 0, data, 0, all.length());
         }
-        for(int i=0; i<blockCount; i++) {
+        for (int i = 0; i < blockCount; i++) {
             RedoLogRecord log = new RedoLogRecord();
             log.recordId = recordId + i;
             log.offset = i * BLOCK_SIZE;
             log.storage = storage;
-            log.data= data;
+            log.data = data;
             log.sequenceId = redoBuffer.size();
             redoBuffer.add(log);
             redoBufferSize += log.getSize();
@@ -787,7 +799,7 @@ public class DiskFile implements CacheWriter {
     }
 
     synchronized void flushRedoLog() throws SQLException {
-        if(redoBuffer.size() == 0) {
+        if (redoBuffer.size() == 0) {
             return;
         }
         redoBuffer.sort(new Comparator() {
@@ -795,21 +807,21 @@ public class DiskFile implements CacheWriter {
                 RedoLogRecord e1 = (RedoLogRecord) o1;
                 RedoLogRecord e2 = (RedoLogRecord) o2;
                 int comp = e1.recordId - e2.recordId;
-                if(comp == 0) {
+                if (comp == 0) {
                     comp = e1.sequenceId - e2.sequenceId;
                 }
                 return comp;
             }
         });
         RedoLogRecord last = null;
-        for(int i=0; i<redoBuffer.size(); i++) {
+        for (int i = 0; i < redoBuffer.size(); i++) {
             RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
-            if(last != null && entry.recordId != last.recordId) {
+            if (last != null && entry.recordId != last.recordId) {
                 writeRedoLog(last);
             }
             last = entry;
         }
-        if(last != null) {
+        if (last != null) {
             writeRedoLog(last);
         }
         redoBuffer.clear();
@@ -817,23 +829,23 @@ public class DiskFile implements CacheWriter {
     }
 
     private void writeRedoLog(RedoLogRecord entry) throws SQLException {
-        if(entry.data == null) {
+        if (entry.data == null) {
             writeDirectDeleted(entry.recordId, 1);
         } else {
             writeDirect(entry.storage, entry.recordId, entry.data, entry.offset);
         }
     }
-    
+
     public int getWriteCount() {
         return writeCount;
     }
-    
+
     public int getReadCount() {
         return readCount;
     }
-    
+
     public void flushLog() throws SQLException {
-        if(log != null) {
+        if (log != null) {
             log.flush();
         }
     }

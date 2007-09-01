@@ -48,7 +48,7 @@ public class UndoLogRecord {
     public void undo(Session session) throws SQLException {
         switch (operation) {
         case INSERT:
-            if(state == IN_MEMORY_READ_POS) {
+            if (state == IN_MEMORY_READ_POS) {
                 Index index = table.getUniqueIndex();
                 Cursor cursor = index.find(session, row, row);
                 cursor.next();
@@ -56,16 +56,17 @@ public class UndoLogRecord {
                 row.setPos(pos);
                 state = IN_MEMORY;
             }
-            if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF) {
-                if(row.getDeleted()) {
+            if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF) {
+                if (row.getDeleted()) {
                     // it might have been deleted by another thread
                     return;
                 }
             }
             try {
                 table.removeRow(session, row);
-            } catch(SQLException e) {
-                if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
+            } catch (SQLException e) {
+                if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
+                        && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     // it might have been deleted by another thread
                     // ignore
                 } else {
@@ -77,8 +78,9 @@ public class UndoLogRecord {
             try {
                 row.setPos(0);
                 table.addRow(session, row);
-            } catch(SQLException e) {
-                if(session.getDatabase().getLockMode()==Constants.LOCK_MODE_OFF && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+            } catch (SQLException e) {
+                if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
+                        && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // it might have been added by another thread
                     // ignore
                 } else {
@@ -144,7 +146,7 @@ public class UndoLogRecord {
 
     public void commit() throws SQLException {
         ObjectArray list = table.getIndexes();
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Index index = (Index) list.get(i);
             index.commit(operation, row);
         }

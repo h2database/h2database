@@ -63,9 +63,9 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void addConstraintCommand(Prepared command) throws SQLException {
-        if(command instanceof CreateIndex) {
+        if (command instanceof CreateIndex) {
             CreateIndex create = (CreateIndex) command;
-            if(create.getPrimaryKey()) {
+            if (create.getPrimaryKey()) {
                 setPrimaryKeyColumnNames(create.getColumnNames());
                 setHashPrimaryKey(create.getHash());
             } else {
@@ -84,38 +84,38 @@ public class CreateTable extends SchemaCommand {
         // TODO rights: what rights are required to create a table?
         session.commit(true);
         Database db = session.getDatabase();
-        if(!db.isPersistent()) {
+        if (!db.isPersistent()) {
             persistent = false;
         }
-        if(getSchema().findTableOrView(session, tableName)!=null) {
+        if (getSchema().findTableOrView(session, tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tableName);
         }
-        if(asQuery != null) {
+        if (asQuery != null) {
             generateColumnFromQuery();
         }
         if (pkColumnNames != null) {
             int len = pkColumnNames.length;
-            for(int i=0; i<columns.size(); i++) {
+            for (int i = 0; i < columns.size(); i++) {
                 Column c = (Column) columns.get(i);
-                for(int j=0; j<len; j++) {
-                    if(c.getName().equals(pkColumnNames[j])) {
+                for (int j = 0; j < len; j++) {
+                    if (c.getName().equals(pkColumnNames[j])) {
                         c.setNullable(false);
                     }
                 }
             }
         }
         ObjectArray sequences = new ObjectArray();
-        for(int i=0; i<columns.size(); i++) {
+        for (int i = 0; i < columns.size(); i++) {
             Column c = (Column) columns.get(i);
-            if(c.getAutoIncrement()) {
+            if (c.getAutoIncrement()) {
                 int objId = getObjectId(true, true);
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
             }
             Sequence seq = c.getSequence();
-            if(seq != null) {
+            if (seq != null) {
                 sequences.add(seq);
             }
         }
@@ -124,11 +124,11 @@ public class CreateTable extends SchemaCommand {
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
-        if(temporary && !globalTemporary) {
-            if(onCommitDrop) {
+        if (temporary && !globalTemporary) {
+            if (onCommitDrop) {
                 table.setOnCommitDrop(true);
             }
-            if(onCommitTruncate) {
+            if (onCommitTruncate) {
                 table.setOnCommitTruncate(true);
             }
             session.addLocalTempTable(table);
@@ -136,24 +136,25 @@ public class CreateTable extends SchemaCommand {
             db.addSchemaObject(session, table);
         }
         try {
-            for(int i=0; i<columns.size(); i++) {
+            for (int i = 0; i < columns.size(); i++) {
                 Column c = (Column) columns.get(i);
                 c.prepareExpression(session);
             }
             if (pkColumnNames != null) {
-                Column[] pk =table.getColumns(pkColumnNames);
+                Column[] pk = table.getColumns(pkColumnNames);
                 int indexId = getObjectId(true, false);
-                table.addIndex(session, null, indexId, pk, IndexType.createPrimaryKey(persistent, hashPrimaryKey), Index.EMPTY_HEAD, null);
+                table.addIndex(session, null, indexId, pk, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
+                        Index.EMPTY_HEAD, null);
             }
-            for(int i=0; i<sequences.size(); i++) {
+            for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
                 table.addSequence(sequence);
             }
-            for(int i=0; i<constraintCommands.size(); i++) {
+            for (int i = 0; i < constraintCommands.size(); i++) {
                 Prepared command = (Prepared) constraintCommands.get(i);
                 command.update();
             }
-            if(asQuery != null) {
+            if (asQuery != null) {
                 boolean old = session.getUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
@@ -167,7 +168,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(old);
                 }
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             db.checkPowerOff();
             db.removeSchemaObject(session, table);
             throw e;
@@ -179,17 +180,17 @@ public class CreateTable extends SchemaCommand {
         asQuery.prepare();
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
-        for(int i=0; i<columnCount; i++) {
+        for (int i = 0; i < columnCount; i++) {
             Expression expr = (Expression) expressions.get(i);
             int type = expr.getType();
             String name = expr.getColumnName();
             long precision = expr.getPrecision();
             DataType dt = DataType.getDataType(type);
-            if(precision > 0 && (dt.defaultPrecision == 0 || dt.defaultPrecision > precision)) {
+            if (precision > 0 && (dt.defaultPrecision == 0 || dt.defaultPrecision > precision)) {
                 precision = dt.defaultPrecision;
             }
             int scale = expr.getScale();
-            if(scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
+            if (scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
                 precision = dt.defaultScale;
             }
             Column col = new Column(name, type, precision, scale);
@@ -198,12 +199,12 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void setPrimaryKeyColumnNames(String[] colNames) throws SQLException {
-        if(pkColumnNames != null) {
-            if(colNames.length != pkColumnNames.length) {
+        if (pkColumnNames != null) {
+            if (colNames.length != pkColumnNames.length) {
                 throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
             }
-            for(int i=0; i<colNames.length; i++) {
-                if(!colNames[i].equals(pkColumnNames[i])) {
+            for (int i = 0; i < colNames.length; i++) {
+                if (!colNames[i].equals(pkColumnNames[i])) {
                     throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }

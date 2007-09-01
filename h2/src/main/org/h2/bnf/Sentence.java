@@ -10,7 +10,7 @@ import java.util.HashSet;
 import org.h2.server.web.DbTableOrView;
 
 public class Sentence {
-    public static final int CONTEXT=0, KEYWORD=1;
+    public static final int CONTEXT = 0, KEYWORD = 1;
     public static final int FUNCTION = 2;
     public String text;
     HashMap next;
@@ -28,7 +28,7 @@ public class Sentence {
     }
     
     public void addAlias(String alias, DbTableOrView table) {
-        if(aliases == null) {
+        if (aliases == null) {
             aliases = new HashMap();
         }
         aliases.put(alias, table);
@@ -36,7 +36,7 @@ public class Sentence {
 
     public void addTable(DbTableOrView table) {
         lastTable = table;
-        if(tables==null) {
+        if (tables == null) {
             tables = new HashSet();
         }
         tables.add(table);

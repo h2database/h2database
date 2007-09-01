@@ -77,7 +77,7 @@ public class FileObjectDatabase implements FileObject {
     }
 
     public boolean renameTo(FileObject fileNew) {
-        return db.renameTo(fullName, ((FileObjectDatabase)fileNew).fullName);
+        return db.renameTo(fullName, ((FileObjectDatabase) fileNew).fullName);
     }
 
 }

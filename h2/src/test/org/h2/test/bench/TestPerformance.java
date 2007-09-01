@@ -38,7 +38,7 @@ public class TestPerformance {
         try {
             conn = getResultConnection();
             stat = conn.createStatement();
-            if(init) {
+            if (init) {
                 stat.execute("DROP TABLE IF EXISTS RESULTS");
             }
             stat.execute("CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, TEST VARCHAR, "
@@ -53,14 +53,14 @@ public class TestPerformance {
         boolean init = false;
         int dbId = -1;
         String out = "benchmark.html";
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-db")) {
-                dbId = Integer.parseInt(args[++i]); 
-            } else if(args[i].equals("-init")) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-db")) {
+                dbId = Integer.parseInt(args[++i]);
+            } else if (args[i].equals("-init")) {
                 init = true;
-            } else if(args[i].equals("-out")) {
+            } else if (args[i].equals("-out")) {
                 out = args[++i];
-            } else if(args[i].equals("-log")) {
+            } else if (args[i].equals("-log")) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
@@ -70,33 +70,33 @@ public class TestPerformance {
         prop.load(getClass().getResourceAsStream("test.properties"));
         int size = Integer.parseInt(prop.getProperty("size"));
         ArrayList dbs = new ArrayList();
-        for(int i=0; i<100; i++) {
-            if(dbId != -1 && i != dbId) {
+        for (int i = 0; i < 100; i++) {
+            if (dbId != -1 && i != dbId) {
                 continue;
             }
             String dbString = prop.getProperty("db" + i);
-            if(dbString != null) {
+            if (dbString != null) {
                 Database db = Database.parse(this, i, dbString);
-                if(db != null) {
+                if (db != null) {
                     db.setTranslations(prop);
                     dbs.add(db);
                 }
             }
         }
         ArrayList tests = new ArrayList();
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             String testString = prop.getProperty("test" + i);
-            if(testString != null) {
-                Bench bench = (Bench)Class.forName(testString).newInstance();
+            if (testString != null) {
+                Bench bench = (Bench) Class.forName(testString).newInstance();
                 tests.add(bench);
             }
         }
         testAll(dbs, tests, size);
         collect = false;
-        if(dbs.size() == 0) {
+        if (dbs.size() == 0) {
             return;
         }
-        ArrayList results = ((Database)dbs.get(0)).getResults();
+        ArrayList results = ((Database) dbs.get(0)).getResults();
         Connection conn = null;
         PreparedStatement prep = null;
         Statement stat = null;
@@ -104,19 +104,19 @@ public class TestPerformance {
         try {
             conn = getResultConnection();
             stat = conn.createStatement();
-            prep = conn.prepareStatement(
-                    "INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
-            for(int i=0; i<results.size(); i++) {
-                Object[] res = (Object[])results.get(i);
+            prep = conn
+                    .prepareStatement("INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
+            for (int i = 0; i < results.size(); i++) {
+                Object[] res = (Object[]) results.get(i);
                 prep.setInt(1, i);
                 prep.setString(2, res[0].toString());
                 prep.setString(3, res[1].toString());
-                for(int j=0; j<dbs.size(); j++) {
-                    Database db  = (Database)dbs.get(j);
+                for (int j = 0; j < dbs.size(); j++) {
+                    Database db = (Database) dbs.get(j);
                     prep.setInt(4, db.getId());
                     prep.setString(5, db.getName());
                     ArrayList r = db.getResults();
-                    Object[] v = (Object[])r.get(i);
+                    Object[] v = (Object[]) r.get(i);
                     prep.setString(6, v[2].toString());
                     prep.execute();
                 }
@@ -183,13 +183,13 @@ public class TestPerformance {
     }
     
     private void testAll(ArrayList dbs, ArrayList tests, int size) throws Exception {
-        for(int i=0; i<dbs.size(); i++) {
-            if(i>0) {
+        for (int i = 0; i < dbs.size(); i++) {
+            if (i > 0) {
                 Thread.sleep(1000);
             }
             // calls garbage collection
             TestBase.getMemoryUsed();
-            Database db = (Database)dbs.get(i);
+            Database db = (Database) dbs.get(i);
             System.out.println("testing " + db.getName());
             db.startServer();
             Connection conn = db.getConnection();
@@ -200,15 +200,15 @@ public class TestPerformance {
             conn.close();
             db.log("Executed Statements", "#", db.getExecutedStatements());
             db.log("Total Time", "ms", db.getTotalTime());
-            db.log("Statement per Second", "#",  db.getExecutedStatements()*1000/db.getTotalTime());
+            db.log("Statement per Second", "#", db.getExecutedStatements() * 1000 / db.getTotalTime());
             collect = false;
             db.stopServer();
         }
     }
-    
+
     private void runDatabase(Database db, ArrayList tests, int size) throws Exception {
-        for(int j=0; j<tests.size(); j++) {
-            Bench bench = (Bench)tests.get(j);
+        for (int j = 0; j < tests.size(); j++) {
+            Bench bench = (Bench) tests.get(j);
             runTest(db, bench, size);
         }
     }
@@ -219,7 +219,7 @@ public class TestPerformance {
     }
 
     public void log(String s) {
-        if(log) {
+        if (log) {
             System.out.println(s);
         }
     }

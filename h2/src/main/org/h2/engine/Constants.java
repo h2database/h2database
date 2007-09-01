@@ -58,10 +58,11 @@ import org.h2.constant.SysProperties;
  * - TestSystemExit
  * - Test with hibernate
  * - Scan for viruses
+ * - ant mavenDeployCental
+ * - Upload to SourceForge
  * - Newsletter: send to h2database-news@googlegroups.com (http://groups.google.com/group/h2database-news)
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Newsletter: send to google groups, but without 'to unsubscribe...'
- * - http://maven.apache.org/guides/mini/guide-ibiblio-upload.html
  * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
  * 
  * @author Thomas

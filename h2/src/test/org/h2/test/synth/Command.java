@@ -9,11 +9,9 @@ import java.util.HashMap;
 
 class Command {
     TestSynth config;
-    static final int CONNECT = 0, RESET = 1, DISCONNECT = 2, 
-        CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, 
-        SELECT = 6, DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10,
-        AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
-        CREATE_INDEX = 13, DROP_INDEX = 14, END = 15;    
+    static final int CONNECT = 0, RESET = 1, DISCONNECT = 2, CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, SELECT = 6,
+            DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10, AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
+            CREATE_INDEX = 13, DROP_INDEX = 14, END = 15;
     private int type;
     private Table table;
     private HashMap tables;
@@ -26,32 +24,32 @@ class Command {
     String[] selectList;
     private String join = "";
     private Result result;
-    
+
     static Command getDropTable(TestSynth config, Table table) {
         return new Command(config, Command.DROP_TABLE, table);
     }
-    
+
     Command getCommit(TestSynth config) {
         return new Command(config, Command.COMMIT);
     }
-    
+
     Command getRollback(TestSynth config) {
         return new Command(config, Command.ROLLBACK);
     }
-    
+
     Command getSetAutoCommit(TestSynth config, boolean auto) {
         int type = auto ? Command.AUTOCOMMIT_ON : Command.AUTOCOMMIT_OFF;
         return new Command(config, type);
     }
-    
+
     static Command getConnect(TestSynth config) {
         return new Command(config, CONNECT);
     }
-    
+
     static Command getReset(TestSynth config) {
         return new Command(config, RESET);
     }
-    
+
     static Command getDisconnect(TestSynth config) {
         return new Command(config, DISCONNECT);
     }
@@ -63,11 +61,11 @@ class Command {
     static Command getCreateTable(TestSynth config, Table table) {
         return new Command(config, CREATE_TABLE, table);
     }
-    
+
     static Command getCreateIndex(TestSynth config, Index index) {
         return new Command(config, CREATE_INDEX, index);
     }
-    
+
     static Command getRandomSelect(TestSynth config, Table table) {
         Command command = new Command(config, Command.SELECT, table, "M");
         command.selectList = Expression.getRandomSelectList(config, command);
@@ -76,38 +74,38 @@ class Command {
         command.order = Expression.getRandomOrder(config, command);
         return command;
     }
-    
+
     static Command getRandomSelectJoin(TestSynth config, Table table) {
         Command command = new Command(config, Command.SELECT, table, "M");
-        int len = config.random().getLog(5)+1;
+        int len = config.random().getLog(5) + 1;
         String globalJoinCondition = "";
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             Table t2 = config.randomTable();
             String alias = "J" + i;
             command.addSubqueryTable(alias, t2);
             Expression joinOn = Expression.getRandomJoinOn(config, command, alias);
-            if(config.random().getBoolean(50)) {
+            if (config.random().getBoolean(50)) {
                 // regular join
-                if(globalJoinCondition.length()>0) {
+                if (globalJoinCondition.length() > 0) {
                     globalJoinCondition += " AND ";
-                        
+
                 }
                 globalJoinCondition += " (" + joinOn.getSQL() + ") ";
-                command.addJoin(", "+t2.getName()+" "+alias);
+                command.addJoin(", " + t2.getName() + " " + alias);
             } else {
-                String join = " JOIN "+t2.getName()+" "+alias+" ON "+joinOn.getSQL();
-                if(config.random().getBoolean(20)) {
-                    command.addJoin(" LEFT OUTER"+join);
+                String join = " JOIN " + t2.getName() + " " + alias + " ON " + joinOn.getSQL();
+                if (config.random().getBoolean(20)) {
+                    command.addJoin(" LEFT OUTER" + join);
                 } else {
-                    command.addJoin(" INNER"+join);
+                    command.addJoin(" INNER" + join);
                 }
             }
         }
         command.selectList = Expression.getRandomSelectList(config, command);
         // TODO group by, having
         String cond = Expression.getRandomCondition(config, command).getSQL();
-        if(globalJoinCondition.length()>0) {
-            if(cond!=null) {
+        if (globalJoinCondition.length() > 0) {
+            if (cond != null) {
                 cond = "(" + globalJoinCondition + " ) AND (" + cond + ")";
             } else {
                 cond = globalJoinCondition;
@@ -117,7 +115,7 @@ class Command {
         command.order = Expression.getRandomOrder(config, command);
         return command;
     }
-    
+
     static Command getRandomDelete(TestSynth config, Table table) {
         Command command = new Command(config, Command.DELETE, table);
         command.condition = Expression.getRandomCondition(config, command).getSQL();
@@ -129,25 +127,24 @@ class Command {
         command.prepareUpdate();
         return command;
     }
-    
+
     static Command getRandomInsert(TestSynth config, Table table) {
         Command command = new Command(config, Command.INSERT, table);
         command.prepareInsert();
         return command;
     }
-    
 
     private Command(TestSynth config, int type) {
         this.config = config;
         this.type = type;
     }
-    
+
     private Command(TestSynth config, int type, Table table) {
         this.config = config;
         this.type = type;
         this.table = table;
     }
-    
+
     private Command(TestSynth config, int type, Table table, String alias) {
         this.config = config;
         this.type = type;
@@ -155,7 +152,7 @@ class Command {
         this.tables = new HashMap();
         this.tables.put(alias, table);
     }
-    
+
     private Command(TestSynth config, int type, Index index) {
         this.config = config;
         this.type = type;
@@ -164,7 +161,7 @@ class Command {
 
     Command(int type, String alias, Table table) {
         this.type = type;
-        if(alias == null) {
+        if (alias == null) {
             alias = table.getName();
         }
         addSubqueryTable(alias, table);
@@ -174,49 +171,49 @@ class Command {
     void addSubqueryTable(String alias, Table t) {
         tables.put(alias, t);
     }
-    
+
     void removeSubqueryTable(String alias) {
         tables.remove(alias);
     }
-    
+
     void prepareInsert() {
         Column[] c;
-        if(config.random().getBoolean(70)) {
+        if (config.random().getBoolean(70)) {
             c = table.getColumns();
         } else {
-            int len = config.random().getInt(table.getColumnCount()-1)+1;
+            int len = config.random().getInt(table.getColumnCount() - 1) + 1;
             c = columns = table.getRandomColumns(len);
         }
         values = new Value[c.length];
-        for(int i=0; i<c.length; i++) {
+        for (int i = 0; i < c.length; i++) {
             values[i] = c[i].getRandomValue();
         }
     }
-    
+
     void prepareUpdate() {
-        int len = config.random().getLog(table.getColumnCount()-1)+1;
+        int len = config.random().getLog(table.getColumnCount() - 1) + 1;
         Column[] c = columns = table.getRandomColumns(len);
         values = new Value[c.length];
-        for(int i=0; i<c.length; i++) {
+        for (int i = 0; i < c.length; i++) {
             values[i] = c[i].getRandomValue();
         }
         condition = Expression.getRandomCondition(config, this).getSQL();
     }
-    
+
     private Result select(DbInterface db) throws SQLException {
         String sql = "SELECT ";
-        for(int i=0; i<selectList.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < selectList.length; i++) {
+            if (i > 0) {
                 sql += ", ";
             }
             sql += selectList[i];
         }
         sql += "  FROM " + table.getName() + " M";
-        sql += " "+join;
-        if(condition!=null) {
+        sql += " " + join;
+        if (condition != null) {
             sql += "  WHERE " + condition;
         }
-        if(order.trim().length()>0) {
+        if (order.trim().length() > 0) {
             sql += "  ORDER BY " + order;
         }
         return db.select(sql);
@@ -299,19 +296,19 @@ class Command {
     }
 
     public String getRandomTableAlias() {
-        if(tables == null) {
+        if (tables == null) {
             return null;
         }
         Object[] list = tables.keySet().toArray();
         int i = config.random().getInt(list.length);
-        return (String)list[i];
+        return (String) list[i];
     }
-    
+
     public Table getTable(String alias) {
-        if(alias == null) {
+        if (alias == null) {
             return table;
         }
-        return (Table)tables.get(alias);
+        return (Table) tables.get(alias);
     }
 
     public void addJoin(String string) {
@@ -320,7 +317,7 @@ class Command {
 
     static Command getSelectAll(TestSynth config, Table table) {
         Command command = new Command(config, Command.SELECT, table, "M");
-        command.selectList = new String[]{"*"};
+        command.selectList = new String[] { "*" };
         command.order = "";
         return command;
     }

@@ -13,7 +13,7 @@ import org.h2.tools.Restore;
 public class TestBackup extends TestBase {
 
     public void test() throws Exception {
-        if(config.memory || config.logMode == 0) {
+        if (config.memory || config.logMode == 0) {
             return;
         }
         testBackup();
@@ -35,11 +35,11 @@ public class TestBackup extends TestBase {
         conn2.setAutoCommit(false);
         stat2.execute("insert into test values(4, 'fourth (uncommitted)')");
         stat2.execute("insert into testlob values(2, ' ', '00')");
-        
+
         stat1.execute("backup to '" + baseDir + "/backup.zip'");
         conn2.rollback();
         compareDatabases(stat1, stat2);
-        
+
         Restore.execute(baseDir + "/backup.zip", baseDir, "restored", true);
         conn3 = getConnection("restored");
         stat3 = conn3.createStatement();
@@ -51,4 +51,3 @@ public class TestBackup extends TestBase {
     }
 
 }
-

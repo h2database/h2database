@@ -4,8 +4,9 @@
  */
 package org.h2.test.db;
 
-import java.io.*;
-import java.sql.*;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 

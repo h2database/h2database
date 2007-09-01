@@ -19,18 +19,18 @@ public class Value {
     private int type;
     private Object data;
     private TestSynth config;
-    
+
     private Value(TestSynth config, int type, Object data) {
         this.config = config;
         this.type = type;
         this.data = data;
     }
-    
+
     String getSQL() {
-        if(data == null) {
+        if (data == null) {
             return "NULL";
         }
-        switch(type) {
+        switch (type) {
         case Types.DECIMAL:
         case Types.NUMERIC:
         case Types.BIGINT:
@@ -50,28 +50,28 @@ public class Value {
         case Types.LONGVARBINARY:
             return getBlobSQL();
         case Types.DATE:
-            return getDateSQL((Date)data);
+            return getDateSQL((Date) data);
         case Types.TIME:
-            return getTimeSQL((Time)data);
+            return getTimeSQL((Time) data);
         case Types.TIMESTAMP:
-            return getTimestampSQL((Timestamp)data);
+            return getTimestampSQL((Timestamp) data);
         case DataType.TYPE_BOOLEAN:
         case Types.BIT:
-            return (String)data;
+            return (String) data;
         default:
-            throw new Error("type="+type);
+            throw new Error("type=" + type);
         }
     }
-    
+
     private static Date randomDate(TestSynth config) {
         return config.random().randomDate();
 
     }
-    
+
     private static Double randomDouble(TestSynth config) {
-        return new Double(config.random().getInt(100)/10.);
+        return new Double(config.random().getInt(100) / 10.);
     }
-    
+
     private static Long randomLong(TestSynth config) {
         return new Long(config.random().getInt(1000));
     }
@@ -79,30 +79,30 @@ public class Value {
     private static Time randomTime(TestSynth config) {
         return config.random().randomTime();
     }
-    
+
     private static Timestamp randomTimestamp(TestSynth config) {
         return config.random().randomTimestamp();
     }
 
     private String getTimestampSQL(Timestamp ts) {
-        String s = "'"+ts.toString()+"'";
-        if(config.getMode() != TestSynth.HSQLDB) {
+        String s = "'" + ts.toString() + "'";
+        if (config.getMode() != TestSynth.HSQLDB) {
             s = "TIMESTAMP " + s;
         }
         return s;
     }
-    
+
     private String getDateSQL(Date date) {
-        String s = "'"+date.toString()+"'";
-        if(config.getMode() != TestSynth.HSQLDB) {
+        String s = "'" + date.toString() + "'";
+        if (config.getMode() != TestSynth.HSQLDB) {
             s = "DATE " + s;
         }
         return s;
     }
 
     private String getTimeSQL(Time time) {
-        String s = "'"+time.toString()+"'";
-        if(config.getMode() != TestSynth.HSQLDB) {
+        String s = "'" + time.toString() + "'";
+        if (config.getMode() != TestSynth.HSQLDB) {
             s = "TIME " + s;
         }
         return s;
@@ -110,9 +110,9 @@ public class Value {
 
     private String getBlobSQL() {
         byte[] bytes = (byte[]) data;
-//        StringBuffer buff = new StringBuffer("X'");
+        // StringBuffer buff = new StringBuffer("X'");
         StringBuffer buff = new StringBuffer("'");
-        for(int i=0; i<bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             int c = bytes[i] & 0xff;
             buff.append(Integer.toHexString(c >> 4 & 0xf));
             buff.append(Integer.toHexString(c & 0xf));
@@ -126,7 +126,7 @@ public class Value {
         ResultSetMetaData meta = rs.getMetaData();
         Object data;
         int type = meta.getColumnType(index);
-        switch(type) {
+        switch (type) {
         case Types.REAL:
         case Types.DOUBLE:
             data = new Double(rs.getDouble(index));
@@ -139,7 +139,7 @@ public class Value {
             data = rs.getBigDecimal(index);
             break;
         case Types.BLOB:
-        case Types.BINARY:       
+        case Types.BINARY:
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
             data = rs.getBytes(index);
@@ -171,20 +171,20 @@ public class Value {
             data = rs.getBoolean(index) ? "TRUE" : "FALSE";
             break;
         default:
-            throw new Error("type="+type);
+            throw new Error("type=" + type);
         }
-        if(rs.wasNull()) {
+        if (rs.wasNull()) {
             data = null;
         }
         return new Value(config, type, data);
     }
 
     public static Value getRandom(TestSynth config, int type, int precision, int scale, boolean mayBeNull) {
-        Object data;     
-        if(mayBeNull && config.random().getBoolean(20)) {
+        Object data;
+        if (mayBeNull && config.random().getBoolean(20)) {
             return new Value(config, type, null);
         }
-        switch(type) {
+        switch (type) {
         case Types.BIGINT:
             data = randomLong(config);
             break;
@@ -220,14 +220,14 @@ public class Value {
             data = config.random().getBoolean(50) ? "TRUE" : "FALSE";
             break;
         default:
-            throw new Error("type="+type);
+            throw new Error("type=" + type);
         }
         return new Value(config, type, data);
     }
-    
+
     private static Object randomInt(TestSynth config) {
         int value;
-        if(config.is(TestSynth.POSTGRESQL)) {
+        if (config.is(TestSynth.POSTGRESQL)) {
             value = config.random().getInt(1000000);
         } else {
             value = config.random().getRandomInt();
@@ -241,66 +241,66 @@ public class Value {
         config.random().getBytes(data);
         return data;
     }
-    
+
     private static BigDecimal randomDecimal(TestSynth config, int precision, int scale) {
-        int len = config.random().getLog(precision-scale)+scale;
-        if(len==0) {
+        int len = config.random().getLog(precision - scale) + scale;
+        if (len == 0) {
             len++;
         }
         StringBuffer buff = new StringBuffer();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             buff.append((char) ('0' + config.random().getInt(10)));
         }
         buff.insert(len - scale, '.');
-        if(config.random().getBoolean(20)) {
+        if (config.random().getBoolean(20)) {
             buff.insert(0, '-');
         }
         return new BigDecimal(buff.toString());
     }
-    
+
     public int compareTo(Object o) {
-        Value v = (Value)o;
-        if(type != v.type) {
-            throw new Error("compare "+type+" "+v.type+" "+data+" "+v.data);
+        Value v = (Value) o;
+        if (type != v.type) {
+            throw new Error("compare " + type + " " + v.type + " " + data + " " + v.data);
         }
-        if(data==null) {
-            return (v.data==null) ? 0 : -1; 
-        } else if(v.data==null) {
+        if (data == null) {
+            return (v.data == null) ? 0 : -1;
+        } else if (v.data == null) {
             return 1;
         }
-        switch(type) {
+        switch (type) {
         case Types.DECIMAL:
-            return ((BigDecimal)data).compareTo((BigDecimal)v.data);
+            return ((BigDecimal) data).compareTo((BigDecimal) v.data);
         case Types.BLOB:
         case Types.VARBINARY:
         case Types.BINARY:
-            return compareBytes((byte[])data, (byte[])v.data);
+            return compareBytes((byte[]) data, (byte[]) v.data);
         case Types.CLOB:
         case Types.VARCHAR:
             return data.toString().compareTo(v.data.toString());
         case Types.DATE:
-            return ((Date)data).compareTo((Date)v.data);
+            return ((Date) data).compareTo((Date) v.data);
         case Types.INTEGER:
-            return ((Integer)data).compareTo((Integer)v.data);
+            return ((Integer) data).compareTo((Integer) v.data);
         default:
-            throw new Error("type="+type);
+            throw new Error("type=" + type);
         }
     }
-    
+
     static int compareBytes(byte[] a, byte[] b) {
         int al = a.length, bl = b.length;
         int len = Math.min(al, bl);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             int x = a[i] & 0xff;
             int y = b[i] & 0xff;
-            if(x==y) {
+            if (x == y) {
                 continue;
             }
-            return x>y ? 1 : -1;
+            return x > y ? 1 : -1;
         }
-        return al==bl ? 0 : al > bl ? 1 : -1; 
+        return al == bl ? 0 : al > bl ? 1 : -1;
     }
-    
+
     public String toString() {
         return getSQL();
     }

@@ -53,7 +53,7 @@ public class TestFunctions extends TestBase {
         check(rs.getInt(1), 2);
         check(rs.getString(2), "World");
         checkFalse(rs.next());
-        
+
         rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
         check(rs.getMetaData().getColumnCount(), 1);
         rs.next();
@@ -137,14 +137,14 @@ public class TestFunctions extends TestBase {
         stat.execute("INSERT INTO TEST_BLOB VALUES(0, null)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(1, 'edd1f011edd1f011edd1f011')");
         rs = stat.executeQuery("SELECT blob2stream(VALUE) FROM TEST_BLOB");
-        while(rs.next()) {
+        while (rs.next()) {
         }
         rs.close();
         rs = stat.executeQuery("SELECT stream2stream(VALUE) FROM TEST_BLOB");
-        while(rs.next()) {
+        while (rs.next()) {
             // ignore
         }
-        
+
         stat.execute("CREATE ALIAS NULL_RESULT FOR \"" + getClass().getName() + ".nullResultSet\"");
         rs = stat.executeQuery("CALL NULL_RESULT()");
         check(rs.getMetaData().getColumnCount(), 1);
@@ -163,7 +163,7 @@ public class TestFunctions extends TestBase {
     }
 
     public static BufferedInputStream blob2stream(Blob value) throws SQLException {
-        if(value == null) {
+        if (value == null) {
             return null;
         }
         BufferedInputStream bufferedInStream = new BufferedInputStream(value.getBinaryStream());
@@ -171,7 +171,7 @@ public class TestFunctions extends TestBase {
     }
 
     public static BufferedInputStream stream2stream(InputStream value) throws SQLException {
-        if(value == null) {
+        if (value == null) {
             return null;
         }
         BufferedInputStream bufferedInStream = new BufferedInputStream(value);
@@ -199,13 +199,14 @@ public class TestFunctions extends TestBase {
     public static Object[] getArray() {
         return new Object[] { new Integer(0), "Hello" };
     }
-    
+
     public static ResultSet nullResultSet(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement("select null from system_range(1,1)");
         return statement.executeQuery();
     }
 
-    public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp, byte byParam, short sp) throws SQLException {
+    public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp,
+            byte byParam, short sp) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);

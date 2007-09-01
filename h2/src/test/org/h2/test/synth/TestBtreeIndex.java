@@ -16,75 +16,75 @@ import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 
 public class TestBtreeIndex extends TestBase {
-    
+
     public void test() throws Exception {
         Random random = new Random();
-        while(true) {
+        while (true) {
             int seed = random.nextInt();
             testCase(seed);
         }
     }
-    
+
     public void testCase(int seed) throws Exception {
         baseDir = "dataIndex";
         testOne(seed);
         baseDir = "data";
-    }    
+    }
 
     private void testOne(int seed) throws Exception {
         Class.forName("org.h2.Driver");
         printTime("testIndex " + seed);
         Random random = new Random(seed);
         int distinct, prefixLength;
-        if(random.nextBoolean()) {
-            distinct=random.nextInt(8000)+1;
-            prefixLength=random.nextInt(8000)+1;
-        } else if(random.nextBoolean()) {
-            distinct=random.nextInt(16000)+1;
-            prefixLength=random.nextInt(100)+1;
+        if (random.nextBoolean()) {
+            distinct = random.nextInt(8000) + 1;
+            prefixLength = random.nextInt(8000) + 1;
+        } else if (random.nextBoolean()) {
+            distinct = random.nextInt(16000) + 1;
+            prefixLength = random.nextInt(100) + 1;
         } else {
-            distinct=random.nextInt(10)+1;
-            prefixLength=random.nextInt(10)+1;
+            distinct = random.nextInt(10) + 1;
+            prefixLength = random.nextInt(10) + 1;
         }
         boolean delete = random.nextBoolean();
         StringBuffer buff = new StringBuffer();
-        for(int j=0; j<prefixLength; j++) {
+        for (int j = 0; j < prefixLength; j++) {
             buff.append("x");
         }
         String prefix = buff.toString();
         DeleteDbFiles.execute(baseDir, null, true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:" +baseDir + "/index", "sa", "sa");
+        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/index", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
         PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");
         PreparedStatement prepDelete = conn.prepareStatement("DELETE FROM a WHERE text=?");
         PreparedStatement prepDeleteAllButOne = conn.prepareStatement("DELETE FROM a WHERE text <> ?");
-        int count=0;
-        for(int i=0; i<1000; i++) {
+        int count = 0;
+        for (int i = 0; i < 1000; i++) {
             int y = random.nextInt(distinct);
             try {
                 prepInsert.setString(1, prefix + y);
                 prepInsert.executeUpdate();
-                count ++;
-            } catch(SQLException e) {
-                if(e.getSQLState().equals("23001")) {
+                count++;
+            } catch (SQLException e) {
+                if (e.getSQLState().equals("23001")) {
                     // ignore
                 } else {
                     TestBase.logError("error", e);
                     break;
                 }
             }
-            if(delete && random.nextInt(10) == 1) {
-                if(random.nextInt(4) == 1) {
+            if (delete && random.nextInt(10) == 1) {
+                if (random.nextInt(4) == 1) {
                     try {
                         prepDeleteAllButOne.setString(1, prefix + y);
                         int deleted = prepDeleteAllButOne.executeUpdate();
-                        if(deleted < count-1) {
-                            System.out.println("ERROR deleted:"+deleted);
+                        if (deleted < count - 1) {
+                            System.out.println("ERROR deleted:" + deleted);
                             System.out.println("new TestBtreeIndex().");
                         }
                         count -= deleted;
-                    } catch(SQLException e) {
+                    } catch (SQLException e) {
                         TestBase.logError("error", e);
                         break;
                     }
@@ -92,12 +92,12 @@ public class TestBtreeIndex extends TestBase {
                     try {
                         prepDelete.setString(1, prefix + y);
                         int deleted = prepDelete.executeUpdate();
-                        if(deleted > 1) {
-                            System.out.println("ERROR deleted:"+deleted);
+                        if (deleted > 1) {
+                            System.out.println("ERROR deleted:" + deleted);
                             System.out.println("new TestIndex().");
                         }
                         count -= deleted;
-                    } catch(SQLException e) {
+                    } catch (SQLException e) {
                         TestBase.logError("error", e);
                         break;
                     }
@@ -106,19 +106,19 @@ public class TestBtreeIndex extends TestBase {
         }
         ResultSet rs = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY text");
         int testCount = 0;
-        while(rs.next()) {
+        while (rs.next()) {
             testCount++;
         }
-        if(testCount != count) {
-            System.out.println("ERROR count:"+count+" testCount:"+testCount);
+        if (testCount != count) {
+            System.out.println("ERROR count:" + count + " testCount:" + testCount);
             System.out.println("new TestIndex().");
         }
         rs = conn.createStatement().executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
-        if(rs.next()) {
+        if (rs.next()) {
             System.out.println("ERROR");
             System.out.println("new TestIndex().");
         }
         conn.close();
     }
-    
+
 }

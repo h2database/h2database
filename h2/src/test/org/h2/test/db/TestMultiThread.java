@@ -31,39 +31,39 @@ public class TestMultiThread extends TestBase implements Runnable {
         conn = getConnection();
         stat = conn.createStatement();
     }
-    
+
     public void test() throws Exception {
-        
+
         Connection conn = getConnection();
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
         int len = getSize(10, 200);
         Thread[] threads = new Thread[len];
-        for(int i=0; i<len; i++) {
-            threads[i] = new Thread(new TestMultiThread(config, this));            
+        for (int i = 0; i < len; i++) {
+            threads[i] = new Thread(new TestMultiThread(config, this));
         }
-        for(int i=0; i<len; i++) {
-            threads[i].start();            
+        for (int i = 0; i < len; i++) {
+            threads[i].start();
         }
         int sleep = getSize(400, 10000);
         Thread.sleep(sleep);
         this.stop = true;
-        for(int i=0; i<len; i++) {
-            threads[i].join();            
+        for (int i = 0; i < len; i++) {
+            threads[i].join();
         }
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
-        trace("max id="+rs.getInt(1));
+        trace("max id=" + rs.getInt(1));
         conn.close();
     }
 
     Connection getConnection() throws Exception {
         return getConnection("jdbc:h2:mem:multiThread");
     }
-    
+
     public void run() {
         try {
-            while(!parent.stop) {
+            while (!parent.stop) {
                 stat.execute("SELECT COUNT(*) FROM TEST");
                 stat.execute("INSERT INTO TEST VALUES(NULL, 'Hi')");
                 PreparedStatement prep = conn.prepareStatement("UPDATE TEST SET NAME='Hello' WHERE ID=?");
@@ -72,12 +72,12 @@ public class TestMultiThread extends TestBase implements Runnable {
                 prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
                 prep.setInt(1, random.nextInt(10000));
                 ResultSet rs = prep.executeQuery();
-                while(rs.next()) {
+                while (rs.next()) {
                     rs.getString("NAME");
                 }
             }
             conn.close();
-        } catch(Exception e) {
+        } catch (Exception e) {
             logError("multi", e);
         }
     }

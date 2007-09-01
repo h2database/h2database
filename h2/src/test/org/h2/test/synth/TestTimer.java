@@ -32,10 +32,10 @@ public class TestTimer extends TestBase {
         int max = 0;
         int count = 0;
         long start = System.currentTimeMillis();
-        while(true) {
+        while (true) {
             int action = random.nextInt(10);
             int x = max == 0 ? 0 : random.nextInt(max);
-            switch(action) {
+            switch (action) {
             case 0:
             case 1:
             case 2:
@@ -48,14 +48,14 @@ public class TestTimer extends TestBase {
                 break;
             case 3:
             case 4:
-                if(count == 0) {
+                if (count == 0) {
                     break;
                 }
                 stat.execute("UPDATE TEST SET NAME=NAME||'+' WHERE ID=" + x);
                 break;
             case 5:
             case 6:
-                if(count == 0) {
+                if (count == 0) {
                     break;
                 }
                 count -= stat.executeUpdate("DELETE FROM TEST WHERE ID=" + x);
@@ -66,7 +66,7 @@ public class TestTimer extends TestBase {
                 int c = rs.getInt(1);
                 check(c, count);
                 long time = System.currentTimeMillis();
-                if(time > start + 5000) {
+                if (time > start + 5000) {
                     println("rows: " + count);
                     start = time;
                 }
@@ -86,7 +86,7 @@ public class TestTimer extends TestBase {
             int count = rs.getInt(1);
             conn.close();
             println("done, rows: " + count);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             logError("validate", e);
             backup();
         }
@@ -94,10 +94,10 @@ public class TestTimer extends TestBase {
 
     private void backup() {
         println("backup");
-        for(int i=0;; i++) {
+        for (int i = 0;; i++) {
             String s = "timer." + i + ".zip";
             File f = new File(s);
-            if(f.exists()) {
+            if (f.exists()) {
                 continue;
             }
             try {

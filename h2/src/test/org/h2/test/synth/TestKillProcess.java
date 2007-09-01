@@ -17,30 +17,30 @@ public class TestKillProcess {
     public static void main(String[] args) throws Exception {
         try {
             Class.forName("org.h2.Driver");
-            String url = args[0], user = args[1], password= args[2];
-            String BASE_DIR = args[3];
+            String url = args[0], user = args[1], password = args[2];
+            String baseDir = args[3];
             int accounts = Integer.parseInt(args[4]);
-            
+
             Random random = new Random();
             Connection conn1 = DriverManager.getConnection(url, user, password);
-            
+
             PreparedStatement prep1a = conn1.prepareStatement("INSERT INTO LOG(ACCOUNTID, AMOUNT) VALUES(?, ?)");
             PreparedStatement prep1b = conn1.prepareStatement("UPDATE ACCOUNT SET SUM=SUM+? WHERE ID=?");
             conn1.setAutoCommit(false);
             long time = System.currentTimeMillis();
             String d = null;
-            for(int i=0; ; i++) {
+            for (int i = 0;; i++) {
                 long t = System.currentTimeMillis();
-                if(t > time + 1000) {
-                    ArrayList list = FileLister.getDatabaseFiles(BASE_DIR, "kill", true);
-                    System.out.println("inserting... i:"+i+" d:" + d+" files:" + list.size());
+                if (t > time + 1000) {
+                    ArrayList list = FileLister.getDatabaseFiles(baseDir, "kill", true);
+                    System.out.println("inserting... i:" + i + " d:" + d + " files:" + list.size());
                     time = t;
                 }
-                if(i>10000) {
-    //                System.out.println("halt");
-    //                Runtime.getRuntime().halt(0);
-    //                conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
-    //                System.exit(0);
+                if (i > 10000) {
+                    // System.out.println("halt");
+                    // Runtime.getRuntime().halt(0);
+                    // conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
+                    // System.exit(0);
                 }
                 int account = random.nextInt(accounts);
                 int value = random.nextInt(100);
@@ -51,16 +51,16 @@ public class TestKillProcess {
                 prep1b.setInt(2, account);
                 prep1b.execute();
                 conn1.commit();
-                if(random.nextInt(100) < 2) {
+                if (random.nextInt(100) < 2) {
                     d = "D" + random.nextInt(1000);
                     account = random.nextInt(accounts);
                     conn1.createStatement().execute("UPDATE TEST_A SET DATA='" + d + "' WHERE ID=" + account);
                     conn1.createStatement().execute("UPDATE TEST_B SET DATA='" + d + "' WHERE ID=" + account);
                 }
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             TestBase.logError("error", e);
         }
     }
-    
+
 }

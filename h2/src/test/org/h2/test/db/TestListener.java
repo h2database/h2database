@@ -13,15 +13,15 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 
 public class TestListener extends TestBase implements DatabaseEventListener {
-    
+
     private long last, start;
-    
+
     public TestListener() {
         start = last = System.currentTimeMillis();
     }
 
     public void test() throws Exception {
-        if(config.networked) {
+        if (config.networked) {
             return;
         }
         deleteDb("listener");
@@ -31,19 +31,19 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, 'Test' || SPACE(100))");
         int len = getSize(100, 100000);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.execute();
         }
         crash(conn);
-        
+
         conn = getConnection("listener;database_event_listener='" + getClass().getName() + "'");
         conn.close();
-        
+
     }
 
     public void diskSpaceIsLow(long stillAvailable) throws SQLException {
-        System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
+        System.out.println("diskSpaceIsLow stillAvailable=" + stillAvailable);
     }
 
     public void exceptionThrown(SQLException e, String sql) {
@@ -52,12 +52,12 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
-        if(time < last+1000) {
+        if (time < last + 1000) {
             return;
         }
         last = time;
         String stateName;
-        switch(state) {
+        switch (state) {
         case STATE_SCAN_FILE:
             stateName = "Scan " + name;
             break;
@@ -75,7 +75,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             Thread.sleep(1);
         } catch (InterruptedException e) {
         }
-        System.out.println("state: " + stateName + " " + (100*current/max) + " " + (time-start));
+        System.out.println("state: " + stateName + " " + (100 * current / max) + " " + (time - start));
     }
 
     public void closingDatabase() {

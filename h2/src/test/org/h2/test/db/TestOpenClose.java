@@ -29,21 +29,21 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         testCase();
         testReconnectFast();
     }
-    
+
     private void testBackup(boolean encrypt) throws Exception {
         deleteDb(baseDir, "openClose");
         String url;
-        if(encrypt) {
-            url = "jdbc:h2:"+baseDir+"/openClose;CIPHER=XTEA";
+        if (encrypt) {
+            url = "jdbc:h2:" + baseDir + "/openClose;CIPHER=XTEA";
         } else {
-            url = "jdbc:h2:"+baseDir+"/openClose";
+            url = "jdbc:h2:" + baseDir + "/openClose";
         }
         org.h2.Driver.load();
         Connection conn = DriverManager.getConnection(url, "sa", "abc def");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(C CLOB)");
         stat.execute("INSERT INTO TEST VALUES(SPACE(10000))");
-        stat.execute("BACKUP TO '"+baseDir+"/test.zip'");
+        stat.execute("BACKUP TO '" + baseDir + "/test.zip'");
         conn.close();
         deleteDb(baseDir, "openClose");
         Restore.execute(baseDir + "/test.zip", baseDir, null, true);
@@ -55,10 +55,11 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         checkFalse(rs.next());
         conn.close();
     }
-    
+
     private void testReconnectFast() throws Exception {
         deleteDb(baseDir, "openClose");
-        String url = "jdbc:h2:"+baseDir+"/openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()+"'";
+        String url = "jdbc:h2:" + baseDir + "/openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
+                + "'";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         try {
@@ -91,14 +92,14 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     void testCase() throws Exception {
         Class.forName("org.h2.Driver");
         deleteDb(baseDir, "openClose");
-        final String url = "jdbc:h2:"+baseDir+"/openClose;FILE_LOCK=NO";
+        final String url = "jdbc:h2:" + baseDir + "/openClose;FILE_LOCK=NO";
         Connection conn = DriverManager.getConnection(url, "sa", "");
         conn.createStatement().execute("drop table employee if exists");
         conn.createStatement().execute("create table employee(id int primary key, name varchar, salary int)");
         conn.close();
         int len = this.getSize(200, 4000);
         Thread[] threads = new Thread[len];
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             threads[i] = new Thread() {
                 public void run() {
                     try {
@@ -109,17 +110,17 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
                         prep.setString(2, "employee " + id);
                         prep.execute();
                         conn.close();
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         TestBase.logError("insert", e);
                     }
                 }
             };
             threads[i].start();
         }
-//        for(int i=0; i<len; i++) {
-//            threads[i].start();
-//        }
-        for(int i=0; i<len; i++) {
+        // for(int i=0; i<len; i++) {
+        // threads[i].start();
+        // }
+        for (int i = 0; i < len; i++) {
             threads[i].join();
         }
         conn = DriverManager.getConnection(url, "sa", "");
@@ -132,7 +133,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     synchronized int getNextId() {
         return nextId++;
     }
-    
+
     public void diskSpaceIsLow(long stillAvailable) throws SQLException {
         throw new SQLException("unexpected");
     }
@@ -143,16 +144,16 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     public void setProgress(int state, String name, int current, int max) {
         String stateName;
-        switch(state) {
+        switch (state) {
         case STATE_SCAN_FILE:
             stateName = "Scan " + name + " " + current + "/" + max;
-            if(current > 0) {
+            if (current > 0) {
                 throw new Error("unexpected: " + stateName);
             }
             break;
         case STATE_CREATE_INDEX:
             stateName = "Create Index " + name + " " + current + "/" + max;
-            if(!"SYS".equals(name)) {
+            if (!"SYS".equals(name)) {
                 throw new Error("unexpected: " + stateName);
             }
             break;
@@ -162,7 +163,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         default:
             stateName = "?";
         }
-//        System.out.println(": " + stateName);
+        // System.out.println(": " + stateName);
     }
 
     public void closingDatabase() {

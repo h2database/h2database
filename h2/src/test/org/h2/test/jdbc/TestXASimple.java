@@ -5,18 +5,18 @@
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
+
 import org.h2.jdbcx.JdbcDataSource;
 
 public class TestXASimple {
-    
+
     int notYetImplemented;
-    
+
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");
 
-
-//        InitialContext context = new InitialContext();
-//        context.rebind(USER_TRANSACTION_JNDI_NAME, j.getUserTransaction());
+        // InitialContext context = new InitialContext();
+        // context.rebind(USER_TRANSACTION_JNDI_NAME, j.getUserTransaction());
 
         JdbcDataSource ds1 = new JdbcDataSource();
         ds1.setPassword("");
@@ -28,8 +28,9 @@ public class TestXASimple {
         ds2.setUser("sa");
         ds2.setURL("jdbc:h2:db2H2");
 
-//        UserTransaction ut = (UserTransaction) context.lookup("UserTransaction");
-//        ut.begin();
+        // UserTransaction ut = (UserTransaction)
+        // context.lookup("UserTransaction");
+        // ut.begin();
 
         Connection c1 = ds1.getXAConnection().getConnection();
         c1.setAutoCommit(false);
@@ -39,13 +40,12 @@ public class TestXASimple {
         c1.createStatement().executeUpdate("create table test(id int, test varchar(255))");
         c2.createStatement().executeUpdate("create table test(id int, test varchar(255))");
 
-
-//        ut.rollback();
+        // ut.rollback();
         c1.close();
         c2.close();
 
-//        j.stop();
-//        System.exit(0);
-        
+        // j.stop();
+        // System.exit(0);
+
     }
 }

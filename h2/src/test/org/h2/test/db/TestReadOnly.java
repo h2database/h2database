@@ -17,10 +17,10 @@ import org.h2.test.TestBase;
 public class TestReadOnly extends TestBase {
 
     public void test() throws Exception {
-        if(config.memory) {
+        if (config.memory) {
             return;
         }
-        
+
         File f = File.createTempFile("test", "temp");
         check(f.canWrite());
         f.setReadOnly();
@@ -43,9 +43,9 @@ public class TestReadOnly extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
         check(!conn.isReadOnly());
         conn.close();
-        
+
         setReadOnly();
-        
+
         conn = getConnection("readonly");
         check(conn.isReadOnly());
         stat = conn.createStatement();
@@ -53,26 +53,26 @@ public class TestReadOnly extends TestBase {
         try {
             stat.execute("DELETE FROM TEST");
             error("read only delete");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         conn.close();
-        
+
         conn = getConnection("readonly;DB_CLOSE_DELAY=1");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         try {
             stat.execute("DELETE FROM TEST");
             error("read only delete");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         conn.close();
     }
-    
+
     private void setReadOnly() throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
             File file = new File(fileName);
             file.setReadOnly();

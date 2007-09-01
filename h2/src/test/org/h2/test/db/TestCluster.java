@@ -19,13 +19,13 @@ import org.h2.tools.Server;
 public class TestCluster extends TestBase {
 
     public void test() throws Exception {
-        if(config.memory || config.networked) {
+        if (config.memory || config.networked) {
             return;
         }
-        
-        DeleteDbFiles.main(new String[]{"-dir", baseDir + "/node1", "-quiet"});
-        DeleteDbFiles.main(new String[]{"-dir", baseDir + "/node2", "-quiet"});
-        
+
+        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node1", "-quiet" });
+        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
+
         // create the master database
         Connection conn;
         Class.forName("org.h2.Driver");
@@ -36,37 +36,36 @@ public class TestCluster extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         int len = getSize(10, 1000);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Data" + i);
             prep.executeUpdate();
         }
         conn.close();
 
-        CreateCluster.main(new String[]{
-                "-urlSource", "jdbc:h2:file:"+ baseDir + "/node1/test", 
-                "-urlTarget", "jdbc:h2:file:"+baseDir + "/node2/test", 
-                "-user", "sa", 
-                "-serverlist", "localhost:9091,localhost:9092"
-        });
-        
-        Server n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", baseDir + "/node1"}).start();        
-        Server n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", baseDir + "/node2"}).start();        
+        CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
+                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
+                "localhost:9091,localhost:9092" });
+
+        Server n1 = org.h2.tools.Server.createTcpServer(
+                new String[] { "-tcpPort", "9091", "-baseDir", baseDir + "/node1" }).start();
+        Server n2 = org.h2.tools.Server.createTcpServer(
+                new String[] { "-tcpPort", "9092", "-baseDir", baseDir + "/node2" }).start();
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test", "sa", "");
             error("should not be able to connect in standalone mode");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9092/test", "sa", "");
             error("should not be able to connect in standalone mode");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        
+
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091,localhost:9092/test", "sa", "");
         stat = conn.createStatement();
         check(conn, len);
@@ -79,27 +78,29 @@ public class TestCluster extends TestBase {
         conn.close();
         n2.stop();
 
-        n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", baseDir + "/node1"}).start();        
+        n1 = org.h2.tools.Server.createTcpServer(new String[] { "-tcpPort", "9091", "-baseDir", baseDir + "/node1" })
+                .start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test;CLUSTER=''", "sa", "");
         check(conn, len);
         conn.close();
         n1.stop();
-        
-        n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", baseDir + "/node2"}).start();        
+
+        n2 = org.h2.tools.Server.createTcpServer(new String[] { "-tcpPort", "9092", "-baseDir", baseDir + "/node2" })
+                .start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9092/test;CLUSTER=''", "sa", "");
         check(conn, len);
         conn.createStatement().execute("SELECT * FROM A");
         conn.close();
         n2.stop();
     }
-    
+
     void check(Connection conn, int len) throws Exception {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             ResultSet rs = prep.executeQuery();
             rs.next();
-            check(rs.getString(2), "Data"+i);
+            check(rs.getString(2), "Data" + i);
             checkFalse(rs.next());
         }
     }

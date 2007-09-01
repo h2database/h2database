@@ -14,27 +14,27 @@ public class TestSequence extends TestBase {
 
     public void test() throws Exception {
         deleteDb("sequence");
-        Connection conn=getConnection("sequence");
+        Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
         stat.execute("create sequence testSequence");
         conn.setAutoCommit(false);
 
-        Connection conn2=getConnection("sequence");
+        Connection conn2 = getConnection("sequence");
         Statement stat2 = conn2.createStatement();
         conn2.setAutoCommit(false);
-        
+
         long last = 0;
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             long v1 = getNext(stat);
             check(v1 > last);
             last = v1;
-            for(int j=0; j<100; j++) {
+            for (int j = 0; j < 100; j++) {
                 long v2 = getNext(stat2);
                 check(v2 > last);
                 last = v2;
             }
         }
-        
+
         conn2.close();
         conn.close();
     }

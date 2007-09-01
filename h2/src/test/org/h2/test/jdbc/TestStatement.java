@@ -13,24 +13,24 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 
 public class TestStatement extends TestBase {
-    
+
     Connection conn;
 
     public void test() throws Exception {
         deleteDb("statement");
         conn = getConnection("statement");
-        if(config.jdk14) {
+        if (config.jdk14) {
             testSavepoint();
         }
         testStatement();
-        if(config.jdk14) {
+        if (config.jdk14) {
             testIdentity();
         }
         conn.close();
-    }        
+    }
 
     void testSavepoint() throws Exception {
-        Statement stat=conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.setAutoCommit(false);
         stat.execute("INSERT INTO TEST VALUES(0, 'Hi')");
@@ -39,7 +39,7 @@ public class TestStatement extends TestBase {
         try {
             savepoint1.getSavepointName();
             error("exception expected");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         stat.execute("DELETE FROM TEST");
@@ -51,7 +51,7 @@ public class TestStatement extends TestBase {
         try {
             savepoint2a.getSavepointId();
             error("exception expected");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         int id2 = savepoint2.getSavepointId();
@@ -63,7 +63,7 @@ public class TestStatement extends TestBase {
         try {
             savepointTest.getSavepointId();
             error("exception expected");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         conn.rollback(savepointTest);
@@ -76,95 +76,96 @@ public class TestStatement extends TestBase {
         try {
             conn.rollback(savepoint2);
             error("exception expected");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         stat.execute("DROP TABLE TEST");
         conn.setAutoCommit(true);
     }
-    
+
     void testStatement() throws Exception {
-        
-        Statement stat=conn.createStatement();
+
+        Statement stat = conn.createStatement();
         ResultSet rs;
         int count;
         boolean result;
-        
+
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("SELECT * FROM TEST");
-        stat.execute("DROP TABLE TEST");        
-        
+        stat.execute("DROP TABLE TEST");
+
         conn.getTypeMap();
-        
-        // this method should not throw an exception - if not supported, this calls are ignored
-       
-        if(config.jdk14) {
+
+        // this method should not throw an exception - if not supported, this
+        // calls are ignored
+
+        if (config.jdk14) {
             check(stat.getResultSetHoldability(), ResultSet.HOLD_CURSORS_OVER_COMMIT);
         }
         check(stat.getResultSetConcurrency(), ResultSet.CONCUR_UPDATABLE);
-        
+
         stat.cancel();
         stat.setQueryTimeout(10);
-        check(stat.getQueryTimeout()==10);
+        check(stat.getQueryTimeout() == 10);
         stat.setQueryTimeout(0);
-        check(stat.getQueryTimeout()==0);
+        check(stat.getQueryTimeout() == 0);
         // this is supposed to throw an exception
         try {
             stat.setQueryTimeout(-1);
             error("setQueryTimeout(-1) didn't throw an exception");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        check(stat.getQueryTimeout()==0);     
+        check(stat.getQueryTimeout() == 0);
         trace("executeUpdate");
-        count=stat.executeUpdate("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        check(count,0);
-        count=stat.executeUpdate("INSERT INTO TEST VALUES(1,'Hello')");
-        check(count,1);
-        count=stat.executeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
-        check(count,1);
-        count=stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE ID=2 OR ID=1");
-        check(count,2);
-        count=stat.executeUpdate("UPDATE TEST SET VALUE='\\LDBC\\' WHERE VALUE LIKE 'LDBC' ");
-        check(count,2);
-        count=stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE VALUE LIKE '\\\\LDBC\\\\'");
-        trace("count:"+count);
-        check(count,2);
-        count=stat.executeUpdate("DELETE FROM TEST WHERE ID=-1");
-        check(count,0);
-        count=stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
-        check(count,1);
+        count = stat.executeUpdate("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+        check(count, 0);
+        count = stat.executeUpdate("INSERT INTO TEST VALUES(1,'Hello')");
+        check(count, 1);
+        count = stat.executeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        check(count, 1);
+        count = stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE ID=2 OR ID=1");
+        check(count, 2);
+        count = stat.executeUpdate("UPDATE TEST SET VALUE='\\LDBC\\' WHERE VALUE LIKE 'LDBC' ");
+        check(count, 2);
+        count = stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE VALUE LIKE '\\\\LDBC\\\\'");
+        trace("count:" + count);
+        check(count, 2);
+        count = stat.executeUpdate("DELETE FROM TEST WHERE ID=-1");
+        check(count, 0);
+        count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
+        check(count, 1);
         try {
             stat.executeUpdate("SELECT * FROM TEST");
             error("executeUpdate allowed SELECT");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - SELECT not allowed with executeUpdate");
         }
-        count=stat.executeUpdate("DROP TABLE TEST");
-        check(count==0);
-        
+        count = stat.executeUpdate("DROP TABLE TEST");
+        check(count == 0);
+
         trace("execute");
-        result=stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        check(result==false);
-        result=stat.execute("INSERT INTO TEST VALUES(1,'Hello')");
-        check(result==false);
-        result=stat.execute("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
-        check(result==false);
-        result=stat.execute("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
-        check(result==false);
-        result=stat.execute("DELETE FROM TEST WHERE ID=3");
-        check(result==false);
-        result=stat.execute("SELECT * FROM TEST");
-        check(result==true);
-        result=stat.execute("DROP TABLE TEST");
-        check(result==false);
-        
+        result = stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+        check(!result);
+        result = stat.execute("INSERT INTO TEST VALUES(1,'Hello')");
+        check(!result);
+        result = stat.execute("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        check(!result);
+        result = stat.execute("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
+        check(!result);
+        result = stat.execute("DELETE FROM TEST WHERE ID=3");
+        check(!result);
+        result = stat.execute("SELECT * FROM TEST");
+        check(result);
+        result = stat.execute("DROP TABLE TEST");
+        check(!result);
+
         trace("executeQuery");
         try {
             stat.executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
             error("executeQuery allowed CREATE TABLE");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - CREATE not allowed with executeQuery");
         }
@@ -172,21 +173,21 @@ public class TestStatement extends TestBase {
         try {
             stat.executeQuery("INSERT INTO TEST VALUES(1,'Hello')");
             error("executeQuery allowed INSERT");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - INSERT not allowed with executeQuery");
         }
         try {
             stat.executeQuery("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
             error("executeQuery allowed UPDATE");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - UPDATE not allowed with executeQuery");
         }
         try {
             stat.executeQuery("DELETE FROM TEST WHERE ID=3");
             error("executeQuery allowed DELETE");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - DELETE not allowed with executeQuery");
         }
@@ -194,37 +195,37 @@ public class TestStatement extends TestBase {
         try {
             stat.executeQuery("DROP TABLE TEST");
             error("executeQuery allowed DROP");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - DROP not allowed with executeQuery");
         }
         // getMoreResults
-        rs=stat.executeQuery("SELECT * FROM TEST");
+        rs = stat.executeQuery("SELECT * FROM TEST");
         checkFalse(stat.getMoreResults());
         try {
             // supposed to be closed now
             rs.next();
             error("getMoreResults didn't close this result set");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
             trace("no error - getMoreResults is supposed to close the result set");
         }
-        check(stat.getUpdateCount()==-1);
-        count=stat.executeUpdate("DELETE FROM TEST");
+        check(stat.getUpdateCount() == -1);
+        count = stat.executeUpdate("DELETE FROM TEST");
         checkFalse(stat.getMoreResults());
-        check(stat.getUpdateCount()==-1);
-        
+        check(stat.getUpdateCount() == -1);
+
         stat.execute("DROP TABLE TEST");
         stat.executeUpdate("DROP TABLE IF EXISTS TEST");
-        
-        check(stat.getWarnings()==null);
+
+        check(stat.getWarnings() == null);
         stat.clearWarnings();
-        check(stat.getWarnings()==null);
-        check(conn==stat.getConnection());
-        
+        check(stat.getWarnings() == null);
+        check(conn == stat.getConnection());
+
         stat.close();
     }
-    
+
     private void testIdentity() throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SEQUENCE SEQ");
@@ -237,32 +238,32 @@ public class TestStatement extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 2);        
+        check(rs.getInt(1), 2);
         checkFalse(rs.next());
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[]{1});
+        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[] { 1 });
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 3);        
+        check(rs.getInt(1), 3);
         checkFalse(rs.next());
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[]{"ID"});
+        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[] { "ID" });
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 4);        
+        check(rs.getInt(1), 4);
         checkFalse(rs.next());
         stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 5);        
+        check(rs.getInt(1), 5);
         checkFalse(rs.next());
-        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[]{1});
+        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[] { 1 });
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 6);        
+        check(rs.getInt(1), 6);
         checkFalse(rs.next());
-        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[]{"ID"});
+        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[] { "ID" });
         rs = stat.getGeneratedKeys();
         rs.next();
-        check(rs.getInt(1), 7);        
+        check(rs.getInt(1), 7);
         checkFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }

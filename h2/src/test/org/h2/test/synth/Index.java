@@ -9,26 +9,26 @@ public class Index {
     String name;
     Column[] columns;
     boolean unique;
-    
+
     Index(Table table, String name, Column[] columns, boolean unique) {
         this.table = table;
         this.name = name;
         this.columns = columns;
         this.unique = unique;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public String getCreateSQL() {
         String sql = "CREATE ";
-        if(unique) {
+        if (unique) {
             sql += "UNIQUE ";
         }
         sql += "INDEX " + name + " ON " + table.getName() + "(";
-        for(int i=0; i<columns.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < columns.length; i++) {
+            if (i > 0) {
                 sql += ", ";
             }
             sql += columns[i].getName();
@@ -36,7 +36,7 @@ public class Index {
         sql += ")";
         return sql;
     }
-    
+
     public String getDropSQL() {
         return "DROP INDEX " + name;
     }

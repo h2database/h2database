@@ -7,6 +7,7 @@ package org.h2.test.synth;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 import org.h2.test.TestBase;
 
 public class TestMulti extends TestBase {
@@ -17,29 +18,28 @@ public class TestMulti extends TestBase {
         Class.forName("org.h2.Driver");
         deleteDb(baseDir, "openClose");
 
-//        int len = getSize(5, 100);
+        // int len = getSize(5, 100);
         int len = 10;
         TestMultiThread[] threads = new TestMultiThread[len];
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             threads[i] = new TestMultiNews(this);
         }
         threads[0].first();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             threads[i].start();
         }
         Thread.sleep(10000);
         this.stop = true;
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             threads[i].join();
         }
         threads[0].finalTest();
     }
 
     public Connection getConnection() throws SQLException {
-        final String url = "jdbc:h2:"+baseDir+"/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
+        final String url = "jdbc:h2:" + baseDir + "/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
         Connection conn = DriverManager.getConnection(url, "sa", "");
         return conn;
     }
-    
 
 }

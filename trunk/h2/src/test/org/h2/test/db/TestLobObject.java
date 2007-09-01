@@ -9,6 +9,7 @@ import java.io.Serializable;
 class TestLobObject implements Serializable {
     private static final long serialVersionUID = 904356179316518715L;
     String data;
+
     TestLobObject(String data) {
         this.data = data;
     }

@@ -30,14 +30,14 @@ public class MixedMode {
           System.out.println("Execute this a few times: SELECT TIME FROM TIMER");
           System.out.println("To stop this application (and the server), run: DROP TABLE TIMER");
           try {
-              while(true) {
-                  // runs forever, except if you drop the table remotely
-                  stat.execute("MERGE INTO TIMER VALUES(1, NOW())");
-                  Thread.sleep(1000);
-              }
-          } catch(SQLException e) {
-              System.out.println("Error: " + e.toString());
-          }
+            while (true) {
+                // runs forever, except if you drop the table remotely
+                stat.execute("MERGE INTO TIMER VALUES(1, NOW())");
+                Thread.sleep(1000);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.toString());
+        }
           conn.close();
           
           // stop the server

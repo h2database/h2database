@@ -12,7 +12,7 @@ import org.h2.test.TestBase;
 public class TestSpaceReuse extends TestBase {
 
     public void test() throws Exception {
-        if(config.memory) {
+        if (config.memory) {
             return;
         }
         deleteDb("spaceReuse");
@@ -27,11 +27,11 @@ public class TestSpaceReuse extends TestBase {
             conn.createStatement().execute("delete from t");
             conn.close();
             now = new File(baseDir + "/spaceReuse.data.db").length();
-            if(first == 0) {
+            if (first == 0) {
                 first = now;
             }
         }
-        if(now > first) {
+        if (now > first) {
             this.error("first: " + first + " now: " + now);
         }
     }

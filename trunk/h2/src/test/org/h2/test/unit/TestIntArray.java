@@ -10,7 +10,7 @@ import org.h2.test.TestBase;
 import org.h2.util.IntArray;
 
 public class TestIntArray extends TestBase {
-    
+
     public void test() throws Exception {
         testRandom();
     }
@@ -19,11 +19,11 @@ public class TestIntArray extends TestBase {
         IntArray array = new IntArray();
         int[] test = new int[0];
         Random random = new Random(1);
-        for(int i=0; i<10000; i++) {
+        for (int i = 0; i < 10000; i++) {
             int idx = test.length == 0 ? 0 : random.nextInt(test.length);
-            int v = random.nextInt(100);          
-            int op = random.nextInt(9); 
-            switch(op) {
+            int v = random.nextInt(100);
+            int op = random.nextInt(9);
+            switch (op) {
             case 0:
                 array.add(idx, v);
                 test = add(test, idx, v);
@@ -46,7 +46,7 @@ public class TestIntArray extends TestBase {
                 check(a, b);
                 break;
             case 4:
-                if(test.length > idx) {
+                if (test.length > idx) {
                     check(array.get(idx), get(test, idx));
                 }
                 break;
@@ -55,7 +55,7 @@ public class TestIntArray extends TestBase {
                 test = remove(test, idx);
                 break;
             case 6:
-                if(test.length > idx) {
+                if (test.length > idx) {
                     v = test[idx];
                     array.removeValue(v);
                     test = removeValue(test, v);
@@ -70,34 +70,34 @@ public class TestIntArray extends TestBase {
                 break;
             }
             check(array.size(), test.length);
-            for(int j=0; j<test.length; j++) {
+            for (int j = 0; j < test.length; j++) {
                 check(test[j], array.get(j));
             }
-                
+
         }
     }
-    
+
     int[] add(int[] array, int i, int value) {
-        int[] a2 = new int[array.length+1];
+        int[] a2 = new int[array.length + 1];
         System.arraycopy(array, 0, a2, 0, array.length);
-        if(i < array.length) {
-            System.arraycopy(a2, i, a2, i+1, a2.length - i - 1);
+        if (i < array.length) {
+            System.arraycopy(a2, i, a2, i + 1, a2.length - i - 1);
         }
         array = a2;
         array[i] = value;
         return array;
     }
-    
+
     int[] add(int[] array, int value) {
-        return add(array, array.length, value); 
+        return add(array, array.length, value);
     }
-    
+
     int[] addValueSorted(int[] array, int value) {
-        for(int i=0; i<array.length; i++) {
-            if(array[i] < value) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] < value) {
                 continue;
             }
-            if(array[i] == value) {
+            if (array[i] == value) {
                 return array;
             } else {
                 return add(array, i, value);
@@ -105,32 +105,32 @@ public class TestIntArray extends TestBase {
         }
         return add(array, value);
     }
-    
+
     int findNextValueIndex(int[] array, int value) {
-        for(int i=0; i<array.length; i++) {
-            if(array[i] >= value) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] >= value) {
                 return i;
             }
         }
         return array.length;
     }
-    
+
     int get(int[] array, int i) {
         return array[i];
     }
-    
+
     int[] remove(int[] array, int i) {
-        int[] a2 = new int[array.length-1];
+        int[] a2 = new int[array.length - 1];
         System.arraycopy(array, 0, a2, 0, i);
-        if(i < a2.length) {
-            System.arraycopy(array, i+1, a2, i, array.length - i - 1);
+        if (i < a2.length) {
+            System.arraycopy(array, i + 1, a2, i, array.length - i - 1);
         }
         return a2;
     }
-    
+
     int[] removeValue(int[] array, int value) {
-        for(int i=0; i<array.length; i++) {
-            if(array[i] == value) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == value) {
                 return remove(array, i);
             }
         }
@@ -141,14 +141,14 @@ public class TestIntArray extends TestBase {
         array[i] = value;
         return array;
     }
-    
+
     int size(int[] array) {
         return array.length;
     }
-    
+
     int[] sort(int[] array) {
         Arrays.sort(array);
         return array;
     }
-    
+
 }

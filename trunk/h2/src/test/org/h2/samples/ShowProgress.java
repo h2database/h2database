@@ -35,21 +35,21 @@ public class ShowProgress implements DatabaseEventListener {
         long time;
         time = System.currentTimeMillis();
         int len = 1000;
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             long last = System.currentTimeMillis();
-            if(last > time+1000) {
+            if (last > time + 1000) {
                 time = last;
-                System.out.println("Inserting " + (100L*i/len) + "%");
+                System.out.println("Inserting " + (100L * i / len) + "%");
             }
             prep.setInt(1, i);
             prep.execute();
         }
         boolean abnormalTermination = true;
-        if(abnormalTermination) {
-            ((JdbcConnection)conn).setPowerOffCount(1);
+        if (abnormalTermination) {
+            ((JdbcConnection) conn).setPowerOffCount(1);
             try {
                 stat.execute("INSERT INTO TEST VALUES(-1, 'Test' || SPACE(100))");
-            } catch(SQLException e) {
+            } catch (SQLException e) {
             }
         } else {
             conn.close();
@@ -75,12 +75,12 @@ public class ShowProgress implements DatabaseEventListener {
 
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
-        if(time < last+5000) {
+        if (time < last + 5000) {
             return;
         }
         last = time;
         String stateName = "?";
-        switch(state) {
+        switch (state) {
         case STATE_SCAN_FILE:
             stateName = "Scan " + name;
             break;
@@ -95,7 +95,8 @@ public class ShowProgress implements DatabaseEventListener {
             Thread.sleep(1);
         } catch (InterruptedException e) {
         }
-        System.out.println("State: " + stateName + " " + (100*current/max) + "% (" + current+" of " + max + ") " + (time-start)+" ms");
+        System.out.println("State: " + stateName + " " + (100 * current / max) + "% (" + current + " of " + max + ") "
+                + (time - start) + " ms");
     }
 
     public void closingDatabase() {

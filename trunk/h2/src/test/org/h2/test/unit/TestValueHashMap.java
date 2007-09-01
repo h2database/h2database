@@ -19,29 +19,29 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
 public class TestValueHashMap extends TestBase implements DataHandler {
-    
+
     CompareMode compareMode = new CompareMode(null, null);
 
     public void test() throws Exception {
         ValueHashMap map = new ValueHashMap(this);
         HashMap hash = new HashMap();
-        Random random = new Random(1);           
+        Random random = new Random(1);
         Comparator vc = new Comparator() {
             public int compare(Object o1, Object o2) {
-                Value v1 = (Value)o1;
-                Value v2 = (Value)o2;
+                Value v1 = (Value) o1;
+                Value v2 = (Value) o2;
                 try {
                     return v1.compareTo(v2, compareMode);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     throw new Error(e);
                 }
             }
         };
-        for(int i=0; i<10000; i++) {
+        for (int i = 0; i < 10000; i++) {
             int op = random.nextInt(10);
             Value key = ValueInt.get(random.nextInt(100));
             Value value = ValueInt.get(random.nextInt(100));
-            switch(op) {
+            switch (op) {
             case 0:
                 map.put(key, value);
                 hash.put(key, value);
@@ -53,7 +53,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
             case 2:
                 Value v1 = (Value) map.get(key);
                 Value v2 = (Value) hash.get(key);
-                check((v1==null && v2==null) || v1.compareEqual(v2));
+                check((v1 == null && v2 == null) || v1.compareEqual(v2));
                 break;
             case 3: {
                 ObjectArray a1 = map.keys();
@@ -61,8 +61,8 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 check(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);
-                for(int j=0; j<a1.size(); j++) {
-                    check(((Value)a1.get(j)).compareEqual((Value)a2.get(j)));
+                for (int j = 0; j < a1.size(); j++) {
+                    check(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
                 }
                 break;
             }
@@ -72,8 +72,8 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 check(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);
-                for(int j=0; j<a1.size(); j++) {
-                    check(((Value)a1.get(j)).compareEqual((Value)a2.get(j)));
+                for (int j = 0; j < a1.size(); j++) {
+                    check(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
                 }
                 break;
             }

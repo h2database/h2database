@@ -10,15 +10,15 @@ import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 
 public class TestCompress extends TestBase {
-    
+
     public void test() throws Exception {
-        if(config.big) {
-            for(int i=0; i<100; i++) {
+        if (config.big) {
+            for (int i = 0; i < 100; i++) {
                 test(i);
             }
-            for(int i=100; i<10000; i += (i+i+1)) {
+            for (int i = 100; i < 10000; i += (i + i + 1)) {
                 test(i);
-            }        
+            }
         } else {
             test(0);
             test(1);
@@ -27,17 +27,17 @@ public class TestCompress extends TestBase {
             test(200);
         }
     }
-    
+
     void test(int len) throws Exception {
-        for(int pattern = 0; pattern < 3; pattern++) {
+        for (int pattern = 0; pattern < 3; pattern++) {
             byte[] buff = new byte[len];
-            switch(pattern) {
+            switch (pattern) {
             case 0:
                 // leave empty
                 break;
             case 1: {
-                for(int x=0; x<len; x++) {
-                    buff[x] = (byte)(x & 10);
+                for (int x = 0; x < len; x++) {
+                    buff[x] = (byte) (x & 10);
                 }
                 break;
             }
@@ -47,11 +47,9 @@ public class TestCompress extends TestBase {
                 break;
             }
             }
-            String[] algorithm= new String[]{
-                    "LZF", "Deflate",  "No"
-            };
+            String[] algorithm = new String[] { "LZF", "Deflate", "No" };
             CompressTool utils = CompressTool.getInstance();
-            for(int i=0; i<algorithm.length; i++) {
+            for (int i = 0; i < algorithm.length; i++) {
                 byte[] out = utils.compress(buff, algorithm[i]);
                 byte[] test = utils.expand(out);
                 check(test.length, buff.length);

@@ -20,24 +20,24 @@ public class TestScriptReader extends TestBase {
     private void testRandom() throws Exception {
         int len = getSize(1000, 10000);
         Random random = new Random(10);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             int l = random.nextInt(10);
             String[] sql = new String[l];
             StringBuffer buff = new StringBuffer();
-            for(int j=0; j<l; j++) {
+            for (int j = 0; j < l; j++) {
                 sql[j] = randomStatement(random);
                 buff.append(sql[j]);
-                if(j<l - 1) {
+                if (j < l - 1) {
                     buff.append(";");
                 }
             }
             String s = buff.toString();
             StringReader reader = new StringReader(s);
             ScriptReader source = new ScriptReader(reader);
-            for(int j=0; j<l; j++) {
+            for (int j = 0; j < l; j++) {
                 String e = source.readStatement();
                 String c = sql[j];
-                if(c.length() == 0 && j == l-1) {
+                if (c.length() == 0 && j == l - 1) {
                     c = null;
                 }
                 check(e, c);
@@ -45,25 +45,25 @@ public class TestScriptReader extends TestBase {
             check(source.readStatement(), null);
         }
     }
-    
+
     private String randomStatement(Random random) {
         StringBuffer buff = new StringBuffer();
         int len = random.nextInt(5);
-        for(int i=0; i<len; i++) {
-            switch(random.nextInt(10)) {
+        for (int i = 0; i < len; i++) {
+            switch (random.nextInt(10)) {
             case 0: {
-                int l= random.nextInt(4);
-                String[] ch=new String[]{"\n", "\r", " ", "*", "a", "0"};
-                for(int j=0; j<l; j++) {
+                int l = random.nextInt(4);
+                String[] ch = new String[] { "\n", "\r", " ", "*", "a", "0" };
+                for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
                 break;
             }
             case 1: {
                 buff.append('\'');
-                int l= random.nextInt(4);
-                String[] ch=new String[]{";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\""};
-                for(int j=0; j<l; j++) {
+                int l = random.nextInt(4);
+                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"" };
+                for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
                 buff.append('\'');
@@ -71,9 +71,9 @@ public class TestScriptReader extends TestBase {
             }
             case 2: {
                 buff.append('"');
-                int l= random.nextInt(4);
-                String[] ch=new String[]{";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'"};
-                for(int j=0; j<l; j++) {
+                int l = random.nextInt(4);
+                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'" };
+                for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
                 buff.append('"');
@@ -81,17 +81,17 @@ public class TestScriptReader extends TestBase {
             }
             case 3: {
                 buff.append('-');
-                if(random.nextBoolean()) {
-                    String[] ch=new String[]{"\n", "\r", "*", "a", " "};
-                    int l= 1 + random.nextInt(4);
-                    for(int j=0; j<l; j++) {
+                if (random.nextBoolean()) {
+                    String[] ch = new String[] { "\n", "\r", "*", "a", " " };
+                    int l = 1 + random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append('-');
-                    String[] ch=new String[]{";", "-", "//", "/*", "*/", "a"};
-                    int l= random.nextInt(4);
-                    for(int j=0; j<l; j++) {
+                    String[] ch = new String[] { ";", "-", "//", "/*", "*/", "a" };
+                    int l = random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                     buff.append('\n');
@@ -100,17 +100,17 @@ public class TestScriptReader extends TestBase {
             }
             case 4: {
                 buff.append('/');
-                if(random.nextBoolean()) {
-                    String[] ch=new String[]{"\n", "\r", "a", " ", "- "};
-                    int l= 1 + random.nextInt(4);
-                    for(int j=0; j<l; j++) {
+                if (random.nextBoolean()) {
+                    String[] ch = new String[] { "\n", "\r", "a", " ", "- " };
+                    int l = 1 + random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
-                    }          
+                    }
                 } else {
                     buff.append('*');
-                    String[] ch=new String[]{";", "-", "//", "/* ", "--", "\n", "\r", "a"};
-                    int l= random.nextInt(4);
-                    for(int j=0; j<l; j++) {
+                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a" };
+                    int l = random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                     buff.append("*/");
@@ -123,16 +123,15 @@ public class TestScriptReader extends TestBase {
     }
 
     private void testCommon() throws Exception {
-        String s = 
-            "a;';';\";\";--;\n;/*;\n*/;//;\na;";
+        String s = "a;';';\";\";--;\n;/*;\n*/;//;\na;";
         StringReader reader = new StringReader(s);
         ScriptReader source = new ScriptReader(reader);
-        check(source.readStatement(),"a");
-        check(source.readStatement(),"';'");
-        check(source.readStatement(),"\";\"");
-        check(source.readStatement(),"--;\n");
-        check(source.readStatement(),"/*;\n*/");
-        check(source.readStatement(),"//;\na");
+        check(source.readStatement(), "a");
+        check(source.readStatement(), "';'");
+        check(source.readStatement(), "\";\"");
+        check(source.readStatement(), "--;\n");
+        check(source.readStatement(), "/*;\n*/");
+        check(source.readStatement(), "//;\na");
         check(source.readStatement(), null);
         source.close();
     }

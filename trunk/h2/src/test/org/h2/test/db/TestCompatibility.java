@@ -13,18 +13,18 @@ import org.h2.test.TestBase;
 public class TestCompatibility extends TestBase {
 
     private Connection conn;
-    
+
     public void test() throws Exception {
         deleteDb("compatibility");
         conn = getConnection("compatibility");
-       
+
         testHsqlDb();
         testMySQL();
 
         conn.close();
-        
+
     }
-    
+
     private void testHsqlDb() throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE TEST IF EXISTS; CREATE TABLE TEST(ID INT PRIMARY KEY); ");
@@ -37,15 +37,13 @@ public class TestCompatibility extends TestBase {
         stat.execute("DROP TABLE TEST IF EXISTS");
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1)");
-        PreparedStatement prep = conn.prepareStatement(
-                "SELECT LIMIT ? 1 ID FROM TEST"
-        );
+        PreparedStatement prep = conn.prepareStatement("SELECT LIMIT ? 1 ID FROM TEST");
         prep.setInt(1, 2);
         prep.executeQuery();
         stat.execute("DROP TABLE TEST IF EXISTS");
 
     }
-    
+
     private void testMySQL() throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("SELECT 1");
@@ -53,6 +51,5 @@ public class TestCompatibility extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
     }
-    
 
 }

@@ -49,11 +49,11 @@ public class TriggerSample {
                 Object[] oldRow, Object[] newRow)
                 throws SQLException {
             BigDecimal diff = null;
-            if(newRow != null) {
-                diff = (BigDecimal)newRow[1];
+            if (newRow != null) {
+                diff = (BigDecimal) newRow[1];
             }
-            if(oldRow != null) {
-                BigDecimal m = (BigDecimal)oldRow[1];
+            if (oldRow != null) {
+                BigDecimal m = (BigDecimal) oldRow[1];
                 diff = diff == null ? m.negate() : diff.subtract(m);
             }
             PreparedStatement prep = conn.prepareStatement(

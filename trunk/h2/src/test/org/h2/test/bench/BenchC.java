@@ -226,8 +226,6 @@ public class BenchC implements Bench {
         PreparedStatement prepHistory = db.prepare("INSERT INTO HISTORY(H_C_ID, H_C_D_ID, H_C_W_ID, "
                 + "H_W_ID, H_D_ID, H_DATE, H_AMOUNT, H_DATA) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         for (int cId = 1; cId <= customersPerDistrict; cId++) {
-            int c_d_id = dId;
-            int c_w_id = wId;
             String first = random.getString(8, 16);
             String middle = "OE";
             String last;
@@ -257,8 +255,8 @@ public class BenchC implements Bench {
             int paymentCnt = 1;
             int deliveryCnt = 1;
             prepCustomer.setInt(1, cId);
-            prepCustomer.setInt(2, c_d_id);
-            prepCustomer.setInt(3, c_w_id);
+            prepCustomer.setInt(2, dId);
+            prepCustomer.setInt(3, wId);
             prepCustomer.setString(4, first);
             prepCustomer.setString(5, middle);
             prepCustomer.setString(6, last);
@@ -281,10 +279,10 @@ public class BenchC implements Bench {
             BigDecimal amount = new BigDecimal("10.00");
             String hData = random.getString(12, 24);
             prepHistory.setInt(1, cId);
-            prepHistory.setInt(2, c_d_id);
-            prepHistory.setInt(3, c_w_id);
-            prepHistory.setInt(4, c_w_id);
-            prepHistory.setInt(5, c_d_id);
+            prepHistory.setInt(2, dId);
+            prepHistory.setInt(3, wId);
+            prepHistory.setInt(4, wId);
+            prepHistory.setInt(5, dId);
             prepHistory.setTimestamp(6, timestamp);
             prepHistory.setBigDecimal(7, amount);
             prepHistory.setString(8, hData);
@@ -305,8 +303,6 @@ public class BenchC implements Bench {
     }
 
     private void loadOrderSub(int dId, int wId) throws Exception {
-        int o_d_id = dId;
-        int o_w_id = wId;
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         int[] orderid = random.getPermutation(ordersPerDistrict);
         PreparedStatement prepOrder = db.prepare("INSERT INTO ORDERS(O_ID, O_C_ID, O_D_ID, O_W_ID, "
@@ -317,46 +313,46 @@ public class BenchC implements Bench {
                 + "OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, " + "OL_DIST_INFO, OL_DELIVERY_D)"
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)");
         for (int oId = 1, i = 0; oId <= ordersPerDistrict; oId++) {
-            int o_c_id = orderid[oId - 1];
-            int o_carrier_id = random.getInt(1, 10);
-            int o_ol_cnt = random.getInt(5, 15);
+            int cId = orderid[oId - 1];
+            int carrierId = random.getInt(1, 10);
+            int olCnt = random.getInt(5, 15);
             prepOrder.setInt(1, oId);
-            prepOrder.setInt(2, o_c_id);
-            prepOrder.setInt(3, o_d_id);
-            prepOrder.setInt(4, o_w_id);
+            prepOrder.setInt(2, cId);
+            prepOrder.setInt(3, dId);
+            prepOrder.setInt(4, wId);
             prepOrder.setTimestamp(5, timestamp);
-            prepOrder.setInt(7, o_ol_cnt);
+            prepOrder.setInt(7, olCnt);
             if (oId <= 2100) {
-                prepOrder.setInt(6, o_carrier_id);
+                prepOrder.setInt(6, carrierId);
             } else {
                 // the last 900 orders have not been delivered
                 prepOrder.setNull(6, Types.INTEGER);
                 prepNewOrder.setInt(1, oId);
-                prepNewOrder.setInt(2, o_d_id);
-                prepNewOrder.setInt(3, o_w_id);
+                prepNewOrder.setInt(2, dId);
+                prepNewOrder.setInt(3, wId);
                 db.update(prepNewOrder, "newNewOrder");
             }
             db.update(prepOrder, "insertOrder");
-            for (int ol = 1; ol <= o_ol_cnt; ol++) {
-                int ol_i_id = random.getInt(1, items);
-                int ol_supply_w_id = o_w_id;
-                int ol_quantity = 5;
-                String ol_dist_info = random.getString(24);
-                BigDecimal ol_amount;
+            for (int ol = 1; ol <= olCnt; ol++) {
+                int id = random.getInt(1, items);
+                int supplyId = wId;
+                int quantity = 5;
+                String distInfo = random.getString(24);
+                BigDecimal amount;
                 if (oId < 2101) {
-                    ol_amount = random.getBigDecimal(0, 2);
+                    amount = random.getBigDecimal(0, 2);
                 } else {
-                    ol_amount = random.getBigDecimal(random.getInt(0, 1000000), 2);
+                    amount = random.getBigDecimal(random.getInt(0, 1000000), 2);
                 }
                 prepLine.setInt(1, oId);
-                prepLine.setInt(2, o_d_id);
-                prepLine.setInt(3, o_w_id);
+                prepLine.setInt(2, dId);
+                prepLine.setInt(3, wId);
                 prepLine.setInt(4, ol);
-                prepLine.setInt(5, ol_i_id);
-                prepLine.setInt(6, ol_supply_w_id);
-                prepLine.setInt(7, ol_quantity);
-                prepLine.setBigDecimal(8, ol_amount);
-                prepLine.setString(9, ol_dist_info);
+                prepLine.setInt(5, id);
+                prepLine.setInt(6, supplyId);
+                prepLine.setInt(7, quantity);
+                prepLine.setBigDecimal(8, amount);
+                prepLine.setString(9, distInfo);
                 db.update(prepLine, "insertOrderLine");
                 if (i++ % commitEvery == 0) {
                     db.commit();
@@ -367,58 +363,56 @@ public class BenchC implements Bench {
 
     private void loadStock(int wId) throws Exception {
         trace("load stock (warehouse " + wId + ")");
-        int s_w_id = wId;
         boolean[] original = random.getBoolean(items, items / 10);
         PreparedStatement prep = db.prepare("INSERT INTO STOCK(S_I_ID, S_W_ID, S_QUANTITY, "
                 + "S_DIST_01, S_DIST_02, S_DIST_03, S_DIST_04, S_DIST_05, "
                 + "S_DIST_06, S_DIST_07, S_DIST_08, S_DIST_09, S_DIST_10, "
                 + "S_DATA, S_YTD, S_ORDER_CNT, S_REMOTE_CNT) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        for (int s_i_id = 1; s_i_id <= items; s_i_id++) {
-            int s_quantity = random.getInt(10, 100);
-            String s_dist_01 = random.getString(24);
-            String s_dist_02 = random.getString(24);
-            String s_dist_03 = random.getString(24);
-            String s_dist_04 = random.getString(24);
-            String s_dist_05 = random.getString(24);
-            String s_dist_06 = random.getString(24);
-            String s_dist_07 = random.getString(24);
-            String s_dist_08 = random.getString(24);
-            String s_dist_09 = random.getString(24);
-            String s_dist_10 = random.getString(24);
-            String s_data = random.getString(26, 50);
-            if (original[s_i_id - 1]) {
-                s_data = random.replace(s_data, "original");
+        for (int id = 1; id <= items; id++) {
+            int quantity = random.getInt(10, 100);
+            String dist01 = random.getString(24);
+            String dist02 = random.getString(24);
+            String dist03 = random.getString(24);
+            String dist04 = random.getString(24);
+            String dist05 = random.getString(24);
+            String dist06 = random.getString(24);
+            String dist07 = random.getString(24);
+            String dist08 = random.getString(24);
+            String dist09 = random.getString(24);
+            String dist10 = random.getString(24);
+            String data = random.getString(26, 50);
+            if (original[id - 1]) {
+                data = random.replace(data, "original");
             }
-            prep.setInt(1, s_i_id);
-            prep.setInt(2, s_w_id);
-            prep.setInt(3, s_quantity);
-            prep.setString(4, s_dist_01);
-            prep.setString(5, s_dist_02);
-            prep.setString(6, s_dist_03);
-            prep.setString(7, s_dist_04);
-            prep.setString(8, s_dist_05);
-            prep.setString(9, s_dist_06);
-            prep.setString(10, s_dist_07);
-            prep.setString(11, s_dist_08);
-            prep.setString(12, s_dist_09);
-            prep.setString(13, s_dist_10);
-            prep.setString(14, s_data);
+            prep.setInt(1, id);
+            prep.setInt(2, wId);
+            prep.setInt(3, quantity);
+            prep.setString(4, dist01);
+            prep.setString(5, dist02);
+            prep.setString(6, dist03);
+            prep.setString(7, dist04);
+            prep.setString(8, dist05);
+            prep.setString(9, dist06);
+            prep.setString(10, dist07);
+            prep.setString(11, dist08);
+            prep.setString(12, dist09);
+            prep.setString(13, dist10);
+            prep.setString(14, data);
             prep.setInt(15, 0);
             prep.setInt(16, 0);
             prep.setInt(17, 0);
             db.update(prep, "insertStock");
-            if (s_i_id % commitEvery == 0) {
+            if (id % commitEvery == 0) {
                 db.commit();
             }
-            trace(s_i_id, items);
+            trace(id, items);
         }
     }
 
     private void loadDistrict(int wId) throws Exception {
-        int d_w_id = wId;
-        BigDecimal d_ytd = new BigDecimal("300000.00");
-        int d_next_o_id = 3001;
+        BigDecimal ytd = new BigDecimal("300000.00");
+        int nextId = 3001;
         PreparedStatement prep = db.prepare("INSERT INTO DISTRICT(D_ID, D_W_ID, D_NAME, "
                 + "D_STREET_1, D_STREET_2, D_CITY, D_STATE, D_ZIP, " + "D_TAX, D_YTD, D_NEXT_O_ID) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -432,7 +426,7 @@ public class BenchC implements Bench {
             String zip = address[4];
             BigDecimal tax = random.getBigDecimal(random.getInt(0, 2000), 4);
             prep.setInt(1, dId);
-            prep.setInt(2, d_w_id);
+            prep.setInt(2, wId);
             prep.setString(3, name);
             prep.setString(4, street1);
             prep.setString(5, street2);
@@ -440,8 +434,8 @@ public class BenchC implements Bench {
             prep.setString(7, state);
             prep.setString(8, zip);
             prep.setBigDecimal(9, tax);
-            prep.setBigDecimal(10, d_ytd);
-            prep.setInt(11, d_next_o_id);
+            prep.setBigDecimal(10, ytd);
+            prep.setInt(11, nextId);
             db.update(prep, "insertDistrict");
             trace(dId, districtsPerWarehouse);
         }

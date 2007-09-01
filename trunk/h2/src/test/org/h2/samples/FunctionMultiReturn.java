@@ -25,7 +25,7 @@ public class FunctionMultiReturn {
         prep.setDouble(1, 5.0);
         prep.setDouble(2, 0.5);
         ResultSet rs = prep.executeQuery();
-        while(rs.next()) {
+        while (rs.next()) {
             double x = rs.getDouble(1);
             double y = rs.getDouble(2);
             System.out.println("result: (x=" + x + ", y="+y+")");
@@ -35,7 +35,7 @@ public class FunctionMultiReturn {
         stat.execute("INSERT INTO TEST(R, A) VALUES(5.0, 0.5), (10.0, 0.6)");
         stat.execute("CREATE ALIAS P2C_SET FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianSet\" ");
         rs = conn.createStatement().executeQuery("SELECT * FROM P2C_SET('SELECT * FROM TEST')");
-        while(rs.next()) {
+        while (rs.next()) {
             double r = rs.getDouble("R");
             double a = rs.getDouble("A");
             double x = rs.getDouble("X");
@@ -45,18 +45,18 @@ public class FunctionMultiReturn {
         
         stat.execute("CREATE ALIAS P2C_A FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianArray\" ");
         rs = conn.createStatement().executeQuery("SELECT R, A, P2C_A(R, A) FROM TEST");
-        while(rs.next()) {
+        while (rs.next()) {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
             Object o = rs.getObject(3);
             Object[] xy = (Object[]) o;
-            double x = ((Double)xy[0]).doubleValue();
-            double y = ((Double)xy[1]).doubleValue();
-            System.out.println("(r="+r+" a="+a+") : (x=" + x + ", y="+y+")");
+            double x = ((Double) xy[0]).doubleValue();
+            double y = ((Double) xy[1]).doubleValue();
+            System.out.println("(r=" + r + " a=" + a + ") : (x=" + x + ", y=" + y + ")");
         }
         
         rs = conn.createStatement().executeQuery("SELECT R, A, ARRAY_GET(E, 1), ARRAY_GET(E, 2) FROM (SELECT R, A, P2C_A(R, A) E FROM TEST)");
-        while(rs.next()) {
+        while (rs.next()) {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
             double x = rs.getDouble(3);
@@ -75,7 +75,7 @@ public class FunctionMultiReturn {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("X", Types.DOUBLE, 0, 0);
         rs.addColumn("Y", Types.DOUBLE, 0, 0);
-        if(r != null && alpha != null) {
+        if (r != null && alpha != null) {
             double x = r.doubleValue() * Math.cos(alpha.doubleValue());
             double y = r.doubleValue() * Math.sin(alpha.doubleValue());
             rs.addRow(new Object[] { new Double(x), new Double(y) });
@@ -99,9 +99,9 @@ public class FunctionMultiReturn {
         result.addColumn("A", Types.DOUBLE, 0, 0);
         result.addColumn("X", Types.DOUBLE, 0, 0);
         result.addColumn("Y", Types.DOUBLE, 0, 0);
-        if(query != null) {
+        if (query != null) {
             ResultSet rs = conn.createStatement().executeQuery(query);
-            while(rs.next()) {
+            while (rs.next()) {
                 double r = rs.getDouble("R");
                 double alpha = rs.getDouble("A");
                 double x = r * Math.cos(alpha);

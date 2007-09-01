@@ -22,21 +22,21 @@ import org.h2.value.ValueString;
  */
 
 public class TestDataPage extends TestBase implements DataHandler {
-    
+
     boolean text;
-    
+
     public void test() throws Exception {
         testAll();
         text = true;
         testAll();
     }
-    
+
     private void testAll() throws Exception {
         DataPage page = DataPage.create(this, 128);
-        
+
         char[] data = new char[0x10000];
-        for(int i=0; i<data.length; i++) {
-            data[i] = (char)i;
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (char) i;
         }
         String s = new String(data);
         page.writeString(s);
@@ -45,7 +45,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         page.reset();
         check(s, page.readString());
         page.reset();
-        
+
         page.writeString("H\u1111!");
         page.writeString("John\tBrack's \"how are you\" M\u1111ller");
         page.writeValue(ValueInt.get(10));
@@ -60,8 +60,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         trace(page.readString());
         trace(page.readValue().getInt());
         trace(page.readValue().getString());
-        trace(""+page.readValue().getFloat());
-        trace(""+page.readValue().getDouble());
+        trace("" + page.readValue().getFloat());
+        trace("" + page.readValue().getDouble());
         trace(page.readValue().toString());
         page.reset();
 
@@ -98,7 +98,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     public int getChecksum(byte[] data, int start, int end) {
-        return end-start;
+        return end - start;
     }
 
     public void checkPowerOff() throws SQLException {

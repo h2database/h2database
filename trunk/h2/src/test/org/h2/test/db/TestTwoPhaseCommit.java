@@ -13,21 +13,21 @@ import org.h2.test.TestBase;
 
 public class TestTwoPhaseCommit extends TestBase {
     public void test() throws Exception {
-        if(config.memory || config.networked || config.logMode==0) {
+        if (config.memory || config.networked || config.logMode == 0) {
             return;
         }
-        
+
         deleteDb("twoPhaseCommit");
 
         prepare();
         openWith(true);
         test(true);
-        
+
         prepare();
         openWith(false);
         test(false);
     }
-    
+
     void test(boolean rolledBack) throws Exception {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
@@ -36,7 +36,7 @@ public class TestTwoPhaseCommit extends TestBase {
         rs.next();
         check(rs.getInt(1), 1);
         check(rs.getString(2), "Hello");
-        if(rolledBack) {
+        if (rolledBack) {
         } else {
             rs.next();
             check(rs.getInt(1), 2);
@@ -45,18 +45,18 @@ public class TestTwoPhaseCommit extends TestBase {
         checkFalse(rs.next());
         conn.close();
     }
-    
+
     void openWith(boolean rollback) throws Exception {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         ArrayList list = new ArrayList();
         ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT");
-        while(rs.next()) {
+        while (rs.next()) {
             list.add(rs.getString("TRANSACTION"));
         }
-        for(int i=0; i<list.size(); i++) {
-            String s = (String)list.get(i);
-            if(rollback) {
+        for (int i = 0; i < list.size(); i++) {
+            String s = (String) list.get(i);
+            if (rollback) {
                 stat.execute("ROLLBACK TRANSACTION " + s);
             } else {
                 stat.execute("COMMIT TRANSACTION " + s);
@@ -64,7 +64,7 @@ public class TestTwoPhaseCommit extends TestBase {
         }
         conn.close();
     }
-    
+
     void prepare() throws Exception {
         deleteDb("twoPhaseCommit");
         Connection conn = getConnection("twoPhaseCommit");

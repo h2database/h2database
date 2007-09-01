@@ -15,7 +15,7 @@ public class TestAutoRecompile extends TestBase {
 
     public void test() throws Exception {
         deleteDb("autoRecompile");
-        Connection conn=getConnection("autoRecompile");
+        Connection conn = getConnection("autoRecompile");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
@@ -26,19 +26,19 @@ public class TestAutoRecompile extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, X INT, Y INT)");
         check(prep.executeQuery().getMetaData().getColumnCount(), 3);
         // TODO test auto-recompile with insert..select, views and so on
-        
+
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, 2, 3)");
         stat.execute("ALTER TABLE TEST ADD COLUMN Z INT");
         try {
             prep.execute();
             error("must fail");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             prep.execute();
             error("must fail");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         conn.close();

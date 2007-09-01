@@ -15,22 +15,22 @@ import org.h2.util.BitField;
  */
 
 public class TestBitField extends TestBase {
-    
+
     public void test() throws Exception {
         testRandom();
         testGetSet();
     }
-    
+
     void testRandom() throws Exception {
         BitField bits = new BitField();
         BitSet set = new BitSet();
         int max = 300;
         int count = 100000;
         Random random = new Random(1);
-        for(int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             int idx = random.nextInt(max);
-            if(random.nextBoolean()) {
-                if(random.nextBoolean()) {
+            if (random.nextBoolean()) {
+                if (random.nextBoolean()) {
                     bits.set(idx);
                     set.set(idx);
                 } else {
@@ -44,26 +44,26 @@ public class TestBitField extends TestBase {
             }
         }
     }
-    
+
     void testGetSet() throws Exception {
         BitField bits = new BitField();
-        for(int i=0; i<10000; i++) {
+        for (int i = 0; i < 10000; i++) {
             bits.set(i);
-            if(!bits.get(i)) {
-                throw new Exception("not set: "+i);
+            if (!bits.get(i)) {
+                throw new Exception("not set: " + i);
             }
-            if(bits.get(i+1)) {
-                throw new Exception("set: "+i);
-            }
-        }
-        for(int i=0; i<10000; i++) {
-            if(!bits.get(i)) {
-                throw new Exception("not set: "+i);
+            if (bits.get(i + 1)) {
+                throw new Exception("set: " + i);
             }
         }
-        for(int i=0; i<1000; i++) {
+        for (int i = 0; i < 10000; i++) {
+            if (!bits.get(i)) {
+                throw new Exception("not set: " + i);
+            }
+        }
+        for (int i = 0; i < 1000; i++) {
             int k = bits.nextClearBit(0);
-            if(k != 10000) {
+            if (k != 10000) {
                 throw new Exception("" + k);
             }
         }

@@ -13,13 +13,13 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 
 public class TestSQLInjection extends TestBase {
-    
+
     Connection conn;
     Statement stat;
 
     public void test() throws Exception {
         deleteDb("sqlInjection");
-        reconnect("sqlInjection");       
+        reconnect("sqlInjection");
         stat.execute("DROP TABLE IF EXISTS USERS");
         stat.execute("CREATE TABLE USERS(NAME VARCHAR PRIMARY KEY, PASSWORD VARCHAR, TYPE VARCHAR)");
         stat.execute("CREATE SCHEMA CONST");
@@ -32,56 +32,56 @@ public class TestSQLInjection extends TestBase {
         checkFalse(checkPasswordSecure("abcdef"));
         checkFalse(checkPasswordSecure("' OR ''='"));
         stat.execute("SET ALLOW_LITERALS NONE");
-        
+
         try {
             check(checkPasswordInsecure("123456"));
             error("Should fail now");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         check(checkPasswordSecure("123456"));
         checkFalse(checkPasswordSecure("' OR ''='"));
         conn.close();
-        
-        if(config.memory) {
+
+        if (config.memory) {
             return;
         }
 
-        reconnect("sqlInjection");       
+        reconnect("sqlInjection");
 
         try {
             check(checkPasswordInsecure("123456"));
             error("Should fail now");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         check(checkPasswordSecure("123456"));
         checkFalse(checkPasswordSecure("' OR ''='"));
         conn.close();
     }
-    
+
     boolean checkPasswordInsecure(String pwd) throws SQLException {
-        String sql = "SELECT * FROM USERS WHERE PASSWORD='"+pwd+"'";
-        ResultSet rs = conn.createStatement().executeQuery(sql);    
-        return(rs.next());
+        String sql = "SELECT * FROM USERS WHERE PASSWORD='" + pwd + "'";
+        ResultSet rs = conn.createStatement().executeQuery(sql);
+        return (rs.next());
     }
-    
+
     boolean checkPasswordSecure(String pwd) throws Exception {
         String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
         PreparedStatement prep = conn.prepareStatement(sql);
         prep.setString(1, pwd);
-        ResultSet rs = prep.executeQuery();    
-        return(rs.next());
+        ResultSet rs = prep.executeQuery();
+        return (rs.next());
     }
 
     private void reconnect(String name) throws Exception {
-        if(!config.memory) {
-            if(conn != null) {
+        if (!config.memory) {
+            if (conn != null) {
                 conn.close();
                 conn = null;
             }
         }
-        if(conn == null) {
+        if (conn == null) {
             conn = getConnection(name);
             stat = conn.createStatement();
         }

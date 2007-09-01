@@ -12,9 +12,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 
 public class TestCache extends TestBase {
-    
+
     public void test() throws Exception {
-        if(config.memory) {
+        if (config.memory) {
             return;
         }
         deleteDb("cache");
@@ -26,7 +26,7 @@ public class TestCache extends TestBase {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         PreparedStatement prep2 = conn.prepareStatement("INSERT INTO MAIN VALUES(?, ?)");
         int max = 10000;
-        for(int i=0; i<max; i++) {
+        for (int i = 0; i < max; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Hello " + i);
             prep.execute();
@@ -39,10 +39,10 @@ public class TestCache extends TestBase {
         stat = conn.createStatement();
         stat.execute("SET CACHE_SIZE 1024");
         Random random = new Random(1);
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             stat.executeQuery("SELECT * FROM MAIN WHERE ID BETWEEN 40 AND 50");
             stat.executeQuery("SELECT * FROM MAIN WHERE ID = " + random.nextInt(max));
-            if((i%10) == 0) {
+            if ((i % 10) == 0) {
                 stat.executeQuery("SELECT * FROM TEST");
             }
         }

@@ -34,8 +34,9 @@ public class TestTempTables extends TestBase {
         s2.execute("DROP TABLE LT");
         s1.execute("DROP TABLE LT");
 
-        // temp tables: 'on commit' syntax is currently not documented, because not tested well
-        // and hopefully nobody is using it, as it looks like functional sugar 
+        // temp tables: 'on commit' syntax is currently not documented, because
+        // not tested well
+        // and hopefully nobody is using it, as it looks like functional sugar
         // (this features are here for compatibility only)
         ResultSet rs;
         c1.setAutoCommit(false);
@@ -47,7 +48,7 @@ public class TestTempTables extends TestBase {
         rs = s1.executeQuery("select * from test_temp");
         checkResultRowCount(rs, 0);
         s1.execute("drop table test_temp");
-        
+
         s1.execute("create local temporary table test_temp(id int) on commit drop");
         s1.execute("insert into test_temp values(1)");
         rs = s1.executeQuery("select * from test_temp");
@@ -56,10 +57,10 @@ public class TestTempTables extends TestBase {
         try {
             rs = s1.executeQuery("select * from test_temp");
             error("test_temp should have been dropped automatically");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        
+
         c1.close();
         c2.close();
     }

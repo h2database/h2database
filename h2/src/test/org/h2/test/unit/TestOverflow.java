@@ -31,50 +31,50 @@ public class TestOverflow extends TestBase {
     private void test(int type, long min, long max) throws Exception {
         values = new ArrayList();
         this.type = type;
-        this.min = new BigInteger(""+min);
-        this.max = new BigInteger(""+max);
+        this.min = new BigInteger("" + min);
+        this.max = new BigInteger("" + max);
         add(0);
         add(min);
         add(max);
-        add(max-1);
-        add(min+1);
+        add(max - 1);
+        add(min + 1);
         add(1);
         add(-1);
         Random random = new Random(1);
-        for(int i=0; i<40; i++) {
-            if(max > Integer.MAX_VALUE) {
+        for (int i = 0; i < 40; i++) {
+            if (max > Integer.MAX_VALUE) {
                 add(random.nextLong());
             } else {
-                add((random.nextBoolean() ? 1 : -1) * random.nextInt((int)max));
+                add((random.nextBoolean() ? 1 : -1) * random.nextInt((int) max));
             }
         }
-        for(int a=0; a<values.size(); a++) {
-            for(int b=0; b<values.size(); b++) {
+        for (int a = 0; a < values.size(); a++) {
+            for (int b = 0; b < values.size(); b++) {
                 Value va = (Value) values.get(a);
                 Value vb = (Value) values.get(b);
                 testValues(va, vb);
             }
         }
     }
-    
+
     void checkIfExpected(String a, String b) throws Exception {
-        if(successExpected) {
+        if (successExpected) {
             check(a, b);
         }
     }
-    
+
     void onSuccess() throws Exception {
-        if(!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
             error("unexpected success");
         }
     }
-    
+
     void onError() throws Exception {
-        if(successExpected) {
+        if (successExpected) {
             error("unexpected error");
         }
     }
-    
+
     private void testValues(Value va, Value vb) throws Exception {
         BigInteger a = new BigInteger(va.getString());
         BigInteger b = new BigInteger(vb.getString());
@@ -82,32 +82,32 @@ public class TestOverflow extends TestBase {
         try {
             checkIfExpected(va.negate().getString(), a.negate().toString());
             onSuccess();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             onError();
         }
         successExpected = inRange(a.add(b));
         try {
             checkIfExpected(va.add(vb).getString(), a.add(b).toString());
             onSuccess();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             onError();
         }
         successExpected = inRange(a.subtract(b));
         try {
             checkIfExpected(va.subtract(vb).getString(), a.subtract(b).toString());
             onSuccess();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             onError();
         }
         successExpected = inRange(a.multiply(b));
         try {
             checkIfExpected(va.multiply(vb).getString(), a.multiply(b).toString());
             onSuccess();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             onError();
         }
     }
-    
+
     private boolean inRange(BigInteger v) {
         return v.compareTo(min) >= 0 && v.compareTo(max) <= 0;
     }
@@ -115,5 +115,5 @@ public class TestOverflow extends TestBase {
     private void add(long l) throws SQLException {
         values.add(ValueString.get("" + l).convertTo(type));
     }
-    
+
 }

@@ -22,10 +22,10 @@ public class Newsfeed {
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         InputStream in = Newsfeed.class.getResourceAsStream("newsfeed.sql");
         ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
-        while(rs.next()) {
+        while (rs.next()) {
             String file = rs.getString("FILE");
             String content = rs.getString("CONTENT");
-            if(file.equals("-newsletter-")) {
+            if (file.equals("-newsletter-")) {
                 System.out.println(convertHtml2Text(content));
             } else {
                 FileOutputStream out = new FileOutputStream(file);
@@ -52,7 +52,7 @@ public class Newsfeed {
         s = StringUtils.replaceAll(s, "<br />", "");
         s = StringUtils.replaceAll(s, "<br/>", "");
         s = StringUtils.replaceAll(s, "<br>", "");
-        if(s.indexOf('<') >= 0 || s.indexOf('>') >= 0) {
+        if (s.indexOf('<') >= 0 || s.indexOf('>') >= 0) {
             throw new Error("Unsupported HTML Tag: < or > in " + s);
         }
         return s;

@@ -4,8 +4,14 @@
  */
 package org.h2.samples;
 
-import java.io.*;
-import java.sql.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class SQLInjection {
     
@@ -43,14 +49,14 @@ public class SQLInjection {
 
 //        loginByNameInsecure();
         
-        if(url.startsWith("jdbc:h2:")) {
-//            loginStoredProcedureInsecure();
+        if (url.startsWith("jdbc:h2:")) {
+//          loginStoredProcedureInsecure();
             limitRowAccess();
         }
         
 //        loginByNameSecure();
         
-        if(url.startsWith("jdbc:h2:")) {
+        if (url.startsWith("jdbc:h2:")) {
             stat.execute("SET ALLOW_LITERALS NONE");
             stat.execute("SET ALLOW_LITERALS NUMBERS");
             stat.execute("SET ALLOW_LITERALS ALL");
@@ -75,7 +81,7 @@ public class SQLInjection {
 
         listActiveItems();
 
-        if(url.startsWith("jdbc:h2:")) {
+        if (url.startsWith("jdbc:h2:")) {
             stat.execute("DROP CONSTANT IF EXISTS TYPE_INACTIVE");
             stat.execute("DROP CONSTANT IF EXISTS TYPE_ACTIVE");
             stat.execute("CREATE CONSTANT TYPE_INACTIVE VALUE 0");
@@ -86,7 +92,7 @@ public class SQLInjection {
 //        listItemsSortedInsecure();
 //        listItemsSortedSecure();
         
-        if(url.startsWith("jdbc:h2:")) {
+        if (url.startsWith("jdbc:h2:")) {
             listItemsSortedSecureParam();
 //            storePasswordHashWithSalt();
         }
@@ -188,7 +194,7 @@ public class SQLInjection {
             } else {
                 System.out.println("Access denied!");
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println(e);
         }
     }
@@ -209,7 +215,7 @@ public class SQLInjection {
             } else {
                 System.out.println("Access denied!");
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
@@ -241,7 +247,7 @@ public class SQLInjection {
             while (rs.next()) {
                 System.out.println(rs.getString(1) + ": " + rs.getString(2));
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println(e);
         }
     }
@@ -258,7 +264,7 @@ public class SQLInjection {
             while (rs.next()) {
                 System.out.println(rs.getString(1) + ": " + rs.getString(2));
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println(e);
         }
     }
@@ -274,7 +280,7 @@ public class SQLInjection {
             while (rs.next()) {
                 System.out.println(rs.getString(1) + ": " + rs.getString(2));
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }

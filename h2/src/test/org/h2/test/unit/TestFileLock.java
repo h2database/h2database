@@ -23,13 +23,14 @@ public class TestFileLock extends TestBase implements Runnable {
     private static volatile int locks;
     private static volatile boolean stop;
 
-    public TestFileLock() {}
+    public TestFileLock() {
+    }
 
     public void test() throws Exception {
         test(false);
         test(true);
     }
-    
+
     void test(boolean allowSockets) throws Exception {
         int threadCount = getSize(3, 5);
         wait = getSize(20, 200);

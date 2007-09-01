@@ -46,7 +46,7 @@ public class FileFunctions {
     public static byte[] readFile(String fileName) throws IOException {
         RandomAccessFile file = new RandomAccessFile(fileName, "r");
         try {
-            byte[] buff = new byte[(int)file.length()];
+            byte[] buff = new byte[(int) file.length()];
             file.readFully(buff);
             return buff;
         } finally {

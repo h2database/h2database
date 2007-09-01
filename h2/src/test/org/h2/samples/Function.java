@@ -23,9 +23,9 @@ public class Function {
         stat.execute("CREATE ALIAS IS_PRIME FOR \"org.h2.samples.Function.isPrime\" ");
         ResultSet rs;
         rs = stat.executeQuery("SELECT IS_PRIME(X), X FROM SYSTEM_RANGE(1, 20) ORDER BY X");
-        while(rs.next()) {
+        while (rs.next()) {
             boolean isPrime = rs.getBoolean(1);
-            if(isPrime) {
+            if (isPrime) {
                 int x = rs.getInt(2);
                 System.out.println(x + " is prime");
             }
@@ -53,11 +53,11 @@ public class Function {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("X", Types.INTEGER, 10, 0);
         rs.addColumn("Y", Types.INTEGER, 10, 0);
-        if(id == null) {
+        if (id == null) {
             return rs;
         }
-        for(int x = 0; x < id.intValue(); x++) {
-            for(int y = 0; y < id.intValue(); y++) {
+        for (int x = 0; x < id.intValue(); x++) {
+            for (int y = 0; y < id.intValue(); y++) {
                 rs.addRow(new Object[] { new Integer(x), new Integer(y) });
             }
         }

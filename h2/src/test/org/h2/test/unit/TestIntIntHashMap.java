@@ -30,11 +30,11 @@ public class TestIntIntHashMap extends TestBase {
         for (int i = 0; i < len; i++) {
             map.put(x[i], i);
         }
-        for (int i = 0; i < len; i ++) {
+        for (int i = 0; i < len; i++) {
             if (map.get(x[i]) != i) {
                 throw new Error("get " + x[i] + " = " + map.get(i) + " should be " + i);
             }
-        }        
+        }
         for (int i = 1; i < len; i += 2) {
             map.remove(x[i]);
         }
@@ -46,7 +46,7 @@ public class TestIntIntHashMap extends TestBase {
         for (int i = 1; i < len; i += 2) {
             map.put(x[i], i);
         }
-        for (int i = 0; i < len; i ++) {
+        for (int i = 0; i < len; i++) {
             if (map.get(x[i]) != i) {
                 throw new Error("get " + x[i] + " = " + map.get(i) + " should be " + i);
             }

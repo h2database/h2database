@@ -39,7 +39,7 @@ public class SecurePassword {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.executeUpdate("INSERT INTO TEST VALUES(1, 'Hello')");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        while(rs.next()) {
+        while (rs.next()) {
             System.out.println(rs.getString("NAME"));
         }
         conn.close();

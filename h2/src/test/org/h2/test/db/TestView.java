@@ -17,10 +17,10 @@ public class TestView extends TestBase {
         Statement s = conn.createStatement();
         s.execute("create table t0(id int primary key)");
         s.execute("insert into t0 values(1), (2), (3)");
-        for(int i=0; i<30; i++) {
-            s.execute("create view t" + (i+1) + " as select * from t" + i);
-            s.execute("select * from t" + (i+1));
-            ResultSet rs = s.executeQuery("select count(*) from t" + (i+1) + " where id=2");
+        for (int i = 0; i < 30; i++) {
+            s.execute("create view t" + (i + 1) + " as select * from t" + i);
+            s.execute("select * from t" + (i + 1));
+            ResultSet rs = s.executeQuery("select count(*) from t" + (i + 1) + " where id=2");
             check(rs.next());
             check(rs.getInt(1), 1);
         }

@@ -6,13 +6,16 @@ package org.h2.test.synth;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.h2.test.TestBase;
 
 class Result implements Comparable {
-    static final int SUCCESS=0, BOOLEAN=1, INT=2, EXCEPTION=3, RESULT_SET=4;
+    static final int SUCCESS = 0, BOOLEAN = 1, INT = 2, EXCEPTION = 3, RESULT_SET = 4;
     private int type;
     private boolean bool;
     private int intValue;
@@ -20,30 +23,30 @@ class Result implements Comparable {
     private ArrayList rows;
     private ArrayList header;
     String sql;
-    
+
     Result(String sql) {
         this.sql = sql;
-        type = SUCCESS;  
+        type = SUCCESS;
     }
-    
+
     Result(String sql, SQLException e) {
         this.sql = sql;
         type = EXCEPTION;
         exception = e;
     }
-    
+
     Result(String sql, boolean b) {
         this.sql = sql;
         type = BOOLEAN;
-        this.bool = b; 
+        this.bool = b;
     }
-    
+
     Result(String sql, int i) {
         this.sql = sql;
         type = INT;
-        this.intValue = i;    
+        this.intValue = i;
     }
-    
+
     Result(TestSynth config, String sql, ResultSet rs) {
         this.sql = sql;
         type = RESULT_SET;
@@ -53,23 +56,23 @@ class Result implements Comparable {
             ResultSetMetaData meta = rs.getMetaData();
             int len = meta.getColumnCount();
             Column[] cols = new Column[len];
-            for(int i=0; i<len; i++) {
-                cols[i] = new Column(meta, i+1);
+            for (int i = 0; i < len; i++) {
+                cols[i] = new Column(meta, i + 1);
             }
-            while(rs.next()) {
+            while (rs.next()) {
                 Row row = new Row(config, rs, len);
                 rows.add(row);
             }
             Collections.sort(rows);
-        } catch(SQLException e) {
-//            type = EXCEPTION;
-//            exception = e;
+        } catch (SQLException e) {
+            // type = EXCEPTION;
+            // exception = e;
             TestBase.logError("error reading result set", e);
         }
     }
 
     public String toString() {
-        switch(type) {
+        switch (type) {
         case SUCCESS:
             return "success";
         case BOOLEAN:
@@ -79,17 +82,17 @@ class Result implements Comparable {
         case EXCEPTION: {
             StringWriter w = new StringWriter();
             exception.printStackTrace(new PrintWriter(w));
-            return "exception: "+exception.getSQLState()+": "+exception.getMessage() + "\r\n"+w.toString();
+            return "exception: " + exception.getSQLState() + ": " + exception.getMessage() + "\r\n" + w.toString();
         }
         case RESULT_SET:
             String result = "ResultSet { // size=" + rows.size() + "\r\n  ";
-            for(int i=0; i<header.size(); i++) {
-                Column column = (Column)header.get(i);
+            for (int i = 0; i < header.size(); i++) {
+                Column column = (Column) header.get(i);
                 result += column.toString() + "; ";
             }
             result += "} = {\r\n";
-            for(int i=0; i<rows.size(); i++) {
-                Row row = (Row)rows.get(i);
+            for (int i = 0; i < rows.size(); i++) {
+                Row row = (Row) rows.get(i);
                 result += "  { " + row.toString() + "};\r\n";
             }
             return result + "}";
@@ -97,16 +100,17 @@ class Result implements Comparable {
             throw new Error("internal");
         }
     }
-    
+
     public int compareTo(Object o) {
-        Result r = (Result)o;
-        switch(type) {
+        Result r = (Result) o;
+        switch (type) {
         case EXCEPTION:
-            if(r.type != EXCEPTION) {
+            if (r.type != EXCEPTION) {
                 return 1;
             }
             return 0;
-//            return exception.getSQLState().compareTo(r.exception.getSQLState());
+            // return
+            // exception.getSQLState().compareTo(r.exception.getSQLState());
         case BOOLEAN:
         case INT:
         case SUCCESS:
@@ -116,24 +120,24 @@ class Result implements Comparable {
             throw new Error("internal");
         }
     }
-    
+
     public void log() {
-        switch(type) {
+        switch (type) {
         case SUCCESS:
-            System.out.println("> ok");        
+            System.out.println("> ok");
             break;
         case EXCEPTION:
-            System.out.println("> exception");        
+            System.out.println("> exception");
             break;
         case INT:
-            if(intValue==0) {
-                System.out.println("> ok");                
+            if (intValue == 0) {
+                System.out.println("> ok");
             } else {
-                System.out.println("> update count: "+intValue);                
+                System.out.println("> update count: " + intValue);
             }
             break;
         case RESULT_SET:
-            System.out.println("> rs "+rows.size());    
+            System.out.println("> rs " + rows.size());
             break;
         }
         System.out.println();

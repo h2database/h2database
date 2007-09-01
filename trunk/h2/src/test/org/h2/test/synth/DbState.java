@@ -8,42 +8,42 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class DbState implements DbInterface {
-    
+
     private TestSynth config;
     private ArrayList tables = new ArrayList();
     private ArrayList indexes = new ArrayList();
     boolean connected;
     boolean autoCommit;
-    
+
     DbState(TestSynth config) {
         this.config = config;
     }
-    
+
     public void reset() throws SQLException {
         tables = new ArrayList();
         indexes = new ArrayList();
     }
-    
+
     public void connect() throws SQLException {
         connected = true;
     }
-    
+
     public void disconnect() throws SQLException {
         connected = false;
     }
-    
+
     public void createTable(Table table) throws SQLException {
         tables.add(table);
     }
-    
+
     public void dropTable(Table table) throws SQLException {
         tables.remove(table);
     }
-    
+
     public void createIndex(Index index) throws SQLException {
         indexes.add(index);
     }
-    
+
     public void dropIndex(Index index) throws SQLException {
         indexes.remove(index);
     }
@@ -75,7 +75,7 @@ public class DbState implements DbInterface {
     }
 
     public Table randomTable() {
-        if(tables.size() == 0) {
+        if (tables.size() == 0) {
             return null;
         }
         int i = config.random().getInt(tables.size());
@@ -84,5 +84,5 @@ public class DbState implements DbInterface {
 
     public void end() throws SQLException {
     }
-    
+
 }

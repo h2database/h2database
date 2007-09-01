@@ -4,7 +4,11 @@
  */
 package org.h2.test.jdbc;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
@@ -13,14 +17,16 @@ import org.h2.test.TestBase;
  */
 
 public class TestCancel extends TestBase {
-    
+
     class CancelThread extends Thread {
         private Statement cancel;
         private int wait;
+
         CancelThread(Statement cancel, int wait) {
             this.cancel = cancel;
             this.wait = wait;
         }
+
         public void run() {
             try {
                 Thread.sleep(wait);
@@ -28,12 +34,12 @@ public class TestCancel extends TestBase {
                 Thread.yield();
             } catch (SQLException e) {
                 // ignore errors on closed statements
-            } catch(Exception e) {
+            } catch (Exception e) {
                 TestBase.logError("sleep", e);
             }
         }
     }
-    
+
     public void test() throws Exception {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
@@ -43,9 +49,9 @@ public class TestCancel extends TestBase {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         trace("insert");
         int len = getSize(1, 1000);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
-            //prep.setString(2, "Test Value "+i);
+            // prep.setString(2, "Test Value "+i);
             prep.setString(2, "hi");
             prep.execute();
         }
@@ -56,21 +62,21 @@ public class TestCancel extends TestBase {
             CancelThread cancel = new CancelThread(query, i);
             cancel.start();
             Thread.yield();
-            int j=0;
+            int j = 0;
             try {
-                ResultSet rs = query.executeQuery("SELECT * FROM TEST");                
-                while(rs.next()) {
+                ResultSet rs = query.executeQuery("SELECT * FROM TEST");
+                while (rs.next()) {
                     j++;
                 }
-                trace("record count: "+j);
-            } catch(SQLException e) {
+                trace("record count: " + j);
+            } catch (SQLException e) {
                 checkNotGeneralException(e);
                 // ignore cancelled statements
-                trace("record count: "+j);
+                trace("record count: " + j);
             }
-            if(j == 0) {
+            if (j == 0) {
                 i += 10;
-            } else if(j == len) {
+            } else if (j == len) {
                 break;
             }
         }

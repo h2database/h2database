@@ -11,52 +11,53 @@ import java.util.Random;
 
 public class RandomGen {
     private Random random = new Random();
-//    private TestSynth config;
-    
+
+    // private TestSynth config;
+
     public RandomGen(TestSynth config) {
-//        this.config = config;
+        // this.config = config;
         random.setSeed(12);
     }
-    
+
     public int getInt(int max) {
-        return max==0 ? 0 : random.nextInt(max);
+        return max == 0 ? 0 : random.nextInt(max);
     }
-    
+
     public double nextGaussian() {
         return random.nextGaussian();
     }
-    
+
     public int getLog(int max) {
-        if(max==0) {
+        if (max == 0) {
             return 0;
         }
-        while(true) {
-            int d = Math.abs((int)(random.nextGaussian()/2.*max));
-            if(d<max) {
+        while (true) {
+            int d = Math.abs((int) (random.nextGaussian() / 2. * max));
+            if (d < max) {
                 return d;
             }
         }
     }
-    
+
     public void getBytes(byte[] data) {
         random.nextBytes(data);
     }
-    
+
     public boolean getBoolean(int percent) {
         return random.nextInt(100) <= percent;
-    }    
-    
+    }
+
     public String randomString(int len) {
         StringBuffer buff = new StringBuffer();
-        for(int i=0; i<len; i++) {
-            String from = (i%2==0)?"bdfghklmnpqrst":"aeiou";
+        for (int i = 0; i < len; i++) {
+            String from = (i % 2 == 0) ? "bdfghklmnpqrst" : "aeiou";
             buff.append(from.charAt(getInt(from.length())));
         }
         return buff.toString();
     }
 
     public int getRandomInt() {
-        switch(random.nextInt(10)) {
+        switch (random.nextInt(10)) {
         case 0:
             return Integer.MAX_VALUE;
         case 1:
@@ -67,14 +68,14 @@ public class RandomGen {
         case 4:
             return 0;
         case 5:
-            return (int)(random.nextGaussian()*2000)-200;
+            return (int) (random.nextGaussian() * 2000) - 200;
         default:
-            return (int)(random.nextGaussian()*20)-5;
+            return (int) (random.nextGaussian() * 20) - 5;
         }
     }
 
     public long getRandomLong() {
-        switch(random.nextInt(10)) {
+        switch (random.nextInt(10)) {
         case 0:
             return Long.MAX_VALUE;
         case 1:
@@ -85,14 +86,14 @@ public class RandomGen {
         case 4:
             return 0;
         case 5:
-            return (int)(random.nextGaussian()*20000)-2000;
+            return (int) (random.nextGaussian() * 20000) - 2000;
         default:
-            return (int)(random.nextGaussian()*200)-50;
+            return (int) (random.nextGaussian() * 200) - 50;
         }
     }
 
     public double getRandomDouble() {
-        switch(random.nextInt(10)) {
+        switch (random.nextInt(10)) {
         case 0:
             return Double.MIN_VALUE;
         case 1:
@@ -107,9 +108,9 @@ public class RandomGen {
         case 6:
             return 0;
         case 7:
-            return random.nextGaussian()*20000.-2000.;
+            return random.nextGaussian() * 20000. - 2000.;
         default:
-            return random.nextGaussian()*200.-50.;
+            return random.nextGaussian() * 200. - 50.;
         }
     }
 
@@ -118,13 +119,13 @@ public class RandomGen {
     }
 
     public int[] getIntArray() {
-        switch(random.nextInt(10)) {
+        switch (random.nextInt(10)) {
         case 0:
             return null;
         default:
             int len = getInt(100);
             int[] list = new int[len];
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 list[i] = getRandomInt();
             }
             return list;
@@ -132,7 +133,7 @@ public class RandomGen {
     }
 
     public Object getByteArray() {
-        switch(random.nextInt(10)) {
+        switch (random.nextInt(10)) {
         case 0:
             return null;
         default:
@@ -144,7 +145,7 @@ public class RandomGen {
     }
 
     public Time randomTime() {
-        if(random.nextInt(10)==0) {
+        if (random.nextInt(10) == 0) {
             return null;
         }
         StringBuffer buff = new StringBuffer();
@@ -158,9 +159,9 @@ public class RandomGen {
     }
 
     public Timestamp randomTimestamp() {
-        if(random.nextInt(10)==0) {
+        if (random.nextInt(10) == 0) {
             return null;
-        }        
+        }
         StringBuffer buff = new StringBuffer();
         buff.append(getInt(10) + 2000);
         buff.append('-');
@@ -178,9 +179,9 @@ public class RandomGen {
     }
 
     public Date randomDate() {
-        if(random.nextInt(10)==0) {
+        if (random.nextInt(10) == 0) {
             return null;
-        }             
+        }
         StringBuffer buff = new StringBuffer();
         buff.append(getInt(10) + 2000);
         buff.append('-');
@@ -192,17 +193,19 @@ public class RandomGen {
 
     public String modify(String sql) {
         int len = getLog(10);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             int pos = getInt(sql.length());
-            if(getBoolean(50)) {
-                String badChars = "abcABCDEF\u00ef\u00f6\u00fcC1230=<>+\"\\*%&/()=?$_-.:,;{}[]"; // auml ouml uuml
+            if (getBoolean(50)) {
+                String badChars = "abcABCDEF\u00ef\u00f6\u00fcC1230=<>+\"\\*%&/()=?$_-.:,;{}[]"; // auml
+                                                                                                    // ouml
+                                                                                                    // uuml
                 char bad = badChars.charAt(getInt(badChars.length()));
                 sql = sql.substring(0, pos) + bad + sql.substring(pos);
             } else {
-                if(pos >= sql.length()) {
+                if (pos >= sql.length()) {
                     sql = sql.substring(0, pos);
                 } else {
-                    sql = sql.substring(0, pos) + sql.substring(pos+1);
+                    sql = sql.substring(0, pos) + sql.substring(pos + 1);
                 }
             }
         }
@@ -212,5 +215,5 @@ public class RandomGen {
     public void setSeed(int seed) {
         random.setSeed(seed);
     }
-    
+
 }

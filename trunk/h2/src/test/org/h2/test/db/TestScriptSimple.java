@@ -16,8 +16,9 @@ import org.h2.util.ScriptReader;
 public class TestScriptSimple extends TestBase {
 
     private Connection conn;
+
     public void test() throws Exception {
-        if(config.memory || config.big || config.networked) {
+        if (config.memory || config.big || config.networked) {
             return;
         }
         deleteDb("scriptSimple");
@@ -26,19 +27,19 @@ public class TestScriptSimple extends TestBase {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         ScriptReader reader = new ScriptReader(lineReader);
-        while(true) {
+        while (true) {
             String sql = reader.readStatement();
-            if(sql == null) {
+            if (sql == null) {
                 break;
             }
             sql = sql.trim();
-            if("@reconnect".equals(sql.toLowerCase())) {
+            if ("@reconnect".equals(sql.toLowerCase())) {
                 reconnect();
-            } else if(sql.length() == 0) {
+            } else if (sql.length() == 0) {
                 // ignore
-            } else if(sql.toLowerCase().startsWith("select")) {
+            } else if (sql.toLowerCase().startsWith("select")) {
                 ResultSet rs = conn.createStatement().executeQuery(sql);
-                while(rs.next()) {
+                while (rs.next()) {
                     String expected = reader.readStatement().trim();
                     String got = "> " + rs.getString(1);
                     check(expected, got);
@@ -50,13 +51,12 @@ public class TestScriptSimple extends TestBase {
         is.close();
         conn.close();
     }
-    
+
     private void reconnect() throws Exception {
-        if(conn != null) {
+        if (conn != null) {
             conn.close();
         }
         conn = getConnection("scriptSimple");
     }
-    
 
 }

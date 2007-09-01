@@ -22,7 +22,7 @@ class DbConnection implements DbInterface {
     private Connection conn;
     private Connection sentinel;
     private boolean useSentinel;
-    
+
     DbConnection(TestSynth config, String driver, String url, String user, String password, int id, boolean useSentinel) {
         this.config = config;
         this.driver = driver;
@@ -31,7 +31,7 @@ class DbConnection implements DbInterface {
         this.password = password;
         this.id = id;
         this.useSentinel = useSentinel;
-        log("url="+url);
+        log("url=" + url);
     }
 
     public void reset() throws SQLException {
@@ -39,10 +39,10 @@ class DbConnection implements DbInterface {
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
         ArrayList tables = new ArrayList();
-        ResultSet rs = meta.getTables(null, null, null, new String[] { "TABLE"});
+        ResultSet rs = meta.getTables(null, null, null, new String[] { "TABLE" });
         while (rs.next()) {
             String schemaName = rs.getString("TABLE_SCHEM");
-            if(!"INFORMATION_SCHEMA".equals(schemaName)) {
+            if (!"INFORMATION_SCHEMA".equals(schemaName)) {
                 tables.add(rs.getString("TABLE_NAME"));
             }
         }
@@ -61,37 +61,37 @@ class DbConnection implements DbInterface {
             }
             // could not drop any table and still tables to drop
             if (dropped == 0 && tables.size() > 0) {
-                throw new Error("Cannot drop "+tables);
+                throw new Error("Cannot drop " + tables);
             }
         }
     }
 
     public void connect() throws Exception {
-        if(useSentinel && sentinel == null) {
+        if (useSentinel && sentinel == null) {
             sentinel = getConnection();
         }
-        log("connect to "+url+";");
+        log("connect to " + url + ";");
         conn = getConnection();
     }
-    
+
     private Connection getConnection() throws Exception {
-        log("(getConnection to "+url+");");
-        if(driver==null) {
+        log("(getConnection to " + url + ");");
+        if (driver == null) {
             return config.getConnection("synth");
         } else {
             Class.forName(driver);
             return DriverManager.getConnection(url, user, password);
         }
     }
-    
+
     public void disconnect() throws SQLException {
-        log("disconnect "+url+";");
+        log("disconnect " + url + ";");
         conn.close();
     }
 
     public void end() throws SQLException {
-        log("end "+url+";");
-        if(sentinel != null) {
+        log("end " + url + ";");
+        if (sentinel != null) {
             sentinel.close();
             sentinel = null;
         }
@@ -104,7 +104,7 @@ class DbConnection implements DbInterface {
     public void dropTable(Table table) throws SQLException {
         execute(table.getDropSQL());
     }
-    
+
     public void createIndex(Index index) throws SQLException {
         execute(index.getCreateSQL());
         index.getTable().addIndex(index);
@@ -120,14 +120,14 @@ class DbConnection implements DbInterface {
         execute(sql);
         return new Result(sql, 1);
     }
-    
+
     private void execute(String sql) throws SQLException {
-        log(sql+";");
+        log(sql + ";");
         conn.createStatement().execute(sql);
     }
 
     public Result select(String sql) throws SQLException {
-        log(sql+";");
+        log(sql + ";");
         Statement stat = conn.createStatement();
         Result result = new Result(config, sql, stat.executeQuery(sql));
         return result;
@@ -135,10 +135,10 @@ class DbConnection implements DbInterface {
 
     public Result delete(Table table, String condition) throws SQLException {
         String sql = "DELETE FROM " + table.getName();
-        if(condition!=null) {
+        if (condition != null) {
             sql += "  WHERE " + condition;
         }
-        log(sql+";");
+        log(sql + ";");
         Statement stat = conn.createStatement();
         Result result = new Result(sql, stat.executeUpdate(sql));
         return result;
@@ -146,23 +146,23 @@ class DbConnection implements DbInterface {
 
     public Result update(Table table, Column[] columns, Value[] values, String condition) throws SQLException {
         String sql = "UPDATE " + table.getName() + " SET ";
-        for(int i=0; i<columns.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < columns.length; i++) {
+            if (i > 0) {
                 sql += ", ";
             }
             sql += columns[i].getName() + "=" + values[i].getSQL();
         }
-        if(condition!=null) {
+        if (condition != null) {
             sql += "  WHERE " + condition;
         }
-        log(sql+";");
+        log(sql + ";");
         Statement stat = conn.createStatement();
         Result result = new Result(sql, stat.executeUpdate(sql));
         return result;
     }
 
     public void setAutoCommit(boolean b) throws SQLException {
-        log("set autoCommit " + b+";");
+        log("set autoCommit " + b + ";");
         conn.setAutoCommit(b);
     }
 
@@ -170,18 +170,18 @@ class DbConnection implements DbInterface {
         log("commit;");
         conn.commit();
     }
-    
+
     public void rollback() throws SQLException {
         log("rollback;");
         conn.rollback();
     }
-    
+
     private void log(String s) {
         config.log(id, s);
     }
-    
+
     public String toString() {
         return url;
     }
-    
+
 }

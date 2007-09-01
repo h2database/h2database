@@ -10,10 +10,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class TestMultiNewsSimple extends TestMultiThread {
-    
+
     Connection conn;
-    
+
     static int newsCount = 10000;
+
     static int getNewsCount() {
         return newsCount;
     }
@@ -22,12 +23,12 @@ public class TestMultiNewsSimple extends TestMultiThread {
         super(base);
         conn = base.getConnection();
     }
-    
+
     void first() throws SQLException {
         Connection conn = base.getConnection();
         conn.createStatement().execute("create table news(id identity, state int default 0, text varchar default '')");
         PreparedStatement prep = conn.prepareStatement("insert into news() values()");
-        for(int i=0; i<newsCount; i++) {
+        for (int i = 0; i < newsCount; i++) {
             prep.executeUpdate();
         }
         conn.createStatement().execute("update news set text = 'Text' || id");
@@ -42,16 +43,16 @@ public class TestMultiNewsSimple extends TestMultiThread {
     }
 
     void operation() throws SQLException {
-        if(random.nextInt(10)==0) {
+        if (random.nextInt(10) == 0) {
             conn.setAutoCommit(random.nextBoolean());
-        } else if(random.nextInt(10)==0) {
-            if(random.nextBoolean()) {
+        } else if (random.nextInt(10) == 0) {
+            if (random.nextBoolean()) {
                 conn.commit();
             } else {
-//                    conn.rollback();
+                // conn.rollback();
             }
         } else {
-            if(random.nextBoolean()) {
+            if (random.nextBoolean()) {
                 PreparedStatement prep = conn.prepareStatement("update news set state = ? where id = ?");
                 prep.setInt(1, random.nextInt(getNewsCount()));
                 prep.setInt(2, random.nextInt(10));
@@ -60,13 +61,13 @@ public class TestMultiNewsSimple extends TestMultiThread {
                 PreparedStatement prep = conn.prepareStatement("select * from news where id = ?");
                 prep.setInt(1, random.nextInt(getNewsCount()));
                 ResultSet rs = prep.executeQuery();
-                if(!rs.next()) {
+                if (!rs.next()) {
                     System.out.println("No row found");
-//                        throw new Error("No row found");
+                    // throw new Error("No row found");
                 }
-                if(rs.next()) {
+                if (rs.next()) {
                     System.out.println("Multiple rows found");
-//                        throw new Error("Multiple rows found");
+                    // throw new Error("Multiple rows found");
                 }
             }
         }
@@ -74,7 +75,7 @@ public class TestMultiNewsSimple extends TestMultiThread {
 
     void finalTest() throws SQLException {
         // TODO Auto-generated method stub
-        
+
     }
-        
+
 }

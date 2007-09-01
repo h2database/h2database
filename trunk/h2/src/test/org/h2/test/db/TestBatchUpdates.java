@@ -4,7 +4,12 @@
  */
 package org.h2.test.db;
 
-import java.sql.*;
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
@@ -68,14 +73,14 @@ public class TestBatchUpdates extends TestBase {
         testExecuteBatch06();
         testExecuteBatch07();
         testContinueBatch01();
-        
+
         conn.close();
     }
 
     public void testAddBatch01() throws Exception {
         trace("testAddBatch01");
         int i = 0;
-        int[] retValue = { 0, 0, 0};
+        int[] retValue = { 0, 0, 0 };
         String s = COFFEE_UPDATE;
         trace("Prepared Statement String:" + s);
         prep = conn.prepareStatement(s);
@@ -87,17 +92,16 @@ public class TestBatchUpdates extends TestBase {
         prep.addBatch();
         int[] updateCount = prep.executeBatch();
         int updateCountLen = updateCount.length;
-        
-//        PreparedStatement p;
-//        p = conn.prepareStatement(COFFEE_UPDATE);
-//        p.setInt(1,2);
-//        System.out.println("upc="+p.executeUpdate());
-//        p.setInt(1,3);
-//        System.out.println("upc="+p.executeUpdate());
-//        p.setInt(1,4);
-//        System.out.println("upc="+p.executeUpdate());
-        
-        
+
+        // PreparedStatement p;
+        // p = conn.prepareStatement(COFFEE_UPDATE);
+        // p.setInt(1,2);
+        // System.out.println("upc="+p.executeUpdate());
+        // p.setInt(1,3);
+        // System.out.println("upc="+p.executeUpdate());
+        // p.setInt(1,4);
+        // System.out.println("upc="+p.executeUpdate());
+
         trace("updateCount length:" + updateCountLen);
         if (updateCountLen != 3) {
             error("addBatch");
@@ -125,7 +129,7 @@ public class TestBatchUpdates extends TestBase {
     public void testAddBatch02() throws Exception {
         trace("testAddBatch02");
         int i = 0;
-        int[] retValue = { 0, 0, 0};
+        int[] retValue = { 0, 0, 0 };
         int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
         String sDelCoffee = COFFEE_DELETE1;
@@ -203,7 +207,7 @@ public class TestBatchUpdates extends TestBase {
     public void testExecuteBatch01() throws Exception {
         trace("testExecuteBatch01");
         int i = 0;
-        int[] retValue = { 0, 0, 0};
+        int[] retValue = { 0, 0, 0 };
         int updCountLength = 0;
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -224,9 +228,9 @@ public class TestBatchUpdates extends TestBase {
         } else {
             trace("executeBatch executes the Batch of SQL statements");
         }
-        //1 is the number that is set First for Type Id in Prepared Statement
+        // 1 is the number that is set First for Type Id in Prepared Statement
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=1";
-        //2 is the number that is set second for Type id in Prepared Statement
+        // 2 is the number that is set second for Type id in Prepared Statement
         String query2 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=2";
         // 3 is the number that is set Third for Type id in Prepared Statement
         String query3 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=3";
@@ -291,7 +295,7 @@ public class TestBatchUpdates extends TestBase {
     public void testExecuteBatch04() throws Exception {
         trace("testExecuteBatch04");
         int i = 0;
-        int[] retValue = { 0, 0, 0};
+        int[] retValue = { 0, 0, 0 };
         int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
         String sInsCoffee = COFFEE_INSERT1;
@@ -340,7 +344,7 @@ public class TestBatchUpdates extends TestBase {
     public void testExecuteBatch06() throws Exception {
         trace("testExecuteBatch06");
         boolean batchExceptionFlag = false;
-        //Insert a row which is already Present
+        // Insert a row which is already Present
         String sInsCoffee = COFFEE_INSERT1;
         String sDelCoffee = COFFEE_DELETE1;
         stat.addBatch(sInsCoffee);
@@ -384,7 +388,7 @@ public class TestBatchUpdates extends TestBase {
 
     public void testContinueBatch01() throws Exception {
         trace("testContinueBatch01");
-        int[] batchUpdates = { 0, 0, 0};
+        int[] batchUpdates = { 0, 0, 0 };
         int buCountLen = 0;
         try {
             String sPrepStmt = COFFEE_UPDATE_SET;

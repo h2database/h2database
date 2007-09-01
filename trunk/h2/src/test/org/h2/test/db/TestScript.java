@@ -48,13 +48,13 @@ public class TestScript extends TestBase {
     }
 
     public void test() throws Exception {
-        if(config.networked && config.big) {
+        if (config.networked && config.big) {
             return;
         }
         alwaysReconnect = false;
         testScript();
-        if(!config.memory) {
-            if(config.big) {
+        if (!config.memory) {
+            if (config.big) {
                 alwaysReconnect = true;
                 testScript();
             }
@@ -72,7 +72,7 @@ public class TestScript extends TestBase {
         testFile(inFile);
         conn.close();
         out.close();
-        if(errors.length()>0) {
+        if (errors.length() > 0) {
             throw new Exception("errors:\n" + errors.toString());
         } else {
             new File(outFile).delete();
@@ -85,13 +85,13 @@ public class TestScript extends TestBase {
             putBack = null;
             return s;
         }
-        while(true) {
+        while (true) {
             String s = in.readLine();
-            if(s==null) {
+            if (s == null) {
                 return s;
             }
             s = s.trim();
-            if(s.length() > 0) {
+            if (s.length() > 0) {
                 return s;
             }
         }
@@ -125,11 +125,11 @@ public class TestScript extends TestBase {
     }
 
     private boolean containsTempTables() throws SQLException {
-        ResultSet rs = conn.getMetaData().getTables(null, null, null, new String[]{"TABLE"});
-        while(rs.next()) {
+        ResultSet rs = conn.getMetaData().getTables(null, null, null, new String[] { "TABLE" });
+        while (rs.next()) {
             String sql = rs.getString("SQL");
-            if(sql != null) {
-                if(sql.indexOf("TEMPORARY") >= 0) {
+            if (sql != null) {
+                if (sql.indexOf("TEMPORARY") >= 0) {
                     return true;
                 }
             }
@@ -138,10 +138,10 @@ public class TestScript extends TestBase {
     }
 
     private void process(String sql) throws Exception {
-        if(alwaysReconnect) {
-            if(!containsTempTables()) {
+        if (alwaysReconnect) {
+            if (!containsTempTables()) {
                 boolean autocommit = conn.getAutoCommit();
-                if(autocommit) {
+                if (autocommit) {
                     conn.close();
                     conn = getConnection("script");
                     conn.setAutoCommit(autocommit);
@@ -149,7 +149,7 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        if(statements != null) {
+        if (statements != null) {
             statements.add(sql);
         }
         if (sql.indexOf('?') == -1) {
@@ -179,16 +179,14 @@ public class TestScript extends TestBase {
         write("");
     }
 
-    private void setParameter(PreparedStatement prep, int i, String param)
-            throws SQLException {
+    private void setParameter(PreparedStatement prep, int i, String param) throws SQLException {
         if (param.equalsIgnoreCase("null")) {
             param = null;
         }
         prep.setString(i, param);
     }
 
-    private int processPrepared(String sql, PreparedStatement prep, String param)
-            throws Exception {
+    private int processPrepared(String sql, PreparedStatement prep, String param) throws Exception {
         try {
             StringBuffer buff = new StringBuffer();
             int index = 0;
@@ -236,9 +234,9 @@ public class TestScript extends TestBase {
         }
         return 0;
     }
-    
+
     private String formatString(String s) {
-        if (s== null) {
+        if (s == null) {
             return "null";
         }
         return s.replace('\n', ' ');
@@ -288,7 +286,7 @@ public class TestScript extends TestBase {
         int length = max.length;
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < length; i++) {
-            if(i>0) {
+            if (i > 0) {
                 buff.append(' ');
             }
             if (row == null) {
@@ -298,7 +296,7 @@ public class TestScript extends TestBase {
             } else {
                 int len = row[i].length();
                 buff.append(row[i]);
-                if(i < length - 1) {
+                if (i < length - 1) {
                     for (int j = len; j < max[i]; j++) {
                         buff.append(' ');
                     }
@@ -325,10 +323,10 @@ public class TestScript extends TestBase {
                 errors.append("\n" + "got: ");
                 errors.append(s);
                 errors.append("\n");
-                if(e != null) {
+                if (e != null) {
                     TestBase.logError("script", e);
                 }
-                if(failFast) {
+                if (failFast) {
                     TestBase.logError(errors.toString(), null);
                     conn.close();
                     System.exit(1);

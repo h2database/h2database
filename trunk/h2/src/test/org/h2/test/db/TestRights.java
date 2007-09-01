@@ -4,19 +4,23 @@
  */
 package org.h2.test.db;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
 public class TestRights extends TestBase {
-    
+
     Statement stat;
 
     public void test() throws Exception {
-        if(config.memory) {
+        if (config.memory) {
             return;
         }
-        
+
         deleteDb("rights");
         Connection conn = getConnection("rights");
         stat = conn.createStatement();
@@ -32,7 +36,7 @@ public class TestRights extends TestBase {
         executeSuccess("GRANT SELECT ON PASS_NAME TO PASS_READER");
         executeSuccess("GRANT SELECT, INSERT, UPDATE ON TEST TO PASS_READER");
         conn.close();
-        
+
         conn = getConnection("rights", "PASS_READER", "abc");
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
@@ -47,15 +51,15 @@ public class TestRights extends TestBase {
         executeError("SELECT * FROM (SELECT * FROM PASS)");
         executeError("CREATE VIEW X AS SELECT * FROM PASS_READER");
         conn.close();
-        
+
         conn = getConnection("rights");
         stat = conn.createStatement();
-        
+
         executeSuccess("DROP TABLE TEST");
         executeSuccess("CREATE USER TEST PASSWORD 'abc'");
         executeSuccess("ALTER USER TEST ADMIN TRUE");
         executeSuccess("CREATE TABLE TEST(ID INT)");
-        executeSuccess("CREATE SCHEMA SCHEMA_A AUTHORIZATION SA");        
+        executeSuccess("CREATE SCHEMA SCHEMA_A AUTHORIZATION SA");
         executeSuccess("CREATE TABLE SCHEMA_A.TABLE_B(ID INT)");
         executeSuccess("GRANT ALL ON SCHEMA_A.TABLE_B TO TEST");
         executeSuccess("CREATE TABLE HIDDEN(ID INT)");
@@ -76,34 +80,34 @@ public class TestRights extends TestBase {
         executeSuccess("REVOKE UPDATE, DELETE ON SUB_TABLE FROM SUB2");
         executeSuccess("GRANT SUB2 TO SUB1");
         executeSuccess("GRANT SUB1 TO TEST");
-        
-        executeSuccess("ALTER USER TEST SET PASSWORD 'def'");        
+
+        executeSuccess("ALTER USER TEST SET PASSWORD 'def'");
         executeSuccess("CREATE USER TEST2 PASSWORD 'def' ADMIN");
         executeSuccess("ALTER USER TEST ADMIN FALSE");
-        executeSuccess("SCRIPT TO '"+baseDir+"/rights.sql' CIPHER XTEA PASSWORD 'test'");
+        executeSuccess("SCRIPT TO '" + baseDir + "/rights.sql' CIPHER XTEA PASSWORD 'test'");
         conn.close();
-        
+
         try {
             conn = getConnection("rights", "Test", "abc");
             error("unexpected success (mixed case user name)");
-        } catch(SQLException e) { 
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             conn = getConnection("rights", "TEST", "abc");
             error("unexpected success (wrong password)");
-        } catch(SQLException e) { 
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             conn = getConnection("rights", "TEST", null);
             error("unexpected success (wrong password)");
-        } catch(SQLException e) { 
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         conn = getConnection("rights", "TEST", "def");
         stat = conn.createStatement();
-        
+
         executeError("SET DEFAULT_TABLE_TYPE MEMORY");
 
         executeSuccess("SELECT * FROM TEST");
@@ -120,7 +124,7 @@ public class TestRights extends TestBase {
         executeSuccess("INSERT INTO SUB_TABLE VALUES(1)");
         executeError("DELETE FROM SUB_TABLE");
         executeError("UPDATE FROM SUB_TABLE");
-        
+
         executeError("CREATE USER TEST3 PASSWORD 'def'");
         executeError("ALTER USER TEST2 ADMIN FALSE");
         executeError("ALTER USER TEST2 SET PASSWORD 'ghi'");
@@ -128,14 +132,14 @@ public class TestRights extends TestBase {
         executeError("ALTER USER TEST RENAME TO TEST_X");
         executeSuccess("ALTER USER TEST SET PASSWORD 'ghi'");
         executeError("DROP USER TEST2");
-        
+
         conn.close();
         conn = getConnection("rights");
         stat = conn.createStatement();
         executeSuccess("DROP ROLE SUB1");
         executeSuccess("DROP TABLE ROLE_TABLE");
         executeSuccess("DROP USER TEST");
-        
+
         conn.close();
         conn = getConnection("rights");
         stat = conn.createStatement();
@@ -149,11 +153,12 @@ public class TestRights extends TestBase {
         conn = getConnection("rights");
         conn.close();
     }
-    
+
     private void testTableType(Connection conn, String type) throws Exception {
         executeSuccess("SET DEFAULT_TABLE_TYPE " + type);
         executeSuccess("CREATE TABLE TEST(ID INT)");
-        ResultSet rs = conn.createStatement().executeQuery("SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST'");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST'");
         rs.next();
         check(rs.getString(1), type);
         executeSuccess("DROP TABLE TEST");
@@ -163,39 +168,39 @@ public class TestRights extends TestBase {
         try {
             stat.execute(sql);
             error("unexpected success (not admin)");
-        } catch(SQLException e) { 
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
     }
 
     public void executeSuccess(String sql) throws Exception {
-        if(stat.execute(sql)) {
+        if (stat.execute(sql)) {
             ResultSet rs = stat.getResultSet();
-            
+
             // this will check if the result set is updatable
             rs.getConcurrency();
-            
+
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
-            for(int i=0; i<columnCount; i++) {
-                meta.getCatalogName(i+1);
-                meta.getColumnClassName(i+1);
-                meta.getColumnDisplaySize(i+1);
-                meta.getColumnLabel(i+1);
-                meta.getColumnName(i+1);
-                meta.getColumnType(i+1);
-                meta.getColumnTypeName(i+1);
-                meta.getPrecision(i+1);
-                meta.getScale(i+1);
-                meta.getSchemaName(i+1);
-                meta.getTableName(i+1);
+            for (int i = 0; i < columnCount; i++) {
+                meta.getCatalogName(i + 1);
+                meta.getColumnClassName(i + 1);
+                meta.getColumnDisplaySize(i + 1);
+                meta.getColumnLabel(i + 1);
+                meta.getColumnName(i + 1);
+                meta.getColumnType(i + 1);
+                meta.getColumnTypeName(i + 1);
+                meta.getPrecision(i + 1);
+                meta.getScale(i + 1);
+                meta.getSchemaName(i + 1);
+                meta.getTableName(i + 1);
             }
-            while(rs.next()) {
-                for(int i=0; i<columnCount; i++) {
-                    rs.getObject(i+1);
+            while (rs.next()) {
+                for (int i = 0; i < columnCount; i++) {
+                    rs.getObject(i + 1);
                 }
             }
         }
     }
-    
+
 }

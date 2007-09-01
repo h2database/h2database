@@ -15,16 +15,16 @@ import org.h2.test.TestBase;
 public class TestMemoryUsage extends TestBase {
 
     private Connection conn;
-    
+
     private void reconnect() throws Exception {
-        if(conn != null) {
+        if (conn != null) {
             conn.close();
         }
-//        Class.forName("org.hsqldb.jdbcDriver");
-//        conn = DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
+        // Class.forName("org.hsqldb.jdbcDriver");
+        // conn = DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
         conn = getConnection("memoryUsage");
     }
-    
+
     public void test() throws Exception {
         deleteDb("memoryUsage");
         testReconnectOften();
@@ -35,102 +35,101 @@ public class TestMemoryUsage extends TestBase {
         insertUpdateSelectDelete();
         conn.close();
     }
-    
+
     private void testReconnectOften() throws Exception {
         int len = getSize(1, 2000);
         Connection conn1 = getConnection("memoryUsage");
-        printTimeMemory("start", 0);       
+        printTimeMemory("start", 0);
         long time = System.currentTimeMillis();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             Connection conn2 = getConnection("memoryUsage");
             conn2.close();
-            if(i % 10000 == 0) {
-                printTimeMemory("connect", System.currentTimeMillis()-time);       
-            }            
+            if (i % 10000 == 0) {
+                printTimeMemory("connect", System.currentTimeMillis() - time);
+            }
         }
-        printTimeMemory("connect", System.currentTimeMillis()-time);        
+        printTimeMemory("connect", System.currentTimeMillis() - time);
         conn1.close();
     }
-    
+
     void insertUpdateSelectDelete() throws Exception {
         Statement stat = conn.createStatement();
         long time;
-        int len = getSize(1,  2000);
-        
+        int len = getSize(1, 2000);
+
         // insert
         time = System.currentTimeMillis();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        trace("drop=" + (System.currentTimeMillis()-time));        
+        trace("drop=" + (System.currentTimeMillis() - time));
         stat.execute("CREATE CACHED TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, 'Hello World')");
         printTimeMemory("start", 0);
         time = System.currentTimeMillis();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.execute();
-            if(i % 50000 == 0) {
-                trace("  " + (100*i/len) + "%");          
+            if (i % 50000 == 0) {
+                trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("insert", System.currentTimeMillis()-time);        
-        
+        printTimeMemory("insert", System.currentTimeMillis() - time);
+
         // update
         time = System.currentTimeMillis();
         prep = conn.prepareStatement("UPDATE TEST SET NAME='Hallo Welt' WHERE ID = ?");
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.execute();
-            if(i % 50000 == 0) {
-                trace("  " + (100*i/len) + "%");              
+            if (i % 50000 == 0) {
+                trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("update", System.currentTimeMillis()-time);        
+        printTimeMemory("update", System.currentTimeMillis() - time);
 
         // select
         time = System.currentTimeMillis();
         prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID = ?");
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
-           ResultSet rs = prep.executeQuery();
-           rs.next();
-           if(rs.next()) {
-               error("one row expected, got more");
-           }           
-            if(i % 50000 == 0) {
-                trace("  " + (100*i/len) + "%");         
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            if (rs.next()) {
+                error("one row expected, got more");
+            }
+            if (i % 50000 == 0) {
+                trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("select", System.currentTimeMillis()-time);        
+        printTimeMemory("select", System.currentTimeMillis() - time);
 
         // select randomized
         Random random = new Random(1);
         time = System.currentTimeMillis();
         prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID = ?");
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, random.nextInt(len));
             ResultSet rs = prep.executeQuery();
             rs.next();
-            if(rs.next()) {
+            if (rs.next()) {
                 error("one row expected, got more");
             }
-            if(i % 50000 == 0) {
-                trace("  " + (100*i/len) + "%");        
+            if (i % 50000 == 0) {
+                trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("select randomized", System.currentTimeMillis()-time);        
+        printTimeMemory("select randomized", System.currentTimeMillis() - time);
 
         // delete
         time = System.currentTimeMillis();
         prep = conn.prepareStatement("DELETE FROM TEST WHERE ID = ?");
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             prep.setInt(1, random.nextInt(len));
             prep.executeUpdate();
-            if(i % 50000 == 0) {
-                trace("  " + (100*i/len) + "%");          
+            if (i % 50000 == 0) {
+                trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("delete", System.currentTimeMillis()-time);        
+        printTimeMemory("delete", System.currentTimeMillis() - time);
     }
-
 
 }

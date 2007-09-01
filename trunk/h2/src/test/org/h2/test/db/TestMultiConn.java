@@ -23,9 +23,9 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         testConcurrentOpen();
         testThreeThreads();
     }
-    
+
     private static int wait;
-    
+
     private void testThreeThreads() throws Exception {
         deleteDb("multiConn");
         final Connection conn1 = getConnection("multiConn");
@@ -51,7 +51,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                 try {
                     s3.execute("INSERT INTO TEST2 VALUES(4)");
                     conn3.commit();
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     TestBase.logError("insert", e);
                 }
             }
@@ -63,7 +63,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
                 try {
                     s2.execute("INSERT INTO TEST1 VALUES(5)");
                     conn2.commit();
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     TestBase.logError("insert", e);
                 }
             }
@@ -83,12 +83,12 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         conn2.close();
         conn3.close();
     }
-    
+
     private void testConcurrentOpen() throws Exception {
-        if(config.memory) {
+        if (config.memory) {
             return;
         }
-        deleteDb("multiConn");        
+        deleteDb("multiConn");
         Connection conn = getConnection("multiConn");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(0, 'Hello'), (1, 'World')");
@@ -98,9 +98,10 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         Runnable r = new Runnable() {
             public void run() {
                 try {
-                    Connection c1 = getConnection("multiConn;DATABASE_EVENT_LISTENER='"+listener+"';file_lock=socket");
+                    Connection c1 = getConnection("multiConn;DATABASE_EVENT_LISTENER='" + listener
+                            + "';file_lock=socket");
                     c1.close();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     TestBase.logError("connect", e);
                 }
             }
@@ -112,7 +113,6 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         c2.close();
         thread.join();
     }
-    
 
     public void diskSpaceIsLow(long stillAvailable) throws SQLException {
     }
@@ -121,7 +121,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     public void setProgress(int state, String name, int x, int max) {
-        while(wait > 0) {
+        while (wait > 0) {
             try {
                 Thread.sleep(wait);
                 wait = 0;
@@ -132,8 +132,8 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
-    }    
-    
+    }
+
     private void testCommitRollback() throws Exception {
         deleteDb("multiConn");
         Connection c1 = getConnection("multiConn");
@@ -156,17 +156,17 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         c2.commit();
         c1.close();
         c2.close();
-        
-        if(!config.memory) {
+
+        if (!config.memory) {
             Connection conn = getConnection("multiConn");
             ResultSet rs;
             rs = conn.createStatement().executeQuery("SELECT * FROM MULTI_A ORDER BY ID");
             rs.next();
-            check(rs.getString("NAME"), "0-insert-A" );
+            check(rs.getString("NAME"), "0-insert-A");
             checkFalse(rs.next());
             rs = conn.createStatement().executeQuery("SELECT * FROM MULTI_B ORDER BY ID");
             rs.next();
-            check(rs.getString("NAME"), "1-insert-D" );
+            check(rs.getString("NAME"), "1-insert-D");
             checkFalse(rs.next());
             conn.close();
         }

@@ -18,7 +18,7 @@ public class TestZloty extends TestBase {
         testZloty();
         testModifyBytes();
     }
-    
+
     private static class ZlotyBigDecimal extends BigDecimal {
 
         public ZlotyBigDecimal(String s) {
@@ -26,13 +26,13 @@ public class TestZloty extends TestBase {
         }
 
         private static final long serialVersionUID = -8004563653683501484L;
-        
+
         public int compareTo(BigDecimal bd) {
             return -super.compareTo(bd);
         }
-        
+
     }
-    
+
     private void testModifyBytes() throws Exception {
         deleteDb("zloty");
         Connection conn = getConnection("zloty");
@@ -61,6 +61,7 @@ public class TestZloty extends TestBase {
 
     /**
      * H2 destroyer application ;->
+     * 
      * @author Maciej Wegorkiewicz
      */
     private void testZloty() throws Exception {
@@ -76,23 +77,26 @@ public class TestZloty extends TestBase {
             prep.setBigDecimal(2, new ZlotyBigDecimal("11.0"));
             prep.execute();
             error("unexpected success");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
 
         prep.setInt(1, 3);
         try {
-            BigDecimal value=new BigDecimal("12.100000") {
+            BigDecimal value = new BigDecimal("12.100000") {
                 private static final long serialVersionUID = -7909023971521750844L;
-                public String toString() { return "12,100000 EURO"; }
-            };        
+
+                public String toString() {
+                    return "12,100000 EURO";
+                }
+            };
             prep.setBigDecimal(2, value);
             prep.execute();
             error("unexpected success");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        
+
         conn.close();
     }
 

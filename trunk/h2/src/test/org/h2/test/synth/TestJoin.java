@@ -24,48 +24,44 @@ public class TestJoin extends TestBase {
     private Random random;
     private int paramCount;
     private StringBuffer buff;
-    
+
     public void test() throws Exception {
         baseDir = "dataJoin";
         testJoin();
         baseDir = "data";
     }
-    
+
     private void testJoin() throws Exception {
         deleteDb("join");
         String shortestFailed = null;
-        
+
         Connection c1 = getConnection("join");
         connections.add(c1);
-        
+
         Class.forName("org.postgresql.Driver");
         Connection c2 = DriverManager.getConnection("jdbc:postgresql:test", "sa", "sa");
         connections.add(c2);
 
-//        Class.forName("com.mysql.jdbc.Driver");
-//        Connection c2 = DriverManager.getConnection("jdbc:mysql://localhost/test", "sa", "sa");
-//        connections.add(c2);
+        // Class.forName("com.mysql.jdbc.Driver");
+        // Connection c2 =
+        // DriverManager.getConnection("jdbc:mysql://localhost/test", "sa",
+        // "sa");
+        // connections.add(c2);
 
-//      Class.forName("org.hsqldb.jdbcDriver");
-//      Connection c2 = DriverManager.getConnection("jdbc:hsqldb:join", "sa", "");
-//      connections.add(c2);        
-        
+        // Class.forName("org.hsqldb.jdbcDriver");
+        // Connection c2 = DriverManager.getConnection("jdbc:hsqldb:join", "sa",
+        // "");
+        // connections.add(c2);
+
         /*
-    DROP TABLE ONE;
-    DROP TABLE TWO;
-    CREATE TABLE ONE(A INT PRIMARY KEY, B INT);
-    INSERT INTO ONE VALUES(0, NULL);
-    INSERT INTO ONE VALUES(1, 0);
-    INSERT INTO ONE VALUES(2, 1);
-    INSERT INTO ONE VALUES(3, 4);
-    CREATE TABLE TWO(A INT PRIMARY KEY, B INT);
-    INSERT INTO TWO VALUES(0, NULL);
-    INSERT INTO TWO VALUES(1, 0);
-    INSERT INTO TWO VALUES(2, 2);
-    INSERT INTO TWO VALUES(3, 3);      
-    INSERT INTO TWO VALUES(4, NULL);        
-    */
-        
+         * DROP TABLE ONE; DROP TABLE TWO; CREATE TABLE ONE(A INT PRIMARY KEY, B
+         * INT); INSERT INTO ONE VALUES(0, NULL); INSERT INTO ONE VALUES(1, 0);
+         * INSERT INTO ONE VALUES(2, 1); INSERT INTO ONE VALUES(3, 4); CREATE
+         * TABLE TWO(A INT PRIMARY KEY, B INT); INSERT INTO TWO VALUES(0, NULL);
+         * INSERT INTO TWO VALUES(1, 0); INSERT INTO TWO VALUES(2, 2); INSERT
+         * INTO TWO VALUES(3, 3); INSERT INTO TWO VALUES(4, NULL);
+         */
+
         execute("DROP TABLE ONE", null, true);
         execute("DROP TABLE TWO", null, true);
         execute("CREATE TABLE ONE(A INT PRIMARY KEY, B INT)", null);
@@ -77,70 +73,70 @@ public class TestJoin extends TestBase {
         execute("INSERT INTO TWO VALUES(0, NULL)", null);
         execute("INSERT INTO TWO VALUES(1, 0)", null);
         execute("INSERT INTO TWO VALUES(2, 2)", null);
-        execute("INSERT INTO TWO VALUES(3, 3)", null);      
+        execute("INSERT INTO TWO VALUES(3, 3)", null);
         execute("INSERT INTO TWO VALUES(4, NULL)", null);
         random = new Random();
         long start = System.currentTimeMillis();
-        for(int i=0;; i++) {
+        for (int i = 0;; i++) {
             paramCount = 0;
             buff = new StringBuffer();
             long time = System.currentTimeMillis();
-            if(time - start > 5000) {
-                printTime("i:"+i);
+            if (time - start > 5000) {
+                printTime("i:" + i);
                 start = time;
             }
             buff.append("SELECT ");
             int tables = 1 + random.nextInt(5);
-            for(int j=0; j<tables; j++) {
-                if(j > 0) {
+            for (int j = 0; j < tables; j++) {
+                if (j > 0) {
                     buff.append(", ");
                 }
-                buff.append("T" + (char)('0' + j) + ".A");
+                buff.append("T" + (char) ('0' + j) + ".A");
             }
             buff.append(" FROM ");
             appendRandomTable();
             buff.append(" T0 ");
-            for(int j=1; j<tables; j++) {
-                if(random.nextBoolean()) {
+            for (int j = 1; j < tables; j++) {
+                if (random.nextBoolean()) {
                     buff.append("INNER");
                 } else {
-//                    if(random.nextInt(4)==1) {
-//                        buff.append("RIGHT");
-//                    } else {
-                        buff.append("LEFT");
-//                    }
+                    // if(random.nextInt(4)==1) {
+                    // buff.append("RIGHT");
+                    // } else {
+                    buff.append("LEFT");
+                    // }
                 }
                 buff.append(" JOIN ");
                 appendRandomTable();
                 buff.append(" T");
-                buff.append((char)('0' + j));
+                buff.append((char) ('0' + j));
                 buff.append(" ON ");
                 appendRandomCondition(j);
             }
-            if(random.nextBoolean()) {
+            if (random.nextBoolean()) {
                 buff.append("WHERE ");
-                appendRandomCondition(tables-1);
+                appendRandomCondition(tables - 1);
             }
             String sql = buff.toString();
             Object[] params = new Object[paramCount];
-            for(int j=0; j<paramCount; j++) {
-                params[j] = random.nextInt(4)==1 ? null : new Integer(random.nextInt(10)-3);
+            for (int j = 0; j < paramCount; j++) {
+                params[j] = random.nextInt(4) == 1 ? null : new Integer(random.nextInt(10) - 3);
             }
             try {
-                execute(sql, params);    
-            } catch(Exception e) {
-                if(shortestFailed == null || shortestFailed.length() > sql.length()) {
+                execute(sql, params);
+            } catch (Exception e) {
+                if (shortestFailed == null || shortestFailed.length() > sql.length()) {
                     TestBase.logError("/*SHORT*/ " + sql, null);
                     shortestFailed = sql;
                 }
             }
         }
-//        c1.close();
-//        c2.close();
+        // c1.close();
+        // c2.close();
     }
-    
+
     private void appendRandomTable() {
-        if(random.nextBoolean()) {
+        if (random.nextBoolean()) {
             buff.append("ONE");
         } else {
             buff.append("TWO");
@@ -148,13 +144,13 @@ public class TestJoin extends TestBase {
     }
 
     private void appendRandomCondition(int j) {
-        if(random.nextInt(10)==1) {
+        if (random.nextInt(10) == 1) {
             buff.append("NOT ");
             appendRandomCondition(j);
-        } else if(random.nextInt(5)==1) {
+        } else if (random.nextInt(5) == 1) {
             buff.append("(");
             appendRandomCondition(j);
-            if(random.nextBoolean()) {
+            if (random.nextBoolean()) {
                 buff.append(") OR (");
             } else {
                 buff.append(") AND (");
@@ -162,30 +158,30 @@ public class TestJoin extends TestBase {
             appendRandomCondition(j);
             buff.append(")");
         } else {
-            if(j>0 && random.nextBoolean()) {
-                buff.append("T" + (char)('0' + j-1) + ".A=T" + (char)('0' + j)+".A ");
-            } else {            
+            if (j > 0 && random.nextBoolean()) {
+                buff.append("T" + (char) ('0' + j - 1) + ".A=T" + (char) ('0' + j) + ".A ");
+            } else {
                 appendRandomConditionPart(j);
             }
         }
     }
-    
+
     private void appendRandomConditionPart(int j) {
         int t1 = j <= 1 ? 0 : random.nextInt(j + 1);
         int t2 = j <= 1 ? 0 : random.nextInt(j + 1);
         String c1 = random.nextBoolean() ? "A" : "B";
         String c2 = random.nextBoolean() ? "A" : "B";
-        buff.append("T" + (char)('0' + t1));
-        buff.append("."+c1);
-        if(random.nextInt(4)==1) {
-            if(random.nextInt(5)==1) {
+        buff.append("T" + (char) ('0' + t1));
+        buff.append("." + c1);
+        if (random.nextInt(4) == 1) {
+            if (random.nextInt(5) == 1) {
                 buff.append(" IS NOT NULL");
             } else {
                 buff.append(" IS NULL");
             }
         } else {
-            if(random.nextInt(5)==1) {
-                switch(random.nextInt(5)) {
+            if (random.nextInt(5) == 1) {
+                switch (random.nextInt(5)) {
                 case 0:
                     buff.append(">");
                     break;
@@ -205,83 +201,83 @@ public class TestJoin extends TestBase {
             } else {
                 buff.append("=");
             }
-            if(random.nextBoolean()) {
-                buff.append("T" + (char)('0' + t2));
-                buff.append("."+c2);
+            if (random.nextBoolean()) {
+                buff.append("T" + (char) ('0' + t2));
+                buff.append("." + c2);
             } else {
-                buff.append(random.nextInt(5)-1);
+                buff.append(random.nextInt(5) - 1);
             }
         }
         buff.append(" ");
     }
-    
+
     private void execute(String sql, Object[] params) throws Exception {
         execute(sql, params, false);
     }
 
     private void execute(String sql, Object[] params, boolean ignoreDifference) throws Exception {
         String first = null;
-        for(int i=0; i<connections.size(); i++) {
+        for (int i = 0; i < connections.size(); i++) {
             Connection conn = (Connection) connections.get(i);
             String s;
             try {
                 Statement stat;
                 boolean result;
-                if(params == null || params.length==0) {
+                if (params == null || params.length == 0) {
                     stat = conn.createStatement();
                     result = stat.execute(sql);
                 } else {
                     PreparedStatement prep = conn.prepareStatement(sql);
                     stat = prep;
-                    for(int j=0; j<params.length; j++) {
-                        prep.setObject(j+1, params[j]);
+                    for (int j = 0; j < params.length; j++) {
+                        prep.setObject(j + 1, params[j]);
                     }
                     result = prep.execute();
                 }
-                if(result) {
+                if (result) {
                     ResultSet rs = stat.getResultSet();
                     s = "rs: " + readResult(rs);
                 } else {
                     s = "updateCount: " + stat.getUpdateCount();
                 }
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 s = "exception";
             }
-            if(i==0) {
+            if (i == 0) {
                 first = s;
             } else {
-                if(!ignoreDifference && !s.equals(first)) {
-                    throw new Exception("FAIL s:" + s + " first:" + first + " sql:"+sql);
+                if (!ignoreDifference && !s.equals(first)) {
+                    throw new Exception("FAIL s:" + s + " first:" + first + " sql:" + sql);
                 }
             }
         }
     }
-    
+
     private String readResult(ResultSet rs) throws SQLException {
         StringBuffer buff = new StringBuffer();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        for(int i=0; i<columnCount; i++) {
-            if(i>0) {
+        for (int i = 0; i < columnCount; i++) {
+            if (i > 0) {
                 buff.append(",");
             }
-            buff.append(StringUtils.toUpperEnglish(meta.getColumnLabel(i+1)));
+            buff.append(StringUtils.toUpperEnglish(meta.getColumnLabel(i + 1)));
         }
         buff.append(":\n");
         String result = buff.toString();
         ArrayList list = new ArrayList();
-        while(rs.next()) {
+        while (rs.next()) {
             buff = new StringBuffer();
-            for(int i=0; i<columnCount; i++) {
-                if(i>0) {
+            for (int i = 0; i < columnCount; i++) {
+                if (i > 0) {
                     buff.append(",");
                 }
-                buff.append(rs.getString(i+1));
+                buff.append(rs.getString(i + 1));
             }
             list.add(buff.toString());
         }
         Collections.sort(list);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             result += list.get(i) + "\n";
         }
         return result;

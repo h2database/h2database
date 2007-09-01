@@ -4,7 +4,9 @@
  */
 package org.h2.test.jdbc;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
@@ -18,14 +20,14 @@ public class TestNativeSQL extends TestBase {
         deleteDb("nativeSql");
         Connection conn = getConnection("nativeSql");
 
-        for(int i=0;i<PAIRS.length;i+=2) {
-            test(conn, PAIRS[i], PAIRS[i+1]);
+        for (int i = 0; i < PAIRS.length; i += 2) {
+            test(conn, PAIRS[i], PAIRS[i + 1]);
         }
         conn.nativeSQL("TEST");
         conn.nativeSQL("TEST--testing");
         conn.nativeSQL("TEST--testing{oj }");
         conn.nativeSQL("TEST/*{fn }*/");
-        conn.nativeSQL("TEST//{fn }");        
+        conn.nativeSQL("TEST//{fn }");
         conn.nativeSQL("TEST-TEST/TEST/*TEST*/TEST--\rTEST--{fn }");
         conn.nativeSQL("TEST-TEST//TEST");
         conn.nativeSQL("'{}' '' \"1\" \"\"\"\"");
@@ -42,74 +44,60 @@ public class TestNativeSQL extends TestBase {
         try {
             stat.execute("CALL {d '2001-01-01'} // this is a test");
             error("expected error if setEscapeProcessing=false");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         checkFalse(conn.isClosed());
         conn.close();
         check(conn.isClosed());
     }
-    
 
-    static final String[] PAIRS=new String[]{
-        "CREATE TABLE TEST(ID INT PRIMARY KEY)",
-        "CREATE TABLE TEST(ID INT PRIMARY KEY)",
-        
-        "INSERT INTO TEST VALUES(1)",
-        "INSERT INTO TEST VALUES(1)",
-        
-        "SELECT '{nothing}' FROM TEST",
-        "SELECT '{nothing}' FROM TEST",
-        
-        "SELECT '{fn ABS(1)}' FROM TEST",
-        "SELECT '{fn ABS(1)}' FROM TEST",
-        
-        "SELECT {d '2001-01-01'} FROM TEST",
-        "SELECT    '2001-01-01'  FROM TEST",
-        
-        "SELECT {t '20:00:00'} FROM TEST",
-        "SELECT    '20:00:00'  FROM TEST",
-        
-        "SELECT {ts '2001-01-01 20:00:00'} FROM TEST",
-        "SELECT     '2001-01-01 20:00:00'  FROM TEST",
-        
-        "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST",
-        "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
-        
-        "SELECT * FROM {oj TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID}",
-        "SELECT * FROM     TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID ",
-        
-        "SELECT * FROM TEST WHERE '{' LIKE '{{' {escape '{'}",
-        "SELECT * FROM TEST WHERE '{' LIKE '{{'  escape '{' ",
-                        
-        "SELECT * FROM TEST WHERE '}' LIKE '}}' {escape '}'}",
-        "SELECT * FROM TEST WHERE '}' LIKE '}}'  escape '}' ",
-        
-        "{call TEST('}')}",
-        " call TEST('}') ",
+    static final String[] PAIRS = new String[] { "CREATE TABLE TEST(ID INT PRIMARY KEY)",
+            "CREATE TABLE TEST(ID INT PRIMARY KEY)",
 
-        "{?= call TEST('}')}",
-        "    call TEST('}') ",
+            "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
 
-        "{? = call TEST('}')}",
-        "     call TEST('}') ",
+            "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
 
-        "{{{{this is a bug}",
-        null,
-    };
+            "SELECT '{fn ABS(1)}' FROM TEST", "SELECT '{fn ABS(1)}' FROM TEST",
 
-    void test(Connection conn, String original,String expected) throws Exception {
-        trace("original: <"+original+">");
-        trace("expected: <"+expected+">");
+            "SELECT {d '2001-01-01'} FROM TEST", "SELECT    '2001-01-01'  FROM TEST",
+
+            "SELECT {t '20:00:00'} FROM TEST", "SELECT    '20:00:00'  FROM TEST",
+
+            "SELECT {ts '2001-01-01 20:00:00'} FROM TEST", "SELECT     '2001-01-01 20:00:00'  FROM TEST",
+
+            "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST", "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
+
+            "SELECT * FROM {oj TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID}",
+            "SELECT * FROM     TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID ",
+
+            "SELECT * FROM TEST WHERE '{' LIKE '{{' {escape '{'}",
+            "SELECT * FROM TEST WHERE '{' LIKE '{{'  escape '{' ",
+
+            "SELECT * FROM TEST WHERE '}' LIKE '}}' {escape '}'}",
+            "SELECT * FROM TEST WHERE '}' LIKE '}}'  escape '}' ",
+
+            "{call TEST('}')}", " call TEST('}') ",
+
+            "{?= call TEST('}')}", "    call TEST('}') ",
+
+            "{? = call TEST('}')}", "     call TEST('}') ",
+
+            "{{{{this is a bug}", null, };
+
+    void test(Connection conn, String original, String expected) throws Exception {
+        trace("original: <" + original + ">");
+        trace("expected: <" + expected + ">");
         try {
-            String result=conn.nativeSQL(original);
-            trace("result: <"+result+">");
+            String result = conn.nativeSQL(original);
+            trace("result: <" + result + ">");
             check(expected, result);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             check(expected, null);
             checkNotGeneralException(e);
             trace("got exception, good");
         }
-    }    
+    }
 
 }

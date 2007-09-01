@@ -12,31 +12,31 @@ import java.sql.SQLException;
 import java.util.Random;
 
 public class TestMultiOrder extends TestMultiThread {
-    
+
     Connection conn;
     PreparedStatement insertLine;
-    private static final String[] ITEMS = new String[]{"Apples", "Oranges", "Bananas", "Coffee"};
+    private static final String[] ITEMS = new String[] { "Apples", "Oranges", "Bananas", "Coffee" };
 
     static int customerCount;
     static int orderCount;
     static int orderLineCount;
-    
+
     TestMultiOrder(TestMulti base) throws SQLException {
         super(base);
         conn = base.getConnection();
     }
-    
+
     void begin() throws SQLException {
         insertLine = conn.prepareStatement("insert into orderLine(order_id, line_id, text, amount) values(?, ?, ?, ?)");
         insertCustomer();
     }
-    
+
     void end() throws SQLException {
         conn.close();
     }
 
     void operation() throws SQLException {
-        if(random.nextInt(10)==0) {
+        if (random.nextInt(10) == 0) {
             insertCustomer();
         } else {
             insertOrder();
@@ -53,7 +53,7 @@ public class TestMultiOrder extends TestMultiThread {
         rs.next();
         int orderId = rs.getInt(1);
         int lines = random.nextInt(20);
-        for(int i=0; i<lines; i++) {
+        for (int i = 0; i < lines; i++) {
             insertLine.setInt(1, orderId);
             insertLine.setInt(2, i);
             insertLine.setString(3, ITEMS[random.nextInt(ITEMS.length)]);
@@ -83,7 +83,7 @@ public class TestMultiOrder extends TestMultiThread {
         StringBuffer buff = new StringBuffer();
         Random rnd = new Random(id);
         int len = rnd.nextInt(40);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             String s = "bcdfghklmnprstwz";
             char c = s.charAt(rnd.nextInt(s.length()));
             buff.append(i == 0 ? Character.toUpperCase(c) : c);
@@ -93,7 +93,7 @@ public class TestMultiOrder extends TestMultiThread {
         }
         return buff.toString();
     }
-    
+
     synchronized int getNextCustomerId() {
         return customerCount++;
     }
@@ -103,7 +103,7 @@ public class TestMultiOrder extends TestMultiThread {
     }
 
     synchronized int increaseOrderLines(int count) {
-        return orderLineCount+=count;
+        return orderLineCount += count;
     }
 
     public int getCustomerCount() {
@@ -116,8 +116,12 @@ public class TestMultiOrder extends TestMultiThread {
         conn.createStatement().execute("drop table orders if exists");
         conn.createStatement().execute("drop table orderLine if exists");
         conn.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
-        conn.createStatement().execute("create table orders(id int identity primary key, customer_id int, total decimal)");
-        conn.createStatement().execute("create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
+        conn.createStatement().execute(
+                "create table orders(id int identity primary key, customer_id int, total decimal)");
+        conn
+                .createStatement()
+                .execute(
+                        "create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
         conn.close();
     }
 

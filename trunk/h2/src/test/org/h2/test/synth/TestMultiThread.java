@@ -10,29 +10,33 @@ import java.util.Random;
 import org.h2.test.TestBase;
 
 abstract class TestMultiThread extends Thread {
-    
+
     TestMulti base;
     Random random = new Random();
-    
+
     TestMultiThread(TestMulti base) throws SQLException {
         this.base = base;
-    }    
-    
+    }
+
     abstract void first() throws SQLException;
+
     abstract void operation() throws SQLException;
+
     abstract void begin() throws SQLException;
+
     abstract void end() throws SQLException;
+
     abstract void finalTest() throws Exception;
-    
+
     public void run() {
         try {
-            while(!base.stop) {
+            while (!base.stop) {
                 operation();
             }
             end();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             TestBase.logError("error", e);
         }
-    }    
+    }
 
 }

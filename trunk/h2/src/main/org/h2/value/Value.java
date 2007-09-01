@@ -272,7 +272,6 @@ public abstract class Value {
             case JAVA_OBJECT:
             case UUID:
                 throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
-            default:
             }
             break;
         }
@@ -292,7 +291,6 @@ public abstract class Value {
                 return ValueByte.get(convertToByte(convertToLong(getDouble())));
             case FLOAT:
                 return ValueByte.get(convertToByte(convertToLong(getFloat())));
-            default:
             }
             break;
         }
@@ -312,7 +310,6 @@ public abstract class Value {
                 return ValueShort.get(convertToShort(convertToLong(getDouble())));
             case FLOAT:
                 return ValueShort.get(convertToShort(convertToLong(getFloat())));
-            default:
             }
             break;
         }
@@ -332,7 +329,6 @@ public abstract class Value {
                 return ValueInt.get(convertToInt(convertToLong(getDouble())));
             case FLOAT:
                 return ValueInt.get(convertToInt(convertToLong(getFloat())));
-            default:
             }
             break;
         }
@@ -352,7 +348,6 @@ public abstract class Value {
                 return ValueLong.get(convertToLong(getDouble()));
             case FLOAT:
                 return ValueLong.get(convertToLong(getFloat()));
-            default:
             }
             break;
         }
@@ -383,7 +378,6 @@ public abstract class Value {
                 }
                 return ValueDecimal.get(new BigDecimal(f));
             }
-            default:
             }
             break;
         }
@@ -403,7 +397,6 @@ public abstract class Value {
                 return ValueDouble.get(getBigDecimal().doubleValue());
             case FLOAT:
                 return ValueDouble.get(getFloat());
-            default:
             }
             break;
         }
@@ -423,7 +416,6 @@ public abstract class Value {
                 return ValueFloat.get(getBigDecimal().floatValue());
             case DOUBLE:
                 return ValueFloat.get((float) getDouble());
-            default:
             }
             break;
         }
@@ -433,7 +425,6 @@ public abstract class Value {
                 return ValueDate.get(new Date(getTimeNoCopy().getTime()));
             case TIMESTAMP:
                 return ValueDate.get(new Date(getTimestampNoCopy().getTime()));
-            default:
             }
             break;
         }
@@ -445,7 +436,6 @@ public abstract class Value {
             case TIMESTAMP:
                 // need to normalize the year, month and day
                 return ValueTime.get(new Time(getTimestampNoCopy().getTime()));
-            default:
             }
             break;
         }
@@ -455,7 +445,6 @@ public abstract class Value {
                 return ValueTimestamp.getNoCopy(new Timestamp(getTimeNoCopy().getTime()));
             case DATE:
                 return ValueTimestamp.getNoCopy(new Timestamp(getDateNoCopy().getTime()));
-            default:
             }
             break;
         }
@@ -465,7 +454,6 @@ public abstract class Value {
             case BLOB:
             case UUID:
                 return ValueBytes.getNoCopy(getBytesNoCopy());
-            default:
             }
             break;
         }
@@ -474,7 +462,6 @@ public abstract class Value {
             case BYTES:
             case BLOB:
                 return ValueBytes.getNoCopy(getBytesNoCopy());
-            default:
             }
             break;
         }
@@ -482,7 +469,6 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
                 return ValueLob.createSmallLob(Value.BLOB, getBytesNoCopy());
-            default:
             }           
             break;
         }
@@ -490,10 +476,8 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
                 return ValueUuid.get(getBytesNoCopy());    
-            default:
             }
         }
-        default:
         }
         // conversion by parsing the string value
         String s = getString();

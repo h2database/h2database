@@ -3,9 +3,8 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Checkstyle
-    Description: 
-Checkstyle Configuration
+    Checkstyle-Configuration: MyCheckstyle
+    Description: none
 -->
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
@@ -51,7 +50,6 @@ Checkstyle Configuration
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="IllegalInstantiation"/>
-        <module name="MissingSwitchDefault"/>
         <module name="RedundantThrows">
             <property name="allowUnchecked" value="true"/>
             <property name="allowSubclasses" value="true"/>

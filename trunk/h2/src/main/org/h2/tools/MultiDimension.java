@@ -55,12 +55,12 @@ public class MultiDimension {
                 throw new Error("value out of range; value=" + values[i] + " min=0 max=" + max);
             }
             for (int b = 0; b < bitsPerValue; b++) {
-                x |= (k & (1L << b)) << (i + (dimensions-1) * b);
+                x |= (k & (1L << b)) << (i + (dimensions - 1) * b);
             }
         }
         if (dimensions == 2) {
             long xx = getMorton2(values[0], values[1]);
-            if(xx != x) {
+            if (xx != x) {
                 throw new Error("test");
             }
         }
@@ -78,8 +78,8 @@ public class MultiDimension {
     public int deinterleave(long scalar, int dimensions, int dim) {
         int bitsPerValue = 64 / dimensions;
         int value = 0;
-        for(int i=0; i<bitsPerValue; i++) {
-            value |= (scalar >> (dim + (dimensions-1) * i)) & (1L << i);
+        for (int i = 0; i < bitsPerValue; i++) {
+            value |= (scalar >> (dim + (dimensions - 1) * i)) & (1L << i);
         }
         return value;
     }
@@ -108,7 +108,7 @@ public class MultiDimension {
         buff.append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ");
         buff.append(StringUtils.quoteIdentifier(scalarColumn));
         buff.append(" BETWEEN _FROM_ AND _TO_");
-        for(int i=0; i<columns.length; i++) {
+        for (int i = 0; i < columns.length; i++) {
             buff.append(" AND ");
             buff.append(StringUtils.quoteIdentifier(columns[i]));
             buff.append("+1 BETWEEN ?+1 AND ?+1");
@@ -129,14 +129,14 @@ public class MultiDimension {
         int len = ranges.length;
         Long[] from = new Long[len];
         Long[] to = new Long[len];
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             from[i] = new Long(ranges[i][0]);
             to[i] = new Long(ranges[i][1]);
         }
         prep.setObject(1, from);
         prep.setObject(2, to);
         len = min.length;
-        for(int i=0, idx = 3; i<len; i++) {
+        for (int i = 0, idx = 3; i < len; i++) {
             prep.setInt(idx++, min[i]);
             prep.setInt(idx++, max[i]);
         }
@@ -158,8 +158,8 @@ public class MultiDimension {
     public String generateQuery(String table, String scalarColumn, String[] columns, int[] min, int[] max) {
         long[][] ranges = getMortonRanges(min, max);
         StringBuffer buff = new StringBuffer("SELECT * FROM (");
-        for(int i=0; i<ranges.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < ranges.length; i++) {
+            if (i > 0) {
                 buff.append(" UNION ALL ");
             }
             long minScalar = ranges[i][0];
@@ -169,8 +169,8 @@ public class MultiDimension {
             buff.append(minScalar).append(" AND ").append(maxScalar);
         }
         buff.append(") WHERE ");
-        for(int j=0; j<columns.length; j++) {
-            if(j>0) {
+        for (int j = 0; j < columns.length; j++) {
+            if (j > 0) {
                 buff.append(" AND ");
             }
             buff.append(columns[j]).append(" BETWEEN ");
@@ -191,11 +191,11 @@ public class MultiDimension {
      */
     public long[][] getMortonRanges(int[] min, int[] max) {
         int len = min.length;
-        if(max.length != len) {
+        if (max.length != len) {
             throw new Error("dimensions mismatch");
         }
-        for(int i=0; i<len; i++) {
-            if(min[i] > max[i]) {
+        for (int i = 0; i < len; i++) {
+            if (min[i] > max[i]) {
                 int temp = min[i];
                 min[i] = max[i];
                 max[i] = temp;
@@ -221,7 +221,7 @@ public class MultiDimension {
 
     private int getSize(int[] min, int[] max, int len) {
         int size = 1;
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
             size *= (diff + 1);
         }
@@ -237,64 +237,64 @@ public class MultiDimension {
             }
         });
         int minGap = 10;
-        for(;; minGap+=(minGap/2) ) {
-            for(int i=0; i<list.size() - 1; i++) {
+        for (;; minGap += (minGap / 2)) {
+            for (int i = 0; i < list.size() - 1; i++) {
                 long[] current = (long[]) list.get(i);
-                long[] next = (long[]) list.get(i+1);
-                if(current[1]+minGap >= next[0]) {
+                long[] next = (long[]) list.get(i + 1);
+                if (current[1] + minGap >= next[0]) {
                     current[1] = next[1];
-                    list.remove(i+1);
+                    list.remove(i + 1);
                     i--;
                 }
             }
             int searched = 0;
-            for(int j=0; j<list.size(); j++) {
+            for (int j = 0; j < list.size(); j++) {
                 long[] range = (long[]) list.get(j);
-                searched += range[1]-range[0]+1;
+                searched += range[1] - range[0] + 1;
             }
-            if(searched > 2*total || list.size()<3 /*|| minGap > total*/) {
+            if (searched > 2 * total || list.size() < 3 /* || minGap > total */) {
                 break;
             }
         }
     }
 
     private void addMortonRanges(ArrayList list, int[] min, int[] max, int len, int level) {
-        if(level > 100) {
+        if (level > 100) {
             throw new Error("Stop");
         }
         int largest = 0, largestDiff = 0;
         long size = 1;
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
-            if(diff < 0) {
+            if (diff < 0) {
                 throw new Error("Stop");
             }
             size *= (diff + 1);
-            if(size < 0) {
+            if (size < 0) {
                 throw new Error("Stop");
             }
-            if(diff > largestDiff) {
+            if (diff > largestDiff) {
                 largestDiff = diff;
                 largest = i;
             }
         }
         long low = interleave(min), high = interleave(max);
-        if(high < low) {
+        if (high < low) {
             throw new Error("Stop");
         }
         long range = high - low + 1;
-        if(range == size) {
+        if (range == size) {
             long[] item = new long[] { low, high };
             list.add(item);
         } else {
             int middle = findMiddle(min[largest], max[largest]);
             int temp = max[largest];
             max[largest] = middle;
-            addMortonRanges(list, min, max, len, level+1);
+            addMortonRanges(list, min, max, len, level + 1);
             max[largest] = temp;
             temp = min[largest];
-            min[largest] = middle+1;
-            addMortonRanges(list, min, max, len, level+1);
+            min[largest] = middle + 1;
+            addMortonRanges(list, min, max, len, level + 1);
             min[largest] = temp;
         }
     }
@@ -305,10 +305,10 @@ public class MultiDimension {
 
     private int findMiddle(int a, int b) {
         int diff = b - a - 1;
-        if(diff == 0) {
+        if (diff == 0) {
             return a;
         }
-        if(diff == 1) {
+        if (diff == 1) {
             return a + 1;
         }
         int scale = 0;
@@ -317,7 +317,7 @@ public class MultiDimension {
         }
         scale--;
         int m = roundUp(a + 2, 1 << scale) - 1;
-        if(m<=a || m>=b) {
+        if (m <= a || m >= b) {
             throw new Error("stop");
         }
         return m;

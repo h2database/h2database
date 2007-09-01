@@ -34,8 +34,9 @@ public class ValueDecimal extends Value {
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
             throw new IllegalArgumentException();
-        } else if(!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
-            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2, new String[]{BigDecimal.class.getName(), value.getClass().getName()});
+        } else if (!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
+            SQLException e = Message.getSQLException(ErrorCode.INVALID_CLASS_2, new String[] {
+                    BigDecimal.class.getName(), value.getClass().getName() });
             throw Message.convertToInternal(e);
         }
         this.value = value;
@@ -66,18 +67,18 @@ public class ValueDecimal extends Value {
         if (dec.value.signum() == 0) {
             throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        BigDecimal bd = value.divide(dec.value, value.scale()+DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
-        if(bd.signum()==0) {
+        BigDecimal bd = value.divide(dec.value, value.scale() + DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
+        if (bd.signum() == 0) {
             bd = DEC_ZERO;
-        } else if(bd.scale()>0) {
-            if(!bd.unscaledValue().testBit(0)) {
+        } else if (bd.scale() > 0) {
+            if (!bd.unscaledValue().testBit(0)) {
                 String s = bd.toString();
-                int i=s.length() - 1;
-                while(i>=0 && s.charAt(i) == '0') {
+                int i = s.length() - 1;
+                while (i >= 0 && s.charAt(i) == '0') {
                     i--;
                 }
-                if(i < s.length() - 1) {
-                    s = s.substring(0, i+1);
+                if (i < s.length() - 1) {
+                    s = s.substring(0, i + 1);
                     bd = new BigDecimal(s);
                 }
             }
@@ -108,21 +109,21 @@ public class ValueDecimal extends Value {
     }
 
     public String getString() {
-        if(valueString == null) {
+        if (valueString == null) {
             valueString = value.toString();
         }
         return valueString;
     }
 
     public long getPrecision() {
-        if(precision == 0) {
+        if (precision == 0) {
             precision = value.unscaledValue().abs().toString().length();
         }
         return precision;
     }
-    
+
     public boolean checkPrecision(long precision) {
-        if(precision == DEFAULT_PRECISION) {
+        if (precision == DEFAULT_PRECISION) {
             return true;
         }
         return getPrecision() <= precision;
@@ -185,7 +186,7 @@ public class ValueDecimal extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueDecimal && value.equals(((ValueDecimal)v).value);
+        return v instanceof ValueDecimal && value.equals(((ValueDecimal) v).value);
     }
 
 }

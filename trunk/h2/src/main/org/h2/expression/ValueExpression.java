@@ -17,16 +17,16 @@ import org.h2.value.ValueNull;
 
 public class ValueExpression extends Expression {
     private Value value;
-    
+
     public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
-    
+
     public static ValueExpression get(Value v) {
-        if(v == ValueNull.INSTANCE) {
+        if (v == ValueNull.INSTANCE) {
             return ValueExpression.NULL;
         }
         return new ValueExpression(v);
     }
-    
+
     private ValueExpression(Value value) {
         this.value = value;
     }
@@ -38,16 +38,16 @@ public class ValueExpression extends Expression {
     public int getType() {
         return value.getType();
     }
-    
+
     public void createIndexConditions(Session session, TableFilter filter) {
-        if(value.getType() == Value.BOOLEAN) {
-            boolean v = ((ValueBoolean)value).getBoolean().booleanValue();
-            if(!v) {
+        if (value.getType() == Value.BOOLEAN) {
+            boolean v = ((ValueBoolean) value).getBoolean().booleanValue();
+            if (!v) {
                 filter.addIndexCondition(new IndexCondition(Comparison.FALSE, null, this));
             }
         }
     }
-    
+
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
@@ -58,7 +58,7 @@ public class ValueExpression extends Expression {
     public Expression optimize(Session session) throws SQLException {
         return this;
     }
-    
+
     public boolean isConstant() {
         return true;
     }
@@ -82,7 +82,7 @@ public class ValueExpression extends Expression {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch (visitor.type) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
@@ -97,7 +97,7 @@ public class ValueExpression extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
         default:
-            throw Message.getInternalError("type="+visitor.type);
+            throw Message.getInternalError("type=" + visitor.type);
         }
     }
 

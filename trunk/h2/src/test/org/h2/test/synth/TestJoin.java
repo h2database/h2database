@@ -26,9 +26,9 @@ public class TestJoin extends TestBase {
     private StringBuffer buff;
     
     public void test() throws Exception {
-        BASE_DIR = "dataJoin";
+        baseDir = "dataJoin";
         testJoin();
-        BASE_DIR = "data";
+        baseDir = "data";
     }
     
     private void testJoin() throws Exception {

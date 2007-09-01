@@ -4,13 +4,13 @@
  */
 package org.h2.tools.code;
 
-
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
 /**
- * @author Thomas
- * TODO codeswitch: replace with ant 'Replace' task is possible
+ * @author Thomas TODO codeswitch: replace with ant 'Replace' task is possible
  */
 public class CodeSwitch {
     private boolean recurse;
@@ -62,21 +62,17 @@ public class CodeSwitch {
 
     private void showUsage() {
         String className = getClass().getName();
-        System.out.println("Usage: java " + className
-                + " [-r+] [-r-] paths [+|-][labels]");
+        System.out.println("Usage: java " + className + " [-r+] [-r-] paths [+|-][labels]");
         System.out.println("If no labels are specified then all used");
         System.out.println("labels in the source code are shown.");
         System.out.println("-r+ recurse subdirectories (default)");
         System.out.println("-r- do not recurse subdirectories");
         System.out.println("Use +MODE to switch on code labeled MODE");
         System.out.println("Use -MODE to switch off code labeled MODE");
-        System.out
-                .println("Path: Any number of path or files may be specified.");
-        System.out
-                .println(" Use . for the current directory (including sub-directories).");
+        System.out.println("Path: Any number of path or files may be specified.");
+        System.out.println(" Use . for the current directory (including sub-directories).");
         System.out.println("Example: java " + className + " +JAVA2 .");
-        System.out
-                .println("This example switches on code labeled JAVA2 in all *.java files");
+        System.out.println("This example switches on code labeled JAVA2 in all *.java files");
         System.out.println("in the current directory and all subdirectories.");
     }
 
@@ -85,8 +81,7 @@ public class CodeSwitch {
         for (int i = 0; i < len; i++) {
             String fileName = (String) list.get(i);
             if (!processFile(fileName)) {
-                System.out.println("in file " + fileName
-                        + " - this file is skipped");
+                System.out.println("in file " + fileName + " - this file is skipped");
             }
         }
     }
@@ -304,4 +299,3 @@ public class CodeSwitch {
         System.out.println("ERROR: " + s);
     }
 }
-

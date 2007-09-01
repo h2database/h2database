@@ -14,15 +14,15 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
 public class AlterTableRenameColumn extends DefineCommand {
-    
+
     private Table table;
     private Column column;
     private String newName;
-    
+
     public AlterTableRenameColumn(Session session) {
         super(session);
     }
-    
+
     public void setTable(Table table) {
         this.table = table;
     }
@@ -30,7 +30,7 @@ public class AlterTableRenameColumn extends DefineCommand {
     public void setColumn(Column column) {
         this.column = column;
     }
-    
+
     public void setNewColumnName(String newName) {
         this.newName = newName;
     }
@@ -44,13 +44,13 @@ public class AlterTableRenameColumn extends DefineCommand {
         table.setModified();
         db.update(session, table);
         ObjectArray children = table.getChildren();
-        for(int i=0; i<children.size(); i++) {
+        for (int i = 0; i < children.size(); i++) {
             DbObject child = (DbObject) children.get(i);
-            if(child.getCreateSQL() != null) {
+            if (child.getCreateSQL() != null) {
                 db.update(session, child);
             }
         }
         return 0;
     }
-    
+
 }

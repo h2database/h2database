@@ -51,17 +51,17 @@ public class ValueInt extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long)value + (long)other.value);
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange((long) value + (long) other.value);
         }
         return ValueInt.get(value + other.value);
     }
-    
+
     private ValueInt checkRange(long value) throws SQLException {
-        if(value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+        if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
         } else {
-            return ValueInt.get((int)value);
+            return ValueInt.get((int) value);
         }
     }
 
@@ -70,25 +70,25 @@ public class ValueInt extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(-(long)value);
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange(-(long) value);
         }
         return ValueInt.get(-value);
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long)value - (long)other.value);
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange((long) value - (long) other.value);
         }
         return ValueInt.get(value - other.value);
     }
 
     public Value multiply(Value v) throws SQLException {
         ValueInt other = (ValueInt) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange((long)value * (long)other.value);
-        }        
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange((long) value * (long) other.value);
+        }
         return ValueInt.get(value * other.value);
     }
 
@@ -149,7 +149,7 @@ public class ValueInt extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueInt && value == ((ValueInt)v).value;
+        return v instanceof ValueInt && value == ((ValueInt) v).value;
     }
 
 }

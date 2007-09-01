@@ -16,8 +16,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
 public class Operation extends Expression {
-    public static final int CONCAT = 0, PLUS = 1, MINUS = 2, MULTIPLY = 3,
-            DIVIDE = 4, NEGATE = 5;
+    public static final int CONCAT = 0, PLUS = 1, MINUS = 2, MULTIPLY = 3, DIVIDE = 4, NEGATE = 5;
     private int opType;
     private Expression left, right;
     private int dataType;
@@ -30,9 +29,10 @@ public class Operation extends Expression {
 
     public String getSQL() {
         String sql;
-        switch(opType) {
+        switch (opType) {
         case NEGATE:
-            // don't remove the space, otherwise it might end up some thing line --1 which is a remark
+            // don't remove the space, otherwise it might end up some thing line
+            // --1 which is a remark
             // TODO need to () everything correctly, but avoiding double (())
             sql = "- " + left.getSQL();
             break;
@@ -52,9 +52,9 @@ public class Operation extends Expression {
             sql = left.getSQL() + " / " + right.getSQL();
             break;
         default:
-            throw Message.getInternalError("opType="+opType);
+            throw Message.getInternalError("opType=" + opType);
         }
-        return "("+sql+")";
+        return "(" + sql + ")";
     }
 
     public Value getValue(Session session) throws SQLException {
@@ -66,13 +66,13 @@ public class Operation extends Expression {
             return l == ValueNull.INSTANCE ? l : l.negate();
         case CONCAT: {
             if (l == ValueNull.INSTANCE) {
-                if(Mode.getCurrentMode().nullConcatIsNull) {
+                if (Mode.getCurrentMode().nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 } else {
                     return r;
                 }
             } else if (r == ValueNull.INSTANCE) {
-                if(Mode.getCurrentMode().nullConcatIsNull) {
+                if (Mode.getCurrentMode().nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 } else {
                     return l;
@@ -85,22 +85,22 @@ public class Operation extends Expression {
             return ValueString.get(buff.toString());
         }
         case PLUS:
-            if(l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
             return l.add(r);
         case MINUS:
-            if(l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
             return l.subtract(r);
         case MULTIPLY:
-            if(l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
             return l.multiply(r);
         case DIVIDE:
-            if(l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
             return l.divide(r);
@@ -111,7 +111,7 @@ public class Operation extends Expression {
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
         left.mapColumns(resolver, level);
-        if(right != null) {
+        if (right != null) {
             right.mapColumns(resolver, level);
         }
     }
@@ -125,7 +125,7 @@ public class Operation extends Expression {
         case CONCAT:
             right = right.optimize(session);
             dataType = Value.STRING;
-            if(left.isConstant() && right.isConstant()) {
+            if (left.isConstant() && right.isConstant()) {
                 return ValueExpression.get(getValue(session));
             }
             break;
@@ -136,15 +136,16 @@ public class Operation extends Expression {
             right = right.optimize(session);
             int l = left.getType();
             int r = right.getType();
-            if(l==Value.NULL && r==Value.NULL) {
-                // example: (? + ?) - the most safe data type is probably decimal
+            if (l == Value.NULL && r == Value.NULL) {
+                // example: (? + ?) - the most safe data type is probably
+                // decimal
                 dataType = Value.DECIMAL;
-            } else if(l == Value.DATE || l == Value.TIMESTAMP) {
-                if(r == Value.INT && (opType == PLUS || opType == MINUS)) {
+            } else if (l == Value.DATE || l == Value.TIMESTAMP) {
+                if (r == Value.INT && (opType == PLUS || opType == MINUS)) {
                     // Oracle date add
                     Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                     f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                    if(opType == MINUS) {
+                    if (opType == MINUS) {
                         right = new Operation(NEGATE, right, null);
                         right = right.optimize(session);
                     }
@@ -152,7 +153,7 @@ public class Operation extends Expression {
                     f.setParameter(2, left);
                     f.doneWithParameters();
                     return f.optimize(session);
-                } else if(opType == MINUS && (l == Value.DATE || l == Value.TIMESTAMP)) {
+                } else if (opType == MINUS && (l == Value.DATE || l == Value.TIMESTAMP)) {
                     // Oracle date subtract
                     Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
                     f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
@@ -168,7 +169,7 @@ public class Operation extends Expression {
         default:
             throw Message.getInternalError("type=" + opType);
         }
-        if(left.isConstant() && (right==null || right.isConstant())) {
+        if (left.isConstant() && (right == null || right.isConstant())) {
             return ValueExpression.get(getValue(session));
         }
         return this;
@@ -176,7 +177,7 @@ public class Operation extends Expression {
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-        if(right != null) {
+        if (right != null) {
             right.setEvaluatable(tableFilter, b);
         }
     }
@@ -186,14 +187,14 @@ public class Operation extends Expression {
     }
 
     public long getPrecision() {
-        if(right != null) {
+        if (right != null) {
             return Math.max(left.getPrecision(), right.getPrecision());
         }
         return left.getPrecision();
     }
 
     public int getScale() {
-        if(right != null) {
+        if (right != null) {
             return Math.max(left.getScale(), right.getScale());
         }
         return left.getScale();
@@ -201,7 +202,7 @@ public class Operation extends Expression {
 
     public void updateAggregate(Session session) throws SQLException {
         left.updateAggregate(session);
-        if(right != null) {
+        if (right != null) {
             right.updateAggregate(session);
         }
     }
@@ -209,7 +210,7 @@ public class Operation extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && (right == null || right.isEverything(visitor));
     }
-    
+
     public int getCost() {
         return left.getCost() + 1 + (right == null ? 0 : right.getCost());
     }

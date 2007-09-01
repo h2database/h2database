@@ -78,11 +78,11 @@ public class FullText implements Trigger {
        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
        int columnCount = rs.getMetaData().getColumnCount();
-       while(rs.next()) {
-           Object[] row = new Object[columnCount];
-           for(int i=0; i<columnCount; i++) {
-               row[i] = rs.getObject(i+1);
-           }
+        while (rs.next()) {
+            Object[] row = new Object[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                row[i] = rs.getObject(i + 1);
+            }
            existing.fire(conn, null, row);
        }
    }
@@ -101,12 +101,12 @@ public class FullText implements Trigger {
        stat.execute("TRUNCATE TABLE "+SCHEMA+".WORDS");
        stat.execute("TRUNCATE TABLE "+SCHEMA+".ROWS");
        stat.execute("TRUNCATE TABLE "+SCHEMA+".MAP");
-       ResultSet rs = stat.executeQuery("SELECT * FROM "+SCHEMA+".INDEXES");
-       while(rs.next()) {
-           String schema = rs.getString("SCHEMA");
-           String table = rs.getString("TABLE");
-           createTrigger(conn, schema, table);
-           indexExistingRows(conn, schema, table);
+       ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES");
+        while (rs.next()) {
+            String schema = rs.getString("SCHEMA");
+            String table = rs.getString("TABLE");
+            createTrigger(conn, schema, table);
+            indexExistingRows(conn, schema, table);
        }
    }
 
@@ -132,24 +132,24 @@ public class FullText implements Trigger {
    private static void setIgnoreList(FullTextSettings setting, String commaSeparatedList) {
        String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
        HashSet set = setting.getIgnoreList();
-       for(int i=0; i<list.length; i++) {
-           String word = list[i];
-           word = setting.convertWord(word);
-           if(word != null) {
-               set.add(list[i]);
-           }
-       }
-   }
+        for (int i = 0; i < list.length; i++) {
+            String word = list[i];
+            word = setting.convertWord(word);
+            if (word != null) {
+                set.add(list[i]);
+            }
+        }
+    }
 
-   private static void removeAllTriggers(Connection conn) throws SQLException {
-       Statement stat = conn.createStatement();
-       ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
-       Statement stat2 = conn.createStatement();
-       while(rs.next()) {
-           String schema = rs.getString("TRIGGER_SCHEMA");
-           String name = rs.getString("TRIGGER_NAME");
-           if(name.startsWith(TRIGGER_PREFIX)) {
-               name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
+    private static void removeAllTriggers(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
+        Statement stat2 = conn.createStatement();
+        while (rs.next()) {
+            String schema = rs.getString("TRIGGER_SCHEMA");
+            String name = rs.getString("TRIGGER_NAME");
+            if (name.startsWith(TRIGGER_PREFIX)) {
+                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
                stat2.execute("DROP TRIGGER " + name);
            }
        }
@@ -206,19 +206,19 @@ public class FullText implements Trigger {
        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName()+".reindex\"");
        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" + FullText.class.getName()+".dropAll\"");
        FullTextSettings setting = FullTextSettings.getInstance(conn);
-       ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA+".IGNORELIST");
-       while(rs.next()) {
-           String commaSeparatedList = rs.getString(1);
-           setIgnoreList(setting, commaSeparatedList);
-       }
-       rs = stat.executeQuery("SELECT * FROM " + SCHEMA+".WORDS");
-       HashMap map = setting.getWordList();
-       while(rs.next()) {
-           String word = rs.getString("NAME");
-           long id = rs.getLong("ID");
-           word = setting.convertWord(word);
-           if(word != null) {
-               map.put(word, ObjectUtils.getLong(id));
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".IGNORELIST");
+        while (rs.next()) {
+            String commaSeparatedList = rs.getString(1);
+            setIgnoreList(setting, commaSeparatedList);
+        }
+        rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
+        HashMap map = setting.getWordList();
+        while (rs.next()) {
+            String word = rs.getString("NAME");
+            long id = rs.getLong("ID");
+            word = setting.convertWord(word);
+            if (word != null) {
+                map.put(word, ObjectUtils.getLong(id));
            }
        }
    }
@@ -232,52 +232,52 @@ public class FullText implements Trigger {
        ArrayList keyList = new ArrayList();
        DatabaseMetaData meta = conn.getMetaData();
        ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
-       ArrayList columnList = new ArrayList();
-       while(rs.next()) {
-           columnList.add(rs.getString("COLUMN_NAME"));
-       }
-       dataTypes = new int[columnList.size()];
-       index = new IndexInfo();
-       index.schemaName = schemaName;
-       index.tableName = tableName;
-       index.columnNames = new String[columnList.size()];
-       columnList.toArray(index.columnNames);
-       rs = meta.getColumns(null, schemaName, tableName, null);
-       for(int i=0; rs.next(); i++) {
-           dataTypes[i] = rs.getInt("DATA_TYPE");
-       }
-       if(keyList.size() == 0) {
-           rs = meta.getPrimaryKeys(null, schemaName, tableName);
-           while(rs.next()) {
-               keyList.add(rs.getString("COLUMN_NAME"));
-           }
-       }
-       if(keyList.size() == 0) {
-           throw new SQLException("No primary key for table " + tableName);
-       }
-       ArrayList indexList = new ArrayList();
-       PreparedStatement prep = conn.prepareStatement(
-           "SELECT ID, COLUMNS FROM "+SCHEMA+".INDEXES WHERE SCHEMA=? AND TABLE=?");
-       prep.setString(1, schemaName);
-       prep.setString(2, tableName);
-       rs = prep.executeQuery();
-       if(rs.next()) {
-           index.id = rs.getInt(1);
-           String columns = rs.getString(2);
-           if(columns != null) {
-               String[] list = StringUtils.arraySplit(columns, ',', true);
-               for(int i=0; i<list.length; i++) {
-                   indexList.add(list[i]);
-               }
-           }
-       }
-       if(indexList.size() == 0) {
-           indexList.addAll(columnList);
-       }
-       index.keys = new int[keyList.size()];
-       setColumns(index.keys, keyList, columnList);
-       index.indexColumns = new int[indexList.size()];
-       setColumns(index.indexColumns, indexList, columnList);
+        ArrayList columnList = new ArrayList();
+        while (rs.next()) {
+            columnList.add(rs.getString("COLUMN_NAME"));
+        }
+        dataTypes = new int[columnList.size()];
+        index = new IndexInfo();
+        index.schemaName = schemaName;
+        index.tableName = tableName;
+        index.columnNames = new String[columnList.size()];
+        columnList.toArray(index.columnNames);
+        rs = meta.getColumns(null, schemaName, tableName, null);
+        for (int i = 0; rs.next(); i++) {
+            dataTypes[i] = rs.getInt("DATA_TYPE");
+        }
+        if (keyList.size() == 0) {
+            rs = meta.getPrimaryKeys(null, schemaName, tableName);
+            while (rs.next()) {
+                keyList.add(rs.getString("COLUMN_NAME"));
+            }
+        }
+        if (keyList.size() == 0) {
+            throw new SQLException("No primary key for table " + tableName);
+        }
+        ArrayList indexList = new ArrayList();
+        PreparedStatement prep = conn.prepareStatement("SELECT ID, COLUMNS FROM " + SCHEMA
+                + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+        prep.setString(1, schemaName);
+        prep.setString(2, tableName);
+        rs = prep.executeQuery();
+        if (rs.next()) {
+            index.id = rs.getInt(1);
+            String columns = rs.getString(2);
+            if (columns != null) {
+                String[] list = StringUtils.arraySplit(columns, ',', true);
+                for (int i = 0; i < list.length; i++) {
+                    indexList.add(list[i]);
+                }
+            }
+        }
+        if (indexList.size() == 0) {
+            indexList.addAll(columnList);
+        }
+        index.keys = new int[keyList.size()];
+        setColumns(index.keys, keyList, columnList);
+        index.indexColumns = new int[indexList.size()];
+        setColumns(index.indexColumns, indexList, columnList);
        setting.addIndexInfo(index);
        prepInsertWord = conn.prepareStatement("INSERT INTO "+SCHEMA+".WORDS(NAME) VALUES(?)");
        prepInsertRow = conn.prepareStatement("INSERT INTO "+SCHEMA+".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)");
@@ -293,46 +293,46 @@ public class FullText implements Trigger {
    }
 
    private void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
-       for(int i=0; i<keys.size(); i++) {
-           String key = (String) keys.get(i);
-           int found = -1;
-           for(int j=0; found == -1 && j<columns.size(); j++) {
-               String column = (String)columns.get(j);
-               if(column.equals(key)) {
-                   found = j;
-               }
-           }
-           if(found < 0) {
-               throw new SQLException("FULLTEXT", "Column not found: " + key);
-           }
-           index[i] = found;
-       }
-   }
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            int found = -1;
+            for (int j = 0; found == -1 && j < columns.size(); j++) {
+                String column = (String) columns.get(j);
+                if (column.equals(key)) {
+                    found = j;
+                }
+            }
+            if (found < 0) {
+                throw new SQLException("FULLTEXT", "Column not found: " + key);
+            }
+            index[i] = found;
+        }
+    }
 
    /**
     * INTERNAL
     */
    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
-       FullTextSettings setting = FullTextSettings.getInstance(conn);
-       if(oldRow != null) {
-           delete(setting, oldRow);
-       }
-       if(newRow != null) {
-           insert(setting, newRow);
-       }
-   }
-   
-   private String getKey(Object[] row) throws SQLException {
-       StringBuffer buff = new StringBuffer();
-       for(int i=0; i<index.keys.length; i++) {
-           if(i>0) {
+        FullTextSettings setting = FullTextSettings.getInstance(conn);
+        if (oldRow != null) {
+            delete(setting, oldRow);
+        }
+        if (newRow != null) {
+            insert(setting, newRow);
+        }
+    }
+
+    private String getKey(Object[] row) throws SQLException {
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < index.keys.length; i++) {
+            if (i > 0) {
                buff.append(" AND ");
            }
            int columnIndex = index.keys[i];
            buff.append(StringUtils.quoteIdentifier(index.columnNames[columnIndex]));
-           Object o = row[columnIndex];
-           if(o==null) {
-               buff.append(" IS NULL");
+            Object o = row[columnIndex];
+            if (o == null) {
+                buff.append(" IS NULL");
            } else {
                buff.append("=");
                buff.append(quoteSQL(o, dataTypes[columnIndex]));
@@ -343,16 +343,16 @@ public class FullText implements Trigger {
    }
 
    private String quoteString(String data) {
-       if(data.indexOf('\'') < 0) {
-           return "'" + data + "'";
-       }
-       StringBuffer buff = new StringBuffer(data.length()+2);
-       buff.append('\'');
-       for(int i=0; i < data.length(); i++) {
-           char ch = data.charAt(i);
-           if(ch == '\'') {
-               buff.append(ch);
-           }
+        if (data.indexOf('\'') < 0) {
+            return "'" + data + "'";
+        }
+        StringBuffer buff = new StringBuffer(data.length() + 2);
+        buff.append('\'');
+        for (int i = 0; i < data.length(); i++) {
+            char ch = data.charAt(i);
+            if (ch == '\'') {
+                buff.append(ch);
+            }
            buff.append(ch);
        }
        buff.append('\'');
@@ -364,15 +364,15 @@ public class FullText implements Trigger {
    }
 
    private String asString(Object data, int type) throws SQLException {
-       if(data == null) {
-           return "NULL";
-       }
-       switch(type) {
-       case Types.BIT:
-       case DataType.TYPE_BOOLEAN:
-       case Types.INTEGER:
-       case Types.BIGINT:
-       case Types.DECIMAL:
+        if (data == null) {
+            return "NULL";
+        }
+        switch (type) {
+        case Types.BIT:
+        case DataType.TYPE_BOOLEAN:
+        case Types.INTEGER:
+        case Types.BIGINT:
+        case Types.DECIMAL:
        case Types.DOUBLE:
        case Types.FLOAT:
        case Types.NUMERIC:
@@ -400,17 +400,18 @@ public class FullText implements Trigger {
        case DataType.TYPE_DATALINK:
        case Types.DISTINCT:
            throw new SQLException("FULLTEXT", "Unsupported column data type: " + type);
+       default:
+           return "";
        }
-       return "";
    }
 
    private String quoteSQL(Object data, int type) throws SQLException {
-       if(data == null) {
-           return "NULL";
-       }
-       switch(type) {
-       case Types.BIT:
-       case DataType.TYPE_BOOLEAN:
+        if (data == null) {
+            return "NULL";
+        }
+        switch (type) {
+        case Types.BIT:
+        case DataType.TYPE_BOOLEAN:
        case Types.INTEGER:
        case Types.BIGINT:
        case Types.DECIMAL:
@@ -431,7 +432,7 @@ public class FullText implements Trigger {
        case Types.VARBINARY:
        case Types.LONGVARBINARY:
        case Types.BINARY:
-           return quoteBinary((byte[])data);
+            return quoteBinary((byte[]) data);
        case Types.JAVA_OBJECT:
        case Types.CLOB:
        case Types.OTHER:
@@ -443,24 +444,25 @@ public class FullText implements Trigger {
        case DataType.TYPE_DATALINK:
        case Types.DISTINCT:
            throw new SQLException("FULLTEXT", "Unsupported key data type: " + type);
+       default:
+           return "";
        }
-       return "";
    }
 
    private static void addWords(FullTextSettings setting, HashSet set, String text) {
        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
-       while(tokenizer.hasMoreTokens()) {
-           String word =  tokenizer.nextToken();
-           word = setting.convertWord(word);
-           if(word != null) {
-               set.add(word);
+        while (tokenizer.hasMoreTokens()) {
+            String word = tokenizer.nextToken();
+            word = setting.convertWord(word);
+            if (word != null) {
+                set.add(word);
            }
        }
    }
    
    private int[] getWordIds(FullTextSettings setting, Object[] row) throws SQLException {
         HashSet words = new HashSet();
-        for(int i=0; i<index.indexColumns.length; i++) {
+        for (int i = 0; i < index.indexColumns.length; i++) {
             int idx = index.indexColumns[i];
             String data = asString(row[idx], dataTypes[idx]);
             addWords(setting, words, data);
@@ -468,11 +470,11 @@ public class FullText implements Trigger {
         HashMap allWords = setting.getWordList();
         int[] wordIds = new int[words.size()];
         Iterator it = words.iterator();
-        for(int i=0; it.hasNext(); i++) {
+        for (int i = 0; it.hasNext(); i++) {
             String word = (String) it.next();
             Integer wId = (Integer) allWords.get(word);
             int wordId;
-            if(wId == null) {
+            if (wId == null) {
                 prepInsertWord.setString(1, word);
                 prepInsertWord.execute();
                 ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
@@ -498,11 +500,11 @@ public class FullText implements Trigger {
        ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertRow);
        rs.next();
        long rowId = rs.getLong(1);
-       prepInsertMap.setLong(1, rowId);
-       int[] wordIds = getWordIds(setting, row);
-       for(int i=0; i<wordIds.length; i++) {
-           prepInsertMap.setInt(2, wordIds[i]);
-           prepInsertMap.execute();
+        prepInsertMap.setLong(1, rowId);
+        int[] wordIds = getWordIds(setting, row);
+        for (int i = 0; i < wordIds.length; i++) {
+            prepInsertMap.setInt(2, wordIds[i]);
+            prepInsertMap.execute();
        }
    }
 
@@ -513,12 +515,12 @@ public class FullText implements Trigger {
        prepSelectRow.setLong(2, index.id);
        prepSelectRow.setString(3, key);
        ResultSet rs = prepSelectRow.executeQuery();
-       if(rs.next()) {
-           long rowId = rs.getLong(1);
-           prepDeleteMap.setLong(1, rowId);
-           int[] wordIds = getWordIds(setting, row);
-           for(int i=0; i<wordIds.length; i++) {
-               prepDeleteMap.setInt(2, wordIds[i]);
+        if (rs.next()) {
+            long rowId = rs.getLong(1);
+            prepDeleteMap.setLong(1, rowId);
+            int[] wordIds = getWordIds(setting, row);
+            for (int i = 0; i < wordIds.length; i++) {
+                prepDeleteMap.setInt(2, wordIds[i]);
                prepDeleteMap.executeUpdate();
            }
            prepDeleteRow.setInt(1, hash);
@@ -540,8 +542,8 @@ public class FullText implements Trigger {
    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
        SimpleResultSet result = new SimpleResultSet();
        result.addColumn(FIELD_QUERY, Types.VARCHAR, 0, 0);
-       if(text == null) {
-           // this is just to query the result set columns
+        if (text == null) {
+            // this is just to query the result set columns
            return result;
        }
        FullTextSettings setting = FullTextSettings.getInstance(conn);
@@ -549,39 +551,39 @@ public class FullText implements Trigger {
        addWords(setting, words, text);
        HashSet rIds = null, lastRowIds = null;
        HashMap allWords = setting.getWordList();
-       PreparedStatement prepSelectMapByWordId = setting.getPrepSelectMapByWordId();
-       for(Iterator it = words.iterator(); it.hasNext(); ) {
-           lastRowIds = rIds;
-           rIds = new HashSet();
-           String word = (String) it.next();
-           Integer wId = (Integer) allWords.get(word);
-           if(wId == null) {
-               continue;
-           }
-           prepSelectMapByWordId.setInt(1, wId.intValue());
-           ResultSet rs = prepSelectMapByWordId.executeQuery();
-           while(rs.next()) {
-               Long rId = ObjectUtils.getLong(rs.getLong(1));
-               if(lastRowIds == null || lastRowIds.contains(rId)) {
-                   rIds.add(rId);
-               }
+        PreparedStatement prepSelectMapByWordId = setting.getPrepSelectMapByWordId();
+        for (Iterator it = words.iterator(); it.hasNext();) {
+            lastRowIds = rIds;
+            rIds = new HashSet();
+            String word = (String) it.next();
+            Integer wId = (Integer) allWords.get(word);
+            if (wId == null) {
+                continue;
+            }
+            prepSelectMapByWordId.setInt(1, wId.intValue());
+            ResultSet rs = prepSelectMapByWordId.executeQuery();
+            while (rs.next()) {
+                Long rId = ObjectUtils.getLong(rs.getLong(1));
+                if (lastRowIds == null || lastRowIds.contains(rId)) {
+                    rIds.add(rId);
+                }
            }
        }
-       if(rIds == null || rIds.size() == 0) {
-           return result;
-       }
-       PreparedStatement prepSelectRowById = setting.getPrepSelectRowById();
-       int rowCount = 0;
-       for(Iterator it = rIds.iterator(); it.hasNext(); ) {
-           long rowId = ((Long)it.next()).longValue();
-           prepSelectRowById.setLong(1, rowId);
-           ResultSet rs = prepSelectRowById.executeQuery();
-           if(!rs.next()) {
-               continue;
-           }
-           if(offset > 0) {
-               offset--;
-           } else {
+        if (rIds == null || rIds.size() == 0) {
+            return result;
+        }
+        PreparedStatement prepSelectRowById = setting.getPrepSelectRowById();
+        int rowCount = 0;
+        for (Iterator it = rIds.iterator(); it.hasNext();) {
+            long rowId = ((Long) it.next()).longValue();
+            prepSelectRowById.setLong(1, rowId);
+            ResultSet rs = prepSelectRowById.executeQuery();
+            if (!rs.next()) {
+                continue;
+            }
+            if (offset > 0) {
+                offset--;
+            } else {
                String key = rs.getString(1);
                long indexId = rs.getLong(2);
                IndexInfo index = setting.getIndexInfo(indexId);
@@ -590,13 +592,13 @@ public class FullText implements Trigger {
                buff.append('.');
                buff.append(StringUtils.quoteIdentifier(index.tableName));
                buff.append(" WHERE ");
-               buff.append(key);
-               String query = buff.toString();
-               result.addRow(new String[]{query});
-               rowCount++;
-               if(limit > 0 && rowCount >= limit) {
-                   break;
-               }
+                buff.append(key);
+                String query = buff.toString();
+                result.addRow(new String[] { query });
+                rowCount++;
+                if (limit > 0 && rowCount >= limit) {
+                    break;
+                }
            }
        }
        return result;

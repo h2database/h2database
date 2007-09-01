@@ -38,7 +38,7 @@ public class RangeCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        if(beforeFirst) {
+        if (beforeFirst) {
             beforeFirst = false;
             current = min;
         } else {

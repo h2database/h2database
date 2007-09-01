@@ -99,12 +99,12 @@ public class WebServer implements Service {
     private Thread listenerThread;
 
     byte[] getFile(String file) throws IOException {
-        trace("getFile <"+file+">");
-        byte[] data = Resources.get("/org/h2/server/web/res/"+file);
-        if(data == null) {
+        trace("getFile <" + file + ">");
+        byte[] data = Resources.get("/org/h2/server/web/res/" + file);
+        if (data == null) {
             trace(" null");
         } else {
-            trace(" size="+data.length);
+            trace(" size=" + data.length);
         }
         return data;
     }
@@ -113,7 +113,7 @@ public class WebServer implements Service {
         byte[] bytes = getFile(file);
         return new String(bytes);
     }
-    
+
     private String generateSessionId() {
         byte[] buff = RandomUtils.getSecureBytes(16);
         return ByteUtils.convertBytesToString(buff);
@@ -121,21 +121,21 @@ public class WebServer implements Service {
 
     WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
-        if(lastTimeoutCheck + SESSION_TIMEOUT < now) {
+        if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
             Object[] list = sessions.keySet().toArray();
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 String id = (String) list[i];
-                WebSession session = (WebSession)sessions.get(id);
+                WebSession session = (WebSession) sessions.get(id);
                 Long last = (Long) session.get("lastAccess");
-                if(last != null && last.longValue() + SESSION_TIMEOUT < now) {
+                if (last != null && last.longValue() + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
                     sessions.remove(id);
                 }
             }
             lastTimeoutCheck = now;
         }
-        WebSession session = (WebSession)sessions.get(sessionId);
-        if(session != null) {
+        WebSession session = (WebSession) sessions.get(sessionId);
+        if (session != null) {
             session.lastAccess = System.currentTimeMillis();
         }
         return session;
@@ -168,14 +168,14 @@ public class WebServer implements Service {
         port = FileUtils.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
         ssl = FileUtils.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
         allowOthers = FileUtils.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
-        for(int i=0; args != null && i<args.length; i++) {
-            if("-webPort".equals(args[i])) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if ("-webPort".equals(args[i])) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else  if("-webSSL".equals(args[i])) {
+            } else if ("-webSSL".equals(args[i])) {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
-            } else  if("-webAllowOthers".equals(args[i])) {
+            } else if ("-webAllowOthers".equals(args[i])) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-             } else if("-baseDir".equals(args[i])) {
+            } else if ("-baseDir".equals(args[i])) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
             }
@@ -193,24 +193,25 @@ public class WebServer implements Service {
 //                }
 //            }
         SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-        synchronized(format) {
+        synchronized (format) {
             format.setTimeZone(TimeZone.getTimeZone("GMT"));
             startDateTime = format.format(new Date());
         }
         trace(startDateTime);
-        for(int i=0; i<LANGUAGES.length; i++) {
+        for (int i = 0; i < LANGUAGES.length; i++) {
             languages.add(LANGUAGES[i][0]);
-        }        url = (ssl?"https":"http") + "://localhost:"+port;
+        }
+        url = (ssl ? "https" : "http") + "://localhost:" + port;
     }
-    
+
     public String getURL() {
         return url;
     }
-    
+
     public void start() throws SQLException {
         serverSocket = NetUtils.createServerSocket(port, ssl);
     }
-    
+
     public void listen() {
         this.listenerThread = Thread.currentThread();
         try {
@@ -225,26 +226,26 @@ public class WebServer implements Service {
     }
 
     public boolean isRunning() {
-        if(serverSocket == null) {
+        if (serverSocket == null) {
             return false;
         }
         try {
             Socket s = NetUtils.createLoopbackSocket(port, ssl);
             s.close();
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             return false;
-        }        
+        }
     }
 
     public void stop() {
         try {
             serverSocket.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             // TODO log exception
         }
         serverSocket = null;
-        if(listenerThread != null) {
+        if (listenerThread != null) {
             try {
                 listenerThread.join(1000);
             } catch (InterruptedException e) {
@@ -284,7 +285,7 @@ public class WebServer implements Service {
 
     public ArrayList getSessions() {
         ArrayList list = new ArrayList(sessions.values());
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             WebSession s = (WebSession) list.get(i);
             list.set(i, s.getInfo());
         }
@@ -294,11 +295,11 @@ public class WebServer implements Service {
     public String getType() {
         return "Web";
     }
-    
+
     void setAllowOthers(boolean b) {
         allowOthers = b;
     }
-    
+
     public boolean getAllowOthers() {
         return allowOthers;
     }
@@ -320,7 +321,7 @@ public class WebServer implements Service {
     }
 
     ConnectionInfo getSetting(String name) {
-        return (ConnectionInfo)connInfoMap.get(name);
+        return (ConnectionInfo) connInfoMap.get(name);
     }
 
     void updateSetting(ConnectionInfo info) {
@@ -341,7 +342,7 @@ public class WebServer implements Service {
         String fileName = getPropertiesFileName();
         try {
             return FileUtils.loadProperties(fileName);
-        } catch(IOException e) {
+        } catch (IOException e) {
             // TODO log exception
             return new Properties();
         }
@@ -350,26 +351,26 @@ public class WebServer implements Service {
     String[] getSettingNames() {
         ArrayList list = getSettings();
         String[] names = new String[list.size()];
-        for(int i=0; i<list.size(); i++) {
-            names[i] = ((ConnectionInfo)list.get(i)).name;
+        for (int i = 0; i < list.size(); i++) {
+            names[i] = ((ConnectionInfo) list.get(i)).name;
         }
         return names;
     }
 
     synchronized ArrayList getSettings() {
         ArrayList settings = new ArrayList();
-        if(connInfoMap.size() == 0) {
+        if (connInfoMap.size() == 0) {
             Properties prop = loadProperties();
-            if(prop.size() == 0) {
-                for(int i=0; i<GENERIC.length; i++) {
+            if (prop.size() == 0) {
+                for (int i = 0; i < GENERIC.length; i++) {
                     ConnectionInfo info = new ConnectionInfo(GENERIC[i]);
                     settings.add(info);
                     updateSetting(info);
                 }
             } else {
-                for(int i=0; ; i++) {
+                for (int i = 0;; i++) {
                     String data = prop.getProperty(String.valueOf(i));
-                    if(data == null) {
+                    if (data == null) {
                         break;
                     }
                     ConnectionInfo info = new ConnectionInfo(data);
@@ -385,19 +386,19 @@ public class WebServer implements Service {
     }
 
     void sortConnectionInfo(ArrayList list) {
-          for (int i = 1, j; i < list.size(); i++) {
-              ConnectionInfo t = (ConnectionInfo) list.get(i);
-              for (j = i - 1; j >= 0 && (((ConnectionInfo)list.get(j)).lastAccess < t.lastAccess); j--) {
-                  list.set(j + 1, list.get(j));
-              }
-              list.set(j + 1, t);
-          }
+        for (int i = 1, j; i < list.size(); i++) {
+            ConnectionInfo t = (ConnectionInfo) list.get(i);
+            for (j = i - 1; j >= 0 && (((ConnectionInfo) list.get(j)).lastAccess < t.lastAccess); j--) {
+                list.set(j + 1, list.get(j));
+            }
+            list.set(j + 1, t);
+        }
     }
 
     synchronized void saveSettings() {
         try {
             Properties prop = new SortedProperties();
-            if(driverList != null) {
+            if (driverList != null) {
                 prop.setProperty("drivers", driverList);
             }
             prop.setProperty("webPort", String.valueOf(port));
@@ -405,16 +406,16 @@ public class WebServer implements Service {
             prop.setProperty("webSSL", String.valueOf(ssl));
             ArrayList settings = getSettings();
             int len = settings.size();
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 ConnectionInfo info = (ConnectionInfo) settings.get(i);
-                if(info != null) {
+                if (info != null) {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
             OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName());
             prop.store(out, Constants.SERVER_PROPERTIES_TITLE);
             out.close();
-        } catch(Exception e) {
+        } catch (Exception e) {
             TraceSystem.traceThrowable(e);
         }
     }

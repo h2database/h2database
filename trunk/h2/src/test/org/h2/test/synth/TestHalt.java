@@ -59,7 +59,7 @@ public abstract class TestHalt extends TestBase {
     
     Connection getConnection() throws Exception {
         Class.forName("org.h2.Driver");
-        return DriverManager.getConnection("jdbc:h2:" + BASE_DIR + "/halt", "sa", "sa");
+        return DriverManager.getConnection("jdbc:h2:" + baseDir + "/halt", "sa", "sa");
     }
     
     protected void start(String[] args) throws Exception {
@@ -107,7 +107,7 @@ public abstract class TestHalt extends TestBase {
     protected void trace(String s, Exception e) {
         FileWriter writer = null;
         try {
-            File f = new File(BASE_DIR + "/" + TRACE_FILE_NAME);
+            File f = new File(baseDir + "/" + TRACE_FILE_NAME);
             f.getParentFile().mkdirs();
             writer = new FileWriter(f, true);
             PrintWriter w = new PrintWriter(writer);
@@ -125,15 +125,15 @@ public abstract class TestHalt extends TestBase {
     
     private void runTest() throws Exception {
         traceOperation("delete database -----------------------------");
-        DeleteDbFiles.execute(BASE_DIR, DATABASE_NAME, true);
-        new File(BASE_DIR + "/" + TRACE_FILE_NAME).delete();
+        DeleteDbFiles.execute(baseDir, DATABASE_NAME, true);
+        new File(baseDir + "/" + TRACE_FILE_NAME).delete();
         
         connect();
         testInit();
         disconnect();
         for(int i=0; i<10; i++) {
             traceOperation("backing up " + sequenceId);
-            Backup.execute(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null, true);
+            Backup.execute(baseDir + "/haltSeq"+ sequenceId + ".zip", baseDir, null, true);
             sequenceId++;
             // int operations = OP_INSERT;
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
@@ -159,13 +159,13 @@ public abstract class TestHalt extends TestBase {
             p.destroy();
             try {
                 traceOperation("backing up " + sequenceId);
-                Backup.execute(BASE_DIR + "/haltSeq"+ sequenceId + ".zip", BASE_DIR, null, true);
+                Backup.execute(baseDir + "/haltSeq"+ sequenceId + ".zip", baseDir, null, true);
                 // new File(BASE_DIR + "/haltSeq" + (sequenceId-20) + ".zip").delete();
                 connect();
                 testCheckAfterCrash();
             } catch(Exception e) {
-                File zip = new File(BASE_DIR + "/haltSeq"+ sequenceId + ".zip");
-                File zipId = new File(BASE_DIR + "/haltSeq" + sequenceId + "-" + errorId + ".zip");
+                File zip = new File(baseDir + "/haltSeq"+ sequenceId + ".zip");
+                File zipId = new File(baseDir + "/haltSeq" + sequenceId + "-" + errorId + ".zip");
                 zip.renameTo(zipId);
                 printTime("ERROR: " + sequenceId + " " + errorId + " " + e.toString());
                 e.printStackTrace();
@@ -299,7 +299,7 @@ public abstract class TestHalt extends TestBase {
     
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        BASE_DIR = DIR;
+        baseDir = DIR;
         return this;
     }
 

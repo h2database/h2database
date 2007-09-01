@@ -26,7 +26,7 @@ public class RuleElement implements Rule {
     public RuleElement(String name, String topic) {
         this.name = name;
         this.topic = topic;
-        if(name.length()==1 || name.equals(StringUtils.toUpperEnglish(name))) {
+        if (name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name))) {
             keyword = true;
         }
         topic = StringUtils.toLowerEnglish(topic);
@@ -38,11 +38,11 @@ public class RuleElement implements Rule {
     }
     
     public String random(Bnf config, int level) {
-        if(keyword) {
+        if (keyword) {
             return name.length() > 1 ? " " + name + " " : name;
         }
-        if(link != null) {
-            return link.random(config, level+1);
+        if (link != null) {
+            return link.random(config, level + 1);
         }
         throw new Error(">>>" + name + "<<<");
     }
@@ -56,37 +56,37 @@ public class RuleElement implements Rule {
     }
 
     public void setLinks(HashMap ruleMap) {
-        if(link != null) {
+        if (link != null) {
             link.setLinks(ruleMap);
-        }        
-        if(keyword) {
+        }
+        if (keyword) {
             return;
         }
-        for(int i=0; i<name.length() && link == null; i++) {
+        for (int i = 0; i < name.length() && link == null; i++) {
             String test = StringUtils.toLowerEnglish(name.substring(i));
-            RuleHead r = (RuleHead)ruleMap.get(test);
-            if(r != null) {
+            RuleHead r = (RuleHead) ruleMap.get(test);
+            if (r != null) {
                 link = r.rule;
                 return;
             }
         }
-        if(link == null) {
+        if (link == null) {
             throw new Error(">>>" + name + "<<<");
         }
     }
-    
+
     public String matchRemove(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return null;
         }
-        if(query.length()==0) {
+        if (query.length() == 0) {
             return null;
-        }        
-        if(keyword) {
+        }
+        if (keyword) {
             String up = StringUtils.toUpperEnglish(query);
-            if(up.startsWith(name)) {
+            if (up.startsWith(name)) {
                 query = query.substring(name.length());
-                while(!"_".equals(name) && query.length()>0 && Character.isWhitespace(query.charAt(0))) {
+                while (!"_".equals(name) && query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                     query = query.substring(1);
                 }
                 return query;
@@ -94,8 +94,8 @@ public class RuleElement implements Rule {
             return null;
         } else {
             query = link.matchRemove(query, sentence);
-            if(query != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
-                while(query.length()>0 && Character.isWhitespace(query.charAt(0))) {
+            if (query != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
+                while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                     query = query.substring(1);
                 }
             }
@@ -104,14 +104,14 @@ public class RuleElement implements Rule {
     }    
 
     public void addNextTokenList(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return;
         }
-        if(keyword) {
+        if (keyword) {
             String q = query.trim();
             String up = StringUtils.toUpperEnglish(q);
-            if(q.length() == 0 || name.startsWith(up)) {
-                if(q.length() < name.length()) {
+            if (q.length() == 0 || name.startsWith(up)) {
+                if (q.length() < name.length()) {
                     sentence.add(name, name.substring(q.length()), type);
                 }
             }

@@ -84,7 +84,7 @@ public class PgServer implements Service {
     }
 
     boolean allow(Socket socket) {
-        if(allowOthers) {
+        if (allowOthers) {
             return true;
         }
         return NetUtils.isLoopbackAddress(socket);
@@ -99,7 +99,7 @@ public class PgServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                if(!allow(s)) {
+                if (!allow(s)) {
                     log("Connection not allowed");
                     s.close();
                 } else {
@@ -113,7 +113,7 @@ public class PgServer implements Service {
                 }
             }
         } catch (Exception e) {
-            if(!stop) {
+            if (!stop) {
                 e.printStackTrace();
             }
         }
@@ -121,9 +121,9 @@ public class PgServer implements Service {
 
     public void stop() {
         // TODO server: combine with tcp server
-        if(!stop) {
+        if (!stop) {
             stop = true;
-            if(serverSocket != null) {
+            if (serverSocket != null) {
                 try {
                     serverSocket.close();
                 } catch (IOException e) {
@@ -135,12 +135,12 @@ public class PgServer implements Service {
         }
         // TODO server: using a boolean 'now' argument? a timeout?
         ArrayList list = new ArrayList(running);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             PgServerThread c = (PgServerThread) list.get(i);
             c.close();
             try {
                 c.getThread().join(100);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // TODO log exception
                 e.printStackTrace();
             }
@@ -148,14 +148,14 @@ public class PgServer implements Service {
     }
 
     public boolean isRunning() {
-        if(serverSocket == null) {
+        if (serverSocket == null) {
             return false;
         }
         try {
             Socket s = NetUtils.createSocket(InetAddress.getLocalHost(), serverSocket.getLocalPort(), false);
             s.close();
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -176,12 +176,13 @@ public class PgServer implements Service {
         return ifExists;
     }
     
-    public static String getIndexColumn(Connection conn, int indexId, Integer ordinalPosition, Boolean pretty) throws SQLException {
-        if(ordinalPosition == null || ordinalPosition.intValue() == 0) {
+    public static String getIndexColumn(Connection conn, int indexId, Integer ordinalPosition, Boolean pretty)
+            throws SQLException {
+        if (ordinalPosition == null || ordinalPosition.intValue() == 0) {
             PreparedStatement prep = conn.prepareStatement("select sql from information_schema.indexes where id=?");
             prep.setInt(1, indexId);
             ResultSet rs = prep.executeQuery();
-            if(rs.next()) {
+            if (rs.next()) {
                 return rs.getString(1);
             }
             return null;
@@ -190,7 +191,7 @@ public class PgServer implements Service {
             prep.setInt(1, indexId);
             prep.setInt(2, ordinalPosition.intValue());
             ResultSet rs = prep.executeQuery();
-            if(rs.next()) {
+            if (rs.next()) {
                 return rs.getString(1);
             }
             return null;
@@ -204,15 +205,16 @@ public class PgServer implements Service {
     }
     
     public static String getEncodingName(int code) throws SQLException {
-        switch(code) {
+        switch (code) {
         case 0:
             return "SQL_ASCII";
         case 6:
             return "UTF8";
         case 8:
             return "LATIN1";
+        default:
+            return code < 40 ? "UTF8" : "";
         }
-        return code < 40 ? "UTF8" : "";
     }
     
     public static String getVersion() {
@@ -227,7 +229,7 @@ public class PgServer implements Service {
         PreparedStatement prep = conn.prepareStatement("SELECT NAME FROM INFORMATION_SCHEMA.USERS WHERE ID=?");
         prep.setInt(1, id);
         ResultSet rs = prep.executeQuery();
-        if(rs.next()) {
+        if (rs.next()) {
             return rs.getString(1);
         }
         return null;

@@ -57,9 +57,9 @@ public class JdbcClob extends TraceObject implements Clob
         try {
             debugCodeCall("length");
             checkClosed();
-            if(value.getType() == Value.CLOB) {
+            if (value.getType() == Value.CLOB) {
                 long precision = value.getPrecision();
-                if(precision > 0) {
+                if (precision > 0) {
                     return precision;
                 }
             }
@@ -67,9 +67,9 @@ public class JdbcClob extends TraceObject implements Clob
             try {
                 long size = 0;
                 char[] buff = new char[Constants.FILE_BLOCK_SIZE];
-                while(true) {
+                while (true) {
                     int len = in.read(buff, 0, Constants.FILE_BLOCK_SIZE);
-                    if(len <= 0) {
+                    if (len <= 0) {
                         break;
                     }
                     size += len;
@@ -78,7 +78,7 @@ public class JdbcClob extends TraceObject implements Clob
             } finally {
                 in.close();
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw Message.convert(e);
         }
     }
@@ -102,7 +102,7 @@ public class JdbcClob extends TraceObject implements Clob
             checkClosed();
             String s = value.getString();
             return IOUtils.getInputStream(s);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -125,7 +125,7 @@ public class JdbcClob extends TraceObject implements Clob
             debugCodeCall("getCharacterStream");
             checkClosed();
             return value.getReader();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -147,21 +147,21 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public String getSubString(long pos, int length) throws SQLException {
         try {
-            debugCode("getSubString("+pos+", "+length+");");
+            debugCode("getSubString(" + pos + ", " + length + ");");
             checkClosed();
-            if(pos < 1) {
-                throw Message.getInvalidValueException("pos", ""+pos);
+            if (pos < 1) {
+                throw Message.getInvalidValueException("pos", "" + pos);
             }
-            if(length < 0) {
-                throw Message.getInvalidValueException("length", ""+length);
+            if (length < 0) {
+                throw Message.getInvalidValueException("length", "" + length);
             }
             StringBuffer buff = new StringBuffer(length);
             Reader reader = value.getReader();
             try {
                 IOUtils.skipFully(reader, pos - 1);
-                for(int i=0; i<length; i++) {
+                for (int i = 0; i < length; i++) {
                     int ch = reader.read();
-                    if(ch < 0) {
+                    if (ch < 0) {
                         break;
                     }
                     buff.append((char) ch);
@@ -170,7 +170,7 @@ public class JdbcClob extends TraceObject implements Clob
                 reader.close();
             }
             return buff.toString();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }

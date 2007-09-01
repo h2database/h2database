@@ -23,26 +23,26 @@ public class ConstraintUnique extends Constraint {
     private Index index;
     private boolean indexOwner;
     private Column[] columns;
-    
+
     public ConstraintUnique(Schema schema, int id, String name, Table table) {
         super(schema, id, name, table);
     }
-    
+
     public String getConstraintType() {
         return Constraint.UNIQUE;
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         return getCreateSQLForCopy(table, quotedName, true);
-    }    
-    
+    }
+
     public String getCreateSQLForCopy(Table table, String quotedName, boolean internalIndex) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");
         buff.append(table.getSQL());
         buff.append(" ADD CONSTRAINT ");
         buff.append(quotedName);
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
@@ -54,17 +54,17 @@ public class ConstraintUnique extends Constraint {
             buff.append(Parser.quoteIdentifier(columns[i].getName()));
         }
         buff.append(")");
-        if(internalIndex && indexOwner && table == this.table) {
+        if (internalIndex && indexOwner && table == this.table) {
             buff.append(" INDEX ");
             buff.append(index.getSQL());
         }
         return buff.toString();
     }
-    
+
     public String getShortDescription() {
         StringBuffer buff = new StringBuffer();
         buff.append(getName());
-        buff.append(": ");        
+        buff.append(": ");
         buff.append("UNIQUE(");
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
@@ -74,12 +74,12 @@ public class ConstraintUnique extends Constraint {
         }
         buff.append(")");
         return buff.toString();
-    }        
+    }
 
-    public String  getCreateSQLWithoutIndexes() {
+    public String getCreateSQLWithoutIndexes() {
         return getCreateSQLForCopy(table, getSQL(), false);
     }
-    
+
     public String getCreateSQL() {
         return getCreateSQLForCopy(table, getSQL());
     }
@@ -87,19 +87,19 @@ public class ConstraintUnique extends Constraint {
     public void setColumns(Column[] columns) {
         this.columns = columns;
     }
-    
+
     public Column[] getColumns() {
         return columns;
     }
-    
+
     public void setIndex(Index index, boolean isOwner) {
         this.index = index;
         this.indexOwner = isOwner;
     }
-    
+
     public void removeChildrenAndResources(Session session) throws SQLException {
-        table.removeConstraint(this);        
-        if(indexOwner) {
+        table.removeConstraint(this);
+        if (indexOwner) {
             database.removeSchemaObject(session, index);
         }
         index = null;
@@ -107,18 +107,18 @@ public class ConstraintUnique extends Constraint {
         table = null;
         invalidate();
     }
-    
+
     public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
         // unique index check is enough
-    }    
-    
+    }
+
     public boolean usesIndex(Index idx) {
         return idx == index;
-    }            
-    
+    }
+
     public boolean containsColumn(Column col) {
-        for(int i=0; i<columns.length; i++) {
-            if(columns[i] == col) {
+        for (int i = 0; i < columns.length; i++) {
+            if (columns[i] == col) {
                 return true;
             }
         }
@@ -128,7 +128,7 @@ public class ConstraintUnique extends Constraint {
     public boolean isBefore() {
         return true;
     }
-    
+
     public void checkExistingData(Session session) throws SQLException {
         // no need to check: when creating the unique index any problems are found
     }

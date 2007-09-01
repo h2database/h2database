@@ -18,7 +18,7 @@ public class Profile extends Thread {
     public static final boolean LIST_UNVISITED = true;
     public static final boolean FAST = false;
     public static final boolean TRACE = false;
-    public static final Profile main = new Profile();
+    public static final Profile MAIN = new Profile();
     public static int current;
     private BufferedWriter trace;
     public int[] count;
@@ -28,7 +28,7 @@ public class Profile extends Thread {
     int lastIndex;
     long lastTime;
     static int top = 15;
-    
+
     static {
         try {
             String s = System.getProperty("profile.top");
@@ -44,7 +44,7 @@ public class Profile extends Thread {
         if (FAST) {
             current = i;
         } else {
-            main.addVisit(i);
+            MAIN.addVisit(i);
         }
     }
 
@@ -53,23 +53,23 @@ public class Profile extends Thread {
     }
 
     public static void startCollecting() {
-        main.stop = false;
-        main.lastTime = System.currentTimeMillis();
+        MAIN.stop = false;
+        MAIN.lastTime = System.currentTimeMillis();
     }
 
     public static void stopCollecting() {
-        main.stop = true;
+        MAIN.stop = true;
     }
 
     public static void list() {
-        if (main.lastIndex == 0) {
+        if (MAIN.lastIndex == 0) {
             // don't list anything if no statistics collected
             return;
         }
         try {
-            main.listUnvisited();
-            main.listTop("MOST CALLED", main.count, top);
-            main.listTop("MOST TIME USED", main.time, top);
+            MAIN.listUnvisited();
+            MAIN.listTop("MOST CALLED", MAIN.count, top);
+            MAIN.listTop("MOST TIME USED", MAIN.time, top);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -134,8 +134,8 @@ public class Profile extends Thread {
                 if (count[i] == 0) {
                     if (!line.endsWith("throw")) {
                         writer.write(line + "\r\n");
-                        if(LIST_UNVISITED) {
-                            print(line+"\r\n");
+                        if (LIST_UNVISITED) {
+                            print(line + "\r\n");
                         }
                         unvisited++;
                     } else {
@@ -144,8 +144,8 @@ public class Profile extends Thread {
                 }
             }
             int percent = (100 * unvisited / maxIndex);
-            print("Not covered: " + percent + " % " + " (" + unvisited + " of "
-                    + maxIndex + "; throw=" + unvisitedThrow + ")");
+            print("Not covered: " + percent + " % " + " (" + unvisited + " of " + maxIndex + "; throw="
+                    + unvisitedThrow + ")");
         } finally {
             IOUtils.closeSilently(fileWriter);
             IOUtils.closeSilently(reader);
@@ -221,4 +221,3 @@ public class Profile extends Thread {
         print("");
     }
 }
-

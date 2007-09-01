@@ -32,7 +32,7 @@ public class AlterUser extends DefineCommand {
     public AlterUser(Session session) {
         super(session);
     }
-    
+
     public void setType(int type) {
         this.type = type;
     }
@@ -66,12 +66,12 @@ public class AlterUser extends DefineCommand {
     public int update() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
-        switch(type) {
+        switch (type) {
         case SET_PASSWORD:
-            if(user != session.getUser()) {
+            if (user != session.getUser()) {
                 session.getUser().checkAdmin();
             }
-            if(hash!=null && salt !=null) {
+            if (hash != null && salt != null) {
                 user.setSaltAndHash(salt, hash);
             } else {
                 user.setUserPasswordHash(userPasswordHash);
@@ -79,7 +79,7 @@ public class AlterUser extends DefineCommand {
             break;
         case RENAME:
             session.getUser().checkAdmin();
-            if(db.findUser(newName) != null || newName.equals(user.getName())) {
+            if (db.findUser(newName) != null || newName.equals(user.getName())) {
                 throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, newName);
             }
             db.renameDatabaseObject(session, user, newName);
@@ -89,7 +89,7 @@ public class AlterUser extends DefineCommand {
             user.setAdmin(admin);
             break;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
         db.update(session, user);
         return 0;

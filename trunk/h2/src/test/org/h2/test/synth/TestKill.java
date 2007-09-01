@@ -33,7 +33,7 @@ public class TestKill extends TestBase {
                 "java.exe", "-cp", "bin",
                 "org.h2.test.synth.TestKillProcess",
                 url, user, password,
-                BASE_DIR,
+                baseDir,
                 ""+accounts
         };
 
@@ -41,7 +41,7 @@ public class TestKill extends TestBase {
             printTime("TestKill " + i);
             if(i % 10 == 0) {
                 trace("deleting db...");
-                deleteDb(BASE_DIR, "kill");
+                deleteDb(baseDir, "kill");
             }
             conn = getConnection(url);
             createTables();

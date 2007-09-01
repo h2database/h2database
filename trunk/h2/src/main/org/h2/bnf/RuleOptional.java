@@ -19,8 +19,8 @@ public class RuleOptional implements Rule {
     }
 
     public String random(Bnf config, int level) {
-        if(level > 10 ? config.getRandom().nextInt(level) == 1 : config.getRandom().nextBoolean()) {
-            return rule.random(config, level+1);
+        if (level > 10 ? config.getRandom().nextInt(level) == 1 : config.getRandom().nextBoolean()) {
+            return rule.random(config, level + 1);
         } else {
             return "";
         }
@@ -31,29 +31,28 @@ public class RuleOptional implements Rule {
     }
 
     public void setLinks(HashMap ruleMap) {
-        if(!mapSet) {
+        if (!mapSet) {
             rule.setLinks(ruleMap);
             mapSet = true;
         }
     }
 
     public String matchRemove(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return null;
         }
-        if(query.length()==0) {
+        if (query.length() == 0) {
             return query;
         }
         String s = rule.matchRemove(query, sentence);
-        if(s == null) {
+        if (s == null) {
             return query;
         }
         return s;
     }
-    
 
     public void addNextTokenList(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return;
         }
         rule.addNextTokenList(query, sentence);

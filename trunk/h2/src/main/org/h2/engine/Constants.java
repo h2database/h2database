@@ -21,6 +21,8 @@ import org.h2.constant.SysProperties;
  * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
+ *   set path=C:\Program Files\Java\jdk1.6.0_01\bin;%PATH%
+ *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
  *   ant codeswitchJdk16
  *   ant compile
  *   ant codeswitchJdk14
@@ -72,8 +74,8 @@ public class Constants {
     public static final int VERSION_MINOR = 0;
 
     public static final int FILE_BLOCK_SIZE = 16;
-    public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
-    public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE-1) + "\n";
+    public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
+    public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
     public static final int TCP_DRIVER_VERSION = 4;
     public static final int VERSION_JDBC_MAJOR = 3;
     public static final int VERSION_JDBC_MINOR = 0;

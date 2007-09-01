@@ -28,25 +28,26 @@ public class LZFOutputStream extends OutputStream {
     }
     
     private void ensureOutput(int len) {
-        // TODO calculate the maximum overhead (worst case) for the output buffer
+        // TODO calculate the maximum overhead (worst case) for the output
+        // buffer
         int outputLen = (len < 100 ? len + 100 : len) * 2;
-        if(outBuffer == null || outBuffer.length < outputLen) {
+        if (outBuffer == null || outBuffer.length < outputLen) {
             outBuffer = new byte[outputLen];
         }
     }
 
     public void write(int b) throws IOException {
-        if(pos >= buffer.length) {
+        if (pos >= buffer.length) {
             flush();
-        }   
-        buffer[pos++] = (byte)b;
+        }
+        buffer[pos++] = (byte) b;
     }
     
     private void compressAndWrite(byte[] buff, int len) throws IOException {
-        if(len > 0) {
+        if (len > 0) {
             ensureOutput(len);
             int compressed = compress.compress(buff, len, outBuffer, 0);
-            if(compressed > len) {
+            if (compressed > len) {
                 writeInt(-len);
                 out.write(buff, 0, len);
             } else {
@@ -65,11 +66,11 @@ public class LZFOutputStream extends OutputStream {
     }
     
     public void write(byte[] buff, int off, int len) throws IOException {
-        while(len > 0) {
+        while (len > 0) {
             int copy = Math.min(buffer.length - pos, len);
             System.arraycopy(buff, off, buffer, pos, copy);
             pos += copy;
-            if(pos >= buffer.length) {
+            if (pos >= buffer.length) {
                 flush();
             }
             off += copy;

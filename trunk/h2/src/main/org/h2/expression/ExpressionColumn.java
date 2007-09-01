@@ -49,15 +49,15 @@ public class ExpressionColumn extends Expression {
 
     public String getSQL() {
         String sql;
-        if(column != null) {
+        if (column != null) {
             sql = column.getSQL();
         } else {
             sql = columnName;
         }
-        if(tableAlias != null) {
+        if (tableAlias != null) {
             sql = Parser.quoteIdentifier(tableAlias) + "." + sql;
         }
-        if(schemaName != null) {
+        if (schemaName != null) {
             sql = Parser.quoteIdentifier(schemaName) + "." + sql;
         }
         return sql;
@@ -71,7 +71,7 @@ public class ExpressionColumn extends Expression {
         if (tableAlias != null && !tableAlias.equals(resolver.getTableAlias())) {
             return;
         }
-        if(schemaName != null && !schemaName.equals(resolver.getSchemaName())) {
+        if (schemaName != null && !schemaName.equals(resolver.getSchemaName())) {
             return;
         }
         Column[] columns = resolver.getColumns();
@@ -91,30 +91,31 @@ public class ExpressionColumn extends Expression {
             }
         }
     }
-    
+
     private void mapColumn(ColumnResolver resolver, Column col, int level) throws SQLException {
-        if(this.resolver == null) {
+        if (this.resolver == null) {
             queryLevel = level;
             column = col;
             this.resolver = resolver;
-        } else if(queryLevel==level && this.resolver != resolver) {
+        } else if (queryLevel == level && this.resolver != resolver) {
             throw Message.getSQLException(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
-        }        
+        }
     }
 
     public Expression optimize(Session session) throws SQLException {
         if (resolver == null) {
-            Schema schema = session.getDatabase().findSchema(tableAlias == null ? session.getCurrentSchemaName() : tableAlias);
-            if(schema != null) {
+            Schema schema = session.getDatabase().findSchema(
+                    tableAlias == null ? session.getCurrentSchemaName() : tableAlias);
+            if (schema != null) {
                 Constant constant = schema.findConstant(columnName);
-                if(constant != null) {
+                if (constant != null) {
                     return constant.getValue();
                 }
             }
             String name = columnName;
             if (tableAlias != null) {
                 name = tableAlias + "." + name;
-                if(schemaName != null) {
+                if (schemaName != null) {
                     name = schemaName + "." + name;
                 }
             }
@@ -126,39 +127,40 @@ public class ExpressionColumn extends Expression {
     public void updateAggregate(Session session) throws SQLException {
         Value now = resolver.getValue(column);
         Select select = resolver.getSelect();
-        if(select == null) {
+        if (select == null) {
             throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         HashMap values = select.getCurrentGroup();
-        if(values == null) {
+        if (values == null) {
             // this is a different level (the enclosing query)
             return;
         }
-        Value v = (Value)values.get(this);
-        if(v==null) {
+        Value v = (Value) values.get(this);
+        if (v == null) {
             values.put(this, now);
         } else {
-            if(!database.areEqual(now, v)) {
+            if (!database.areEqual(now, v)) {
                 throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
     }
 
     public Value getValue(Session session) throws SQLException {
-        // TODO refactor: simplify check if really part of an aggregated value / detection of 
+        // TODO refactor: simplify check if really part of an aggregated value /
+        // detection of
         // usage of non-grouped by columns without aggregate function
         Select select = resolver.getSelect();
-        if(select != null) {
+        if (select != null) {
             HashMap values = select.getCurrentGroup();
-            if(values != null) {
-                Value v = (Value)values.get(this);
-                if(v!=null) {
+            if (values != null) {
+                Value v = (Value) values.get(this);
+                if (v != null) {
                     return v;
                 }
             }
         }
         Value value = resolver.getValue(column);
-        if(value== null) {
+        if (value == null) {
             throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         return value;
@@ -189,20 +191,20 @@ public class ExpressionColumn extends Expression {
     public String getOriginalColumnName() {
         return columnName;
     }
-    
+
     public String getOriginalAliasName() {
         return tableAlias;
     }
 
     public String getColumnName() {
-        return columnName!=null ? columnName : column.getName();
+        return columnName != null ? columnName : column.getName();
     }
 
     public String getSchemaName() {
         Table table = column.getTable();
         return table == null ? null : table.getSchema().getName();
-    } 
-    
+    }
+
     public String getTableName() {
         Table table = column.getTable();
         return table == null ? null : table.getName();
@@ -211,17 +213,17 @@ public class ExpressionColumn extends Expression {
     public String getAlias() {
         return column.getName();
     }
-    
+
     public boolean isAutoIncrement() {
         return column.getSequence() != null;
     }
-    
+
     public int getNullable() {
         return column.getNullable() ? Column.NULLABLE : Column.NOT_NULLABLE;
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch (visitor.type) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return false;
         case ExpressionVisitor.READONLY:
@@ -231,7 +233,8 @@ public class ExpressionColumn extends Expression {
             return this.queryLevel < visitor.queryLevel;
         case ExpressionVisitor.EVALUATABLE:
             // if the current value is known (evaluatable set)
-            // or if this columns belongs to a 'higher level' query and is therefore just a parameter
+            // or if this columns belongs to a 'higher level' query and is
+            // therefore just a parameter
             return evaluatable || visitor.queryLevel < this.queryLevel;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
@@ -239,24 +242,25 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return resolver != visitor.getResolver();
         default:
-            throw Message.getInternalError("type="+visitor.type);
+            throw Message.getInternalError("type=" + visitor.type);
         }
-    }    
-    
+    }
+
     public int getCost() {
         return 2;
     }
-    
+
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
-        if(filter == tf && column.getType() == Value.BOOLEAN) {
-            IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(true)));
+        if (filter == tf && column.getType() == Value.BOOLEAN) {
+            IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression
+                    .get(ValueBoolean.get(true)));
             filter.addIndexCondition(cond);
-        }            
-    }    
+        }
+    }
 
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
-    
+
 }

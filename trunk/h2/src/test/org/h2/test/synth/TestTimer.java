@@ -19,7 +19,7 @@ public class TestTimer extends TestBase {
 
     public void test() throws Exception {
         validateOld();
-        DeleteDbFiles.execute(BASE_DIR, "timer", true);
+        DeleteDbFiles.execute(baseDir, "timer", true);
         loop();
     }
 
@@ -101,7 +101,7 @@ public class TestTimer extends TestBase {
                 continue;
             }
             try {
-                Backup.execute(s, BASE_DIR, "timer", true);
+                Backup.execute(s, baseDir, "timer", true);
             } catch (SQLException e) {
                 logError("backup", e);
             }

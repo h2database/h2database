@@ -46,125 +46,125 @@ public class TraceObject {
      * INTERNAL
      */
     public String toString() {
-        return PREFIX[type] + id ;
+        return PREFIX[type] + id;
     }
-    
+
     protected int getNextId(int type) {
         return ID[type]++;
     }
-    
+
     protected boolean debug() {
         return trace.debug();
     }
-    
+
     protected boolean info() {
         return trace.info();
-    }    
+    }
 
     protected Trace getTrace() {
         return trace;
     }
-    
+
     protected void debugCodeAssign(String className, int type, int id) {
-        if(!trace.debug()) {
+        if (!trace.debug()) {
             return;
         }
         trace.debugCode(className + " " + PREFIX[type] + id + " = ");
     }
-    
+
     protected void infoCodeAssign(String className, int type, int id) {
-        if(!trace.info()) {
+        if (!trace.info()) {
             return;
         }
         trace.infoCode(className + " " + PREFIX[type] + id + " = ");
-    }    
-    
+    }
+
     protected void debugCodeCall(String text) {
-        if(!trace.debug()) {
+        if (!trace.debug()) {
             return;
         }
         trace.debugCode(toString() + "." + text + "();");
     }
-    
+
     protected void debugCodeCall(String text, long param) {
-        if(!trace.debug()) {
+        if (!trace.debug()) {
             return;
         }
-        trace.debugCode(toString() + "." + text + "("+param+");");
+        trace.debugCode(toString() + "." + text + "(" + param + ");");
     }
-    
+
     protected void debugCodeCall(String text, String param) {
-        if(!trace.debug()) {
+        if (!trace.debug()) {
             return;
         }
-        trace.debugCode(toString() + "." + text + "("+quote(param)+");");
-    }    
-    
+        trace.debugCode(toString() + "." + text + "(" + quote(param) + ");");
+    }
+
     protected void debugCode(String text) {
-        if(!trace.debug()) {
+        if (!trace.debug()) {
             return;
         }
         trace.debugCode(toString() + "." + text);
     }
-    
+
     protected String quote(String s) {
         return StringUtils.quoteJavaString(s);
     }
-    
+
     protected String quoteTime(java.sql.Time x) {
-        if(x == null) {
+        if (x == null) {
             return "null";
         }
         return "Time.valueOf(\"" + x.toString() + "\")";
     }
 
     protected String quoteTimestamp(java.sql.Timestamp x) {
-        if(x == null) {
+        if (x == null) {
             return "null";
         }
         return "Timestamp.valueOf(\"" + x.toString() + "\")";
     }
-    
+
     protected String quoteDate(java.sql.Date x) {
-        if(x == null) {
+        if (x == null) {
             return "null";
         }
         return "Date.valueOf(\"" + x.toString() + "\")";
-    }    
-    
+    }
+
     protected String quoteBigDecimal(BigDecimal x) {
-        if(x == null) {
+        if (x == null) {
             return "null";
         }
         return "new BigDecimal(\"" + x.toString() + "\")";
     }
-    
+
     protected String quoteBytes(byte[] x) {
-        if(x == null) {
+        if (x == null) {
             return "null";
         }
         return "new byte[" + x.length + "]";
     }
-    
+
     protected String quoteArray(String[] s) {
         return StringUtils.quoteJavaStringArray(s);
     }
-    
+
     protected String quoteIntArray(int[] s) {
         return StringUtils.quoteJavaIntArray(s);
     }
-    
+
     protected String quoteMap(Map map) {
-        if(map == null) {
+        if (map == null) {
             return "null";
         }
-        if(map.size() == 0) {
+        if (map.size() == 0) {
             return "new Map()";
         }
         StringBuffer buff = new StringBuffer("new Map() /* ");
         try {
             // Map<String, Class>
-            for(Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator it = map.entrySet().iterator(); it.hasNext();) {
                 Map.Entry entry = (Map.Entry) it.next();
                 String key = (String) entry.getKey();
                 buff.append(key);
@@ -172,34 +172,34 @@ public class TraceObject {
                 Class clazz = (Class) entry.getValue();
                 buff.append(clazz.getName());
             }
-        } catch(Exception e) {
-            buff.append(e.toString()+": "+map.toString());
+        } catch (Exception e) {
+            buff.append(e.toString() + ": " + map.toString());
         }
         buff.append("*/");
         return buff.toString();
     }
 
     protected SQLException logAndConvert(Throwable e) {
-        if(SysProperties.LOG_ALL_ERRORS)  {
-            synchronized(this.getClass()) {
+        if (SysProperties.LOG_ALL_ERRORS) {
+            synchronized (this.getClass()) {
                 // e.printStackTrace();
                 try {
-                    Writer writer = FileUtils.openFileWriter(SysProperties.LOG_ALL_ERRORS_FILE,  true);
+                    Writer writer = FileUtils.openFileWriter(SysProperties.LOG_ALL_ERRORS_FILE, true);
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();
                     writer.close();
-                } catch(IOException e2) {
+                } catch (IOException e2) {
                     e2.printStackTrace();
                 }
             }
         }
-        if(trace == null) {
+        if (trace == null) {
             TraceSystem.traceThrowable(e);
         } else {
-            if(e instanceof SQLException) {
+            if (e instanceof SQLException) {
                 trace.error("SQLException", e);
-                return (SQLException)e;
+                return (SQLException) e;
             } else {
                 trace.error("Uncaught Exception", e);
             }

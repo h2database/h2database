@@ -52,7 +52,7 @@ public class TraceSystem {
     
     public static void traceThrowable(Throwable e) {
         PrintWriter writer = DriverManager.getLogWriter();
-        if(writer != null) {
+        if (writer != null) {
             e.printStackTrace(writer);
         }
     }
@@ -65,10 +65,10 @@ public class TraceSystem {
         this.fileName = fileName;
         traces = new SmallLRUCache(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
-        if(fileName != null && init) {
+        if (fileName != null && init) {
             try {
                 openWriter();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 logWritingError(e);
             }
         }
@@ -117,7 +117,7 @@ public class TraceSystem {
     }
 
     private String format(String module, String s) {
-        synchronized(dateFormat) {
+        synchronized (dateFormat) {
             return dateFormat.format(new Date()) + module + ": " + s;
         }
     }
@@ -138,11 +138,11 @@ public class TraceSystem {
             }
         }
     }
-    
+
     private void enableIfRequired() {
-        if(!manualEnabling) {
+        if (!manualEnabling) {
             return;
-        }  
+        }
         long time = System.currentTimeMillis();
         if (time > lastCheck + CHECK_FILE_TIME) {
             String checkFile = fileName + Constants.SUFFIX_TRACE_START_FILE;
@@ -160,7 +160,7 @@ public class TraceSystem {
 
     private synchronized void writeFile(String s, Throwable t) {
         try {
-            if(checkSize++ >= CHECK_SIZE_EACH_WRITES) {
+            if (checkSize++ >= CHECK_SIZE_EACH_WRITES) {
                 checkSize = 0;
                 closeWriter();
                 if (maxFileSize > 0 && FileUtils.length(fileName) > maxFileSize) {
@@ -171,7 +171,7 @@ public class TraceSystem {
                     FileUtils.rename(fileName, old);
                 }
             }
-            if(!openWriter()) {
+            if (!openWriter()) {
                 return;
             }
             printWriter.println(s);
@@ -179,68 +179,70 @@ public class TraceSystem {
                 t.printStackTrace(printWriter);
             }
             printWriter.flush();
-            if(closed) {
+            if (closed) {
                 closeWriter();
             }
         } catch (Exception e) {
             logWritingError(e);
         }
     }
-    
+
     private void logWritingError(Exception e) {
-        if(writingErrorLogged) {
+        if (writingErrorLogged) {
             return;
         }
         writingErrorLogged = true;
         // TODO translate trace messages
-        SQLException se = Message.getSQLException(ErrorCode.LOG_FILE_ERROR_2, new String[] { fileName, e.toString() }, e);
+        SQLException se = Message.getSQLException(ErrorCode.LOG_FILE_ERROR_2, new String[] { fileName, e.toString() },
+                e);
         // print this error only once
         fileName = null;
         System.out.println(se);
         se.printStackTrace();
     }
-    
+
     private boolean openWriter() {
-        if(printWriter == null) {
+        if (printWriter == null) {
             try {
                 FileUtils.createDirs(fileName);
-                if(FileUtils.exists(fileName) && FileUtils.isReadOnly(fileName)) {
-                    // read only database: don't log error if the trace file can't be opened
+                if (FileUtils.exists(fileName) && FileUtils.isReadOnly(fileName)) {
+                    // read only database: don't log error if the trace file
+                    // can't be opened
                     return false;
                 }
                 fileWriter = FileUtils.openFileWriter(fileName, true);
                 printWriter = new PrintWriter(fileWriter, true);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 logWritingError(e);
                 return false;
             }
         }
-        return true;        
+        return true;
     }
-    
+
     private synchronized void closeWriter() {
-        if(printWriter != null) {
+        if (printWriter != null) {
             printWriter.flush();
             printWriter.close();
             printWriter = null;
         }
-        if(fileWriter != null) {
+        if (fileWriter != null) {
             try {
                 fileWriter.close();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 // ignore exception
             }
             fileWriter = null;
         }
     }
-    
+
     public void close() {
         closeWriter();
         closed = true;
     }
-    
+
     protected void finalize() {
-        if(!SysProperties.runFinalize) {
+        if (!SysProperties.runFinalize) {
             return;
         }        
         close();

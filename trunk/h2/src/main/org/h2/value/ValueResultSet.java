@@ -30,17 +30,17 @@ public class ValueResultSet extends Value {
         int columnCount = meta.getColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
         ValueResultSet val = new ValueResultSet(simple);
-        for(int i=0; i<columnCount; i++) {
-            String name = meta.getColumnLabel(i+1);
-            int sqlType = meta.getColumnType(i+1);
-            int precision = meta.getPrecision(i+1);
-            int scale = meta.getScale(i+1);
+        for (int i = 0; i < columnCount; i++) {
+            String name = meta.getColumnLabel(i + 1);
+            int sqlType = meta.getColumnType(i + 1);
+            int precision = meta.getPrecision(i + 1);
+            int scale = meta.getScale(i + 1);
             simple.addColumn(name, sqlType, precision, scale);
         }
-        for(int i=0; i<maxrows && rs.next(); i++) {
+        for (int i = 0; i < maxrows && rs.next(); i++) {
             Object[] list = new Object[columnCount];
-            for(int j=0; j<columnCount; j++) {
-                list[j] = rs.getObject(j+1);
+            for (int j = 0; j < columnCount; j++) {
+                list[j] = rs.getObject(j + 1);
             }
             simple.addRow(list);
         }
@@ -66,12 +66,12 @@ public class ValueResultSet extends Value {
         result.beforeFirst();
         ResultSetMetaData meta = result.getMetaData();
         int columnCount = meta.getColumnCount();
-        for(int i=0; result.next(); i++) {
-            if(i>0) {
+        for (int i = 0; result.next(); i++) {
+            if (i > 0) {
                 buff.append(", ");
             }
             buff.append('(');
-            for(int j=0; j<columnCount; j++) {
+            for (int j = 0; j < columnCount; j++) {
                 if (j > 0) {
                     buff.append(", ");
                 }

@@ -14,7 +14,7 @@ public class TreeCursor implements Cursor {
     private TreeIndex tree;
     private TreeNode node;
     private boolean beforeFirst;
-    private SearchRow first, last;    
+    private SearchRow first, last;
 
     TreeCursor(TreeIndex tree, TreeNode node, SearchRow first, SearchRow last) {
         this.tree = tree;
@@ -27,19 +27,19 @@ public class TreeCursor implements Cursor {
     public Row get() {
         return node == null ? null : node.row;
     }
-    
+
     public SearchRow getSearchRow() {
         return get();
     }
-    
+
     public int getPos() {
         return node.row.getPos();
     }
 
     public boolean next() throws SQLException {
-        if(beforeFirst) {
+        if (beforeFirst) {
             beforeFirst = false;
-            if(node == null) {
+            if (node == null) {
                 return false;
             }
             if (first != null && tree.compareRows(node.row, first) < 0) {
@@ -48,7 +48,7 @@ public class TreeCursor implements Cursor {
         } else {
             node = tree.next(node);
         }
-        if(node != null && last != null) {
+        if (node != null && last != null) {
             if (tree.compareRows(node.row, last) > 0) {
                 node = null;
             }

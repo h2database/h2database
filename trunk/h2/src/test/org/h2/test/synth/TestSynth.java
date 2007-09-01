@@ -214,7 +214,7 @@ public class TestSynth extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        BASE_DIR = "dataSynth";
+        baseDir = "dataSynth";
         deleteDb("synth");
         databases = new ArrayList();
 
@@ -229,7 +229,7 @@ public class TestSynth extends TestBase {
         mode = H2_MEM;
         Class.forName("org.h2.Driver");
         addDatabase("org.h2.Driver", "jdbc:h2:mem:synth", "sa", "", true);
-        addDatabase("org.h2.Driver", "jdbc:h2:"+BASE_DIR+"/"+DIR+"/synth", "sa", "", false);
+        addDatabase("org.h2.Driver", "jdbc:h2:"+baseDir+"/"+DIR+"/synth", "sa", "", false);
         
 //        addDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test", "sa", "");
 //        addDatabase("org.h2.Driver", "jdbc:h2:synth;mode=mysql", "sa", "");
@@ -252,13 +252,13 @@ public class TestSynth extends TestBase {
 //       System.exit(0);
 
         
-        BASE_DIR = "data";        
+        baseDir = "data";        
         return this;
     }
     
     public void testCase(int i) throws Exception {
-        BASE_DIR = "dataCrash";
-        deleteDb(BASE_DIR, DIR+"/synth");
+        baseDir = "dataCrash";
+        deleteDb(baseDir, DIR+"/synth");
         try {
             printTime("TestSynth " + i);
             testRun(i);
@@ -266,7 +266,7 @@ public class TestSynth extends TestBase {
             TestBase.logError("error", e);
             System.exit(0);
         }
-        BASE_DIR = "data";
+        baseDir = "data";
     }
     
     public void test() throws Exception {

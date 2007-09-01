@@ -23,17 +23,17 @@ public class ValueByte extends Value {
 
     public Value add(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value + other.value);
         }
         return ValueByte.get((byte) (value + other.value));
     }
-    
+
     private ValueByte checkRange(int value) throws SQLException {
-        if(value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
+        if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.BYTE).name);
         } else {
-            return ValueByte.get((byte)value);
+            return ValueByte.get((byte) value);
         }
     }    
 
@@ -42,25 +42,25 @@ public class ValueByte extends Value {
     }
 
     public Value negate() throws SQLException {
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
-            return checkRange(-(int)value);
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
+            return checkRange(-(int) value);
         }
         return ValueByte.get((byte) (-value));
     }
 
     public Value subtract(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value - other.value);
-        }        
+        }
         return ValueByte.get((byte) (value - other.value));
     }
 
     public Value multiply(Value v) throws SQLException {
         ValueByte other = (ValueByte) v;
-        if(SysProperties.OVERFLOW_EXCEPTIONS) {
+        if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value * other.value);
-        }            
+        }
         return ValueByte.get((byte) (value * other.value));
     }
 
@@ -121,7 +121,7 @@ public class ValueByte extends Value {
     }
 
     protected boolean isEqual(Value v) {
-        return v instanceof ValueByte && value == ((ValueByte)v).value;
-    } 
+        return v instanceof ValueByte && value == ((ValueByte) v).value;
+    }
 
 }

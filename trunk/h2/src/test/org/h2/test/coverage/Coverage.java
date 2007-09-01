@@ -37,23 +37,15 @@ public class Coverage {
     boolean perFunction = true;
 
     void printUsage() {
-        System.out
-                .println("Usage:\n"
-                        + "- copy all your source files to another directory\n"
-                        + "  (be careful, they will be modified - don't take originals!)\n"
-                        + "- java " + getClass().getName() + " <directory>\n"
-                        + "  this will modified the source code and create 'profile.txt'\n"
-                        + "- compile the modified source files\n"
-                        + "- run your main application\n"
-                        + "- after the application exits, a file 'notCovered.txt' is created,\n"
-                        + "  which contains the class names, function names and line numbers\n"
-                        + "  of code that has not been covered\n\n"
-                        + "Options:\n" 
-                        + "-r     recurse all subdirectories\n"
-                        + "-e     exclude files\n"
-                        + "-c     coverage on a per-class basis\n"
-                        + "-f     coverage on a per-function basis\n"
-                        + "<dir>  directory name (. for current directory)");
+        System.out.println("Usage:\n" + "- copy all your source files to another directory\n"
+                + "  (be careful, they will be modified - don't take originals!)\n" + "- java " + getClass().getName()
+                + " <directory>\n" + "  this will modified the source code and create 'profile.txt'\n"
+                + "- compile the modified source files\n" + "- run your main application\n"
+                + "- after the application exits, a file 'notCovered.txt' is created,\n"
+                + "  which contains the class names, function names and line numbers\n"
+                + "  of code that has not been covered\n\n" + "Options:\n" + "-r     recurse all subdirectories\n"
+                + "-e     exclude files\n" + "-c     coverage on a per-class basis\n"
+                + "-f     coverage on a per-function basis\n" + "<dir>  directory name (. for current directory)");
     }
 
     public static void main(String[] arg) {
@@ -68,7 +60,7 @@ public class Coverage {
         Coverage c = new Coverage();
         int recurse = 1;
         for (int i = 0; i < arg.length; i++) {
-            String s = arg[i];      
+            String s = arg[i];
             if (s.equals("-r")) {
                 // maximum recurse is 100 subdirectories, that should be enough
                 recurse = 100;
@@ -90,14 +82,14 @@ public class Coverage {
             e.printStackTrace();
         }
     }
-    
+
     void addExclude(String file) {
         exclude.add(file);
     }
-    
+
     boolean isExcluded(String s) {
-        for(int i=0; i<exclude.size(); i++) {
-            if(s.startsWith(exclude.get(i).toString())) {
+        for (int i = 0; i < exclude.size(); i++) {
+            if (s.startsWith(exclude.get(i).toString())) {
                 return true;
             }
         }
@@ -107,7 +99,7 @@ public class Coverage {
     void addDir(String path, int recurse) {
         File f = new File(path);
         if (f.isFile() && path.endsWith(".java")) {
-            if(!isExcluded(path)) {
+            if (!isExcluded(path)) {
                 files.add(path);
             }
         } else if (f.isDirectory() && recurse > 0) {
@@ -139,18 +131,17 @@ public class Coverage {
         if (i != -1) {
             file = file.substring(0, i);
         }
-        while(true) {
+        while (true) {
             i = file.indexOf('/');
-            if(i < 0) {
+            if (i < 0) {
                 i = file.indexOf('\\');
             }
-            if(i<0) {
+            if (i < 0) {
                 break;
             }
-            file = file.substring(0, i) + "." +file.substring(i+1);
+            file = file.substring(0, i) + "." + file.substring(i + 1);
         }
-        if (name.endsWith("Coverage.java") || name.endsWith("Tokenizer.java")
-                || name.endsWith("Profile.java")) {
+        if (name.endsWith("Coverage.java") || name.endsWith("Tokenizer.java") || name.endsWith("Profile.java")) {
             return;
         }
         File f = new File(name);
@@ -196,10 +187,10 @@ public class Coverage {
             if (token == null) {
                 token = "" + ((char) i);
             } else if (i == '\'') {
-                //mToken="'"+getEscape(mToken)+"'";
+                // mToken="'"+getEscape(mToken)+"'";
                 token = tokenizer.getToken();
             } else if (i == '\"') {
-                //mToken="\""+getEscape(mToken)+"\"";
+                // mToken="\""+getEscape(mToken)+"\"";
                 token = tokenizer.getToken();
             } else {
                 if (write == null) {
@@ -210,9 +201,8 @@ public class Coverage {
             }
         }
         if (write == null
-                || (!write.equals("else ") && !write.equals("else")
-                        && !write.equals("super ") && !write.equals("super")
-                        && !write.equals("this ") && !write.equals("this")
+                || (!write.equals("else ") && !write.equals("else") && !write.equals("super ")
+                        && !write.equals("super") && !write.equals("this ") && !write.equals("this")
                         && !write.equals("} ") && !write.equals("}"))) {
             if (add != null && !add.equals("")) {
                 writeLine();
@@ -361,8 +351,7 @@ public class Coverage {
 
     void processStatement() throws Exception {
         while (true) {
-            if (token.equals("while") || token.equals("for")
-                    || token.equals("synchronized")) {
+            if (token.equals("while") || token.equals("for") || token.equals("synchronized")) {
                 read();
                 readThis("(");
                 processBracket();
@@ -490,10 +479,10 @@ public class Coverage {
     void nextDebug() throws Exception {
         if (perFunction) {
             int i = function.indexOf("(");
-            String func = i<0 ? function : function.substring(0, i);
-            String fileLine = file + "." + func +"(";
+            String func = i < 0 ? function : function.substring(0, i);
+            String fileLine = file + "." + func + "(";
             i = file.lastIndexOf('.');
-            String className = i<0 ? file : file.substring(i+1);
+            String className = i < 0 ? file : file.substring(i + 1);
             fileLine += className + ".java:" + line + ")";
             data.write(fileLine + " " + last + "\r\n");
         } else {
@@ -511,7 +500,7 @@ public class Coverage {
 
     void write(String s) throws Exception {
         writer.write(s);
-        //System.out.print(s);
+        // System.out.print(s);
     }
 
     void printError(String error) {
@@ -520,4 +509,3 @@ public class Coverage {
         System.out.println("ERROR: " + error);
     }
 }
-

@@ -26,23 +26,23 @@ public class IntArray {
     }
     
     public static int[] clone(int[] array) {
-        if(array == null) {
+        if (array == null) {
             return null;
         }
         int[] copy = new int[array.length];
         System.arraycopy(array, 0, copy, 0, array.length);
         return copy;
     }
-    
+
     public static boolean equals(int[] a, int[] b) {
-        if(a == null || b == null) {
+        if (a == null || b == null) {
             return a == b;
         }
-        if(a.length != b.length) {
+        if (a.length != b.length) {
             return false;
         }
-        for(int i=0; i<a.length; i++) {
-            if(a[i] != b[i]) {
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] != b[i]) {
                 return false;
             }
         }
@@ -62,7 +62,7 @@ public class IntArray {
     }
 
     public int remove(int i) {
-        if (SysProperties.CHECK &&  i >= size) {
+        if (SysProperties.CHECK && i >= size) {
             throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
         }
         int value = data[i];
@@ -99,29 +99,29 @@ public class IntArray {
         }
         data[i] = value;
     }
-    
+
     public boolean equals(Object obj) {
-        if(!(obj instanceof IntArray)) {
+        if (!(obj instanceof IntArray)) {
             return false;
         }
         IntArray other = (IntArray) obj;
-        if(hashCode() != other.hashCode() || size != other.size) {
+        if (hashCode() != other.hashCode() || size != other.size) {
             return false;
         }
-        for(int i=0; i<size; i++) {
-            if(data[i] != other.data[i]) {
+        for (int i = 0; i < size; i++) {
+            if (data[i] != other.data[i]) {
                 return false;
             }
         }
         return true;
     }
-    
+
     public int hashCode() {
         if (hash != 0) {
             return hash;
         }
         int h = size + 1;
-        for(int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             h = h * 31 + data[i];
         }
         hash = h;
@@ -134,15 +134,15 @@ public class IntArray {
 
     public void addValueSorted(int value) {
         int l = 0, r = size;
-        while(l < r) {
+        while (l < r) {
             int i = (l + r) >>> 1;
             int d = data[i];
-            if(d == value) {
+            if (d == value) {
                 return;
-            } else if(d > value) {
+            } else if (d > value) {
                 r = i;
             } else {
-                l =  i + 1;
+                l = i + 1;
             }
         }
         add(l, value);
@@ -165,8 +165,8 @@ public class IntArray {
 //    }
 
     public void removeValue(int value) {
-        for(int i=0; i<size; i++) {
-            if(data[i] == value) {
+        for (int i = 0; i < size; i++) {
+            if (data[i] == value) {
                 remove(i);
                 return;
             }
@@ -176,13 +176,13 @@ public class IntArray {
 
     public int findNextValueIndex(int value) {
         int l = 0, r = size;
-        while(l < r) {
+        while (l < r) {
             int i = (l + r) >>> 1;
             int d = data[i];
-            if(d >= value) {
+            if (d >= value) {
                 r = i;
             } else {
-                l =  i + 1;
+                l = i + 1;
             }
         }
         return l;

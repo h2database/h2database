@@ -37,7 +37,7 @@ public class Insert extends Prepared {
 
     public void setCommand(Command command) {
         super.setCommand(command);
-        if(query != null) {
+        if (query != null) {
             query.setCommand(command);
         }
     }
@@ -62,24 +62,23 @@ public class Insert extends Prepared {
         int count;
         session.getUser().checkRight(table, Right.INSERT);
         setCurrentRowNumber(0);
-        if(list.size() > 0) {
+        if (list.size() > 0) {
             count = 0;
-            for(int x=0; x<list.size(); x++) {
-                Expression[] expr = (Expression[])list.get(x);
+            for (int x = 0; x < list.size(); x++) {
+                Expression[] expr = (Expression[]) list.get(x);
                 Row newRow = table.getTemplateRow();
-                setCurrentRowNumber(x+1);
+                setCurrentRowNumber(x + 1);
                 for (int i = 0; i < columns.length; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];
-                    if(e != null) {
+                    if (e != null) {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
                         Value v = e.getValue(session).convertTo(c.getType());
                         newRow.setValue(index, v);
                     }
                 }
-                // TODO insert: set default values before calling triggers?
                 checkCancelled();
                 table.fireBefore(session);
                 table.validateConvertUpdateSequence(session, newRow);
@@ -96,7 +95,7 @@ public class Insert extends Prepared {
             count = 0;
             table.fireBefore(session);
             table.lock(session, true, false);
-            while(rows.next()) {
+            while (rows.next()) {
                 checkCancelled();
                 count++;
                 Value[] r = rows.currentRow();
@@ -125,27 +124,27 @@ public class Insert extends Prepared {
         buff.append("INSERT INTO ");
         buff.append(table.getSQL());
         buff.append('(');
-        for(int i=0; i<columns.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < columns.length; i++) {
+            if (i > 0) {
                 buff.append(", ");
             }
             buff.append(columns[i].getSQL());
         }
         buff.append(")\n");
-        if(list.size() > 0) {
+        if (list.size() > 0) {
             buff.append("VALUES ");
-            for(int x=0; x<list.size(); x++) {
-                Expression[] expr = (Expression[])list.get(x);
-                if(x > 0) {
+            for (int x = 0; x < list.size(); x++) {
+                Expression[] expr = (Expression[]) list.get(x);
+                if (x > 0) {
                     buff.append(", ");
                 }
                 buff.append("(");
                 for (int i = 0; i < columns.length; i++) {
-                    if(i>0) {
+                    if (i > 0) {
                         buff.append(", ");
                     }
                     Expression e = expr[i];
-                    if(e == null) {
+                    if (e == null) {
                         buff.append("DEFAULT");
                     } else {
                         buff.append(e.getSQL());
@@ -161,29 +160,29 @@ public class Insert extends Prepared {
 
     public void prepare() throws SQLException {
         if (columns == null) {
-            if(list.size() > 0 && ((Expression[])list.get(0)).length == 0) {
+            if (list.size() > 0 && ((Expression[]) list.get(0)).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if(list.size() > 0) {
-            for(int x=0; x<list.size(); x++) {
-                Expression[] expr = (Expression[])list.get(x);
-                if(expr.length != columns.length) {
+        if (list.size() > 0) {
+            for (int x = 0; x < list.size(); x++) {
+                Expression[] expr = (Expression[]) list.get(x);
+                if (expr.length != columns.length) {
                     throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
-                for(int i=0; i<expr.length; i++) {
+                for (int i = 0; i < expr.length; i++) {
                     Expression e = expr[i];
-                    if(e != null) {
+                    if (e != null) {
                         expr[i] = e.optimize(session);
                     }
                 }
             }
         } else {
             query.prepare();
-            if(query.getColumnCount() != columns.length) {
+            if (query.getColumnCount() != columns.length) {
                 throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }

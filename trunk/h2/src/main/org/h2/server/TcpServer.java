@@ -23,15 +23,17 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
 public class TcpServer implements Service {
-    
-    // TODO new feature: implement automatic client / server mode if 'socket' file locking is used
-    // TODO better exception message if the port is already in use, maybe automatically use the next free port?
-    
+
+    // TODO new feature: implement automatic client / server mode if 'socket'
+    // file locking is used
+    // TODO better exception message if the port is already in use, maybe
+    // automatically use the next free port?
+
     public static final int DEFAULT_PORT = 9092;
     public static final int SHUTDOWN_NORMAL = 0;
     public static final int SHUTDOWN_FORCE = 1;
     public static boolean logInternalErrors;
-    
+
     private int port;
     private boolean log;
     private boolean ssl;
@@ -46,11 +48,11 @@ public class TcpServer implements Service {
     private String managementPassword = "";
     private static HashMap servers = new HashMap();
     private Thread listenerThread;
-    
+
     public static String getManagementDbName(int port) {
         return "mem:" + Constants.MANAGEMENT_DB_PREFIX + port;
     }
-    
+
     private void initManagementDb() throws SQLException {
         Properties prop = new Properties();
         prop.setProperty("user", "sa");
@@ -61,16 +63,16 @@ public class TcpServer implements Service {
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() +".stopServer\"");
+            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() + ".stopServer\"");
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        servers.put(""+port, this);
+        servers.put("" + port, this);
     }
-    
+
     private void stopManagementDb() {
-        synchronized(TcpServer.class) {
-            if(managementDb != null) {
+        synchronized (TcpServer.class) {
+            if (managementDb != null) {
                 try {
                     managementDb.close();
                 } catch (SQLException e) {
@@ -92,7 +94,7 @@ public class TcpServer implements Service {
             } else if ("-tcpPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-tcpPassword".equals(a)) {
-                managementPassword= args[++i];
+                managementPassword = args[++i];
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-tcpAllowOthers".equals(a)) {
@@ -104,25 +106,25 @@ public class TcpServer implements Service {
         org.h2.Driver.load();
         url = (ssl ? "ssl" : "tcp") + "://localhost:" + port;
     }
-    
+
     public String getURL() {
         return url;
     }
-    
+
     boolean allow(Socket socket) {
-        if(allowOthers) {
+        if (allowOthers) {
             return true;
         }
         return NetUtils.isLoopbackAddress(socket);
     }
-    
+
     public void start() throws SQLException {
-        synchronized(TcpServer.class) {
+        synchronized (TcpServer.class) {
             serverSocket = NetUtils.createServerSocket(port, ssl);
             initManagementDb();
         }
     }
-    
+
     public void listen() {
         listenerThread = Thread.currentThread();
         String threadName = listenerThread.getName();
@@ -132,12 +134,12 @@ public class TcpServer implements Service {
                 TcpServerThread c = new TcpServerThread(s, this);
                 running.add(c);
                 Thread thread = new Thread(c);
-                thread.setName(threadName+" thread");
+                thread.setName(threadName + " thread");
                 c.setThread(thread);
                 thread.start();
             }
         } catch (Exception e) {
-            if(!stop) {
+            if (!stop) {
                 TraceSystem.traceThrowable(e);
             }
         }
@@ -145,24 +147,24 @@ public class TcpServer implements Service {
     }
 
     public boolean isRunning() {
-        if(serverSocket == null) {
+        if (serverSocket == null) {
             return false;
         }
         try {
             Socket s = NetUtils.createLoopbackSocket(port, ssl);
-            s.close();       
+            s.close();
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
-    
+
     public synchronized void stop() {
         // TODO server: share code between web and tcp servers
-        if(!stop) {
+        if (!stop) {
             stopManagementDb();
             stop = true;
-            if(serverSocket != null) {
+            if (serverSocket != null) {
                 try {
                     serverSocket.close();
                 } catch (IOException e) {
@@ -170,7 +172,7 @@ public class TcpServer implements Service {
                 }
                 serverSocket = null;
             }
-            if(listenerThread != null) {
+            if (listenerThread != null) {
                 try {
                     listenerThread.join(1000);
                 } catch (InterruptedException e) {
@@ -180,27 +182,27 @@ public class TcpServer implements Service {
         }
         // TODO server: using a boolean 'now' argument? a timeout?
         ArrayList list = new ArrayList(running);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             TcpServerThread c = (TcpServerThread) list.get(i);
             c.close();
             try {
                 c.getThread().join(100);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 TraceSystem.traceThrowable(e);
             }
         }
-        servers.remove(""+port);
+        servers.remove("" + port);
     }
 
     public static synchronized void stopServer(int port, String password, int shutdownMode) {
         TcpServer server = (TcpServer) servers.get("" + port);
-        if(server == null) {
+        if (server == null) {
             return;
         }
-        if(!server.managementPassword.equals(password)) {
+        if (!server.managementPassword.equals(password)) {
             return;
         }
-        if(shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
+        if (shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
             server.stopManagementDb();
             server.stop = true;
             try {
@@ -209,7 +211,7 @@ public class TcpServer implements Service {
             } catch (Exception e) {
                 // try to connect - so that accept returns
             }
-        } else if(shutdownMode == TcpServer.SHUTDOWN_FORCE) {
+        } else if (shutdownMode == TcpServer.SHUTDOWN_FORCE) {
             server.stop();
         }
     }
@@ -221,7 +223,7 @@ public class TcpServer implements Service {
     boolean getLog() {
         return log;
     }
-    
+
     String getBaseDir() {
         return baseDir;
     }
@@ -238,7 +240,7 @@ public class TcpServer implements Service {
             e.printStackTrace();
         }
     }
-    
+
     public boolean getAllowOthers() {
         return allowOthers;
     }
@@ -248,7 +250,7 @@ public class TcpServer implements Service {
     }
 
     public void logInternalError(String string) {
-        if(TcpServer.logInternalErrors) {
+        if (TcpServer.logInternalErrors) {
             System.out.println(string);
             new Error(string).printStackTrace();
         }

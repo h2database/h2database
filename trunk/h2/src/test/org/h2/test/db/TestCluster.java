@@ -23,13 +23,13 @@ public class TestCluster extends TestBase {
             return;
         }
         
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR + "/node1", "-quiet"});
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR + "/node2", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", baseDir + "/node1", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", baseDir + "/node2", "-quiet"});
         
         // create the master database
         Connection conn;
         Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:file:" + BASE_DIR + "/node1/test", "sa", "");
+        conn = DriverManager.getConnection("jdbc:h2:file:" + baseDir + "/node1/test", "sa", "");
         Statement stat;
         stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -44,14 +44,14 @@ public class TestCluster extends TestBase {
         conn.close();
 
         CreateCluster.main(new String[]{
-                "-urlSource", "jdbc:h2:file:"+ BASE_DIR + "/node1/test", 
-                "-urlTarget", "jdbc:h2:file:"+BASE_DIR + "/node2/test", 
+                "-urlSource", "jdbc:h2:file:"+ baseDir + "/node1/test", 
+                "-urlTarget", "jdbc:h2:file:"+baseDir + "/node2/test", 
                 "-user", "sa", 
                 "-serverlist", "localhost:9091,localhost:9092"
         });
         
-        Server n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", BASE_DIR + "/node1"}).start();        
-        Server n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", BASE_DIR + "/node2"}).start();        
+        Server n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", baseDir + "/node1"}).start();        
+        Server n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", baseDir + "/node2"}).start();        
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test", "sa", "");
@@ -79,13 +79,13 @@ public class TestCluster extends TestBase {
         conn.close();
         n2.stop();
 
-        n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", BASE_DIR + "/node1"}).start();        
+        n1 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9091", "-baseDir", baseDir + "/node1"}).start();        
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test;CLUSTER=''", "sa", "");
         check(conn, len);
         conn.close();
         n1.stop();
         
-        n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", BASE_DIR + "/node2"}).start();        
+        n2 = org.h2.tools.Server.createTcpServer(new String[]{"-tcpPort", "9092", "-baseDir", baseDir + "/node2"}).start();        
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9092/test;CLUSTER=''", "sa", "");
         check(conn, len);
         conn.createStatement().execute("SELECT * FROM A");

@@ -26,9 +26,9 @@ public class TestBtreeIndex extends TestBase {
     }
     
     public void testCase(int seed) throws Exception {
-        BASE_DIR = "dataIndex";
+        baseDir = "dataIndex";
         testOne(seed);
-        BASE_DIR = "data";
+        baseDir = "data";
     }    
 
     private void testOne(int seed) throws Exception {
@@ -52,8 +52,8 @@ public class TestBtreeIndex extends TestBase {
             buff.append("x");
         }
         String prefix = buff.toString();
-        DeleteDbFiles.execute(BASE_DIR, null, true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:" +BASE_DIR + "/index", "sa", "sa");
+        DeleteDbFiles.execute(baseDir, null, true);
+        Connection conn = DriverManager.getConnection("jdbc:h2:" +baseDir + "/index", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
         PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");

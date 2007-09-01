@@ -32,11 +32,13 @@ public class PrepareTranslation {
         String baseDir = "src/docsrc/textbase";
         prepare(baseDir, "src/main/org/h2/res");
         prepare(baseDir, "src/main/org/h2/server/web/res");
-        
+
         // convert the txt files to properties files
-        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt", "src/docsrc/text/_docs_de.properties");
-        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_ja.utf8.txt", "src/docsrc/text/_docs_ja.properties");
-        
+        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_de.utf8.txt",
+                "src/docsrc/text/_docs_de.properties");
+        PropertiesToUTF8.textUTF8ToProperties("src/docsrc/text/_docs_ja.utf8.txt",
+                "src/docsrc/text/_docs_ja.properties");
+
         // create the .jsp files and extract the text in the main language
         extractFromHtml("src/docsrc/html", "src/docsrc/text", MAIN_LANGUAGE);
 
@@ -47,16 +49,20 @@ public class PrepareTranslation {
         buildHtml("src/docsrc/text", "docs/html", "en");
         // buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
-        
-        // convert the properties files back to utf8 text files, including the main language (to be used as a template)
-        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_en.properties", "src/docsrc/text/_docs_en.utf8.txt");
-        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_de.properties", "src/docsrc/text/_docs_de.utf8.txt");
-        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties", "src/docsrc/text/_docs_ja.utf8.txt");
-        
+
+        // convert the properties files back to utf8 text files, including the
+        // main language (to be used as a template)
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_en.properties",
+                "src/docsrc/text/_docs_en.utf8.txt");
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_de.properties",
+                "src/docsrc/text/_docs_de.utf8.txt");
+        PropertiesToUTF8.propertiesToTextUTF8("src/docsrc/text/_docs_ja.properties",
+                "src/docsrc/text/_docs_ja.utf8.txt");
+
         // delete temporary files
         File[] list = new File("src/docsrc/text").listFiles();
-        for(int i=0; i<list.length; i++) {
-            if(!list[i].getName().endsWith(".utf8.txt")) {
+        for (int i = 0; i < list.length; i++) {
+            if (!list[i].getName().endsWith(".utf8.txt")) {
                 list[i].delete();
             }
         }
@@ -69,53 +75,52 @@ public class PrepareTranslation {
         String propName = templateDir + "/_docs_" + MAIN_LANGUAGE + ".properties";
         Properties prop = FileUtils.loadProperties(propName);
         propName = templateDir + "/_docs_" + language + ".properties";
-        if(!(new File(propName)).exists()) {
+        if (!(new File(propName)).exists()) {
             throw new IOException("Translation not found: " + propName);
         }
         Properties transProp = FileUtils.loadProperties(propName);
-        for(Iterator it = transProp.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = transProp.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();
             String t = transProp.getProperty(key);
             // overload with translations, but not the ones starting with #
-            if(!t.startsWith("#")) {
+            if (!t.startsWith("#")) {
                 prop.put(key, t);
             }
         }
         // add spaces to each token
-        for(Iterator it = prop.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = prop.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();
             String t = prop.getProperty(key);
             prop.put(key, " " + t + " ");
         }
-        
-        
+
         ArrayList fileNames = new ArrayList();
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             String name = list[i].getName();
-            if(!name.endsWith(".jsp")) {
+            if (!name.endsWith(".jsp")) {
                 continue;
             }
             // remove '.jsp'
-            name = name.substring(0, name.length()-4);
+            name = name.substring(0, name.length() - 4);
             fileNames.add(name);
         }
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             String name = list[i].getName();
-            if(!name.endsWith(".jsp")) {
+            if (!name.endsWith(".jsp")) {
                 continue;
             }
             // remove '.jsp'
-            name = name.substring(0, name.length()-4);
+            name = name.substring(0, name.length() - 4);
             String template = IOUtils.readStringAndClose(new FileReader(templateDir + "/" + name + ".jsp"), -1);
             String html = PageParser.parse(null, template, prop);
-            html = StringUtils.replaceAll(html, "lang=\""+MAIN_LANGUAGE+"\"", "lang=\""+ language + "\"");
-            for(int j=0; j<fileNames.size(); j++) {
+            html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"");
+            for (int j = 0; j < fileNames.size(); j++) {
                 String n = (String) fileNames.get(j);
                 html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
             }
             html = StringUtils.replaceAll(html, "_" + MAIN_LANGUAGE + ".html\"", ".html\"");
             String target;
-            if(language.equals(MAIN_LANGUAGE)) {
+            if (language.equals(MAIN_LANGUAGE)) {
                 target = targetDir + "/" + name + ".html";
             } else {
                 target = targetDir + "/" + name + "_" + language + ".html";
@@ -137,7 +142,7 @@ public class PrepareTranslation {
             }
             // remove '.html'
             name = name.substring(0, name.length() - 5);
-            if(name.indexOf('_') >= 0) {
+            if (name.indexOf('_') >= 0) {
                 // ignore translated files
                 continue;
             }
@@ -148,24 +153,24 @@ public class PrepareTranslation {
         }
     }
 
-//    private static boolean isText(String s) {
-//        if (s.length() < 2) {
-//            return false;
-//        }
-//        for (int i = 0; i < s.length(); i++) {
-//            char c = s.charAt(i);
-//            if (!Character.isDigit(c) && c != '.' && c != '-' && c != '+') {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-    
+    // private static boolean isText(String s) {
+    // if (s.length() < 2) {
+    // return false;
+    // }
+    // for (int i = 0; i < s.length(); i++) {
+    // char c = s.charAt(i);
+    // if (!Character.isDigit(c) && c != '.' && c != '-' && c != '+') {
+    // return true;
+    // }
+    // }
+    // return false;
+    // }
+
     private static String getSpace(String s, boolean start) {
-        if(start) {
-            for(int i=0; i<s.length(); i++) {
-                if(!Character.isWhitespace(s.charAt(i))) {
-                    if(i==0) {
+        if (start) {
+            for (int i = 0; i < s.length(); i++) {
+                if (!Character.isWhitespace(s.charAt(i))) {
+                    if (i == 0) {
                         return "";
                     } else {
                         return s.substring(0, i);
@@ -174,9 +179,9 @@ public class PrepareTranslation {
             }
             return s;
         } else {
-            for(int i=s.length() - 1; i>=0; i--) {
-                if(!Character.isWhitespace(s.charAt(i))) {
-                    if(i==s.length() - 1) {
+            for (int i = s.length() - 1; i >= 0; i--) {
+                if (!Character.isWhitespace(s.charAt(i))) {
+                    if (i == s.length() - 1) {
                         return "";
                     } else {
                         return s.substring(i + 1, s.length());
@@ -188,10 +193,8 @@ public class PrepareTranslation {
         }
     }
 
-    private static String extract(String documentName, File f, String target)
-            throws Exception {
-        String xml = IOUtils.readStringAndClose(new InputStreamReader(
-                new FileInputStream(f), "UTF-8"), -1);
+    private static String extract(String documentName, File f, String target) throws Exception {
+        String xml = IOUtils.readStringAndClose(new InputStreamReader(new FileInputStream(f), "UTF-8"), -1);
         StringBuffer template = new StringBuffer(xml.length());
         int id = 0;
         Properties prop = new SortedProperties();
@@ -200,7 +203,7 @@ public class PrepareTranslation {
         Stack stack = new Stack();
         String tag = "";
         boolean ignoreEnd = false;
-        String nextKey = "";    
+        String nextKey = "";
         boolean templateIsCopy = false;
         while (true) {
             int event = parser.next();
@@ -210,26 +213,22 @@ public class PrepareTranslation {
                 String s = parser.getText();
                 String trim = s.trim();
                 if (trim.length() == 0) {
-                    if(buff.length()>0) {
+                    if (buff.length() > 0) {
                         buff.append(s);
                     } else {
                         template.append(s);
-                    }                    
-                } else if ("p".equals(tag) || "li".equals(tag)
-                        || "a".equals(tag) || "td".equals(tag)
-                        || "th".equals(tag) || "h1".equals(tag)
-                        || "h2".equals(tag) || "h3".equals(tag)
-                        || "h4".equals(tag) || "body".equals(tag)
-                        || "b".equals(tag) || "code".equals(tag)
-                        || "form".equals(tag) || "span".equals(tag)
-                        || "em".equals(tag)) {
-                    if(buff.length() == 0) {
+                    }
+                } else if ("p".equals(tag) || "li".equals(tag) || "a".equals(tag) || "td".equals(tag)
+                        || "th".equals(tag) || "h1".equals(tag) || "h2".equals(tag) || "h3".equals(tag)
+                        || "h4".equals(tag) || "body".equals(tag) || "b".equals(tag) || "code".equals(tag)
+                        || "form".equals(tag) || "span".equals(tag) || "em".equals(tag)) {
+                    if (buff.length() == 0) {
                         nextKey = documentName + "_" + (1000 + id++) + "_" + tag;
                         template.append(getSpace(s, true));
-                    } else if(templateIsCopy) {
+                    } else if (templateIsCopy) {
                         buff.append(getSpace(s, true));
                     }
-                    if(templateIsCopy) {
+                    if (templateIsCopy) {
                         buff.append(trim);
                         buff.append(getSpace(s, false));
                     } else {
@@ -239,17 +238,14 @@ public class PrepareTranslation {
                     // ignore, don't translate
                     template.append(s);
                 } else {
-                    System.out.println(f.getName()
-                            + " invalid wrapper tag for text: " + tag
-                            + " text: " + s);
+                    System.out.println(f.getName() + " invalid wrapper tag for text: " + tag + " text: " + s);
                     System.out.println(parser.getRemaining());
                     throw new Exception();
                 }
             } else if (event == XMLParser.START_ELEMENT) {
                 stack.add(tag);
                 String name = parser.getName();
-                if ("code".equals(name) || "a".equals(name) || "b".equals(name)
-                        || "span".equals(name)) {
+                if ("code".equals(name) || "a".equals(name) || "b".equals(name) || "span".equals(name)) {
                     // keep tags if wrapped, but not if this is the wrapper
                     if (buff.length() > 0) {
                         buff.append(' ');
@@ -259,13 +255,11 @@ public class PrepareTranslation {
                         ignoreEnd = true;
                         template.append(parser.getToken());
                     }
-                } else if ("p".equals(tag) || "li".equals(tag)
-                        || "td".equals(tag) || "th".equals(tag)
-                        || "h1".equals(tag) || "h2".equals(tag)
-                        || "h3".equals(tag) || "h4".equals(tag)
+                } else if ("p".equals(tag) || "li".equals(tag) || "td".equals(tag) || "th".equals(tag)
+                        || "h1".equals(tag) || "h2".equals(tag) || "h3".equals(tag) || "h4".equals(tag)
                         || "body".equals(tag) || "form".equals(tag)) {
                     if (buff.length() > 0) {
-                        if(templateIsCopy) {
+                        if (templateIsCopy) {
                             template.append(buff.toString());
                         } else {
                             template.append("${" + nextKey + "}");
@@ -279,11 +273,11 @@ public class PrepareTranslation {
                 tag = name;
             } else if (event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
-                if ("code".equals(name) || "a".equals(name) || "b".equals(name)
-                        || "span".equals(name) || "em".equals(name)) {
+                if ("code".equals(name) || "a".equals(name) || "b".equals(name) || "span".equals(name)
+                        || "em".equals(name)) {
                     if (ignoreEnd) {
                         if (buff.length() > 0) {
-                            if(templateIsCopy) {
+                            if (templateIsCopy) {
                                 template.append(buff.toString());
                             } else {
                                 template.append("${" + nextKey + "}");
@@ -292,14 +286,14 @@ public class PrepareTranslation {
                         }
                         template.append(parser.getToken());
                     } else {
-                        if(buff.length() > 0) {
+                        if (buff.length() > 0) {
                             buff.append(parser.getToken());
                             buff.append(' ');
                         }
                     }
                 } else {
                     if (buff.length() > 0) {
-                        if(templateIsCopy) {
+                        if (templateIsCopy) {
                             template.append(buff.toString());
                         } else {
                             template.append("${" + nextKey + "}");
@@ -315,17 +309,20 @@ public class PrepareTranslation {
                 template.append(parser.getToken());
             } else {
                 int eventType = parser.getEventType();
-                throw new Exception("Unexpected event " + eventType + " at "
-                        + parser.getRemaining());
+                throw new Exception("Unexpected event " + eventType + " at " + parser.getRemaining());
             }
-//            if(!xml.startsWith(template.toString())) {
-//                System.out.println(nextKey);
-//                System.out.println(template.substring(template.length()-60) +";");
-//                System.out.println(xml.substring(template.length()-60, template.length()));
-//                System.out.println(template.substring(template.length()-55) +";");
-//                System.out.println(xml.substring(template.length()-55, template.length()));
-//                break;
-//            }
+            // if(!xml.startsWith(template.toString())) {
+            // System.out.println(nextKey);
+            // System.out.println(template.substring(template.length()-60)
+            // +";");
+            // System.out.println(xml.substring(template.length()-60,
+            // template.length()));
+            // System.out.println(template.substring(template.length()-55)
+            // +";");
+            // System.out.println(xml.substring(template.length()-55,
+            // template.length()));
+            // break;
+            // }
         }
         new File(target).mkdirs();
         String propFileName = target + "/_docs_" + MAIN_LANGUAGE + ".properties";
@@ -333,9 +330,9 @@ public class PrepareTranslation {
         prop.putAll(old);
         PropertiesToUTF8.storeProperties(prop, propFileName);
         String t = template.toString();
-        if(templateIsCopy && !t.equals(xml)) {
-            for(int i=0; i<Math.min(t.length(), xml.length()); i++) {
-                if(t.charAt(i) != xml.charAt(i)) {
+        if (templateIsCopy && !t.equals(xml)) {
+            for (int i = 0; i < Math.min(t.length(), xml.length()); i++) {
+                if (t.charAt(i) != xml.charAt(i)) {
                     int start = Math.max(0, i - 30), end = Math.min(i + 30, xml.length());
                     t = t.substring(start, end);
                     xml = xml.substring(start, end);
@@ -392,15 +389,14 @@ public class PrepareTranslation {
         PropertiesToUTF8.storeProperties(p, baseDir + "/" + main.getName());
     }
 
-    private static void prepare(Properties main, Properties base, File trans)
-            throws IOException {
+    private static void prepare(Properties main, Properties base, File trans) throws IOException {
         Properties p = FileUtils.loadProperties(trans.getAbsolutePath());
         Properties oldTranslations = new Properties();
-        for(Iterator it = base.keySet().iterator(); it.hasNext();  ) {
+        for (Iterator it = base.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();
             String m = base.getProperty(key);
             String t = p.getProperty(key);
-            if(t != null && !t.startsWith("#")) {
+            if (t != null && !t.startsWith("#")) {
                 oldTranslations.setProperty(m, t);
             }
         }
@@ -411,12 +407,9 @@ public class PrepareTranslation {
             String now = main.getProperty(key);
             if (!p.containsKey(key)) {
                 String t = oldTranslations.getProperty(now);
-                if(t == null) {
-                    System.out
-                            .println(trans.getName()
-                                    + ": key "
-                                    + key
-                                    + " not found in translation file; added dummy # 'translation'");
+                if (t == null) {
+                    System.out.println(trans.getName() + ": key " + key
+                            + " not found in translation file; added dummy # 'translation'");
                     t = "#" + now;
                 }
                 p.put(key, t);
@@ -426,24 +419,26 @@ public class PrepareTranslation {
                 if (t.startsWith("#")) {
                     // not translated before
                     t = oldTranslations.getProperty(now);
-                    if(t == null) {
-                        t =  "#" + now;
+                    if (t == null) {
+                        t = "#" + now;
                     }
                     p.put(key, t);
                 } else if (last != null && !last.equals(now)) {
                     t = oldTranslations.getProperty(now);
-                    if(t == null) {
-                        // main data changed since the last run: review translation
-                        System.out.println(trans.getName() + ": key " + key
-                                + " changed, please review; last=" + last + " now=" + now);
+                    if (t == null) {
+                        // main data changed since the last run: review
+                        // translation
+                        System.out.println(trans.getName() + ": key " + key + " changed, please review; last=" + last
+                                + " now=" + now);
                         String old = p.getProperty(key);
-                        t =  "#" + now + " #" + old;
+                        t = "#" + now + " #" + old;
                     }
                     p.put(key, t);
                 }
             }
         }
-        // remove keys that don't exist in the main file (deleted or typo in the key)
+        // remove keys that don't exist in the main file (deleted or typo in the
+        // key)
         it = new ArrayList(p.keySet()).iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
@@ -455,8 +450,7 @@ public class PrepareTranslation {
                         break;
                     }
                 }
-                System.out.println(trans.getName() + ": key " + key
-                        + " not found in main file; renamed to " + newKey);
+                System.out.println(trans.getName() + ": key " + key + " not found in main file; renamed to " + newKey);
                 p.put(newKey, p.getProperty(key));
                 p.remove(key);
             }

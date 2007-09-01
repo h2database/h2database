@@ -63,13 +63,13 @@ public abstract class Command implements CommandInterface {
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = SysProperties.multiThreadedKernel ? (Object)session : (Object)database;
+        Object sync = SysProperties.multiThreadedKernel ? (Object) session : (Object) database;
         synchronized (sync) {
             try {
                 database.checkPowerOff();
                 session.setCurrentCommand(this);
                 return query(maxrows);
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 SQLException s = Message.convert(e);
                 database.exceptionThrown(s, sql);
                 throw s;
@@ -113,10 +113,10 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = SysProperties.multiThreadedKernel ? (Object)session : (Object)database;
+        Object sync = SysProperties.multiThreadedKernel ? (Object) session : (Object) database;
         synchronized (sync) {
             int rollback = session.getLogId();
-            session.setCurrentCommand(this);            
+            session.setCurrentCommand(this);
             try {
                 database.checkPowerOff();
                 return update();

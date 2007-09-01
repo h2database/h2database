@@ -27,7 +27,7 @@ public class AlterSequence extends DefineCommand {
     public void setSequence(Sequence sequence) {
         this.sequence = sequence;
     }
-    
+
     public void setStartWith(long start) {
         newStart = true;
         this.start = start;
@@ -35,8 +35,8 @@ public class AlterSequence extends DefineCommand {
 
     public void setIncrement(long increment) throws SQLException {
         newIncrement = true;
-        if(increment == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[]{"0", "INCREMENT"});
+        if (increment == 0) {
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" });
         }
         this.increment = increment;
     }
@@ -45,10 +45,10 @@ public class AlterSequence extends DefineCommand {
         // TODO rights: what are the rights required for a sequence?
         session.commit(true);
         Database db = session.getDatabase();
-        if(newStart) {
+        if (newStart) {
             sequence.setStartValue(start);
         }
-        if(newIncrement) {
+        if (newIncrement) {
             sequence.setIncrement(increment);
         }
         db.update(session, sequence);

@@ -17,7 +17,7 @@ public class DropSequence extends SchemaCommand {
 
     private String sequenceName;
     private boolean ifExists;
-    
+
     public DropSequence(Session session, Schema schema) {
         super(session, schema);
     }
@@ -36,12 +36,12 @@ public class DropSequence extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Sequence sequence = getSchema().findSequence(sequenceName);
-        if(sequence == null) {
-            if(!ifExists) {
+        if (sequence == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
             }
         } else {
-            if(sequence.getBelongsToTable()) {
+            if (sequence.getBelongsToTable()) {
                 throw Message.getSQLException(ErrorCode.SEQUENCE_BELONGS_TO_A_TABLE_1, sequenceName);
             }
             db.removeSchemaObject(session, sequence);

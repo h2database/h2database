@@ -39,7 +39,7 @@ public class LocalResult implements ResultInterface {
     private int diskOffset;
     private boolean isUpdateCount;
     private int updateCount;
-    
+
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
@@ -57,7 +57,7 @@ public class LocalResult implements ResultInterface {
             cols.add(expr);
         }
         LocalResult result = new LocalResult(session, cols, columnCount);
-        for(int i=0; (maxrows == 0 || i<maxrows) && rs.next(); i++) {
+        for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
             Value[] list = new Value[columnCount];
             for (int j = 0; j < columnCount; j++) {
                 list[j] = DataType.readValue(session, rs, j + 1, types[j]);
@@ -67,14 +67,14 @@ public class LocalResult implements ResultInterface {
         result.done();
         return result;
     }
-    
+
     public LocalResult(int updateCount) {
         this.isUpdateCount = true;
         this.updateCount = updateCount;
     }
-    
+
     public LocalResult createShallowCopy(Session session) {
-        if(disk == null && rows == null || rows.size() < rowCount) {
+        if (disk == null && rows == null || rows.size() < rowCount) {
             return null;
         }
         LocalResult copy = new LocalResult(0);
@@ -97,18 +97,18 @@ public class LocalResult implements ResultInterface {
         copy.updateCount = this.updateCount;
         return copy;
     }
-    
+
     public boolean isUpdateCount() {
         return isUpdateCount;
     }
-    
+
     public int getUpdateCount() {
         return updateCount;
     }
 
     public LocalResult(Session session, ObjectArray cols, int visibleColumnCount) {
         this.session = session;
-        if(session == null) {
+        if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
         } else {
             this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
@@ -126,22 +126,23 @@ public class LocalResult implements ResultInterface {
     }
 
     public void setDistinct() {
-        // TODO big result sets: how to buffer distinct result sets? maybe do the
+        // TODO big result sets: how to buffer distinct result sets? maybe do
+        // the
         // distinct when sorting each block, and final merging
         distinctRows = new ValueHashMap(session.getDatabase());
     }
-    
+
     public void removeDistinct(Value[] values) throws SQLException {
-        if(distinctRows == null) {
+        if (distinctRows == null) {
             throw Message.getInternalError();
         }
         ValueArray array = ValueArray.get(values);
         distinctRows.remove(array);
         rowCount = distinctRows.size();
     }
-    
+
     public boolean containsDistinct(Value[] values) throws SQLException {
-        if(distinctRows == null) {
+        if (distinctRows == null) {
             throw Message.getInternalError();
         }
         ValueArray array = ValueArray.get(values);
@@ -152,8 +153,8 @@ public class LocalResult implements ResultInterface {
         rowId = -1;
         if (disk != null) {
             disk.reset();
-            if(diskOffset > 0) {
-                for(int i=0; i<diskOffset; i++) {
+            if (diskOffset > 0) {
+                for (int i = 0; i < diskOffset; i++) {
                     disk.next();
                 }
             }
@@ -185,8 +186,9 @@ public class LocalResult implements ResultInterface {
     }
 
     public void addRow(Value[] values) throws SQLException {
-        for(int i=0; i<values.length; i++) {
-            // TODO display sizes: check if this is a performance problem, maybe provide a setting to not do it
+        for (int i = 0; i < values.length; i++) {
+            // TODO display sizes: check if this is a performance problem, maybe
+            // provide a setting to not do it
             Value v = values[i];
             int size = v.getDisplaySize();
             displaySizes[i] = Math.max(displaySizes[i], size);
@@ -241,18 +243,18 @@ public class LocalResult implements ResultInterface {
     public void setLimit(int limit) {
         this.limit = limit;
     }
-    
+
     private void applyLimit() {
-        if(limit <=0 ) {
+        if (limit <= 0) {
             return;
         }
-        if(disk == null) {
-            if(rows.size() > limit) {
+        if (disk == null) {
+            if (rows.size() > limit) {
                 rows.removeRange(limit, rows.size());
                 rowCount = limit;
             }
         } else {
-            if(limit < rowCount) {
+            if (limit < rowCount) {
                 rowCount = limit;
             }
         }
@@ -272,11 +274,11 @@ public class LocalResult implements ResultInterface {
     public String getTableName(int i) {
         return expressions[i].getTableName();
     }
-    
+
     public String getSchemaName(int i) {
         return expressions[i].getSchemaName();
-    }    
-    
+    }
+
     public int getDisplaySize(int i) {
         return displaySizes[i];
     }
@@ -308,23 +310,23 @@ public class LocalResult implements ResultInterface {
     public void setOffset(int offset) {
         this.offset = offset;
     }
-    
+
     private void applyOffset() {
-        if(offset <=0) {
+        if (offset <= 0) {
             return;
         }
-        if(disk == null) {
-            if(offset >= rows.size()) {
+        if (disk == null) {
+            if (offset >= rows.size()) {
                 rows.clear();
                 rowCount = 0;
             } else {
                 // avoid copying the whole array for each row
                 int remove = Math.min(offset, rows.size());
-                rows.removeRange(0, remove); 
+                rows.removeRange(0, remove);
                 rowCount -= remove;
             }
         } else {
-            if(offset >= rowCount) {
+            if (offset >= rowCount) {
                 rowCount = 0;
             } else {
                 diskOffset = offset;

@@ -36,15 +36,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         super(table.getSchema(), id, name, Trace.INDEX);
         this.indexType = indexType;
         this.table = table;
-        if(columns != null) {
+        if (columns != null) {
             this.columns = columns;
             columnIndex = new int[columns.length];
-            for(int i=0; i<columns.length; i++) {
+            for (int i = 0; i < columns.length; i++) {
                 columnIndex[i] = columns[i].getColumnId();
             }
         }
     }
-    
+
     public String getDropSQL() {
         return null;
     }
@@ -107,17 +107,17 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             int index = column.getColumnId();
             int mask = masks[index];
             if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
-                if(i == columns.length-1 && getIndexType().isUnique()) {
+                if (i == columns.length - 1 && getIndexType().isUnique()) {
                     cost = getLookupCost(rowCount) + 1;
                     break;
                 }
-                totalSelectivity = 100 - ((100-totalSelectivity) * (100-column.getSelectivity()) / 100);
+                totalSelectivity = 100 - ((100 - totalSelectivity) * (100 - column.getSelectivity()) / 100);
                 long distinctRows = rowCount * totalSelectivity / 100;
-                if(distinctRows <= 0) {
+                if (distinctRows <= 0) {
                     distinctRows = 1;
                 }
                 long rowsSelected = rowCount / distinctRows;
-                if(rowsSelected < 1) {
+                if (rowsSelected < 1) {
                     rowsSelected = 1;
                 }
                 cost = getLookupCost(rowCount) + rowsSelected;
@@ -141,7 +141,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         for (int i = 0; i < columns.length; i++) {
             int index = columnIndex[i];
             Value v = compare.getValue(index);
-            if(v==null) {
+            if (v == null) {
                 // can't compare further
                 return 0;
             }
@@ -157,7 +157,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         for (int i = 0; i < columns.length; i++) {
             int index = columnIndex[i];
             Value v = newRow.getValue(index);
-            if(v == ValueNull.INSTANCE) {
+            if (v == ValueNull.INSTANCE) {
                 return true;
             }
         }
@@ -210,13 +210,13 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE ");
         buff.append(indexType.getSQL());
-        if(!indexType.isPrimaryKey()) {
+        if (!indexType.isPrimaryKey()) {
             buff.append(' ');
             buff.append(quotedName);
         }
         buff.append(" ON ");
         buff.append(table.getSQL());
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }

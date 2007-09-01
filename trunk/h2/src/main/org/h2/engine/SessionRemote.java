@@ -42,11 +42,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int COMMAND_COMMIT = 8;
     public static final int CHANGE_ID = 9;
     public static final int COMMAND_GET_META_DATA = 10;
-    
+
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
     public static final int STATUS_CLOSED = 2;
-    
+
     private TraceSystem traceSystem;
     private Trace trace;
     private ObjectArray transferList;
@@ -62,8 +62,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         int port = Constants.DEFAULT_SERVER_PORT;
-        // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or '[a:b:c:d:e:f:g:h]:port'
-        // RFC 2396 format is 'a.b.c.d' or 'a.b.c.d:port' or 'hostname' or 'hostname:port'
+        // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
+        // '[a:b:c:d:e:f:g:h]:port'
+        // RFC 2396 format is 'a.b.c.d' or 'a.b.c.d:port' or 'hostname' or
+        // 'hostname:port'
         int startIndex = server.startsWith("[") ? server.indexOf(']') : 0;
         int idx = server.indexOf(':', startIndex);
         if (idx >= 0) {
@@ -83,13 +85,13 @@ public class SessionRemote implements SessionInterface, DataHandler {
         trans.writeBytes(ci.getFilePasswordHash());
         String[] keys = ci.getKeys();
         trans.writeInt(keys.length);
-        for(int i=0; i<keys.length; i++) {
+        for (int i = 0; i < keys.length; i++) {
             String key = keys[i];
             trans.writeString(key).writeString(ci.getProperty(key));
         }
         try {
             done(trans);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             trans.close();
             throw e;
         }
@@ -98,8 +100,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     private void switchOffAutoCommitIfCluster() throws SQLException {
-        if(autoCommit && transferList.size() > 1) {
-            if(switchOffAutoCommit == null) {
+        if (autoCommit && transferList.size() > 1) {
+            if (switchOffAutoCommit == null) {
                 switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE");
             }
             // this will call setAutoCommit(false)
@@ -114,16 +116,17 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public void autoCommitIfCluster() throws SQLException {
-        if(autoCommit && transferList!= null && transferList.size() > 1) {
+        if (autoCommit && transferList != null && transferList.size() > 1) {
             // server side auto commit is off because of race conditions
-            // (update set id=1 where id=0, but update set id=2 where id=0 is faster)
-            for(int i=0; i<transferList.size(); i++) {
+            // (update set id=1 where id=0, but update set id=2 where id=0 is
+            // faster)
+            for (int i = 0; i < transferList.size(); i++) {
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
                     traceOperation("COMMAND_COMMIT", 0);
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
                     done(transfer);
-                } catch(IOException e) {
+                } catch (IOException e) {
                     removeServer(i--);
                 }
             }
@@ -134,9 +137,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
         String dir = SysProperties.CLIENT_TRACE_DIRECTORY;
         StringBuffer buff = new StringBuffer();
         buff.append(dir);
-        for(int i=0; i<dbName.length(); i++) {
+        for (int i = 0; i < dbName.length(); i++) {
             char ch = dbName.charAt(i);
-            if(Character.isLetterOrDigit(ch)) {
+            if (Character.isLetterOrDigit(ch)) {
                 buff.append(ch);
             } else {
                 buff.append('_');
@@ -168,11 +171,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private void connect() throws SQLException {
         ConnectionInfo ci = connectionInfo;
         String name = ci.getName();
-        if(name.startsWith("//")) {
+        if (name.startsWith("//")) {
             name = name.substring("//".length());
         }
         int idx = name.indexOf('/');
-        if(idx<0) {
+        if (idx < 0) {
             throw ci.getFormatException();
         }
         databaseName = name.substring(idx + 1);
@@ -180,7 +183,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         traceSystem = new TraceSystem(null, false);
         try {
             String traceLevelFile = ci.getProperty(SetTypes.TRACE_LEVEL_FILE, null);
-            if(traceLevelFile != null) {
+            if (traceLevelFile != null) {
                 int level = Integer.parseInt(traceLevelFile);
                 String prefix = getTraceFilePrefix(databaseName);
                 String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
@@ -188,22 +191,22 @@ public class SessionRemote implements SessionInterface, DataHandler {
                 traceSystem.setLevelFile(level);
             }
             String traceLevelSystemOut = ci.getProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT, null);
-            if(traceLevelSystemOut != null) {
+            if (traceLevelSystemOut != null) {
                 int level = Integer.parseInt(traceLevelSystemOut);
                 traceSystem.setLevelSystemOut(level);
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw Message.convert(e);
         }
         trace = traceSystem.getTrace(Trace.JDBC);
         transferList = new ObjectArray();
         String serverlist = null;
-        if(server.indexOf(',') >= 0) {
+        if (server.indexOf(',') >= 0) {
             serverlist = StringUtils.quoteStringSQL(server);
             ci.setProperty("CLUSTER", serverlist);
         }
         cipher = ci.getProperty("CIPHER");
-        if(cipher != null) {
+        if (cipher != null) {
             fileEncryptionKey = RandomUtils.getSecureBytes(32);
         }
         String[] servers = StringUtils.arraySplit(server, ',', true);
@@ -211,16 +214,16 @@ public class SessionRemote implements SessionInterface, DataHandler {
         transferList = new ObjectArray();
         // TODO cluster: support at most 2 connections
         boolean switchOffCluster = false;
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             try {
                 Transfer trans = initTransfer(ci, databaseName, servers[i]);
                 transferList.add(trans);
-            } catch(IOException e) {
+            } catch (IOException e) {
                 switchOffCluster = true;
             }
         }
         checkClosed();
-        if(switchOffCluster) {
+        if (switchOffCluster) {
             switchOffCluster();
         }
         switchOffAutoCommitIfCluster();
@@ -238,30 +241,30 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public CommandInterface prepareCommand(String sql) throws SQLException {
-        synchronized(this) {
+        synchronized (this) {
             checkClosed();
             return new CommandRemote(this, transferList, sql);
         }
     }
 
     public void checkClosed() throws SQLException {
-        if(isClosed()) {
+        if (isClosed()) {
             // TODO broken connection: try to reconnect automatically
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
     }
 
     public void close() {
-        if(transferList != null) {
-            synchronized(this) {
-                for(int i=0; i<transferList.size(); i++) {
+        if (transferList != null) {
+            synchronized (this) {
+                for (int i = 0; i < transferList.size(); i++) {
                     Transfer transfer = (Transfer) transferList.get(i);
                     try {
                         traceOperation("SESSION_CLOSE", 0);
                         transfer.writeInt(SessionRemote.SESSION_CLOSE);
                         done(transfer);
                         transfer.close();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         trace.error("close", e);
                     }
                 }
@@ -293,7 +296,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             int errorCode = transfer.readInt();
             String trace = transfer.readString();
             throw new JdbcSQLException(message, sql, sqlstate, errorCode, null, trace);
-        } else if(status == STATUS_CLOSED) {
+        } else if (status == STATUS_CLOSED) {
             transferList = null;
         }
     }
@@ -307,7 +310,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public void traceOperation(String operation, int id) {
-        if(trace.debug()) {
+        if (trace.debug()) {
             trace.debug(operation + " " + id);
         }
     }
@@ -362,12 +365,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
-        if(mustExist && !FileUtils.exists(name)) {
+        if (mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, name);
         }
         FileStore store;
         byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();
-        if(cipher == null) {
+        if (cipher == null) {
             store = FileStore.open(this, name, mode, magic);
         } else {
             store = FileStore.open(this, name, mode, magic, cipher, fileEncryptionKey, 0);
@@ -375,7 +378,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         store.setCheckedWriting(false);
         try {
             store.init();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             store.closeSilently();
             throw e;
         }

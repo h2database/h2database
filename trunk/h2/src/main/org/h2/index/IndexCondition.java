@@ -36,7 +36,7 @@ public class IndexCondition {
     }
 
     public String getSQL() {
-        if(compareType == Comparison.FALSE) {
+        if (compareType == Comparison.FALSE) {
             return "FALSE";
         }
         StringBuffer buff = new StringBuffer();
@@ -91,8 +91,9 @@ public class IndexCondition {
         case Comparison.BIGGER_EQUAL:
         case Comparison.BIGGER:
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 
     public boolean isEnd() {
@@ -101,8 +102,9 @@ public class IndexCondition {
         case Comparison.SMALLER_EQUAL:
         case Comparison.SMALLER:
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 
     public Column getColumn() {

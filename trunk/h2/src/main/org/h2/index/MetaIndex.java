@@ -45,9 +45,9 @@ public class MetaIndex extends BaseIndex {
         ObjectArray rows = meta.generateRows(session, first, last);
         return new MetaCursor(rows);
     }
-    
+
     public double getCost(Session session, int[] masks) throws SQLException {
-        if(scan) {
+        if (scan) {
             return 10000;
         }
         return getCostRangeIndex(masks, 1000);
@@ -62,7 +62,7 @@ public class MetaIndex extends BaseIndex {
     }
 
     public int getColumnIndex(Column col) {
-        if(scan) {
+        if (scan) {
             // the scan index cannot use any columns
             return -1;
         }

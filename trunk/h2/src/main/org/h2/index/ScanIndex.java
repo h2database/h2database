@@ -37,14 +37,13 @@ public class ScanIndex extends BaseIndex {
     private HashMap sessionRowCount;
     private HashSet delta;
 
-    public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType)
-            throws SQLException {
+    public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType) throws SQLException {
         super(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
-        if(database.isMultiVersion()) {
+        if (database.isMultiVersion()) {
             sessionRowCount = new HashMap();
         }
         tableData = table;
-        if(!database.isPersistent() || id < 0) {
+        if (!database.isPersistent() || id < 0) {
             return;
         }
         this.storage = database.getStorage(table, id, true);
@@ -52,8 +51,8 @@ public class ScanIndex extends BaseIndex {
         rowCount = count;
         table.setRowCount(count);
         trace.info("open existing " + table.getName() + " rows: " + count);
-        for(int i=0; i<columns.length; i++) {
-            if(DataType.isLargeObject(columns[i].getType())) {
+        for (int i = 0; i < columns.length; i++) {
+            if (DataType.isLargeObject(columns[i].getType())) {
                 containsLargeObject = true;
             }
         }
@@ -61,24 +60,24 @@ public class ScanIndex extends BaseIndex {
 
     public void remove(Session session) throws SQLException {
         truncate(session);
-        if(storage != null) {
+        if (storage != null) {
             storage.delete(session);
         }
     }
 
     public void truncate(Session session) throws SQLException {
-        if(storage == null) {
+        if (storage == null) {
             rows = new ObjectArray();
             firstFree = -1;
         } else {
             storage.truncate(session);
         }
-        if(containsLargeObject && tableData.isPersistent()) {
+        if (containsLargeObject && tableData.isPersistent()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);
         rowCount = 0;
-        if(database.isMultiVersion()) {
+        if (database.isMultiVersion()) {
             sessionRowCount.clear();
         }
     }
@@ -88,26 +87,26 @@ public class ScanIndex extends BaseIndex {
     }
 
     public void close(Session session) throws SQLException {
-        if(storage != null) {
+        if (storage != null) {
             storage = null;
         }
     }
 
     public Row getRow(Session session, int key) throws SQLException {
-        if(storage != null) {
+        if (storage != null) {
             return (Row) storage.getRecord(session, key);
         }
         return (Row) rows.get(key);
     }
 
     public void add(Session session, Row row) throws SQLException {
-        if(storage != null) {
-            if(containsLargeObject) {
-                for(int i=0; i<row.getColumnCount(); i++) {
+        if (storage != null) {
+            if (containsLargeObject) {
+                for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     Value v2 = v.link(database, getId());
                     session.unlinkAtCommitStop(v2);
-                    if(v != v2) {
+                    if (v != v2) {
                         row.setValue(i, v2);
                     }
                 }
@@ -126,30 +125,30 @@ public class ScanIndex extends BaseIndex {
                 rows.set(key, row);
             }
         }
-        if(database.isMultiVersion()) {
-            if(delta == null) {
+        if (database.isMultiVersion()) {
+            if (delta == null) {
                 delta = new HashSet();
             }
             boolean wasDeleted = delta.remove(row);
-            if(!wasDeleted) {
+            if (!wasDeleted) {
                 delta.add(row);
             }
             incrementRowCount(session.getId(), 1);
         }
         rowCount++;
     }
-    
+
     public void commit(int operation, Row row) throws SQLException {
-        if(database.isMultiVersion()) {
-            if(delta != null && operation == UndoLogRecord.DELETE) {
+        if (database.isMultiVersion()) {
+            if (delta != null && operation == UndoLogRecord.DELETE) {
                 delta.remove(row);
             }
             incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);
         }
-    }    
-    
+    }
+
     private void incrementRowCount(int sessionId, int count) {
-        if(database.isMultiVersion()) {
+        if (database.isMultiVersion()) {
             Integer id = ObjectUtils.getInteger(sessionId);
             Integer c = (Integer) sessionRowCount.get(id);
             int current = c == null ? 0 : c.intValue();
@@ -159,12 +158,12 @@ public class ScanIndex extends BaseIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        if(storage != null) {
+        if (storage != null) {
             storage.removeRecord(session, row.getPos());
-            if(containsLargeObject) {
-                for(int i=0; i<row.getColumnCount(); i++) {
+            if (containsLargeObject) {
+                for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
-                    if(v.isLinked()) {
+                    if (v.isLinked()) {
                         session.unlinkAtCommit(v);
                     }
                 }
@@ -176,12 +175,12 @@ public class ScanIndex extends BaseIndex {
             rows.set(key, free);
             firstFree = key;
         }
-        if(database.isMultiVersion()) {
-            if(delta == null) {
+        if (database.isMultiVersion()) {
+            if (delta == null) {
                 delta = new HashSet();
             }
             boolean wasAdded = delta.remove(row);
-            if(!wasAdded) {
+            if (!wasAdded) {
                 delta.add(row);
             }
             incrementRowCount(session.getId(), -1);
@@ -195,14 +194,14 @@ public class ScanIndex extends BaseIndex {
 
     public double getCost(Session session, int[] masks) throws SQLException {
         long cost = tableData.getRowCount(session) + Constants.COST_ROW_OFFSET;
-        if(storage != null) {
+        if (storage != null) {
             cost *= 10;
         }
         return cost;
     }
-    
+
     public long getRowCount(Session session) {
-        if(database.isMultiVersion()) {
+        if (database.isMultiVersion()) {
             Integer i = (Integer) sessionRowCount.get(ObjectUtils.getInteger(session.getId()));
             long count = i == null ? 0 : i.intValue();
             count += super.getRowCount(session);
@@ -213,7 +212,7 @@ public class ScanIndex extends BaseIndex {
     }
 
     Row getNextRow(Session session, Row row) throws SQLException {
-        if(storage == null) {
+        if (storage == null) {
             int key;
             if (row == null) {
                 key = -1;
@@ -262,5 +261,5 @@ public class ScanIndex extends BaseIndex {
     public Iterator getDelta() {
         return delta == null ? Collections.EMPTY_LIST.iterator() : delta.iterator();
     }
-    
+
 }

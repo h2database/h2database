@@ -64,7 +64,7 @@ public class FileObjectNative implements FileObject {
     public FileObject[] listFiles() {
         File[] list = file.listFiles();
         FileObject[] result = new FileObject[list.length];
-        for(int i=0; i<list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             result[i] = get(list[i].getAbsolutePath());
         }
         return result;
@@ -75,14 +75,14 @@ public class FileObjectNative implements FileObject {
     }
 
     public boolean renameTo(FileObject newFile) {
-        return file.renameTo(((FileObjectNative)newFile).file);
+        return file.renameTo(((FileObjectNative) newFile).file);
     }
 
     public void write(InputStream in) throws IOException {
         try {
             OutputStream out = FileUtils.openFileOutputStream(file.getAbsolutePath());
             IOUtils.copyAndClose(in, out);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw new IOException(e.getMessage());
         }
     }

@@ -16,20 +16,20 @@ import org.h2.util.StartBrowser;
 import org.h2.util.StringUtils;
 
 public class LinkChecker {
-    
+
     private static final boolean OPEN_EXTERNAL_LINKS = false;
-    
+
     public static void main(String[] args) throws Exception {
         new LinkChecker().run(args);
     }
-    
+
     private HashMap targets = new HashMap();
     private HashMap links = new HashMap();
 
     private void run(String[] args) throws Exception {
         String dir = "src/docsrc";
-        for(int i=0; i<args.length; i++) {
-            if("-dir".equals(args[i])) {
+        for (int i = 0; i < args.length; i++) {
+            if ("-dir".equals(args[i])) {
                 dir = args[++i];
             }
         }
@@ -37,122 +37,122 @@ public class LinkChecker {
         listExternalLinks();
         listBadLinks();
     }
-    
+
     void listExternalLinks() {
-        for(Iterator it = links.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
-            if(link.startsWith("http")) {
-                if(link.indexOf("//localhost")>0) {
+            if (link.startsWith("http")) {
+                if (link.indexOf("//localhost") > 0) {
                     continue;
                 }
-                if(OPEN_EXTERNAL_LINKS) {
+                if (OPEN_EXTERNAL_LINKS) {
                     StartBrowser.openURL(link);
                 }
                 System.out.println("External Link: " + link);
             }
         }
     }
-    
+
     void listBadLinks() throws Exception {
         ArrayList errors = new ArrayList();
-        for(Iterator it = links.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
-            if(!link.startsWith("http") && !link.endsWith("h2.pdf") && link.indexOf("_ja.") < 0) {
-                if(targets.get(link) == null) {
+            if (!link.startsWith("http") && !link.endsWith("h2.pdf") && link.indexOf("_ja.") < 0) {
+                if (targets.get(link) == null) {
                     errors.add(links.get(link) + ": missing link " + link);
                 }
             }
         }
-        for(Iterator it = links.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
-            if(!link.startsWith("http")) {
+            if (!link.startsWith("http")) {
                 targets.remove(link);
             }
         }
-        for(Iterator it = targets.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator it = targets.keySet().iterator(); it.hasNext();) {
             String name = (String) it.next();
-            if(targets.get(name).equals("name")) {
+            if (targets.get(name).equals("name")) {
                 errors.add("No link to " + name);
             }
         }
         Collections.sort(errors);
-        for(int i=0; i<errors.size(); i++) {
+        for (int i = 0; i < errors.size(); i++) {
             System.out.println(errors.get(i));
         }
-        if(errors.size() > 0) {
+        if (errors.size() > 0) {
             throw new Exception("Problems where found by the Link Checker");
         }
     }
-    
+
     void process(String path) throws Exception {
-        if(path.endsWith("/CVS") || path.endsWith("/.svn")) {
+        if (path.endsWith("/CVS") || path.endsWith("/.svn")) {
             return;
         }
         File file = new File(path);
-        if(file.isDirectory()) {
+        if (file.isDirectory()) {
             String[] list = file.list();
-            for(int i=0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 process(path + "/" + list[i]);
             }
         } else {
             processFile(path);
         }
     }
-    
+
     void processFile(String path) throws Exception {
         targets.put(path, "file");
         String lower = StringUtils.toLowerEnglish(path);
-        if(!lower.endsWith(".html") && !lower.endsWith(".htm")) {
+        if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {
             return;
         }
         String fileName = new File(path).getName();
         String parent = path.substring(0, path.lastIndexOf('/'));
         String html = IOUtils.readStringAndClose(new FileReader(path), -1);
         int idx = -1;
-        while(true) {
-            idx = html.indexOf(" id=\"", idx+1);
-            if(idx < 0) {
+        while (true) {
+            idx = html.indexOf(" id=\"", idx + 1);
+            if (idx < 0) {
                 break;
             }
             int start = idx + 4;
             int end = html.indexOf("\"", start + 1);
-            if(end < 0) {
+            if (end < 0) {
                 error(fileName, "expected \" after id= " + html.substring(idx, idx + 100));
             }
-            String ref = html.substring(start+1, end);
+            String ref = html.substring(start + 1, end);
             targets.put(path + "#" + ref, "id");
         }
         idx = -1;
-        while(true) {
-            idx = html.indexOf("<a ", idx+1);
-            if(idx < 0) {
+        while (true) {
+            idx = html.indexOf("<a ", idx + 1);
+            if (idx < 0) {
                 break;
             }
             int equals = html.indexOf("=", idx);
-            if(equals < 0) {
+            if (equals < 0) {
                 error(fileName, "expected = after <a at " + html.substring(idx, idx + 100));
             }
-            String type = html.substring(idx+2, equals).trim();
+            String type = html.substring(idx + 2, equals).trim();
             int start = html.indexOf("\"", idx);
-            if(start < 0) {
+            if (start < 0) {
                 error(fileName, "expected \" after <a at " + html.substring(idx, idx + 100));
             }
             int end = html.indexOf("\"", start + 1);
-            if(end < 0) {
+            if (end < 0) {
                 error(fileName, "expected \" after <a at " + html.substring(idx, idx + 100));
             }
-            String ref = html.substring(start+1, end);
-            if(type.equals("href")) {
-                if(ref.startsWith("http:") || ref.startsWith("https:")) {
+            String ref = html.substring(start + 1, end);
+            if (type.equals("href")) {
+                if (ref.startsWith("http:") || ref.startsWith("https:")) {
                     // ok
-                } else if(ref.startsWith("#")) {
+                } else if (ref.startsWith("#")) {
                     ref = path + ref;
                 } else {
                     String p = parent;
-                    while(ref.startsWith(".")) {
-                        if(ref.startsWith("./")) {
+                    while (ref.startsWith(".")) {
+                        if (ref.startsWith("./")) {
                             ref = ref.substring(2);
-                        } else if(ref.startsWith("../")) {
+                        } else if (ref.startsWith("../")) {
                             ref = ref.substring(3);
                             p = p.substring(0, p.lastIndexOf('/'));
                         }
@@ -160,7 +160,7 @@ public class LinkChecker {
                     ref = p + "/" + ref;
                 }
                 links.put(ref, path);
-            } else if(type.equals("name")) {
+            } else if (type.equals("name")) {
                 targets.put(path + "#" + ref, "name");
             } else {
                 error(fileName, "unsupported <a ?: " + html.substring(idx, idx + 100));
@@ -171,5 +171,5 @@ public class LinkChecker {
     private void error(String fileName, String string) {
         System.out.println("ERROR with " + fileName + ": " + string);
     }
-    
+
 }

@@ -58,7 +58,7 @@ public class Console implements ActionListener, MouseListener {
             web = Server.createWebServer(args);
             web.start();
         } catch (SQLException e) {
-            if(web == null) {
+            if (web == null) {
                 e.printStackTrace();
             } else {
                 System.out.println(web.getStatus());
@@ -68,8 +68,8 @@ public class Console implements ActionListener, MouseListener {
         try {
             tcp = Server.createTcpServer(args);
             tcp.start();
-        } catch(SQLException e) {
-            if(tcp == null) {
+        } catch (SQLException e) {
+            if (tcp == null) {
                 e.printStackTrace();
             } else {
                 System.out.println(tcp.getStatus());
@@ -78,22 +78,22 @@ public class Console implements ActionListener, MouseListener {
         try {
             pg = Server.createPgServer(args);
             pg.start();
-        } catch(SQLException e) {
-            if(pg == null) {
+        } catch (SQLException e) {
+            if (pg == null) {
                 e.printStackTrace();
             } else {
                 System.out.println(pg.getStatus());
             }
         }
-        if(!GraphicsEnvironment.isHeadless()) {
+        if (!GraphicsEnvironment.isHeadless()) {
             font = new Font("Dialog", Font.PLAIN, 11);
             try {
                 InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
-                if(in != null) {
+                if (in != null) {
                     byte[] imageData = IOUtils.readBytesAndClose(in, -1);
                     icon = Toolkit.getDefaultToolkit().createImage(imageData);
                 }
-                if(!createTrayIcon()) {
+                if (!createTrayIcon()) {
                     showWindow(true);
                 }
             } catch (Exception e) {
@@ -116,7 +116,7 @@ public class Console implements ActionListener, MouseListener {
                 getMethod("isSupported", new Class[0]).
                 invoke(null, new Object[0]);
             
-            if(!supported.booleanValue()) {
+            if (!supported.booleanValue()) {
                 return false;
             }
             
@@ -167,14 +167,14 @@ public class Console implements ActionListener, MouseListener {
         final Frame frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
-                if(exit) {
+                if (exit) {
                     System.exit(0);
                 } else {
                     frame.dispose();
                 }
             }
         });
-        if(icon != null) {
+        if (icon != null) {
             frame.setIconImage(icon);
         }
         frame.setResizable(false);
@@ -250,7 +250,7 @@ public class Console implements ActionListener, MouseListener {
      * INTERNAL
      */
     public void mouseClicked(MouseEvent e) {
-        if(e.getButton() == MouseEvent.BUTTON1) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
         }
     }

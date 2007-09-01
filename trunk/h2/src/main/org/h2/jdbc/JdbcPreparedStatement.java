@@ -76,7 +76,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public ResultSet executeQuery() throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
-            if(debug()) {
+            if (debug()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
                 debugCodeCall("executeQuery");
             }
@@ -84,7 +84,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             closeOld();
             ResultInterface result;
             boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
-            synchronized(session) {
+            synchronized (session) {
                 try {
                     setExecutingStatement(command);
                     result = command.executeQuery(maxRows, scrollable);
@@ -94,7 +94,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             return resultSet;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -115,14 +115,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("executeUpdate");
             checkClosed();
             return executeUpdateInternal();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     private int executeUpdateInternal() throws SQLException {
         closeOld();
-        synchronized(session) {
+        synchronized (session) {
             try {
                 setExecutingStatement(command);
                 updateCount = command.executeUpdate();
@@ -143,13 +143,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public boolean execute() throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
-            if(debug()) {
+            if (debug()) {
                 debugCodeCall("execute");
             }
             checkClosed();
             closeOld();
             boolean returnsResultSet;
-            synchronized(session) {
+            synchronized (session) {
                 try {
                     setExecutingStatement(command);
                     if (command.isQuery()) {
@@ -166,7 +166,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 }
             }
             return returnsResultSet;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -185,7 +185,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 ParameterInterface param = (ParameterInterface) parameters.get(i);
                 param.setValue(null);
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -199,7 +199,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("executeQuery", sql);
             throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -213,7 +213,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("addBatch", sql);
             throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -227,7 +227,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("executeUpdate", sql);
             throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -241,7 +241,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("execute", sql);
             throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -257,11 +257,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNull(int parameterIndex, int sqlType) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNull("+parameterIndex+", "+sqlType+");");
             }
             setParameter(parameterIndex, ValueNull.INSTANCE);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -275,11 +275,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setInt(int parameterIndex, int x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setInt("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueInt.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -293,12 +293,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setString(int parameterIndex, String x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setString("+parameterIndex+", "+quote(x)+");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueString.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -312,12 +312,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBigDecimal("+parameterIndex+", " + quoteBigDecimal(x) + ");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueDecimal.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -331,12 +331,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setDate(int parameterIndex, java.sql.Date x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setDate("+parameterIndex+", " + quoteDate(x) + ");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueDate.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -350,12 +350,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setTime(int parameterIndex, java.sql.Time x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setTime("+parameterIndex+", " + quoteTime(x) + ");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueTime.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -369,12 +369,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setTimestamp(int parameterIndex, java.sql.Timestamp x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setTimestamp("+parameterIndex+", " + quoteTimestamp(x) + ");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueTimestamp.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -388,7 +388,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setObject(int parameterIndex, Object x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setObject("+parameterIndex+", x);");
             }
             if (x == null) {
@@ -397,7 +397,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             } else {
                 setParameter(parameterIndex, DataType.convertToValue(session, x, Value.UNKNOWN));
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -413,7 +413,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setObject("+parameterIndex+", x, "+targetSqlType+");");
             }
             int type = DataType.convertSQLTypeToValueType(targetSqlType);
@@ -423,7 +423,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 Value v = DataType.convertToValue(session, x, type);
                 setParameter(parameterIndex, v.convertTo(type));
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -440,11 +440,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setObject(int parameterIndex, Object x, int targetSqlType, int scale) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setObject("+parameterIndex+", x, "+targetSqlType+", "+scale+");");
             }
             setObject(parameterIndex, x, targetSqlType);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -458,11 +458,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBoolean(int parameterIndex, boolean x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBoolean("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueBoolean.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -476,11 +476,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setByte(int parameterIndex, byte x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setByte("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueByte.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -494,11 +494,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setShort(int parameterIndex, short x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setShort("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueShort.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -512,11 +512,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setLong(int parameterIndex, long x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setLong("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueLong.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -530,11 +530,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setFloat(int parameterIndex, float x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setFloat("+parameterIndex+", "+x+"f);");
             }
             setParameter(parameterIndex, ValueFloat.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -548,11 +548,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setDouble(int parameterIndex, double x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setDouble("+parameterIndex+", "+x+");");
             }
             setParameter(parameterIndex, ValueDouble.get(x));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -562,11 +562,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setRef(int parameterIndex, Ref x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setRef("+parameterIndex+", x);");
             }
             throw Message.getUnsupportedException();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -581,7 +581,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setDate(int parameterIndex, java.sql.Date x, Calendar calendar) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setDate("+parameterIndex+", " + quoteDate(x) + ", calendar);");
             }
             if (x == null) {
@@ -589,7 +589,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             } else {
                 setParameter(parameterIndex, DateTimeUtils.convertDateToUniversal(x, calendar));
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -604,7 +604,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setTime(int parameterIndex, java.sql.Time x, Calendar calendar) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setTime("+parameterIndex+", " + quoteTime(x) + ", calendar);");
             }
             if (x == null) {
@@ -612,7 +612,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             } else {
                 setParameter(parameterIndex, DateTimeUtils.convertTimeToUniversal(x, calendar));
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -627,7 +627,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setTimestamp(int parameterIndex, java.sql.Timestamp x, Calendar calendar) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setTimestamp("+parameterIndex+", " + quoteTimestamp(x) + ", calendar);");
             }
             if (x == null) {
@@ -635,7 +635,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             } else {
                 setParameter(parameterIndex, DateTimeUtils.convertTimestampToUniversal(x, calendar));
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -646,11 +646,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setUnicodeStream("+parameterIndex+", x, "+length+");");
             }
             throw Message.getUnsupportedException();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -665,11 +665,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNull(int parameterIndex, int sqlType, String typeName) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNull("+parameterIndex+", "+sqlType+", "+quote(typeName)+");");
             }
             setNull(parameterIndex, sqlType);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -683,18 +683,18 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBlob(int parameterIndex, Blob x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
             checkClosed();            
             Value v;
-            if(x == null) {
+            if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
                 v = conn.createBlob(x.getBinaryStream(), -1);
             }
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -708,13 +708,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */    
     public void setBlob(int parameterIndex, InputStream x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
             checkClosed();            
             Value v = conn.createBlob(x, -1);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -728,18 +728,18 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setClob(int parameterIndex, Clob x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setClob("+parameterIndex+", x);");
             }
             checkClosed();
             Value v;
-            if(x == null) {
+            if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
                 v = conn.createClob(x.getCharacterStream(), -1);
             }
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -753,18 +753,18 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setClob(int parameterIndex, Reader x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setClob("+parameterIndex+", x);");
             }
             checkClosed();
             Value v;
-            if(x == null) {
+            if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
                 v = conn.createClob(x, -1);
             }
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }    
@@ -774,11 +774,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setArray(int parameterIndex, Array x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setArray("+parameterIndex+", x);");
             }
             throw Message.getUnsupportedException();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -792,13 +792,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBytes(int parameterIndex, byte[] x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBytes("+parameterIndex+", "+quoteBytes(x)+");");
             }
             // TODO clone the byte array (each array! maybe other objects) by default (maybe use a setting?)
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueBytes.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -813,13 +813,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBinaryStream(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBinaryStream("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }    
@@ -870,13 +870,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setAsciiStream(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setAsciiStream("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }    
@@ -925,13 +925,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setCharacterStream("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }    
@@ -941,11 +941,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setURL(int parameterIndex, URL x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setURL("+parameterIndex+", x);");
             }
             throw Message.getUnsupportedException();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -962,18 +962,18 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("getMetaData");
             checkClosed();
             ResultInterface result = command.getMetaData();
-            if(result == null) {
+            if (result == null) {
                 return null;
             }
             int id = getNextId(TraceObject.RESULT_SET_META_DATA);
-            if(debug()) {
+            if (debug()) {
                 debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id);
                 debugCodeCall("getMetaData");
             }
             String catalog = conn.getCatalog();
             JdbcResultSetMetaData meta = new JdbcResultSetMetaData(null, this, result, catalog, session.getTrace(), id);
             return meta;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -986,7 +986,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("clearBatch");
             checkClosed();
             batchParameters = null;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -999,11 +999,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void close() throws SQLException {
         try {
             super.close();
-            if(command != null) {
+            if (command != null) {
                 command.close();
                 command = null;
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1035,7 +1035,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 try {
                     result[i] = executeUpdateInternal();
                 } catch (SQLException e) {
-                    if(next == null) {
+                    if (next == null) {
                         next = e;
                     } else {
                         e.setNextException(next);
@@ -1055,7 +1055,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 throw e;
             }
             return result;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1078,7 +1078,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 batchParameters = new ObjectArray();
             }
             batchParameters.add(set);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1090,11 +1090,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("executeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
             }
             throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1189,14 +1189,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public ParameterMetaData getParameterMetaData() throws SQLException {
         try {
             int id = getNextId(TraceObject.PARAMETER_META_DATA);
-            if(debug()) {
+            if (debug()) {
                 debugCodeAssign("ParameterMetaData", TraceObject.PARAMETER_META_DATA, id);
                 debugCodeCall("getParameterMetaData");
             }
             checkClosed();
             JdbcParameterMetaData meta = new JdbcParameterMetaData(session, this, command, id);
             return meta;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1241,12 +1241,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNString(int parameterIndex, String x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNString("+parameterIndex+", "+quote(x)+");");
             }
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueString.get(x);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1261,13 +1261,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNCharacterStream("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1294,18 +1294,18 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 /*
     public void setNClob(int parameterIndex, NClob x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNClob("+parameterIndex+", x);");
             }
             checkClosed();
             Value v;
-            if(x == null) {
+            if (x == null) {
                 v = ValueNull.INSTANCE;
             } else {
                 v = conn.createClob(x.getCharacterStream(), -1);
             }
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1321,13 +1321,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNClob(int parameterIndex, Reader x) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNClob("+parameterIndex+", x);");
             }
             checkClosed();
             Value v = conn.createClob(x, -1);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1341,13 +1341,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setClob(int parameterIndex, Reader x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setClob("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1361,13 +1361,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBlob(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setBlob("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1381,13 +1381,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setNClob(int parameterIndex, Reader x, long length) throws SQLException {
         try {
-            if(debug()) {
+            if (debug()) {
                 debugCode("setNClob("+parameterIndex+", x, "+length+");");
             }
             checkClosed();            
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }

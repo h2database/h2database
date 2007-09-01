@@ -51,7 +51,7 @@ public class User extends RightOwner {
             this.passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
         }
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
@@ -59,35 +59,35 @@ public class User extends RightOwner {
     public String getCreateSQL() {
         return getCreateSQL(true, false);
     }
-    
+
     public String getDropSQL() {
         return null;
     }
-    
+
     public void checkRight(Table table, int rightMask) throws SQLException {
-        if(rightMask != Right.SELECT  && !systemUser) {
+        if (rightMask != Right.SELECT && !systemUser) {
             database.checkWritingAllowed();
         }
-        if(admin) {
+        if (admin) {
             return;
         }
         Role publicRole = database.getPublicRole();
-        if(publicRole.isRightGrantedRecursive(table, rightMask)) {
+        if (publicRole.isRightGrantedRecursive(table, rightMask)) {
             return;
         }
-        if(table instanceof MetaTable || table instanceof RangeTable) {
+        if (table instanceof MetaTable || table instanceof RangeTable) {
             // everybody has access to the metadata information
             return;
         }
-        if(Table.VIEW.equals(table.getTableType())) {
+        if (Table.VIEW.equals(table.getTableType())) {
             TableView v = (TableView) table;
-            if(v.getOwner() == this) {
+            if (v.getOwner() == this) {
                 // the owner of a view has access:
                 // SELECT * FROM (SELECT * FROM ...)
                 return;
             }
         }
-        if(!isRightGrantedRecursive(table, rightMask)) {
+        if (!isRightGrantedRecursive(table, rightMask)) {
             throw Message.getSQLException(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
         }
     }
@@ -95,15 +95,15 @@ public class User extends RightOwner {
     public String getCreateSQL(boolean password, boolean ifNotExists) {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE USER ");
-        if(ifNotExists) {
+        if (ifNotExists) {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(getSQL());
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        if(password) {
+        if (password) {
             buff.append(" SALT '");
             buff.append(ByteUtils.convertBytesToString(salt));
             buff.append("' HASH '");
@@ -112,7 +112,7 @@ public class User extends RightOwner {
         } else {
             buff.append(" PASSWORD ''");
         }
-        if(admin) {
+        if (admin) {
             buff.append(" ADMIN");
         }
         return buff.toString();
@@ -120,14 +120,14 @@ public class User extends RightOwner {
 
     public void checkUserPasswordHash(byte[] buff) throws SQLException {
         SHA256 sha = new SHA256();
-        byte[] hash =  sha.getHashWithSalt(buff, salt);
-        if(!ByteUtils.compareSecure(hash, passwordHash)) {
+        byte[] hash = sha.getHashWithSalt(buff, salt);
+        if (!ByteUtils.compareSecure(hash, passwordHash)) {
             throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }
     }
 
     public void checkAdmin() throws SQLException {
-        if(!admin) {
+        if (!admin) {
             throw Message.getSQLException(ErrorCode.ADMIN_RIGHTS_REQUIRED);
         }
     }
@@ -135,13 +135,13 @@ public class User extends RightOwner {
     public int getType() {
         return DbObject.USER;
     }
-    
+
     public ObjectArray getChildren() {
         ObjectArray all = database.getAllRights();
         ObjectArray rights = new ObjectArray();
-        for(int i=0; i<all.size(); i++) {
+        for (int i = 0; i < all.size(); i++) {
             Right right = (Right) all.get(i);
-            if(right.getGrantee() == this) {
+            if (right.getGrantee() == this) {
                 rights.add(right);
             }
         }
@@ -150,9 +150,9 @@ public class User extends RightOwner {
 
     public void removeChildrenAndResources(Session session) throws SQLException {
         ObjectArray rights = database.getAllRights();
-        for(int i=0; i<rights.size(); i++) {
+        for (int i = 0; i < rights.size(); i++) {
             Right right = (Right) rights.get(i);
-            if(right.getGrantee() == this) {
+            if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
             }
         }

@@ -45,12 +45,12 @@ public class DeleteDbFiles {
         String dir = ".";
         String db = null;
         boolean quiet = false;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-dir")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-dir")) {
                 dir = args[++i];
-            } else if(args[i].equals("-db")) {
+            } else if (args[i].equals("-db")) {
                 db = args[++i];
-            } else if(args[i].equals("-quiet")) {
+            } else if (args[i].equals("-quiet")) {
                 quiet = true;
             } else {
                 showUsage();
@@ -84,7 +84,7 @@ public class DeleteDbFiles {
     }
 
     private void process(String fileName, boolean quiet) throws SQLException {
-        if(quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
+        if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
             FileUtils.tryDelete(fileName);
         } else {
             FileUtils.delete(fileName);

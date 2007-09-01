@@ -25,10 +25,10 @@ public class DropDatabase extends DefineCommand {
     }
     
     public int update() throws SQLException {
-        if(dropAllObjects) {
+        if (dropAllObjects) {
             dropAllObjects();
         }
-        if(deleteFiles) {
+        if (deleteFiles) {
             session.getDatabase().setDeleteFilesOnDisconnect(true);
         }
         return 0;
@@ -41,64 +41,65 @@ public class DropDatabase extends DefineCommand {
         ObjectArray list;
         // TODO local temp tables are not removed
         list = db.getAllSchemas();
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Schema schema = (Schema) list.get(i);
-            if(schema.canDrop()) {
+            if (schema.canDrop()) {
                 db.removeDatabaseObject(session, schema);
             }
         }
         list = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Table t = (Table) list.get(i);
-            if(t.getName() != null && Table.VIEW.equals(t.getTableType())) {
+            if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Table t = (Table) list.get(i);
-            if(t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
+            if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Table t = (Table) list.get(i);
-            if(t.getName() != null && Table.TABLE.equals(t.getTableType())) {
+            if (t.getName() != null && Table.TABLE.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
         session.findLocalTempTable(null);
         list = db.getAllSchemaObjects(DbObject.SEQUENCE);
-        // maybe constraints and triggers on system tables will be allowed in the future
+        // maybe constraints and triggers on system tables will be allowed in
+        // the future
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             SchemaObject obj = (SchemaObject) list.get(i);
             db.removeSchemaObject(session, obj);
         }
         list = db.getAllUsers();
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             User user = (User) list.get(i);
-            if(user != session.getUser()) {
+            if (user != session.getUser()) {
                 db.removeDatabaseObject(session, user);
             }
         }
         list = db.getAllRoles();
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             Role role = (Role) list.get(i);
-            String sql = role.getCreateSQL();  
-            // the role PUBLIC must not be dropped            
-            if(sql != null) {            
-                db.removeDatabaseObject(session, role);                
+            String sql = role.getCreateSQL();
+            // the role PUBLIC must not be dropped
+            if (sql != null) {
+                db.removeDatabaseObject(session, role);
             }
         }
         list = db.getAllRights();
         list.addAll(db.getAllFunctionAliases());
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             DbObject obj = (DbObject) list.get(i);
             String sql = obj.getCreateSQL();
             // the role PUBLIC must not be dropped
-            if(sql != null) {
+            if (sql != null) {
                 db.removeDatabaseObject(session, obj);
             }
         }

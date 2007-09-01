@@ -31,31 +31,31 @@ public class RuleRepeat implements Rule {
     }
     
     public String matchRemove(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return null;
         }
-        if(query.length()==0) {
+        if (query.length() == 0) {
             return null;
         }
-        while(true) {
+        while (true) {
             String s = rule.matchRemove(query, sentence);
-            if(s==null) {
+            if (s == null) {
                 return query;
-            } else if(s.length()==0) {
+            } else if (s.length() == 0) {
                 return s;
             }
             query = s;
         }
-    }      
+    }
 
     public void addNextTokenList(String query, Sentence sentence) {
-        if(sentence.stop()) {
+        if (sentence.stop()) {
             return;
         }
-        while(true) {
+        while (true) {
             rule.addNextTokenList(query, sentence);
             String s = rule.matchRemove(query, sentence);
-            if(s == null || s==query) {
+            if (s == null || s == query) {
                 break;
             }
             query = s;

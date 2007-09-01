@@ -17,18 +17,18 @@ public class FtpData extends Thread {
     private InetAddress address;
     private ServerSocket serverSocket;
     private volatile Socket socket;
-    
+
     public FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) throws IOException {
         this.server = server;
         this.address = address;
         this.serverSocket = serverSocket;
     }
-    
+
     public void run() {
         try {
-            synchronized(this) {
+            synchronized (this) {
                 Socket s = serverSocket.accept();
-                if(s.getInetAddress().equals(address)) {
+                if (s.getInetAddress().equals(address)) {
                     server.log("Data connected:" + s.getInetAddress() + " expected:" + address);
                     socket = s;
                     notifyAll();
@@ -37,16 +37,16 @@ public class FtpData extends Thread {
                     close();
                 }
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
     private void waitUntilConnected() {
-        while(serverSocket != null && socket == null) {
+        while (serverSocket != null && socket == null) {
             try {
                 wait();
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 // ignore
             }
         }

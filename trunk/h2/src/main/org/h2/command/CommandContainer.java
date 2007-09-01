@@ -33,9 +33,9 @@ public class CommandContainer extends Command {
     public boolean isQuery() {
         return prepared.isQuery();
     }
-    
+
     private void recompileIfRequired() throws SQLException {
-        if(prepared.needRecompile()) {
+        if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
             prepared.setModificationId(0);
             String sql = prepared.getSQL();
@@ -45,8 +45,8 @@ public class CommandContainer extends Command {
             long mod = prepared.getModificationId();
             prepared.setModificationId(0);
             ObjectArray newParams = prepared.getParameters();
-            for(int i=0; i<newParams.size(); i++) {
-                Value v = ((Expression)oldValues.get(i)).getValue(session);
+            for (int i = 0; i < newParams.size(); i++) {
+                Value v = ((Expression) oldValues.get(i)).getValue(session);
                 Parameter p = (Parameter) newParams.get(i);
                 p.setValue(v);
             }            

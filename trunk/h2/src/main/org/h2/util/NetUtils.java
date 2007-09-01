@@ -28,13 +28,13 @@ public class NetUtils {
             return f.createSocket(address, port);
         } else {
             return new Socket(address, port);
-        }        
+        }
     }
-    
+
     public static ServerSocket createServerSocket(int port, boolean ssl) throws SQLException {
         try {
             return createServerSocketTry(port, ssl);
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // try again
             return createServerSocketTry(port, ssl);
         }
@@ -44,15 +44,16 @@ public class NetUtils {
         // TODO server sockets: maybe automatically open the next port if this is in use?
         // TODO server sockets: maybe a parameter to allow anonymous ssl?
         try {
-            if(ssl) {
+            if (ssl) {
                 SecureSocketFactory f = SecureSocketFactory.getInstance();
-                return  f.createServerSocket(port);
+                return f.createServerSocket(port);
             } else {
                 return new ServerSocket(port);
             }
-        } catch(BindException be) {
-            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, new String[]{""+port, be.toString()}, be);
-        } catch(IOException e) {
+        } catch (BindException be) {
+            throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2,
+                    new String[] { "" + port, be.toString() }, be);
+        } catch (IOException e) {
             throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }
     }

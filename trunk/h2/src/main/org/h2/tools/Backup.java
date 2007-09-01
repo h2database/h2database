@@ -54,14 +54,14 @@ public class Backup {
         String dir = ".";
         String db = null;
         boolean quiet = false;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-dir")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-dir")) {
                 dir = args[++i];
-            } else if(args[i].equals("-db")) {
+            } else if (args[i].equals("-db")) {
                 db = args[++i];
-            } else if(args[i].equals("-quiet")) {
+            } else if (args[i].equals("-quiet")) {
                 quiet = true;
-            } else if(args[i].equals("-file")) {
+            } else if (args[i].equals("-file")) {
                 zipFileName = args[++i];
             } else {
                 showUsage();
@@ -83,13 +83,13 @@ public class Backup {
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {
-            if(!quiet) {
+            if (!quiet) {
                 System.out.println("No database files found");
             }
             return;
         }
         zipFileName = FileUtils.translateFileName(zipFileName);
-        if(FileUtils.exists(zipFileName)) {
+        if (FileUtils.exists(zipFileName)) {
             FileUtils.delete(zipFileName);
         }
         OutputStream out = null;
@@ -97,16 +97,16 @@ public class Backup {
             out = FileUtils.openFileOutputStream(zipFileName);
             ZipOutputStream zipOut = new ZipOutputStream(out);
             String base = "";
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 String fileName = (String) list.get(i);
-                if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+                if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                     base = FileUtils.getParent(fileName);
                 }
             }
-            for(int i=0; i<list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 String fileName = (String) list.get(i);
                 String f = FileUtils.getAbsolutePath(fileName);
-                if(!f.startsWith(base)) {
+                if (!f.startsWith(base)) {
                     throw Message.getInternalError(f + " does not start with " + base);
                 }
                 f = f.substring(base.length());
@@ -122,11 +122,11 @@ public class Backup {
                 zipOut.closeEntry();
                 if (!quiet) {
                     System.out.println("processed: " + fileName);
-                }                
+                }
             }
             zipOut.closeEntry();
             zipOut.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, zipFileName);
         } finally {
             IOUtils.closeSilently(out);

@@ -25,7 +25,7 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
      */
     public void printStackTrace() {
         super.printStackTrace();
-        if(getNextException() != null) {
+        if (getNextException() != null) {
             getNextException().printStackTrace();
         }
     }
@@ -34,9 +34,9 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
      * INTERNAL
      */
     public void printStackTrace(PrintWriter s) {
-        if(s!=null) {
+        if (s != null) {
             super.printStackTrace(s);
-            if(getNextException() != null) {
+            if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
         }
@@ -46,9 +46,9 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
      * INTERNAL
      */
     public void printStackTrace(PrintStream s) {
-        if(s!=null) {        
+        if (s != null) {
             super.printStackTrace(s);
-            if(getNextException() != null) {
+            if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
         }

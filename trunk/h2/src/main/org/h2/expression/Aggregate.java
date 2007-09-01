@@ -40,7 +40,8 @@ import org.h2.value.ValueString;
 
 public class Aggregate extends Expression {
     // TODO aggregates: make them 'pluggable'
-    // TODO incompatibility to hsqldb: aggregates: hsqldb uses automatic data type for sum if value is too big, 
+    // TODO incompatibility to hsqldb: aggregates: hsqldb uses automatic data
+    // type for sum if value is too big,
     // h2 uses the same type as the data
     public static final int COUNT_ALL = 0, COUNT = 1, SUM = 2, MIN = 3, MAX = 4, AVG = 5;
     public static final int GROUP_CONCAT = 6, STDDEV_POP = 7, STDDEV_SAMP = 8;
@@ -50,16 +51,16 @@ public class Aggregate extends Expression {
     private final int type;
     private final Select select;
     private final boolean distinct;
-    
+
     private Expression on;
     private Expression separator;
     private ObjectArray orderList;
     private SortOrder sort;
     private int dataType, scale;
     private long precision;
-    
-    private static final HashMap aggregates = new HashMap();
-    
+
+    private static final HashMap AGGREGATES = new HashMap();
+
     public Aggregate(Database database, int type, Expression on, Select select, boolean distinct) {
         this.database = database;
         this.type = type;
@@ -67,7 +68,7 @@ public class Aggregate extends Expression {
         this.select = select;
         this.distinct = distinct;
     }
-    
+
     static {
         addAggregate("COUNT", COUNT);
         addAggregate("SUM", SUM);
@@ -88,30 +89,30 @@ public class Aggregate extends Expression {
         addAggregate("EVERY", EVERY);
         addAggregate("SELECTIVITY", SELECTIVITY);
     }
-    
+
     private static void addAggregate(String name, int type) {
-        aggregates.put(name, ObjectUtils.getInteger(type));
+        AGGREGATES.put(name, ObjectUtils.getInteger(type));
     }
-    
+
     public static int getAggregateType(String name) {
-        Integer type = (Integer) aggregates.get(name);
+        Integer type = (Integer) AGGREGATES.get(name);
         return type == null ? -1 : type.intValue();
-    }    
+    }
 
     public void setOrder(ObjectArray orderBy) {
         this.orderList = orderBy;
     }
-    
+
     public void setSeparator(Expression separator) {
         this.separator = separator;
-    }    
-    
+    }
+
     private SortOrder initOrder(Session session) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
-        for(int i=0; i<orderList.size(); i++) {
+        for (int i = 0; i < orderList.size(); i++) {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);
-            index[i] = i+1;
+            index[i] = i + 1;
             int type = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
             sortType[i] = type;
         }
@@ -120,29 +121,29 @@ public class Aggregate extends Expression {
 
     public void updateAggregate(Session session) throws SQLException {
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
-//        if(on != null) {
-//            on.updateAggregate();
-//        }
+        // if(on != null) {
+        // on.updateAggregate();
+        // }
         HashMap group = select.getCurrentGroup();
-        if(group == null) {
+        if (group == null) {
             // this is a different level (the enclosing query)
             return;
         }
         AggregateData data = (AggregateData) group.get(this);
-        if(data == null) {
+        if (data == null) {
             data = new AggregateData(type);
             group.put(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
-        if(type == GROUP_CONCAT) {
-            if(v != ValueNull.INSTANCE) {
+        if (type == GROUP_CONCAT) {
+            if (v != ValueNull.INSTANCE) {
                 v = v.convertTo(Value.STRING);
-                if(orderList != null) {
+                if (orderList != null) {
                     Value[] array = new Value[1 + orderList.size()];
                     array[0] = v;
-                    for(int i=0; i<orderList.size(); i++) {
+                    for (int i = 0; i < orderList.size(); i++) {
                         SelectOrderBy o = (SelectOrderBy) orderList.get(i);
-                        array[i+1] = o.expression.getValue(session);
+                        array[i + 1] = o.expression.getValue(session);
                     }
                     v = ValueArray.get(array);
                 }
@@ -152,8 +153,8 @@ public class Aggregate extends Expression {
     }
 
     public Value getValue(Session session) throws SQLException {
-        if(select.isQuickQuery()) {
-            switch(type) {
+        if (select.isQuickQuery()) {
+            switch (type) {
             case COUNT_ALL:
                 Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
@@ -163,62 +164,62 @@ public class Aggregate extends Expression {
                 Index index = getColumnIndex(first);
                 SearchRow row = index.findFirstOrLast(session, first);
                 Value v;
-                if(row == null) {
+                if (row == null) {
                     v = ValueNull.INSTANCE;
                 } else {
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;
             default:
-                throw Message.getInternalError("type="+type);
+                throw Message.getInternalError("type=" + type);
             }
         }
         HashMap group = select.getCurrentGroup();
-        if(group == null) {
+        if (group == null) {
             throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         AggregateData data = (AggregateData) group.get(this);
-        if(data == null) {
+        if (data == null) {
             data = new AggregateData(type);
         }
         Value v = data.getValue(database, distinct);
-        if(type == GROUP_CONCAT) {
+        if (type == GROUP_CONCAT) {
             ObjectArray list = data.getList();
-            if(list == null || list.size()==0) {
+            if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }
-            if(orderList != null) {
+            if (orderList != null) {
                 try {
                     // TODO refactor: don't use built in comparator
                     list.sort(new Comparator() {
                         public int compare(Object o1, Object o2) {
                             try {
-                                Value[] a1 = ((ValueArray)o1).getList();
-                                Value[] a2 = ((ValueArray)o2).getList();
+                                Value[] a1 = ((ValueArray) o1).getList();
+                                Value[] a2 = ((ValueArray) o2).getList();
                                 return sort.compare(a1, a2);
-                            } catch(SQLException e) {
+                            } catch (SQLException e) {
                                 throw Message.getInternalError("sort", e);
                             }
                         }
                     });
-                } catch(Error e) {
+                } catch (Error e) {
                     throw Message.convert(e);
                 }
             }
             StringBuffer buff = new StringBuffer();
             String sep = separator == null ? "," : separator.getValue(session).getString();
-            for(int i=0; i<list.size(); i++) {
-                Value val = (Value)list.get(i);
+            for (int i = 0; i < list.size(); i++) {
+                Value val = (Value) list.get(i);
                 String s;
-                if(val.getType() == Value.ARRAY) {
-                    s = ((ValueArray)val).getList()[0].getString();
+                if (val.getType() == Value.ARRAY) {
+                    s = ((ValueArray) val).getList()[0].getString();
                 } else {
                     s = val.convertTo(Value.STRING).getString();
                 }
-                if(s == null) {
+                if (s == null) {
                     continue;
                 }
-                if(i > 0 && sep != null) {
+                if (i > 0 && sep != null) {
                     buff.append(sep);
                 }
                 buff.append(s);
@@ -233,38 +234,38 @@ public class Aggregate extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        if(on != null) {
+        if (on != null) {
             on.mapColumns(resolver, level);
         }
-        if(orderList != null) {
-            for(int i=0; i<orderList.size(); i++) {
+        if (orderList != null) {
+            for (int i = 0; i < orderList.size(); i++) {
                 SelectOrderBy o = (SelectOrderBy) orderList.get(i);
                 o.expression.mapColumns(resolver, level);
             }
         }
-        if(separator != null) {
+        if (separator != null) {
             separator.mapColumns(resolver, level);
         }
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if(on != null) {
+        if (on != null) {
             on = on.optimize(session);
             dataType = on.getType();
             scale = on.getScale();
             precision = on.getPrecision();
         }
-        if(orderList != null) {
-            for(int i=0; i<orderList.size(); i++) {
+        if (orderList != null) {
+            for (int i = 0; i < orderList.size(); i++) {
                 SelectOrderBy o = (SelectOrderBy) orderList.get(i);
                 o.expression = o.expression.optimize(session);
             }
-            sort = initOrder(session);            
+            sort = initOrder(session);
         }
-        if(separator != null) {
+        if (separator != null) {
             separator = separator.optimize(session);
-        }        
-        switch(type) {
+        }
+        switch (type) {
         case GROUP_CONCAT:
             dataType = Value.STRING;
             scale = 0;
@@ -275,15 +276,15 @@ public class Aggregate extends Expression {
             dataType = Value.LONG;
             scale = 0;
             precision = 0;
-            break;            
+            break;
         case SELECTIVITY:
             dataType = Value.INT;
             scale = 0;
             precision = 0;
-            break;            
+            break;
         case SUM:
         case AVG:
-            if(!DataType.supportsAdd(dataType)) {
+            if (!DataType.supportsAdd(dataType)) {
                 throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             break;
@@ -305,24 +306,24 @@ public class Aggregate extends Expression {
             scale = 0;
             break;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
         return this;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        if(on != null) {
+        if (on != null) {
             on.setEvaluatable(tableFilter, b);
         }
-        if(orderList != null) {
-            for(int i=0; i<orderList.size(); i++) {
+        if (orderList != null) {
+            for (int i = 0; i < orderList.size(); i++) {
                 SelectOrderBy o = (SelectOrderBy) orderList.get(i);
                 o.expression.setEvaluatable(tableFilter, b);
             }
-        }        
-        if(separator != null) {
+        }
+        if (separator != null) {
             separator.setEvaluatable(tableFilter, b);
-        }        
+        }
     }
 
     public int getScale() {
@@ -332,30 +333,30 @@ public class Aggregate extends Expression {
     public long getPrecision() {
         return precision;
     }
-    
+
     public String getSQL() {
         String text;
-        switch(type) {
+        switch (type) {
         case GROUP_CONCAT: {
             StringBuffer buff = new StringBuffer();
             buff.append("GROUP_CONCAT(");
             buff.append(on.getSQL());
-            if(orderList != null) {
+            if (orderList != null) {
                 buff.append(" ORDER BY ");
-                if(orderList != null) {
-                    for(int i=0; i<orderList.size(); i++) {
-                        SelectOrderBy o = (SelectOrderBy) orderList.get(i);                        
-                        if(i > 0) {
+                if (orderList != null) {
+                    for (int i = 0; i < orderList.size(); i++) {
+                        SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                        if (i > 0) {
                             buff.append(", ");
                         }
                         buff.append(o.expression.getSQL());
-                        if(o.descending) {
+                        if (o.descending) {
                             buff.append(" DESC");
                         }
                     }
-                } 
+                }
             }
-            if(separator != null) {
+            if (separator != null) {
                 buff.append(" SEPARATOR ");
                 buff.append(separator.getSQL());
             }
@@ -380,43 +381,43 @@ public class Aggregate extends Expression {
             text = "MAX";
             break;
         case AVG:
-            text="AVG";
+            text = "AVG";
             break;
         case STDDEV_POP:
-            text="STDDEV_POP";
+            text = "STDDEV_POP";
             break;
         case STDDEV_SAMP:
-            text="STDDEV_SAMP";
+            text = "STDDEV_SAMP";
             break;
         case VAR_POP:
-            text="VAR_POP";
+            text = "VAR_POP";
             break;
         case VAR_SAMP:
-            text="VAR_SAMP";
+            text = "VAR_SAMP";
             break;
         case EVERY:
-            text="EVERY";
+            text = "EVERY";
             break;
         case SOME:
-            text="SOME";
+            text = "SOME";
             break;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
-        if(distinct) {
-            return text + "(DISTINCT " + on.getSQL()+")";
-        } else{
+        if (distinct) {
+            return text + "(DISTINCT " + on.getSQL() + ")";
+        } else {
             return text + StringUtils.enclose(on.getSQL());
         }
     }
-    
+
     public int getAggregateType() {
         return type;
-    }         
-    
+    }
+
     private Index getColumnIndex(boolean first) {
-        if(on instanceof ExpressionColumn) {
-            ExpressionColumn col = (ExpressionColumn)on;
+        if (on instanceof ExpressionColumn) {
+            ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
             Table table = col.getTableFilter().getTable();
             Index index = table.getIndexForColumn(column, first);
@@ -424,15 +425,15 @@ public class Aggregate extends Expression {
         }
         return null;
     }
-    
+
     public boolean isEverything(ExpressionVisitor visitor) {
-        if(visitor.type == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
-            switch(type) {
+        if (visitor.type == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
+            switch (type) {
             case COUNT_ALL:
                 return visitor.table.canGetRowCount();
             case MIN:
             case MAX:
-                if(!SysProperties.OPTIMIZE_MIN_MAX) {
+                if (!SysProperties.OPTIMIZE_MIN_MAX) {
                     return false;
                 }
                 boolean first = type == MIN;
@@ -441,10 +442,10 @@ public class Aggregate extends Expression {
             default:
                 return false;
             }
-        }        
+        }
         return (on == null || on.isEverything(visitor)) && (separator == null || separator.isEverything(visitor));
     }
-    
+
     public int getCost() {
         return (on == null) ? 1 : on.getCost() + 1;
     }

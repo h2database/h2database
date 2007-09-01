@@ -114,101 +114,103 @@ public class ScriptCommand extends ScriptBase {
             result = createResult();
             deleteStore();
             openOutput();
-            if(out != null) {
+            if (out != null) {
                 buffer = new byte[Constants.IO_BUFFER_SIZE];
             }
             Database db = session.getDatabase();
-            if(settings) {
+            if (settings) {
                 ObjectArray settings = db.getAllSettings();
-                for(int i=0; i<settings.size(); i++) {
+                for (int i = 0; i < settings.size(); i++) {
                     Setting setting = (Setting) settings.get(i);
                     add(setting.getCreateSQL(), false);
                 }
             }
-            if(out != null) {
+            if (out != null) {
                 add("", true);
             }
             ObjectArray users = db.getAllUsers();
-            for(int i=0; i<users.size(); i++) {
+            for (int i = 0; i < users.size(); i++) {
                 User user = (User) users.get(i);
                 add(user.getCreateSQL(passwords, true), false);
             }
             ObjectArray roles = db.getAllRoles();
-            for(int i=0; i<roles.size(); i++) {
+            for (int i = 0; i < roles.size(); i++) {
                 Role role = (Role) roles.get(i);
                 add(role.getCreateSQL(), false);
             }
             ObjectArray schemas = db.getAllSchemas();
-            for(int i=0; i<schemas.size(); i++) {
+            for (int i = 0; i < schemas.size(); i++) {
                 Schema schema = (Schema) schemas.get(i);
                 add(schema.getCreateSQL(), false);
             }
             ObjectArray datatypes = db.getAllUserDataTypes();
-            for(int i=0; i<datatypes.size(); i++) {
+            for (int i = 0; i < datatypes.size(); i++) {
                 UserDataType datatype = (UserDataType) datatypes.get(i);
-                if(drop) {
+                if (drop) {
                     add(datatype.getDropSQL(), false);
-                }                
+                }
                 add(datatype.getCreateSQL(), false);
             }
             ObjectArray constants = db.getAllSchemaObjects(DbObject.CONSTANT);
-            for(int i=0; i<constants.size(); i++) {
+            for (int i = 0; i < constants.size(); i++) {
                 Constant constant = (Constant) constants.get(i);
                 add(constant.getCreateSQL(), false);
             }
             ObjectArray functionAliases = db.getAllFunctionAliases();
-            for(int i=0; i<functionAliases.size(); i++) {
+            for (int i = 0; i < functionAliases.size(); i++) {
                 FunctionAlias alias = (FunctionAlias) functionAliases.get(i);
-                if(drop) {
+                if (drop) {
                     add(alias.getDropSQL(), false);
-                }                
+                }
                 add(alias.getCreateSQL(), false);
             }
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-            // sort by id, so that views are after tables and views on views after the base views
+            // sort by id, so that views are after tables and views on views
+            // after the base views
             tables.sort(new Comparator() {
                 public int compare(Object o1, Object o2) {
-                    Table t1 = (Table)o1;
-                    Table t2 = (Table)o2;
+                    Table t1 = (Table) o1;
+                    Table t2 = (Table) o2;
                     return t1.getId() - t2.getId();
                 }
             });
-            for(int i=0; i<tables.size(); i++) {
+            for (int i = 0; i < tables.size(); i++) {
                 Table table = (Table) tables.get(i);
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
-                if(sql == null) {
+                if (sql == null) {
                     // null for metadata tables
                     continue;
                 }
-                if(drop) {
+                if (drop) {
                     add(table.getDropSQL(), false);
                 }
             }
             ObjectArray sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
-            for(int i=0; i<sequences.size(); i++) {
+            for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
-                if(drop) {
+                if (drop) {
                     add(sequence.getDropSQL(), false);
-                }                
+                }
                 add(sequence.getCreateSQL(), false);
             }
-            for(int i=0; i<tables.size(); i++) {
+            for (int i = 0; i < tables.size(); i++) {
                 Table table = (Table) tables.get(i);
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
-                if(sql == null) {
+                if (sql == null) {
                     // null for metadata tables
                     continue;
                 }
                 String tableType = table.getTableType();
                 add(sql, false);
-                if(Table.TABLE.equals(tableType)) {
-                    if(table.canGetRowCount()) {
-                        String rowcount = "-- " + table.getRowCount(session) + " = SELECT COUNT(*) FROM " + table.getSQL();
+                if (Table.TABLE.equals(tableType)) {
+                    if (table.canGetRowCount()) {
+                        String rowcount = "-- " + table.getRowCount(session) + " = SELECT COUNT(*) FROM "
+                                + table.getSQL();
                         add(rowcount, false);
                     }
-                    if(data) {
+                    if (data) {
                         PlanItem plan = table.getBestPlanItem(session, null);
                         Index index = plan.getIndex();
                         Cursor cursor = index.find(session, null, null);
@@ -217,30 +219,30 @@ public class ScriptCommand extends ScriptBase {
                         buff.append("INSERT INTO ");
                         buff.append(table.getSQL());
                         buff.append('(');
-                        for(int j=0; j<columns.length; j++) {
-                            if(j>0) {
+                        for (int j = 0; j < columns.length; j++) {
+                            if (j > 0) {
                                 buff.append(", ");
                             }
                             buff.append(Parser.quoteIdentifier(columns[j].getName()));
                         }
                         buff.append(") VALUES(");
                         String ins = buff.toString();
-                        while(cursor.next()) {
+                        while (cursor.next()) {
                             Row row = cursor.get();
                             buff = new StringBuffer(ins);
-                            for(int j=0; j<row.getColumnCount(); j++) {
-                                if(j>0) {
+                            for (int j = 0; j < row.getColumnCount(); j++) {
+                                if (j > 0) {
                                     buff.append(", ");
                                 }
                                 Value v = row.getValue(j);
-                                if(v.getPrecision() > lobBlockSize) {
+                                if (v.getPrecision() > lobBlockSize) {
                                     int id;
-                                    if(v.getType() == Value.CLOB) {
-                                        id = writeLobStream((ValueLob)v);
-                                        buff.append("SYSTEM_COMBINE_CLOB("+id+")");
-                                    } else if(v.getType() == Value.BLOB) {
-                                        id = writeLobStream((ValueLob)v);
-                                        buff.append("SYSTEM_COMBINE_BLOB("+id+")");
+                                    if (v.getType() == Value.CLOB) {
+                                        id = writeLobStream((ValueLob) v);
+                                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
+                                    } else if (v.getType() == Value.BLOB) {
+                                        id = writeLobStream((ValueLob) v);
+                                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
                                     } else {
                                         buff.append(v.getSQL());
                                     }
@@ -254,14 +256,14 @@ public class ScriptCommand extends ScriptBase {
                     }
                 }
                 ObjectArray indexes = table.getIndexes();
-                for(int j=0; indexes != null && j<indexes.size(); j++) {
+                for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = (Index) indexes.get(j);
-                    if(!index.getIndexType().belongsToConstraint()) {
+                    if (!index.getIndexType().belongsToConstraint()) {
                         add(index.getCreateSQL(), false);
                     }
                 }
             }
-            if(tempLobTableCreated) {
+            if (tempLobTableCreated) {
                 add("DROP TABLE IF EXISTS SYSTEM_LOB_STREAM", true);
                 add("CALL SYSTEM_COMBINE_BLOB(-1)", true);
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB", true);
@@ -269,27 +271,27 @@ public class ScriptCommand extends ScriptBase {
                 tempLobTableCreated = false;
             }
             ObjectArray constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
-            for(int i=0; i<constraints.size(); i++) {
+            for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
                 add(constraint.getCreateSQLWithoutIndexes(), false);
             }
             ObjectArray triggers = db.getAllSchemaObjects(DbObject.TRIGGER);
-            for(int i=0; i<triggers.size(); i++) {
+            for (int i = 0; i < triggers.size(); i++) {
                 TriggerObject trigger = (TriggerObject) triggers.get(i);
                 add(trigger.getCreateSQL(), false);
             }
             ObjectArray rights = db.getAllRights();
-            for(int i=0; i<rights.size(); i++) {
+            for (int i = 0; i < rights.size(); i++) {
                 Right right = (Right) rights.get(i);
                 add(right.getCreateSQL(), false);
-            }            
+            }
             ObjectArray comments = db.getAllComments();
-            for(int i=0; i<comments.size(); i++) {
+            for (int i = 0; i < comments.size(); i++) {
                 Comment comment = (Comment) comments.get(i);
                 add(comment.getCreateSQL(), false);
-            }            
+            }
             closeIO();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         } finally {
             closeIO();
@@ -301,23 +303,27 @@ public class ScriptCommand extends ScriptBase {
     }
     
     private int writeLobStream(ValueLob v) throws IOException, SQLException {
-        if(!tempLobTableCreated) {
-            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))", true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"", true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"", true);
+        if (!tempLobTableCreated) {
+            add(
+                    "CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))",
+                    true);
+            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"",
+                    true);
+            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"",
+                    true);
             tempLobTableCreated = true;
         }
         int id = nextLobId++;
-        switch(v.getType()) {
+        switch (v.getType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
             InputStream in = v.getInputStream();
             try {
-                for(int i=0; ; i++) {
+                for (int i = 0;; i++) {
                     StringBuffer buff = new StringBuffer(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", NULL, '");
                     int len = IOUtils.readFully(in, bytes, lobBlockSize);
-                    if(len < 0) {
+                    if (len < 0) {
                         break;
                     }
                     buff.append(ByteUtils.convertBytesToString(bytes, len));
@@ -334,11 +340,11 @@ public class ScriptCommand extends ScriptBase {
             char[] chars = new char[lobBlockSize];
             Reader in = v.getReader();
             try {
-                for(int i=0; ; i++) {
+                for (int i = 0;; i++) {
                     StringBuffer buff = new StringBuffer(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
                     int len = IOUtils.readFully(in, chars, lobBlockSize);
-                    if(len < 0) {
+                    if (len < 0) {
                         break;
                     }
                     buff.append(StringUtils.quoteStringSQL(new String(chars)));
@@ -352,21 +358,21 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            throw Message.getInternalError("type:"+v.getType());
+            throw Message.getInternalError("type:" + v.getType());
         }
         return id;
     }
     
     // called from the script
     public static InputStream combineBlob(Connection conn, int id) throws SQLException, IOException {
-        if(id < 0) {
+        if (id < 0) {
             FileUtils.delete(TEMP_LOB_FILENAME);
             return null;
         }
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT BDATA FROM SYSTEM_LOB_STREAM WHERE ID=" + id + " ORDER BY PART");
         OutputStream out = FileUtils.openFileOutputStream(TEMP_LOB_FILENAME);
-        while(rs.next()) {
+        while (rs.next()) {
             InputStream in = rs.getBinaryStream(1);
             IOUtils.copyAndCloseInput(in, out);
         }
@@ -380,7 +386,7 @@ public class ScriptCommand extends ScriptBase {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT CDATA FROM SYSTEM_LOB_STREAM WHERE ID=" + id + " ORDER BY PART");
         Writer out = FileUtils.openFileWriter(TEMP_LOB_FILENAME, false);
-        while(rs.next()) {
+        while (rs.next()) {
             Reader in = rs.getCharacterStream(1);
             IOUtils.copyAndCloseInput(in, out);
         }
@@ -396,26 +402,26 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private void add(String s, boolean insert) throws SQLException, IOException {
-        if(s==null) {
+        if (s == null) {
             return;
         }
         if (out != null) {
             byte[] buff = StringUtils.utf8Encode(s + ";");
             int len = MathUtils.roundUp(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
             buffer = ByteUtils.copy(buff, buffer);
-            
-            if(len > buffer.length) {
+
+            if (len > buffer.length) {
                 buffer = new byte[len];
             }
             System.arraycopy(buff, 0, buffer, 0, buff.length);
-            for(int i=buff.length; i<len - lineSeparator.length; i++) {
+            for (int i = buff.length; i < len - lineSeparator.length; i++) {
                 buffer[i] = ' ';
             }
-            for(int j=0, i=len - lineSeparator.length; i<len; i++, j++) {
+            for (int j = 0, i = len - lineSeparator.length; i < len; i++, j++) {
                 buffer[i] = lineSeparator[j];
             }
             out.write(buffer, 0, len);
-            if(!insert) {
+            if (!insert) {
                 Value[] row = new Value[1];
                 row[0] = ValueString.get(s);
                 result.addRow(row);

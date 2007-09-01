@@ -62,22 +62,22 @@ public class ChangePassword {
         byte[] encrypt = null;
         String db = null;
         boolean quiet = false;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-dir")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-dir")) {
                 dir = args[++i];
-            } else if(args[i].equals("-cipher")) {
+            } else if (args[i].equals("-cipher")) {
                 cipher = args[++i];
-            } else if(args[i].equals("-db")) {
+            } else if (args[i].equals("-db")) {
                 db = args[++i];
-            } else if(args[i].equals("-decrypt")) {
+            } else if (args[i].equals("-decrypt")) {
                 decrypt = getFileEncryptionKey(args[++i].toCharArray());
-            } else if(args[i].equals("-encrypt")) {
+            } else if (args[i].equals("-encrypt")) {
                 encrypt = getFileEncryptionKey(args[++i].toCharArray());
-            } else if(args[i].equals("-quiet")) {
+            } else if (args[i].equals("-quiet")) {
                 quiet = true;
             }
         }
-        if(encrypt==null && decrypt==null) {
+        if (encrypt == null && decrypt == null) {
             showUsage();
             return;
         }
@@ -137,7 +137,7 @@ public class ChangePassword {
         boolean textStorage = Database.isTextStorage(fileName, false);
         byte[] magic = Database.getMagic(textStorage);
         FileStore in;
-        if(decrypt == null) {
+        if (decrypt == null) {
             in = FileStore.open(null, fileName, "r", magic);
         } else {
             in = FileStore.open(null, fileName, "r", magic, cipher, decrypt);
@@ -145,13 +145,13 @@ public class ChangePassword {
         in.init();
         copy(fileName, textStorage, in, encrypt);
     }
-    
+
     private void copy(String fileName, boolean textStorage, FileStore in, byte[] key) throws SQLException {
         String temp = dir + "/temp.db";
         FileUtils.delete(temp);
         byte[] magic = Database.getMagic(textStorage);
         FileStore out;
-        if(key == null) {
+        if (key == null) {
             out = FileStore.open(null, temp, "rw", magic);
         } else {
             out = FileStore.open(null, temp, "rw", magic, cipher, key);
@@ -163,9 +163,9 @@ public class ChangePassword {
         in.seek(FileStore.HEADER_LENGTH);
         out.seek(FileStore.HEADER_LENGTH);
         long time = System.currentTimeMillis();
-        while(remaining > 0) {
-            if(System.currentTimeMillis() - time > 1000) {
-                System.out.println(fileName+": "+(100-100*remaining/total)+"%");
+        while (remaining > 0) {
+            if (System.currentTimeMillis() - time > 1000) {
+                System.out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
                 time = System.currentTimeMillis();
             }
             int len = (int) Math.min(buffer.length, remaining);
@@ -176,7 +176,7 @@ public class ChangePassword {
         try {
             in.close();
             out.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
         FileUtils.delete(fileName);

@@ -20,6 +20,7 @@ public class SetTypes {
     public static final int REFERENTIAL_INTEGRITY = 30;
 
     private static ObjectArray types = new ObjectArray();
+    
     static {
         setType(IGNORECASE, "IGNORECASE");
         setType(MAX_LOG_SIZE, "MAX_LOG_SIZE");
@@ -54,15 +55,15 @@ public class SetTypes {
     }
 
     private static void setType(int type, String name) {
-        while(types.size()<=type) {
+        while (types.size() <= type) {
             types.add(null);
         }
         types.set(type, name);
     }
 
     public static int getType(String name) {
-        for(int i=0; i<types.size(); i++) {
-            if(name.equals(types.get(i))) {
+        for (int i = 0; i < types.size(); i++) {
+            if (name.equals(types.get(i))) {
                 return i;
             }
         }
@@ -74,7 +75,7 @@ public class SetTypes {
     }
 
     public static String getTypeName(int type) {
-        return (String)types.get(type);
+        return (String) types.get(type);
     }
 
 }

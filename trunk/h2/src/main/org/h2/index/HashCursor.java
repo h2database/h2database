@@ -33,7 +33,7 @@ public class HashCursor implements Cursor {
     }
 
     public boolean next() {
-        if(row==null || end) {
+        if (row == null || end) {
             row = null;
             return false;
         }

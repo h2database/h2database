@@ -14,7 +14,6 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
-
 /**
  * @author Thomas
  */
@@ -38,11 +37,11 @@ public class AlterTableRename extends SchemaCommand {
     public int update() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
-        if(getSchema().findTableOrView(session, newTableName) != null || newTableName.equals(oldTable.getName())) {
+        if (getSchema().findTableOrView(session, newTableName) != null || newTableName.equals(oldTable.getName())) {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);
         }
         session.getUser().checkRight(oldTable, Right.ALL);
-        if(oldTable.getTemporary()) {
+        if (oldTable.getTemporary()) {
             // TODO renaming a temporary table is not supported
             throw Message.getUnsupportedException();
         }

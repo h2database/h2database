@@ -27,9 +27,9 @@ public class LinearHashBucket extends Record {
         nextBucket = s.readInt();
         int len = s.readInt();
         records = new ObjectArray();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             LinearHashEntry entry = new LinearHashEntry();
-            if(!writePos) {
+            if (!writePos) {
                 Value key = s.readValue();
                 entry.key = key;
             }
@@ -60,58 +60,58 @@ public class LinearHashBucket extends Record {
     }
 
     LinearHashEntry getRecord(int i) {
-        return (LinearHashEntry)records.get(i);
+        return (LinearHashEntry) records.get(i);
     }
-    
+
     void addRecord(Session session, LinearHashEntry r) throws SQLException {
         records.add(r);
         update(session);
     }
-    
+
     void removeRecord(Session session, int i) throws SQLException {
         records.remove(i);
         update(session);
     }
-    
+
     int getRecordSize() {
         return records.size();
     }
 
     public void write(DataPage buff) throws SQLException {
         getRealByteCount(buff);
-        buff.writeByte((byte)'B');        
-        if(writePos) {
-            buff.writeByte((byte)'P');
+        buff.writeByte((byte) 'B');
+        if (writePos) {
+            buff.writeByte((byte) 'P');
         } else {
-            buff.writeByte((byte)'D');
+            buff.writeByte((byte) 'D');
         }
         buff.writeInt(nextBucket);
         buff.writeInt(records.size());
-        for(int i=0; i<records.size(); i++) {
+        for (int i = 0; i < records.size(); i++) {
             LinearHashEntry record = (LinearHashEntry) records.get(i);
             // TODO index: just add the hash if the key is too large
-            if(!writePos) {
+            if (!writePos) {
                 buff.writeValue(record.key);
             }
             buff.writeInt(record.hash);
             buff.writeInt(record.value);
         }
     }
-    
+
     public int getByteCount(DataPage dummy) throws SQLException {
         return index.getBucketSize();
     }
-    
+
     public int getRealByteCount(DataPage dummy) throws SQLException {
         int size = 2 + dummy.getIntLen() + dummy.getIntLen();
         int dataSize = 0;
-        for(int i=0; i<records.size(); i++) {
+        for (int i = 0; i < records.size(); i++) {
             LinearHashEntry record = (LinearHashEntry) records.get(i);
             // TODO index: just add the hash if the key is too large
             dataSize += dummy.getValueLen(record.key);
             size += 2 * dummy.getIntLen();
         }
-        if(size + dataSize >= index.getBucketSize()) {
+        if (size + dataSize >= index.getBucketSize()) {
             writePos = true;
             return size;
         } else {

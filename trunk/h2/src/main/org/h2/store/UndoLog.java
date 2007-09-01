@@ -28,7 +28,7 @@ public class UndoLog {
     }
 
     public int size() {
-        if(SysProperties.CHECK && memoryUndo > records.size()) {
+        if (SysProperties.CHECK && memoryUndo > records.size()) {
             throw Message.getInternalError();
         }
         return records.size();
@@ -37,7 +37,7 @@ public class UndoLog {
     public void clear() {
         records.clear();
         memoryUndo = 0;
-        if(file != null) {
+        if (file != null) {
             file.closeAndDeleteSilently();
             file = null;
             rowBuff = null;
@@ -47,18 +47,18 @@ public class UndoLog {
     public UndoLogRecord getAndRemoveLast() throws SQLException {
         int i = records.size() - 1;
         UndoLogRecord entry = (UndoLogRecord) records.get(i);
-        if(entry.isStored()) {
-            int start = Math.max(0, i-database.getMaxMemoryUndo()/2);
+        if (entry.isStored()) {
+            int start = Math.max(0, i - database.getMaxMemoryUndo() / 2);
             UndoLogRecord first = null;
-            for(int j=start; j<=i; j++) {
+            for (int j = start; j <= i; j++) {
                 UndoLogRecord e = (UndoLogRecord) records.get(j);
-                if(e.isStored()) {
+                if (e.isStored()) {
                     e.load(rowBuff, file, session);
                     memoryUndo++;
-                    if(first == null) {
+                    if (first == null) {
                         first = e;
                     }
-                }                
+                }
             }
             first.seek(file);
         }
@@ -70,8 +70,8 @@ public class UndoLog {
     public void add(UndoLogRecord entry) throws SQLException {
         records.add(entry);
         memoryUndo++;
-        if(memoryUndo > database.getMaxMemoryUndo() && database.isPersistent()) {
-            if(file == null) {
+        if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent()) {
+            if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
                 file.autoDelete();
@@ -79,9 +79,9 @@ public class UndoLog {
                 rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
             }
             DataPage buff = rowBuff;
-            for(int i=0; i<records.size(); i++) {
+            for (int i = 0; i < records.size(); i++) {
                 UndoLogRecord r = (UndoLogRecord) records.get(i);
-                if(!r.isStored() && r.canStore()) {
+                if (!r.isStored() && r.canStore()) {
                     r.save(buff, file);
                     memoryUndo--;
                 }

@@ -16,22 +16,22 @@ public class DataPageText extends DataPage {
     }
     
     public void setInt(int pos, int x) {
-        for(int i=7;i>=0;i--, x>>>= 4) {
-            data[i] = (byte)Character.forDigit(x & 0xf, 16);
+        for (int i = 7; i >= 0; i--, x >>>= 4) {
+            data[i] = (byte) Character.forDigit(x & 0xf, 16);
         }
     }
 
     public void updateChecksum() {
-        if(CHECKSUM) {
-            int x = handler.getChecksum(data, 0, pos-2);
-            data[pos-2] = (byte)('a' + (((x^(x>>4)) & 0xf)));
+        if (CHECKSUM) {
+            int x = handler.getChecksum(data, 0, pos - 2);
+            data[pos - 2] = (byte) ('a' + (((x ^ (x >> 4)) & 0xf)));
         }
     }
 
     public void check(int len) throws SQLException {
-        if(CHECKSUM) {
-            int x = handler.getChecksum(data, 0, len-2);
-            if(data[len-2] == (byte)('a' + (((x^(x>>4)) & 0xf)))) {
+        if (CHECKSUM) {
+            int x = handler.getChecksum(data, 0, len - 2);
+            if (data[len - 2] == (byte) ('a' + (((x ^ (x >> 4)) & 0xf)))) {
                 return;
             }
             handler.handleInvalidChecksum();
@@ -43,24 +43,24 @@ public class DataPageText extends DataPage {
     }
 
     public void writeInt(int x) {
-        if(SysProperties.CHECK) {
+        if (SysProperties.CHECK) {
             checkCapacity(8);
         }
-        for(int i=7;i>=0;i--, x>>>= 4) {
-            data[pos+i] = (byte)Character.forDigit(x & 0xf, 16);
+        for (int i = 7; i >= 0; i--, x >>>= 4) {
+            data[pos + i] = (byte) Character.forDigit(x & 0xf, 16);
         }
-        pos+=8;
+        pos += 8;
     }
 
     public int readInt() {
         int x = 0;
-        if(data[pos]==' ') {
+        if (data[pos] == ' ') {
             pos += 8;
             return 0;
         }
-        for(int i=8, c;i>0;i--) {
+        for (int i = 8, c; i > 0; i--) {
             x <<= 4;
-            x |= (c = data[pos++]) >= 'a' ? (c - 'a'+10) : (c - '0');
+            x |= (c = data[pos++]) >= 'a' ? (c - 'a' + 10) : (c - '0');
         }
         return x;
     }
@@ -101,17 +101,17 @@ public class DataPageText extends DataPage {
 
     public String readString() {
         StringBuffer buff = new StringBuffer(32);
-        if(SysProperties.CHECK && data[pos] != '"') {
+        if (SysProperties.CHECK && data[pos] != '"') {
             throw Message.getInternalError("\" expected");
         }
         pos++;
-        while(true) {
-            char x = (char)(data[pos++] & 0xff);
-            if(x == '"') {
+        while (true) {
+            char x = (char) (data[pos++] & 0xff);
+            if (x == '"') {
                 break;
-            } else if(x=='\\') {
-                x = (char)data[pos++];
-                switch(x) {
+            } else if (x == '\\') {
+                x = (char) data[pos++];
+                switch (x) {
                 case 't':
                     buff.append('\t');
                     break;
@@ -135,15 +135,15 @@ public class DataPageText extends DataPage {
                     break;
                 case 'u': {
                     x = 0;
-                    for(int i=3, c;i>=0;i--) {
+                    for (int i = 3, c; i >= 0; i--) {
                         x <<= 4;
-                        x |= (c = data[pos++]) >= 'a' ? (c - 'a'+10) : (c - '0');
+                        x |= (c = data[pos++]) >= 'a' ? (c - 'a' + 10) : (c - '0');
                     }
                     buff.append(x);
                     break;
                 }
                 default:
-                    throw Message.getInternalError("unexpected "+x);
+                    throw Message.getInternalError("unexpected " + x);
                 }
             } else {
                 buff.append(x);
@@ -154,41 +154,48 @@ public class DataPageText extends DataPage {
     }
 
     public void writeString(String s) {
-        checkCapacity(s.length()*6+2);
+        checkCapacity(s.length() * 6 + 2);
         data[pos++] = '\"';
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             switch (c) {
             case '\t':
-                data[pos++] = '\\'; data[pos++] = 't';
+                data[pos++] = '\\';
+                data[pos++] = 't';
                 break;
             case '\r':
-                data[pos++] = '\\'; data[pos++] = 'r';
+                data[pos++] = '\\';
+                data[pos++] = 'r';
                 break;
             case '\n':
-                data[pos++] = '\\'; data[pos++] = 'n';
+                data[pos++] = '\\';
+                data[pos++] = 'n';
                 break;
             case '\b':
-                data[pos++] = '\\'; data[pos++] = 'b';
+                data[pos++] = '\\';
+                data[pos++] = 'b';
                 break;
             case '\f':
-                data[pos++] = '\\'; data[pos++] = 'f';
+                data[pos++] = '\\';
+                data[pos++] = 'f';
                 break;
             case '"':
-                data[pos++] = '\\'; data[pos++] = '\"';
+                data[pos++] = '\\';
+                data[pos++] = '\"';
                 break;
             case '\\':
-                data[pos++] = '\\'; data[pos++] = '\\';
+                data[pos++] = '\\';
+                data[pos++] = '\\';
                 break;
             default:
                 int ch = (c & 0xffff);
                 if ((ch >= ' ') && (ch <= 0xff)) {
-                    data[pos++] = (byte)ch;
+                    data[pos++] = (byte) ch;
                 } else {
                     data[pos++] = '\\';
                     data[pos++] = 'u';
-                    for(int j=3;j>=0;j--, ch>>>= 4) {
-                        data[pos+j] = (byte)Character.forDigit(ch & 0xf, 16);
+                    for (int j = 3; j >= 0; j--, ch >>>= 4) {
+                        data[pos + j] = (byte) Character.forDigit(ch & 0xf, 16);
                     }
                     pos += 4;
                 }
@@ -202,10 +209,10 @@ public class DataPageText extends DataPage {
         if (pos > len) {
             pos = len;
         }
-        checkCapacity(len-pos);
-        while(pos < len) {
+        checkCapacity(len - pos);
+        while (pos < len) {
             data[pos++] = ' ';
         }
-        data[pos-1] = '\n';
+        data[pos - 1] = '\n';
     }
 }

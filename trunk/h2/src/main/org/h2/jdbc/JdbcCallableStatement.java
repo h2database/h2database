@@ -8,7 +8,22 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Date;
+import java.sql.Ref;
+//#ifdef JDK16
+/*
+import java.sql.NClob;
+import java.sql.SQLXML;
+import java.sql.RowId;
+*/
+//#endif
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
@@ -152,35 +167,35 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-    public Object  getObject (int i, Map map) throws SQLException {
+    public Object getObject(int i, Map map) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
     /**
      * [Not supported]
      */
-    public Ref getRef (int i) throws SQLException {
+    public Ref getRef(int i) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
     /**
      * [Not supported]
      */
-    public Blob getBlob (int i) throws SQLException {
+    public Blob getBlob(int i) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
     /**
      * [Not supported]
      */
-    public Clob getClob (int i) throws SQLException {
+    public Clob getClob(int i) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
     /**
      * [Not supported]
      */
-    public Array getArray (int i) throws SQLException {
+    public Array getArray(int i) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
@@ -208,7 +223,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-    public void registerOutParameter (int paramIndex, int sqlType, String typeName) throws SQLException {
+    public void registerOutParameter(int paramIndex, int sqlType, String typeName) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

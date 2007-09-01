@@ -91,21 +91,21 @@ public class Recover implements DataHandler {
         String dir = ".";
         String db = null;
         boolean removePassword = false;
-        for(int i=0; args != null && i<args.length; i++) {
-            if("-dir".equals(args[i])) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if ("-dir".equals(args[i])) {
                 dir = args[++i];
-            } else if("-db".equals(args[i])) {
+            } else if ("-db".equals(args[i])) {
                 db = args[++i];
-            } else if("-removePassword".equals(args[i])) {
+            } else if ("-removePassword".equals(args[i])) {
                 removePassword = true;
-            } else if("-log".equals(args[i])) {
+            } else if ("-log".equals(args[i])) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
             } else {
                 showUsage();
                 return;
             }
         }
-        if(removePassword) {
+        if (removePassword) {
             removePassword(dir, db);
         } else {
             process(dir, db);
@@ -114,17 +114,17 @@ public class Recover implements DataHandler {
     
     private void removePassword(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
-            if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+            if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 removePassword(fileName);
             }
         }
     }
-    
+
     private void logError(String message, Throwable t) {
         System.out.println(message + ": " + t.toString());
-        if(log) {
+        if (log) {
             t.printStackTrace();
         }
     }
@@ -137,10 +137,10 @@ public class Recover implements DataHandler {
         long length = store.length();
         int offset = FileStore.HEADER_LENGTH;
         int blockSize = DiskFile.BLOCK_SIZE;
-        int blocks = (int)(length / blockSize);
+        int blocks = (int) (length / blockSize);
         blockCount = 1;
-        for(int block=0; block<blocks; block += blockCount) {
-            store.seek(offset + (long)block*blockSize);
+        for (int block = 0; block < blocks; block += blockCount) {
+            store.seek(offset + (long) block * blockSize);
             byte[] bytes = new byte[blockSize];
             DataPage s = DataPage.create(this, bytes);
             long start = store.getFilePointer();
@@ -149,65 +149,65 @@ public class Recover implements DataHandler {
             storageId = -1;
             recordLength = -1;
             valueId = -1;
-            if(blockCount == 0) {
+            if (blockCount == 0) {
                 // free block
                 blockCount = 1;
                 continue;
-            } else if(blockCount < 0) {
+            } else if (blockCount < 0) {
                 blockCount = 1;
                 continue;
             }
             try {
                 s.checkCapacity(blockCount * blockSize);
-            } catch(OutOfMemoryError e) {
+            } catch (OutOfMemoryError e) {
                 blockCount = 1;
                 continue;
             }
-            if(blockCount > 1) {
+            if (blockCount > 1) {
                 store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
             }
             try {
                 s.check(blockCount * blockSize);
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 blockCount = 1;
                 continue;
             }
             storageId = s.readInt();
-            if(storageId != 0) {
+            if (storageId != 0) {
                 continue;
             }
             recordLength = s.readInt();
-            if(recordLength <= 0) {
+            if (recordLength <= 0) {
                 continue;
             }
             Value[] data;
             try {
                 data = new Value[recordLength];
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 continue;
             }
-            for(valueId=0; valueId<recordLength; valueId++) {
+            for (valueId = 0; valueId < recordLength; valueId++) {
                 try {
                     data[valueId] = s.readValue();
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     continue;
                 }
             }
-            if(storageId == 0) {
+            if (storageId == 0) {
                 try {
                     String sql = data[3].getString();
-                    if(!sql.startsWith("CREATE USER ")) {
+                    if (!sql.startsWith("CREATE USER ")) {
                         continue;
                     }
                     int idx = sql.indexOf("SALT");
-                    if(idx < 0) {
+                    if (idx < 0) {
                         continue;
                     }
-                    String userName = sql.substring("CREATE USER ".length(), idx-1);
-                    if(userName.startsWith("\"")) {
+                    String userName = sql.substring("CREATE USER ".length(), idx - 1);
+                    if (userName.startsWith("\"")) {
                         // TODO doesn't work for all cases ("" inside user name)
-                        userName = userName.substring(1, userName.length()-1);
-                    }                    
+                        userName = userName.substring(1, userName.length() - 1);
+                    }
                     SHA256 sha = new SHA256();
                     byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
                     byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
@@ -221,7 +221,7 @@ public class Recover implements DataHandler {
                     buff.append("' HASH '");
                     buff.append(ByteUtils.convertBytesToString(passwordHash));
                     buff.append("'");
-                    if(admin) {
+                    if (admin) {
                         buff.append(" ADMIN");
                     }
                     byte[] replacement = buff.toString().getBytes();
@@ -233,7 +233,7 @@ public class Recover implements DataHandler {
                     store.write(s.getBytes(), 0, s.length());
                     System.out.println("User: " + userName);
                     break;
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
@@ -254,53 +254,55 @@ public class Recover implements DataHandler {
     
     private void process(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
-        for(int i=0; i<list.size(); i++) {
+        for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
-            // TODO recover: should create a working SQL script if possible (2 passes)
-            if(fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+            // TODO recover: should create a working SQL script if possible (2
+            // passes)
+            if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 dumpData(fileName);
-            } else if(fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
+            } else if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
                 dumpIndex(fileName);
-            } else if(fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
+            } else if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 dumpLog(fileName);
-            } else if(fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
+            } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, true);
                 dumpLob(fileName, false);
             }
         }
     }
-    
+
     private static PrintWriter getWriter(String fileName, String suffix) throws IOException {
-        fileName = fileName.substring(0, fileName.length()-3);
+        fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         System.out.println("Created file: " + outputFile);
         return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
     }
-    
+
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {
-        writer.println("-- ERROR:" + error + " block:"+block+" blockCount:"+blockCount+" storageId:" + storageId+" recordLength: " + recordLength+" valueId:" + valueId);
+        writer.println("-- ERROR:" + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
+                + storageId + " recordLength: " + recordLength + " valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
-        for(int i=0; i<dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = (data[i] & 0xff);
-            if(x >= ' ' && x < 128) {
-                sb.append((char)x);
+            if (x >= ' ' && x < 128) {
+                sb.append((char) x);
             } else {
                 sb.append('?');
             }
         }
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuffer();
-        for(int i=0; i<dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
+        for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = (data[i] & 0xff);
             sb.append(' ');
-            if(x < 16) {
+            if (x < 16) {
                 sb.append('0');
             }
             sb.append(Integer.toHexString(x));
         }
         writer.println("-- dump: " + sb.toString());
     }
-    
+
     private void dumpLob(String fileName, boolean lobCompression) {
         OutputStream out = null;
         FileStore store = null;
@@ -315,17 +317,18 @@ public class Recover implements DataHandler {
             store.init();
             in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression, false));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
-            while(true) {
+            while (true) {
                 int l = in.read(buffer);
-                if(l<0) {
+                if (l < 0) {
                     break;
                 }
                 out.write(buffer, 0, l);
                 size += l;
             }
-        } catch(Throwable e) {
-            // this is usually not a problem, because we try both compressed and uncompressed
-            if(log) {
+        } catch (Throwable e) {
+            // this is usually not a problem, because we try both compressed and
+            // uncompressed
+            if (log) {
                 logError(fileName, e);
             }
         } finally {
@@ -333,7 +336,7 @@ public class Recover implements DataHandler {
             IOUtils.closeSilently(in);
             closeSilently(store);
         }
-        if(size == 0) {
+        if (size == 0) {
             try {
                 FileUtils.delete(n);
             } catch (SQLException e) {
@@ -341,55 +344,55 @@ public class Recover implements DataHandler {
             }
         }
     }
-    
+
     private void writeLogRecord(PrintWriter writer, DataPage s) {
         try {
             recordLength = s.readInt();
-            if(recordLength <= 0) {
+            if (recordLength <= 0) {
                 writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
                 return;
             }
             Value[] data;
             try {
                 data = new Value[recordLength];
-            } catch(OutOfMemoryError e) {
+            } catch (OutOfMemoryError e) {
                 writeDataError(writer, "out of memory", s.getBytes(), blockCount);
                 return;
             }
             StringBuffer sb = new StringBuffer();
             sb.append("//     data: ");
-            for(valueId=0; valueId<recordLength; valueId++) {
+            for (valueId = 0; valueId < recordLength; valueId++) {
                 try {
                     Value v = s.readValue();
                     data[valueId] = v;
-                    if(valueId>0) {
+                    if (valueId > 0) {
                         sb.append(", ");
                     }
                     sb.append(v.getSQL());
-                } catch(Exception e) {
-                    if(log) {
+                } catch (Exception e) {
+                    if (log) {
                         logError("log data", e);
                     }
                     writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                     continue;
-                } catch(OutOfMemoryError e) {
+                } catch (OutOfMemoryError e) {
                     writeDataError(writer, "out of memory", s.getBytes(), blockCount);
                     continue;
                 }
             }
             writer.println(sb.toString());
             writer.flush();
-        } catch(IOException e) {
+        } catch (IOException e) {
             try {
                 writeDataError(writer, "error: " + e.toString(), s.getBytes(), blockCount);
-            } catch(IOException e2) {
+            } catch (IOException e2) {
                 writeError(writer, e);
             }
         }
     }
-    
+
     private void dumpLog(String fileName) throws SQLException {
-        PrintWriter writer = null;        
+        PrintWriter writer = null;
         FileStore store = null;
         try {
             databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length());
@@ -401,13 +404,13 @@ public class Recover implements DataHandler {
             writer.println("// length: " + length);
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = LogFile.BLOCK_SIZE;
-            int blocks = (int)(length / blockSize);
+            int blocks = (int) (length / blockSize);
             byte[] buff = new byte[blockSize];
             DataPage s = DataPage.create(this, buff);
-            s.fill(3*blockSize);
+            s.fill(3 * blockSize);
             int len = s.length();
             s.reset();
-            if(length < FileStore.HEADER_LENGTH + len) {
+            if (length < FileStore.HEADER_LENGTH + len) {
                 // this is an empty file
                 writer.println("// empty file");
                 return;
@@ -420,24 +423,24 @@ public class Recover implements DataHandler {
             writer.println("// id:" + id);
             writer.println("// firstUncommittedPos:" + firstUncommittedPos);
             writer.println("// firstUnwrittenPos:" + firstUnwrittenPos);
-            int max = (int)(length / blockSize);
+            int max = (int) (length / blockSize);
             writer.println("// max:" + max);
-            while(true) {
-                int pos = (int)(store.getFilePointer() / blockSize);
-                if((long)pos * blockSize >= length) {
+            while (true) {
+                int pos = (int) (store.getFilePointer() / blockSize);
+                if ((long) pos * blockSize >= length) {
                     break;
                 }
                 buff = new byte[blockSize];
                 store.readFully(buff, 0, blockSize);
                 s = DataPage.create(this, buff);
                 blocks = Math.abs(s.readInt());
-                if(blocks > 1) {
+                if (blocks > 1) {
                     byte[] b2 = new byte[blocks * blockSize];
                     System.arraycopy(buff, 0, b2, 0, blockSize);
                     buff = b2;
                     try {
                         store.readFully(buff, blockSize, blocks * blockSize - blockSize);
-                    } catch(SQLException e) {
+                    } catch (SQLException e) {
                         break;
                     }
                     s = DataPage.create(this, buff);
@@ -445,30 +448,30 @@ public class Recover implements DataHandler {
                 }
                 s.reset();
                 blocks = Math.abs(s.readInt());
-                if(blocks==0) {
-                    writer.println("// [" + pos+"] blocks: "+blocks+" (end)");
+                if (blocks == 0) {
+                    writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
                     break;
                 } else {
-                    char type = (char)s.readByte();
+                    char type = (char) s.readByte();
                     int sessionId = s.readInt();
-                    if(type == 'P') {
+                    if (type == 'P') {
                         String transaction = s.readString();
-                        writer.println("//   prepared session:"+sessionId+" tx:" + transaction);
-                    } else if(type == 'C') {
+                        writer.println("//   prepared session:" + sessionId + " tx:" + transaction);
+                    } else if (type == 'C') {
                         writer.println("//   commit session:" + sessionId);
                     } else {
                         int storageId = s.readInt();
                         int recId = s.readInt();
                         int blockCount = s.readInt();
-                        if(type != 'T') {
+                        if (type != 'T') {
                             s.readDataPageNoSize();
                         }
-                        switch(type) {
+                        switch (type) {
                         case 'S': {
                             char fileType = (char) s.readByte();
-                            int sumLength= s.readInt();
+                            int sumLength = s.readInt();
                             byte[] summary = new byte[sumLength];
-                            if(sumLength > 0) {
+                            if (sumLength > 0) {
                                 s.read(summary, 0, sumLength);
                             }
                             writer.println("//   summary session:"+sessionId+" fileType:" + fileType + " sumLength:" + sumLength);
@@ -490,62 +493,62 @@ public class Recover implements DataHandler {
                             writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
                             break;
                         }
-                    }                    
+                    }
                 }
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
             closeSilently(store);
         }
     }
-    
+
     private void dumpSummary(PrintWriter writer, byte[] summary) throws SQLException {
-        if(summary == null || summary.length==0) {
+        if (summary == null || summary.length == 0) {
             writer.println("//     summary is empty");
             return;
         }
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
             int b2 = in.readInt();
-            for(int i=0; i<b2 / 8; i++) {
+            for (int i = 0; i < b2 / 8; i++) {
                 int x = in.read();
-                if((i % 8) == 0) {
+                if ((i % 8) == 0) {
                     writer.print("//  ");
                 }
                 writer.print(" " + Long.toString(i * 8) + ":");
-                for(int j=0; j<8; j++) {
+                for (int j = 0; j < 8; j++) {
                     writer.print(((x & 1) == 1) ? "1" : "0");
                     x >>>= 1;
                 }
-                if((i % 8) == 7) {
+                if ((i % 8) == 7) {
                     writer.println("");
                 }
             }
             writer.println("//");
             int len = in.readInt();
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 int storageId = in.readInt();
-                if(storageId != -1) {
-                    writer.println("//     pos:"+(i*DiskFile.BLOCKS_PER_PAGE)+" storage:" + storageId);
+                if (storageId != -1) {
+                    writer.println("//     pos:" + (i * DiskFile.BLOCKS_PER_PAGE) + " storage:" + storageId);
                 }
             }
-            while(true) {
+            while (true) {
                 int s = in.readInt();
-                if(s < 0) {
+                if (s < 0) {
                     break;
                 }
                 int recordCount = in.readInt();
-                writer.println("//     storage:"+s+" recordCount:" + recordCount);
+                writer.println("//     storage:" + s + " recordCount:" + recordCount);
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             writeError(writer, e);
         }
     }
 
     private void dumpIndex(String fileName) throws SQLException {
-        PrintWriter writer = null;        
+        PrintWriter writer = null;
         FileStore store = null;
         try {
             databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length());
@@ -556,11 +559,11 @@ public class Recover implements DataHandler {
             long length = store.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
-            int blocks = (int)(length / blockSize);
+            int blocks = (int) (length / blockSize);
             blockCount = 1;
             int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
-            for(int block=0; block<blocks; block += blockCount) {
-                store.seek(offset + (long)block*blockSize);
+            for (int block = 0; block < blocks; block += blockCount) {
+                store.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
                 store.readFully(buff, 0, blockSize);
@@ -568,50 +571,51 @@ public class Recover implements DataHandler {
                 storageId = -1;
                 recordLength = -1;
                 valueId = -1;
-                if(blockCount == 0) {
+                if (blockCount == 0) {
                     // free block
                     blockCount = 1;
                     continue;
-                } else if(blockCount < 0) {
+                } else if (blockCount < 0) {
                     writeDataError(writer, "blockCount<0", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
-                } else if((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
+                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
                     writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
                 try {
                     s.checkCapacity(blockCount * blockSize);
-                } catch(OutOfMemoryError e) {
+                } catch (OutOfMemoryError e) {
                     writeDataError(writer, "out of memory", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
-                if(blockCount > 1) {
+                if (blockCount > 1) {
                     store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
                 }
                 try {
                     s.check(blockCount * blockSize);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     writeDataError(writer, "wrong checksum", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
                 storageId = s.readInt();
-                if(storageId < 0) {
+                if (storageId < 0) {
                     writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
                     continue;
                 }
                 int page = block / DiskFile.BLOCKS_PER_PAGE;
-                if(pageOwners[page] != 0 && pageOwners[page] != storageId) {
-                    writeDataError(writer, "double allocation, previous="+pageOwners[page]+" now="+storageId, s.getBytes(), blockCount);
+                if (pageOwners[page] != 0 && pageOwners[page] != storageId) {
+                    writeDataError(writer, "double allocation, previous=" + pageOwners[page] + " now=" + storageId, s
+                            .getBytes(), blockCount);
                 } else {
                     pageOwners[page] = storageId;
                 }
-                writer.println("// [" + block + "] page:"+page+" blocks:"+blockCount+" storage:"+storageId);
+                writer.println("// [" + block + "] page:" + page + " blocks:" + blockCount + " storage:" + storageId);
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
@@ -620,7 +624,7 @@ public class Recover implements DataHandler {
     }
 
     private void dumpData(String fileName) throws SQLException {
-        PrintWriter writer = null;        
+        PrintWriter writer = null;
         FileStore store = null;
         try {
             databaseName = fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
@@ -634,11 +638,11 @@ public class Recover implements DataHandler {
             long length = store.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
-            int blocks = (int)(length / blockSize);
+            int blocks = (int) (length / blockSize);
             blockCount = 1;
             int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
-            for(int block=0; block<blocks; block += blockCount) {
-                store.seek(offset + (long)block*blockSize);
+            for (int block = 0; block < blocks; block += blockCount) {
+                store.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
                 store.readFully(buff, 0, blockSize);
@@ -646,29 +650,29 @@ public class Recover implements DataHandler {
                 storageId = -1;
                 recordLength = -1;
                 valueId = -1;
-                if(blockCount == 0) {
+                if (blockCount == 0) {
                     // free block
                     blockCount = 1;
                     continue;
-                } else if(blockCount < 0) {
+                } else if (blockCount < 0) {
                     writeDataError(writer, "blockCount<0", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
-                } else if((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
+                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
                     writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
-                writer.println("-- block " + block + " - " + (block + blockCount-1));
+                writer.println("-- block " + block + " - " + (block + blockCount - 1));
                 try {
                     s.checkCapacity(blockCount * blockSize);
-                } catch(OutOfMemoryError e) {
+                } catch (OutOfMemoryError e) {
                     writeDataError(writer, "out of memory", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
-                if(blockCount > 1) {
-                    if((blockCount * blockSize) < 0) {
+                if (blockCount > 1) {
+                    if ((blockCount * blockSize) < 0) {
                         writeDataError(writer, "wrong blockCount", s.getBytes(), 1);
                         blockCount = 1;
                     } else {
@@ -677,42 +681,43 @@ public class Recover implements DataHandler {
                 }
                 try {
                     s.check(blockCount * blockSize);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     writeDataError(writer, "wrong checksum", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
                 }
                 storageId = s.readInt();
-                if(storageId < 0) {
+                if (storageId < 0) {
                     writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
                     continue;
                 }
                 int page = block / DiskFile.BLOCKS_PER_PAGE;
-                if(pageOwners[page] != 0 && pageOwners[page] != storageId) {
-                    writeDataError(writer, "double allocation, previous="+pageOwners[page]+" now="+storageId, s.getBytes(), blockCount);
+                if (pageOwners[page] != 0 && pageOwners[page] != storageId) {
+                    writeDataError(writer, "double allocation, previous=" + pageOwners[page] + " now=" + storageId, s
+                            .getBytes(), blockCount);
                 } else {
                     pageOwners[page] = storageId;
                 }
                 recordLength = s.readInt();
-                if(recordLength <= 0) {
+                if (recordLength <= 0) {
                     writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
                     continue;
                 }
                 Value[] data;
                 try {
                     data = new Value[recordLength];
-                } catch(OutOfMemoryError e) {
+                } catch (OutOfMemoryError e) {
                     writeDataError(writer, "out of memory", s.getBytes(), blockCount);
                     continue;
                 }
-                if(!objectIdSet.contains(ObjectUtils.getInteger(storageId))) {
+                if (!objectIdSet.contains(ObjectUtils.getInteger(storageId))) {
                     objectIdSet.add(ObjectUtils.getInteger(storageId));
                     StringBuffer sb = new StringBuffer();
                     sb.append("CREATE TABLE O_" + storageId + "(");
-                    for(int i=0; i<recordLength; i++) {
-                        if(i>0) {
+                    for (int i = 0; i < recordLength; i++) {
+                        if (i > 0) {
                             sb.append(", ");
-                        }                        
+                        }
                         sb.append("C");
                         sb.append(i);
                         sb.append(" VARCHAR");
@@ -723,18 +728,18 @@ public class Recover implements DataHandler {
                 }
                 StringBuffer sb = new StringBuffer();
                 sb.append("INSERT INTO O_" + storageId + " VALUES(");
-                for(valueId=0; valueId<recordLength; valueId++) {
+                for (valueId = 0; valueId < recordLength; valueId++) {
                     try {
                         Value v = s.readValue();
                         data[valueId] = v;
-                        if(valueId>0) {
+                        if (valueId > 0) {
                             sb.append(", ");
                         }
                         sb.append(v.getSQL());
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                         continue;
-                    } catch(OutOfMemoryError e) {
+                    } catch (OutOfMemoryError e) {
                         writeDataError(writer, "out of memory", s.getBytes(), blockCount);
                         continue;
                     }
@@ -742,41 +747,41 @@ public class Recover implements DataHandler {
                 sb.append(");");
                 writer.println(sb.toString());
                 writer.flush();
-                if(storageId == 0) {
+                if (storageId == 0) {
                     try {
                         SimpleRow r = new SimpleRow(data);
                         MetaRecord meta = new MetaRecord(r);
                         schema.add(meta);
-                        if(meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
+                        if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
                             String sql = data[3].getString();
                             int end = sql.indexOf('(');
-                            if(end >= 0) {
+                            if (end >= 0) {
                                 int start = sql.lastIndexOf(' ', end);
                                 String name = sql.substring(start, end).trim();
                                 tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
                             }
                         }
-                    } catch(Throwable t) {
+                    } catch (Throwable t) {
                         writeError(writer, t);
                     }
                 }
             }
             MetaRecord.sort(schema);
-            for(int i=0; i<schema.size(); i++) {
+            for (int i = 0; i < schema.size(); i++) {
                 MetaRecord m = (MetaRecord) schema.get(i);
                 writer.println(m.getSQL() + ";");
             }
-            for(Iterator it = tableMap.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator it = tableMap.entrySet().iterator(); it.hasNext();) {
                 Map.Entry entry = (Entry) it.next();
                 Integer objectId = (Integer) entry.getKey();
                 String name = (String) entry.getValue();
-                writer.println("INSERT INTO " + name +" SELECT * FROM O_" + objectId + ";");
+                writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
             }
-            for(Iterator it = objectIdSet.iterator(); it.hasNext(); ) {
+            for (Iterator it = objectIdSet.iterator(); it.hasNext();) {
                 Integer objectId = (Integer) it.next();
                 writer.println("DROP TABLE O_" + objectId + ";");
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             writeError(writer, e);
         } finally {
             IOUtils.closeSilently(writer);
@@ -785,15 +790,15 @@ public class Recover implements DataHandler {
     }
 
     private void closeSilently(FileStore store) {
-        if(store != null) {
+        if (store != null) {
             store.closeSilently();
             store = null;
         }
     }
-    
+
     private void writeError(PrintWriter writer, Throwable e) {
-        if(writer != null) {
-            writer.println("// error: "+ e);
+        if (writer != null) {
+            writer.println("// error: " + e);
         }
         logError("Error", e);
     }
@@ -824,7 +829,7 @@ public class Recover implements DataHandler {
      */
     public int getChecksum(byte[] data, int start, int end) {
         int x = 0;
-        while(start < end) {
+        while (start < end) {
             x += data[start++];
         }
         return x;
@@ -857,42 +862,42 @@ public class Recover implements DataHandler {
 
     /**
      * INTERNAL
-     */    
+     */
     public int compareTypeSave(Value a, Value b) throws SQLException {
         throw Message.getInternalError();
     }
 
     /**
      * INTERNAL
-     */    
+     */
     public int getMaxLengthInplaceLob() {
         throw Message.getInternalError();
     }
 
     /**
      * INTERNAL
-     */    
+     */
     public int allocateObjectId(boolean b, boolean c) {
         throw Message.getInternalError();
     }
 
     /**
      * INTERNAL
-     */    
+     */
     public String createTempFile() throws SQLException {
         throw Message.getInternalError();
     }
 
     /**
      * INTERNAL
-     */    
+     */
     public String getLobCompressionAlgorithm(int type) {
         return null;
     }
 
     /**
      * INTERNAL
-     */      
+     */
     public Object getLobSyncObject() {
         return this;
     }

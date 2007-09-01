@@ -117,14 +117,14 @@ public class LogSystem {
     }
 
     public void close() throws SQLException {
-        if(database == null) {
+        if (database == null) {
             return;
         }
         synchronized (database) {
-            if(closed) {
+            if (closed) {
                 return;
             }
-            if(readOnly) {
+            if (readOnly) {
                 for (int i = 0; i < activeLogs.size(); i++) {
                     LogFile l = (LogFile) activeLogs.get(i);
                     l.close(false);
@@ -175,11 +175,11 @@ public class LogSystem {
     }
 
     public boolean recover() throws SQLException {
-        if(database == null) {
+        if (database == null) {
             return false;
         }
         synchronized (database) {
-            if(closed) {
+            if (closed) {
                 return false;
             }
             undo = new ObjectArray();
@@ -232,7 +232,7 @@ public class LogSystem {
             LogFile l = null;
             try {
                 l = LogFile.openIfLogFile(this, fileNamePrefix, s);
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
                 // this can happen if the system crashes just after creating a new file (before writing the header)
                 // rename it, so that it doesn't get in the way the next time
@@ -319,11 +319,11 @@ public class LogSystem {
     }
 
     public void prepareCommit(Session session, String transaction) throws SQLException {
-        if(database == null || readOnly) {
+        if (database == null || readOnly) {
             return;
         }
         synchronized (database) {
-            if(closed) {
+            if (closed) {
                 return;
             }
             currentLog.prepareCommit(session, transaction);
@@ -335,7 +335,7 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
-            if(closed) {
+            if (closed) {
                 return;
             }
             currentLog.commit(session);
@@ -348,19 +348,20 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
-            if(closed) {
+            if (closed) {
                 return;
             }
             currentLog.flush();
         }
     }
 
-    public void addTruncate(Session session, DiskFile file, int storageId, int recordId, int blockCount) throws SQLException {
-        if(database == null) {
+    public void addTruncate(Session session, DiskFile file, int storageId, int recordId, int blockCount)
+            throws SQLException {
+        if (database == null) {
             return;
         }
         synchronized (database) {
-            if(disabled || closed) {
+            if (disabled || closed) {
                 return;
             }
             database.checkWritingAllowed();
@@ -375,13 +376,13 @@ public class LogSystem {
     }
 
     public void add(Session session, DiskFile file, Record record) throws SQLException {
-        if(database == null) {
+        if (database == null) {
             return;
-        }        
+        }
         synchronized (database) {
-            if(disabled || closed) {
+            if (disabled || closed) {
                 return;
-            }            
+            }
             database.checkWritingAllowed();
             int storageId = record.getStorageId();
             if (!file.isDataFile()) {
@@ -399,11 +400,11 @@ public class LogSystem {
     }
 
     public void checkpoint() throws SQLException {
-        if(readOnly || database == null) {
+        if (readOnly || database == null) {
             return;
         }
         synchronized (database) {
-            if(closed || disabled) {
+            if (closed || disabled) {
                 return;
             }
             flushAndCloseUnused();
@@ -413,9 +414,9 @@ public class LogSystem {
             currentLog.flush();
         }
     }
-    
+
     public ObjectArray getActiveLogFiles() {
-        synchronized(database) {
+        synchronized (database) {
             ObjectArray list = new ObjectArray();
             list.addAll(activeLogs);
             return list;
@@ -459,7 +460,7 @@ public class LogSystem {
     }
 
     public void sync() throws SQLException {
-        if(database == null || readOnly) {
+        if (database == null || readOnly) {
             return;
         }
         synchronized (database) {

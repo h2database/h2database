@@ -91,10 +91,11 @@ public class Update extends Prepared {
             }
         }
         // TODO performance: loop only if required
-        // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition! probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
+        // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition! 
+        // probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
         // TODO update in-place (but if the position changes, we need to update all indexes)
         // before row triggers
-        if(table.fireRow()) {
+        if (table.fireRow()) {
             for (int i = 0; i < oldRows.size(); i++) {
                 checkCancelled();
                 Row o = (Row) oldRows.get(i);
@@ -103,8 +104,8 @@ public class Update extends Prepared {
             }
         }
         table.updateRows(this, session, oldRows, newRows);
-        if(table.fireRow()) {
-            for (int i=0; i < newRows.size(); i++) {
+        if (table.fireRow()) {
+            for (int i = 0; i < newRows.size(); i++) {
                 checkCancelled();
                 Row n = (Row) newRows.get(i);
                 Row o = (Row) oldRows.get(i);
@@ -125,7 +126,7 @@ public class Update extends Prepared {
         for (int i = 0, j = 0; i < columnCount; i++) {
             Expression newExpr = expressions[i];
             if (newExpr != null) {
-                if(j>0) {
+                if (j > 0) {
                     buff.append(",\n");
                 }
                 j++;
@@ -135,7 +136,7 @@ public class Update extends Prepared {
                 buff.append(newExpr.getSQL());
             }
         }
-        if(condition != null) {
+        if (condition != null) {
             buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
         }
         return buff.toString();

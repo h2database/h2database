@@ -24,7 +24,7 @@ public class ValueTimestamp extends Value {
     }
 
     public Timestamp getTimestamp() {
-        return (Timestamp)value.clone();
+        return (Timestamp) value.clone();
     }
     
     public Timestamp getTimestampNoCopy() {
@@ -116,7 +116,7 @@ public class ValueTimestamp extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueTimestamp && value.equals(((ValueTimestamp)v).value);
+        return v instanceof ValueTimestamp && value.equals(((ValueTimestamp) v).value);
     }    
 
 }

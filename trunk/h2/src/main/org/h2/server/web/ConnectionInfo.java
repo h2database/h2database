@@ -17,16 +17,16 @@ public class ConnectionInfo {
         String[] array = StringUtils.arraySplit(data, '|', false);
         name = get(array, 0);
         driver = get(array, 1);
-        url  = get(array, 2);
+        url = get(array, 2);
         user = get(array, 3);
     }
 
     private String get(String[] array, int i) {
-        return array != null && array.length>i ? array[i] : "";
+        return array != null && array.length > i ? array[i] : "";
     }
 
     String getString() {
-        return StringUtils.arrayCombine(new String[]{name, driver, url, user}, '|');
+        return StringUtils.arrayCombine(new String[] { name, driver, url, user }, '|');
     }
 
 }

@@ -39,13 +39,13 @@ public class WriterThread extends Thread {
         LogSystem log = getLog();
         this.writeDelay = writeDelay;
         // TODO check if MIN_WRITE_DELAY is a good value
-        if(writeDelay < SysProperties.MIN_WRITE_DELAY) {
+        if (writeDelay < SysProperties.MIN_WRITE_DELAY) {
             log.setFlushOnEachCommit(true);
         } else {
             log.setFlushOnEachCommit(false);
         }
     }
-    
+
     public static WriterThread create(Database database, int writeDelay) {
         WriterThread thread = new WriterThread(database, writeDelay);
         thread.setName("H2 Log Writer " + database.getShortName());
@@ -53,71 +53,72 @@ public class WriterThread extends Thread {
         thread.start();
         return thread;
     }
-    
+
     private LogSystem getLog() {
-        Database database = (Database)databaseRef.get();
-        if(database == null) {
+        Database database = (Database) databaseRef.get();
+        if (database == null) {
             return null;
         }
         LogSystem log = database.getLog();
         return log;
     }
-    
+
     private void flushIndexes(Database database) {
         long time = System.currentTimeMillis();
-        if(lastIndexFlush + Constants.FLUSH_INDEX_DELAY > time) {
+        if (lastIndexFlush + Constants.FLUSH_INDEX_DELAY > time) {
             return;
         }
-        synchronized(database) {
+        synchronized (database) {
             ObjectArray array = database.getAllSchemaObjects(DbObject.INDEX);
-            for(int i=0; i<array.size(); i++) {
+            for (int i = 0; i < array.size(); i++) {
                 DbObject obj = (DbObject) array.get(i);
-                if(obj instanceof BtreeIndex) {
+                if (obj instanceof BtreeIndex) {
                     BtreeIndex idx = (BtreeIndex) obj;
-                    if(idx.getLastChange() == 0) {
+                    if (idx.getLastChange() == 0) {
                         continue;
                     }
                     Table tab = idx.getTable();
-                    if(tab.isLockedExclusively()) {
+                    if (tab.isLockedExclusively()) {
                         continue;
                     }
-                    if(idx.getLastChange() + Constants.FLUSH_INDEX_DELAY > time) {
+                    if (idx.getLastChange() + Constants.FLUSH_INDEX_DELAY > time) {
                         continue;
                     }
                     try {
                         idx.flush(database.getSystemSession());
-                    } catch(SQLException e) {
-                        database.getTrace(Trace.DATABASE).error("flush index " +idx.getName(), e);
+                    } catch (SQLException e) {
+                        database.getTrace(Trace.DATABASE).error("flush index " + idx.getName(), e);
                     }
                 }
             }
         }
         lastIndexFlush = time;
     }
-    
+
     public void run() {
-        while(!stop) {
+        while (!stop) {
             TempFileDeleter.deleteUnused();
-            Database database = (Database)databaseRef.get();
-            if(database == null) {
+            Database database = (Database) databaseRef.get();
+            if (database == null) {
                 break;
             }
-            if(Constants.FLUSH_INDEX_DELAY != 0) {
+            if (Constants.FLUSH_INDEX_DELAY != 0) {
                 flushIndexes(database);
             }
             LogSystem log = database.getLog();
-            if(log == null) {
+            if (log == null) {
                 break;
             }
             try {
                 log.flush();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 TraceSystem traceSystem = database.getTraceSystem();
-                if(traceSystem != null) {
+                if (traceSystem != null) {
                     traceSystem.getTrace(Trace.LOG).error("flush", e);
                 }
             }
-            // TODO log writer: could also flush the dirty cache when there is low activity
+            // TODO log writer: could also flush the dirty cache when there is
+            // low activity
             // wait 0 mean wait forever
             int wait = writeDelay > 0 ? writeDelay : 1;
             try {

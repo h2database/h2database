@@ -19,9 +19,9 @@ public class AlterView extends DefineCommand {
     }
 
     public void setView(TableView view) {
-        this.view= view;
+        this.view = view;
     }
-    
+
     public int update() throws SQLException {
         session.commit(true);
         session.getUser().checkRight(view, Right.ALL);

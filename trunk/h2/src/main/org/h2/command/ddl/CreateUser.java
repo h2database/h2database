@@ -45,7 +45,7 @@ public class CreateUser extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        if(db.findUser(userName)!=null) {
+        if (db.findUser(userName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -55,7 +55,7 @@ public class CreateUser extends DefineCommand {
         User user = new User(db, id, userName, false);
         user.setAdmin(admin);
         user.setComment(comment);
-        if(hash!=null && salt !=null) {
+        if (hash != null && salt != null) {
             user.setSaltAndHash(salt, hash);
         } else {
             user.setUserPasswordHash(userPasswordHash);

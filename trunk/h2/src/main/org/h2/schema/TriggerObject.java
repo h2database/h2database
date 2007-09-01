@@ -25,7 +25,7 @@ import org.h2.value.Value;
 
 public class TriggerObject extends SchemaObjectBase {
 
-    public static final int INSERT=1, UPDATE=2, DELETE=4;
+    public static final int INSERT = 1, UPDATE = 2, DELETE = 4;
     public static final int DEFAULT_QUEUE_SIZE = 1024;
 
     private boolean before;
@@ -53,68 +53,70 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             Connection c2 = session.createConnection(false);
             Object obj = session.getDatabase().loadClass(triggerClassName).newInstance();
-            triggerCallback = (Trigger)obj;
+            triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName());
-        } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, new String[]{getName(), triggerClassName, e.toString()}, e);
+        } catch (Throwable e) {
+            throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, new String[] { getName(),
+                    triggerClassName, e.toString() }, e);
         }
     }
 
     public void fire(Session session, boolean beforeAction) throws SQLException {
-        if(rowBased || before != beforeAction) {
+        if (rowBased || before != beforeAction) {
             return;
         }
         Connection c2 = session.createConnection(false);
         try {
             triggerCallback.fire(c2, null, null);
-        } catch(Throwable e) {
-            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_3, new String[]{getName(), triggerClassName, e.toString()}, e);
+        } catch (Throwable e) {
+            throw Message.getSQLException(ErrorCode.ERROR_EXECUTING_TRIGGER_3, new String[] { getName(),
+                    triggerClassName, e.toString() }, e);
         }
     }
 
     private Object[] convertToObjectList(Row row) throws SQLException {
-        if(row == null) {
+        if (row == null) {
             return null;
         }
         int len = row.getColumnCount();
         Object[] list = new Object[len];
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             list[i] = row.getValue(i).getObject();
         }
         return list;
     }
 
     public void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
-        if(!rowBased || before != beforeAction) {
+        if (!rowBased || before != beforeAction) {
             return;
         }
         Object[] oldList;
         Object[] newList;
         boolean fire = false;
-        if((typeMask & INSERT) != 0) {
-            if(oldRow == null && newRow != null) {
+        if ((typeMask & INSERT) != 0) {
+            if (oldRow == null && newRow != null) {
                 fire = true;
             }
         }
-        if((typeMask & UPDATE) != 0) {
-            if(oldRow != null && newRow != null) {
+        if ((typeMask & UPDATE) != 0) {
+            if (oldRow != null && newRow != null) {
                 fire = true;
             }
         }
-        if((typeMask & DELETE) != 0) {
-            if(oldRow != null && newRow == null) {
+        if ((typeMask & DELETE) != 0) {
+            if (oldRow != null && newRow == null) {
                 fire = true;
             }
         }
-        if(!fire) {
+        if (!fire) {
             return;
         }
         oldList = convertToObjectList(oldRow);
         newList = convertToObjectList(newRow);
         Object[] newListBackup;
-        if(before && newList != null) {
+        if (before && newList != null) {
             newListBackup = new Object[newList.length];
-            for(int i=0; i<newList.length; i++) {
+            for (int i = 0; i < newList.length; i++) {
                 newListBackup[i] = newList[i];
             }
         } else {
@@ -125,10 +127,10 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             session.setAutoCommit(false);
             triggerCallback.fire(c2, oldList, newList);
-            if(newListBackup != null) {
-                for(int i=0; i<newList.length; i++) {
+            if (newListBackup != null) {
+                for (int i = 0; i < newList.length; i++) {
                     Object o = newList[i];
-                    if(o != newListBackup[i]) {
+                    if (o != newListBackup[i]) {
                         Value v = DataType.convertToValue(session, o, Value.UNKNOWN);
                         newRow.setValue(i, v);
                     }
@@ -162,7 +164,7 @@ public class TriggerObject extends SchemaObjectBase {
     public boolean getNoWait() {
         return noWait;
     }
-    
+
     public String getDropSQL() {
         return null;
     }
@@ -171,7 +173,7 @@ public class TriggerObject extends SchemaObjectBase {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE TRIGGER ");
         buff.append(quotedName);
-        if(before) {
+        if (before) {
             buff.append(" BEFORE ");
         } else {
             buff.append(" AFTER ");
@@ -179,10 +181,10 @@ public class TriggerObject extends SchemaObjectBase {
         buff.append(getTypeNameList());
         buff.append(" ON ");
         buff.append(table.getSQL());
-        if(rowBased) {
+        if (rowBased) {
             buff.append(" FOR EACH ROW");
         }
-        if(noWait) {
+        if (noWait) {
             buff.append(" NOWAIT");
         } else {
             buff.append(" QUEUE ");
@@ -195,17 +197,17 @@ public class TriggerObject extends SchemaObjectBase {
 
     public String getTypeNameList() {
         StringBuffer buff = new StringBuffer();
-        if((typeMask & INSERT) != 0) {
+        if ((typeMask & INSERT) != 0) {
             buff.append("INSERT");
         }
-        if((typeMask & UPDATE) != 0) {
-            if(buff.length()>0) {
+        if ((typeMask & UPDATE) != 0) {
+            if (buff.length() > 0) {
                 buff.append(", ");
             }
             buff.append("UPDATE");
         }
-        if((typeMask & DELETE) != 0) {
-            if(buff.length()>0) {
+        if ((typeMask & DELETE) != 0) {
+            if (buff.length() > 0) {
                 buff.append(", ");
             }
             buff.append("DELETE");

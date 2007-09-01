@@ -33,10 +33,10 @@ public class SetComment extends DefineCommand {
         session.getUser().checkAdmin();
         DbObject object = null;
         int errorCode = ErrorCode.GENERAL_ERROR_1;
-        if(schemaName == null) {
+        if (schemaName == null) {
             schemaName = session.getCurrentSchemaName();
         }
-        switch(objectType) {
+        switch (objectType) {
         case DbObject.CONSTANT:
             object = db.getSchema(schemaName).getConstant(session, objectName);
             break;
@@ -80,23 +80,25 @@ public class SetComment extends DefineCommand {
             object = db.findUserDataType(objectName);
             errorCode = ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1;
             break;
+        default:
         }
-        if(object == null) {
+        if (object == null) {
             throw Message.getSQLException(errorCode, objectName);
         }
         String text = expr.getValue(session).getString();
-        if(column) {
+        if (column) {
             Table table = (Table) object;
             table.getColumn(columnName).setComment(text);
         } else {
             object.setComment(text);
         }
-        if(column || objectType == DbObject.TABLE_OR_VIEW || objectType == DbObject.USER || objectType == DbObject.INDEX || objectType == DbObject.CONSTRAINT) {
+        if (column || objectType == DbObject.TABLE_OR_VIEW || objectType == DbObject.USER
+                || objectType == DbObject.INDEX || objectType == DbObject.CONSTRAINT) {
             db.update(session, object);
         } else {
             Comment comment = db.findComment(object);
-            if(comment == null) {
-                if(text == null) {
+            if (comment == null) {
+                if (text == null) {
                     // reset a non-existing comment - nothing to do
                 } else {
                     int id = getObjectId(false, false);
@@ -105,7 +107,7 @@ public class SetComment extends DefineCommand {
                     db.addDatabaseObject(session, comment);
                 }
             } else {
-                if(text == null) {
+                if (text == null) {
                     db.removeDatabaseObject(session, comment);
                 } else {
                     comment.setCommentText(text);

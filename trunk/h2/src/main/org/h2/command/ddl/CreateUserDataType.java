@@ -41,12 +41,11 @@ public class CreateUserDataType extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
-        if(db.findUserDataType(typeName)!=null) {
+        if (db.findUserDataType(typeName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,
-                    typeName);
+            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
         }
         int id = getObjectId(false, true);
         UserDataType type = new UserDataType(db, id, typeName);

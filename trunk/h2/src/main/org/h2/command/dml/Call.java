@@ -18,7 +18,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
 
-
 /**
  * @author Thomas
  */
@@ -30,7 +29,7 @@ public class Call extends Prepared {
     public Call(Session session) {
         super(session);
     }
-    
+
     public LocalResult queryMeta() throws SQLException {
         LocalResult result = new LocalResult(session, expressions, 1);
         result.done();
@@ -40,14 +39,14 @@ public class Call extends Prepared {
     public LocalResult query(int maxrows) throws SQLException {
         setCurrentRowNumber(1);
         Value v = value.getValue(session);
-        if(v.getType() == Value.RESULT_SET) {
-            return LocalResult.read(session, ((ValueResultSet)v).getResultSet(), maxrows);
-        } else if(v.getType() == Value.ARRAY) {
-            Value[] list = ((ValueArray)v).getList();
+        if (v.getType() == Value.RESULT_SET) {
+            return LocalResult.read(session, ((ValueResultSet) v).getResultSet(), maxrows);
+        } else if (v.getType() == Value.ARRAY) {
+            Value[] list = ((ValueArray) v).getList();
             ObjectArray expr = new ObjectArray();
-            for(int i = 0; i<list.length; i++) {
+            for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
-                Column col = new Column("C" + (i+1), e.getType(), e.getPrecision(), e.getScale());
+                Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale());
                 expr.add(new ExpressionColumn(session.getDatabase(), null, col));
             }
             LocalResult result = new LocalResult(session, expr, list.length);
@@ -80,10 +79,10 @@ public class Call extends Prepared {
     public boolean isTransactional() {
         return true;
     }
-    
+
     public boolean isReadOnly() {
         return value.isEverything(ExpressionVisitor.READONLY);
-        
+
     }
-    
+
 }

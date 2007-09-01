@@ -67,34 +67,34 @@ public abstract class Table extends SchemaObjectBase {
     public ObjectArray getChildren() {
         ObjectArray children = new ObjectArray();
         ObjectArray indexes = getIndexes();
-        if(indexes != null) {
+        if (indexes != null) {
             children.addAll(indexes);
         }
-        if(constraints != null) {
+        if (constraints != null) {
             children.addAll(constraints);
         }
-        if(triggers != null) {
+        if (triggers != null) {
             children.addAll(triggers);
         }
-        if(sequences != null) {
+        if (sequences != null) {
             children.addAll(sequences);
         }
-        if(views != null) {
+        if (views != null) {
             children.addAll(views);
         }
         ObjectArray rights = database.getAllRights();
-        for(int i=0; i<rights.size(); i++) {
+        for (int i = 0; i < rights.size(); i++) {
             Right right = (Right) rights.get(i);
-            if(right.getGrantedTable() == this) {
+            if (right.getGrantedTable() == this) {
                 children.add(right);
             }
         }
         return children;
-    }    
+    }
 
     protected void setColumns(Column[] columns) throws SQLException {
         this.columns = columns;
-        if(columnMap.size() > 0) {
+        if (columnMap.size() > 0) {
             columnMap.clear();
         }
         int memory = 0;
@@ -104,14 +104,13 @@ public abstract class Table extends SchemaObjectBase {
             col.setTable(this, i);
             String columnName = col.getName();
             if (columnMap.get(columnName) != null) {
-                throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1,
-                        columnName);
+                throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, columnName);
             }
             columnMap.put(columnName, col);
         }
         memoryPerRow = memory;
     }
-    
+
     public void renameColumn(Column column, String newName) {
         columnMap.remove(column.getName());
         column.rename(newName);
@@ -119,21 +118,36 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
+
     public abstract void close(Session session) throws SQLException;
+
     public abstract void unlock(Session s);
-    public abstract Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType, int headPos, String comment) throws SQLException;
+
+    public abstract Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+            int headPos, String comment) throws SQLException;
+
     public abstract void removeRow(Session session, Row row) throws SQLException;
+
     public abstract void truncate(Session session) throws SQLException;
+
     public abstract void addRow(Session session, Row row) throws SQLException;
+
     public abstract void checkSupportAlter() throws SQLException;
+
     public abstract String getTableType();
+
     public abstract Index getScanIndex(Session session) throws SQLException;
+
     public abstract Index getUniqueIndex();
+
     public abstract ObjectArray getIndexes();
+
     public abstract boolean isLockedExclusively();
+
     public abstract long getMaxDataModificationId();
-    
-    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows) throws SQLException {
+
+    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows)
+            throws SQLException {
         // remove the old rows
         for (int i = 0; i < oldRows.size(); i++) {
             prepared.checkCancelled();
@@ -142,7 +156,7 @@ public abstract class Table extends SchemaObjectBase {
             session.log(this, UndoLogRecord.DELETE, o);
         }
         // add the new rows
-        for (int i=0; i < newRows.size(); i++) {
+        for (int i = 0; i < newRows.size(); i++) {
             prepared.checkCancelled();
             Row n = (Row) newRows.get(i);
             addRow(session, n);
@@ -150,66 +164,66 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {        
-        while(views != null && views.size() > 0) {
-            TableView view = (TableView)views.get(0);
+    public void removeChildrenAndResources(Session session) throws SQLException {
+        while (views != null && views.size() > 0) {
+            TableView view = (TableView) views.get(0);
             views.remove(0);
             database.removeSchemaObject(session, view);
         }
-        while(triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = (TriggerObject)triggers.get(0);
+        while (triggers != null && triggers.size() > 0) {
+            TriggerObject trigger = (TriggerObject) triggers.get(0);
             triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
-        while(constraints != null && constraints.size() > 0) {
-            Constraint constraint = (Constraint)constraints.get(0);
+        while (constraints != null && constraints.size() > 0) {
+            Constraint constraint = (Constraint) constraints.get(0);
             constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
-        while(sequences != null && sequences.size() > 0) {
-            Sequence sequence = (Sequence)sequences.get(0);
+        while (sequences != null && sequences.size() > 0) {
+            Sequence sequence = (Sequence) sequences.get(0);
             sequences.remove(0);
-            if(!getTemporary()) {
+            if (!getTemporary()) {
                 database.removeSchemaObject(session, sequence);
             }
         }
         ObjectArray rights = database.getAllRights();
-        for(int i=0; i<rights.size(); i++) {
+        for (int i = 0; i < rights.size(); i++) {
             Right right = (Right) rights.get(i);
-            if(right.getGrantedTable() == this) {
+            if (right.getGrantedTable() == this) {
                 database.removeDatabaseObject(session, right);
             }
         }
     }
-    
+
     public void checkColumnIsNotReferenced(Column col) throws SQLException {
-        for(int i=0; constraints != null && i<constraints.size(); i++) {
+        for (int i = 0; constraints != null && i < constraints.size(); i++) {
             Constraint constraint = (Constraint) constraints.get(i);
-            if(constraint.containsColumn(col)) {
+            if (constraint.containsColumn(col)) {
                 throw Message.getSQLException(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
             }
         }
-        ObjectArray indexes = getIndexes();        
-        for(int i=0; indexes != null && i < indexes.size(); i++) {
+        ObjectArray indexes = getIndexes();
+        for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            if(index.getColumns().length == 1) {
+            if (index.getColumns().length == 1) {
                 continue;
             }
-            if(index.getCreateSQL() == null) {
+            if (index.getCreateSQL() == null) {
                 continue;
             }
-            if(index.getColumnIndex(col) >= 0) {
+            if (index.getColumnIndex(col) >= 0) {
                 throw Message.getSQLException(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, index.getSQL());
             }
         }
-    }    
-    
+    }
+
     public Row getTemplateRow() {
         return new Row(new Value[columns.length], memoryPerRow);
     }
 
     public SearchRow getTemplateSimpleRow(boolean singleColumn) {
-        if(singleColumn) {
+        if (singleColumn) {
             return new SimpleRowValue(columns.length);
         } else {
             return new SimpleRow(new Value[columns.length]);
@@ -217,7 +231,8 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getNullRow() {
-        // TODO memory usage: if rows are immutable, we could use a static null row
+        // TODO memory usage: if rows are immutable, we could use a static null
+        // row
         Row row = new Row(new Value[columns.length], 0);
         for (int i = 0; i < columns.length; i++) {
             row.setValue(i, ValueNull.INSTANCE);
@@ -265,35 +280,35 @@ public abstract class Table extends SchemaObjectBase {
     }
     
     public Index findPrimaryKey() throws SQLException {
-        ObjectArray indexes = getIndexes();          
-        for(int i=0; indexes != null && i<indexes.size(); i++) {
+        ObjectArray indexes = getIndexes();
+        for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index idx = (Index) indexes.get(i);
-            if(idx.getIndexType().isPrimaryKey()) {
+            if (idx.getIndexType().isPrimaryKey()) {
                 return idx;
             }
         }
         return null;
     }
-    
+
     public Index getPrimaryKey() throws SQLException {
         Index index = findPrimaryKey();
-        if(index != null) {
+        if (index != null) {
             return index;
         }
         throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, Constants.PRIMARY_KEY_PREFIX);
     }
-    
+
     public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
             Value v2;
-            if(column.getComputed()) {
+            if (column.getComputed()) {
                 v2 = column.computeValue(session, row);
             } else {
                 v2 = column.validateConvertUpdateSequence(session, value);
             }
-            if(v2 != value) {
+            if (v2 != value) {
                 row.setValue(i, v2);
             }
         }
@@ -302,41 +317,41 @@ public abstract class Table extends SchemaObjectBase {
     public boolean isPersistent() {
         return persistent;
     }
-    
+
     private void remove(ObjectArray list, DbObject obj) {
-        if(list != null) {
+        if (list != null) {
             int i = list.indexOf(obj);
-            if(i>=0) {
+            if (i >= 0) {
                 list.remove(i);
             }
         }
     }
 
     public void removeIndex(Index index) {
-        ObjectArray indexes = getIndexes();  
-        if(indexes != null) {
+        ObjectArray indexes = getIndexes();
+        if (indexes != null) {
             remove(indexes, index);
-            if(index.getIndexType().isPrimaryKey()) {
+            if (index.getIndexType().isPrimaryKey()) {
                 Column[] cols = index.getColumns();
-                for(int i=0; i<cols.length; i++) {
+                for (int i = 0; i < cols.length; i++) {
                     cols[i].setPrimaryKey(false);
                 }
             }
         }
     }
-    
+
     public void removeView(TableView view) {
         remove(views, view);
-    }    
+    }
 
     public void removeConstraint(Constraint constraint) {
         remove(constraints, constraint);
     }
-    
+
     public void removeSequence(Session session, Sequence sequence) {
         remove(sequences, sequence);
     }
-    
+
     public void removeTrigger(Session session, TriggerObject trigger) {
         remove(triggers, trigger);
     }
@@ -344,17 +359,17 @@ public abstract class Table extends SchemaObjectBase {
     public void addView(TableView view) {
         views = add(views, view);
     }
-    
+
     public void addConstraint(Constraint constraint) {
-        if(constraints == null || constraints.indexOf(constraint) < 0) {
+        if (constraints == null || constraints.indexOf(constraint) < 0) {
             constraints = add(constraints, constraint);
         }
     }
-    
+
     public ObjectArray getConstraints() {
         return constraints;
     }
-    
+
     public void addSequence(Sequence sequence) {
         sequences = add(sequences, sequence);
     }
@@ -362,9 +377,9 @@ public abstract class Table extends SchemaObjectBase {
     public void addTrigger(TriggerObject trigger) {
         triggers = add(triggers, trigger);
     }
-    
+
     private ObjectArray add(ObjectArray list, DbObject obj) {
-        if(list == null) {
+        if (list == null) {
             list = new ObjectArray();
         }
         // self constraints are two entries in the list
@@ -387,28 +402,28 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     private void fire(Session session, boolean beforeAction) throws SQLException {
-        if(triggers != null) {
+        if (triggers != null) {
             for (int i = 0; i < triggers.size(); i++) {
                 TriggerObject trigger = (TriggerObject) triggers.get(i);
                 trigger.fire(session, beforeAction);
             }
         }
     }
-    
+
     public boolean fireRow() {
-        return (constraints != null && constraints.size()>0) || (triggers != null && triggers.size()>0);
+        return (constraints != null && constraints.size() > 0) || (triggers != null && triggers.size() > 0);
     }
 
     public void fireBeforeRow(Session session, Row oldRow, Row newRow) throws SQLException {
         fireRow(session, oldRow, newRow, true);
         fireConstraints(session, oldRow, newRow, true);
     }
-    
+
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) throws SQLException {
-        if(constraints != null) {
+        if (constraints != null) {
             for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
-                if(constraint.isBefore() == before) {
+                if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
                 }
             }
@@ -421,7 +436,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
-        if(triggers != null) {
+        if (triggers != null) {
             for (int i = 0; i < triggers.size(); i++) {
                 TriggerObject trigger = (TriggerObject) triggers.get(i);
                 trigger.fireRow(session, oldRow, newRow, beforeAction);
@@ -431,14 +446,16 @@ public abstract class Table extends SchemaObjectBase {
 
     public Column[] getColumns(String[] columnNames) throws SQLException {
         Column[] cols = new Column[columnNames.length];
-        for(int i=0; i<cols.length; i++) {
+        for (int i = 0; i < cols.length; i++) {
             cols[i] = getColumn(columnNames[i]);
         }
         return cols;
     }
-    
+
     public abstract boolean canGetRowCount();
+
     public abstract boolean canDrop();
+
     public abstract long getRowCount(Session session) throws SQLException;
 
     public boolean getGlobalTemporary() {
@@ -449,9 +466,10 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
-    public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting) throws SQLException {
-        if(enabled && checkExisting) {
-            for(int i=0; constraints != null && i<constraints.size(); i++) {
+    public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting)
+            throws SQLException {
+        if (enabled && checkExisting) {
+            for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = (Constraint) constraints.get(i);
                 c.checkExistingData(session);
             }
@@ -464,19 +482,19 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Index getIndexForColumn(Column column, boolean first) {
-        ObjectArray indexes = getIndexes();               
+        ObjectArray indexes = getIndexes();
         for (int i = 1; indexes != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            if(index.canGetFirstOrLast(first)) {
+            if (index.canGetFirstOrLast(first)) {
                 int idx = index.getColumnIndex(column);
-                if(idx== 0) {
+                if (idx == 0) {
                     return index;
                 }
             }
         }
         return null;
     }
-    
+
     public boolean isOnCommitDrop() {
         return onCommitDrop;
     }

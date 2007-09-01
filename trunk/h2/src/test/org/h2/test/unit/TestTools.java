@@ -40,17 +40,17 @@ public class TestTools extends TestBase {
     
     private void testScriptRunscript() throws Exception {
         Class.forName("org.h2.Driver");
-        String url = "jdbc:h2:" + BASE_DIR+ "/utils";
+        String url = "jdbc:h2:" + baseDir+ "/utils";
         String user = "sa", password = "abc";
-        String fileName = BASE_DIR + "/b2.sql";
+        String fileName = baseDir + "/b2.sql";
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         Script.main(new String[]{"-url", url, "-user", user, "-password", password, "-script", fileName, "-options", "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", baseDir, "-db", "utils", "-quiet"});
         RunScript.main(new String[]{"-url", url, "-user", user, "-password", password, "-script", fileName, "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'"});
-        conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils", "sa", "abc");
+        conn = DriverManager.getConnection("jdbc:h2:" + baseDir+ "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         checkFalse(rs.next());
         conn.close();
@@ -58,23 +58,23 @@ public class TestTools extends TestBase {
     
     private void testBackupRestore() throws Exception {
         Class.forName("org.h2.Driver");
-        String url = "jdbc:h2:" + BASE_DIR+ "/utils";
+        String url = "jdbc:h2:" + baseDir+ "/utils";
         String user = "sa", password = "abc";
-        String fileName = BASE_DIR + "/b2.zip";
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        String fileName = baseDir + "/b2.zip";
+        DeleteDbFiles.main(new String[]{"-dir", baseDir, "-db", "utils", "-quiet"});
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
-        Backup.main(new String[]{"-file", fileName, "-dir", BASE_DIR, "-db", "utils", "-quiet"});
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
-        Restore.main(new String[]{"-file", fileName, "-dir", BASE_DIR, "-db", "utils", "-quiet"});
-        conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils", "sa", "abc");
+        Backup.main(new String[]{"-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", baseDir, "-db", "utils", "-quiet"});
+        Restore.main(new String[]{"-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet"});
+        conn = DriverManager.getConnection("jdbc:h2:" + baseDir+ "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         check(rs.next());
         checkFalse(rs.next());
         conn.close();
-        DeleteDbFiles.main(new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"});
+        DeleteDbFiles.main(new String[]{"-dir", baseDir, "-db", "utils", "-quiet"});
     }
     
     private void testResourceGenerator() throws Exception {
@@ -83,30 +83,30 @@ public class TestTools extends TestBase {
         
     private void testChangePassword() throws Exception {
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils;CIPHER=XTEA;STORAGE=TEXT", "sa", "abc 123");
+        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir+ "/utils;CIPHER=XTEA;STORAGE=TEXT", "sa", "abc 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.close();
-        String[] args = new String[]{"-dir", BASE_DIR, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet"};
+        String[] args = new String[]{"-dir", baseDir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet"};
         ChangePassword.main(args);
-        args = new String[]{"-dir", BASE_DIR, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet"};
+        args = new String[]{"-dir", baseDir, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet"};
         ChangePassword.main(args);
-        conn = DriverManager.getConnection("jdbc:h2:" + BASE_DIR+ "/utils;CIPHER=AES", "sa", "def 123");
+        conn = DriverManager.getConnection("jdbc:h2:" + baseDir+ "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         conn.close();
-        args = new String[]{"-dir", BASE_DIR, "-db", "utils", "-quiet"};
+        args = new String[]{"-dir", baseDir, "-db", "utils", "-quiet"};
         DeleteDbFiles.main(args);
     }
         
     private void testServer() throws Exception {
         Connection conn;
-        Server server = Server.createTcpServer(new String[]{"-ifExists", "false", "-baseDir", BASE_DIR}).start();
+        Server server = Server.createTcpServer(new String[]{"-ifExists", "false", "-baseDir", baseDir}).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
         conn.close();
         server.stop();
         
-        server = Server.createTcpServer(new String[]{"-ifExists", "true", "-tcpPassword", "abc", "-baseDir", BASE_DIR}).start();
+        server = Server.createTcpServer(new String[]{"-ifExists", "true", "-tcpPassword", "abc", "-baseDir", baseDir}).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test2", "sa", "");
             error("should not be able to create new db");

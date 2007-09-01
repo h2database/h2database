@@ -58,18 +58,18 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public void setFileName(String fileName) {
-        if(fileName == null || fileName.trim().length() == 0) {
+        if (fileName == null || fileName.trim().length() == 0) {
             fileName = "script.sql";
         }
         this.fileName = SysProperties.scriptDirectory + fileName;
-    }    
+    }
 
     public boolean isTransactional() {
         return false;
     }
-    
+
     protected void deleteStore() throws SQLException {
-        if(fileName != null) {
+        if (fileName != null) {
             FileUtils.delete(fileName);
         }
     }
@@ -84,10 +84,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
     
     protected void openOutput() throws SQLException {
-        if(fileName == null) {
+        if (fileName == null) {
             return;
         }
-        if(isEncrypted()) {
+        if (isEncrypted()) {
             initStore();
             out = new FileStoreOutputStream(store, this, compressionAlgorithm);
             // always use a big buffer, otherwise end-of-block is written a lot
@@ -104,10 +104,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     protected void openInput() throws SQLException {
-        if(fileName == null) {
+        if (fileName == null) {
             return;
         }
-        if(isEncrypted()) {
+        if (isEncrypted()) {
             initStore();
             in = new FileStoreInputStream(store, this, compressionAlgorithm != null, false);
         } else {
@@ -118,7 +118,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             }
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, Constants.SCRIPT_SQL);
-            if(in == null) {
+            if (in == null) {
                 throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + fileName);
             }
         }
@@ -129,7 +129,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         out = null;
         IOUtils.closeSilently(in);
         in = null;
-        if(store != null) {
+        if (store != null) {
             store.closeSilently();
             store = null;
         }
@@ -138,7 +138,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         IOUtils.closeSilently(outStream);
         outStream = null;
     }
-    
+
     public boolean needRecompile() {
         return false;
     }

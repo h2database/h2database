@@ -9,14 +9,14 @@ public class SessionState {
     int lastCommitLog;
     int lastCommitPos;
     InDoubtTransaction inDoubtTransaction;
-    
+
     public boolean isCommitted(int logId, int pos) {
-        if(logId != lastCommitLog) {
+        if (logId != lastCommitLog) {
             return lastCommitLog > logId;
         }
         return lastCommitPos >= pos;
     }
-    
+
     public String toString() {
         return "sessionId:" + sessionId + " log:" + lastCommitLog + " pos:" + lastCommitPos + " inDoubt:" + inDoubtTransaction;
     }

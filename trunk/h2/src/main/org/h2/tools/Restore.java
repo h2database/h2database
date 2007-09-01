@@ -53,14 +53,14 @@ public class Restore {
         String dir = ".";
         String db = null;
         boolean quiet = false;
-        for(int i=0; args != null && i<args.length; i++) {
-            if(args[i].equals("-dir")) {
+        for (int i = 0; args != null && i < args.length; i++) {
+            if (args[i].equals("-dir")) {
                 dir = args[++i];
-            } else if(args[i].equals("-file")) {
+            } else if (args[i].equals("-file")) {
                 zipFileName = args[++i];
-            } else if(args[i].equals("-db")) {
+            } else if (args[i].equals("-db")) {
                 db = args[++i];
-            } else if(args[i].equals("-quiet")) {
+            } else if (args[i].equals("-quiet")) {
                 quiet = true;
             } else {
                 showUsage();
@@ -69,38 +69,39 @@ public class Restore {
         }
         Restore.execute(zipFileName, dir, db, quiet);
     }
-    
+
     private static String getOriginalDbName(String fileName, String db) throws IOException {
         InputStream in = null;
-        try {        
+        try {
             in = FileUtils.openFileInputStream(fileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
-            while(true) {
+            while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
-                if(entry == null) {
+                if (entry == null) {
                     break;
                 }
                 String entryName = entry.getName();
                 zipIn.closeEntry();
                 String name = FileLister.getDatabaseNameFromFileName(entryName);
-                if(name != null) {
-                    if(db.equals(name)) {
+                if (name != null) {
+                    if (db.equals(name)) {
                         originalDbName = name;
                         // we found the correct database
                         break;
-                    } else if(originalDbName == null) {
+                    } else if (originalDbName == null) {
                         originalDbName = name;
                         // we found a database, but maybe another one
                     } else {
-                        // we have found multiple databases, but not the correct one
+                        // we have found multiple databases, but not the correct
+                        // one
                         multiple = true;
                     }
                 }
             }
             zipIn.close();
-            if(multiple && !originalDbName.equals(db)) {
+            if (multiple && !originalDbName.equals(db)) {
                 throw new IOException("Multiple databases found, but not " + db);
             }
             return originalDbName;
@@ -121,41 +122,41 @@ public class Restore {
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         InputStream in = null;
         try {
-            if(!FileUtils.exists(zipFileName)) {
+            if (!FileUtils.exists(zipFileName)) {
                 throw new IOException("File not found: " + zipFileName);
             }
-            String originalDbName = null;            
-            if(db != null) {
+            String originalDbName = null;
+            if (db != null) {
                 originalDbName = getOriginalDbName(zipFileName, db);
-                if(originalDbName == null) {
+                if (originalDbName == null) {
                     throw new IOException("No database named " + db + " found");
                 }
-                if(originalDbName.startsWith(File.separator)) {
+                if (originalDbName.startsWith(File.separator)) {
                     originalDbName = originalDbName.substring(1);
-                }                
+                }
             }
             in = FileUtils.openFileInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
-            while(true) {
+            while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
-                if(entry == null) {
+                if (entry == null) {
                     break;
                 }
                 String fileName = entry.getName();
                 // restoring windows backups on linux and vice versa
                 fileName = fileName.replace('\\', File.separatorChar);
                 fileName = fileName.replace('/', File.separatorChar);
-                if(fileName.startsWith(File.separator)) {
+                if (fileName.startsWith(File.separator)) {
                     fileName = fileName.substring(1);
                 }
                 boolean copy = false;
-                if(db == null) {
+                if (db == null) {
                     copy = true;
-                } else if(fileName.startsWith(originalDbName)) {
+                } else if (fileName.startsWith(originalDbName)) {
                     fileName = db + fileName.substring(originalDbName.length());
                     copy = true;
                 }
-                if(copy) {
+                if (copy) {
                     OutputStream out = null;
                     try {
                         out = FileUtils.openFileOutputStream(directory + File.separator + fileName);
@@ -168,11 +169,11 @@ public class Restore {
             }
             zipIn.closeEntry();
             zipIn.close();
-        } catch(IOException e) {
-            throw Message.convertIOException(e, zipFileName);            
+        } catch (IOException e) {
+            throw Message.convertIOException(e, zipFileName);
         } finally {
             IOUtils.closeSilently(in);
         }
     }
-    
+
 }

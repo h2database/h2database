@@ -15,7 +15,7 @@ public class TestMulti extends TestBase {
 
     public void test() throws Exception {
         Class.forName("org.h2.Driver");
-        deleteDb(BASE_DIR, "openClose");
+        deleteDb(baseDir, "openClose");
 
 //        int len = getSize(5, 100);
         int len = 10;
@@ -36,7 +36,7 @@ public class TestMulti extends TestBase {
     }
 
     public Connection getConnection() throws SQLException {
-        final String url = "jdbc:h2:"+BASE_DIR+"/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
+        final String url = "jdbc:h2:"+baseDir+"/openClose;LOCK_MODE=3;DB_CLOSE_DELAY=-1";
         Connection conn = DriverManager.getConnection(url, "sa", "");
         return conn;
     }

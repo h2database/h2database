@@ -17,7 +17,7 @@ public class Mode {
     public boolean nullConcatIsNull;
     public boolean convertInsertNullToZero;
     public boolean convertOnlyToSmallerScale;
-    public boolean roundWhenConvertToLong ;
+    public boolean roundWhenConvertToLong;
     public boolean lowerCaseIdentifiers;
     public boolean indexDefinitionInCreateTable;
     public boolean systemColumns;

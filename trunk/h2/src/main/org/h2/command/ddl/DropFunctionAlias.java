@@ -16,7 +16,7 @@ public class DropFunctionAlias extends DefineCommand {
 
     private String aliasName;
     private boolean ifExists;
-    
+
     public DropFunctionAlias(Session session) {
         super(session);
     }
@@ -26,8 +26,8 @@ public class DropFunctionAlias extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         FunctionAlias functionAlias = db.findFunctionAlias(aliasName);
-        if(functionAlias == null) {
-            if(!ifExists) {
+        if (functionAlias == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1, aliasName);
             }
         } else {
@@ -35,13 +35,13 @@ public class DropFunctionAlias extends DefineCommand {
         }
         return 0;
     }
-    
+
     public void setAliasName(String name) {
         this.aliasName = name;
     }
 
     public void setIfExists(boolean ifExists) {
         this.ifExists = ifExists;
-    }    
+    }
 
 }

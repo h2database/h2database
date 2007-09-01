@@ -26,16 +26,16 @@ class RunScriptThread extends Thread {
     }
     
     void addStatement(String sql) {
-        synchronized(queue) {
+        synchronized (queue) {
             queue.add(sql);
             queue.notifyAll();
         }
     }
-    
+
     void executeAll() {
-        while(true) {
-            synchronized(queue) {
-                if(queue.size() == 0) {
+        while (true) {
+            synchronized (queue) {
+                if (queue.size() == 0) {
                     return;
                 }
                 try {
@@ -46,12 +46,12 @@ class RunScriptThread extends Thread {
             }
         }
     }
-    
+
     public void run() {
-        while(!stop) {
+        while (!stop) {
             String sql;
-            synchronized(queue) {
-                while(queue.size() == 0) {
+            synchronized (queue) {
+                while (queue.size() == 0) {
                     try {
                         queue.wait();
                     } catch (InterruptedException e) {
@@ -61,13 +61,13 @@ class RunScriptThread extends Thread {
                 sql = (String) queue.removeFirst();
                 queue.notifyAll();
             }
-            if(sql == null) {
+            if (sql == null) {
                 continue;
             }
             try {
-                conn.createStatement().execute("/*"+id+"*/" + sql);
-            } catch(SQLException e) {
-                switch(e.getErrorCode()) {
+                conn.createStatement().execute("/*" + id + "*/" + sql);
+            } catch (SQLException e) {
+                switch (e.getErrorCode()) {
                 case ErrorCode.LOCK_TIMEOUT_1:
                 case ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1:
                     break;

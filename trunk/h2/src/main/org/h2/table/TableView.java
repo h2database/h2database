@@ -38,7 +38,8 @@ public class TableView extends Table {
     private long maxDataModificationId;
     private User owner;
 
-    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames, Session session, boolean recursive) throws SQLException {
+    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames,
+            Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false);
         this.querySQL = querySQL;
         this.columnNames = columnNames;
@@ -46,26 +47,26 @@ public class TableView extends Table {
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
-    
+
     private void initColumnsAndTables(Session session) throws SQLException {
         Column[] cols;
         removeViewFromTables();
         try {
             Prepared p = session.prepare(querySQL);
-            if(!(p instanceof Query)) {
+            if (!(p instanceof Query)) {
                 throw Message.getSyntaxError(querySQL, 0);
             }
-            Query query = (Query)p;
+            Query query = (Query) p;
             tables = new ObjectArray(query.getTables());
             ObjectArray expressions = query.getExpressions();
             ObjectArray list = new ObjectArray();
-            for(int i=0; i<query.getColumnCount(); i++) {
+            for (int i = 0; i < query.getColumnCount(); i++) {
                 Expression expr = (Expression) expressions.get(i);
                 String name = null;
-                if(columnNames != null && columnNames.length > i) {
+                if (columnNames != null && columnNames.length > i) {
                     name = columnNames[i];
                 }
-                if(name == null) {
+                if (name == null) {
                     name = expr.getAlias();
                 }
                 int type = expr.getType();
@@ -78,30 +79,31 @@ public class TableView extends Table {
             cols = new Column[list.size()];
             list.toArray(cols);
             createException = null;
-            if(getId() != 0) {
+            if (getId() != 0) {
                 addViewToTables();
             }
             viewQuery = query;
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             createException = e;
             // if it can't be compiled, then it's a 'zero column table'
-            // this avoids problems when creating the view when opening the database
+            // this avoids problems when creating the view when opening the
+            // database
             tables = new ObjectArray();
             cols = new Column[0];
-            if(recursive && columnNames != null) {
+            if (recursive && columnNames != null) {
                 cols = new Column[columnNames.length];
-                for(int i=0; i<columnNames.length; i++) {
+                for (int i = 0; i < columnNames.length; i++) {
                     cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
                 }
                 index.setRecursive(true);
                 recursive = true;
                 createException = null;
             }
-            
+
         }
         setColumns(cols);
     }
-    
+
     public boolean getInvalid() {
         return createException != null;
     }
@@ -111,14 +113,14 @@ public class TableView extends Table {
         item.cost = index.getCost(session, masks);
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
         ViewIndex i2 = (ViewIndex) indexCache.get(masksArray);
-        if(i2 == null || i2.getSession() != session) {
+        if (i2 == null || i2.getSession() != session) {
             i2 = new ViewIndex(this, index, session, masks);
             indexCache.put(masksArray, i2);
         }
         item.setIndex(i2);
         return item;
     }
-    
+
     public String getDropSQL() {
         return "DROP VIEW IF EXISTS " + getSQL();
     }
@@ -127,14 +129,14 @@ public class TableView extends Table {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE FORCE VIEW ");
         buff.append(getSQL());
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        if(columns.length>0) {
+        if (columns.length > 0) {
             buff.append('(');
-            for(int i=0; i<columns.length; i++) {
-                if(i>0) {
+            for (int i = 0; i < columns.length; i++) {
+                if (i > 0) {
                     buff.append(", ");
                 }
                 buff.append(columns[i].getSQL());
@@ -158,16 +160,17 @@ public class TableView extends Table {
 
     public void unlock(Session s) {
     }
-    
+
     public boolean isLockedExclusively() {
         return false;
-    }    
+    }
 
     public void removeIndex(String indexName) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
+    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+            int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
@@ -183,11 +186,11 @@ public class TableView extends Table {
         // TODO view: alter what? rename is ok
         throw Message.getUnsupportedException();
     }
-    
+
     public void truncate(Session session) throws SQLException {
         throw Message.getUnsupportedException();
     }
-    
+
     public long getRowCount(Session session) {
         throw Message.getInternalError();
     }
@@ -204,7 +207,7 @@ public class TableView extends Table {
     public String getTableType() {
         return Table.VIEW;
     }
-    
+
     public void removeChildrenAndResources(Session session) throws SQLException {
         removeViewFromTables();
         super.removeChildrenAndResources(session);
@@ -212,16 +215,16 @@ public class TableView extends Table {
         index = null;
         invalidate();
     }
-    
+
     public Index getScanIndex(Session session) throws SQLException {
-        if(createException != null) {
+        if (createException != null) {
             String msg = createException.getMessage();
-            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, new String[]{getSQL(), msg}, createException);
+            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, new String[] { getSQL(), msg }, createException);
         }
         PlanItem item = getBestPlanItem(session, null);
         return item.getIndex();
     }
-    
+
     public ObjectArray getIndexes() {
         return null;
     }
@@ -231,8 +234,8 @@ public class TableView extends Table {
     }
 
     public void recompile(Session session) throws SQLException {
-        for(int i=0; i<tables.size(); i++) {
-            Table t = (Table)tables.get(i);
+        for (int i = 0; i < tables.size(); i++) {
+            Table t = (Table) tables.get(i);
             t.removeView(this);
         }
         tables.clear();
@@ -240,16 +243,17 @@ public class TableView extends Table {
     }
 
     public long getMaxDataModificationId() {
-        if(createException != null) {
+        if (createException != null) {
             throw Message.getInternalError();
         }
-        if(viewQuery == null) {
+        if (viewQuery == null) {
             return Long.MAX_VALUE;
         }
-        // if nothing was modified in the database since the last check, and the last is known, then we don't need to check again
+        // if nothing was modified in the database since the last check, and the
+        // last is known, then we don't need to check again
         // this speeds up nested views
         long dbMod = database.getModificationDataId();
-        if(dbMod > lastModificationCheck && maxDataModificationId <= dbMod) {
+        if (dbMod > lastModificationCheck && maxDataModificationId <= dbMod) {
             maxDataModificationId = viewQuery.getMaxDataModificationId();
             lastModificationCheck = dbMod;
         }
@@ -259,11 +263,11 @@ public class TableView extends Table {
     public Index getUniqueIndex() {
         return null;
     }
-    
+
     private void removeViewFromTables() {
-        if(tables != null) {
-            for(int i=0; i<tables.size(); i++) {
-                Table t = (Table)tables.get(i);
+        if (tables != null) {
+            for (int i = 0; i < tables.size(); i++) {
+                Table t = (Table) tables.get(i);
                 t.removeView(this);
             }
             tables.clear();
@@ -271,8 +275,8 @@ public class TableView extends Table {
     }
 
     private void addViewToTables() {
-        for(int i=0; i<tables.size(); i++) {
-            Table t = (Table)tables.get(i);
+        for (int i = 0; i < tables.size(); i++) {
+            Table t = (Table) tables.get(i);
             t.addView(this);
         }
     }
@@ -280,7 +284,7 @@ public class TableView extends Table {
     public void setOwner(User owner) {
         this.owner = owner;
     }
-    
+
     public User getOwner() {
         return owner;
     }

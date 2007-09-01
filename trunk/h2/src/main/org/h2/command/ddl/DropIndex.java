@@ -40,16 +40,16 @@ public class DropIndex extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Index index = getSchema().findIndex(indexName);
-        if(index == null) {
-            if(!ifExists) {
+        if (index == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, indexName);
             }
         } else {
             Table table = index.getTable();
             ObjectArray constraints = table.getConstraints();
-            for(int i=0; constraints != null && i<constraints.size(); i++) {
+            for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint cons = (Constraint) constraints.get(i);
-                if(cons.usesIndex(index)) {
+                if (cons.usesIndex(index)) {
                     throw Message.getSQLException(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_1, indexName);
                 }
             }

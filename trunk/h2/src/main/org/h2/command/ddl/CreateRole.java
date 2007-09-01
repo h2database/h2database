@@ -15,12 +15,12 @@ import org.h2.message.Message;
 public class CreateRole extends DefineCommand {
 
     private String roleName;
-    private boolean ifNotExists;    
-    
+    private boolean ifNotExists;
+
     public CreateRole(Session session) {
         super(session);
     }
-    
+
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }
@@ -28,21 +28,21 @@ public class CreateRole extends DefineCommand {
     public void setRoleName(String name) {
         this.roleName = name;
     }
-    
+
     public int update() throws SQLException {
-        session.getUser().checkAdmin();        
+        session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        if(db.findUser(roleName)!=null) {
+        if (db.findUser(roleName) != null) {
             if (ifNotExists) {
                 return 0;
             }
             throw Message.getSQLException(ErrorCode.USER_ALREADY_EXISTS_1, roleName);
         }
-        if(db.findRole(roleName)!=null) {
+        if (db.findRole(roleName) != null) {
             if (ifNotExists) {
                 return 0;
-            }            
+            }
             throw Message.getSQLException(ErrorCode.ROLE_ALREADY_EXISTS_1, roleName);
         }
         int id = getObjectId(false, true);

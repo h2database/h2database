@@ -13,14 +13,14 @@ public class Word {
     String name;
     HashMap pages = new HashMap();
     ArrayList weightList;
-    
+
     Word(String name) {
         this.name = name;
     }
-    
+
     void addPage(Page page, int weight) {
         Weight w = (Weight) pages.get(page);
-        if(w == null) {
+        if (w == null) {
             w = new Weight();
             w.page = page;
             pages.put(page, w);
@@ -28,9 +28,9 @@ public class Word {
         w.value += weight;
         page.relations++;
     }
-    
+
     ArrayList getSortedWeights() {
-        if(weightList == null) {
+        if (weightList == null) {
             weightList = new ArrayList(pages.values());
             Collections.sort(weightList, new Comparator() {
                 public int compare(Object o0, Object o1) {

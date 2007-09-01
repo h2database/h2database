@@ -91,9 +91,9 @@ public class SecureFileStore extends FileStore {
         long oldPos = pos;
         byte[] buff = new byte[Constants.FILE_BLOCK_SIZE];
         long length = length();
-        if(newLength > length) {
+        if (newLength > length) {
             seek(length);
-            for(long i = length; i<newLength; i+= Constants.FILE_BLOCK_SIZE) {
+            for (long i = length; i < newLength; i += Constants.FILE_BLOCK_SIZE) {
                 write(buff, 0, Constants.FILE_BLOCK_SIZE);
             }
             seek(oldPos);
@@ -104,20 +104,20 @@ public class SecureFileStore extends FileStore {
     
     private void xorInitVector(byte[] b, int off, int len, long pos) {
         byte[] iv = bufferForInitVector;
-        while(len > 0) {
-            for(int i=0; i<Constants.FILE_BLOCK_SIZE; i+=8) {
-                long block = ((pos+i) >>> 3);
+        while (len > 0) {
+            for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i += 8) {
+                long block = ((pos + i) >>> 3);
                 iv[i] = (byte) (block >> 56);
-                iv[i+1] = (byte) (block >> 48);
-                iv[i+2] = (byte) (block >> 40);
-                iv[i+3] = (byte) (block >> 32);
-                iv[i+4] = (byte) (block >> 24);
-                iv[i+5] = (byte) (block >> 16);
-                iv[i+6] = (byte) (block >> 8);
-                iv[i+7] = (byte) block;
+                iv[i + 1] = (byte) (block >> 48);
+                iv[i + 2] = (byte) (block >> 40);
+                iv[i + 3] = (byte) (block >> 32);
+                iv[i + 4] = (byte) (block >> 24);
+                iv[i + 5] = (byte) (block >> 16);
+                iv[i + 6] = (byte) (block >> 8);
+                iv[i + 7] = (byte) block;
             }
             cipherForInitVector.encrypt(iv, 0, Constants.FILE_BLOCK_SIZE);
-            for(int i=0; i<Constants.FILE_BLOCK_SIZE; i++) {
+            for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i++) {
                 b[off + i] ^= iv[i];
             }
             pos += Constants.FILE_BLOCK_SIZE;

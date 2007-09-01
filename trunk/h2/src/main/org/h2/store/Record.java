@@ -68,21 +68,21 @@ public abstract class Record extends CacheObject {
     }
 
     public void setLogWritten(int log, int pos) {
-        if(log < lastLog) {
+        if (log < lastLog) {
             return;
         }
-        if(log > lastLog || pos >= lastPos) {
+        if (log > lastLog || pos >= lastPos) {
             lastLog = LogSystem.LOG_WRITTEN;
             lastPos = LogSystem.LOG_WRITTEN;
         }
     }
 
     public boolean canRemove() {
-        if((isChanged() && !isLogWritten()) || isPinned()) {
+        if ((isChanged() && !isLogWritten()) || isPinned()) {
             return false;
         }
         // TODO not required if we write the log only when committed
-        if(sessionId != 0) {
+        if (sessionId != 0) {
             return false;
         }
         return true;

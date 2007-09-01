@@ -24,24 +24,25 @@ public class ResultRemote implements ResultInterface {
     private int rowId, rowCount;
     private ObjectArray result;
     private ObjectArray lobValues;
-    
+
     private boolean isUpdateCount;
-    private int updateCount;    
-    
+    private int updateCount;
+
     public ResultRemote(int updateCount) {
         this.isUpdateCount = true;
         this.updateCount = updateCount;
     }
-    
+
     public boolean isUpdateCount() {
         return isUpdateCount;
     }
-    
+
     public int getUpdateCount() {
         return updateCount;
-    }    
+    }
 
-    public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int readRows) throws IOException, SQLException {
+    public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int readRows)
+            throws IOException, SQLException {
         this.session = session;
         this.transfer = transfer;
         this.id = id;
@@ -51,17 +52,17 @@ public class ResultRemote implements ResultInterface {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        if(rowCount < readRows) {
+        if (rowCount < readRows) {
             result = new ObjectArray();
             readFully();
             sendClose();
         }
     }
-    
+
     private void readFully() throws SQLException {
-        while(true) {
+        while (true) {
             Value[] values = fetchRow(false);
-            if(values == null) {
+            if (values == null) {
                 break;
             }
             result.add(values);
@@ -75,7 +76,7 @@ public class ResultRemote implements ResultInterface {
     public String getSchemaName(int i) {
         return columns[i].schemaName;
     }
-    
+
     public String getTableName(int i) {
         return columns[i].tableName;
     }
@@ -95,15 +96,15 @@ public class ResultRemote implements ResultInterface {
     public int getColumnScale(int i) {
         return columns[i].scale;
     }
-    
+
     public int getDisplaySize(int i) {
         return columns[i].displaySize;
     }
-    
+
     public boolean isAutoIncrement(int i) {
         return columns[i].autoIncrement;
-    }    
-    
+    }
+
     public int getNullable(int i) {
         return columns[i].nullable;
     }
@@ -111,7 +112,7 @@ public class ResultRemote implements ResultInterface {
     public void reset() throws SQLException {
         rowId = -1;
         currentRow = null;
-        if(session == null) {
+        if (session == null) {
             return;
         }
         synchronized (session) {
@@ -134,7 +135,7 @@ public class ResultRemote implements ResultInterface {
         if (rowId < rowCount) {
             rowId++;
             if (rowId < rowCount) {
-                if(session == null) {
+                if (session == null) {
                     currentRow = (Value[]) result.get(rowId);
                 } else {
                     currentRow = fetchRow(true);
@@ -157,7 +158,7 @@ public class ResultRemote implements ResultInterface {
     public int getRowCount() {
         return rowCount;
     }
-    
+
     private void sendClose() {
         if (session == null) {
             return;
@@ -179,12 +180,12 @@ public class ResultRemote implements ResultInterface {
     public void close() {
         result = null;
         sendClose();
-        if(lobValues != null) {
-            for(int i=0; i<lobValues.size(); i++) {
+        if (lobValues != null) {
+            for (int i = 0; i < lobValues.size(); i++) {
                 Value v = (Value) lobValues.get(i);
                 try {
                     v.close();
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     session.getTrace().error("delete lob " + v.getSQL(), e);
                 }
             }
@@ -196,15 +197,17 @@ public class ResultRemote implements ResultInterface {
         synchronized (session) {
             session.checkClosed();
             try {
-                if(id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS / 2) {
+                if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS / 2) {
                     // object is too old - we need to map it to a new id
                     int newId = session.getNextId();
                     session.traceOperation("CHANGE_ID", id);
                     transfer.writeInt(SessionRemote.CHANGE_ID).writeInt(id).writeInt(newId);
                     id = newId;
-                    // TODO remote result set: very old result sets may be already removed on the server (theoretically) - how to solve this?
+                    // TODO remote result set: very old result sets may be
+                    // already removed on the server (theoretically) - how to
+                    // solve this?
                 }
-                if(sendFetch) {
+                if (sendFetch) {
                     session.traceOperation("RESULT_FETCH_ROW", id);
                     transfer.writeInt(SessionRemote.RESULT_FETCH_ROW).writeInt(id);
                     session.done(transfer);
@@ -212,12 +215,12 @@ public class ResultRemote implements ResultInterface {
                 boolean row = transfer.readBoolean();
                 if (row) {
                     int len = columns.length;
-                    Value[] values = new Value[len]; 
+                    Value[] values = new Value[len];
                     for (int i = 0; i < len; i++) {
                         Value v = transfer.readValue();
                         values[i] = v;
-                        if(v.isFileBased()) {
-                            if(lobValues == null) {
+                        if (v.isFileBased()) {
+                            if (lobValues == null) {
                                 lobValues = new ObjectArray();
                             }
                             lobValues.add(v);

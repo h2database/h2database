@@ -34,16 +34,16 @@ public class Subquery extends Expression {
         LocalResult result = query.query(2);
         try {
             int rowcount = result.getRowCount();
-            if(rowcount > 1) {
+            if (rowcount > 1) {
                 throw Message.getSQLException(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
             }
             Value v;
-            if(rowcount <= 0) {
+            if (rowcount <= 0) {
                 v = ValueNull.INSTANCE;
             } else {
                 result.next();
                 Value[] values = result.currentRow();
-                if(result.getVisibleColumnCount() == 1) {
+                if (result.getVisibleColumnCount() == 1) {
                     v = values[0];
                 } else {
                     v = ValueArray.get(values);
@@ -81,7 +81,7 @@ public class Subquery extends Expression {
     }
 
     public String getSQL() {
-        return "(" + query.getPlanSQL() +")";
+        return "(" + query.getPlanSQL() + ")";
     }
 
     public void updateAggregate(Session session) throws SQLException {
@@ -101,7 +101,7 @@ public class Subquery extends Expression {
     }
 
     public int getCost() {
-        return 10 + (int)(10 * query.getCost());
+        return 10 + (int) (10 * query.getCost());
     }
 
 }

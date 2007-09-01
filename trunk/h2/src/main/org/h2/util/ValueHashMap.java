@@ -31,9 +31,9 @@ public class ValueHashMap extends HashBase {
         Value[] oldKeys = keys;
         Object[] oldValues = values;
         reset(newLevel);
-        for(int i=0; i<oldKeys.length; i++) {
+        for (int i = 0; i < oldKeys.length; i++) {
             Value k = oldKeys[i];
-            if(k != null && k != ValueNull.DELETED) {
+            if (k != null && k != ValueNull.DELETED) {
                 put(k, oldValues[i]);
             }
         }        
@@ -50,9 +50,9 @@ public class ValueHashMap extends HashBase {
         int deleted = -1;
         do {
             Value k = keys[index];
-            if(k==null) {
+            if (k == null) {
                 // found an empty record
-                if(deleted>=0) {
+                if (deleted >= 0) {
                     index = deleted;
                     deletedCount--;
                 }
@@ -60,34 +60,34 @@ public class ValueHashMap extends HashBase {
                 keys[index] = key;
                 values[index] = value;
                 return;
-            } else if(k==ValueNull.DELETED) {
+            } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-                if(deleted<0) {
+                if (deleted < 0) {
                     deleted = index;
                 }
-            } else if(database.compareTypeSave(k, key)==0) {
+            } else if (database.compareTypeSave(k, key) == 0) {
                 // update existing
                 values[index] = value;
                 return;
             }
             index = (index + plus++) & mask;
-        } while(plus <= len);
+        } while (plus <= len);
         // no space
         throw Message.getInternalError("hashmap is full");
     }
-    
+
     public void remove(Value key) throws SQLException {
         checkSizeRemove();
         int index = getIndex(key);
         int plus = 1;
         do {
             Value k = keys[index];
-            if(k==null) {
+            if (k == null) {
                 // found an empty record
                 return;
-            } else if(k==ValueNull.DELETED) {
+            } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if(database.compareTypeSave(k, key)==0) {
+            } else if (database.compareTypeSave(k, key) == 0) {
                 // found the record
                 keys[index] = ValueNull.DELETED;
                 values[index] = null;
@@ -106,39 +106,39 @@ public class ValueHashMap extends HashBase {
         int plus = 1;
         do {
             Value k = keys[index];
-            if(k==null) {
+            if (k == null) {
                 // found an empty record
                 return null;
-            } else if(k == ValueNull.DELETED) {
+            } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if(database.compareTypeSave(k, key)==0) {
+            } else if (database.compareTypeSave(k, key) == 0) {
                 // found it
                 return values[index];
             }
             index = (index + plus++) & mask;
-        } while(plus <= len);
+        } while (plus <= len);
         return null;
     }
-    
+
     public ObjectArray keys() {
         ObjectArray list = new ObjectArray(size);
-        for(int i=0; i<keys.length; i++) {
+        for (int i = 0; i < keys.length; i++) {
             Value k = keys[i];
-            if(k != null && k != ValueNull.DELETED) {
+            if (k != null && k != ValueNull.DELETED) {
                 list.add(k);
             }
-        }        
+        }
         return list;
     }
 
     public ObjectArray values() {
         ObjectArray list = new ObjectArray(size);
-        for(int i=0; i<keys.length; i++) {
+        for (int i = 0; i < keys.length; i++) {
             Value k = keys[i];
-            if(k != null && k != ValueNull.DELETED) {
+            if (k != null && k != ValueNull.DELETED) {
                 list.add(values[i]);
             }
-        }        
+        }
         return list;
     }
 

@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.h2.util.StringUtils;
 
 public class WebServlet extends HttpServlet {
-    
+
     private static final long serialVersionUID = 9171446624885086692L;
     private WebServer server;
 
@@ -30,10 +30,10 @@ public class WebServlet extends HttpServlet {
         ServletConfig config = getServletConfig();
         Enumeration en = config.getInitParameterNames();
         ArrayList list = new ArrayList();
-        while(en.hasMoreElements()) {
+        while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = config.getInitParameter(name);
-            if(!name.startsWith("-")) {
+            if (!name.startsWith("-")) {
                 name = "-" + name;
             }
             list.add(name);
@@ -45,16 +45,16 @@ public class WebServlet extends HttpServlet {
         server.setAllowShutdown(false);
         try {
             server.init(args);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ServletException("Init failed", e);
         }
     }
-    
+
     public void destroy() {
     }
-    
+
     private boolean allow(HttpServletRequest req) {
-        if(server.getAllowOthers()) {
+        if (server.getAllowOthers()) {
             return true;
         }
         String addr = req.getRemoteAddr();
@@ -66,88 +66,88 @@ public class WebServlet extends HttpServlet {
         }
         return address.isLoopbackAddress();
     }
-    
+
     private String getAllowedFile(HttpServletRequest req, String requestedFile) {
-        if(!allow(req)) {
+        if (!allow(req)) {
             return "notAllowed.jsp";
         }
-        if(requestedFile.length() == 0) {
+        if (requestedFile.length() == 0) {
             return "index.do";
         }
         return requestedFile;
     }
-    
+
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String file = req.getPathInfo();
-        if(file == null) {
+        if (file == null) {
             resp.sendRedirect(req.getRequestURI() + "/");
             return;
-        } else if(file.startsWith("/")) {
+        } else if (file.startsWith("/")) {
             file = file.substring(1);
         }
         file = getAllowedFile(req, file);
         byte[] bytes = null;
         Properties attributes = new Properties();
         Enumeration en = req.getAttributeNames();
-        while(en.hasMoreElements()) {
+        while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = req.getAttribute(name).toString();
             attributes.put(name, value);
         }
         en = req.getParameterNames();
-        while(en.hasMoreElements()) {
+        while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = req.getParameter(name);
             attributes.put(name, value);
         }
         WebSession session = null;
         String sessionId = attributes.getProperty("jsessionid");
-        if(sessionId != null) {
+        if (sessionId != null) {
             session = server.getSession(sessionId);
         }
         WebThread app = new WebThread(null, server);
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
-        
+
         String hostname = req.getRemoteHost();
         file = app.processRequest(file, hostname);
         session = app.getSession();
-        
+
         String mimeType = app.getMimeType();
         boolean cache = app.getCache();
 
-        if(cache && server.getStartDateTime().equals(ifModifiedSince)) {
+        if (cache && server.getStartDateTime().equals(ifModifiedSince)) {
             resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             return;
         } else {
             bytes = server.getFile(file);
         }
-        if(bytes == null) {
+        if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             try {
-                bytes = StringUtils.utf8Encode("File not found: "+file);
-            } catch(SQLException e) {
+                bytes = StringUtils.utf8Encode("File not found: " + file);
+            } catch (SQLException e) {
                 server.traceError(e);
             }
         } else {
-            if(session != null && file.endsWith(".jsp")) {
+            if (session != null && file.endsWith(".jsp")) {
                 String page = StringUtils.utf8Decode(bytes);
                 page = PageParser.parse(server, page, session.map);
                 try {
                     bytes = StringUtils.utf8Encode(page);
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     server.traceError(e);
                 }
             }
             resp.setContentType(mimeType);
-            if(!cache) {
+            if (!cache) {
                 resp.setHeader("Cache-Control", "no-cache");
             } else {
                 resp.setHeader("Cache-Control", "max-age=10");
                 resp.setHeader("Last-Modified", server.getStartDateTime());
             }
         }
-        if(bytes != null) {
+        if (bytes != null) {
             ServletOutputStream out = resp.getOutputStream();
             out.write(bytes);
         }

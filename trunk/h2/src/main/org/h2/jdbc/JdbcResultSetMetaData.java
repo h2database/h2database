@@ -7,7 +7,9 @@ package org.h2.jdbc;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.h2.message.*;
+import org.h2.message.Message;
+import org.h2.message.Trace;
+import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
@@ -43,7 +45,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getColumnCount");
             checkClosed();
             return columnCount;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -60,7 +62,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getColumnLabel", column);
             checkColumnIndex(column);
             return result.getAlias(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -77,7 +79,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getColumnName", column);
             checkColumnIndex(column);
             return result.getColumnName(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -95,7 +97,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             checkColumnIndex(column);
             int type = result.getColumnType(--column);
             return DataType.convertTypeToSQLType(type);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -113,7 +115,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             checkColumnIndex(column);
             int type = result.getColumnType(--column);
             return DataType.getDataType(type).name;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -130,7 +132,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getSchemaName", column);
             checkColumnIndex(column);
             return result.getSchemaName(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -147,7 +149,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getTableName", column);
             checkColumnIndex(column);
             return result.getTableName(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -164,7 +166,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getCatalogName", column);
             checkColumnIndex(column);
             return catalog;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -182,7 +184,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isAutoIncrement", column);
             checkColumnIndex(column);
             return result.isAutoIncrement(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -200,7 +202,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isCaseSensitive", column);
             checkColumnIndex(column);
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -218,7 +220,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isSearchable", column);
             checkColumnIndex(column);
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -236,7 +238,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isCurrency", column);
             checkColumnIndex(column);
             return false;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -256,7 +258,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isNullable", column);
             checkColumnIndex(column);
             return result.getNullable(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -274,7 +276,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isSigned", column);
             checkColumnIndex(column);
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -292,7 +294,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isReadOnly", column);
             checkColumnIndex(column);
             return false;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -310,7 +312,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isWritable", column);
             checkColumnIndex(column);
             return true;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -328,7 +330,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("isDefinitelyWritable", column);
             checkColumnIndex(column);
             return false;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -347,7 +349,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             checkColumnIndex(column);
             int type = result.getColumnType(--column);
             return DataType.getTypeClassName(type);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -366,7 +368,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             checkColumnIndex(column);
             long prec = result.getColumnPrecision(--column);
             return MathUtils.convertLongToInt(prec);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -384,7 +386,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getScale", column);
             checkColumnIndex(column);
             return result.getColumnScale(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -401,16 +403,16 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
             debugCodeCall("getColumnDisplaySize", column);
             checkColumnIndex(column);
             return result.getDisplaySize(--column);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
-    
+
     private void checkClosed() throws SQLException {
-        if(rs != null) {
+        if (rs != null) {
             rs.checkClosed();
         }
-        if(prep != null) {
+        if (prep != null) {
             prep.checkClosed();
         }
     }

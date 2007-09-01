@@ -18,29 +18,29 @@ import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 
 public class Analyze extends DefineCommand {
-    
+
     private int sampleRows = Constants.SELECTIVITY_ANALYZE_SAMPLE_ROWS;
 
     public Analyze(Session session) {
         super(session);
     }
-    
+
     public int update() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
         ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
         // TODO do we need to lock the table?
-        for(int i=0; i<tables.size(); i++) {
+        for (int i = 0; i < tables.size(); i++) {
             Table table = (Table) tables.get(i);
-            if(!(table instanceof TableData)) {
+            if (!(table instanceof TableData)) {
                 continue;
             }
             Column[] columns = table.getColumns();
             StringBuffer buff = new StringBuffer();
             buff.append("SELECT ");
-            for(int j=0; j<columns.length; j++) {
-                if(j>0) {
+            for (int j = 0; j < columns.length; j++) {
+                if (j > 0) {
                     buff.append(", ");
                 }
                 buff.append("SELECTIVITY(");
@@ -49,7 +49,7 @@ public class Analyze extends DefineCommand {
             }
             buff.append(" FROM ");
             buff.append(table.getSQL());
-            if(sampleRows > 0) {
+            if (sampleRows > 0) {
                 buff.append(" LIMIT 1 SAMPLE_SIZE ");
                 buff.append(sampleRows);
             }
@@ -57,7 +57,7 @@ public class Analyze extends DefineCommand {
             Prepared command = session.prepare(sql);
             LocalResult result = command.query(0);
             result.next();
-            for(int j=0; j<columns.length; j++) {
+            for (int j = 0; j < columns.length; j++) {
                 int selectivity = result.currentRow()[j].getInt();
                 columns[j].setSelectivity(selectivity);
             }

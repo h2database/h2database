@@ -41,10 +41,10 @@ public class ReaderInputStream extends InputStream {
     }
     
     private void fillBuffer() throws IOException {
-        if(remaining == 0) {
+        if (remaining == 0) {
             pos = 0;
             remaining = reader.read(chars, 0, Constants.IO_BUFFER_SIZE);
-            if(remaining < 0) {
+            if (remaining < 0) {
                 return;
             }          
 //            String s = new String(chars, 0, remaining);
@@ -62,10 +62,10 @@ public class ReaderInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        if(remaining == 0) {
+        if (remaining == 0) {
             fillBuffer();
         }
-        if(remaining < 0) {
+        if (remaining < 0) {
             return -1;
         }
         remaining--;

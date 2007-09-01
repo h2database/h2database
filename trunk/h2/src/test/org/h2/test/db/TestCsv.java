@@ -27,13 +27,13 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+BASE_DIR+"/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
-        ResultSet rs = stat.executeQuery("select * from csvread('"+BASE_DIR+"/test.csv', null, 'utf-8', '|')");
+        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
+        ResultSet rs = stat.executeQuery("select * from csvread('"+baseDir+"/test.csv', null, 'utf-8', '|')");
         check(rs.next());
         check(rs.getInt(1), 1);
         check(rs.getString(2), "Hello");
         checkFalse(rs.next());
-        new File(BASE_DIR+"/test.csv").delete();
+        new File(baseDir+"/test.csv").delete();
         
 //        PreparedStatement prep = conn.prepareStatement("select * from csvread(?, null, ?, ?)");
 //        prep.setString(1, BASE_DIR+"/test.csv");
@@ -48,27 +48,27 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+BASE_DIR+"/test.csv', 'select 1 id, ''Hello'' name')");
-        ResultSet rs = stat.executeQuery("select name from csvread('"+BASE_DIR+"/test.csv')");
+        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name')");
+        ResultSet rs = stat.executeQuery("select name from csvread('"+baseDir+"/test.csv')");
         check(rs.next());
         check(rs.getString(1), "Hello");
         checkFalse(rs.next());
-        rs = stat.executeQuery("call csvread('"+BASE_DIR+"/test.csv')");
+        rs = stat.executeQuery("call csvread('"+baseDir+"/test.csv')");
         check(rs.next());
         check(rs.getInt(1), 1);
         check(rs.getString(2), "Hello");
         checkFalse(rs.next());
-        new File(BASE_DIR+"/test.csv").delete();
+        new File(baseDir+"/test.csv").delete();
         conn.close();
     }
     
     public void testRead() throws Exception {
-        File f = new File(BASE_DIR + "/test.csv");
+        File f = new File(baseDir + "/test.csv");
         f.delete();
         RandomAccessFile file = new RandomAccessFile(f, "rw");
         file.write("a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes());
         file.close();
-        ResultSet rs = Csv.getInstance().read(BASE_DIR + "/test.csv", null, "UTF8");
+        ResultSet rs = Csv.getInstance().read(baseDir + "/test.csv", null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         check(meta.getColumnCount(), 4);
         check(meta.getColumnLabel(1), "a");
@@ -117,8 +117,8 @@ public class TestCsv extends TestBase {
         for(int i=0; i<len; i++) {
             stat.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         }
-        Csv.getInstance().write(conn, BASE_DIR + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
-        ResultSet rs = Csv.getInstance().read(BASE_DIR + "/testRW.csv", null, "UTF8");
+        Csv.getInstance().write(conn, baseDir + "/testRW.csv", "SELECT * FROM TEST", "UTF8");
+        ResultSet rs = Csv.getInstance().read(baseDir + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
         check(2, meta.getColumnCount());

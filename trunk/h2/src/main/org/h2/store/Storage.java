@@ -72,7 +72,7 @@ public class Storage {
         int lastCheckedPage;
         int pageIndex = -1;
         if (record == null) {
-            if(pages.size() == 0) {
+            if (pages.size() == 0) {
                 return -1;
             }
             pageIndex = 0;
@@ -86,13 +86,13 @@ public class Storage {
         BitField used = file.getUsed();
         while (true) {
             int page = file.getPage(next);
-            if(lastCheckedPage != page) {
-                if(pageIndex < 0) {
+            if (lastCheckedPage != page) {
+                if (pageIndex < 0) {
                     pageIndex = pages.findNextValueIndex(page);
                 } else {
                     pageIndex++;
                 }
-                if(pageIndex >= pages.size()) {
+                if (pageIndex >= pages.size()) {
                     return -1;
                 }
                 lastCheckedPage = pages.get(pageIndex);
@@ -101,8 +101,8 @@ public class Storage {
             if (used.get(next)) {
                 return next;
             }
-            if(used.getLong(next) == 0) {
-                next = MathUtils.roundUp(next+1, 64);
+            if (used.getLong(next) == 0) {
+                next = MathUtils.roundUp(next + 1, 64);
             } else {
                 next++;
             }
@@ -120,7 +120,7 @@ public class Storage {
         size = MathUtils.roundUp(size, DiskFile.BLOCK_SIZE);
         record.setDeleted(false);
         int blockCount = size / DiskFile.BLOCK_SIZE;
-        if(pos == ALLOCATE_POS) {
+        if (pos == ALLOCATE_POS) {
             pos = allocate(blockCount);
         } else {
             file.setUsed(pos, blockCount);
@@ -134,12 +134,12 @@ public class Storage {
 
     public void removeRecord(Session session, int pos) throws SQLException {
         Record record = getRecord(session, pos);
-        if(SysProperties.CHECK && record.getDeleted()) {
+        if (SysProperties.CHECK && record.getDeleted()) {
             throw Message.getInternalError("duplicate delete " + pos);
         }
         record.setDeleted(true);
         int blockCount = record.getBlockCount();
-        if(database.isMultiVersion()) {
+        if (database.isMultiVersion()) {
             int todoMustFreeSpaceOnCommit;
         } else {
             free(pos, blockCount);
@@ -154,8 +154,8 @@ public class Storage {
 
     private boolean isFreeAndMine(int pos, int blocks) {
         BitField used = file.getUsed();
-        for(int i=blocks + pos -1; i>=pos; i--) {
-            if(file.getPageOwner(file.getPage(i)) != id || used.get(i)) {
+        for (int i = blocks + pos - 1; i >= pos; i--) {
+            if (file.getPageOwner(file.getPage(i)) != id || used.get(i)) {
                 return false;
             }
         }
@@ -164,7 +164,7 @@ public class Storage {
 
     public int allocate(int blockCount) throws SQLException {
         if (freeList.size() > 0) {
-            synchronized(file) {
+            synchronized (file) {
                 BitField used = file.getUsed();
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);

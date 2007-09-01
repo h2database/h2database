@@ -33,15 +33,15 @@ public class MultiVersionCursor implements Cursor {
     }
     
     private void loadNext(boolean base) throws SQLException {
-        synchronized(sync) {
-            if(base) {
-                if(baseCursor.next()) {
+        synchronized (sync) {
+            if (base) {
+                if (baseCursor.next()) {
                     baseRow = baseCursor.getSearchRow();
                 } else {
                     baseRow = null;
                 }
             } else {
-                if(deltaCursor.next()) {
+                if (deltaCursor.next()) {
                     deltaRow = deltaCursor.get();
                 } else {
                     deltaRow = null;
@@ -51,8 +51,8 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public Row get() throws SQLException {
-        synchronized(sync) {
-            if(SysProperties.CHECK && end) {
+        synchronized (sync) {
+            if (SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
             return onBase ? baseCursor.get() : deltaCursor.get();
@@ -60,8 +60,8 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public int getPos() {
-        synchronized(sync) {
-            if(SysProperties.CHECK && end) {
+        synchronized (sync) {
+            if (SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
             return onBase ? baseCursor.getPos() : deltaCursor.getPos();
@@ -69,8 +69,8 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public SearchRow getSearchRow() throws SQLException {
-        synchronized(sync) {
-            if(SysProperties.CHECK && end) {
+        synchronized (sync) {
+            if (SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
             return onBase ? baseCursor.getSearchRow() : deltaCursor.getSearchRow();
@@ -78,21 +78,21 @@ public class MultiVersionCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        synchronized(sync) {
-            if(SysProperties.CHECK && end) {
+        synchronized (sync) {
+            if (SysProperties.CHECK && end) {
                 throw Message.getInternalError();
             }
-            while(true) {
-                if(needNewDelta) {
+            while (true) {
+                if (needNewDelta) {
                     loadNext(false);
                     needNewDelta = false;
                 }
-                if(needNewBase) {
+                if (needNewBase) {
                     loadNext(true);
                     needNewBase = false;
                 }
-                if(deltaRow == null) {
-                    if(baseRow == null) {
+                if (deltaRow == null) {
+                    if (baseRow == null) {
                         end = true;
                         return false;
                     } else {
@@ -104,13 +104,13 @@ public class MultiVersionCursor implements Cursor {
                 int sessionId = deltaRow.getSessionId();
                 boolean isThisSession = sessionId == session.getId();
                 boolean isDeleted = deltaRow.getDeleted();
-                if(isThisSession && isDeleted) {
+                if (isThisSession && isDeleted) {
                     needNewDelta = true;
                     continue;
                 }
-                if(baseRow == null) {
-                    if(isDeleted) {
-                        if(isThisSession) {
+                if (baseRow == null) {
+                    if (isDeleted) {
+                        if (isThisSession) {
                             end = true;
                             return false;
                         } else {
@@ -123,19 +123,20 @@ public class MultiVersionCursor implements Cursor {
                     throw Message.getInternalError();
                 }
                 int compare = index.compareRows(deltaRow, baseRow);
-                if(compare == 0) {
+                if (compare == 0) {
                     compare = index.compareKeys(deltaRow, baseRow);
                 }
-                if(compare == 0) {
-                    if(isDeleted) {
-                        if(isThisSession) {
+                if (compare == 0) {
+                    if (isDeleted) {
+                        if (isThisSession) {
                             throw Message.getInternalError();
                         } else {
-                            // another session updated the row: must be deleted in base as well
+                            // another session updated the row: must be deleted
+                            // in base as well
                             throw Message.getInternalError();
                         }
                     } else {
-                        if(isThisSession) {
+                        if (isThisSession) {
                             onBase = false;
                             needNewBase = true;
                             needNewDelta = true;
@@ -148,11 +149,11 @@ public class MultiVersionCursor implements Cursor {
                         }
                     }
                 }
-                if(compare > 0) {
+                if (compare > 0) {
                     needNewBase = true;
                     return true;
                 }
-                if(!isDeleted) {
+                if (!isDeleted) {
                     throw Message.getInternalError();
                 }
                 needNewDelta = true;

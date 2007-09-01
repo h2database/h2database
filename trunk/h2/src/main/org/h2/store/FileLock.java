@@ -74,7 +74,7 @@ public class FileLock {
         if (!SysProperties.runFinalize) {
             return;
         }
-        if(locked) {
+        if (locked) {
             unlock();
         }
     }
@@ -88,7 +88,7 @@ public class FileLock {
 
     // TODO log / messages: use translatable messages!
     public synchronized void unlock() {
-        if(!locked) {
+        if (!locked) {
             return;
         }
         try {
@@ -119,7 +119,7 @@ public class FileLock {
             }
             lastWrite = FileUtils.getLastModified(fileName);
             trace.debug("save " + properties);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw getException(e);
         }
     }
@@ -129,21 +129,21 @@ public class FileLock {
             Properties p2 = FileUtils.loadProperties(fileName);
             trace.debug("load " + p2);
             return p2;
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw getException(e);
         }
     }
 
     private void waitUntilOld() throws SQLException {
-        for(int i=0; i<10; i++) {
+        for (int i = 0; i < 10; i++) {
             long last = FileUtils.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
-            if(dist < -TIME_GRANULARITY) {
+            if (dist < -TIME_GRANULARITY) {
                 throw error("Lock file modified in the future: dist=" + dist);
             }
-            if(dist < SLEEP_GAP) {
+            if (dist < SLEEP_GAP) {
                 try {
-                    Thread.sleep(dist+1);
+                    Thread.sleep(dist + 1);
                 } catch (Exception e) {
                     trace.debug("sleep", e);
                 }
@@ -196,7 +196,7 @@ public class FileLock {
                             trace.debug("watchdog", e);
                         }
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     trace.debug("watchdog", e);
                 }
                 trace.debug("watchdog end");
@@ -204,7 +204,7 @@ public class FileLock {
         });
         watchdog.setName("H2 File Lock Watchdog " + fileName);
         watchdog.setDaemon(true);
-        watchdog.setPriority(Thread.MAX_PRIORITY-1);
+        watchdog.setPriority(Thread.MAX_PRIORITY - 1);
         watchdog.start();
     }
 
@@ -296,7 +296,7 @@ public class FileLock {
     private void sleep(int time) throws SQLException {
         try {
             Thread.sleep(time);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw getException(e);
         }
     }
@@ -308,13 +308,13 @@ public class FileLock {
     private SQLException error(String reason) {
         return Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
     }
-    
+
     public static int getFileLockMethod(String method) throws JdbcSQLException {
-        if(method == null || method.equalsIgnoreCase("FILE")) {
+        if (method == null || method.equalsIgnoreCase("FILE")) {
             return FileLock.LOCK_FILE;
-        } else if(method.equalsIgnoreCase("NO")) {
+        } else if (method.equalsIgnoreCase("NO")) {
             return FileLock.LOCK_NO;
-        } else if(method.equalsIgnoreCase("SOCKET")) {
+        } else if (method.equalsIgnoreCase("SOCKET")) {
             return FileLock.LOCK_SOCKET;
         } else {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);

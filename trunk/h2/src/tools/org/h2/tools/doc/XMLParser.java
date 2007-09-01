@@ -7,21 +7,21 @@ package org.h2.tools.doc;
 public class XMLParser {
 
     public static final int ERROR = 0;
-    public static final int START_ELEMENT=1;
-    public static final int END_ELEMENT=2;
-    public static final int PROCESSING_INSTRUCTION=3;
-    public static final int CHARACTERS=4;
-    public static final int COMMENT=5;
-    public static final int SPACE=6;
-    public static final int START_DOCUMENT=7;
-    public static final int END_DOCUMENT=8;
-    public static final int ENTITY_REFERENCE=9;
-    public static final int ATTRIBUTE=10;
-    public static final int DTD=11;
-    public static final int CDATA=12;
-    public static final int NAMESPACE=13;
-    public static final int NOTATION_DECLARATION=14;
-    public static final int ENTITY_DECLARATION=15;    
+    public static final int START_ELEMENT = 1;
+    public static final int END_ELEMENT = 2;
+    public static final int PROCESSING_INSTRUCTION = 3;
+    public static final int CHARACTERS = 4;
+    public static final int COMMENT = 5;
+    public static final int SPACE = 6;
+    public static final int START_DOCUMENT = 7;
+    public static final int END_DOCUMENT = 8;
+    public static final int ENTITY_REFERENCE = 9;
+    public static final int ATTRIBUTE = 10;
+    public static final int DTD = 11;
+    public static final int CDATA = 12;
+    public static final int NAMESPACE = 13;
+    public static final int NOTATION_DECLARATION = 14;
+    public static final int ENTITY_DECLARATION = 15;
 
     private String xml;
     private int index;
@@ -37,9 +37,9 @@ public class XMLParser {
         this.xml = xml;
         eventType = START_DOCUMENT;
     }
-    
+
     void addAttributeName(String prefix, String localName) {
-        if(attributeValues.length <= currentAttribute) {
+        if (attributeValues.length <= currentAttribute) {
             String[] temp = new String[attributeValues.length * 2];
             System.arraycopy(attributeValues, 0, temp, 0, attributeValues.length);
             attributeValues = temp;
@@ -58,7 +58,7 @@ public class XMLParser {
         }
         return xml.charAt(index++);
     }
-    
+
     private void back() {
         index--;
     }
@@ -76,10 +76,10 @@ public class XMLParser {
     }
 
     private void skipSpaces() {
-         while (index < xml.length() && xml.charAt(index) <= ' ') {
-             index++;
-         }
-     }
+        while (index < xml.length() && xml.charAt(index) <= ' ') {
+            index++;
+        }
+    }
 
     private void read() {
         currentText = null;
@@ -105,7 +105,7 @@ public class XMLParser {
                         break;
                     }
                 }
-                if(xml.substring(currentStart).startsWith("xml")) {
+                if (xml.substring(currentStart).startsWith("xml")) {
                     int back = tokenStart;
                     read();
                     tokenStart = back;
@@ -143,35 +143,35 @@ public class XMLParser {
                             break;
                         }
                     }
-                } else if(ch == '[') {
+                } else if (ch == '[') {
                     read("CDATA[");
                     currentStart = index;
                     eventType = CHARACTERS;
-                    while(true) {
+                    while (true) {
                         ch = readChar();
-                        if(ch < 0) {
+                        if (ch < 0) {
                             error("]]>");
-                        } else if(ch != ']') {
-                            continue; 
+                        } else if (ch != ']') {
+                            continue;
                         }
                         ch = readChar();
-                        if(ch < 0) {
+                        if (ch < 0) {
                             error("]]>");
-                        } else if(ch == ']') {
+                        } else if (ch == ']') {
                             do {
                                 ch = readChar();
-                                if(ch < 0) {
+                                if (ch < 0) {
                                     error("]]>");
                                 }
-                            } while(ch == ']');
-                            if(ch == '>') {
+                            } while (ch == ']');
+                            if (ch == '>') {
                                 currentText = xml.substring(currentStart, index - 3);
                                 break;
                             }
                         }
                     }
                 }
-            } else if(ch == '/') {
+            } else if (ch == '/') {
                 currentStart = index;
                 prefix = null;
                 eventType = END_ELEMENT;
@@ -179,13 +179,13 @@ public class XMLParser {
                     ch = readChar();
                     if (ch < 0) {
                         error(">");
-                    } else if(ch == ':') {
+                    } else if (ch == ':') {
                         prefix = xml.substring(currentStart, index - 1);
                         currentStart = index + 1;
-                    } else if(ch == '>') {
+                    } else if (ch == '>') {
                         localName = xml.substring(currentStart, index - 1);
                         break;
-                    } else if(ch <= ' ') {
+                    } else if (ch <= ' ') {
                         localName = xml.substring(currentStart, index - 1);
                         skipSpaces();
                         read(">");
@@ -200,7 +200,7 @@ public class XMLParser {
                     ch = readChar();
                     if (ch < 0) {
                         error(">");
-                    } else if(ch == ':') {
+                    } else if (ch == ':') {
                         prefix = xml.substring(currentStart, index - 1);
                         currentStart = index + 1;
                     } else if (ch <= ' ') {
@@ -209,14 +209,14 @@ public class XMLParser {
                         ch = readChar();
                     }
                     if (ch == '/') {
-                        if(localName == null) {
+                        if (localName == null) {
                             localName = xml.substring(currentStart, index - 1);
                         }
                         read(">");
                         endElement = true;
                         break;
-                    } else if(ch == '>') {
-                        if(localName == null) {
+                    } else if (ch == '>') {
+                        if (localName == null) {
                             localName = xml.substring(currentStart, index - 1);
                         }
                         break;
@@ -228,9 +228,9 @@ public class XMLParser {
             eventType = CHARACTERS;
             while (true) {
                 ch = readChar();
-                if(ch < 0) {
+                if (ch < 0) {
                     break;
-                } else if(ch == '<') {
+                } else if (ch == '<') {
                     back();
                     break;
                 }
@@ -239,56 +239,56 @@ public class XMLParser {
         }
         currentToken = xml.substring(tokenStart, index);
     }
-    
+
     private void readAttributeValues() {
-        while(true) {
+        while (true) {
             int start = index;
             int ch = readChar();
-            if(ch < 0) {
+            if (ch < 0) {
                 error(">");
-            } else if(ch <= ' ') {
+            } else if (ch <= ' ') {
                 continue;
-            } else if(ch == '/' || ch == '>') {
+            } else if (ch == '/' || ch == '>') {
                 back();
                 return;
             }
             int end;
             int localNameStart = start;
-            while(true) {
+            while (true) {
                 end = index;
                 ch = readChar();
-                if(ch < 0) {
+                if (ch < 0) {
                     error("=");
-                } else if(ch <= ' ') {
+                } else if (ch <= ' ') {
                     skipSpaces();
                     ch = readChar();
-                    if(ch != '=') {
+                    if (ch != '=') {
                         error("=");
                     }
                     break;
-                } else if(ch == '=') {
+                } else if (ch == '=') {
                     break;
-                } else if(ch == ':') {
-                    localNameStart = index;                    
+                } else if (ch == ':') {
+                    localNameStart = index;
                 }
             }
-            if(localNameStart == start) {
+            if (localNameStart == start) {
                 addAttributeName("", xml.substring(localNameStart, end));
             } else {
                 addAttributeName(xml.substring(start, localNameStart - 1), xml.substring(localNameStart, end));
             }
             skipSpaces();
             ch = readChar();
-            if(ch != '\"') {
+            if (ch != '\"') {
                 error("\"");
             }
             start = index;
-            while(true) {
+            while (true) {
                 end = index;
                 ch = readChar();
-                if(ch < 0) {
+                if (ch < 0) {
                     error("\"");
-                } else if(ch == '\"') {
+                } else if (ch == '\"') {
                     break;
                 }
             }
@@ -301,7 +301,7 @@ public class XMLParser {
     }
 
     public int next() {
-        if(endElement) {
+        if (endElement) {
             endElement = false;
             eventType = END_ELEMENT;
             currentToken = "";
@@ -327,7 +327,7 @@ public class XMLParser {
     public String getText() {
         return currentText;
     }
-    
+
     public String getToken() {
         return currentToken;
     }
@@ -343,7 +343,7 @@ public class XMLParser {
     public String getAttributeLocalName(int index) {
         return attributeValues[index * 3 + 1];
     }
-    
+
     public String getAttributeName(int index) {
         String prefix = getAttributePrefix(index);
         String localName = getAttributeLocalName(index);
@@ -356,14 +356,14 @@ public class XMLParser {
 
     public String getAttributeValue(String namespaceURI, String localName) {
         int len = getAttributeCount();
-        for(int i=0; i<len; i ++) {
-            if(getAttributeLocalName(i).equals(localName)) {
+        for (int i = 0; i < len; i++) {
+            if (getAttributeLocalName(i).equals(localName)) {
                 return getAttributeValue(i);
             }
         }
         return null;
     }
-    
+
     public String getName() {
         return prefix == null || prefix.length() == 0 ? localName : prefix + ":" + localName;
     }

@@ -15,7 +15,8 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 public class LinkSchema {
-    public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user, String password, String sourceSchema) throws SQLException {
+    public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user,
+            String password, String sourceSchema) throws SQLException {
         Connection c2 = null;
         Statement stat = null;
         ResultSet rs = null;
@@ -26,7 +27,7 @@ public class LinkSchema {
             stat = conn.createStatement();
             stat.execute("CREATE SCHEMA IF NOT EXISTS " + StringUtils.quoteIdentifier(targetSchema));
             rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
-            while(rs.next()) {
+            while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");
                 StringBuffer buff = new StringBuffer();
                 buff.append("DROP TABLE IF EXISTS ");
@@ -53,7 +54,7 @@ public class LinkSchema {
                 buff.append(')');
                 sql = buff.toString();
                 stat.execute(sql);
-                result.addRow(new String[]{table});
+                result.addRow(new String[] { table });
             }
         } finally {
             JdbcUtils.closeSilently(rs);

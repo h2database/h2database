@@ -14,7 +14,7 @@ public class TestHaltApp extends TestHalt {
     private int rowCount;
     
     public static void main(String[] args) throws Exception {
-        BASE_DIR = TestHalt.DIR;
+        baseDir = TestHalt.DIR;
         new TestHaltApp().start(args);
     }
 

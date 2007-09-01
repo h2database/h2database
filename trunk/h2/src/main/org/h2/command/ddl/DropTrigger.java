@@ -19,7 +19,7 @@ public class DropTrigger extends SchemaCommand {
 
     private String triggerName;
     private boolean ifExists;
-    
+
     public DropTrigger(Session session, Schema schema) {
         super(session, schema);
     }
@@ -36,8 +36,8 @@ public class DropTrigger extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         TriggerObject trigger = getSchema().findTrigger(triggerName);
-        if(trigger == null) {
-            if(!ifExists) {
+        if (trigger == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.TRIGGER_NOT_FOUND_1, triggerName);
             }
         } else {

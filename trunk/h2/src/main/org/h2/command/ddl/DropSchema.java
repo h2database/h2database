@@ -13,7 +13,7 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 
 public class DropSchema extends DefineCommand {
-    
+
     private String schemaName;
     private boolean ifExists;
 
@@ -30,12 +30,12 @@ public class DropSchema extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Schema schema = db.findSchema(schemaName);
-        if(schema == null) {
-            if(!ifExists) {
+        if (schema == null) {
+            if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
         } else {
-            if(!schema.canDrop()) {
+            if (!schema.canDrop()) {
                 throw Message.getSQLException(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, schemaName);
             }
             db.removeDatabaseObject(session, schema);
@@ -46,5 +46,5 @@ public class DropSchema extends DefineCommand {
     public void setIfExists(boolean ifExists) {
         this.ifExists = ifExists;
     }
-    
+
 }

@@ -19,7 +19,7 @@ public class TestNestedLoop extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int identity, name varchar)");
         int len = getSize(1010, 10000);
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             stat.execute("insert into test(name) values('Hello World')");
         }
         ResultSet rs = stat.executeQuery("select id from test");
@@ -27,7 +27,7 @@ public class TestNestedLoop extends TestBase {
         try {
             rs.next();
             error("Result set should be closed");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         rs = stat.executeQuery("select id from test");
@@ -35,27 +35,27 @@ public class TestNestedLoop extends TestBase {
         try {
             rs.next();
             error("Result set should be closed");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         stat = conn.createStatement();
         rs = stat.executeQuery("select id from test");
         Statement stat2 = conn.createStatement();
-        while(rs.next()) {
+        while (rs.next()) {
             int id = rs.getInt(1);
             ResultSet rs2 = stat2.executeQuery("select * from test where id=" + id);
-            while(rs2.next()) {
+            while (rs2.next()) {
                 check(rs2.getInt(1), id);
                 check(rs2.getString(2), "Hello World");
             }
             rs2 = stat2.executeQuery("select * from test where id=" + id);
-            while(rs2.next()) {
+            while (rs2.next()) {
                 check(rs2.getInt(1), id);
                 check(rs2.getString(2), "Hello World");
             }
         }
         conn.close();
-        
+
     }
 
 }

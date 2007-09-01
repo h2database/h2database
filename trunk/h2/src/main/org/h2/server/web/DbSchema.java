@@ -27,9 +27,9 @@ public class DbSchema {
     public void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
         ArrayList list = new ArrayList();
-        while(rs.next()) {
+        while (rs.next()) {
             DbTableOrView table = new DbTableOrView(this, rs);
-            if(contents.isOracle && table.name.indexOf('$') > 0) {
+            if (contents.isOracle && table.name.indexOf('$') > 0) {
                 continue;
             }
             list.add(table);
@@ -37,12 +37,10 @@ public class DbSchema {
         rs.close();
         tables = new DbTableOrView[list.size()];
         list.toArray(tables);
-//        if(isDefault) {
-            for(int i=0; i<tables.length; i++) {
-                DbTableOrView tab = tables[i];
-                tab.readColumns(meta);
-            }
-//        }
+        for (int i = 0; i < tables.length; i++) {
+            DbTableOrView tab = tables[i];
+            tab.readColumns(meta);
+        }
     }
 
 }

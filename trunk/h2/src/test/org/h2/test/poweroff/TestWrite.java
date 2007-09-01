@@ -30,35 +30,35 @@ public class TestWrite {
 
     static void testFile(String mode, boolean flush) throws Exception {
         System.out.println("Testing RandomAccessFile(.., \"" + mode + "\")...");
-        if(flush) {
+        if (flush) {
             System.out.println("  with FileDescriptor.sync()");
         }
         RandomAccessFile file = new RandomAccessFile("test.txt", mode);
         file.setLength(0);
         FileDescriptor fd = file.getFD();
         long start = System.currentTimeMillis();
-        byte[] data = new byte[] {0};
+        byte[] data = new byte[] { 0 };
         file.write(data);
-        int i=0;
-        if(flush) {
-            for(; ; i++) {
+        int i = 0;
+        if (flush) {
+            for (;; i++) {
                 file.seek(0);
                 file.write(data);
                 fd.sync();
-                if((i & 15) == 0) {
+                if ((i & 15) == 0) {
                     long time = System.currentTimeMillis() - start;
-                    if(time > 5000) {
+                    if (time > 5000) {
                         break;
                     }
                 }
             }
         } else {
-            for(; ; i++) {
+            for (;; i++) {
                 file.seek(0);
                 file.write(data);
-                if((i & 1023) == 0) {
+                if ((i & 1023) == 0) {
                     long time = System.currentTimeMillis() - start;
-                    if(time > 5000) {
+                    if (time > 5000) {
                         break;
                     }
                 }
@@ -72,7 +72,7 @@ public class TestWrite {
         file.close();
         new File("test.txt").delete();
     }
-    
+
     static void testDatabase(String driver, String url, String user, String password) throws Exception {
         Class.forName(driver);
         Connection conn = DriverManager.getConnection(url, user, password);
@@ -80,20 +80,20 @@ public class TestWrite {
         Statement stat = conn.createStatement();
         try {
             stat.execute("DROP TABLE TEST");
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // ignore
         }
         stat.execute("CREATE TABLE TEST(ID INT)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?)");
         long start = System.currentTimeMillis();
-        int i=0;
-        for(; ; i++) {
+        int i = 0;
+        for (;; i++) {
             prep.setInt(1, i);
             // autocommit is on by default, so this commits as well
             prep.execute();
-            if((i & 15) == 0) {
+            if ((i & 15) == 0) {
                 long time = System.currentTimeMillis() - start;
-                if(time > 5000) {
+                if (time > 5000) {
                     break;
                 }
             }
@@ -106,5 +106,5 @@ public class TestWrite {
         stat.execute("DROP TABLE TEST");
         conn.close();
     }
-    
+
 }

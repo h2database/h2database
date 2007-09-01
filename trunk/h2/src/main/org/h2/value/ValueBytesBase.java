@@ -63,7 +63,7 @@ abstract class ValueBytesBase extends Value {
     }    
     
     protected boolean isEqual(Value v) {
-        return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase)v).value) == 0;
+        return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) v).value) == 0;
     }    
 
 //  public String getJavaString() {

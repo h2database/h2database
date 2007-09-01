@@ -42,7 +42,7 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
-        if(masks != null) {
+        if (masks != null) {
             throw Message.getUnsupportedException();
         }
         return Long.MAX_VALUE;

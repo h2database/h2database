@@ -34,7 +34,7 @@ public class ExecuteProcedure extends Prepared {
     private void setParameters() throws SQLException {
         Prepared prepared = procedure.getPrepared();
         ObjectArray params = prepared.getParameters();
-        for(int i=0; params != null && i<params.size() && i<expressions.size(); i++) {
+        for (int i = 0; params != null && i < params.size() && i < expressions.size(); i++) {
             Expression expr = (Expression) expressions.get(i);
             Parameter p = (Parameter) params.get(i);
             p.setValue(expr.getValue(session));

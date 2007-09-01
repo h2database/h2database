@@ -106,8 +106,8 @@ public abstract class Value {
     }    
     
     public static int getHigherOrder(int t1, int t2) throws SQLException {
-        if(t1 == t2) {
-            if(t1 == Value.UNKNOWN) {
+        if (t1 == t2) {
+            if (t1 == Value.UNKNOWN) {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
             }
             return t1;
@@ -272,13 +272,14 @@ public abstract class Value {
             case JAVA_OBJECT:
             case UUID:
                 throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
-            }            
+            default:
+            }
             break;
         }
         case BYTE: {
             switch (getType()) {
             case BOOLEAN:
-                return ValueByte.get(getBoolean().booleanValue() ? (byte)1 : (byte)0);
+                return ValueByte.get(getBoolean().booleanValue() ? (byte) 1 : (byte) 0);
             case SHORT:
                 return ValueByte.get(convertToByte(getShort()));
             case INT:
@@ -291,13 +292,14 @@ public abstract class Value {
                 return ValueByte.get(convertToByte(convertToLong(getDouble())));
             case FLOAT:
                 return ValueByte.get(convertToByte(convertToLong(getFloat())));
+            default:
             }
             break;
         }
         case SHORT: {
             switch (getType()) {
             case BOOLEAN:
-                return ValueShort.get(getBoolean().booleanValue() ? (short)1 : (short)0);
+                return ValueShort.get(getBoolean().booleanValue() ? (short) 1 : (short) 0);
             case BYTE:
                 return ValueShort.get(getByte());
             case INT:
@@ -310,6 +312,7 @@ public abstract class Value {
                 return ValueShort.get(convertToShort(convertToLong(getDouble())));
             case FLOAT:
                 return ValueShort.get(convertToShort(convertToLong(getFloat())));
+            default:
             }
             break;
         }
@@ -329,6 +332,7 @@ public abstract class Value {
                 return ValueInt.get(convertToInt(convertToLong(getDouble())));
             case FLOAT:
                 return ValueInt.get(convertToInt(convertToLong(getFloat())));
+            default:
             }
             break;
         }
@@ -348,6 +352,7 @@ public abstract class Value {
                 return ValueLong.get(convertToLong(getDouble()));
             case FLOAT:
                 return ValueLong.get(convertToLong(getFloat()));
+            default:
             }
             break;
         }
@@ -366,18 +371,19 @@ public abstract class Value {
                 return ValueDecimal.get(new BigDecimal("" + getLong()));
             case DOUBLE: {
                 double d = getDouble();
-                if(Double.isInfinite(d) || Double.isNaN(d)) {
-                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, ""+d);
+                if (Double.isInfinite(d) || Double.isNaN(d)) {
+                    throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, "" + d);
                 }
                 return ValueDecimal.get(new BigDecimal(d));
             }
             case FLOAT: {
                 float f = getFloat();
-                if(Float.isInfinite(f) || Float.isNaN(f)) {
+                if (Float.isInfinite(f) || Float.isNaN(f)) {
                     throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, ""+f);
                 }
                 return ValueDecimal.get(new BigDecimal(f));
             }
+            default:
             }
             break;
         }
@@ -397,6 +403,7 @@ public abstract class Value {
                 return ValueDouble.get(getBigDecimal().doubleValue());
             case FLOAT:
                 return ValueDouble.get(getFloat());
+            default:
             }
             break;
         }
@@ -415,7 +422,8 @@ public abstract class Value {
             case DECIMAL:
                 return ValueFloat.get(getBigDecimal().floatValue());
             case DOUBLE:
-                return ValueFloat.get((float)getDouble());
+                return ValueFloat.get((float) getDouble());
+            default:
             }
             break;
         }
@@ -425,6 +433,7 @@ public abstract class Value {
                 return ValueDate.get(new Date(getTimeNoCopy().getTime()));
             case TIMESTAMP:
                 return ValueDate.get(new Date(getTimestampNoCopy().getTime()));
+            default:
             }
             break;
         }
@@ -436,6 +445,7 @@ public abstract class Value {
             case TIMESTAMP:
                 // need to normalize the year, month and day
                 return ValueTime.get(new Time(getTimestampNoCopy().getTime()));
+            default:
             }
             break;
         }
@@ -445,6 +455,7 @@ public abstract class Value {
                 return ValueTimestamp.getNoCopy(new Timestamp(getTimeNoCopy().getTime()));
             case DATE:
                 return ValueTimestamp.getNoCopy(new Timestamp(getDateNoCopy().getTime()));
+            default:
             }
             break;
         }
@@ -454,6 +465,7 @@ public abstract class Value {
             case BLOB:
             case UUID:
                 return ValueBytes.getNoCopy(getBytesNoCopy());
+            default:
             }
             break;
         }
@@ -462,6 +474,7 @@ public abstract class Value {
             case BYTES:
             case BLOB:
                 return ValueBytes.getNoCopy(getBytesNoCopy());
+            default:
             }
             break;
         }
@@ -469,6 +482,7 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
                 return ValueLob.createSmallLob(Value.BLOB, getBytesNoCopy());
+            default:
             }           
             break;
         }
@@ -476,8 +490,10 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
                 return ValueUuid.get(getBytesNoCopy());    
+            default:
             }
         }
+        default:
         }
         // conversion by parsing the string value
         String s = getString();
@@ -620,7 +636,7 @@ public abstract class Value {
             // TODO document that +Infinity, -Infinity throw an exception and NaN returns 0
             throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
-        if(Mode.getCurrentMode().roundWhenConvertToLong) {
+        if (Mode.getCurrentMode().roundWhenConvertToLong) {
             return Math.round(x);
         } else {
             return (long) x;
@@ -631,7 +647,7 @@ public abstract class Value {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
-        if(Mode.getCurrentMode().roundWhenConvertToLong) {
+        if (Mode.getCurrentMode().roundWhenConvertToLong) {
             return Math.round(x.doubleValue());
         } else {
             return x.longValue();

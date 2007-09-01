@@ -34,7 +34,7 @@ public class TreeIndex extends BaseIndex {
     public void add(Session session, Row row) throws SQLException {
         TreeNode i = new TreeNode(row);
         TreeNode n = root, x = n;
-        boolean  isLeft = true;
+        boolean isLeft = true;
         while (true) {
             if (n == null) {
                 if (x == null) {
@@ -48,8 +48,8 @@ public class TreeIndex extends BaseIndex {
             Row r = n.row;
             int compare = compareRows(row, r);
             if (compare == 0) {
-                if(indexType.isUnique()) {
-                    if(!isNull(row)) {
+                if (indexType.isUnique()) {
+                    if (!isNull(row)) {
                         throw getDuplicateKeyException();
                     }
                 }
@@ -67,13 +67,13 @@ public class TreeIndex extends BaseIndex {
         while (true) {
             int sign = isLeft ? 1 : -1;
             switch (x.balance * sign) {
-            case 1 :
+            case 1:
                 x.balance = 0;
                 return;
-            case 0 :
+            case 0:
                 x.balance = -sign;
                 break;
-            case -1 :
+            case -1:
                 TreeNode l = child(x, isLeft);
                 if (l.balance == -sign) {
                     replace(x, l);
@@ -94,6 +94,8 @@ public class TreeIndex extends BaseIndex {
                     r.balance = 0;
                 }
                 return;
+            default:
+                throw Message.getInternalError("b: " + x.balance * sign);
             }
             if (x == root) {
                 return;
@@ -183,7 +185,7 @@ public class TreeIndex extends BaseIndex {
                 x.left = d.left;
             }
 
-            if(SysProperties.CHECK && (x.right==null || x==null)) {
+            if (SysProperties.CHECK && (x.right == null || x == null)) {
                 throw Message.getInternalError("tree corrupted");
             }
             x.right.parent = x;
@@ -191,13 +193,13 @@ public class TreeIndex extends BaseIndex {
             // set d.left, d.right
             d.left = n;
             if (n != null) {
-                n.parent =d;
+                n.parent = d;
             }
-            d.right =null;
+            d.right = null;
             x = d;
         }
         rowCount--;
-        
+
         boolean isLeft = x.isFromLeft();
         replace(x, n);
         n = x.parent;
@@ -205,15 +207,15 @@ public class TreeIndex extends BaseIndex {
             x = n;
             int sign = isLeft ? 1 : -1;
             switch (x.balance * sign) {
-            case -1 :
+            case -1:
                 x.balance = 0;
                 break;
-            case 0 :
+            case 0:
                 x.balance = sign;
                 return;
-            case 1 :
+            case 1:
                 TreeNode r = child(x, !isLeft);
-                int  b = r.balance;
+                int b = r.balance;
                 if (b * sign >= 0) {
                     replace(x, r);
                     set(x, !isLeft, child(r, isLeft));
@@ -239,6 +241,9 @@ public class TreeIndex extends BaseIndex {
                     l.balance = 0;
                     x = l;
                 }
+                break;
+            default:
+                throw Message.getInternalError("b: " + x.balance * sign);
             }
             isLeft = x.isFromLeft();
             n = x.parent;
@@ -268,7 +273,7 @@ public class TreeIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        if(first == null) {
+        if (first == null) {
             TreeNode x = root, n;
             while (x != null) {
                 n = x.left;
@@ -283,11 +288,11 @@ public class TreeIndex extends BaseIndex {
             return new TreeCursor(this, x, first, last);
         }
     }
-    
+
     public int getLookupCost(int rowCount) {
-        for(int i=0, j = 1; ; i++) {
+        for (int i = 0, j = 1;; i++) {
             j += j;
-            if(j>=rowCount) {
+            if (j >= rowCount) {
                 return i;
             }
         }
@@ -303,7 +308,7 @@ public class TreeIndex extends BaseIndex {
 
     public void truncate(Session session) throws SQLException {
         root = null;
-        rowCount = 0;        
+        rowCount = 0;
     }
 
     TreeNode next(TreeNode x) {
@@ -324,11 +329,11 @@ public class TreeIndex extends BaseIndex {
         x = x.parent;
         while (x != null && ch == x.right) {
             ch = x;
-            x  = x.parent;
+            x = x.parent;
         }
         return x;
     }
-    
+
     public void checkRename() throws SQLException {
     }
 
@@ -341,13 +346,13 @@ public class TreeIndex extends BaseIndex {
     }
 
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
-        if(first) {
+        if (first) {
             // TODO optimization: this loops through NULL values
             Cursor cursor = find(session, null, null);
-            while(cursor.next()) {
+            while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();
                 Value v = row.getValue(columnIndex[0]);
-                if(v != ValueNull.INSTANCE) {
+                if (v != ValueNull.INSTANCE) {
                     return row;
                 }
             }
@@ -361,7 +366,7 @@ public class TreeIndex extends BaseIndex {
                 }
                 x = n;
             }
-            if(x != null) {
+            if (x != null) {
                 return x.row;
             }
             return null;

@@ -26,33 +26,34 @@ import org.h2.message.Message;
 public class StringUtils {
 
     public static boolean equals(String a, String b) {
-        if(a==null) {
-            return b==null;
+        if (a == null) {
+            return b == null;
         }
         return a.equals(b);
     }
-    
+
     public static String toUpperEnglish(String s) {
         return s.toUpperCase(Locale.ENGLISH);
     }
-    
+
     public static String toLowerEnglish(String s) {
         return s.toLowerCase(Locale.ENGLISH);
-    }    
+    }
 
     public static String getDefaultCharset() {
         return System.getProperty("file.encoding");
     }
 
     public static String quoteStringSQL(String s) {
-        StringBuffer buff = new StringBuffer(s.length()+2);
+        StringBuffer buff = new StringBuffer(s.length() + 2);
         buff.append('\'');
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == '\'') {
                 buff.append(c);
-            } else if(c < ' ' || c > 127) {
-                // need to start from the beginning because maybe there was a \ that was not quoted
+            } else if (c < ' ' || c > 127) {
+                // need to start from the beginning because maybe there was a \
+                // that was not quoted
                 return "STRINGDECODE(" + quoteStringSQL(javaEncode(s)) + ")";
             }
             buff.append(c);
@@ -129,14 +130,14 @@ public class StringUtils {
         StringBuffer buff = new StringBuffer(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if(c == '"') {
+            if (c == '"') {
                 break;
-            } else if(c=='\\') {
-                if(i >= s.length()) {
-                    throw getFormatException(s, s.length()-1);
+            } else if (c == '\\') {
+                if (i >= s.length()) {
+                    throw getFormatException(s, s.length() - 1);
                 }
                 c = s.charAt(++i);
-                switch(c) {
+                switch (c) {
                 case 't':
                     buff.append('\t');
                     break;
@@ -160,8 +161,8 @@ public class StringUtils {
                     break;
                 case 'u': {
                     try {
-                        c = (char)(Integer.parseInt(s.substring(i+1, i+5), 16));
-                    } catch(NumberFormatException e) {
+                        c = (char) (Integer.parseInt(s.substring(i + 1, i + 5), 16));
+                    } catch (NumberFormatException e) {
                         throw getFormatException(s, i);
                     }
                     i += 4;
@@ -169,10 +170,10 @@ public class StringUtils {
                     break;
                 }
                 default:
-                    if(c >= '0' && c <= '9') {
+                    if (c >= '0' && c <= '9') {
                         try {
-                            c = (char)(Integer.parseInt(s.substring(i, i+3), 8));
-                        } catch(NumberFormatException e) {
+                            c = (char) (Integer.parseInt(s.substring(i, i + 3), 8));
+                        } catch (NumberFormatException e) {
                             throw getFormatException(s, i);
                         }
                         i += 2;
@@ -189,7 +190,7 @@ public class StringUtils {
     }
 
     public static String quoteJavaString(String s) {
-        if(s==null) {
+        if (s == null) {
             return "null";
         } else {
             return "\"" + javaEncode(s) + "\"";
@@ -198,7 +199,8 @@ public class StringUtils {
 
     public static byte[] utf8Encode(String s) throws SQLException {
         try {
-            // TODO UTF8: String.getBytes("UTF-8") only returns 1 byte for 0xd800-0xdfff
+            // TODO UTF8: String.getBytes("UTF-8") only returns 1 byte for
+            // 0xd800-0xdfff
             return s.getBytes(Constants.UTF8);
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
@@ -222,13 +224,13 @@ public class StringUtils {
     }
 
     public static String quoteJavaStringArray(String[] array) {
-        if(array == null) {
+        if (array == null) {
             return "null";
         }
         StringBuffer buff = new StringBuffer(5 * array.length);
         buff.append("new String[]{");
-        for(int i=0; i<array.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
                 buff.append(", ");
             }
             buff.append(quoteJavaString(array[i]));
@@ -238,13 +240,13 @@ public class StringUtils {
     }
 
     public static String quoteJavaIntArray(int[] array) {
-        if(array == null) {
+        if (array == null) {
             return "null";
         }
-        StringBuffer buff = new StringBuffer(2*array.length);
+        StringBuffer buff = new StringBuffer(2 * array.length);
         buff.append("new int[]{");
-        for(int i=0; i<array.length; i++) {
-            if(i>0) {
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
                 buff.append(", ");
             }
             buff.append(array[i]);
@@ -254,7 +256,7 @@ public class StringUtils {
     }
 
     public static String enclose(String s) {
-        if(s.startsWith("(")) {
+        if (s.startsWith("(")) {
             return s;
         } else {
             return "(" + s + ")";
@@ -262,8 +264,8 @@ public class StringUtils {
     }
 
     public static String unEnclose(String s) {
-        if(s.startsWith("(") && s.endsWith(")")) {
-            return s.substring(1, s.length()-1);
+        if (s.startsWith("(") && s.endsWith(")")) {
+            return s.substring(1, s.length() - 1);
         } else {
             return s;
         }
@@ -293,19 +295,19 @@ public class StringUtils {
 
     public static String urlDecode(String encoded) throws SQLException {
         byte[] buff = new byte[encoded.length()];
-        int j=0;
-        for(int i=0; i<encoded.length(); i++) {
+        int j = 0;
+        for (int i = 0; i < encoded.length(); i++) {
             char ch = encoded.charAt(i);
-            if(ch=='+') {
+            if (ch == '+') {
                 buff[j++] = ' ';
-            } else if(ch=='%') {
-                buff[j++] = (byte)Integer.parseInt(encoded.substring(i+1,i+3),16);
-                i+=2;
+            } else if (ch == '%') {
+                buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
+                i += 2;
             } else {
-                if(SysProperties.CHECK && (ch > 127 || ch < ' ')) {
-                    throw new IllegalArgumentException("unexpected char " + (int)ch + " decoding " + encoded);
+                if (SysProperties.CHECK && (ch > 127 || ch < ' ')) {
+                    throw new IllegalArgumentException("unexpected char " + (int) ch + " decoding " + encoded);
                 }
-                buff[j++] = (byte)ch;
+                buff[j++] = (byte) ch;
             }
         }
         String s = utf8Decode(buff, 0, j);
@@ -313,21 +315,21 @@ public class StringUtils {
     }
 
     public static String[] arraySplit(String s, char separatorChar, boolean trim) {
-        if(s==null) {
+        if (s == null) {
             return null;
         }
-        if(s.length()==0) {
+        if (s.length() == 0) {
             return new String[0];
         }
         ArrayList list = new ArrayList();
-        StringBuffer buff=new StringBuffer(s.length());
-        for(int i=0;i<s.length();i++) {
-            char c=s.charAt(i);
-            if(c==separatorChar) {
+        StringBuffer buff = new StringBuffer(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == separatorChar) {
                 String e = buff.toString();
                 list.add(trim ? e.trim() : e);
                 buff.setLength(0);
-            } else if(c=='\\' && i<s.length()-1) {
+            } else if (c == '\\' && i < s.length() - 1) {
                 buff.append(s.charAt(++i));
             } else {
                 buff.append(c);
@@ -341,18 +343,18 @@ public class StringUtils {
     }
 
     public static String arrayCombine(String[] list, char separatorChar) {
-        StringBuffer buff=new StringBuffer(5 * list.length);
-        for(int i=0;i<list.length;i++) {
-            if(i>0) {
+        StringBuffer buff = new StringBuffer(5 * list.length);
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
                 buff.append(separatorChar);
             }
-            String s=list[i];
-            if(s==null) {
+            String s = list[i];
+            if (s == null) {
                 s = "";
             }
-            for(int j=0;j<s.length();j++) {
-                char c=s.charAt(j);
-                if(c=='\\' || c==separatorChar) {
+            for (int j = 0; j < s.length(); j++) {
+                char c = s.charAt(j);
+                if (c == '\\' || c == separatorChar) {
                     buff.append('\\');
                 }
                 buff.append(c);
@@ -366,7 +368,7 @@ public class StringUtils {
      */
     public static String formatDateTime(Date date, String format, String locale, String timezone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
-        synchronized(dateFormat) {
+        synchronized (dateFormat) {
             return dateFormat.format(date);
         }
     }
@@ -377,10 +379,10 @@ public class StringUtils {
     public static Date parseDateTime(String date, String format, String locale, String timezone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
         try {
-            synchronized(dateFormat) {
+            synchronized (dateFormat) {
                 return dateFormat.parse(date);
             }
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, date);
         }
     }
@@ -390,7 +392,7 @@ public class StringUtils {
             // currently, a new instance is create for each call
             // however, could cache the last few instances
             SimpleDateFormat df;
-            if(locale == null) {
+            if (locale == null) {
                 df = new SimpleDateFormat(format);
             } else {
 //#ifdef JDK14
@@ -403,11 +405,11 @@ public class StringUtils {
 //#endif
                 df = new SimpleDateFormat(format, l);
             }
-            if(timezone != null) {
+            if (timezone != null) {
                 df.setTimeZone(TimeZone.getTimeZone(timezone));
             }
             return df;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, format + "/" + locale + "/" + timezone);
         }
     }
@@ -435,10 +437,10 @@ public class StringUtils {
      */
     public static String xmlNode(String name, String attributes, String content) {
         String start = attributes == null ? name : name + attributes;
-        if(content == null) {
+        if (content == null) {
             return "<" + start + "/>\n";
         } else {
-            if(content.indexOf('\n') >= 0) {
+            if (content.indexOf('\n') >= 0) {
                 content = "\n" + indent(content);
             }
             return "<" + start + ">" + content + "</" + name + ">\n";
@@ -462,16 +464,16 @@ public class StringUtils {
      */
     public static String indent(String s, int spaces) {
         StringBuffer buff = new StringBuffer(s.length() + spaces);
-        for(int i=0; i < s.length(); ) {
-            for(int j=0; j<spaces; j++) {
+        for (int i = 0; i < s.length();) {
+            for (int j = 0; j < spaces; j++) {
                 buff.append(' ');
             }
             int n = s.indexOf('\n', i);
-            n = n < 0 ? s.length() : n+1;
+            n = n < 0 ? s.length() : n + 1;
             buff.append(s.substring(i, n));
             i = n;
         }
-        if(!s.endsWith("\n")) {
+        if (!s.endsWith("\n")) {
             buff.append('\n');
         }
         return buff.toString();
@@ -487,16 +489,16 @@ public class StringUtils {
      */
     public static String xmlComment(String data) {
         int idx = 0;
-        while(true) {
+        while (true) {
             idx = data.indexOf("--", idx);
-            if(idx<0) {
+            if (idx < 0) {
                 break;
             }
             data = data.substring(0, idx + 1) + " " + data.substring(idx + 1);
         }
         // must have a space at the beginning and at the end,
         // otherwise the data must not contain '-' as the first/last character
-        if(data.indexOf('\n') >= 0) {
+        if (data.indexOf('\n') >= 0) {
             return "<!--\n" + indent(data) + "-->\n";
         } else {
             return "<!-- " + data + " -->\n";
@@ -510,7 +512,7 @@ public class StringUtils {
      * @return <![CDATA[data]]>
      */
     public static String xmlCData(String data) {
-        if(data.indexOf("]]>") >= 0) {
+        if (data.indexOf("]]>") >= 0) {
             return xmlText(data);
         }
         boolean newline = data.endsWith("\n");
@@ -534,9 +536,9 @@ public class StringUtils {
      */
     public static String xmlText(String text) {
         StringBuffer buff = new StringBuffer(text.length());
-        for(int i=0; i<text.length(); i++) {
+        for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
-            switch(ch) {
+            switch (ch) {
             case '<':
                 buff.append("&lt;");
                 break;
@@ -558,7 +560,7 @@ public class StringUtils {
                 buff.append(ch);
                 break;
             default:
-                if(ch < ' ' || ch > 127) {
+                if (ch < ' ' || ch > 127) {
                     buff.append("&#x");
                     buff.append(Integer.toHexString(ch));
                     buff.append(';');
@@ -572,12 +574,12 @@ public class StringUtils {
 
     public static String replaceAll(String s, String before, String after) {
         int index = 0;
-        while(true) {
+        while (true) {
             int next = s.indexOf(before, index);
-            if(next < 0) {
+            if (next < 0) {
                 return s;
             }
-            s = s.substring(0, next) + after + s.substring(next+before.length());
+            s = s.substring(0, next) + after + s.substring(next + before.length());
             index = next + after.length();
         }
     }
@@ -585,9 +587,9 @@ public class StringUtils {
     public static String quoteIdentifier(String s) {
         StringBuffer buff = new StringBuffer(s.length() + 2);
         buff.append('\"');
-        for(int i=0; i<s.length(); i++) {
+        for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if(c == '"') {
+            if (c == '"') {
                 buff.append(c);
             }
             buff.append(c);
@@ -600,16 +602,16 @@ public class StringUtils {
     }
 
     public static String quoteRemarkSQL(String sql) {
-        while(true) {
+        while (true) {
             int idx = sql.indexOf("*/");
-            if(idx < 0) {
+            if (idx < 0) {
                 break;
             }
             sql = sql.substring(0, idx) + "++/" + sql.substring(idx + 2);
         }
-        while(true) {
+        while (true) {
             int idx = sql.indexOf("/*");
-            if(idx < 0) {
+            if (idx < 0) {
                 break;
             }
             sql = sql.substring(0, idx) + "/++" + sql.substring(idx + 2);

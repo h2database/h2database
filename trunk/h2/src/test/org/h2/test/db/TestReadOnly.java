@@ -71,7 +71,7 @@ public class TestReadOnly extends TestBase {
     }
     
     private void setReadOnly() throws SQLException {
-        ArrayList list = FileLister.getDatabaseFiles(TestBase.BASE_DIR, "readonly", true);
+        ArrayList list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
         for(int i=0; i<list.size(); i++) {
             String fileName = (String) list.get(i);
             File file = new File(fileName);

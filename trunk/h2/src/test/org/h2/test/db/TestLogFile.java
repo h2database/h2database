@@ -23,7 +23,7 @@ public class TestLogFile extends TestBase {
             conn.close();
         }
         long length = 0;
-        ArrayList files = FileLister.getDatabaseFiles(BASE_DIR, "logfile", false);
+        ArrayList files = FileLister.getDatabaseFiles(baseDir, "logfile", false);
         checkSmaller(files.size(), maxFiles+2);
         for(int i=0; i<files.size(); i++) {
             String fileName = (String) files.get(i);

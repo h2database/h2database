@@ -9,9 +9,55 @@ import java.util.Properties;
 
 import org.h2.constant.SysProperties;
 import org.h2.server.TcpServer;
-import org.h2.test.jdbc.*;
+import org.h2.test.db.TestAutoRecompile;
+import org.h2.test.db.TestBackup;
+import org.h2.test.db.TestBatchUpdates;
+import org.h2.test.db.TestBigDb;
+import org.h2.test.db.TestBigResult;
+import org.h2.test.db.TestCases;
+import org.h2.test.db.TestCheckpoint;
+import org.h2.test.db.TestCluster;
+import org.h2.test.db.TestCompatibility;
+import org.h2.test.db.TestCsv;
+import org.h2.test.db.TestFunctions;
+import org.h2.test.db.TestIndex;
+import org.h2.test.db.TestLinkedTable;
+import org.h2.test.db.TestListener;
+import org.h2.test.db.TestLob;
+import org.h2.test.db.TestLogFile;
+import org.h2.test.db.TestMemoryUsage;
+import org.h2.test.db.TestMultiConn;
+import org.h2.test.db.TestMultiDimension;
+import org.h2.test.db.TestMultiThread;
+import org.h2.test.db.TestOpenClose;
+import org.h2.test.db.TestOptimizations;
+import org.h2.test.db.TestPowerOff;
+import org.h2.test.db.TestReadOnly;
+import org.h2.test.db.TestRights;
+import org.h2.test.db.TestRunscript;
+import org.h2.test.db.TestSQLInjection;
+import org.h2.test.db.TestScript;
+import org.h2.test.db.TestScriptSimple;
+import org.h2.test.db.TestSequence;
+import org.h2.test.db.TestSpaceReuse;
+import org.h2.test.db.TestSpeed;
+import org.h2.test.db.TestTempTables;
+import org.h2.test.db.TestTransaction;
+import org.h2.test.db.TestTriggersConstraints;
+import org.h2.test.db.TestTwoPhaseCommit;
+import org.h2.test.db.TestView;
+import org.h2.test.jdbc.TestCancel;
+import org.h2.test.jdbc.TestDataSource;
+import org.h2.test.jdbc.TestManyJdbcObjects;
+import org.h2.test.jdbc.TestMetaData;
+import org.h2.test.jdbc.TestNativeSQL;
+import org.h2.test.jdbc.TestPreparedStatement;
+import org.h2.test.jdbc.TestResultSet;
+import org.h2.test.jdbc.TestStatement;
+import org.h2.test.jdbc.TestTransactionIsolation;
+import org.h2.test.jdbc.TestUpdatableResultSet;
+import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbc.xa.TestXA;
-import org.h2.test.db.*;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
@@ -27,6 +73,7 @@ import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestExit;
+import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
@@ -76,7 +123,8 @@ java org.h2.test.TestAll timer
 
 Test for hot spots:
 java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
-java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2:test;TRACE_LEVEL_FILE=3;LOG=2;MAX_LOG_SIZE=1000;DATABASE_EVENT_LISTENER='org.h2.samples.ShowProgress' -user sa -script test.sql
+java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript 
+-url jdbc:h2:test;TRACE_LEVEL_FILE=3;LOG=2;MAX_LOG_SIZE=1000;DATABASE_EVENT_LISTENER='org.h2.samples.ShowProgress' -user sa -script test.sql
  */
 
     public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
@@ -99,6 +147,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript -url jdbc:h2
 //        System.setProperty("h2.mvcc", "true");
         
 /*
+
+maximum file size increment is 16 MB
+dont increase database size by more than 128 MB
 
 shrink newsletter list (migrate to google groups)
 
@@ -363,34 +414,34 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         
         // data conversion should be done automatically when the new engine connects.  
         
-        if(args.length>0) {
-            if("crash".equals(args[0])) {
+        if (args.length > 0) {
+            if ("crash".equals(args[0])) {
                 new TestCrashAPI().runTest(test);
-            } else if("synth".equals(args[0])) {
+            } else if ("synth".equals(args[0])) {
                 new TestSynth().runTest(test);
-            } else if("kill".equals(args[0])) {
+            } else if ("kill".equals(args[0])) {
                 new TestKill().runTest(test);
-            } else if("random".equals(args[0])) {
+            } else if ("random".equals(args[0])) {
                 new TestRandomSQL().runTest(test);
-            } else if("join".equals(args[0])) {
+            } else if ("join".equals(args[0])) {
                 new TestJoin().runTest(test);
-            } else if("btree".equals(args[0])) {
+            } else if ("btree".equals(args[0])) {
                 new TestBtreeIndex().runTest(test);
-            } else if("all".equals(args[0])) {
+            } else if ("all".equals(args[0])) {
                 test.testEverything();
-            } else if("codeCoverage".equals(args[0])) {
+            } else if ("codeCoverage".equals(args[0])) {
                 test.testCodeCoverage();
-            } else if("multiThread".equals(args[0])) {
+            } else if ("multiThread".equals(args[0])) {
                 new TestMulti().runTest(test);
-            } else if("halt".equals(args[0])) {
+            } else if ("halt".equals(args[0])) {
                 new TestHaltApp().runTest(test);
-            } else if("timer".equals(args[0])) {
+            } else if ("timer".equals(args[0])) {
                 new TestTimer().runTest(test);
             }
         } else {
             test.runTests();
         }
-        System.out.println("done ("+(System.currentTimeMillis()-time)+" ms)");
+        System.out.println("done (" + (System.currentTimeMillis() - time) + " ms)");
     }
 
     void runTests() throws Exception {
@@ -436,15 +487,15 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
     }
 
     void testEverything() throws Exception {
-        for(int c = 0; c < 3; c++) {
-            if(c == 0) {
+        for (int c = 0; c < 3; c++) {
+            if (c == 0) {
                 cipher = null;
-            } else if(c==1) {
+            } else if (c == 1) {
                 cipher = "XTEA";
             } else {
                 cipher = "AES";
             }
-            for(int a = 0; a < 256; a++) {
+            for (int a = 0; a < 256; a++) {
                 smallLog = (a & 1) != 0;
                 big = (a & 2) != 0;
                 networked = (a & 4) != 0;
@@ -453,7 +504,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
                 textStorage = (a & 32) != 0;
                 diskResult = (a & 64) != 0;
                 deleteIndex = (a & 128) != 0;
-                for(logMode = 0; logMode < 3; logMode++) {
+                for (logMode = 0; logMode < 3; logMode++) {
                     traceLevelFile = logMode;
                     TestBase.printTime("cipher:" + cipher +" a:" +a+" logMode:"+logMode);
                     testAll();
@@ -563,10 +614,10 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
     }
 
     void testAll() throws Exception {
-        DeleteDbFiles.execute(TestBase.BASE_DIR, null, true);
+        DeleteDbFiles.execute(TestBase.baseDir, null, true);
         testDatabase();
         testUnit();
-        DeleteDbFiles.execute(TestBase.BASE_DIR, null, true);
+        DeleteDbFiles.execute(TestBase.baseDir, null, true);
     }
 
     void testUnit() {
@@ -574,6 +625,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         new TestCompress().runTest(this);
         new TestDataPage().runTest(this);
         new TestExit().runTest(this);
+        new TestFile().runTest(this);
         new TestFileLock().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
@@ -610,7 +662,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         new TestCsv().runTest(this);
         new TestFunctions().runTest(this);
         new TestIndex().runTest(this);
-        if(!SysProperties.MVCC) {
+        if (!SysProperties.MVCC) {
             new TestLinkedTable().runTest(this);
         }
         new TestListener().runTest(this);
@@ -619,7 +671,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
-        if(!SysProperties.MVCC) {
+        if (!SysProperties.MVCC) {
             new TestMultiThread().runTest(this);
         }
         new TestOpenClose().runTest(this);
@@ -660,13 +712,13 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 
     public void beforeTest() throws SQLException {
         FileUtils.deleteRecursive("trace.db");
-        if(networked) {
+        if (networked) {
             TcpServer.logInternalErrors = true;
-            String[] args = ssl ? new String[]{"-tcpSSL", "true"} : new String[0];
+            String[] args = ssl ? new String[] { "-tcpSSL", "true" } : new String[0];
             server = Server.createTcpServer(args);
             try {
                 server.start();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 System.out.println("FAIL: can not start server (may already be running)");
                 server = null;
             }
@@ -675,7 +727,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
 
     public void afterTest() throws SQLException {
         FileUtils.deleteRecursive("trace.db");
-        if(networked && server != null) {
+        if (networked && server != null) {
             server.stop();
         }
     }
@@ -693,7 +745,7 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
                 prop.getProperty("sun.os.patch.level")+", "+
                 prop.getProperty("file.separator")+" "+
                 prop.getProperty("path.separator")+" "+
-                StringUtils.javaEncode( prop.getProperty("line.separator"))+" "+
+                StringUtils.javaEncode(prop.getProperty("line.separator")) + " " +
                 prop.getProperty("user.country") + " " +
                 prop.getProperty("user.language") + " " +
                 prop.getProperty("user.variant")+" "+

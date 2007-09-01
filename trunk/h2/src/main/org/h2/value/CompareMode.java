@@ -20,13 +20,13 @@ public class CompareMode {
     }
     
     public int compareString(String a, String b, boolean ignoreCase) {
-        if(collator == null) {
-            if(ignoreCase) {
-                return a.compareToIgnoreCase(b); 
+        if (collator == null) {
+            if (ignoreCase) {
+                return a.compareToIgnoreCase(b);
             }
             return a.compareTo(b);
         }
-        if(ignoreCase) {
+        if (ignoreCase) {
             // this is locale sensitive
             a = a.toUpperCase();
             b = b.toUpperCase();
@@ -48,27 +48,27 @@ public class CompareMode {
 
     public static Collator getCollator(String name) {
         Collator result = null;
-        if(name.length() == 2) {
+        if (name.length() == 2) {
             Locale locale = new Locale(name.toLowerCase(), "");
-            if(compareLocaleNames(locale, name)) {
+            if (compareLocaleNames(locale, name)) {
                 result = Collator.getInstance(locale);
             }
-        } else if(name.length() == 5) {
+        } else if (name.length() == 5) {
             int idx = name.indexOf('_');
-            if(idx >= 0) {
+            if (idx >= 0) {
                 String language = name.substring(0, idx).toLowerCase();
                 String country = name.substring(idx + 1);
                 Locale locale = new Locale(language, country);
-                if(compareLocaleNames(locale, name)) {
+                if (compareLocaleNames(locale, name)) {
                     result = Collator.getInstance(locale);
                 }
             }
         }
-        if(result == null) {
+        if (result == null) {
             Locale[] locales = Collator.getAvailableLocales();
-            for(int i=0; i<locales.length; i++) {
+            for (int i = 0; i < locales.length; i++) {
                 Locale locale = locales[i];
-                if(compareLocaleNames(locale, name)) {
+                if (compareLocaleNames(locale, name)) {
                     result = Collator.getInstance(locale);
                     break;
                 }

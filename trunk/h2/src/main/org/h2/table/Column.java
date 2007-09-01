@@ -59,7 +59,8 @@ public class Column {
     private String comment;
     private boolean primaryKey;
 
-    // must be equal to ResultSetMetaData columnNoNulls, columnNullable, columnNullableUnknown
+    // must be equal to ResultSetMetaData columnNoNulls, columnNullable,
+    // columnNullableUnknown
     public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
 
     public Column(String name, int type, long precision, int scale) {
@@ -68,7 +69,7 @@ public class Column {
         this.precision = precision;
         this.scale = scale;
     }
-    
+
     public Column getClone() {
         Column newColumn = new Column(name, type, precision, scale);
         // table is not set
@@ -91,7 +92,7 @@ public class Column {
     }
 
     public Value computeValue(Session session, Row row) throws SQLException {
-        synchronized(this) {
+        synchronized (this) {
             computeTableFilter.setSession(session);
             computeTableFilter.set(row);
             return defaultExpression.getValue(session);
@@ -114,9 +115,9 @@ public class Column {
 
     public void setDefaultExpression(Session session, Expression defaultExpression) throws SQLException {
         // also to test that no column names are used
-        if(defaultExpression != null) {
+        if (defaultExpression != null) {
             defaultExpression = defaultExpression.optimize(session);
-            if(defaultExpression.isConstant()) {
+            if (defaultExpression.isConstant()) {
                 defaultExpression = ValueExpression.get(defaultExpression.getValue(session));
             }
         }
@@ -152,35 +153,35 @@ public class Column {
     }
 
     public Value validateConvertUpdateSequence(Session session, Value value) throws SQLException {
-        if(value == null) {
-            if(defaultExpression == null) {
+        if (value == null) {
+            if (defaultExpression == null) {
                 value = ValueNull.INSTANCE;
             } else {
-                synchronized(this) {
+                synchronized (this) {
                     value = defaultExpression.getValue(session).convertTo(type);
                 }
-                if(primaryKey) {
+                if (primaryKey) {
                     session.setLastIdentity(value);
                 }
             }
         }
         if (value == ValueNull.INSTANCE) {
-            if(convertNullToDefault) {
-                synchronized(this) {
+            if (convertNullToDefault) {
+                synchronized (this) {
                     value = defaultExpression.getValue(session).convertTo(type);
                 }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
-                if(Mode.getCurrentMode().convertInsertNullToZero) {
+                if (Mode.getCurrentMode().convertInsertNullToZero) {
                     DataType dt = DataType.getDataType(type);
-                    if(dt.decimal) {
+                    if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
-                    } else if(dt.type==Value.TIMESTAMP) {
+                    } else if (dt.type == Value.TIMESTAMP) {
                         value = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis()));
-                    } else if(dt.type==Value.TIME) {
+                    } else if (dt.type == Value.TIME) {
                         // need to normalize
                         value = ValueTime.get(Time.valueOf("0:0:0"));
-                    } else if(dt.type==Value.DATE) {
+                    } else if (dt.type == Value.DATE) {
                         value = ValueTimestamp.getNoCopy(new Timestamp(System.currentTimeMillis())).convertTo(dt.type);
                     } else {
                         value = ValueString.get("").convertTo(type);
@@ -190,20 +191,20 @@ public class Column {
                 }
             }
         }
-        if(checkConstraint != null) {
+        if (checkConstraint != null) {
             resolver.setValue(value);
             Value v;
-            synchronized(this) {
+            synchronized (this) {
                 v = checkConstraint.getValue(session);
             }
             // Both TRUE and NULL are ok
-            if(Boolean.FALSE.equals(v.getBoolean())) {
+            if (Boolean.FALSE.equals(v.getBoolean())) {
                 throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
             }
         }
         value = value.convertScale(Mode.getCurrentMode().convertOnlyToSmallerScale, scale);
         if (precision > 0) {
-            if(!value.checkPrecision(precision)) {
+            if (!value.checkPrecision(precision)) {
                 throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_1, name);
             }
         }
@@ -212,17 +213,17 @@ public class Column {
     }
 
     private void updateSequenceIfRequired(Session session, Value value) throws SQLException {
-        if(sequence != null) {
+        if (sequence != null) {
             long current = sequence.getCurrentValue();
             long increment = sequence.getIncrement();
             long now = value.getLong();
             boolean update = false;
-            if(increment > 0 && now > current) {
+            if (increment > 0 && now > current) {
                 update = true;
-            } else if(increment < 0 && now < current) {
+            } else if (increment < 0 && now < current) {
                 update = true;
             }
-            if(update) {
+            if (update) {
                 sequence.setStartValue(now + increment);
                 session.setLastIdentity(ValueLong.get(now));
                 sequence.flush();
@@ -230,27 +231,28 @@ public class Column {
         }
     }
 
-    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary) throws SQLException {
-        if(!autoIncrement) {
+    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary)
+            throws SQLException {
+        if (!autoIncrement) {
             throw Message.getInternalError();
         }
-        if("IDENTITY".equals(originalSQL)) {
+        if ("IDENTITY".equals(originalSQL)) {
             originalSQL = "BIGINT";
         }
         String sequenceName;
-        for(int i=0; ; i++) {
+        for (int i = 0;; i++) {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
             s = s.replace('-', '_').toUpperCase();
             sequenceName = "SYSTEM_SEQUENCE_" + s;
-            if(schema.findSequence(sequenceName) == null) {
+            if (schema.findSequence(sequenceName) == null) {
                 break;
             }
         }
         Sequence sequence = new Sequence(schema, id, sequenceName, true);
         sequence.setStartValue(start);
         sequence.setIncrement(increment);
-        if(!temporary) {
+        if (!temporary) {
             session.getDatabase().addSchemaObject(session, sequence);
         }
         setAutoIncrement(false, 0, 0);
@@ -260,7 +262,7 @@ public class Column {
     }
 
     public void prepareExpression(Session session) throws SQLException {
-        if(defaultExpression != null) {
+        if (defaultExpression != null) {
             computeTableFilter = new TableFilter(session, table, null, false, null);
             defaultExpression.mapColumns(computeTableFilter, 0);
             defaultExpression = defaultExpression.optimize(session);
@@ -269,11 +271,11 @@ public class Column {
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
-        if(name != null) {
+        if (name != null) {
             buff.append(Parser.quoteIdentifier(name));
             buff.append(' ');
         }
-        if(originalSQL != null) {
+        if (originalSQL != null) {
             buff.append(originalSQL);
         } else {
             buff.append(DataType.getDataType(type).name);
@@ -289,21 +291,22 @@ public class Column {
             case Value.STRING:
             case Value.STRING_IGNORECASE:
             case Value.STRING_FIXED:
-                if(precision < Integer.MAX_VALUE) {
+                if (precision < Integer.MAX_VALUE) {
                     buff.append("(");
                     buff.append(precision);
                     buff.append(")");
                 }
                 break;
+            default:
             }
         }
-        if(defaultExpression != null) {
+        if (defaultExpression != null) {
             String sql = defaultExpression.getSQL();
-            if(sql != null) {
-                if(isComputed) {
+            if (sql != null) {
+                if (isComputed) {
                     buff.append(" AS ");
                     buff.append(sql);
-                } else if(defaultExpression != null) {
+                } else if (defaultExpression != null) {
                     buff.append(" DEFAULT ");
                     buff.append(sql);
                 }
@@ -315,19 +318,19 @@ public class Column {
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");
         }
-        if(sequence != null) {
+        if (sequence != null) {
             buff.append(" SEQUENCE ");
             buff.append(sequence.getSQL());
         }
-        if(selectivity != 0) {
+        if (selectivity != 0) {
             buff.append(" SELECTIVITY ");
             buff.append(selectivity);
         }
-        if(checkConstraint != null) {
+        if (checkConstraint != null) {
             buff.append(" CHECK ");
             buff.append(checkConstraintSQL);
         }
-        if(comment != null) {
+        if (comment != null) {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
@@ -359,7 +362,7 @@ public class Column {
         this.start = start;
         this.increment = increment;
         this.nullable = false;
-        if(autoInc) {
+        if (autoInc) {
             convertNullToDefault = true;
         }
     }
@@ -391,9 +394,9 @@ public class Column {
 
     public void addCheckConstraint(Session session, Expression expr) throws SQLException {
         resolver = new SingleColumnResolver(this);
-        synchronized(this) {
+        synchronized (this) {
             String oldName = name;
-            if(name == null) {
+            if (name == null) {
                 name = "VALUE";
             }
             expr.mapColumns(resolver, 0);
@@ -402,10 +405,10 @@ public class Column {
         expr = expr.optimize(session);
         resolver.setValue(ValueNull.INSTANCE);
         // check if the column is mapped
-        synchronized(this) {
+        synchronized (this) {
             expr.getValue(session);
         }
-        if(checkConstraint == null) {
+        if (checkConstraint == null) {
             checkConstraint = expr;
         } else {
             checkConstraint = new ConditionAndOr(ConditionAndOr.AND, checkConstraint, expr);
@@ -414,12 +417,12 @@ public class Column {
     }
 
     public Expression getCheckConstraint(Session session, String asColumnName) throws SQLException {
-        if(checkConstraint == null) {
+        if (checkConstraint == null) {
             return null;
         }
         Parser parser = new Parser(session);
         String sql;
-        synchronized(this) {
+        synchronized (this) {
             String oldName = name;
             name = asColumnName;
             sql = checkConstraint.getSQL();
@@ -434,7 +437,7 @@ public class Column {
     }
 
     public int getPrecisionAsInt() {
-        return precision > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)precision;
+        return precision > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) precision;
     }
 
     public DataType getDataType() {
@@ -453,7 +456,7 @@ public class Column {
     public String getComment() {
         return comment;
     }
-    
+
     public void setPrimaryKey(boolean primaryKey) {
         this.primaryKey = primaryKey;
     }

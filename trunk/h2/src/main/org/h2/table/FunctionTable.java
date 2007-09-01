@@ -24,39 +24,37 @@ import org.h2.value.Value;
 import org.h2.value.ValueResultSet;
 
 public class FunctionTable extends Table {
-    
+
     private final FunctionCall function;
-    
+
     public FunctionTable(Schema schema, Session session, FunctionCall function) throws SQLException {
         super(schema, 0, function.getName(), false);
         this.function = function;
         function.optimize(session);
         int type = function.getType();
-        if(type != Value.RESULT_SET) {
+        if (type != Value.RESULT_SET) {
             throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         int params = function.getParameterCount();
         Expression[] columnListArgs = new Expression[params];
         Expression[] args = function.getArgs();
-        for(int i=0; i<params; i++) {
+        for (int i = 0; i < params; i++) {
             args[i] = args[i].optimize(session);
             columnListArgs[i] = args[i];
         }
         ValueResultSet template = function.getValueForColumnList(session, columnListArgs);
-        if(template == null) {
+        if (template == null) {
             throw Message.getSQLException(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         ResultSet rs = template.getResultSet();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         Column[] cols = new Column[columnCount];
-        for(int i=0; i<columnCount; i++) {
-            cols[i] = new Column(meta.getColumnName(i+1), 
-                    DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1)), 
-                    meta.getPrecision(i + 1), 
-                    meta.getScale(i + 1));
+        for (int i = 0; i < columnCount; i++) {
+            cols[i] = new Column(meta.getColumnName(i + 1), DataType.convertSQLTypeToValueType(meta
+                    .getColumnType(i + 1)), meta.getPrecision(i + 1), meta.getScale(i + 1));
         }
-        setColumns(cols);        
+        setColumns(cols);
     }
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
@@ -67,12 +65,13 @@ public class FunctionTable extends Table {
 
     public void unlock(Session s) {
     }
-    
+
     public boolean isLockedExclusively() {
         return false;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
+    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+            int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
@@ -83,7 +82,7 @@ public class FunctionTable extends Table {
     public void truncate(Session session) throws SQLException {
         throw Message.getUnsupportedException();
     }
-    
+
     public boolean canDrop() {
         throw Message.getInternalError();
     }
@@ -119,7 +118,7 @@ public class FunctionTable extends Table {
     public String getCreateSQL() {
         return null;
     }
-    
+
     public String getDropSQL() {
         return null;
     }
@@ -127,7 +126,7 @@ public class FunctionTable extends Table {
     public void checkRename() throws SQLException {
         throw Message.getUnsupportedException();
     }
-    
+
     public LocalResult getResult(Session session) throws SQLException {
         function.optimize(session);
         ValueResultSet value = (ValueResultSet) function.getValue(session);
@@ -135,7 +134,8 @@ public class FunctionTable extends Table {
     }
 
     public long getMaxDataModificationId() {
-        // TODO optimization: table-as-a-function currently doesn't know the last modified date
+        // TODO optimization: table-as-a-function currently doesn't know the
+        // last modified date
         return Long.MAX_VALUE;
     }
 
@@ -145,6 +145,6 @@ public class FunctionTable extends Table {
 
     public String getSQL() {
         return function.getSQL();
-    }    
+    }
 
 }

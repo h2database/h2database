@@ -35,10 +35,11 @@ public abstract class Prepared {
     
     public boolean needRecompile() throws SQLException {
         Database db = session.getDatabase();
-        if(db == null) {
+        if (db == null) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
-        // TODO parser: currently, compiling every create/drop/... twice! because needRecompile return true even for the first execution
+        // TODO parser: currently, compiling every create/drop/... twice!
+        // because needRecompile return true even for the first execution
         return SysProperties.RECOMPILE_ALWAYS || prepareAlways || modificationId < db.getModificationMetaId();
     }
     
@@ -104,7 +105,7 @@ public abstract class Prepared {
     protected int getObjectId(boolean needFresh, boolean dataFile) {
         Database db = session.getDatabase();
         int id = objectId;
-        if(id == 0) {
+        if (id == 0) {
             id = db.allocateObjectId(needFresh, dataFile);
         }
         objectId = 0;
@@ -117,7 +118,7 @@ public abstract class Prepared {
     
     public void checkCancelled() throws SQLException {
         // TODO strange code: probably checkCancelled should always be called on the session. fix & test after release 1.0
-        if(command != null) {
+        if (command != null) {
             command.checkCancelled();
         } else {
             session.checkCancelled();
@@ -137,16 +138,16 @@ public abstract class Prepared {
     }
     
     void trace() throws SQLException {
-        if(session.getTrace().info()) {
+        if (session.getTrace().info()) {
             StringBuffer buff = new StringBuffer();
             buff.append(sql);
-            if(parameters.size()>0) {
+            if (parameters.size() > 0) {
                 buff.append(" {");
-                for(int i=0; i<parameters.size(); i++) {
-                    if(i>0) {
+                for (int i = 0; i < parameters.size(); i++) {
+                    if (i > 0) {
                         buff.append(", ");
                     }
-                    buff.append(i+1);
+                    buff.append(i + 1);
                     buff.append(": ");
                     Expression e = (Expression) parameters.get(i);
                     buff.append(e.getValue(session).getSQL());

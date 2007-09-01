@@ -79,50 +79,50 @@ public class ViewIndex extends BaseIndex {
     public double getCost(Session session, int[] masks) throws SQLException {
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
         CostElement cachedCost = (CostElement) costCache.get(masksArray);
-        if(cachedCost != null) {
+        if (cachedCost != null) {
             long time = System.currentTimeMillis();
-            if(time < cachedCost.evaluatedAt + Constants.VIEW_COST_CACHE_MAX_AGE) {
+            if (time < cachedCost.evaluatedAt + Constants.VIEW_COST_CACHE_MAX_AGE) {
                 return cachedCost.cost;
             }
         }
-        Query query = (Query)session.prepare(querySQL, true);
-        if(masks == null) {
+        Query query = (Query) session.prepare(querySQL, true);
+        if (masks == null) {
             columns = new Column[0];
         } else {
             IntArray paramIndex = new IntArray();
-            for(int i=0; i<masks.length; i++) {
+            for (int i = 0; i < masks.length; i++) {
                 int mask = masks[i];
-                if(mask == 0) {
+                if (mask == 0) {
                     continue;
                 }
                 paramIndex.add(i);
             }
             int len = paramIndex.size();
             columns = new Column[len];
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 int idx = paramIndex.get(i);
                 Column col = table.getColumn(idx);
                 columns[i] = col;
                 int mask = masks[idx];
-                if((mask & IndexCondition.EQUALITY) != 0) {
+                if ((mask & IndexCondition.EQUALITY) != 0) {
                     Parameter param = new Parameter(0);
                     query.addGlobalCondition(param, idx, Comparison.EQUAL);
                 } else {
-                    if((mask & IndexCondition.START) != 0) {
+                    if ((mask & IndexCondition.START) != 0) {
                         Parameter param = new Parameter(0);
                         query.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
                     }
-                    if((mask & IndexCondition.END) != 0) {
+                    if ((mask & IndexCondition.END) != 0) {
                         Parameter param = new Parameter(0);
                         query.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
                     }
                 }
             }
-            if(recursive) {
+            if (recursive) {
                 return 10;
             }
             String sql = query.getPlanSQL();
-            query = (Query)session.prepare(sql);
+            query = (Query) session.prepare(sql);
         }
         double cost = query.getCost();
         cachedCost = new CostElement();
@@ -135,32 +135,32 @@ public class ViewIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         ObjectArray paramList = query.getParameters();
         int idx = 0;
-        for(int i=0; originalParameters != null && i<originalParameters.size(); i++) {
+        for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = (Parameter) originalParameters.get(i);
             Value value = orig.getValue(session);
             Parameter param = (Parameter) paramList.get(idx++);
             param.setValue(value);
         }
         int len;
-        if(first != null) {
+        if (first != null) {
             len = first.getColumnCount();
-        } else if(last != null) {
+        } else if (last != null) {
             len = last.getColumnCount();
         } else {
             len = 0;
         }
-        for(int i=0; i < len; i++) {
-            if(first != null) {
+        for (int i = 0; i < len; i++) {
+            if (first != null) {
                 Value v = first.getValue(i);
-                if(v != null) {
+                if (v != null) {
                     Parameter param = (Parameter) paramList.get(idx++);
                     param.setValue(v);
                 }
             }
             // for equality, only one parameter is used (first == last)
-            if(last != null && masks[i] != IndexCondition.EQUALITY) {
+            if (last != null && masks[i] != IndexCondition.EQUALITY) {
                 Value v = last.getValue(i);
-                if(v != null) {
+                if (v != null) {
                     Parameter param = (Parameter) paramList.get(idx++);
                     param.setValue(v);
                 }
@@ -171,41 +171,41 @@ public class ViewIndex extends BaseIndex {
     }
 
     private Query getQuery(Session session, int[] masks) throws SQLException {
-        Query query = (Query)session.prepare(querySQL, true);
-        if(masks == null) {
+        Query query = (Query) session.prepare(querySQL, true);
+        if (masks == null) {
             return query;
         }
         int firstIndexParam = query.getParameters().size();
         IntArray paramIndex = new IntArray();
-        for(int i=0; i<masks.length; i++) {
+        for (int i = 0; i < masks.length; i++) {
             int mask = masks[i];
-            if(mask == 0) {
+            if (mask == 0) {
                 continue;
             }
             paramIndex.add(i);
-            if((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
+            if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
                 // two parameters for range queries: >= x AND <= y
                 paramIndex.add(i);
             }
         }
         int len = paramIndex.size();
         columns = new Column[len];
-        for(int i=0; i<len;) {
+        for (int i = 0; i < len;) {
             int idx = paramIndex.get(i);
             Column col = table.getColumn(idx);
             columns[i] = col;
             int mask = masks[idx];
-            if((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
+            if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
                 Parameter param = new Parameter(firstIndexParam + i);
                 query.addGlobalCondition(param, idx, Comparison.EQUAL);
                 i++;
             } else {
-                if((mask & IndexCondition.START) == IndexCondition.START) {
+                if ((mask & IndexCondition.START) == IndexCondition.START) {
                     Parameter param = new Parameter(firstIndexParam + i);
                     query.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
                     i++;
                 }
-                if((mask & IndexCondition.END) == IndexCondition.END) {
+                if ((mask & IndexCondition.END) == IndexCondition.END) {
                     Parameter param = new Parameter(firstIndexParam + i);
                     query.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
                     i++;
@@ -213,10 +213,10 @@ public class ViewIndex extends BaseIndex {
             }
         }
         String sql = query.getPlanSQL();
-        query = (Query)session.prepare(sql, true);
+        query = (Query) session.prepare(sql, true);
         return query;
     }
-    
+
     public void remove(Session session) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -243,6 +243,6 @@ public class ViewIndex extends BaseIndex {
 
     public void setRecursive(boolean value) {
         this.recursive = value;
-    }     
+    }
 
 }

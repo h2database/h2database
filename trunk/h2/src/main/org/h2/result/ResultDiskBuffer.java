@@ -96,7 +96,7 @@ class ResultDiskBuffer {
         file.readFully(buff.getBytes(), 0, min);
         int len = buff.readInt();
         buff.checkCapacity(len);
-        if(len-min > 0) {
+        if (len - min > 0) {
             file.readFully(buff.getBytes(), min, len - min);
         }
         buff.check(len);
@@ -147,7 +147,7 @@ class ResultDiskBuffer {
         t.buffer.remove(0);
         return row;
     }
-    
+
     private ResultDiskTape getTape(int i) {
         return (ResultDiskTape) tapes.get(i);
     }
@@ -159,9 +159,9 @@ class ResultDiskBuffer {
     }
 
     protected void finalize() {
-        if(!SysProperties.runFinalize) {
+        if (!SysProperties.runFinalize) {
             return;
-        }        
+        }
         close();
     }
 

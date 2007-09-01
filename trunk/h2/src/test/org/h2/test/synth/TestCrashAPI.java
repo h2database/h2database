@@ -50,7 +50,7 @@ public class TestCrashAPI extends TestBase {
     
     private void deleteDb() {
         try {
-            deleteDb(BASE_DIR + "/" + DIR, null);
+            deleteDb(baseDir + "/" + DIR, null);
         } catch(Exception e) {
             // ignore
         }
@@ -357,7 +357,7 @@ public class TestCrashAPI extends TestBase {
         if (config.logMode == 0) {
             error("Log mode 0 may corrupt the db, can't test");
         }
-        BASE_DIR = "dataCrash";
+        baseDir = "dataCrash";
         startServerIfRequired();
         TestScript script = new TestScript();
         ArrayList add = script.getAllStatements(config, "org/h2/test/test.in.txt");
@@ -368,9 +368,9 @@ public class TestCrashAPI extends TestBase {
     }
     
     public void testCase(int i) throws Exception {
-        BASE_DIR = "dataCrash";
+        baseDir = "dataCrash";
         testOne(i);
-        BASE_DIR = "data";
+        baseDir = "data";
     }
     
     public void test() throws Exception {

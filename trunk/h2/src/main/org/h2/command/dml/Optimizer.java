@@ -17,9 +17,9 @@ import org.h2.util.Permutations;
 
 public class Optimizer {
 
-    private static final int MAX_BRUTE_FORCE_FILTERS=7;
-    private static final int MAX_BRUTE_FORCE=2000;
-    private static final int MAX_GENETIC=2000;
+    private static final int MAX_BRUTE_FORCE_FILTERS = 7;
+    private static final int MAX_BRUTE_FORCE = 2000;
+    private static final int MAX_GENETIC = 2000;
     private long start;
     private BitSet switched;
     
@@ -50,7 +50,7 @@ public class Optimizer {
     
     private int getMaxBruteForceFilters(int filterCount) {
         int i = 0, j = filterCount, total = filterCount;
-        while(j>0 && total < MAX_BRUTE_FORCE) {
+        while (j > 0 && total < MAX_BRUTE_FORCE) {
             j--;
             total *= j;
             i++;
@@ -67,7 +67,7 @@ public class Optimizer {
     private void calculateBestPlan() throws SQLException {
         start = System.currentTimeMillis();        
         cost = -1;
-        if(filters.length==1) {
+        if (filters.length == 1) {
             testPlan(filters);
         } else if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
             calculateBruteForceAll();
@@ -80,10 +80,10 @@ public class Optimizer {
     }
     
     private boolean canStop(int x) {
-        if((x & 127) == 0) {
+        if ((x & 127) == 0) {
             long t = System.currentTimeMillis() - start;
             // don't calculate for simple queries (no rows or so)
-            if(cost >= 0 && 10*t > cost) {
+            if (cost >= 0 && 10 * t > cost) {
                 return true;
             }
         }
@@ -93,7 +93,7 @@ public class Optimizer {
     private void calculateBruteForceAll() throws SQLException {
         TableFilter[] list = new TableFilter[filters.length];
         Permutations p = new Permutations(filters, list);
-        for(int x=0; !canStop(x) && p.next(); x++) {
+        for (int x = 0; !canStop(x) && p.next(); x++) {
             testPlan(list);
         }
     }
@@ -102,21 +102,21 @@ public class Optimizer {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] list = new TableFilter[filters.length];
         Permutations p = new Permutations(filters, list, bruteForce);
-        for(int x=0; !canStop(x) && p.next(); x++) {
+        for (int x = 0; !canStop(x) && p.next(); x++) {
             // find out what filters are not used yet
-            for(int i=0; i<filters.length; i++) {
+            for (int i = 0; i < filters.length; i++) {
                 filters[i].setUsed(false);
             }
-            for(int i=0; i<bruteForce; i++) {
+            for (int i = 0; i < bruteForce; i++) {
                 list[i].setUsed(true);
             }
             // fill the remaining elements with the unused elements (greedy)
-            for(int i=bruteForce; i<filters.length; i++) {
+            for (int i = bruteForce; i < filters.length; i++) {
                 double costPart = -1.0;
                 int bestPart = -1;
-                for(int j=0; j<filters.length; j++) {
-                    if(!filters[j].getUsed()) {
-                        if(i==filters.length-1) {
+                for (int j = 0; j < filters.length; j++) {
+                    if (!filters[j].getUsed()) {
+                        if (i == filters.length - 1) {
                             bestPart = j;
                             break;
                         }                        
@@ -138,25 +138,25 @@ public class Optimizer {
     
     private void calculateGenetic() throws SQLException {
         TableFilter[] best = new TableFilter[filters.length];        
-        TableFilter[] list = new TableFilter[filters.length];        
-        for(int x=0; x<MAX_GENETIC; x++) {
-            if(canStop(x)) {
+        TableFilter[] list = new TableFilter[filters.length];
+        for (int x = 0; x < MAX_GENETIC; x++) {
+            if (canStop(x)) {
                 break;
             }
             boolean generateRandom = (x & 127) == 0;
-            if(!generateRandom) {
+            if (!generateRandom) {
                 System.arraycopy(best, 0, list, 0, filters.length);
-                if(!shuffleTwo(list)) {
+                if (!shuffleTwo(list)) {
                     generateRandom = true;
                 }
             }
-            if(generateRandom) {
+            if (generateRandom) {
                 switched = new BitSet();
                 System.arraycopy(filters, 0, best, 0, filters.length);
                 shuffleAll(best);
                 System.arraycopy(best, 0, list, 0, filters.length);
             }
-            if(testPlan(list)) {
+            if (testPlan(list)) {
                 switched = new BitSet();
                 System.arraycopy(list, 0, best, 0, filters.length);
             }
@@ -174,10 +174,10 @@ public class Optimizer {
         return false;
     }
     
-    private void shuffleAll(TableFilter[] f) {    
-        for(int i=0; i<f.length-1; i++) {
+    private void shuffleAll(TableFilter[] f) {
+        for (int i = 0; i < f.length - 1; i++) {
             int j = i + random.nextInt(f.length - i);
-            if(j != i) {
+            if (j != i) {
                 TableFilter temp = f[i];
                 f[i] = f[j];
                 f[j] = temp;
@@ -187,25 +187,25 @@ public class Optimizer {
 
     private boolean shuffleTwo(TableFilter[] f) {
         int a = 0, b = 0, i = 0;
-        for(; i<20; i++) {
+        for (; i < 20; i++) {
             a = random.nextInt(f.length);
             b = random.nextInt(f.length);
-            if(a==b) {
+            if (a == b) {
                 continue;
             }
-            if(a<b) {
+            if (a < b) {
                 int temp = a;
                 a = b;
                 b = temp;
             }
             int s = a * f.length + b;
-            if(switched.get(s)) {
+            if (switched.get(s)) {
                 continue;
             }
             switched.set(s);
             break;
         }
-        if(i==20) {
+        if (i == 20) {
             return false;
         }
         TableFilter temp = f[a];

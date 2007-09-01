@@ -18,20 +18,20 @@ public class SHA256 {
     }
 
     public byte[] getKeyPasswordHash(String userName, char[] password) {
-        String user=userName + "@";
-        byte[] buff = new byte[2*(user.length()+password.length)];
-        int n=0;
-        for(int i=0; i<user.length(); i++) {
+        String user = userName + "@";
+        byte[] buff = new byte[2 * (user.length() + password.length)];
+        int n = 0;
+        for (int i = 0; i < user.length(); i++) {
             char c = user.charAt(i);
             buff[n++] = (byte) (c >> 8);
             buff[n++] = (byte) (c);
         }
-        for(int i=0; i<password.length; i++) {
+        for (int i = 0; i < password.length; i++) {
             char c = password[i];
             buff[n++] = (byte) (c >> 8);
             buff[n++] = (byte) (c);
         }
-        Arrays.fill(password, (char)0);
+        Arrays.fill(password, (char) 0);
         return getHash(buff);
     }
 
@@ -108,7 +108,7 @@ public class SHA256 {
         }
         byte[] result = new byte[32];
         for (int i = 0; i < 8; i++) {
-            writeInt(result, i*4, hh[i]);
+            writeInt(result, i * 4, hh[i]);
         }
         Arrays.fill(w, 0);
         Arrays.fill(buff, 0);

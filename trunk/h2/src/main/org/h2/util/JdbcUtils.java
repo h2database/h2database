@@ -23,30 +23,30 @@ import org.h2.message.Message;
 public class JdbcUtils {
     
     public static void closeSilently(Statement stat) {
-        if(stat != null) {
+        if (stat != null) {
             try {
                 stat.close();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore
             }
         }
     }
 
     public static void closeSilently(Connection conn) {
-        if(conn != null) {
+        if (conn != null) {
             try {
                 conn.close();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore
             }
         }
     }
 
     public static void closeSilently(ResultSet rs) {
-        if(rs != null) {
+        if (rs != null) {
             try {
                 rs.close();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore
             }
         }
@@ -62,10 +62,10 @@ public class JdbcUtils {
 
 //#ifdef JDK14
     public static void closeSilently(XAConnection conn) {
-        if(conn != null) {
+        if (conn != null) {
             try {
                 conn.close();
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 // ignore
             }
         }
@@ -73,16 +73,16 @@ public class JdbcUtils {
 //#endif
 
     public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
-        if(!StringUtils.isNullOrEmpty(driver)) {
+        if (!StringUtils.isNullOrEmpty(driver)) {
             try {
                 Class d = ClassUtils.loadClass(driver);
-                if(java.sql.Driver.class.isAssignableFrom(d)) {
+                if (java.sql.Driver.class.isAssignableFrom(d)) {
                     return DriverManager.getConnection(url, user, password);
-                 } else if(javax.naming.Context.class.isAssignableFrom(d)) {
-                     // JNDI context
-                     try {
-                         Context context = (Context) d.newInstance();
-                         DataSource ds = (DataSource) context.lookup(url);
+                } else if (javax.naming.Context.class.isAssignableFrom(d)) {
+                    // JNDI context
+                    try {
+                        Context context = (Context) d.newInstance();
+                        DataSource ds = (DataSource) context.lookup(url);
                          return ds.getConnection(user, password);
                      } catch (InstantiationException e) {
                          throw Message.convert(e);

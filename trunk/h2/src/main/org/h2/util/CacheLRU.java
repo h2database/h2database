@@ -38,8 +38,8 @@ public class CacheLRU implements Cache {
         MathUtils.checkPowerOf2(len);
         clear();
     }
-    
-    public void clear() {    
+
+    public void clear() {
         head.next = head.previous = head;
         values = new CacheObject[len];
         recordCount = 0;
@@ -47,11 +47,11 @@ public class CacheLRU implements Cache {
     }
 
     public void put(CacheObject rec) throws SQLException {
-        if(SysProperties.CHECK) {
-            for(int i=0; i<rec.getBlockCount(); i++) {
+        if (SysProperties.CHECK) {
+            for (int i = 0; i < rec.getBlockCount(); i++) {
                 CacheObject old = find(rec.getPos() + i);
-                if(old != null)  {
-                    throw Message.getInternalError("try to add a record twice i="+i);
+                if (old != null) {
+                    throw Message.getInternalError("try to add a record twice i=" + i);
                 }
             }
         }
@@ -63,15 +63,15 @@ public class CacheLRU implements Cache {
         addToFront(rec);
         removeOldIfRequired();
     }
-    
+
     public CacheObject update(int pos, CacheObject rec) throws SQLException {
         CacheObject old = find(pos);
-        if(old == null) {
+        if (old == null) {
             put(rec);
         } else {
-            if(SysProperties.CHECK) {
-                if(old!=rec) {
-                    throw Message.getInternalError("old != record old="+old+" new="+rec);
+            if (SysProperties.CHECK) {
+                if (old != rec) {
+                    throw Message.getInternalError("old != record old=" + old + " new=" + rec);
                 }
             }
             removeFromLinkedList(rec);
@@ -79,36 +79,37 @@ public class CacheLRU implements Cache {
         }
         return old;
     }
-    
+
     private void removeOldIfRequired() throws SQLException {
         // a small method, to allow inlining
-        if(sizeMemory >= maxSize) {
+        if (sizeMemory >= maxSize) {
             removeOld();
         }
     }
-    
+
     private void removeOld() throws SQLException {
-        int i=0;
+        int i = 0;
         ObjectArray changed = new ObjectArray();
-        while (sizeMemory*4 > maxSize*3 && recordCount > Constants.CACHE_MIN_RECORDS) {
+        while (sizeMemory * 4 > maxSize * 3 && recordCount > Constants.CACHE_MIN_RECORDS) {
             i++;
-            if(i == recordCount) {
+            if (i == recordCount) {
                 writer.flushLog();
             }
-            if(i >= recordCount * 2) {
+            if (i >= recordCount * 2) {
                 // can't remove any record, because the log is not written yet
-                // hopefully this does not happen too much, but it could happen theoretically
+                // hopefully this does not happen too much, but it could happen
+                // theoretically
                 // TODO log this
                 break;
             }
             CacheObject last = head.next;
-            if(SysProperties.CHECK && last == head) {
+            if (SysProperties.CHECK && last == head) {
                 throw Message.getInternalError("try to remove head");
             }            
             // we are not allowed to remove it if the log is not yet written 
             // (because we need to log before writing the data)
             // also, can't write it if the record is pinned
-            if(!last.canRemove()) {
+            if (!last.canRemove()) {
                 removeFromLinkedList(last);
                 addToFront(last);
                 continue;
@@ -118,9 +119,9 @@ public class CacheLRU implements Cache {
                 changed.add(last);
             }
         }
-        if(changed.size() > 0) {
+        if (changed.size() > 0) {
             CacheObject.sort(changed);
-            for(i=0; i<changed.size(); i++) {
+            for (i = 0; i < changed.size(); i++) {
                 CacheObject rec = (CacheObject) changed.get(i);
                 writer.writeBack(rec);
             }
@@ -128,7 +129,7 @@ public class CacheLRU implements Cache {
     }
 
     private void addToFront(CacheObject rec) {
-        if(SysProperties.CHECK && rec == head) {
+        if (SysProperties.CHECK && rec == head) {
             throw Message.getInternalError("try to move head");
         }
         rec.next = head;
@@ -138,12 +139,13 @@ public class CacheLRU implements Cache {
     }
 
     private void removeFromLinkedList(CacheObject rec) {
-        if(SysProperties.CHECK && rec == head) {
+        if (SysProperties.CHECK && rec == head) {
             throw Message.getInternalError("try to remove head");
         }
         rec.previous.next = rec.next;
         rec.next.previous = rec.previous;
-        // TODO cache: mystery: why is this required? needs more memory if we don't do this
+        // TODO cache: mystery: why is this required? needs more memory if we
+        // don't do this
         rec.next = null;
         rec.previous = null;
     }
@@ -151,36 +153,36 @@ public class CacheLRU implements Cache {
     public void remove(int pos) {
         int index = pos & mask;
         CacheObject rec = values[index];
-        if(rec == null) {
+        if (rec == null) {
             return;
         }
-        if(rec.getPos() == pos) {
+        if (rec.getPos() == pos) {
             values[index] = rec.chained;
         } else {
             CacheObject last;
             do {
                 last = rec;
                 rec = rec.chained;
-                if(rec == null) {
+                if (rec == null) {
                     return;
                 }
-            } while(rec.getPos() != pos);
+            } while (rec.getPos() != pos);
             last.chained = rec.chained;
         }
         recordCount--;
         sizeMemory -= rec.getMemorySize();
         removeFromLinkedList(rec);
-        if(SysProperties.CHECK) {
+        if (SysProperties.CHECK) {
             rec.chained = null;
-            if(find(pos) != null) {
+            if (find(pos) != null) {
                 throw Message.getInternalError("not removed!");
             }
         }
     }
-    
+
     public CacheObject find(int pos) {
         CacheObject rec = values[pos & mask];
-        while(rec != null && rec.getPos() != pos) {
+        while (rec != null && rec.getPos() != pos) {
             rec = rec.chained;
         }
         return rec;
@@ -188,7 +190,7 @@ public class CacheLRU implements Cache {
 
     public CacheObject get(int pos) {
         CacheObject rec = find(pos);
-        if(rec != null) {
+        if (rec != null) {
             removeFromLinkedList(rec);
             addToFront(rec);
         }
@@ -233,11 +235,11 @@ public class CacheLRU implements Cache {
         for (int i = 0; i < len; i++) {
             CacheObject rec = values[i];
             while (rec != null) {
-                if(rec.isChanged()) {                                
+                if (rec.isChanged()) {
                     list.add(rec);
-                    if(list.size() >= recordCount) {
-                        if(SysProperties.CHECK) {
-                            if(list.size() > recordCount) {
+                    if (list.size() >= recordCount) {
+                        if (SysProperties.CHECK) {
+                            if (list.size() > recordCount) {
                                 throw Message.getInternalError("cache chain error");
                             }
                         } else {

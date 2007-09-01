@@ -49,13 +49,13 @@ public class Schema extends DbObjectBase {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
-    
+
     public String getDropSQL() {
         return null;
     }
 
     public String getCreateSQL() {
-        if(system) {
+        if (system) {
             return null;
         }
         StringBuffer buff = new StringBuffer();
@@ -71,28 +71,28 @@ public class Schema extends DbObjectBase {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        while(triggers != null && triggers.size()>0) {
-            TriggerObject obj = (TriggerObject)triggers.values().toArray()[0];
+        while (triggers != null && triggers.size() > 0) {
+            TriggerObject obj = (TriggerObject) triggers.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while(constraints != null && constraints.size()>0) {
-            Constraint obj = (Constraint)constraints.values().toArray()[0];
+        while (constraints != null && constraints.size() > 0) {
+            Constraint obj = (Constraint) constraints.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while(tablesAndViews != null && tablesAndViews.size()>0) {
-            Table obj = (Table)tablesAndViews.values().toArray()[0];
+        while (tablesAndViews != null && tablesAndViews.size() > 0) {
+            Table obj = (Table) tablesAndViews.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while(indexes != null && indexes.size()>0) {
-            Index obj = (Index)indexes.values().toArray()[0];
+        while (indexes != null && indexes.size() > 0) {
+            Index obj = (Index) indexes.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while(sequences != null && sequences.size()>0) {
-            Sequence obj = (Sequence)sequences.values().toArray()[0];
+        while (sequences != null && sequences.size() > 0) {
+            Sequence obj = (Sequence) sequences.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while(constants != null && constants.size()>0) {
-            Constant obj = (Constant)constants.values().toArray()[0];
+        while (constants != null && constants.size() > 0) {
+            Constant obj = (Constant) constants.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
         owner = null;
@@ -107,7 +107,7 @@ public class Schema extends DbObjectBase {
     }
 
     private HashMap getMap(int type) {
-        switch(type) {
+        switch (type) {
         case DbObject.TABLE_OR_VIEW:
             return tablesAndViews;
         case DbObject.SEQUENCE:
@@ -121,17 +121,17 @@ public class Schema extends DbObjectBase {
         case DbObject.CONSTANT:
             return constants;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.getInternalError("type=" + type);
         }
     }
 
     public void add(SchemaObject obj) throws SQLException {
-        if(SysProperties.CHECK && obj.getSchema() != this) {
+        if (SysProperties.CHECK && obj.getSchema() != this) {
             throw Message.getInternalError("wrong schema");
         }
         String name = obj.getName();
         HashMap map = getMap(obj.getType());
-        if(SysProperties.CHECK && map.get(name) != null) {
+        if (SysProperties.CHECK && map.get(name) != null) {
             throw Message.getInternalError("object already exists");
         }
         map.put(name, obj);
@@ -140,12 +140,12 @@ public class Schema extends DbObjectBase {
     public void rename(SchemaObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
-        if(SysProperties.CHECK) {
-            if(!map.containsKey(obj.getName())) {
-                throw Message.getInternalError("not found: "+obj.getName());
+        if (SysProperties.CHECK) {
+            if (!map.containsKey(obj.getName())) {
+                throw Message.getInternalError("not found: " + obj.getName());
             }
-            if(obj.getName().equals(newName) || map.containsKey(newName)) {
-                throw Message.getInternalError("object already exists: "+newName);
+            if (obj.getName().equals(newName) || map.containsKey(newName)) {
+                throw Message.getInternalError("object already exists: " + newName);
             }
         }
         map.remove(obj.getName());
@@ -155,7 +155,7 @@ public class Schema extends DbObjectBase {
 
     public Table findTableOrView(Session session, String name) {
         Table table = (Table) tablesAndViews.get(name);
-        if(table == null && session != null) {
+        if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
         return table;
@@ -182,9 +182,9 @@ public class Schema extends DbObjectBase {
     }
 
     private String getUniqueName(HashMap map, String prefix) {
-        for(int i=0;; i++) {
+        for (int i = 0;; i++) {
             String name = prefix + i;
-            if(map.get(name)==null) {
+            if (map.get(name) == null) {
                 return name;
             }
         }
@@ -200,7 +200,7 @@ public class Schema extends DbObjectBase {
 
     public Table getTableOrView(Session session, String name) throws SQLException {
         Table table = (Table) tablesAndViews.get(name);
-        if(table == null && session != null) {
+        if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
         if (table == null) {
@@ -249,18 +249,20 @@ public class Schema extends DbObjectBase {
     public void remove(Session session, SchemaObject obj) throws SQLException {
         String objName = obj.getName();
         HashMap map = getMap(obj.getType());
-        if(SysProperties.CHECK && !map.containsKey(objName)) {
-            throw Message.getInternalError("not found: "+objName);
+        if (SysProperties.CHECK && !map.containsKey(objName)) {
+            throw Message.getInternalError("not found: " + objName);
         }
         map.remove(objName);
     }
-    
-    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent, boolean clustered) throws SQLException {
+
+    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent, boolean clustered)
+            throws SQLException {
         return new TableData(this, tempName, id, newColumns, persistent, clustered);
     }
 
-    public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+    public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password,
+            String originalTable, boolean emitUpdates, boolean force) throws SQLException {
         return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
-    }    
+    }
 
 }

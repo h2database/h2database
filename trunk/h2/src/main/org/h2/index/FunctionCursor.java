@@ -33,7 +33,7 @@ public class FunctionCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        if(result.next()) {
+        if (result.next()) {
             row = new Row(result.currentRow(), 0);
         } else {
             row = null;

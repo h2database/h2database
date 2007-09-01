@@ -195,6 +195,7 @@ public class Tokenizer {
                         case 't':
                             c = '\t';
                             break;
+                        default:
                         }
                         peekChar = read();
                     }

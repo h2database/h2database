@@ -28,13 +28,13 @@ public class IntIntHashMap extends HashBase {
     }
 
     public void put(int key, int value) {
-        if(key==0) {
+        if (key == 0) {
             zeroKey = true;
             zeroValue = value;
         }
         try {
             checkSizePut();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // in fact, it is never thrown
             // TODO hash: maybe optimize it
         }
@@ -43,10 +43,10 @@ public class IntIntHashMap extends HashBase {
         int deleted = -1;
         do {
             int k = keys[index];
-            if(k==0) {
-                if(values[index] != DELETED) {
+            if (k == 0) {
+                if (values[index] != DELETED) {
                     // found an empty record
-                    if(deleted>=0) {
+                    if (deleted >= 0) {
                         index = deleted;
                         deletedCount--;
                     }
@@ -56,10 +56,10 @@ public class IntIntHashMap extends HashBase {
                     return;
                 }
                 // found a deleted record
-                if(deleted<0) {
+                if (deleted < 0) {
                     deleted = index;
                 }
-            } else if(k==key) {
+            } else if (k == key) {
                 // update existing
                 values[index] = value;
                 return;
@@ -71,13 +71,13 @@ public class IntIntHashMap extends HashBase {
     }
 
     public void remove(int key) {
-        if(key == 0) {
+        if (key == 0) {
             zeroKey = false;
             return;
         }
         try {
             checkSizeRemove();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             // in fact, it is never thrown
             // TODO hash: maybe optimize it
         }
@@ -85,14 +85,14 @@ public class IntIntHashMap extends HashBase {
         int plus = 1;
         do {
             int k = keys[index];
-            if(k==key) {
+            if (k == key) {
                 // found the record
                 keys[index] = 0;
                 values[index] = DELETED;
                 deletedCount++;
                 size--;
                 return;
-            } else if(k==0 && values[index] == 0) {
+            } else if (k == 0 && values[index] == 0) {
                 // found an empty record
                 return;
             }
@@ -106,26 +106,26 @@ public class IntIntHashMap extends HashBase {
         int[] oldKeys = keys;
         int[] oldValues = values;
         reset(newLevel);
-        for(int i=0; i<oldKeys.length; i++) {
+        for (int i = 0; i < oldKeys.length; i++) {
             int k = oldKeys[i];
-            if(k != 0) {
+            if (k != 0) {
                 put(k, oldValues[i]);
             }
         }
     }
 
     public int get(int key) {
-        if(key == 0) {
+        if (key == 0) {
             return zeroKey ? zeroValue : NOT_FOUND;
         }
         int index = getIndex(key);
         int plus = 1;
         do {
             int k = keys[index];
-            if(k==0 && values[index]==0) {
+            if (k == 0 && values[index] == 0) {
                 // found an empty record
                 return NOT_FOUND;
-            } else if(k==key) {
+            } else if (k == key) {
                 // found it
                 return values[index];
             }

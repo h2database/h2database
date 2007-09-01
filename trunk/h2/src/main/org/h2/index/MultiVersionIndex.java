@@ -27,16 +27,16 @@ public class MultiVersionIndex implements Index {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
-        this.delta = new TreeIndex(table, -1, "DELTA" ,base.getColumns(), deltaIndexType);
+        this.delta = new TreeIndex(table, -1, "DELTA", base.getColumns(), deltaIndexType);
         this.sync = base.getDatabase();
     }    
 
     public void add(Session session, Row row) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             base.add(session, row);
             // for example rolling back an delete operation
             removeIfExists(session, row);
-            if(row.getSessionId() != 0) {
+            if (row.getSessionId() != 0) {
                 // don't insert rows that are added when creating an index
                 delta.add(session, row);
             }
@@ -44,13 +44,13 @@ public class MultiVersionIndex implements Index {
     }
 
     public void close(Session session) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             base.close(session);
         }
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             Cursor baseCursor = base.find(session, first, last);
             Cursor deltaCursor = delta.find(session, first, last);
             return new MultiVersionCursor(session, this, baseCursor, deltaCursor, sync);
@@ -76,9 +76,9 @@ public class MultiVersionIndex implements Index {
     private boolean removeIfExists(Session session, Row row) throws SQLException {
         // maybe it was inserted by the same session just before
         Cursor c = delta.find(session, row, row);
-        while(c.next()) {
+        while (c.next()) {
             Row r = c.get();
-            if(r.getPos() == row.getPos()) {
+            if (r.getPos() == row.getPos()) {
                 delta.remove(session, row);
                 return true;
             }
@@ -87,9 +87,9 @@ public class MultiVersionIndex implements Index {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             base.remove(session, row);
-            if(removeIfExists(session, row)) {
+            if (removeIfExists(session, row)) {
                 // added and deleted in the same transaction: no change
             } else {
                 delta.add(session, row);
@@ -98,20 +98,20 @@ public class MultiVersionIndex implements Index {
     }
 
     public void remove(Session session) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             base.remove(session);
         }
     }
 
     public void truncate(Session session) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             delta.truncate(session);
             base.truncate(session);
         }
     }
     
     public void commit(int operation, Row row) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             removeIfExists(null, row);
         }
     }
@@ -185,7 +185,7 @@ public class MultiVersionIndex implements Index {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        synchronized(sync) {
+        synchronized (sync) {
             table.removeIndex(this);
             remove(session);
         }

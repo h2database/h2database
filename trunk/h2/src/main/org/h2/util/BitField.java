@@ -18,51 +18,51 @@ public class BitField {
     
     public int getLastSetBit() {
         int i = (data.length << ADDRESS_BITS) - 1;
-        while(i >= 0) {
-            if(get(i)) {
+        while (i >= 0) {
+            if (get(i)) {
                 return i;
             }
             i--;
         }
         return -1;
     }
-    
+
     public int nextSetBit(int fromIndex) {
         int i = fromIndex >> ADDRESS_BITS;
         int max = data.length;
         int maxAddress = data.length << ADDRESS_BITS;
-        for(; i<max; i++) {
-            if(data[i] == 0) {
+        for (; i < max; i++) {
+            if (data[i] == 0) {
                 continue;
             }
-            for(int j=Math.max(fromIndex, i << ADDRESS_BITS); j<maxAddress; j++) {
-                if(get(j)) {               
+            for (int j = Math.max(fromIndex, i << ADDRESS_BITS); j < maxAddress; j++) {
+                if (get(j)) {
                     return j;
                 }
             }
         }
         return -1;
     }
-    
+
     public int nextClearBit(int fromIndex) {
         int i = fromIndex >> ADDRESS_BITS;
         int max = data.length;
-        for(; i<max; i++) {
-            if(data[i] == -1) {
+        for (; i < max; i++) {
+            if (data[i] == -1) {
                 continue;
             }
-            for(int j=Math.max(fromIndex, i << ADDRESS_BITS); ; j++) {
-                if(!get(j)) {               
+            for (int j = Math.max(fromIndex, i << ADDRESS_BITS);; j++) {
+                if (!get(j)) {
                     return j;
                 }
             }
         }
         return fromIndex;
     }
-    
+
     public long getLong(int i) {
         int addr = getAddress(i);
-        if(addr >= data.length) {
+        if (addr >= data.length) {
             return 0;
         }
         return data[addr];
@@ -70,34 +70,34 @@ public class BitField {
 
     public boolean get(int i) {
         int addr = getAddress(i);
-        if(addr >= data.length) {
+        if (addr >= data.length) {
             return false;
         }
         return (data[addr] & getBitMask(i)) != 0;
     }
-    
-    public void set(int i) {            
+
+    public void set(int i) {
         int addr = getAddress(i);
         checkCapacity(addr);
         data[addr] |= getBitMask(i);
     }
-    
-    public void clear(int i) {     
+
+    public void clear(int i) {
         int addr = getAddress(i);
-        if(addr >= data.length) {
+        if (addr >= data.length) {
             return;
         }
         data[addr] &= ~getBitMask(i);
     }
-    
+
     private int getAddress(int i) {
         return i >> ADDRESS_BITS;
     }
-    
+
     private long getBitMask(int i) {
         return 1L << (i & ADDRESS_MASK);
     }
-    
+
     private void checkCapacity(int size) {
         while (size >= data.length) {
             int newSize = data.length == 0 ? 1 : data.length * 2;
@@ -124,13 +124,13 @@ public class BitField {
     */
     
     public void setRange(int start, int len, boolean value) {
-        for(int end = start + len; start < end; start++) {
+        for (int end = start + len; start < end; start++) {
             set(start, value);
         }
     }
-    
+
     private void set(int i, boolean value) {
-        if(value) {
+        if (value) {
             set(i);
         } else {
             clear(i);

@@ -12,6 +12,6 @@ public interface Compressor {
 
     int getAlgorithm();
     int compress(byte[] in, int inLen, byte[] out, int outPos);
-    void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) throws Exception;
+    void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) throws SQLException;
     void setOptions(String options) throws SQLException;
 }

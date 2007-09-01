@@ -27,31 +27,31 @@ public class MetaRecord {
         id = r.getValue(0).getInt();
         headPos = r.getValue(1).getInt();
         objectType = r.getValue(2).getInt();
-        sql = r.getValue(3).getString();         
+        sql = r.getValue(3).getString();
     }
-    
+
     public static void sort(ObjectArray records) {
         records.sort(new Comparator() {
             public int compare(Object o1, Object o2) {
-                MetaRecord m1 = (MetaRecord)o1;
-                MetaRecord m2 = (MetaRecord)o2;
+                MetaRecord m1 = (MetaRecord) o1;
+                MetaRecord m2 = (MetaRecord) o2;
                 int c1 = DbObjectBase.getCreateOrder(m1.getObjectType());
                 int c2 = DbObjectBase.getCreateOrder(m2.getObjectType());
-                if(c1 != c2) {
+                if (c1 != c2) {
                     return c1 - c2;
                 }
                 return m1.getId() - m2.getId();
             }
         });
     }
-    
+
     public void setRecord(SearchRow r) {
         r.setValue(0, ValueInt.get(id));
         r.setValue(1, ValueInt.get(headPos));
         r.setValue(2, ValueInt.get(objectType));
         r.setValue(3, ValueString.get(sql));
-    }    
-    
+    }
+
     public MetaRecord(DbObject obj) {
         id = obj.getId();
         objectType = obj.getType();
@@ -65,10 +65,10 @@ public class MetaRecord {
             command.setObjectId(id);
             command.setHeadPos(headPos);
             command.update();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             SQLException s = Message.addSQL(Message.convert(e), sql);
             db.getTrace(Trace.DATABASE).error(sql, s);
-            if(listener != null) {
+            if (listener != null) {
                 listener.exceptionThrown(s, sql);
                 // continue startup in this case
             } else {

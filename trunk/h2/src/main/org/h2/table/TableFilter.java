@@ -141,7 +141,7 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
-    public void prepare() {
+    public void prepare() throws SQLException {
         // forget all unused index conditions
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = (IndexCondition) indexConditions.get(i);
@@ -159,6 +159,12 @@ public class TableFilter implements ColumnResolver {
                 throw Message.getInternalError("self join");
             }
             join.prepare();
+        }
+        if (filterCondition != null) {
+            filterCondition = filterCondition.optimize(session);
+        }
+        if (joinCondition != null) {
+            joinCondition = joinCondition.optimize(session);
         }
     }
 
@@ -363,9 +369,6 @@ public class TableFilter implements ColumnResolver {
             int todoAddJoinNestedOrSameLevel;
             TableFilter join = getTableFilter(0);
             join.addJoin(filter, outer, on);
-        }
-        if (on != null) {
-            on.optimize(session);
         }
     }
 

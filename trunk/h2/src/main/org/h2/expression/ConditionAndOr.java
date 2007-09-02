@@ -60,8 +60,8 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression getNotIfPossible(Session session) {
-        // (NOT (A OR B)) > (NOT(A) OR NOT(B))
-        // (NOT (A AND B)) > (NOT(A) OR NOT(B))
+        // (NOT (A OR B)): (NOT(A) AND NOT(B))
+        // (NOT (A AND B)): (NOT(A) OR NOT(B))
         Expression l = left.getNotIfPossible(session);
         if (l == null) {
             l = new ConditionNot(left);
@@ -116,11 +116,8 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO NULL: see
-        // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
-        // TODO test if all optimizations are switched off against all on
-        // (including performance)
-        // TODO document NULL exactly for every case
+        // TODO NULL: see wikipedia, http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
+        // TODO test if all optimizations are switched off against all on (including performance)
         left = left.optimize(session);
         right = right.optimize(session);
         int lc = left.getCost(), rc = right.getCost();
@@ -129,9 +126,13 @@ public class ConditionAndOr extends Condition {
             left = right;
             right = t;
         }
-        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1
-        // AND (B=2 OR B=3))
-        if (SysProperties.OPTIMIZE_TWO_EQUALS && andOrType == AND) {
+        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1 AND (B=2 OR B=3))
+        // this optimization does not work in the following case, but NOT is optimized before:
+        // CREATE TABLE TEST(A INT, B INT); 
+        // INSERT INTO TEST VALUES(1, NULL);
+        // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
+        // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1, NULL
+        if (SysProperties.OPTIMIZE_NOT && SysProperties.OPTIMIZE_TWO_EQUALS && andOrType == AND) {
             // try to add conditions (A=B AND B=1: add A=1)
             if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;

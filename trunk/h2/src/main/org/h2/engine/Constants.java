@@ -58,7 +58,7 @@ import org.h2.constant.SysProperties;
  * - TestSystemExit
  * - Test with hibernate
  * - Scan for viruses
- * - ant mavenDeployCental
+ * - ant mavenDeployCentral
  * - Upload to SourceForge
  * - Newsletter: send to h2database-news@googlegroups.com (http://groups.google.com/group/h2database-news)
  * - Newsletter: prepare, send (always send to BCC!!)

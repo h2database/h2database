@@ -1964,8 +1964,8 @@ SELECT CASE WHEN NOT (false IN (null)) THEN false END;
 > rows: 1
 
 select a.v as av, b.v as bv, a.v IN (b.v), not a.v IN (b.v) from test a, test b;
-> AV    BV    A.V = B.V A.V <> B.V
-> ----- ----- --------- ----------
+> AV    BV    A.V = B.V NOT (A.V = B.V)
+> ----- ----- --------- ---------------
 > FALSE FALSE TRUE      FALSE
 > FALSE TRUE  FALSE     TRUE
 > FALSE null  null      null

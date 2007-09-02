@@ -39,15 +39,16 @@ public class ConditionNot extends Condition {
 
     public Expression optimize(Session session) throws SQLException {
         if (!SysProperties.OPTIMIZE_NOT) {
+            condition = condition.optimize(session);
             return this;
         }
         // TODO optimization: some cases are maybe possible to optimize further:
         // (NOT ID >= 5)
-        Expression expr = condition.optimize(session);
-        Expression e2 = expr.getNotIfPossible(session);
+        Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
             return e2.optimize(session);
         }
+        Expression expr = condition.optimize(session);
         if (expr.isConstant()) {
             Value v = expr.getValue(session);
             if (v == ValueNull.INSTANCE) {

@@ -139,11 +139,7 @@ public class Storage {
         }
         record.setDeleted(true);
         int blockCount = record.getBlockCount();
-        if (database.isMultiVersion()) {
-            int todoMustFreeSpaceOnCommit;
-        } else {
-            free(pos, blockCount);
-        }
+        free(pos, blockCount);
         recordCount--;
         file.removeRecord(session, pos, record, blockCount);
     }

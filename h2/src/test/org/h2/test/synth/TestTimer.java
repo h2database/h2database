@@ -79,7 +79,7 @@ public class TestTimer extends TestBase {
         println("validate");
         try {
             Connection conn = getConnection("timer");
-            int todoValidateTransactions;
+            // TODO validate transactions
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
             rs.next();

@@ -171,5 +171,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     public void init(String url) {
     }
+    
+    public void opened() {
+    }    
 
 }

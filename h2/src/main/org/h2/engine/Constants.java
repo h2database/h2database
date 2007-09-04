@@ -6,7 +6,6 @@ package org.h2.engine;
 
 import org.h2.constant.SysProperties;
 
-
 /*
  * Coding rules:
  * - boolean CHECK = x > boolean CHECK = Database.CHECK
@@ -96,6 +95,9 @@ public class Constants {
     public static final int IO_BUFFER_SIZE = 4 * 1024;
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;
     public static final int DEFAULT_CACHE_SIZE_LINEAR_INDEX = 64 * 1024;
+    public static final int FILE_PAGE_SIZE = 8 * 1024;
+    public static final int FILE_MIN_SIZE = 128 * 1024;
+    public static final int FILE_MAX_INCREMENT = 32 * 1024 * 1024;
     public static final String SUFFIX_DB_FILE = ".db";
     public static final String SUFFIX_DATA_FILE = ".data.db";
     public static final String SUFFIX_LOG_FILE = ".log.db";

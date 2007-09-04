@@ -35,7 +35,7 @@ public class TestPowerOff extends TestBase {
         if (config.big) {
             dir = baseDir;
         } else {
-            dir = "inmemory:";
+            dir = "memFS:";
         }
         url = dir + "/" + dbName + ";file_lock=no";
         testSummaryCrash();

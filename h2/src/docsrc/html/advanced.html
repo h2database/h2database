@@ -99,6 +99,15 @@ There is a restriction when inserting data to this table: When inserting or upda
 NULL and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
 </p>
+<p>
+For each linked table a new connection is opened. This can be a problem for some databases when using
+many linked tables. For Oracle XE, the maximum number of connection can be increased.
+Oracle XE needs to be restarted after changing these values:
+</p>
+<pre>
+alter system set processes=100 scope=spfile;
+alter system set sessions=100 scope=spfile;
+</pre>
 
 <br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>

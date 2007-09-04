@@ -15,13 +15,19 @@ import org.h2.value.Value;
 public class TestFile extends TestBase implements DataHandler {
 
     public void test() throws Exception {
+        doTest(false);
+        doTest(true);
+    }
+    
+    private void doTest(boolean compress) throws Exception {
         byte[] magic = new byte[0];
         int len = getSize(1000, 10000);
         Random random = new Random();
         FileStore mem = null, file = null;
         byte[] buffMem = null;
         byte[] buffFile = null;
-        FileUtils.delete("inmemory:test");
+        String prefix = compress ? "memLZF:" : "memFS:";
+        FileUtils.delete(prefix + "test");
         FileUtils.delete("~/test");
 
         // config.traceTest = true;
@@ -33,7 +39,7 @@ public class TestFile extends TestBase implements DataHandler {
                 buffFile = new byte[l];
             }
             if (file == null) {
-                mem = FileStore.open(this, "inmemory:test", "rw", magic);
+                mem = FileStore.open(this, prefix + "test", "rw", magic);
                 file = FileStore.open(this, "~/test", "rw", magic);
             }
             check(file.getFilePointer(), mem.getFilePointer());

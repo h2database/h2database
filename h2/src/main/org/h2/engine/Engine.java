@@ -59,6 +59,7 @@ public class Engine {
             if (!ci.isUnnamed()) {
                 databases.put(name, database);
             }
+            database.opened();
         }
         synchronized (database) {
             if (database.isClosing()) {

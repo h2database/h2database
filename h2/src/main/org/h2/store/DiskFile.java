@@ -463,7 +463,7 @@ public class DiskFile implements CacheWriter {
                 writeDirectDeleted(pos, blockCount);
             } else {
                 long min = ((long) pos + blockCount) * BLOCK_SIZE;
-                min = MathUtils.scaleUp50Percent(128 * 1024, min, 8 * 1024) + OFFSET;
+                min = MathUtils.scaleUp50Percent(Constants.FILE_MIN_SIZE, min, Constants.FILE_PAGE_SIZE, Constants.FILE_MAX_INCREMENT) + OFFSET;
                 if (min > file.length()) {
                     file.setLength(min);
                     database.notifyFileSize(min);

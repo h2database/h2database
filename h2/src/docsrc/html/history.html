@@ -40,7 +40,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.x (2007-09-x)</h3><ul>
-<li>A database can now be opened even if class of a user defined function is not in the classpath.
+<li>The database file sizes are now increased at most 32 MB at any time.
+</li><li>New method DatabaseEventListener.opened that is called just after opening a database.
+</li><li>When using the Console with Internet Explorer 6.0 or 7.0, a Javascript error was thrown after clearing the query.
+</li><li>A database can now be opened even if class of a user defined function is not in the classpath.
     Trying to call the function will throws an exception.
 </li><li>User defined functions and constants may not overload built-in functions and constants.
     This didn't work before, but now trying to create such an object didn't fail.
@@ -743,6 +746,7 @@ via PayPal:
 </li><li>Pete Haidinyak, USA
 </li><li>Jun Iyama, Japan
 </li><li>Antonio Casqueiro, Portugal
+</li><li>lumber-mill.co.jp, Japan
 </li></ul>
 
 </div></td></tr></table></body></html>

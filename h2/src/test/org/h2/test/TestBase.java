@@ -97,7 +97,7 @@ public abstract class TestBase {
         if (config.memory) {
             url = "mem:" + name;
         } else {
-            if (!name.startsWith("inmemory:") && !name.startsWith(baseDir + "/")) {
+            if (!name.startsWith("memFS:") && !name.startsWith(baseDir + "/")) {
                 name = baseDir + "/" + name;
             }
             if (config.deleteIndex) {

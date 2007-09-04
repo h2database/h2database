@@ -11,8 +11,7 @@ import org.h2.test.TestBase;
 import org.h2.util.RandomUtils;
 
 // TODO hsqldb: call 1||null should return 1 but returns null
-// TODO hsqldb: call mod(1) should return invalid parameter count but returns
-// null
+// TODO hsqldb: call mod(1) should return invalid parameter count but returns null
 public class TestSynth extends TestBase {
 
     static final int H2 = 0, H2_MEM = 1, HSQLDB = 2, MYSQL = 3, POSTGRESQL = 4;
@@ -243,7 +242,7 @@ public class TestSynth extends TestBase {
         // "sa", "");
         // addDatabase("org.ldbc.jdbc.jdbcDriver",
         // "jdbc:ldbc:mysql://localhost/test", "sa", "");
-        // addDatabase("org.h2.Driver", "jdbc:h2:inmemory:synth", "sa", "");
+        // addDatabase("org.h2.Driver", "jdbc:h2:memFS:synth", "sa", "");
 
         // MySQL: NOT is bound to column: NOT ID = 1 means (NOT ID) = 1 instead
         // of NOT (ID=1)

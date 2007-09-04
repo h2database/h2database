@@ -2214,14 +2214,16 @@ public class Parser {
             s = currentToken;
             read();
         }
-        if (".".equals(currentToken) && schemaName.equals(database.getShortName())) {
-            read(".");
-            schemaName = s;
-            if (currentTokenType != IDENTIFIER) {
-                throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+        if (".".equals(currentToken)) {
+            if (schemaName.equalsIgnoreCase(database.getShortName())) {
+                read(".");
+                schemaName = s;
+                if (currentTokenType != IDENTIFIER) {
+                    throw Message.getSyntaxError(sqlCommand, parseIndex, "identifier");
+                }
+                s = currentToken;
+                read();
             }
-            s = currentToken;
-            read();
         }
         return s;
     }

@@ -106,5 +106,8 @@ public class ShowProgress implements DatabaseEventListener {
     public void init(String url) {
         System.out.println("Initializing the event listener for database " + url);
     }
+    
+    public void opened() {
+    }
 
 }

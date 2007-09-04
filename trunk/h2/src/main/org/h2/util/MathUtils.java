@@ -38,12 +38,18 @@ public class MathUtils {
         return (int) i;
     }
     
-    public static long scaleUp50Percent(long start, long min, long blockSize) {
-        while (start < min) {
-            start += start / 2;
-            start += start % blockSize;
+    public static long scaleUp50Percent(long start, long min, long blockSize, long maxIncrease) {
+        long len;
+        if (min > maxIncrease * 2) {
+            len = MathUtils.roundUpLong(min, maxIncrease);
+        } else {
+            len = start;
+            while (len < min) {
+                len += len / 2;
+                len += len % blockSize;
+            }
         }
-        return start;
+        return len;
     }
 
     public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {

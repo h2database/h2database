@@ -29,7 +29,7 @@ import org.h2.message.TraceSystem;
 
 public class FileUtils {
 
-    public static final String MEMORY_PREFIX = "inmemory:";
+    public static final String MEMORY_PREFIX = "memFS:", MEMORY_PREFIX_LZF = "memLZF:";
     private static final HashMap MEMORY_FILES = new HashMap();
     // TODO detection of 'case in sensitive filesystem' could maybe implemented using some other means
     private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = (File.separatorChar == '\\');
@@ -336,7 +336,8 @@ public class FileUtils {
     public static MemoryFile getMemoryFile(String fileName) {
         MemoryFile m = (MemoryFile) MEMORY_FILES.get(fileName);
         if (m == null) {
-            m = new MemoryFile(fileName);
+            boolean compress = fileName.startsWith(MEMORY_PREFIX_LZF);
+            m = new MemoryFile(fileName, compress);
             MEMORY_FILES.put(fileName, m);
         }
         return m;
@@ -351,7 +352,7 @@ public class FileUtils {
     }
 
     public static boolean isInMemory(String fileName) {
-        return fileName.startsWith(MEMORY_PREFIX);
+        return fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_LZF);
     }
 
     public static String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
@@ -425,7 +426,7 @@ public class FileUtils {
     public static boolean isDirectory(String fileName) {
         fileName = translateFileName(fileName);
         if (isInMemory(fileName)) {
-            // TODO inmemory: currently doesn't support directories
+            // TODO in memory file system currently doesn't support directories
             return false;
         }
         return new File(fileName).isDirectory();

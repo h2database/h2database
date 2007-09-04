@@ -352,7 +352,7 @@ public class LogFile {
             unwritten.clear();
             bufferPos = 0;
             long min = (long) pos * BLOCK_SIZE;
-            min = MathUtils.scaleUp50Percent(128 * 1024, min, 8 * 1024);
+            min = MathUtils.scaleUp50Percent(Constants.FILE_MIN_SIZE, min, Constants.FILE_PAGE_SIZE, Constants.FILE_MAX_INCREMENT);
             if (min > file.length()) {
                 file.setLength(min);
             }

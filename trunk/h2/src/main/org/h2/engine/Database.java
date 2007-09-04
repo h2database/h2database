@@ -538,7 +538,7 @@ public class Database implements DataHandler {
             emergencyReserve.autoDelete();
             emergencyReserve.setLength(SysProperties.EMERGENCY_SPACE_INITIAL);
         }
-        traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+        traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);     
     }
 
     private void recompileInvalidViews(Session session) {
@@ -784,7 +784,7 @@ public class Database implements DataHandler {
 
     void close(boolean fromShutdownHook) {
         synchronized (this) {
-            this.closing = true;
+            closing = true;
             if (sessions.size() > 0) {
                 if (!fromShutdownHook) {
                     return;
@@ -804,8 +804,17 @@ public class Database implements DataHandler {
         }
         traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
         if (eventListener != null) {
-            eventListener.closingDatabase();
+            // allow the event listener to connect to the database
+            closing = false;
+            DatabaseEventListener e = eventListener;
+            // set it to null, to make sure it's called only once
             eventListener = null;
+            e.closingDatabase();
+            if (sessions.size() > 0) {
+                // if a connection was opened, we can't close the database
+                return;
+            }
+            closing = true;
         }
         try {
             if (persistent && fileData != null) {
@@ -1539,6 +1548,12 @@ public class Database implements DataHandler {
 
     public boolean isMultiVersion() {
         return multiVersion;
+    }
+
+    public void opened() throws SQLException {
+        if (eventListener != null) {
+            eventListener.opened();
+        }
     }
 
 }

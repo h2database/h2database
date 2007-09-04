@@ -13,19 +13,20 @@ import org.h2.message.Message;
 
 public class MemoryFile {
     private static final int CACHE_SIZE = 8;
-    private static final boolean COMPRESS = true;
     private static final int BLOCK_SIZE_SHIFT = 16;
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private String name;
+    private final boolean compress;
+    private byte[] magic;
     private long length;
     private long pos;
-    private byte[] magic;
     private byte[][] data;
     
     private static final CompressLZF LZF = new CompressLZF();
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
-
+    private static final byte[] COMPRESSED_BLOCK;
+    
 //#ifdef JDK14
     static class Cache extends LinkedHashMap {
         private static final long serialVersionUID = 5549197956072850355L;
@@ -61,7 +62,7 @@ public class MemoryFile {
             return false;
         }
     }
-    private static final Cache LATER = new Cache(CACHE_SIZE);
+    private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
 //#endif
     
     
@@ -71,15 +72,12 @@ public class MemoryFile {
         c.data = data;
         c.l = l;
         synchronized (LZF) {
-            LATER.put(c, c);
+            COMPRESS_LATER.put(c, c);
         }
 //#endif
     }
     
     private static void expand(byte[][] data, int i) {
-        if (!COMPRESS) {
-            return;
-        }
         byte[] d = data[i];
         if (d.length == BLOCK_SIZE) {
             return;
@@ -92,9 +90,6 @@ public class MemoryFile {
     }
 
     private static void compress(byte[][] data, int i) {
-        if (!COMPRESS) {
-            return;
-        }
         byte[] d = data[i];
         synchronized (LZF) {
             int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
@@ -106,8 +101,16 @@ public class MemoryFile {
         }
     }
     
-    MemoryFile(String name) {
+    static {
+        byte[] n = new byte[BLOCK_SIZE];
+        int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
+        COMPRESSED_BLOCK = new byte[len];
+        System.arraycopy(BUFFER, 0, COMPRESSED_BLOCK, 0, len);
+    }
+    
+    MemoryFile(String name, boolean compress) {
         this.name = name;
+        this.compress = compress;
         data = new byte[0][];
     }
     
@@ -130,12 +133,16 @@ public class MemoryFile {
             long end = MathUtils.roundUpLong(l, BLOCK_SIZE);
             if (end != l) {
                 int lastBlock = (int) (l >>> BLOCK_SIZE_SHIFT);
-                expand(data, lastBlock);
+                if (compress) {
+                    expand(data, lastBlock);
+                }
                 byte[] d = data[lastBlock];
                 for (int i = (int) (l & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
                     d[i] = 0;
                 }
-                compressLater(data, lastBlock);
+                if (compress) {
+                    compressLater(data, lastBlock);
+                }
             }
         } else {
             changeLength(l);
@@ -154,8 +161,11 @@ public class MemoryFile {
             byte[][] n = new byte[blocks][];
             System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
             for (int i = data.length; i < blocks; i++) {
-                n[i] = new byte[BLOCK_SIZE];
-                compressLater(n, i);
+                if (compress) {
+                    n[i] = COMPRESSED_BLOCK;
+                } else {
+                    n[i] = new byte[BLOCK_SIZE];
+                }
             }
             data = n;
         }
@@ -177,7 +187,9 @@ public class MemoryFile {
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
             int id = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(data, id);
+            if (compress) {
+                expand(data, id);
+            }
             byte[] block = data[id];
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {
@@ -185,7 +197,9 @@ public class MemoryFile {
             } else {
                 System.arraycopy(block, blockOffset, b, off, l);
             }
-            compressLater(data, id);
+            if (compress) {
+                compressLater(data, id);
+            }
             off += l;
             pos += l;
             len -= l;

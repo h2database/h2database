@@ -175,5 +175,8 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     public void init(String url) {
     }
+    
+    public void opened() {
+    }    
 
 }

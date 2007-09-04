@@ -148,6 +148,29 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript
         
 /*
 
+
+Ich hatte auch schon unter Windows Probleme mit generateSeed. Eigentlich braucht es das schon. urandom ist nicht genug, siehe http://en.wikipedia.org/wiki/Urandom 'This may be used for less secure applications.' Ich muss mir überlegen wie man dieses Problem lösen kann... Ev. wie folgt: einen Thread starten, generateSeed dort aufrufen. Wenn es länger als 1 Sekunde dauert, folgendes verwenden:
+Ja. Ich könnte ausserdem Secure-Random verzögert initialisieren, d.h. in einem separaten Thread.
+SHA-256 Hash von 
+System.currentTimeMillis() + " " +
+System.identityHashCode(new Object()) + " " +
+System.freeMemory() + " " +
+System.maxMemory() + " " +
+System.totalMemory() + " " +
+Math.random() + " " +
+System.getProperties().toString() + " " +
+Arrays.asList(InetAddress.getAllByName(InetAddress.getLocalHost().getHostName())).toString(); 
+Und bei JDK 1.5 zusätzlich:
+System.nanoTime()
+
+I think it would be a good idea to include the version (build) number
+in the Manifest file of h2.jar
+Thus, one could find out the build/version number even if the rest of
+the distribution is not available.
+
+
+slow power off test: slow memFS?
+
 DROP TABLE ONE; 
 DROP TABLE TWO; 
 CREATE TABLE ONE(A INT PRIMARY KEY, B INT); 
@@ -176,10 +199,16 @@ SELECT T0.A, T1.A FROM TWO T0 INNER JOIN TWO T1 ON NOT (((T0.A=T0.B ) AND (T0.B=
 
 SELECT T0.A, T1.A FROM ONE T0 INNER JOIN ONE T1 ON NOT ((T0.A=T0.B ) AND (T0.B=1 )) OR (T0.B=2 );
 
-
-
+document:
 maximum file size increment is 16 MB
 dont increase database size by more than 128 MB
+
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
+@LOOP 1000000 INSERT INTO TEST VALUES(?, SPACE(100000));
+<stop>
+<reconnect>
+out of memory
 
 shrink newsletter list (migrate to google groups)
 
@@ -677,65 +706,67 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         beforeTest();
 
         // db
-        new TestScriptSimple().runTest(this);
-        new TestScript().runTest(this);
-        new TestAutoRecompile().runTest(this);
-        new TestBackup().runTest(this);
-        new TestBatchUpdates().runTest(this);
-        new TestBigDb().runTest(this);
-        new TestBigResult().runTest(this);
-        new TestCache().runTest(this);
-        new TestCases().runTest(this);
-        new TestCheckpoint().runTest(this);
-        new TestCluster().runTest(this);
-        new TestCompatibility().runTest(this);
-        new TestCsv().runTest(this);
-        new TestFunctions().runTest(this);
-        new TestIndex().runTest(this);
-        if (!SysProperties.MVCC) {
-            new TestLinkedTable().runTest(this);
-        }
-        new TestListener().runTest(this);
-        new TestLob().runTest(this);
-        new TestLogFile().runTest(this);
-        new TestMemoryUsage().runTest(this);
-        new TestMultiConn().runTest(this);
-        new TestMultiDimension().runTest(this);
-        if (!SysProperties.MVCC) {
-            new TestMultiThread().runTest(this);
-        }
-        new TestOpenClose().runTest(this);
-        new TestOptimizations().runTest(this);
+//        new TestScriptSimple().runTest(this);
+//        new TestScript().runTest(this);
+//        new TestAutoRecompile().runTest(this);
+//        new TestBackup().runTest(this);
+//        new TestBatchUpdates().runTest(this);
+//        new TestBigDb().runTest(this);
+//        new TestBigResult().runTest(this);
+//        new TestCache().runTest(this);
+//        new TestCases().runTest(this);
+//        new TestCheckpoint().runTest(this);
+//        new TestCluster().runTest(this);
+//        new TestCompatibility().runTest(this);
+//        new TestCsv().runTest(this);
+//        new TestFunctions().runTest(this);
+//        new TestIndex().runTest(this);
+//        if (!SysProperties.MVCC) {
+//            new TestLinkedTable().runTest(this);
+//        }
+//        new TestListener().runTest(this);
+//        new TestLob().runTest(this);
+//        new TestLogFile().runTest(this);
+//        new TestMemoryUsage().runTest(this);
+//        new TestMultiConn().runTest(this);
+//        new TestMultiDimension().runTest(this);
+//        if (!SysProperties.MVCC) {
+//            new TestMultiThread().runTest(this);
+//        }
+//        new TestOpenClose().runTest(this);
+//        new TestOptimizations().runTest(this);
+        
         new TestPowerOff().runTest(this);
-        new TestReadOnly().runTest(this);
-        new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
-        new TestSQLInjection().runTest(this);
-        new TestSequence().runTest(this);
-        new TestSpaceReuse().runTest(this);
-        new TestSpeed().runTest(this);
-        new TestTempTables().runTest(this);
-        new TestTransaction().runTest(this);
-        new TestTriggersConstraints().runTest(this);
-        new TestTwoPhaseCommit().runTest(this);
-        new TestView().runTest(this);
-
-        // server
-        new TestNestedLoop().runTest(this);
-
-        // jdbc
-        new TestCancel().runTest(this);
-        new TestDataSource().runTest(this);
-        new TestManyJdbcObjects().runTest(this);
-        new TestMetaData().runTest(this);
-        new TestNativeSQL().runTest(this);
-        new TestPreparedStatement().runTest(this);
-        new TestResultSet().runTest(this);
-        new TestStatement().runTest(this);
-        new TestTransactionIsolation().runTest(this);
-        new TestUpdatableResultSet().runTest(this);
-        new TestXA().runTest(this);
-        new TestZloty().runTest(this);
+System.exit(0);        
+//        new TestReadOnly().runTest(this);
+//        new TestRights().runTest(this);
+//        new TestRunscript().runTest(this);
+//        new TestSQLInjection().runTest(this);
+//        new TestSequence().runTest(this);
+//        new TestSpaceReuse().runTest(this);
+//        new TestSpeed().runTest(this);
+//        new TestTempTables().runTest(this);
+//        new TestTransaction().runTest(this);
+//        new TestTriggersConstraints().runTest(this);
+//        new TestTwoPhaseCommit().runTest(this);
+//        new TestView().runTest(this);
+//
+//        // server
+//        new TestNestedLoop().runTest(this);
+//
+//        // jdbc
+//        new TestCancel().runTest(this);
+//        new TestDataSource().runTest(this);
+//        new TestManyJdbcObjects().runTest(this);
+//        new TestMetaData().runTest(this);
+//        new TestNativeSQL().runTest(this);
+//        new TestPreparedStatement().runTest(this);
+//        new TestResultSet().runTest(this);
+//        new TestStatement().runTest(this);
+//        new TestTransactionIsolation().runTest(this);
+//        new TestUpdatableResultSet().runTest(this);
+//        new TestXA().runTest(this);
+//        new TestZloty().runTest(this);
 
         afterTest();
     }

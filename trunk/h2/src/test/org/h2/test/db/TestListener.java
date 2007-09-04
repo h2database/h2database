@@ -5,16 +5,19 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.util.JdbcUtils;
 
 public class TestListener extends TestBase implements DatabaseEventListener {
 
     private long last, start;
+    private String url;
 
     public TestListener() {
         start = last = System.currentTimeMillis();
@@ -79,9 +82,33 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
+        Connection conn = null;        
+        try {
+            conn = DriverManager.getConnection(url, getUser(), getPassword());
+            conn.createStatement().execute("DROP TABLE TEST2");
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.closeSilently(conn);
+        }
     }
 
     public void init(String url) {
+        this.url = url;
+    }
+
+    public void opened() {
+        Connection conn = null;        
+        try {
+            conn = DriverManager.getConnection(url, getUser(), getPassword());
+            conn.createStatement().execute("CREATE TABLE IF NOT EXISTS TEST2(ID INT)");
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.closeSilently(conn);
+        }
     }
 
 }

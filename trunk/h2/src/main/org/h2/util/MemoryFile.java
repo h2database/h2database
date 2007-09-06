@@ -133,9 +133,7 @@ public class MemoryFile {
             long end = MathUtils.roundUpLong(l, BLOCK_SIZE);
             if (end != l) {
                 int lastBlock = (int) (l >>> BLOCK_SIZE_SHIFT);
-                if (compress) {
-                    expand(data, lastBlock);
-                }
+                expand(data, lastBlock);
                 byte[] d = data[lastBlock];
                 for (int i = (int) (l & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
                     d[i] = 0;
@@ -161,11 +159,7 @@ public class MemoryFile {
             byte[][] n = new byte[blocks][];
             System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
             for (int i = data.length; i < blocks; i++) {
-                if (compress) {
-                    n[i] = COMPRESSED_BLOCK;
-                } else {
-                    n[i] = new byte[BLOCK_SIZE];
-                }
+                n[i] = COMPRESSED_BLOCK;
             }
             data = n;
         }
@@ -187,9 +181,7 @@ public class MemoryFile {
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
             int id = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            if (compress) {
-                expand(data, id);
-            }
+            expand(data, id);
             byte[] block = data[id];
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {

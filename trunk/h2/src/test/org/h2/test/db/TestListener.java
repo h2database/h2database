@@ -82,6 +82,9 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
+        if (url.toUpperCase().indexOf("CIPHER") >= 0) {
+            return;
+        }
         Connection conn = null;        
         try {
             conn = DriverManager.getConnection(url, getUser(), getPassword());
@@ -99,6 +102,9 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void opened() {
+        if (url.toUpperCase().indexOf("CIPHER") >= 0) {
+            return;
+        }
         Connection conn = null;        
         try {
             conn = DriverManager.getConnection(url, getUser(), getPassword());

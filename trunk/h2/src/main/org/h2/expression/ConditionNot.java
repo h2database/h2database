@@ -42,8 +42,6 @@ public class ConditionNot extends Condition {
             condition = condition.optimize(session);
             return this;
         }
-        // TODO optimization: some cases are maybe possible to optimize further:
-        // (NOT ID >= 5)
         Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
             return e2.optimize(session);

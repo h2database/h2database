@@ -171,12 +171,8 @@
 		<echo message="build-jdk:${java.specification.version} ant-build.properties/jdk:${jdk}"></echo>
 	</target>
 	
-	<target name="jar" depends="compile, compileServlet">
-		<mkdir dir="bin/META-INF"/>
-		<manifest file="bin/META-INF/MANIFEST.MF">
-			<!--
-			<attribute name="Bundle-Activator" value="org.h2.osgi.Activator"/>
-			-->
+	<target name="jar" depends="compile, compileServlet, manifest">
+		<manifest file="bin/META-INF/MANIFEST.MF" mode="update">
 			<attribute name="Main-Class" value="org.h2.tools.Console"/>
 		</manifest>
 		<jar jarfile="bin/h2.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
@@ -192,26 +188,26 @@
 		</jar>
 	</target>
 
-	<target name="jarClient" depends="compileResources">
+	<target name="jarClient" depends="compileResources, manifest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
 			<include name="org/h2/*" />
 			<include name="org/h2/jdbc/**" /> 
 			<include name="org/h2/jdbcx/**" />
 		</javac>
-		<jar jarfile="bin/h2client.jar" basedir="bin">
+		<jar jarfile="bin/h2client.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>
 			<exclude name="**/*.bat"/>
 		</jar>
 	</target>
 	
-	<target name="jarDb" depends="compileResources">
+	<target name="jarDb" depends="compileResources, manifest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
 			<include name="org/h2/*" />
 			<include name="org/h2/engine/**" /> 
 			<include name="org/h2/jdbc/**" /> 
 			<include name="org/h2/jdbcx/**" />
 		</javac>
-		<jar jarfile="bin/h2db.jar" basedir="bin">
+		<jar jarfile="bin/h2db.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>
 			<exclude name="**/*.bat"/>
 		</jar>
@@ -231,7 +227,20 @@
 			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
 		</copy>
 	</target>
-
+    
+    <target name="manifest">
+		<mkdir dir="bin/META-INF"/>
+		<manifest file="bin/META-INF/MANIFEST.MF">
+			<!--
+			<attribute name="Bundle-Activator" value="org.h2.osgi.Activator"/>
+			-->
+			<attribute name="Implementation-Title" value="H2 Database Engine"/>
+			<attribute name="Implementation-URL" value="http://www.h2database.com"/>
+			<attribute name="Implementation-Version" value="${version.name.maven}"/>
+			<attribute name="Build-Jdk" value="${jdk}"/>
+		</manifest>
+	</target>
+    
 	<target name="mavenBuildCentral">
 		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">

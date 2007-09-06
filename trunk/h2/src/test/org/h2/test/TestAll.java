@@ -148,26 +148,72 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript
         
 /*
 
+SYSDATE sollte CURRENT_TIMESTAMP
+support Trunc(Sysdate),...
+public static String chr(int code) {
+    return String.valueOf((char) code);
+}
+public static Object nvl(Object value, Object ifNull) {
+    return (value != null) ? value : ifNull;
+}
+public static Object nvl2(Object value, Object notNull, Object ifNull) {
+    return (value != null) ? notNull : ifNull;
+}
+public static Timestamp sysdate() {
+    return new Timestamp(System.currentTimeMillis());
+}
+public static String to_char(Object what, String format) {
+    throw new Error("not yet");   // @todo check format
+}
+public static Date to_date(Object what, String format) {
+    throw new Error("not yet");   // @todo check format
+}
+public static Number to_number(String str) {
+    return new Double(str);
+}
+public static java.sql.Date trunc(Timestamp tsp) {
+    return new java.sql.Date(tsp.getTime());
+}
+public static Object trunc(Object what, String format) {
+    System.out.println("*** trunc ***");
+    if (what == null)
+        return null;
+    else if (what instanceof Date) {
+        System.out.println("*** date-format = " + format);
+        return Timestamp.valueOf("1963-03-27 12:34:56.0");
+    } else if (what instanceof Number) {
+        System.out.println("*** number-format = " + format);
+        return new Double(123.456D);
+    } else
+        throw new ClassCastException("number or date expected");
+}        
+        
 
-Ich hatte auch schon unter Windows Probleme mit generateSeed. Eigentlich braucht es das schon. urandom ist nicht genug, siehe http://en.wikipedia.org/wiki/Urandom 'This may be used for less secure applications.' Ich muss mir überlegen wie man dieses Problem lösen kann... Ev. wie folgt: einen Thread starten, generateSeed dort aufrufen. Wenn es länger als 1 Sekunde dauert, folgendes verwenden:
-Ja. Ich könnte ausserdem Secure-Random verzögert initialisieren, d.h. in einem separaten Thread.
-SHA-256 Hash von 
-System.currentTimeMillis() + " " +
-System.identityHashCode(new Object()) + " " +
-System.freeMemory() + " " +
-System.maxMemory() + " " +
-System.totalMemory() + " " +
-Math.random() + " " +
-System.getProperties().toString() + " " +
-Arrays.asList(InetAddress.getAllByName(InetAddress.getLocalHost().getHostName())).toString(); 
-Und bei JDK 1.5 zusätzlich:
-System.nanoTime()
+slow:
 
-I think it would be a good idea to include the version (build) number
-in the Manifest file of h2.jar
-Thus, one could find out the build/version number even if the rest of
-the distribution is not available.
+select ta.attname, ia.attnum, ic.relname 
+from pg_catalog.pg_attribute ta, pg_catalog.pg_attribute ia, pg_catalog.pg_class ic, pg_catalog.pg_index i, pg_catalog.pg_namespace n 
+where ic.relname = 'dummy_pkey' 
+AND n.nspname = '' 
+AND ic.oid = i.indexrelid 
+AND n.oid = ic.relnamespace 
+AND ia.attrelid = i.indexrelid 
+AND ta.attrelid = i.indrelid 
+AND ta.attnum = i.indkey[ia.attnum-1] 
+AND (NOT ta.attisdropped) 
+AND (NOT ia.attisdropped) 
+order by ia.attnum;
 
+
+database files grow when updating data
+
+change default for in-memory undo
+
+japanese topics in the javascript search
+
+feature request: optimization for
+where link_id in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+with NULL and LINK_ID doesn't allow nulls
 
 slow power off test: slow memFS?
 
@@ -706,67 +752,65 @@ SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
         beforeTest();
 
         // db
-//        new TestScriptSimple().runTest(this);
-//        new TestScript().runTest(this);
-//        new TestAutoRecompile().runTest(this);
-//        new TestBackup().runTest(this);
-//        new TestBatchUpdates().runTest(this);
-//        new TestBigDb().runTest(this);
-//        new TestBigResult().runTest(this);
-//        new TestCache().runTest(this);
-//        new TestCases().runTest(this);
-//        new TestCheckpoint().runTest(this);
-//        new TestCluster().runTest(this);
-//        new TestCompatibility().runTest(this);
-//        new TestCsv().runTest(this);
-//        new TestFunctions().runTest(this);
-//        new TestIndex().runTest(this);
-//        if (!SysProperties.MVCC) {
-//            new TestLinkedTable().runTest(this);
-//        }
-//        new TestListener().runTest(this);
-//        new TestLob().runTest(this);
-//        new TestLogFile().runTest(this);
-//        new TestMemoryUsage().runTest(this);
-//        new TestMultiConn().runTest(this);
-//        new TestMultiDimension().runTest(this);
-//        if (!SysProperties.MVCC) {
-//            new TestMultiThread().runTest(this);
-//        }
-//        new TestOpenClose().runTest(this);
-//        new TestOptimizations().runTest(this);
-        
+        new TestScriptSimple().runTest(this);
+        new TestScript().runTest(this);
+        new TestAutoRecompile().runTest(this);
+        new TestBackup().runTest(this);
+        new TestBatchUpdates().runTest(this);
+        new TestBigDb().runTest(this);
+        new TestBigResult().runTest(this);
+        new TestCache().runTest(this);
+        new TestCases().runTest(this);
+        new TestCheckpoint().runTest(this);
+        new TestCluster().runTest(this);
+        new TestCompatibility().runTest(this);
+        new TestCsv().runTest(this);
+        new TestFunctions().runTest(this);
+        new TestIndex().runTest(this);
+        if (!SysProperties.MVCC) {
+            new TestLinkedTable().runTest(this);
+        }
+        new TestListener().runTest(this);
+        new TestLob().runTest(this);
+        new TestLogFile().runTest(this);
+        new TestMemoryUsage().runTest(this);
+        new TestMultiConn().runTest(this);
+        new TestMultiDimension().runTest(this);
+        if (!SysProperties.MVCC) {
+            new TestMultiThread().runTest(this);
+        }
+        new TestOpenClose().runTest(this);
+        new TestOptimizations().runTest(this);
         new TestPowerOff().runTest(this);
-System.exit(0);        
-//        new TestReadOnly().runTest(this);
-//        new TestRights().runTest(this);
-//        new TestRunscript().runTest(this);
-//        new TestSQLInjection().runTest(this);
-//        new TestSequence().runTest(this);
-//        new TestSpaceReuse().runTest(this);
-//        new TestSpeed().runTest(this);
-//        new TestTempTables().runTest(this);
-//        new TestTransaction().runTest(this);
-//        new TestTriggersConstraints().runTest(this);
-//        new TestTwoPhaseCommit().runTest(this);
-//        new TestView().runTest(this);
-//
-//        // server
-//        new TestNestedLoop().runTest(this);
-//
-//        // jdbc
-//        new TestCancel().runTest(this);
-//        new TestDataSource().runTest(this);
-//        new TestManyJdbcObjects().runTest(this);
-//        new TestMetaData().runTest(this);
-//        new TestNativeSQL().runTest(this);
-//        new TestPreparedStatement().runTest(this);
-//        new TestResultSet().runTest(this);
-//        new TestStatement().runTest(this);
-//        new TestTransactionIsolation().runTest(this);
-//        new TestUpdatableResultSet().runTest(this);
-//        new TestXA().runTest(this);
-//        new TestZloty().runTest(this);
+        new TestReadOnly().runTest(this);
+        new TestRights().runTest(this);
+        new TestRunscript().runTest(this);
+        new TestSQLInjection().runTest(this);
+        new TestSequence().runTest(this);
+        new TestSpaceReuse().runTest(this);
+        new TestSpeed().runTest(this);
+        new TestTempTables().runTest(this);
+        new TestTransaction().runTest(this);
+        new TestTriggersConstraints().runTest(this);
+        new TestTwoPhaseCommit().runTest(this);
+        new TestView().runTest(this);
+
+        // server
+        new TestNestedLoop().runTest(this);
+
+        // jdbc
+        new TestCancel().runTest(this);
+        new TestDataSource().runTest(this);
+        new TestManyJdbcObjects().runTest(this);
+        new TestMetaData().runTest(this);
+        new TestNativeSQL().runTest(this);
+        new TestPreparedStatement().runTest(this);
+        new TestResultSet().runTest(this);
+        new TestStatement().runTest(this);
+        new TestTransactionIsolation().runTest(this);
+        new TestUpdatableResultSet().runTest(this);
+        new TestXA().runTest(this);
+        new TestZloty().runTest(this);
 
         afterTest();
     }

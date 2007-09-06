@@ -240,25 +240,27 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (session == null) {
                 return;
             }
-            try {
-                if (!session.isClosed()) {
-                    try {
-                        rollbackInternal();
-                        commit = closeAndSetNull(commit);
-                        rollback = closeAndSetNull(rollback);
-                        setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
-                        setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
-                        getAutoCommit = closeAndSetNull(getAutoCommit);
-                        getReadOnly = closeAndSetNull(getReadOnly);
-                        getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
-                        getLockMode = closeAndSetNull(getLockMode);
-                        setLockMode = closeAndSetNull(setLockMode);
-                    } finally {
-                        session.close();
+            synchronized (session) {
+                try {
+                    if (!session.isClosed()) {
+                        try {
+                            rollbackInternal();
+                            commit = closeAndSetNull(commit);
+                            rollback = closeAndSetNull(rollback);
+                            setAutoCommitTrue = closeAndSetNull(setAutoCommitTrue);
+                            setAutoCommitFalse = closeAndSetNull(setAutoCommitFalse);
+                            getAutoCommit = closeAndSetNull(getAutoCommit);
+                            getReadOnly = closeAndSetNull(getReadOnly);
+                            getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
+                            getLockMode = closeAndSetNull(getLockMode);
+                            setLockMode = closeAndSetNull(setLockMode);
+                        } finally {
+                            session.close();
+                        }
                     }
+                } finally {
+                    session = null;
                 }
-            } finally {
-                session = null;
             }
         } catch (Throwable e) {
             throw logAndConvert(e);

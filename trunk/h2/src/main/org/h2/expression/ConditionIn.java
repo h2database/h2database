@@ -10,6 +10,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
@@ -88,8 +89,7 @@ public class ConditionIn extends Condition {
         if (constant && allValuesConstant) {
             return ValueExpression.get(getValue(session));
         }
-        // TODO optimization: could use index in some cases (sort, use min and
-        // max)
+        // TODO optimization: could use index in some cases (sort, use min and max)
         if (values.size() == 1) {
             Expression right = (Expression) values.get(0);
             Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
@@ -102,6 +102,8 @@ public class ConditionIn extends Condition {
             independent.queryLevel = queryLevel;
             if (areAllValues(independent)) {
                 if (left instanceof ExpressionColumn) {
+                    Column column = ((ExpressionColumn) left).getColumn();
+                    boolean nullable = column.getNullable();
                     CompareMode mode = session.getDatabase().getCompareMode();
                     for (int i = 0; i < values.size(); i++) {
                         Expression e = (Expression) values.get(i);
@@ -109,7 +111,9 @@ public class ConditionIn extends Condition {
                         v = v.convertTo(dataType);
                         values.set(i, ValueExpression.get(v));
                         if (min == null || min.compareTo(v, mode) > 0) {
-                            min = v;
+                            if (v != ValueNull.INSTANCE || nullable) {
+                                min = v;
+                            }
                         }
                         if (max == null || max.compareTo(v, mode) < 0) {
                             max = v;

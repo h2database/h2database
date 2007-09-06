@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int primary key);
+> ok
+
+insert into test values(1), (2), (3);
+> update count: 3
+
+explain select * from test where id in(1, 2, null);
+> PLAN
+> -------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID >= 1 AND ID <= 2 */ WHERE ID IN(1, 2, NULL)
+> rows: 1
+
+drop table test;
+> ok
+
 create alias "SYSDATE" for "java.lang.Integer.parseInt(java.lang.String)";
 > exception
 

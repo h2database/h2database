@@ -1,3 +1,10 @@
+SELECT X FROM (SELECT X, X AS "XY" FROM DUAL) WHERE X=1;
+> 1;
+SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL) WHERE X=1;
+> 1;
+SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL AS "D Z") WHERE X=1; 
+> 1;
+
 select * from (select x from dual union select convert(x, int) from dual) where x=0;
 create table test(id int);
 insert into scriptSimple.public.test(id) values(1), (2);

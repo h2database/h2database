@@ -350,6 +350,8 @@ public class Parser {
                     c = parseGrantRevoke(GrantRevoke.REVOKE);
                 } else if (readIf("RUNSCRIPT")) {
                     c = parseRunScript();
+                } else if (readIf("RELEASE")) {
+                    c = parseReleaseSavepoint();
                 }
                 break;
             case 'S':
@@ -538,6 +540,13 @@ public class Parser {
     private TransactionCommand parseSavepoint() throws SQLException {
         TransactionCommand command = new TransactionCommand(session, TransactionCommand.SAVEPOINT);
         command.setSavepointName(readUniqueIdentifier());
+        return command;
+    }
+    
+    private Prepared parseReleaseSavepoint() throws SQLException {
+        Prepared command = new NoOperation(session);
+        readIf("SAVEPOINT");
+        readUniqueIdentifier();
         return command;
     }
 

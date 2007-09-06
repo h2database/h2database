@@ -5,6 +5,8 @@
 package org.h2.table;
 
 import java.sql.SQLException;
+
+import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Mode;
@@ -403,7 +405,7 @@ public class TableFilter implements ColumnResolver {
         buff.append(table.getSQL());
         if (alias != null && !table.getName().equals(alias)) {
             buff.append(' ');
-            buff.append(alias);
+            buff.append(Parser.quoteIdentifier(alias));
         }
         buff.append(" /* ");
         StringBuffer planBuff = new StringBuffer();

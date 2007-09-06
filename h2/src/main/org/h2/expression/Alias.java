@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -64,7 +65,7 @@ public class Alias extends Expression {
     }    
 
     public String getSQL() {
-        return expr.getSQL() + " AS " + alias;
+        return expr.getSQL() + " AS " + Parser.quoteIdentifier(alias);
     }
     
     public void updateAggregate(Session session) throws SQLException {

@@ -40,7 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.x (2007-09-x)</h3><ul>
-<li>The database file sizes are now increased at most 32 MB at any time.
+<li>Using spaces in column and table aliases was not supported when used inside a view or temporary view.
+</li><li>The version (build) number is now included in the manifest file.
+</li><li>In some systems, SecureRandom.generateSeed is very slow (taking one minute or more).
+	For those cases, an alternative method is used that takes less than one second.
+</li><li>The database file sizes are now increased at most 32 MB at any time.
 </li><li>New method DatabaseEventListener.opened that is called just after opening a database.
 </li><li>When using the Console with Internet Explorer 6.0 or 7.0, a Javascript error was thrown after clearing the query.
 </li><li>A database can now be opened even if class of a user defined function is not in the classpath.

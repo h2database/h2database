@@ -151,26 +151,26 @@ public class CompressLZF implements Compressor {
             } else {
                 // back reference
                 int len = ctrl >> 5;
-                int ref = -((ctrl & 0x1f) << 8) - 1;
+                ctrl = -((ctrl & 0x1f) << 8) - 1;
                 if (len == 7) {
                     len += in[inPos++] & 255;
                 }
-                ref -= in[inPos++] & 255;
+                ctrl -= in[inPos++] & 255;
                 len += outPos + 2;
-                out[outPos] = out[outPos++ + ref];
-                out[outPos] = out[outPos++ + ref];
+                out[outPos] = out[outPos++ + ctrl];
+                out[outPos] = out[outPos++ + ctrl];
                 while (outPos < len - 8) {
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
-                    out[outPos] = out[outPos++ + ref];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
+                    out[outPos] = out[outPos++ + ctrl];
                 }
                 while (outPos < len) {
-                    out[outPos] = out[outPos++ + ref];
+                    out[outPos] = out[outPos++ + ctrl];
                 }
             }
         } while (outPos < outLen);

@@ -1271,7 +1271,11 @@ public class Database implements DataHandler {
         } else {
             try {
                 eventListener = (DatabaseEventListener) loadClass(className).newInstance();
-                eventListener.init(databaseURL);
+                String url = databaseURL;
+                if (cipher != null) {
+                    url += ";CIPHER=" + cipher;
+                }
+                eventListener.init(url);
             } catch (Throwable e) {
                 throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2, new String[] {
                         className, e.toString() }, e);

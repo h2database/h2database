@@ -59,19 +59,19 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
-            CommandInterface command = conn.prepareCommand(sql);
-            ResultInterface result;
-            boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
             synchronized (session) {
+                CommandInterface command = conn.prepareCommand(sql);
+                ResultInterface result;
+                boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                 setExecutingStatement(command);
                 try {
                     result = command.executeQuery(maxRows, scrollable);
                 } finally {
                     setExecutingStatement(null);
                 }
+                command.close();
+                resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             }
-            command.close();
-            resultSet = new JdbcResultSet(session, conn, this, result, id, closedByResultSet, scrollable);
             return resultSet;
         } catch (Throwable e) {
             throw logAndConvert(e);

@@ -251,7 +251,9 @@ public class TableFilter implements ColumnResolver {
             if (alwaysFalse) {
                 state = AFTER_LAST;
             } else {
-                scanCount++;
+                if ((++scanCount & 4095) == 0) {
+                    logScanCount();
+                }
                 if (cursor.next()) {
                     currentSearchRow = cursor.getSearchRow();
                     current = null;
@@ -299,6 +301,10 @@ public class TableFilter implements ColumnResolver {
         }
         state = AFTER_LAST;
         return false;
+    }
+    
+    private void logScanCount() {
+        // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
     }
 
     private boolean isOk(Expression condition) throws SQLException {

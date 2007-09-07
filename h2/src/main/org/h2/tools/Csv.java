@@ -43,9 +43,7 @@ public class Csv implements SimpleRowSource {
     private char fieldDelimiter = '\"';
     private char escapeCharacter = '\"';
     private String fileName;
-    private InputStream in;
     private Reader reader;
-    private OutputStream out;
     private PrintWriter writer;
     private int back;
     private boolean endOfLine, endOfFile;
@@ -226,9 +224,9 @@ public class Csv implements SimpleRowSource {
     private void initWrite() throws IOException {
         if (writer == null) {
             try {
-                out = new FileOutputStream(fileName);
-                BufferedOutputStream o = new BufferedOutputStream(out, bufferSize);
-                writer = new PrintWriter(new OutputStreamWriter(o, charset));
+                OutputStream out = new FileOutputStream(fileName);
+                out = new BufferedOutputStream(out, bufferSize);
+                writer = new PrintWriter(new OutputStreamWriter(out, charset));
                 // TODO performance: what is faster? one, two, or both?
                 // writer = new PrintWriter(new BufferedWriter(new
                 // OutputStreamWriter(out, encoding), bufferSize));
@@ -287,12 +285,11 @@ public class Csv implements SimpleRowSource {
     private void initRead() throws IOException {
         if (reader == null) {
             try {
-                in = FileUtils.openFileInputStream(fileName);
-                BufferedInputStream i = new BufferedInputStream(in, bufferSize);
-                reader = new InputStreamReader(i, charset);
+                InputStream in = FileUtils.openFileInputStream(fileName);
+                in = new BufferedInputStream(in, bufferSize);
+                reader = new InputStreamReader(in, charset);
                 // TODO what is faster, 1, 2, 1+2
-                // reader = new BufferedReader(new InputStreamReader(in,
-                // encoding), bufferSize);
+                // reader = new BufferedReader(new InputStreamReader(in, encoding), bufferSize);
             } catch (IOException e) {
                 close();
                 throw e;
@@ -500,12 +497,8 @@ public class Csv implements SimpleRowSource {
     public void close() {
         IOUtils.closeSilently(reader);
         reader = null;
-        IOUtils.closeSilently(in);
-        in = null;
         IOUtils.closeSilently(writer);
         writer = null;
-        IOUtils.closeSilently(out);
-        out = null;
     }
 
     /**

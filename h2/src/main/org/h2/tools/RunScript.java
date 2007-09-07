@@ -22,6 +22,7 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
@@ -159,11 +160,11 @@ public class RunScript {
         InputStream in = FileUtils.openFileInputStream(fileName);
         String path = FileUtils.getParent(fileName);
         try {
-            BufferedInputStream bin = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            InputStreamReader reader = new InputStreamReader(bin, charsetName);
+            in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
+            InputStreamReader reader = new InputStreamReader(in, charsetName);
             execute(conn, threadMap, continueOnError, path, reader, charsetName);
         } finally {
-            in.close();
+            IOUtils.closeSilently(in);
         }
     }
 

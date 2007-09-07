@@ -56,9 +56,6 @@ merge into pg_catalog.pg_type values(
     0
 );
 
-
-
-    
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids) 
 as 
 select 

@@ -148,49 +148,9 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript
         
 /*
 
-SYSDATE sollte CURRENT_TIMESTAMP
-support Trunc(Sysdate),...
-public static String chr(int code) {
-    return String.valueOf((char) code);
-}
-public static Object nvl(Object value, Object ifNull) {
-    return (value != null) ? value : ifNull;
-}
-public static Object nvl2(Object value, Object notNull, Object ifNull) {
-    return (value != null) ? notNull : ifNull;
-}
-public static Timestamp sysdate() {
-    return new Timestamp(System.currentTimeMillis());
-}
-public static String to_char(Object what, String format) {
-    throw new Error("not yet");   // @todo check format
-}
-public static Date to_date(Object what, String format) {
-    throw new Error("not yet");   // @todo check format
-}
-public static Number to_number(String str) {
-    return new Double(str);
-}
-public static java.sql.Date trunc(Timestamp tsp) {
-    return new java.sql.Date(tsp.getTime());
-}
-public static Object trunc(Object what, String format) {
-    System.out.println("*** trunc ***");
-    if (what == null)
-        return null;
-    else if (what instanceof Date) {
-        System.out.println("*** date-format = " + format);
-        return Timestamp.valueOf("1963-03-27 12:34:56.0");
-    } else if (what instanceof Number) {
-        System.out.println("*** number-format = " + format);
-        return new Double(123.456D);
-    } else
-        throw new ClassCastException("number or date expected");
-}        
-        
+database files grow when updating data
 
 slow:
-
 select ta.attname, ia.attnum, ic.relname 
 from pg_catalog.pg_attribute ta, pg_catalog.pg_attribute ia, pg_catalog.pg_class ic, pg_catalog.pg_index i, pg_catalog.pg_namespace n 
 where ic.relname = 'dummy_pkey' 
@@ -204,50 +164,9 @@ AND (NOT ta.attisdropped)
 AND (NOT ia.attisdropped) 
 order by ia.attnum;
 
-
-database files grow when updating data
-
 change default for in-memory undo
 
 japanese topics in the javascript search
-
-feature request: optimization for
-where link_id in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-with NULL and LINK_ID doesn't allow nulls
-
-slow power off test: slow memFS?
-
-DROP TABLE ONE; 
-DROP TABLE TWO; 
-CREATE TABLE ONE(A INT PRIMARY KEY, B INT); 
-INSERT INTO ONE VALUES(0, NULL); 
-INSERT INTO ONE VALUES(1, 0);
-INSERT INTO ONE VALUES(2, 1); 
-INSERT INTO ONE VALUES(3, 4); 
-CREATE TABLE TWO(A INT PRIMARY KEY, B INT); 
-INSERT INTO TWO VALUES(0, NULL);
-INSERT INTO TWO VALUES(1, 0); 
-INSERT INTO TWO VALUES(2, 2); 
-INSERT INTO TWO VALUES(3, 3); 
-INSERT INTO TWO VALUES(4, NULL);
-
-SELECT * FROM ONE A LEFT JOIN ONE B ON NOT A.A=A.A;
-        
-SELECT T0.A FROM TWO T0 WHERE NOT ((T0.B=T0.A ) AND (T0.B=0 )) AND (T0.B IS NULL );
-
-SELECT T0.A, T1.A, T2.A, T3.A FROM ONE T0 LEFT JOIN ONE T1 ON NOT T0.B=T0.B LEFT JOIN ONE T2 ON T1.A=T2.A LEFT JOIN ONE T3 ON (T3.B=0 ) OR (T2.A<-1 );
-
-SELECT T0.A, T1.A, T2.A, T3.A FROM TWO T0 LEFT JOIN ONE T1 ON T0.B<T0.A LEFT JOIN ONE T2 ON T1.A=T2.A LEFT JOIN TWO T3 ON (T2.A=T3.A ) OR (T3.B=0 );
-
-SELECT T0.A, T1.A, T2.A, T3.A FROM TWO T0 LEFT JOIN ONE T1 ON T0.B>2 LEFT JOIN ONE T2 ON T1.A=T2.A LEFT JOIN TWO T3 ON T2.A IS NULL;
-        
-SELECT T0.A, T1.A FROM TWO T0 INNER JOIN TWO T1 ON NOT (((T0.A=T0.B ) AND (T0.B=0 )) OR (T0.A=T1.A )) OR (T0.A=T0.B );
-
-SELECT T0.A, T1.A FROM ONE T0 INNER JOIN ONE T1 ON NOT ((T0.A=T0.B ) AND (T0.B=1 )) OR (T0.B=2 );
-
-document:
-maximum file size increment is 16 MB
-dont increase database size by more than 128 MB
 
 DROP TABLE IF EXISTS TEST;
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
@@ -266,15 +185,11 @@ add MVCC
 
 don't create @~ of not translated
 
-improve documentation of 'mixed mode' usage.
-
 test performance and document fulltext search
 
 clustered tables: test, document
 
 search for japanese: works, but is it ok?
-pdf: first page looks empty (because the top part is empty) - title on the top?
-pdf / openoffice: pictures don't work?
 
 extend tests that simulate power off
 
@@ -330,26 +245,15 @@ Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
 
 Automate real power off tests
 
-Negative dictionary:
-Please note that
-
-Merge more from diff.zip (Pavel Ganelin)
-Integrate patches from Pavel Ganelin: www.dullesopen.com/software/h2-database-03-04-07-mod.src.zip
-
-store dates as 'local'. Problem: existing files use GMT (use escape syntax)
 drop table test;
 CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
 INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
 SELECT * FROM TEST;
 
-Server: use one listener (detect if the request comes from an PG or TCP client).
-
 http://fastutil.dsi.unimi.it/
 http://javolution.org/
 http://joda-time.sourceforge.net/
 http://ibatis.apache.org/
-
-Document org.h2.samples.MixedMode
 
 http://www.igniterealtime.org/projects/openfire/index.jsp
 
@@ -366,15 +270,47 @@ translated .pdf
 docs: xml:lang="en" > correct language (and detect wrong language based on _ja)
 docs: xhtml: use UTF-8 encoding (<?xml version="1.0"?>)
 
-io: wrapped streams are closed: simplify code
-
-document SET SEARCH_PATH, BEGIN, EXECUTE, $ parameters
-
-Complete Javadocs for Messages and add to docs
-
 write tests using the PostgreSQL JDBC driver
 
-JDK 1.6: Desktop.isDesktopSupported, browse(URI uri)
+SYSDATE sollte CURRENT_TIMESTAMP
+support Trunc(Sysdate),...
+public static String chr(int code) {
+    return String.valueOf((char) code);
+}
+public static Object nvl(Object value, Object ifNull) {
+    return (value != null) ? value : ifNull;
+}
+public static Object nvl2(Object value, Object notNull, Object ifNull) {
+    return (value != null) ? notNull : ifNull;
+}
+public static Timestamp sysdate() {
+    return new Timestamp(System.currentTimeMillis());
+}
+public static String to_char(Object what, String format) {
+    throw new Error("not yet");   // @todo check format
+}
+public static Date to_date(Object what, String format) {
+    throw new Error("not yet");   // @todo check format
+}
+public static Number to_number(String str) {
+    return new Double(str);
+}
+public static java.sql.Date trunc(Timestamp tsp) {
+    return new java.sql.Date(tsp.getTime());
+}
+public static Object trunc(Object what, String format) {
+    System.out.println("*** trunc ***");
+    if (what == null)
+        return null;
+    else if (what instanceof Date) {
+        System.out.println("*** date-format = " + format);
+        return Timestamp.valueOf("1963-03-27 12:34:56.0");
+    } else if (what instanceof Number) {
+        System.out.println("*** number-format = " + format);
+        return new Double(123.456D);
+    } else
+        throw new ClassCastException("number or date expected");
+}        
 
 */        
 

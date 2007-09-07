@@ -185,7 +185,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    private boolean isPageFree(int page) {
+    boolean isPageFree(int page) {
         for (int i = page * BLOCKS_PER_PAGE; i < (page + 1) * BLOCKS_PER_PAGE; i++) {
             if (used.get(i)) {
                 return false;
@@ -500,8 +500,7 @@ public class DiskFile implements CacheWriter {
         for (int i = pos; i < pos + blockCount; i++) {
             used.clear(i);
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
-                // if this is the first page of a block and if the whole page is
-                // free
+                // if this is the first page of a block and if the whole page is free
                 setPageOwner(getPage(i), -1);
             }
         }

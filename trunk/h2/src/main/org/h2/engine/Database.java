@@ -137,6 +137,7 @@ public class Database implements DataHandler {
     private String accessModeLog, accessModeData;
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
+    private DatabaseCloser closeOnExit;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);
@@ -180,7 +181,7 @@ public class Database implements DataHandler {
                 open(traceLevelFile, traceLevelSystemOut);
             }
             if (closeAtVmShutdown) {
-                DatabaseCloser closeOnExit = new DatabaseCloser(this, 0, true);
+                closeOnExit = new DatabaseCloser(this, 0, true);
                 try {
                     Runtime.getRuntime().addShutdownHook(closeOnExit);
                 } catch (IllegalStateException e) {
@@ -841,6 +842,15 @@ public class Database implements DataHandler {
         }
         traceSystem.getTrace(Trace.DATABASE).info("closed");
         traceSystem.close();
+        if (closeOnExit != null) {
+            closeOnExit.reset();
+            try {
+                Runtime.getRuntime().removeShutdownHook(closeOnExit);
+            } catch (IllegalStateException e) {
+                // ignore
+            }
+            closeOnExit = null;
+        }
         Engine.getInstance().close(databaseName);
         if (deleteFilesOnDisconnect && persistent) {
             deleteFilesOnDisconnect = false;

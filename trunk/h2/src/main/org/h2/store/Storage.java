@@ -37,6 +37,7 @@ public class Storage {
     private int id;
     private Database database;
     private DataPage dummy;
+    private int pageCheckIndex;
 
     public Storage(Database database, DiskFile file, RecordReader reader, int id) {
         this.database = database;
@@ -133,6 +134,7 @@ public class Storage {
     }
 
     public void removeRecord(Session session, int pos) throws SQLException {
+        checkOnePage();
         Record record = getRecord(session, pos);
         if (SysProperties.CHECK && record.getDeleted()) {
             throw Message.getInternalError("duplicate delete " + pos);
@@ -142,10 +144,6 @@ public class Storage {
         free(pos, blockCount);
         recordCount--;
         file.removeRecord(session, pos, record, blockCount);
-    }
-
-    public void removeRecord(Session session, int pos, int blockCount) throws SQLException {
-
     }
 
     private boolean isFreeAndMine(int pos, int blocks) {
@@ -253,6 +251,25 @@ public class Storage {
 
     void removePage(int i) {
         pages.removeValue(i);
+    }
+    
+private int test;
+//private static long totalCheck;
+    private void checkOnePage() throws SQLException {
+//        if(true) return;
+//long time = System.currentTimeMillis();
+        pageCheckIndex = (pageCheckIndex + 1) % pages.size();
+        int page = pages.get(pageCheckIndex);
+        if (file.isPageFree(page)) {
+//System.out.println("found one! " + page);            
+            file.setPageOwner(page, -1);
+        }
+//time = System.currentTimeMillis() - time;
+//totalCheck+= time;
+//if(totalCheck > 1000) {
+//    System.out.println("##took one second");
+//    totalCheck--;
+//}
     }
 
 }

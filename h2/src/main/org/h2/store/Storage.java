@@ -253,23 +253,12 @@ public class Storage {
         pages.removeValue(i);
     }
     
-private int test;
-//private static long totalCheck;
     private void checkOnePage() throws SQLException {
-//        if(true) return;
-//long time = System.currentTimeMillis();
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);
-        if (file.isPageFree(page)) {
-//System.out.println("found one! " + page);            
+        if (file.isPageFree(page) && file.getPageOwner(page) == id) {
             file.setPageOwner(page, -1);
         }
-//time = System.currentTimeMillis() - time;
-//totalCheck+= time;
-//if(totalCheck > 1000) {
-//    System.out.println("##took one second");
-//    totalCheck--;
-//}
     }
 
 }

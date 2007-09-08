@@ -171,7 +171,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        if (tableFilter == resolver.getTableFilter()) {
+        if (resolver != null && tableFilter == resolver.getTableFilter()) {
             evaluatable = b;
         }
     }

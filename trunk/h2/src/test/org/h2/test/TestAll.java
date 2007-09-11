@@ -102,7 +102,6 @@ public class TestAll {
 // java -cp .;%H2DRIVERS% org.h2.test.TestAll
 // java -Xrunhprof:cpu=samples,depth=8 org.h2.test.TestAll
 // java -Xrunhprof:heap=sites,depth=8 org.h2.test.TestAll
-// C:\Programme\Java\jdk1.6.beta\bin\java
 
 /*
 
@@ -118,14 +117,9 @@ start cmd /k "java -cp . org.h2.test.TestAll random >testRandom.txt"
 start cmd /k "java -cp . org.h2.test.TestAll btree >testBtree.txt"
 start cmd /k "java -cp . org.h2.test.TestAll halt >testHalt.txt"
 
-
 java org.h2.test.TestAll timer
 
-Test for hot spots:
-java -agentlib:yjpagent=sampling,noj2ee,dir=C:\temp\Snapshots org.h2.test.bench.TestPerformance -init -db 1
-java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript 
--url jdbc:h2:test;TRACE_LEVEL_FILE=3;LOG=2;MAX_LOG_SIZE=1000;DATABASE_EVENT_LISTENER='org.h2.samples.ShowProgress' -user sa -script test.sql
- */
+*/
 
     public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
     public boolean codeCoverage;
@@ -148,7 +142,7 @@ java -Xmx512m -Xrunhprof:cpu=samples,depth=8 org.h2.tools.RunScript
         
 /*
 
-database files grow when updating data
+add MVCC
 
 slow:
 select ta.attname, ia.attnum, ic.relname 
@@ -164,24 +158,14 @@ AND (NOT ta.attisdropped)
 AND (NOT ia.attisdropped) 
 order by ia.attnum;
 
-change default for in-memory undo
-
-japanese topics in the javascript search
-
 DROP TABLE IF EXISTS TEST;
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 @LOOP 1000000 INSERT INTO TEST VALUES(?, SPACE(100000));
 <stop>
 <reconnect>
-out of memory
+out of memory?
 
 shrink newsletter list (migrate to google groups)
-
-see if maven repository is ok, document
-http://maven.apache.org/guides/mini/guide-central-repository-upload.html
-http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/1.0.57/
-
-add MVCC
 
 don't create @~ of not translated
 
@@ -189,10 +173,9 @@ test performance and document fulltext search
 
 clustered tables: test, document
 
-search for japanese: works, but is it ok?
-
 extend tests that simulate power off
 
+HSQLDB compatibility:
 Openfire server uses this script to setup a user permissions
 on the fresh-installed server. The database is [current] HSQLDB :
 CREATE SCHEMA PUBLIC AUTHORIZATION DBA
@@ -207,48 +190,31 @@ move  Comparison to Other Database Engines > Comparison
 move Products that Work with H2 > Comparison
 move Performance Tuning > Advanced Topics
 
-storages should be an int hash map
-
 testHalt
 java org.h2.test.TestAll halt 
 
->testHalt.txt
-
 timer test
-
-Mail http://sf.net/projects/samooha
 
 java.lang.Exception: query was too quick; result: 0 time:968
         at org.h2.test.TestBase.logError(TestBase.java:220)
         at org.h2.test.db.TestCases$1.run(TestCases.java:170)
         at java.lang.Thread.run(Thread.java:595)
         
-h2\src\docsrc\html\images\SQLInjection.txt
-
 ftp server: problem with multithreading?
+
+h2\src\docsrc\html\images\SQLInjection.txt
 
 send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide, 
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 MySQL, PostgreSQL
 
-http://semmle.com/
-try out, find bugs
-
 READ_TEXT(fileName String) returning a CLOB. 
 I am not sure if this will read the CLOB in memory however. 
-I will add this to the todo list.
 
 Improve LOB in directories performance
 
-Test Eclipse DTP 1.5 (HSQLDB / H2 connection bug fixed)
-
 Automate real power off tests
-
-drop table test;
-CREATE TABLE TEST( ID BIGINT PRIMARY KEY,  CREATED TIMESTAMP);
-INSERT INTO TEST VALUES(1, '2007-01-01 00:00:00');
-SELECT * FROM TEST;
 
 http://fastutil.dsi.unimi.it/
 http://javolution.org/
@@ -260,200 +226,37 @@ http://www.igniterealtime.org/projects/openfire/index.jsp
 translation:
 src/org.h2.res/help.csv (using ${.} as in .jsp?)
 javadocs (using generated ${.} ?)
-html (using generated wiki pages ?)
-how do multi line properties files work? xml? [key]...?
-converter between properties and [key] ...?
-checksum marker
 glossary
 spell check / word list per language
 translated .pdf
-docs: xml:lang="en" > correct language (and detect wrong language based on _ja)
-docs: xhtml: use UTF-8 encoding (<?xml version="1.0"?>)
 
 write tests using the PostgreSQL JDBC driver
 
-SYSDATE sollte CURRENT_TIMESTAMP
-support Trunc(Sysdate),...
-public static String chr(int code) {
-    return String.valueOf((char) code);
-}
-public static Object nvl(Object value, Object ifNull) {
-    return (value != null) ? value : ifNull;
-}
-public static Object nvl2(Object value, Object notNull, Object ifNull) {
-    return (value != null) ? notNull : ifNull;
-}
-public static Timestamp sysdate() {
-    return new Timestamp(System.currentTimeMillis());
-}
-public static String to_char(Object what, String format) {
-    throw new Error("not yet");   // @todo check format
-}
-public static Date to_date(Object what, String format) {
-    throw new Error("not yet");   // @todo check format
-}
-public static Number to_number(String str) {
-    return new Double(str);
-}
-public static java.sql.Date trunc(Timestamp tsp) {
-    return new java.sql.Date(tsp.getTime());
-}
-public static Object trunc(Object what, String format) {
-    System.out.println("*** trunc ***");
-    if (what == null)
-        return null;
-    else if (what instanceof Date) {
-        System.out.println("*** date-format = " + format);
-        return Timestamp.valueOf("1963-03-27 12:34:56.0");
-    } else if (what instanceof Number) {
-        System.out.println("*** number-format = " + format);
-        return new Double(123.456D);
-    } else
-        throw new ClassCastException("number or date expected");
-}        
+support Oracle functions:
+TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER;
 
 */        
-
-/*
-
-complete recursive views:
-
-drop all objects;
-create table parent(id int primary key, parent int);
-insert into parent values(1, null), (2, 1), (3, 1);
-
-with test_view(id, parent) as 
-select id, parent from parent where id = ? 
-union all 
-select parent.id, parent.parent from test_view, parent 
-where parent.parent = test_view.id
-select * from test_view {1: 1};
-
-drop view test_view;
-
-with test_view(id, parent) as 
-select id, parent from parent where id = 1 
-union all 
-select parent.id, parent.parent from test_view, parent 
-where parent.parent = test_view.id
-select * from test_view;
-
-drop view test_view;
-
-drop table parent;
-*/        
         
-/*        
+// run  TestHalt
 
-  DROP TABLE TEST;
-CREATE TABLE TEST(ID INT);
-INSERT INTO TEST VALUES(1);
-INSERT INTO TEST VALUES(2);
+// GroovyServlet
 
-SELECT ID AS A FROM TEST WHERE A>0;
--- Yes: HSQLDB
--- Fail: Oracle, MS SQL Server, PostgreSQL, MySQL, H2, Derby
+// Cluster: hot deploy (adding a node on runtime)
 
-SELECT ID AS A FROM TEST ORDER BY A;
--- Yes: Oracle, MS SQL Server, PostgreSQL, MySQL, H2, Derby, HSQLDB
+// test with PostgreSQL  Version 8.2
 
-SELECT ID AS A FROM TEST ORDER BY -A;
--- Yes: Oracle, MySQL, HSQLDB
--- Fail: MS SQL Server, PostgreSQL, H2, Derby
+// http://dev.helma.org/Wiki/RhinoLoader
 
-SELECT ID AS A FROM TEST GROUP BY A;
--- Yes: PostgreSQL, MySQL, HSQLDB
--- Fail: Oracle, MS SQL Server, H2, Derby
+// test with garbage at the end of the log file (must be consistently detected as such)
+// test LIKE: compare against other databases
 
-SELECT ID AS A FROM TEST GROUP BY -A;
--- Yes: MySQL, HSQLDB
--- Fail: Oracle, MS SQL Server, PostgreSQL, H2, Derby
+// TestRandomSQL is too random; most statements fails
 
-SELECT ID AS A FROM TEST GROUP BY ID HAVING A>0;
--- Yes: MySQL, HSQLDB
--- Fail: Oracle, MS SQL Server, PostgreSQL, H2, Derby
+// extend the random join test that compared the result against PostgreSQL
 
-SELECT COUNT(*) AS A FROM TEST GROUP BY ID HAVING A>0;
--- Yes: MySQL, HSQLDB
--- Fail: Oracle, MS SQL Server, PostgreSQL, H2, Derby
-*/    
-        // TODO: fix Hibernate dialect bug / Bordea Felix (lost email)
+// long running test with the same database
 
-        // run  TestHalt
-        
-        //        WHERE FLAG does not use index, but WHERE FLAG=TRUE does
-        //        drop table test;
-        //        CREATE TABLE test (id int, flag BIT NOT NULL);
-        //        CREATE INDEX idx_flag ON test(flag);
-        //        CREATE INDEX idx_id ON test(id);
-        //        insert into test values(1, false), (2, true), (3, false), (4, true);
-        //        ALTER TABLE test ALTER COLUMN id SELECTIVITY 100;
-        //        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 1;
-        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
-        //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
-        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
-        //
-        //        ALTER TABLE test ALTER COLUMN id SELECTIVITY 1;
-        //        ALTER TABLE test ALTER COLUMN flag SELECTIVITY 100;
-        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag=true; 
-        //        EXPLAIN SELECT * FROM test WHERE id between 2 and 3 AND flag=true; 
-        //        EXPLAIN SELECT * FROM test WHERE id=2 AND flag; 
-
-        // h2
-        // update FOO set a = dateadd('second', 4320000, a);
-        // ms sql server
-        // update FOO set a = dateadd(s, 4320000, a);
-        // mysql
-        // update FOO set a = date_add(a, interval 4320000 second);
-        // postgresql
-        // update FOO set a = a + interval '4320000 s';
-        // oracle
-        // update FOO set a = a + INTERVAL '4320000' SECOND;
-        
-        // GroovyServlet
-
-        // Cluster: hot deploy (adding a node on runtime)
-        
-        // dataSource.setLogWriter() seems to have no effect?
-        
-        // CHAR data type
-//        DROP TABLE TEST;
-//        CREATE TABLE TEST(C CHAR(10));
-//        INSERT INTO TEST VALUES('1');
-//        SELECT COUNT(*) FROM TEST WHERE C='1 ';
-//        -- PostgreSQL, HSQLDB, MySQL, Derby, MS SQL Server, Oracle: 1
-//        -- H2: 0
-//        SELECT LENGTH(C), LENGTH(C || 'x') FROM TEST;
-//        -- MySQL: 1, 1 (??)
-//        -- MS SQL Server: 1, 11 (SELECT LEN(C), LEN(C + 'x') FROM TEST)
-//        -- Oracle, Derby: 10, 11
-//        -- PostgreSQL, H2, HSQLDB: 1, 2
-        
-        // auto-upgrade application:
-        // check if new version is available 
-        // (option: digital signature)
-        // if yes download new version
-        // (option: http, https, ftp, network)
-        // backup database to SQL script
-        // (option: list of databases, use recovery mechanism)
-        // install new version
-        
-        // ftp client
-        // task to download new version from another HTTP / HTTPS / FTP server
-        // multi-task
-
-        // test with PostgreSQL  Version 8.2
-
-        // http://dev.helma.org/Wiki/RhinoLoader
-        
-        // test with garbage at the end of the log file (must be consistently detected as such)
-        // test LIKE: compare against other databases
-        // TestRandomSQL is too random; most statements fails
-        // extend the random join test that compared the result against PostgreSQL
-        // long running test with the same database
-        // repeatable test with a very big database (making backups of the database files)
-        
-        // data conversion should be done automatically when the new engine connects.  
+// repeatable test with a very big database (making backups of the database files)
         
         if (args.length > 0) {
             if ("crash".equals(args[0])) {

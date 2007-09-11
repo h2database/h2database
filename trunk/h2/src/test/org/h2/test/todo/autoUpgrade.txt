@@ -1,0 +1,14 @@
+file conversion should be done automatically when the new engine connects.  
+
+auto-upgrade application:
+check if new version is available 
+(option: digital signature)
+if yes download new version
+(option: http, https, ftp)
+backup database to SQL script
+(option: list of databases, use recovery mechanism)
+install new version
+
+ftp client
+task to download new version from another HTTP / HTTPS / FTP server
+multi-task

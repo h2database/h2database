@@ -185,6 +185,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ASCII", ASCII, 1, Value.INT);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.INT);
         addFunction("CHAR", CHAR, 1, Value.STRING);
+        addFunction("CHR", CHAR, 1, Value.STRING);
         addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
         addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT); // same as
                                                                     // CHAR_LENGTH
@@ -1350,17 +1351,21 @@ public class Function extends Expression implements FunctionCall {
         case COALESCE:
         case LEAST:
         case GREATEST: {
-            dataType = Value.STRING;
+            dataType = Value.UNKNOWN;
             scale = 0;
             precision = 0;
             for (int i = 0; i < args.length; i++) {
                 Expression e = args[i];
-                if (e != ValueExpression.NULL) {
-                    dataType = e.getType();
-                    scale = e.getScale();
-                    precision = e.getPrecision();
-                    break;
+                if (e != ValueExpression.NULL && e.getType() != Value.UNKNOWN) {
+                    dataType = Value.getHigherOrder(dataType, e.getType());
+                    scale = Math.max(scale, e.getScale());
+                    precision = Math.max(precision, e.getPrecision());
                 }
+            }
+            if (dataType == Value.UNKNOWN) {
+                dataType = Value.STRING;
+                scale = 0;
+                precision = 0;
             }
             break;
         }

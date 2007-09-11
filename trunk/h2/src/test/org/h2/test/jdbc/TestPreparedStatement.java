@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testCoalesce(conn);
         testPreparedStatementMetaData(conn);
         testDate(conn);
         testArray(conn);
@@ -46,6 +47,16 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testCoalesce(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.executeUpdate("create table test(tm timestamp)");
+        stat.executeUpdate("insert into test values(current_timestamp)");
+        PreparedStatement prep = conn.prepareStatement("update test set tm = coalesce(?,tm)");
+        prep.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
+        prep.executeUpdate();
+        stat.executeUpdate("drop table test");
     }
 
     private void testPreparedStatementMetaData(Connection conn) throws Exception {

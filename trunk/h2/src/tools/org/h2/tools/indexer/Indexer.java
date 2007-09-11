@@ -161,6 +161,9 @@ public class Indexer {
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {
             return;
         }
+        if (lower.indexOf("_ja.") >= 0) {
+            return;
+        }
         if (!noIndex.contains(fileName)) {
             page = new Page(pages.size(), fileName);
             pages.add(page);

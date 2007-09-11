@@ -49,6 +49,7 @@ import org.h2.util.CacheLRU;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.IntHashMap;
 import org.h2.util.MemoryFile;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
@@ -96,7 +97,7 @@ public class Database implements DataHandler {
     private FileLock lock;
     private LogSystem log;
     private WriterThread writer;
-    private ObjectArray storages = new ObjectArray();
+    private IntHashMap storageMap = new IntHashMap();
     private boolean starting;
     private DiskFile fileData, fileIndex;
     private TraceSystem traceSystem;
@@ -568,6 +569,7 @@ public class Database implements DataHandler {
 
     private void removeUnusedStorages(Session session) throws SQLException {
         if (persistent) {
+            ObjectArray storages = getAllStorages();
             for (int i = 0; i < storages.size(); i++) {
                 Storage storage = (Storage) storages.get(i);
                 if (storage != null && storage.getRecordReader() == null) {
@@ -595,30 +597,23 @@ public class Database implements DataHandler {
 
     public void removeStorage(int id, DiskFile file) {
         if (SysProperties.CHECK) {
-            Storage s = (Storage) storages.get(id);
+            Storage s = (Storage) storageMap.get(id);
             if (s == null || s.getDiskFile() != file) {
                 throw Message.getInternalError();
             }
         }
-        storages.set(id, null);
+        storageMap.remove(id);
     }
 
     public Storage getStorage(int id, DiskFile file) {
-        Storage storage = null;
-        if (storages.size() > id) {
-            storage = (Storage) storages.get(id);
-            if (storage != null) {
-                if (SysProperties.CHECK && storage.getDiskFile() != file) {
-                    throw Message.getInternalError();
-                }
+        Storage storage = (Storage) storageMap.get(id);
+        if (storage != null) {
+            if (SysProperties.CHECK && storage.getDiskFile() != file) {
+                throw Message.getInternalError();
             }
-        }
-        if (storage == null) {
+        } else {
             storage = new Storage(this, file, null, id);
-            while (storages.size() <= id) {
-                storages.add(null);
-            }
-            storages.set(id, storage);
+            storageMap.put(id, storage);
         }
         return storage;
     }
@@ -910,7 +905,7 @@ public class Database implements DataHandler {
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }
-        storages = new ObjectArray();
+        storageMap.clear();
     }
 
     private void checkMetaFree(Session session, int id) throws SQLException {
@@ -931,7 +926,8 @@ public class Database implements DataHandler {
             if ((i & 1) != (dataFile ? 1 : 0)) {
                 i++;
             }
-            while (i < storages.size() || objectIds.get(i)) {
+
+            while (storageMap.get(i) != null || objectIds.get(i)) {
                 i++;
                 if ((i & 1) != (dataFile ? 1 : 0)) {
                     i++;
@@ -1414,7 +1410,7 @@ public class Database implements DataHandler {
     }
 
     public ObjectArray getAllStorages() {
-        return storages;
+        return new ObjectArray(storageMap.values());
     }
 
     public boolean getRecovery() {

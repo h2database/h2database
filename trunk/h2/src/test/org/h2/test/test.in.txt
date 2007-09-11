@@ -1,4 +1,37 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id smallint primary key);
+> ok
+
+insert into test values(1), (2), (3);
+> update count: 3
+
+explain select * from test where id = 1;
+> PLAN
+> -------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = 1 */ WHERE ID = 1
+> rows: 1
+
+drop table test;
+> ok
+
+create table test(id tinyint primary key);
+> ok
+
+insert into test values(1), (2), (3);
+> update count: 3
+
+explain select * from test where id = 3;
+> PLAN
+> -------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = 3 */ WHERE ID = 3
+> rows: 1
+
+explain select * from test where id = 255;
+> exception
+
+drop table test;
+> ok
+
 create table test(id int primary key);
 > ok
 
@@ -313,8 +346,8 @@ select * from test where name = -1 and name = id;
 
 explain select * from test where name = -1 and name = id;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = -1 */ WHERE ((CAST(NAME AS INTEGER) = -1) AND (CAST(NAME AS INTEGER) = ID)) AND (-1 = ID)
+> ----------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ WHERE (NAME = '-1') AND (CAST(NAME AS INTEGER) = ID)
 > rows: 1
 
 DROP TABLE TEST;

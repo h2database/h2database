@@ -910,8 +910,7 @@ SET MAX_MEMORY_ROWS 1000
 SET MAX_MEMORY_UNDO int
 ","
 The maximum number of undo records per a session that are kept in-memory.
-If a transaction is larger, the records are buffered to disk.
-The default value is Integer.MAX_VALUE (that means the feature is disabled by default).
+If a transaction is larger, the records are buffered to disk. The default value is 100000. 
 Changes to tables without a primary key can not be buffered to disk.
 This setting is persistent.
 Admin rights are required to execute this command.
@@ -2045,7 +2044,7 @@ Each character needs 2 bytes.
 OCTET_LENGTH(NAME)
 "
 "Functions (String)","CHAR","
-CHAR(int): string
+{CHAR | CHR}(int): string
 ","
 Returns the character that represents the ASCII value.
 ","

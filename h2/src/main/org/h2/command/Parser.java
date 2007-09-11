@@ -2849,7 +2849,7 @@ public class Parser {
             } else if (s.equals("SYSTIME")) {
                 return CURRENT_TIME;
             } else if (s.equals("SYSDATE")) {
-                return CURRENT_DATE;
+                return CURRENT_TIMESTAMP;
             }
             return getKeywordOrIdentifier(s, "SELECT", KEYWORD);
         case 'T':

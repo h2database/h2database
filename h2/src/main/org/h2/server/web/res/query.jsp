@@ -98,15 +98,15 @@ function help() {
 
 function setSelection(element) {
     if(document.all && !is_opera) {
-	    try {
-    	    var range = document.selection.createRange();
-	        var copy = range.duplicate();
-	     	copy.moveToElementText(element);
-			copy.setEndPoint('EndToEnd', range);
-   			element.selectionStart = copy.text.length - range.text.length;
-       		element.selectionEnd = element.selectionStart + range.text.length;
+        try {
+            var range = document.selection.createRange();
+            var copy = range.duplicate();
+             copy.moveToElementText(element);
+            copy.setEndPoint('EndToEnd', range);
+               element.selectionStart = copy.text.length - range.text.length;
+               element.selectionEnd = element.selectionStart + range.text.length;
         } catch (e) {
-       		element.selectionEnd = element.selectionStart = 0;
+               element.selectionEnd = element.selectionStart = 0;
         }
     }    
 }

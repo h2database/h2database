@@ -95,6 +95,11 @@ public class Comparison extends Condition {
             dataType = left.getType();
         } else {
             right = right.optimize(session);
+            if (left instanceof ExpressionColumn && right.isConstant()) {
+                right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), session);
+            } else if (right instanceof ExpressionColumn && left.isConstant()) {
+                left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), session);
+            }
             int lt = left.getType(), rt = right.getType();
             if (lt == rt) {
                 if (lt == Value.UNKNOWN) {

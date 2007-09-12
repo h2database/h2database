@@ -142,6 +142,33 @@ java org.h2.test.TestAll timer
         
 /*
 
+
+2007-09-11 22:58:09 TestCrashAPI 882584503
+ERROR: new TestCrashAPI().init(test).testCase(882584503); // Bug 31183214 seed=882584503 id=-1219 callCount=1663 openCount=30 Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
+ERROR: new TestCrashAPI().init(test).testCase(882584503); // Bug 31183214 seed=882584503 id=-1220 callCount=1663 openCount=30 Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
+2007-09-11 22:58:31 TestCrashAPI 1611223775
+2007-09-11 22:58:43 TestCrashAPI 1427414070
+2007-09-11 22:58:49 TestCrashAPI 917384493
+2007-09-11 22:59:10 TestCrashAPI 2045795338
+2007-09-11 22:59:27 TestCrashAPI 1598830588
+2007-09-11 22:59:45 TestCrashAPI 1674631584
+2007-09-11 22:59:50 TestCrashAPI 378816468
+2007-09-11 23:00:03 TestCrashAPI 1917055637
+2007-09-11 23:00:06 TestCrashAPI 1095371615
+2007-09-11 23:00:25 TestCrashAPI 613705034
+2007-09-11 23:00:29 TestCrashAPI 1827006581
+ERROR: new TestCrashAPI().init(test).testCase(1827006581); // Bug 31183214 seed=1827006581 id=-1219 callCount=1247 openCount=36 Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
+ERROR: new TestCrashAPI().init(test).testCase(1827006581); // Bug 31183214 seed=1827006581 id=-1220 callCount=1247 openCount=36 Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
+General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
+2007-09-11 23:00:49 TestCrashAPI 324193595
+
 add MVCC
 
 slow:

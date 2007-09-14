@@ -12,9 +12,8 @@ import org.h2.engine.Constants;
 import org.h2.util.FileUtils;
 
 /**
- * @author Thomas
+ * Utility class to list the files of a database.
  */
-
 public class FileLister {
 
     public static String getDatabaseNameFromFileName(String fileName) {

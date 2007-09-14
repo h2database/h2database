@@ -228,6 +228,20 @@
 		</copy>
 	</target>
     
+	<target name="javadocImpl">
+		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true" includes="org/h2/test/bnf/*.java"/>
+		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/tools/doclet/*.java"/>
+		<mkdir dir="docs/javadoc"/>
+		<javadoc
+			sourcepath="src/main"
+			packagenames="org.h2.jdbc.*,org.h2.tools.*,org.h2.api.*,org.h2.store.*"
+			destDir="doc/javadoc"
+		/> 		<!--	doclet="org.h2.tools.doclet.Doclet"  docletpath="bin"-->
+		<copy todir="docs/javadoc">
+			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
+		</copy>
+	</target>    
+    
     <target name="manifest">
 		<mkdir dir="bin/META-INF"/>
 		<manifest file="bin/META-INF/MANIFEST.MF">

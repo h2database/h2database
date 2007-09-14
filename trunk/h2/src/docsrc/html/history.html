@@ -40,14 +40,19 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.x (2007-09-x)</h3><ul>
-<li>When using IFNULL, NULLIF, COALESCE, LEAST, or GREATEST, 
-	and the first parameter was ?, an exception was thrown.
-	Now the higest data type of all parameters is used.
+<li>Optimization for independent subqueries. For example, this query can now an index: 
+    SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST)
+    This can be disabled by setting the system property h2.optimizeSubqueryCache to false.
+</li><li>The explain plan now says: /* direct lookup query */ if the query can be processed directly without reading rows, 
+    for example when using MIN(indexed column), MAX(indexed column), or COUNT(*).
+</li><li>When using IFNULL, NULLIF, COALESCE, LEAST, or GREATEST, 
+    and the first parameter was ?, an exception was thrown.
+    Now the highest data type of all parameters is used.
 </li><li>When comparing TINYINT or SMALLINT columns against constants, the index was not used. Fixed.
-</li><li>Maven 2: new version are now automatically synched with the central repositories.
+</li><li>Maven 2: new version are now automatically synced with the central repositories.
 </li><li>The default value for MAX_MEMORY_UNDO is now 100000.
 </li><li>The documentation indexer does no longer index Japanese pages. 
-	If somebody knows how to split Japanese into words please post it.
+    If somebody knows how to split Japanese into words please post it.
 </li><li>Oracle compatibility: SYSDATE now returns a timestamp. CHR(..) is now an alias for CHAR(..).
 </li><li>After deleting data, empty space in the database files was not efficiently reused
     (but it was reused when opening the database). This has been fixed.
@@ -752,7 +757,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 </li><li>Document org.h2.samples.MixedMode
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
-</li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for backward compatiblity)
+</li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility)
 </li><li>Support data type INTERVAL
 </li></ul>
 

@@ -12,6 +12,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.index.BtreeIndex;
+import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.table.Table;

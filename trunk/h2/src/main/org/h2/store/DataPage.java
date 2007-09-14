@@ -37,7 +37,7 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
- * @author Thomas
+ * A data page is a byte buffer that contains persistent data of a row or index page.
  */
 public abstract class DataPage {
 

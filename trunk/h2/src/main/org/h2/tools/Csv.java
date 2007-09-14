@@ -522,7 +522,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Override the end-of-row marker for writing. The default is null.
      * 
-     * @param fieldSeparatorWrite
+     * @param rowSeparatorWrite
      */
     public void setRowSeparatorWrite(String rowSeparatorWrite) {
         this.rowSeparatorWrite = rowSeparatorWrite;

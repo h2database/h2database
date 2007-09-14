@@ -5,10 +5,13 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+
+import org.h2.log.LogSystem;
 import org.h2.util.CacheObject;
 
 /**
- * @author Thomas
+ * A record represents a persisted row in a table, or a index page.
+ * When a record is persisted to disk, it is first written into a {@link DataPage} buffer.
  */
 public abstract class Record extends CacheObject {
     private boolean deleted;

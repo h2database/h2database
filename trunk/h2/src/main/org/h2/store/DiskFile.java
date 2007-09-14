@@ -19,6 +19,8 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.log.LogSystem;
+import org.h2.log.RedoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.util.BitField;
@@ -33,7 +35,12 @@ import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * This class represents a file that is usually written to disk. 
+ * The two main files are .data.db and .index.db. 
+ * For each such file, a number of {@link Storage} objects exists.
+ * The disk file is responsible for caching; each object contains a {@link Cache} object.
+ * Changes in the file are logged in a {@link LogSystem} object.
+ * Reading and writing to the file is delegated to the {@link FileStore} class.
  */
 public class DiskFile implements CacheWriter {
 
@@ -313,7 +320,7 @@ public class DiskFile implements CacheWriter {
         init = true;
     }
 
-    synchronized void flush() throws SQLException {
+    public synchronized void flush() throws SQLException {
         database.checkPowerOff();
         ObjectArray list = cache.getAllChanged();
         CacheObject.sort(list);
@@ -517,7 +524,7 @@ public class DiskFile implements CacheWriter {
         return pageOwners.get(page);
     }
 
-    void setPageOwner(int page, int storageId) throws SQLException {
+    public void setPageOwner(int page, int storageId) throws SQLException {
         int old = pageOwners.get(page);
         if (old == storageId) {
             return;
@@ -765,7 +772,7 @@ public class DiskFile implements CacheWriter {
         this.logChanges = b;
     }
 
-    synchronized void addRedoLog(Storage storage, int recordId, int blockCount, DataPage rec) throws SQLException {
+    public synchronized void addRedoLog(Storage storage, int recordId, int blockCount, DataPage rec) throws SQLException {
         byte[] data = null;
         if (rec != null) {
             DataPage all = rowBuff;
@@ -797,7 +804,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    synchronized void flushRedoLog() throws SQLException {
+    public synchronized void flushRedoLog() throws SQLException {
         if (redoBuffer.size() == 0) {
             return;
         }

@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
@@ -534,6 +533,8 @@ public class Select extends Query {
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
                     f.removeJoinCondition();
+                    // need to check that all added are bound to a table
+                    on = on.optimize(session);
                     addCondition(on);
                 }
             }
@@ -544,9 +545,13 @@ public class Select extends Query {
                     addCondition(on);
                 }
             }
+            // this is only important for subqueries, so they know the result columns are evaluatable
+            for (int i = 0; i < expressions.size(); i++) {
+                Expression e = (Expression) expressions.get(i);
+                e.setEvaluatable(f, true);
+            }        
             f = f.getJoin();
         }
-
         topTableFilter.prepare();
         return cost;
     }
@@ -621,6 +626,11 @@ public class Select extends Query {
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }
+        
+        if (isQuickQuery) {
+            buff.append("\n/* direct lookup query */");
+        }
+
         return buff.toString();
     }
 
@@ -739,13 +749,11 @@ public class Select extends Query {
             }
         }
         if (visitor.type == ExpressionVisitor.EVALUATABLE) {
-            if (!Constants.OPTIMIZE_EVALUATABLE_SUBQUERIES) {
+            if (!SysProperties.OPTIMIZE_EVALUATABLE_SUBQUERIES) {
                 return false;
             }
         }
-        if (visitor.type != ExpressionVisitor.EVALUATABLE) {
-            visitor.queryLevel(1);
-        }
+        visitor.queryLevel(1);
         boolean result = true;
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = (Expression) expressions.get(i);
@@ -760,9 +768,7 @@ public class Select extends Query {
         if (result && having != null && !having.isEverything(visitor)) {
             result = false;
         }
-        if (visitor.type != ExpressionVisitor.EVALUATABLE) {
-            visitor.queryLevel(-1);
-        }
+        visitor.queryLevel(-1);
         return result;
     }
 

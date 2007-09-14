@@ -137,37 +137,42 @@ java org.h2.test.TestAll timer
         test.printSystem();      
 
 
+        
 //int testMVCC;        
 //        System.setProperty("h2.mvcc", "true");
         
 /*
 
+Sorry.... I just read the doc  and it says using LOG=0 can lead to
+corruption...
 
-2007-09-11 22:58:09 TestCrashAPI 882584503
-ERROR: new TestCrashAPI().init(test).testCase(882584503); // Bug 31183214 seed=882584503 id=-1219 callCount=1663 openCount=30 Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
-ERROR: new TestCrashAPI().init(test).testCase(882584503); // Bug 31183214 seed=882584503 id=-1220 callCount=1663 openCount=30 Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
-2007-09-11 22:58:31 TestCrashAPI 1611223775
-2007-09-11 22:58:43 TestCrashAPI 1427414070
-2007-09-11 22:58:49 TestCrashAPI 917384493
-2007-09-11 22:59:10 TestCrashAPI 2045795338
-2007-09-11 22:59:27 TestCrashAPI 1598830588
-2007-09-11 22:59:45 TestCrashAPI 1674631584
-2007-09-11 22:59:50 TestCrashAPI 378816468
-2007-09-11 23:00:03 TestCrashAPI 1917055637
-2007-09-11 23:00:06 TestCrashAPI 1095371615
-2007-09-11 23:00:25 TestCrashAPI 613705034
-2007-09-11 23:00:29 TestCrashAPI 1827006581
-ERROR: new TestCrashAPI().init(test).testCase(1827006581); // Bug 31183214 seed=1827006581 id=-1219 callCount=1247 openCount=36 Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
-ERROR: new TestCrashAPI().init(test).testCase(1827006581); // Bug 31183214 seed=1827006581 id=-1220 callCount=1247 openCount=36 Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] org.h2.jdbc.JdbcSQLException: Allgemeiner Fehler: java.lang.Error: type=-1
-General error: java.lang.Error: type=-1 [HY000-57] ------------------------------
-2007-09-11 23:00:49 TestCrashAPI 324193595
+"At startup, when corrupted, say if LOG=0 was used before"
+
+
+In fact, the reason I mentioned this is that I found out it was slow
+when used in a sub query, thus I split it in two queries and forgot to
+mention it. Try this and you will see why:
+DROP TABLE TEST;
+CREATE TABLE TEST(COL1 BIGINT PRIMARY KEY, COL2 VARCHAR);
+INSERT INTO TEST SELECT X, CONCAT('Test', X)  FROM SYSTEM_RANGE(1,
+1000000);
+SELECT MAX(COL1) FROM TEST;
+SELECT * FROM TEST where col1=(select MAX(COL1) from test)
+
+SELECT MAX(COL1) FROM TEST;
+MAX(COL1)
+1000000
+(1 row, 0 ms)
+
+SELECT * FROM TEST where col1=(select MAX(COL1) from test);
+COL1    COL2
+1000000 Test1000000
+(1 row, 6815 ms)
+
+I generally felt that sub queries were not properly optimized in h2
+and I had to split them all (I understand it's a complex thing (I've
+worked a (very) little on db2 a long long time ago...))
+
 
 add MVCC
 

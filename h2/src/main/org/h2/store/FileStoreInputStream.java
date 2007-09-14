@@ -13,6 +13,9 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.tools.CompressTool;
 
+/**
+ * An input stream that is backed by a file store.
+ */
 public class FileStoreInputStream extends InputStream {
 
     private FileStore store;

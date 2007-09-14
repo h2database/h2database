@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 
 /**
- * @author Thomas
+ * A record reader is able to create a {@link Record} from a {@link DataPage}.
  */
 public interface RecordReader {
     Record read(Session session, DataPage s) throws SQLException;

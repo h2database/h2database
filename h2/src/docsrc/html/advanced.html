@@ -358,6 +358,11 @@ Therefore, the PostgreSQL ODBC driver can be used.
 Support for the PostgreSQL network protocol is quite new and should be viewed
 as experimental. It should not be used for production applications.
 </p>
+<p>
+At this time, the PostgreSQL ODBC driver does not work on 64 bit versions of Windows.
+For more information, see:
+<a href="http://svr5.postgresql.org/pgsql-odbc/2005-09/msg00127.php">ODBC Driver on Windows 64 bit</a>
+</p>
 
 <h3>ODBC Installation</h3>
 <p>
@@ -896,6 +901,7 @@ INFORMATION_SCHEMA.SETTINGS
 <tr><td>h2.objectCache</td><td>true</td><td>Cache commonly used objects (integers, strings)</td></tr>
 <tr><td>h2.objectCacheMaxPerElementSize</td><td>4096</td><td>Maximum size of an object in the cache</td></tr>
 <tr><td>h2.objectCacheSize</td><td>1024</td><td>Size of object cache</td></tr>
+<tr><td>h2.optimizeEvaluatableSubqueries</td><td>true</td><td>Optimize subqueries that are not dependent on the outer query</td></tr>
 <tr><td>h2.optimizeIn</td><td>true</td><td>Optimize IN(...) comparisons</td></tr>
 <tr><td>h2.optimizeMinMax</td><td>true</td><td>Optimize MIN and MAX aggregate functions</td></tr>
 <tr><td>h2.optimizeSubqueryCache</td><td>true</td><td>Cache subquery results</td></tr>

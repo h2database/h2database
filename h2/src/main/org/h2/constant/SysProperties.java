@@ -25,11 +25,15 @@ public class SysProperties {
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
-    public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
+
+    public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
+    public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
+    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
+    public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
+    public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
     public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
     public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
-    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
     public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
@@ -49,8 +53,6 @@ public class SysProperties {
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 100000);
-    public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
-    public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
     public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");

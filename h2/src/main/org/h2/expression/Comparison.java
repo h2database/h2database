@@ -35,7 +35,7 @@ public class Comparison extends Condition {
     private final int compareType;
     private Expression left;
     private Expression right;
-    private int dataType = -1;
+    private int dataType = -2;
 
     public Comparison(Session session, int compareType, Expression left, Expression right) {
         this.database = session.getDatabase();
@@ -318,11 +318,9 @@ public class Comparison extends Condition {
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
         if (compareType == IS_NULL && outerJoin) {
             // can not optimize:
-            // select * from test t1 left join test t2 on t1.id = t2.id where
-            // t2.id is null
+            // select * from test t1 left join test t2 on t1.id = t2.id where t2.id is null
             // to
-            // select * from test t1 left join test t2 on t1.id = t2.id and
-            // t2.id is null
+            // select * from test t1 left join test t2 on t1.id = t2.id and t2.id is null
             return;
         }
         super.addFilterConditions(filter, outerJoin);

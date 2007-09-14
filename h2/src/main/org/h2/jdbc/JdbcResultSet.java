@@ -910,7 +910,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Blob.
      *
-     * @param columnName the name of the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -929,7 +929,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Blob.
      *
-     * @param columnIndex (1,2,...)
+     * @param columnName the name of the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -1013,7 +1013,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Clob.
      *
-     * @param columnName the name of the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -1032,7 +1032,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Clob.
      *
-     * @param columnIndex (1,2,...)
+     * @param columnName the name of the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -1695,7 +1695,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @param x the value
-     * @param length the number of characters
      * @throws SQLException if the result set is closed
      */
     public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
@@ -1740,7 +1739,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnName the name of the column label
      * @param x the value
-     * @param length the number of characters
      * @throws SQLException if the result set is closed
      */
     public void updateAsciiStream(String columnName, InputStream x) throws SQLException {
@@ -3029,7 +3027,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Updates a column in the current or insert row.
      *
-     * @param columnIndex (1,2,...)
+     * @param columnName the name of the column label
      * @param x the value
      * @throws SQLException if the result set is closed
      */

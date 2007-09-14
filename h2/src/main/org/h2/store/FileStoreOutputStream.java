@@ -12,6 +12,9 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.tools.CompressTool;
 
+/**
+ * An output stream that is backed by a file store.
+ */
 public class FileStoreOutputStream extends OutputStream {
     private FileStore store;
     private DataPage page;

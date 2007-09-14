@@ -7,7 +7,8 @@ package org.h2.store;
 import java.sql.SQLException;
 
 /**
- * @author Thomas
+ * This class represents a byte buffer optimized for performance.
+ * It is the standard mechanism to convert data to a byte array and vice versa.
  */
 public class DataPageBinary extends DataPage {
 //    private final static boolean UTF8 = true;

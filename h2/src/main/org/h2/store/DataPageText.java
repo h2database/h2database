@@ -9,6 +9,11 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
+/**
+ * This class represents a byte buffer that is human readable up to some point.
+ * Number are stored in hex format.
+ * It is mainly used to debug storage problems.
+ */
 public class DataPageText extends DataPage {
 
     public DataPageText(DataHandler handler, byte[] data) {

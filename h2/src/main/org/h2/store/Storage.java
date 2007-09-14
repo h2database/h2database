@@ -15,16 +15,22 @@ import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 
 /**
+ * This class represents an persistent container that stores data of a table or an index. 
+ * An object contains a list of records, see {@link Record}. 
+ * For each storage there is a {@link RecordReader} object that knows how to 
+ * convert records into a byte array and vice versa.
+ * The data is stored in a {@link DiskFile}. A storage occupies a number of pages
+ * in a file.
+ * 
  * File format:
- * intFixed block size
- * intFixed storage id
+ * <pre>
+ * int block size
+ * int storage id
  * record data
  * byte checksum
  * [bytes * fillerLength]
- *
- * @author Thomas
+ * </pre>
  */
-
 public class Storage {
 
     public static final int ALLOCATE_POS = -1;

@@ -18,6 +18,11 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.TempFileDeleter;
 
+/**
+ * This class is an abstraction of a random access file.
+ * Each file contains a magic header, and reading / writing is done in blocks.
+ * See also {@link MemoryFileStore} and {@link SecureFileStore}
+ */
 public class FileStore {
 
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;

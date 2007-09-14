@@ -27,7 +27,8 @@ import org.h2.util.RandomUtils;
 import org.h2.util.SortedProperties;
 
 /**
- * @author Thomas
+ * The file lock is used to lock a database so that only one process can write to it.
+ * Usually a .lock.db file is used, but locking by creating a socket is supported as well.
  */
 public class FileLock {
 

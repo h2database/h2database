@@ -11,6 +11,10 @@ import org.h2.compress.CompressLZF;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
+/**
+ * This class is an abstraction of an in-memory random access file.
+ * Data compression using the LZF algorithm is supported as well.
+ */
 public class MemoryFile {
     private static final int CACHE_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 16;

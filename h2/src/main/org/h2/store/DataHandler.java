@@ -8,6 +8,10 @@ import java.sql.SQLException;
 
 import org.h2.value.Value;
 
+/**
+ * A data handler contains a number of callback methods.
+ * The most important implementing class is a database.
+ */
 public interface DataHandler {
     boolean getTextStorage();
     String getDatabasePath();

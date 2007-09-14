@@ -24,7 +24,9 @@ import org.h2.constant.SysProperties;
  *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
  *   ant codeswitchJdk16
  *   ant compile
+ *   ant javadocImpl
  *   ant codeswitchJdk14
+ *   ant javadocImpl
  *   
  * - Change FAQ (next release planned, known bugs)
  * - Check version, change build number in Constants.java and ant-build.properties
@@ -169,9 +171,6 @@ public class Constants {
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
     
-    // TODO need to refactor & test the code to enable this (add more tests!)
-    public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = false;
-
     // to slow down dictionary attacks
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
     public static final String SCRIPT_SQL = "script.sql";

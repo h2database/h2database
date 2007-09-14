@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE PARENT(ID INT PRIMARY KEY);
+> ok
+
+CREATE TABLE CHILD(ID INT PRIMARY KEY);
+> ok
+
+INSERT INTO PARENT VALUES(1);
+> update count: 1
+
+SELECT * FROM PARENT P LEFT OUTER JOIN CHILD C ON C.PARENTID=P.ID;
+> exception
+
+DROP TABLE PARENT, CHILD;
+> ok
+
 create table test(id smallint primary key);
 > ok
 
@@ -9,6 +24,12 @@ explain select * from test where id = 1;
 > PLAN
 > -------------------------------------------------------------------------------
 > SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = 1 */ WHERE ID = 1
+> rows: 1
+
+EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
+> PLAN
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ /++ direct lookup query ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup query */)
 > rows: 1
 
 drop table test;
@@ -1483,11 +1504,11 @@ select * from test order by id;
 > rows (ordered): 3
 
 select rownum, (select count(*) from test), rownum from test;
-> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ LIMIT 2 ROWNUM()
-> -------- --------------------------------------------------------------------- --------
-> 1        3                                                                     1
-> 2        3                                                                     2
-> 3        3                                                                     3
+> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ LIMIT 2 /* direct lookup query */ ROWNUM()
+> -------- ----------------------------------------------------------------------------------------------- --------
+> 1        3                                                                                               1
+> 2        3                                                                                               2
+> 3        3                                                                                               3
 > rows: 3
 
 delete from test t0 where rownum<2;

@@ -10,6 +10,10 @@ import java.sql.SQLException;
 import org.h2.util.FileUtils;
 import org.h2.util.MemoryFile;
 
+/**
+ * This class is an abstraction of an in-memory file.
+ * A {@link MemoryFile} contains the actual bytes.
+ */
 public class MemoryFileStore extends FileStore {
 
     private MemoryFile memFile;

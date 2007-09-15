@@ -77,7 +77,7 @@ public class RandomUtils {
             try {
                 Method m = System.class.getMethod("nanoTime", new Class[0]);
                 if (m != null) {
-                    Object o = m.invoke(null, null);
+                    Object o = m.invoke(null, (java.lang.Object[]) null);
                     out.writeUTF(o.toString());
                 }
             } catch (Exception e) {

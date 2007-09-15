@@ -474,9 +474,7 @@ class WebThread extends Thread {
     }
 
     private String adminShutdown() {
-        if (server.getAllowShutdown()) {
-            System.exit(0);
-        }
+        server.shutdown();
         return "admin.jsp";
     }
 

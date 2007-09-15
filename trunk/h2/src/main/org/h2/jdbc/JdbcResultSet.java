@@ -3154,7 +3154,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Clob.
      *
-     * @param columnName the name of the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
@@ -3177,7 +3177,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a Clob.
      *
-     * @param columnIndex (1,2,...)
+     * @param columnName the name of the column label
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */

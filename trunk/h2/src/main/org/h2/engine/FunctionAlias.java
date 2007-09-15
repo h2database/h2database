@@ -140,7 +140,7 @@ public class FunctionAlias extends DbObjectBase {
         return DbObject.FUNCTION_ALIAS;
     }
 
-    public void removeChildrenAndResources(Session session) throws SQLException {
+    public synchronized void removeChildrenAndResources(Session session) throws SQLException {
         className = methodName = null;
         javaMethod = null;
         invalidate();

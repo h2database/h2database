@@ -4977,31 +4977,34 @@ e-mail はこちらから:
 Email ニュースレター:
 
 @mainWeb_1024_p
-#Subscribe to <a href="http://groups.google.com/group/h2database-news/subscribe">H2 Database News (Google account required)</a> to get informed about new releases.     Your email address is only used in this context.
+<a href="http://groups.google.com/group/h2database-news/subscribe">
+H2 データベース ニュース</a> (Googleアカウントが必要です)
+に署名し、ニューリリースについての情報を入手して下さい。
+あなたのemailアドレスはこのコンテンツでのみ使用されます。
 
 @mainWeb_1025_td
 &nbsp;
 
 @mainWeb_1026_h3
-#Contribute
+寄稿する
 
 @mainWeb_1027_p
-#You can contribute to the development of H2 by sending feedback and bug    reports, or translate the H2 Console application (files    h2/src/main/org/h2/server/web/res/_text_*.properties).    Or click on the PayPal button below to    donate money. You will be listed as a supporter:
+H2の発展のため、フィードバックやバグ報告を送ったり、H2コンソールアプリケーション (ファイル h2/src/main/org/h2/server/web/res/_text_*.properties)を訳すなど、 投稿することができます。また、下にある PayPal ボタンをクリックすることで 寄付することもできます。 支援者として、あなたの名前が載ります:
 
 @mainWeb_1028_td
 &nbsp;
 
 @mainWeb_1029_h3
-#Feedback
+フィードバック
 
 @mainWeb_1030_td
-#You may also send questions, feature requests, or feedback of any kind here:
+質問や要望、その他あらゆるフィードバックはこちらから送信して下さい:
 
 @mainWeb_1031_p
-#Email (optional):
+Email (任意):
 
 @mainWeb_1032_form
-#Message:
+メッセージ:
 
 @main_1000_h1
 H2 データベース エンジン

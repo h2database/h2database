@@ -27,6 +27,7 @@ import java.awt.event.WindowEvent;
 import java.io.InputStream;
 import java.sql.SQLException;
 
+import org.h2.server.ShutdownHandler;
 import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
 
@@ -36,11 +37,13 @@ import org.h2.util.StartBrowser;
  * Otherwise, a small window opens.
  * 
  */
-public class Console implements ActionListener, MouseListener {
+public class Console implements ActionListener, MouseListener, ShutdownHandler {
 
     private Font font;
     private Image icon;
-    private Server web;
+    private Frame frame;
+    private static final int EXIT_ERROR = 1;    
+    private Server web, tcp, pg;
 
     /**
      * The command line interface for this tool.
@@ -50,12 +53,17 @@ public class Console implements ActionListener, MouseListener {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        new Console().run(args);
+        int exitCode = new Console().run(args);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }        
     }
 
-    private void run(String[] args) {
+    private int run(String[] args) {
+        int exitCode = 0;        
         try {
             web = Server.createWebServer(args);
+            web.setShutdownHandler(this);            
             web.start();
         } catch (SQLException e) {
             if (web == null) {
@@ -64,7 +72,6 @@ public class Console implements ActionListener, MouseListener {
                 System.out.println(web.getStatus());
             }
         }
-        Server tcp = null, pg = null;
         try {
             tcp = Server.createTcpServer(args);
             tcp.start();
@@ -105,7 +112,34 @@ public class Console implements ActionListener, MouseListener {
         // but are wondering why nothing happens
         StartBrowser.openURL(web.getURL());
         if (!web.isRunning()) {
-            System.exit(1);
+            exitCode = EXIT_ERROR;
+        }
+        return exitCode;
+    }
+    
+    /**
+     * INTERNAL
+     */    
+    public void shutdown() {
+        stopAll();
+    }
+    
+    private void stopAll() {
+        if (web != null && web.isRunning()) {
+            web.stop();
+            web = null;
+        }
+        if (tcp != null && tcp.isRunning()) {
+            tcp.stop();
+            tcp = null;
+        }
+        if (pg != null && pg.isRunning()) {
+            pg.stop();
+            pg = null;
+        }
+        if (frame != null) {
+            frame.dispose();
+            frame = null;
         }
     }
 
@@ -164,11 +198,11 @@ public class Console implements ActionListener, MouseListener {
     }
 
     private void showWindow(final boolean exit) {
-        final Frame frame = new Frame("H2 Console");
+        frame = new Frame("H2 Console");
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
                 if (exit) {
-                    System.exit(0);
+                    stopAll();
                 } else {
                     frame.dispose();
                 }
@@ -232,7 +266,7 @@ public class Console implements ActionListener, MouseListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
-            System.exit(0);
+            stopAll();
         } else if ("console".equals(command)) {
             startBrowser();
         } else if ("status".equals(command)) {

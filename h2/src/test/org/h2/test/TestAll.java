@@ -143,36 +143,12 @@ java org.h2.test.TestAll timer
         
 /*
 
+Avoid System.exit()
+
 Sorry.... I just read the doc  and it says using LOG=0 can lead to
 corruption...
 
 "At startup, when corrupted, say if LOG=0 was used before"
-
-
-In fact, the reason I mentioned this is that I found out it was slow
-when used in a sub query, thus I split it in two queries and forgot to
-mention it. Try this and you will see why:
-DROP TABLE TEST;
-CREATE TABLE TEST(COL1 BIGINT PRIMARY KEY, COL2 VARCHAR);
-INSERT INTO TEST SELECT X, CONCAT('Test', X)  FROM SYSTEM_RANGE(1,
-1000000);
-SELECT MAX(COL1) FROM TEST;
-SELECT * FROM TEST where col1=(select MAX(COL1) from test)
-
-SELECT MAX(COL1) FROM TEST;
-MAX(COL1)
-1000000
-(1 row, 0 ms)
-
-SELECT * FROM TEST where col1=(select MAX(COL1) from test);
-COL1    COL2
-1000000 Test1000000
-(1 row, 6815 ms)
-
-I generally felt that sub queries were not properly optimized in h2
-and I had to split them all (I understand it's a complex thing (I've
-worked a (very) little on db2 a long long time ago...))
-
 
 add MVCC
 

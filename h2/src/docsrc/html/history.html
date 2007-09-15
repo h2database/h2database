@@ -40,7 +40,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.x (2007-09-x)</h3><ul>
-<li>Optimization for independent subqueries. For example, this query can now an index: 
+<li>System.exit is no longer called by the WebServer, the Console and the Server tool
+    (except to set the exit code if required). This is important when using OSGi.
+</li><li>Optimization for independent subqueries. For example, this query can now an index: 
     SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST)
     This can be disabled by setting the system property h2.optimizeSubqueryCache to false.
 </li><li>The explain plan now says: /* direct lookup query */ if the query can be processed directly without reading rows, 

@@ -14,6 +14,7 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
+import org.h2.server.ShutdownHandler;
 import org.h2.server.TcpServer;
 import org.h2.server.ftp.FtpServer;
 import org.h2.server.pg.PgServer;
@@ -25,11 +26,13 @@ import org.h2.util.StartBrowser;
 /**
  * This tool can be used to start various database servers (listeners).
  */
-public class Server implements Runnable {
+public class Server implements Runnable, ShutdownHandler {
     
     private String name;
     private Service service;
     private static final int EXIT_ERROR = 1;
+    private Server web, tcp, pg, ftp;
+    private ShutdownHandler shutdownHandler;
     
     private void showUsage() {
         System.out.println("java "+getClass().getName() + " [options]");
@@ -164,7 +167,7 @@ public class Server implements Runnable {
             shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce);
         }
         if (tcpStart) {
-            Server tcp = createTcpServer(args);
+            tcp = createTcpServer(args);
             try {
                 tcp.start();
             } catch (SQLException e) {
@@ -175,7 +178,7 @@ public class Server implements Runnable {
             System.out.println(tcp.getStatus());
         }
         if (pgStart) {
-            Server pg = createPgServer(args);
+            pg = createPgServer(args);
             try {
                 pg.start();
             } catch (SQLException e) {
@@ -186,7 +189,8 @@ public class Server implements Runnable {
             System.out.println(pg.getStatus());
         }
         if (webStart) {
-            Server web = createWebServer(args);
+            web = createWebServer(args);
+            web.setShutdownHandler(this);
             try {
                 web.start();
             } catch (SQLException e) {
@@ -203,7 +207,7 @@ public class Server implements Runnable {
             }
         }
         if (ftpStart) {
-            Server ftp = createFtpServer(args);
+            ftp = createFtpServer(args);
             try {
                 ftp.start();
             } catch (SQLException e) {
@@ -298,7 +302,10 @@ public class Server implements Runnable {
      * @return the server
      */
     public static Server createWebServer(String[] args) throws SQLException {
-        return new Server("H2 Console Server", new WebServer(), args);
+        WebServer service = new WebServer();
+        Server server = new Server("H2 Console Server", service, args);
+        service.setShutdownHandler(server);
+        return server;
     }
 
     /**
@@ -355,7 +362,26 @@ public class Server implements Runnable {
         } catch (InterruptedException e) {
             // ignore
         }
-    }    
+    }
+
+    private void stopAll() {
+        if (web != null && web.isRunning()) {
+            web.stop();
+            web = null;
+        }
+        if (tcp != null && tcp.isRunning()) {
+            tcp.stop();
+            tcp = null;
+        }
+        if (pg != null && pg.isRunning()) {
+            pg.stop();
+            pg = null;
+        }
+        if (ftp != null && ftp.isRunning()) {
+            ftp.stop();
+            ftp = null;
+        }
+    }
 
     /**
      * Checks if the server is running.
@@ -399,6 +425,24 @@ public class Server implements Runnable {
             service.listen();
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
+        }
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public void setShutdownHandler(ShutdownHandler shutdownHandler) {
+        this.shutdownHandler = shutdownHandler;
+    }
+
+    /**
+     * INTERNAL
+     */    
+    public void shutdown() {
+        if (shutdownHandler != null) {
+            shutdownHandler.shutdown();
+        } else {
+            stopAll();
         }
     }
 }

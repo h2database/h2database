@@ -24,6 +24,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
+import org.h2.server.ShutdownHandler;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
@@ -34,8 +35,6 @@ import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
 public class WebServer implements Service {
-    
-    // TODO tool: implement a watchdog for a server
     
     private static final String DEFAULT_LANGUAGE = "en";
     
@@ -61,12 +60,12 @@ public class WebServer implements Service {
         "Generic OneDollarDB|in.co.daffodil.db.jdbc.DaffodilDBDriver|jdbc:daffodilDB_embedded:school;path=C:/temp;create=true|sa",
         "Generic DB2|COM.ibm.db2.jdbc.net.DB2Driver|jdbc:db2://<host>/<db>|" ,
         "Generic Oracle|oracle.jdbc.driver.OracleDriver|jdbc:oracle:thin:@<host>:1521:<instance>|scott" ,
-        "Generic PostgreSQL|org.postgresql.Driver|jdbc:postgresql:<db>|" ,
         "Generic MS SQL Server|com.microsoft.jdbc.sqlserver.SQLServerDriver|jdbc:Microsoft:sqlserver://localhost:1433;DatabaseName=sqlexpress|sa",
         "Generic MS SQL Server 2005|com.microsoft.sqlserver.jdbc.SQLServerDriver|jdbc:sqlserver://localhost;DatabaseName=test|sa",
+        "Generic PostgreSQL|org.postgresql.Driver|jdbc:postgresql:<db>|" ,
         "Generic MySQL|com.mysql.jdbc.Driver|jdbc:mysql://<host>:<port>/<db>|" ,
-        "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
         "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|jdbc:derby://localhost:1527/test;create=true|sa",
+        "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
         "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
         // this will be listed on top for new installations
         "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
@@ -95,7 +94,7 @@ public class WebServer implements Service {
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;
-    private boolean allowShutdown = true;
+    private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
 
     byte[] getFile(String file) throws IOException {
@@ -148,7 +147,6 @@ public class WebServer implements Service {
         } while(sessions.get(newId) != null);
         WebSession session = new WebSession(this);
         session.put("sessionId", newId);
-        //session.put("ip", socket.getInetAddress().getCanonicalHostName());
         session.put("ip", hostname);
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
@@ -438,12 +436,14 @@ public class WebServer implements Service {
         return JdbcUtils.getConnection(driver, url, user, password);
     }
 
-    public void setAllowShutdown(boolean b) {
-        this.allowShutdown = b;
+    void shutdown() {
+        if (shutdownHandler != null) {
+            shutdownHandler.shutdown();
+        }
     }
 
-    boolean getAllowShutdown() {
-        return allowShutdown;
+    public void setShutdownHandler(ShutdownHandler shutdownHandler) {
+        this.shutdownHandler = shutdownHandler;
     }
 
 }

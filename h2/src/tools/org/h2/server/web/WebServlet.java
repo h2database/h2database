@@ -42,7 +42,6 @@ public class WebServlet extends HttpServlet {
         String[] args = new String[list.size()];
         list.toArray(args);
         server = new WebServer();
-        server.setAllowShutdown(false);
         try {
             server.init(args);
         } catch (Exception e) {

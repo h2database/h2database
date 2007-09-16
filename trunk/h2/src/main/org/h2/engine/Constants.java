@@ -14,6 +14,7 @@ import org.h2.constant.SysProperties;
  *
  * Release checklist
  * - Run FindBugs
+ * - Test with hibernate
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
  * - ant jarClient, check jar file size
  * 
@@ -57,7 +58,6 @@ import org.h2.constant.SysProperties;
  * - Test
  * - Test the windows service
  * - TestSystemExit
- * - Test with hibernate
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge

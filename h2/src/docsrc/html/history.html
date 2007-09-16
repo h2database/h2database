@@ -39,7 +39,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0.x (2007-09-x)</h3><ul>
+<h3>Version 1.0.58 (2007-09-15)</h3><ul>
 <li>System.exit is no longer called by the WebServer, the Console and the Server tool
     (except to set the exit code if required). This is important when using OSGi.
 </li><li>Optimization for independent subqueries. For example, this query can now an index: 
@@ -74,7 +74,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>A database can now be opened even if class of a user defined function is not in the classpath.
     Trying to call the function will throws an exception.
 </li><li>User defined functions and constants may not overload built-in functions and constants.
-    This didn't work before, but now trying to create such an object didn't fail.
+    This didn't work before, but now trying to create such an object will fail.
 </li><li>Improved MultiDimension tool (for spatial queries): in the last few releases the tool was actually 
     slower than using a regular query (because index lookup got faster, and because the tool didn't 
     support prepared statements) Now the tool generates prepared statements, 

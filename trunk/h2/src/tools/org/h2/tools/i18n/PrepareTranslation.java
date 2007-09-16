@@ -116,6 +116,10 @@ public class PrepareTranslation {
             html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"");
             for (int j = 0; j < fileNames.size(); j++) {
                 String n = (String) fileNames.get(j);
+                if ("frame".equals(n)) {
+                    // don't translate 'frame.html' to 'frame_ja.html', otherwise we can't switch back to English
+                    continue;
+                }
                 html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
             }
             html = StringUtils.replaceAll(html, "_" + MAIN_LANGUAGE + ".html\"", ".html\"");

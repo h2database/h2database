@@ -10,6 +10,44 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(28,
+'New version available: 1.0.58 (2007-09-15)', '2007-09-15 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Empty space in the database files is now better reused
+</li><li>The database file sizes now increased in smaller blocks
+</li><li>Optimization for independent subqueries
+</li><li>Improved explain plan 
+</li><li>Maven 2: new version are now automatically synced
+</li><li>The version (build) number is now included in the manifest file.
+</li><li>The default value for MAX_MEMORY_UNDO is now 100000
+</li><li>Improved MultiDimension tool (for spatial queries)
+</li><li>New method DatabaseEventListener.opened
+</li><li>Optimization for COLUMN IN(.., NULL)
+</li><li>Oracle compatibility for SYSDATE and CHR
+</li><li>System.exit is no longer called by the WebServer
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>About 230 bytes per database was leaked
+</li><li>Using spaces in column and table aliases did not always work
+</li><li>In some systems, SecureRandom.generateSeed is very slow
+</li><li>Console: better support for Internet Explorer
+</li><li>A database can now be opened even if user class is missing
+</li><li>User defined functions may not overload built-in functions
+</li><li>Adding a foreign key failed when the reference contained NULL
+</li><li>For PgServer, character encoding other than UTF-8 did not work
+</li><li>When using IFNULL, NULLIF, COALESCE, LEAST, or GREATEST, 
+    and the first parameter was ?, an exception was thrown
+</li><li>When comparing TINYINT or SMALLINT columns, the index was not used
+</li><li>The documentation indexer does no longer index Japanese pages
+</li><li>Using a function in a GROUP BY expression did not always work
+</li></ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+');
+
 INSERT INTO ITEM VALUES(27,
 'New version available: 1.0.57 (2007-08-25)', '2007-08-25 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

@@ -215,6 +215,17 @@ public class TableView extends Table {
         index = null;
         invalidate();
     }
+    
+    public String getSQL() {
+        if (getTemporary()) {
+            StringBuffer buff = new StringBuffer(querySQL.length());
+            buff.append("(");
+            buff.append(querySQL);
+            buff.append(")");
+            return buff.toString();
+        }
+        return super.getSQL();
+    }
 
     public Index getScanIndex(Session session) throws SQLException {
         if (createException != null) {

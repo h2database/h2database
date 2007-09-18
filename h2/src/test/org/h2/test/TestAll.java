@@ -143,14 +143,6 @@ java org.h2.test.TestAll timer
         
 /*
 
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
-INSERT INTO TEST VALUES(1, 'Hello');
-INSERT INTO TEST VALUES(2, 'World');
-SELECT * FROM TEST WHERE ID=10000000000;
-
-select * from test where id = 'Hello'; (works in some databases)
-
 Sorry.... I just read the doc  and it says using LOG=0 can lead to
 corruption...
 

@@ -59,11 +59,11 @@ public class TestCrashAPI extends TestBase {
         // the database in the finalize method
         String add = ""; // ";STORAGE=TEXT";
 
-         int testing;
+//         int testing;
         // add = ";STORAGE=TEXT";
-        if (openCount >= 33) {
-            System.exit(1);
-        }
+//        if (openCount >= 33) {
+//            System.exit(1);
+//        }
         // add = ";LOG=2";
         // System.out.println("now open " + openCount);
         // add += ";TRACE_LEVEL_FILE=3";
@@ -96,10 +96,10 @@ public class TestCrashAPI extends TestBase {
 
             String sql = (String) statements.get(i);
             try {
-                if(openCount == 32 && i == 1219) {
-                    int test;
-                    System.out.println("stop!");
-                }
+//                if(openCount == 32 && i == 1219) {
+//                    int test;
+//                    System.out.println("stop!");
+//                }
                 stat.execute(sql);
             } catch (Throwable t) {
                 printIfBad(seed, -i, -1, t);

@@ -814,11 +814,8 @@ public class Parser {
                 TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s,
                         false);
                 v.setOwner(session.getUser());
+                v.setTemporary(true);
                 table = v;
-                if (s != database.getSystemSession()) {
-                    table.setOnCommitDrop(true);
-                }
-                s.addLocalTempTable(table);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);

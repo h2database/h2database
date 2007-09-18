@@ -1,4 +1,12 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual where x = 1000000000000000000000;
+> X
+> -
+> rows: 0
+
+select * from dual where x = 'Hello';
+> exception
+
 CREATE TABLE PARENT(ID INT PRIMARY KEY);
 > ok
 
@@ -48,7 +56,10 @@ explain select * from test where id = 3;
 > rows: 1
 
 explain select * from test where id = 255;
-> exception
+> PLAN
+> -------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN: FALSE */ WHERE FALSE
+> rows: 1
 
 drop table test;
 > ok

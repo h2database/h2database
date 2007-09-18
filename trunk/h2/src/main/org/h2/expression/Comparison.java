@@ -95,10 +95,21 @@ public class Comparison extends Condition {
             dataType = left.getType();
         } else {
             right = right.optimize(session);
-            if (left instanceof ExpressionColumn && right.isConstant()) {
-                right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), session);
-            } else if (right instanceof ExpressionColumn && left.isConstant()) {
-                left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), session);
+            try {
+                if (left instanceof ExpressionColumn && right.isConstant()) {
+                    right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), session);
+                } else if (right instanceof ExpressionColumn && left.isConstant()) {
+                    left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), session);
+                }
+            } catch (SQLException e) {
+                int code = e.getErrorCode();
+                switch(code) {
+                case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE:
+                    // WHERE ID=100000000000
+                    return ValueExpression.get(ValueBoolean.get(false));
+                default:
+                    throw e;
+                }
             }
             int lt = left.getType(), rt = right.getType();
             if (lt == rt) {

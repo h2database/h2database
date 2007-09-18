@@ -40,6 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.58 (2007-09-15)</h3><ul>
+<li>Views with subqueries as tables and queries with nested subqueries as tables did not always work. Fixed.
+</li><li>Compatibility: comparing columns with constants that are out of range does not throw an exception.
+</li></ul>
+
+<h3>Version 1.0.58 (2007-09-15)</h3><ul>
 <li>System.exit is no longer called by the WebServer, the Console and the Server tool
     (except to set the exit code if required). This is important when using OSGi.
 </li><li>Optimization for independent subqueries. For example, this query can now an index: 

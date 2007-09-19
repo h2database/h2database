@@ -143,6 +143,85 @@ java org.h2.test.TestAll timer
         
 /*
 
+DROP TABLE IF EXISTS TEST;
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
+INSERT INTO TEST VALUES(1, 'Hello');
+INSERT INTO TEST VALUES(2, 'HelloHello');
+SELECT * FROM TEST WHERE NAME REGEXP 'He';
+
+java.util.ConcurrentModificationException
+       at java.util.HashMap$HashIterator.nextEntry(HashMap.java:841)
+       at java.util.HashMap$ValueIterator.next(HashMap.java:871)
+       at java.util.AbstractCollection.toArray(AbstractCollection.java:176)
+       at org.h2.util.FileUtils.listFiles(FileUtils.java:395)
+       at org.h2.engine.Database.deleteOldTempFiles(Database.java:1055)
+       at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:853)
+       at org.h2.engine.Database.close(Database.java:814)
+       at org.h2.engine.Database.removeSession(Database.java:755)
+       at org.h2.engine.Session.close(Session.java:260)
+       at org.h2.engine.Database.close(Database.java:783)
+       
+       
+SCRIPT: append ; also in result set (copy paste problem)
+ 
+
+java org.h2.tools.RunScript -url jdbc:h2:file:bug -user SA -script \temp\test\data.sql
+
+
+data.sql, test.java
+I have a big problem with PreparedStatements and version 2007-07-12 or  above.
+With 2007-04-29 or lower it works as expected.
+In the test query i use a UNION ALL (i know, not well tested), but also with a simple SELECT/UPDATE/INSERT prepared statement with a where clause and parameters the problem happens, if i run the query more than once with different parameters. It always returns the result from the first executeQuery() or updates the rows return from the first query.
+But the funny thing is, i cannot reproduce the bug with a simple SELECT in the test app.
+If i run the test app, the output is with ver 2007-07-12:
+Row Count 9
+Sum 714.8621259
+Row Count 9
+Sum 714.8621259
+Row Count 9
+Sum 714.8621259
+(looks like it takes every time the first result)
+with ver 2007-04-29
+Row Count 9
+Sum 714.8621259
+Row Count 7
+Sum 0.0
+Row Count 10
+Sum 381.230477
+
+
+
+
+drop table multi_pages;
+drop table bib_holdings;
+create table multi_pages(dir_num int, bh_id int);
+insert into multi_pages values(1, 1);
+insert into multi_pages values(2, 2);
+insert into multi_pages values(3, 3);
+create table bib_holdings(id int primary key, site varchar(255));
+insert into bib_holdings values(1, 'WSTIAC');
+insert into bib_holdings values(2, 'WSTIAC');
+insert into bib_holdings values(3, 'WSTIAC');
+
+select * from (select dir_num, count(*) as cnt
+from multi_pages  t, bib_holdings bh 
+where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num) as x
+where cnt < 1000 order by dir_num asc;
+
+explain select * from (select dir_num, count(*) as cnt 
+from multi_pages  t, bib_holdings bh 
+where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num) as x
+where cnt < 1000 order by dir_num asc;
+
+select dir_num, count(*) as cnt
+from multi_pages  t, bib_holdings bh 
+where t.bh_id=bh.id and bh.site='WSTIAC' 
+group by dir_num
+having count(*) < 1000 
+order by dir_num asc;
+
+
+
 Sorry.... I just read the doc  and it says using LOG=0 can lead to
 corruption...
 

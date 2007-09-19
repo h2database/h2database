@@ -112,7 +112,7 @@ public class ValueTimestamp extends Value {
 //    }
     
     public int getDisplaySize() {
-        return "2001-01-01 23:59:59".length();
+        return "2001-01-01 23:59:59.000".length();
     }    
     
     protected boolean isEqual(Value v) {

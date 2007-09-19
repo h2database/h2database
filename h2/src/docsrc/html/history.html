@@ -39,8 +39,10 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0.58 (2007-09-15)</h3><ul>
-<li>Views with subqueries as tables and queries with nested subqueries as tables did not always work. Fixed.
+<h3>Version 1.0.59 (2007-09-TODO)</h3><ul>
+<li>When using a subquery with group by as a table, some columns could not be used in the where condition
+	in the outer query. Example: SELECT * FROM (SELECT ID, COUNT(*) C FROM TEST) WHERE C > 100. Fixed.
+</li><li>Views with subqueries as tables and queries with nested subqueries as tables did not always work. Fixed.
 </li><li>Compatibility: comparing columns with constants that are out of range does not throw an exception.
 </li></ul>
 

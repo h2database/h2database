@@ -701,6 +701,7 @@ public class Select extends Query {
         comp = comp.optimize(session);
         boolean addToCondition = true;
         if (isGroupQuery) {
+            addToCondition = false;
             for (int i = 0; groupIndex != null && i < groupIndex.length; i++) {
                 if (groupIndex[i] == columnId) {
                     addToCondition = true;

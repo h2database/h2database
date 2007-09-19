@@ -1,4 +1,47 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table multi_pages(dir_num int, bh_id int);
+> ok
+
+insert into multi_pages values(1, 1), (2, 2), (3, 3);
+> update count: 3
+
+create table bib_holdings(id int primary key, site varchar(255));
+> ok
+
+insert into bib_holdings values(1, 'WSTIAC'), (2, 'WSTIAC'), (3, 'WSTIAC');
+> update count: 3
+
+select * from (select dir_num, count(*) as cnt from multi_pages  t, bib_holdings bh
+where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num) as x
+where cnt < 1000 order by dir_num asc;
+> DIR_NUM CNT
+> ------- ---
+> 1       1
+> 2       1
+> 3       1
+> rows (ordered): 3
+
+explain select * from (select dir_num, count(*) as cnt from multi_pages  t, bib_holdings bh
+where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num) as x
+where cnt < 1000 order by dir_num asc;
+> PLAN
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM (select dir_num, count(*) as cnt from multi_pages  t, bib_holdings bh where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES_TABLE_SCAN ++/ INNER JOIN PUBLIC.BIB_HOLDINGS BH /++ PUBLIC.PRIMARY_KEY_1: ID = T.BH_ID ++/ WHERE (BH.SITE = 'WSTIAC') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> rows (ordered): 1
+
+select dir_num, count(*) as cnt from multi_pages  t, bib_holdings bh
+where t.bh_id=bh.id and bh.site='WSTIAC' group by dir_num
+having count(*) < 1000 order by dir_num asc;
+> DIR_NUM CNT
+> ------- ---
+> 1       1
+> 2       1
+> 3       1
+> rows (ordered): 3
+
+drop table multi_pages, bib_holdings;
+> ok
+
 select * from dual where x = 1000000000000000000000;
 > X
 > -

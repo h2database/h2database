@@ -132,7 +132,9 @@ public class FileUtils {
         if (isInMemory(oldName)) {
             MemoryFile f = getMemoryFile(oldName);
             f.setName(newName);
-            MEMORY_FILES.put(newName, f);
+            synchronized (MEMORY_FILES) {
+                MEMORY_FILES.put(newName, f);
+            }
             return;
         }
         File oldFile = new File(oldName);
@@ -239,7 +241,9 @@ public class FileUtils {
     public static void delete(String fileName) throws SQLException {
         fileName = translateFileName(fileName);
         if (isInMemory(fileName)) {
-            MEMORY_FILES.remove(fileName);
+            synchronized (MEMORY_FILES) {
+                MEMORY_FILES.remove(fileName);
+            }
             return;
         }
         File file = new File(fileName);
@@ -309,7 +313,9 @@ public class FileUtils {
     public static void tryDelete(String fileName) {
         fileName = translateFileName(fileName);
         if (isInMemory(fileName)) {
-            MEMORY_FILES.remove(fileName);
+            synchronized (MEMORY_FILES) {
+                MEMORY_FILES.remove(fileName);
+            }
             return;
         }
         trace("tryDelete", fileName, null);
@@ -328,19 +334,23 @@ public class FileUtils {
     public static boolean exists(String fileName) {
         fileName = translateFileName(fileName);
         if (isInMemory(fileName)) {
-            return MEMORY_FILES.get(fileName) != null;
+            synchronized (MEMORY_FILES) {
+                return MEMORY_FILES.get(fileName) != null;
+            }
         }
         return new File(fileName).exists();
     }
 
     public static MemoryFile getMemoryFile(String fileName) {
-        MemoryFile m = (MemoryFile) MEMORY_FILES.get(fileName);
-        if (m == null) {
-            boolean compress = fileName.startsWith(MEMORY_PREFIX_LZF);
-            m = new MemoryFile(fileName, compress);
-            MEMORY_FILES.put(fileName, m);
+        synchronized (MEMORY_FILES) {
+            MemoryFile m = (MemoryFile) MEMORY_FILES.get(fileName);
+            if (m == null) {
+                boolean compress = fileName.startsWith(MEMORY_PREFIX_LZF);
+                m = new MemoryFile(fileName, compress);
+                MEMORY_FILES.put(fileName, m);
+            }
+            return m;
         }
-        return m;
     }
 
     public static long length(String fileName) {
@@ -396,13 +406,15 @@ public class FileUtils {
     public static String[] listFiles(String path) throws SQLException {
         path = translateFileName(path);
         if (isInMemory(path)) {
-            String[] list = new String[MEMORY_FILES.size()];
-            MemoryFile[] l = new MemoryFile[MEMORY_FILES.size()];
-            MEMORY_FILES.values().toArray(l);
-            for (int i = 0; i < list.length; i++) {
-                list[i] = l[i].getName();
+            synchronized (MEMORY_FILES) {
+                String[] list = new String[MEMORY_FILES.size()];
+                MemoryFile[] l = new MemoryFile[MEMORY_FILES.size()];
+                MEMORY_FILES.values().toArray(l);
+                for (int i = 0; i < list.length; i++) {
+                    list[i] = l[i].getName();
+                }
+                return list;
             }
-            return list;
         }
         File f = new File(path);
         try {

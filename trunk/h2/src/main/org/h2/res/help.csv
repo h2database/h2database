@@ -1183,7 +1183,7 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 ","
 The right hand side of a condition. 
 When comparing with LIKE, the wildcards characters are _ (any one character) and % (any characters).
-When comparing with REGEXP, regular expression matching is used. See Java String.matches for details.
+When comparing with REGEXP, regular expression matching is used. See Java Matcher.find for details.
 ","
 LIKE 'Jo%'
 "

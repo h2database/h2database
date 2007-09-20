@@ -31,6 +31,7 @@ import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
+import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
@@ -43,7 +44,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
-class WebThread extends Thread {
+class WebThread extends Thread implements DatabaseEventListener {
     private WebServer server;
     private WebSession session;
     private Properties attributes;
@@ -53,6 +54,8 @@ class WebThread extends Thread {
     private String ifModifiedSince;
     private String mimeType;
     private boolean cache;    
+    private int listenerLastState;
+    private long listenerLastEvent;
 
     // TODO web: support online data editing like http://numsum.com/
 
@@ -800,7 +803,7 @@ class WebThread extends Thread {
         session.put("url", url);
         session.put("user", user);
         try {
-            Connection conn = server.getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password, this);
             JdbcUtils.closeSilently(conn);
             session.put("error", "${text.login.testSuccessful}");
             return "index.jsp";
@@ -824,7 +827,7 @@ class WebThread extends Thread {
         String user = attributes.getProperty("user", "");
         String password = attributes.getProperty("password", "");
         try {
-            Connection conn = server.getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password, this);
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);
@@ -1561,6 +1564,59 @@ class WebThread extends Thread {
 
     public WebSession getSession() {
         return session;
+    }
+    
+    private void log(String s) {
+        int test;
+        System.out.println(s);
+    }
+
+    public void closingDatabase() {
+        log("Closing database");
+    }
+
+    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+        log("Disk space is low; still available: " + stillAvailable);
+    }
+
+    public void exceptionThrown(SQLException e, String sql) {
+        log("Exception: " + e.toString() + " SQL: " + sql);
+    }
+
+    public void init(String url) {
+        log("Init: " + url);
+    }
+
+    public void opened() {
+        log("Database was opened");
+    }
+
+    public void setProgress(int state, String name, int x, int max) {
+        if (state == listenerLastState) {
+            long time = System.currentTimeMillis();
+            if (listenerLastEvent + 500 < time) {
+                return;
+            }
+            listenerLastEvent = time;
+        } else {
+            listenerLastState = state;
+        }
+        switch(state) {
+        case DatabaseEventListener.STATE_BACKUP_FILE:
+            log("Backing up " + name + " " + (100L * max / x) + "%");
+            break;
+        case DatabaseEventListener.STATE_CREATE_INDEX:
+            log("Creating index " + name + " " + (100L * max / x) + "%");
+            break;
+        case DatabaseEventListener.STATE_RECOVER:
+            log("Recovering " + name + " " + (100L * max / x) + "%");
+            break;
+        case DatabaseEventListener.STATE_SCAN_FILE:
+            log("Scanning file " + name + " " + (100L * max / x) + "%");
+            break;
+        default:
+            log("Unknown state: " + state);
+        }
     }
     
 }

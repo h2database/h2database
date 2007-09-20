@@ -304,13 +304,9 @@ public class ScriptCommand extends ScriptBase {
     
     private int writeLobStream(ValueLob v) throws IOException, SQLException {
         if (!tempLobTableCreated) {
-            add(
-                    "CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))",
-                    true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"",
-                    true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"",
-                    true);
+            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))", true);
+            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"", true);
+            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"", true);
             tempLobTableCreated = true;
         }
         int id = nextLobId++;
@@ -405,8 +401,9 @@ public class ScriptCommand extends ScriptBase {
         if (s == null) {
             return;
         }
+        s += ";";
         if (out != null) {
-            byte[] buff = StringUtils.utf8Encode(s + ";");
+            byte[] buff = StringUtils.utf8Encode(s);
             int len = MathUtils.roundUp(buff.length + lineSeparator.length, Constants.FILE_BLOCK_SIZE);
             buffer = ByteUtils.copy(buff, buffer);
 

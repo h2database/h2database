@@ -40,7 +40,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.59 (2007-09-TODO)</h3><ul>
-<li>When using a subquery with group by as a table, some columns could not be used in the where condition
+<li>When creating a table using CREATE TABLE .. AS SELECT, the precision for some data types (for example VARCHAR)
+	was set to the default precision. Fixed.
+</li><li>When using the (undocumented) in-memory file system (jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using
+	multiple connections, a ConcurrentModificationException could occur. Fixed. 
+</li><li>REGEXP compatibility: So far String.matches was used, but for compatibility with MySQL, now Matcher.find is used.
+</li><li>SCRIPT: the SQL statements in the result set now include the terminating semicolon as well. Simplifies copy and paste.
+</li><li>When using a subquery with group by as a table, some columns could not be used in the where condition
 	in the outer query. Example: SELECT * FROM (SELECT ID, COUNT(*) C FROM TEST) WHERE C > 100. Fixed.
 </li><li>Views with subqueries as tables and queries with nested subqueries as tables did not always work. Fixed.
 </li><li>Compatibility: comparing columns with constants that are out of range does not throw an exception.

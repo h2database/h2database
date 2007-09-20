@@ -153,10 +153,6 @@ public class ViewIndex extends BaseIndex {
             if (first != null) {
                 Value v = first.getValue(i);
                 if (v != null) {
-if(paramList.size() <= idx) {
-    int tst;
-    System.out.println("stop!");
-}
                     Parameter param = (Parameter) paramList.get(idx++);
                     param.setValue(v);
                 }

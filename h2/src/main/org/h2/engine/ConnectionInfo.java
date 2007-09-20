@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
+
+import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -163,6 +165,17 @@ public class ConnectionInfo {
                 prop.setProperty(key, value);
             }
         }
+    }
+    
+    DatabaseEventListener removeDatabaseEventListenerObject() throws SQLException {
+        Object p = prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
+        if (p == null) {
+            return null;
+        }
+        if (p instanceof DatabaseEventListener) {
+            return (DatabaseEventListener) p;
+        }
+        throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, p.getClass().getName());
     }
 
     private char[] removePassword() {

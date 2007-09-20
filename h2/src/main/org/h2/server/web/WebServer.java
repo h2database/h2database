@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import org.h2.api.DatabaseEventListener;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
@@ -418,22 +419,23 @@ public class WebServer implements Service {
         }
     }
 
-    Connection getConnection(String driver, String url, String user, String password) throws Exception {
+    Connection getConnection(String driver, String url, String user, String password, DatabaseEventListener listener) throws Exception {
         driver = driver.trim();
         url = url.trim();
-        user = user.trim();
-        password = password.trim();
         org.h2.Driver.load();
+        Properties p = new Properties();
+        p.setProperty("user", user.trim());
+        p.setProperty("password", password.trim());
+        if (url.startsWith("jdbc:h2:")) {
+            p.put("DATABASE_EVENT_LISTENER_OBJECT", listener);
+        }
 //            try {
 //                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
-//                Properties p = new Properties();
-//                p.setProperty("user", user);
-//                p.setProperty("password", password);
 //                return dr.connect(url, p);
 //            } catch(ClassNotFoundException e2) {
 //                throw e2;
 //            }
-        return JdbcUtils.getConnection(driver, url, user, password);
+        return JdbcUtils.getConnection(driver, url, p);
     }
 
     void shutdown() {

@@ -153,15 +153,18 @@ public class Database implements DataHandler {
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.textStorage = ci.getTextStorage();
         this.databaseURL = ci.getURL();
-        String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-        if (listener != null) {
-            if (listener.startsWith("'")) {
-                listener = listener.substring(1);
+        this.eventListener = ci.removeDatabaseEventListenerObject();
+        if (eventListener == null) {
+            String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
+            if (listener != null) {
+                if (listener.startsWith("'")) {
+                    listener = listener.substring(1);
+                }
+                if (listener.endsWith("'")) {
+                    listener = listener.substring(0, listener.length() - 1);
+                }
+                setEventListener(listener);
             }
-            if (listener.endsWith("'")) {
-                listener = listener.substring(0, listener.length() - 1);
-            }
-            setEventListener(listener);
         }
         String log = ci.getProperty(SetTypes.LOG, null);
         if (log != null) {

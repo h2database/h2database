@@ -1124,7 +1124,7 @@ Mit Maven 2
 #Downloads
 
 @download_1001_h3
-#Version 1.0.57 (2008-08-25, Current)
+#Version 1.0.58 (2007-09-15, Current)
 
 @download_1002_a
 #Windows Installer
@@ -2789,7 +2789,7 @@ Mit Maven 2
 #Version 1.0 (Current)
 
 @history_1009_h3
-#Version 1.0.x (2007-09-x)
+#Version 1.0.58 (2007-09-15)
 
 @history_1010_li
 #System.exit is no longer called by the WebServer, the Console and the Server tool  (except to set the exit code if required). This is important when using OSGi.
@@ -2849,7 +2849,7 @@ Mit Maven 2
 #A database can now be opened even if class of a user defined function is not in the classpath.  Trying to call the function will throws an exception.
 
 @history_1029_li
-#User defined functions and constants may not overload built-in functions and constants.  This didn't work before, but now trying to create such an object didn't fail.
+#User defined functions and constants may not overload built-in functions and constants.  This didn't work before, but now trying to create such an object will fail.
 
 @history_1030_li
 #Improved MultiDimension tool (for spatial queries): in the last few releases the tool was actually  slower than using a regular query (because index lookup got faster, and because the tool didn't  support prepared statements) Now the tool generates prepared statements,  and the performance is better again (about 5 times faster for a reasonable amount of data).
@@ -4925,7 +4925,7 @@ Mit Maven 2
 #Download
 
 @mainWeb_1007_td
-#Version 1.0.57 (2007-08-25):
+#Version 1.0.58 (2007-09-15):
 
 @mainWeb_1008_a
 #Windows Installer (2.7 MB)

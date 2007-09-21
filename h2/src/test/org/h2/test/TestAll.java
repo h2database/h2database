@@ -48,7 +48,7 @@ import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDataSource;
-import org.h2.test.jdbc.TestDatabaseEventListener;
+//import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestManyJdbcObjects;
 import org.h2.test.jdbc.TestMetaData;
 import org.h2.test.jdbc.TestNativeSQL;
@@ -143,6 +143,8 @@ java org.h2.test.TestAll timer
 //        System.setProperty("h2.mvcc", "true");
         
 /*
+
+exit console doesn't always work any more
 
 web page translation
 

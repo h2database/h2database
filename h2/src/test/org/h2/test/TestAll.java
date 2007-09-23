@@ -48,7 +48,7 @@ import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDataSource;
-//import org.h2.test.jdbc.TestDatabaseEventListener;
+import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestManyJdbcObjects;
 import org.h2.test.jdbc.TestMetaData;
 import org.h2.test.jdbc.TestNativeSQL;
@@ -144,84 +144,20 @@ java org.h2.test.TestAll timer
         
 /*
 
-exit console doesn't always work any more
-
 web page translation
 
-Full Text Search
-H2 supports Lucene full text search and native full text search implementation. 
-
-Using the Native Full Text Search
-To initialize, call:
-
-CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
-CALL FT_INIT();
-
-Afterwards, you can create a full text index for a table using:
-
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
-INSERT INTO TEST VALUES(1, 'Hello World');
-
-CALL FT_CREATE_INDEX('PUBLIC', 'TEST', NULL);
-
-where PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional, in this case all columns are indexed. The index is updated in read time. To search the index, use the following query:
-
-SELECT * FROM FT_SEARCH('Hello', 0, 0);
-
-You can also call the index from within a Java application:
-
-org.h2.fulltext.FullText.search(conn, text, limit, offset)
-
-Using the Lucene Full Text Search
-To use the Lucene full text search, you first need to rename the file FullTextLucene.java.txt to FullTestLucene.java and compile it. Also, you need the Lucene library in the classpath.
-To initialize, call:
-
-CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
-CALL FTL_INIT();
-
-Afterwards, you can create a full text index for a table using:
-
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
-INSERT INTO TEST VALUES(1, 'Hello World');
-
-CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
-
-where PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional, in this case all columns are indexed. The index is updated in read time. To search the index, use the following query:
-
-SELECT * FROM FTL_SEARCH('Hello', 0, 0);
-
-You can also call the index from within a Java application:
-
-org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset)
-
-
-create table test(id int, name varchar(255));
-SELECT *  FROM TEST a natural JOIN TEST b;
-drop table test;
-H2:
-ID, NAME, ID, NAME
-MySQL, PostgreSQL:
-ID, NAME
-Derby, HSQLDB, MS SQL Server:
-no supported
-
-H2 supports cancel for the embedded mode but not yet for the client / server mode. I will add a feature request for this.
-
-
 set log 0;
+drop table test;
 create table test(id int primary key, name varchar);
-@LOOP 10000 insert into test values(?, space(100000));
+@LOOP 100000 insert into test values(?, space(1000));
 shutdown;
 a SHUTDOWN command is not enough? > 
 No, currently SHUTDOWN will not correctly close the objects if LOG is set to 0. 
 It _should_ be enough however. I will change the code so that in the future SHUTDOWN will be enough, and regular database closing will be enough. 
 
-
 run benchmark with newest version of apache derby and hsqldb
 
 TestMultiThreadedKernel  and integrate in unit tests; use also in-memory and so on
-
-
 
 Sorry.... I just read the doc  and it says using LOG=0 can lead to
 corruption...

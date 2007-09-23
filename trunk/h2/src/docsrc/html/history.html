@@ -40,7 +40,9 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.59 (2007-09-TODO)</h3><ul>
-<li>When creating a table using CREATE TABLE .. AS SELECT, the precision for some data types (for example VARCHAR)
+<li>Fulltext search is now documented (in the Tutorial).
+</li><li>The Console did not refresh the table list if the CREATE TABLE statement started with a comment. Fixed.
+</li><li>When creating a table using CREATE TABLE .. AS SELECT, the precision for some data types (for example VARCHAR)
 	was set to the default precision. Fixed.
 </li><li>When using the (undocumented) in-memory file system (jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using
 	multiple connections, a ConcurrentModificationException could occur. Fixed. 
@@ -506,6 +508,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
 </li><li>Connection pool manager
+</li><li>Implement Statement.cancel for server connections
 </li><li>Start / stop server with database URL
 </li><li>Rebuild index functionality (other than delete the index file)
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
@@ -563,7 +566,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>Close all files when closing the database (including LOB files that are open on the client side)
 </li><li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
-</li><li>Implement Statement.cancel for server connections
 </li><li>Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
 </li><li>Function to read/write a file from/to LOB
 </li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
@@ -774,6 +776,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility)
 </li><li>Support data type INTERVAL
+</li><li>NATURAL JOIN: MySQL and PostgreSQL don't repeat columns when using SELECT * ...
 </li></ul>
 
 <h3>Not Planned</h3>

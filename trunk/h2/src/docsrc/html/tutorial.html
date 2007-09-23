@@ -32,6 +32,8 @@ Tutorial
     Using OpenOffice Base</a><br />
 <a href="#web_start">
     Java Web Start / JNLP</a><br />
+<a href="#fulltext">
+    Fulltext Search</a><br />
 
 <br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
@@ -517,5 +519,73 @@ Example permission tags:
 &lt;/security>
 </pre>
 </p>
+
+<br /><a name="fulltext"></a>
+<h2>Fulltext Search</h2>
+<p>
+H2 supports Lucene full text search and native full text search implementation. 
+</p>
+
+<h3>Using the Native Full Text Search</h3>
+<p>
+To initialize, call:
+<p>
+<pre>
+CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
+CALL FT_INIT();
+</pre>
+<p>
+Afterwards, you can create a full text index for a table using:
+</p>
+<pre>
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
+INSERT INTO TEST VALUES(1, 'Hello World');
+CALL FT_CREATE_INDEX('PUBLIC', 'TEST', NULL);
+</pre>
+<p>
+PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional, 
+in this case all columns are indexed. The index is updated in read time. 
+To search the index, use the following query:
+</p>
+<pre>
+SELECT * FROM FT_SEARCH('Hello', 0, 0);
+</pre>
+<p>
+You can also call the index from within a Java application:
+</p>
+<pre>
+org.h2.fulltext.FullText.search(conn, text, limit, offset)
+</pre>
+
+<h3>Using the Lucene Fulltext Search</h3>
+<p>
+To use the Lucene full text search, you first need to rename the file FullTextLucene.java.txt to FullTestLucene.java and compile it. Also, you need the Lucene library in the classpath.
+To initialize, call:
+</p>
+<pre>
+CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
+CALL FTL_INIT();
+</pre>
+<p>
+Afterwards, you can create a full text index for a table using:
+</p>
+<pre>
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
+INSERT INTO TEST VALUES(1, 'Hello World');
+CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
+</pre>
+<p>
+PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional, 
+in this case all columns are indexed. The index is updated in read time. To search the index, use the following query:
+</p>
+<pre>
+SELECT * FROM FTL_SEARCH('Hello', 0, 0);
+</pre>
+<p>
+You can also call the index from within a Java application:
+</p>
+<pre>
+org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset)
+</pre>
 
 </div></td></tr></table></body></html>

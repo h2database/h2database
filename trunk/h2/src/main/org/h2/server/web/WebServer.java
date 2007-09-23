@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,6 +78,7 @@ public class WebServer implements Service {
     private static int ticker;
     private int port;
     private boolean allowOthers;
+    private HashSet running = new HashSet();
     private boolean ssl;
     private HashMap connInfoMap = new HashMap();
     
@@ -113,6 +115,10 @@ public class WebServer implements Service {
         byte[] bytes = getFile(file);
         return new String(bytes);
     }
+    
+    synchronized void remove(WebThread t) {
+        running.remove(t);
+    }    
 
     private String generateSessionId() {
         byte[] buff = RandomUtils.getSecureBytes(16);
@@ -217,6 +223,7 @@ public class WebServer implements Service {
             while (serverSocket != null) {
                 Socket s = serverSocket.accept();
                 WebThread c = new WebThread(s, this);
+                running.add(c);
                 c.start();
             }
         } catch (Exception e) {
@@ -249,6 +256,30 @@ public class WebServer implements Service {
                 listenerThread.join(1000);
             } catch (InterruptedException e) {
                 TraceSystem.traceThrowable(e);
+            }
+        }
+        // TODO server: using a boolean 'now' argument? a timeout?
+        ArrayList list = new ArrayList(sessions.values());
+        for (int i = 0; i < list.size(); i++) {
+            WebSession session = (WebSession) list.get(i);
+            Statement stat = session.executingStatement;
+            if (stat != null) {
+                try {
+                    stat.cancel();                
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        }
+        list = new ArrayList(running);
+        for (int i = 0; i < list.size(); i++) {
+            WebThread c = (WebThread) list.get(i);
+            try {
+                c.stopNow();
+                c.join(100);
+            } catch (Exception e) {
+                // TODO log exception
+                e.printStackTrace();
             }
         }
     }

@@ -56,6 +56,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private boolean cache;    
     private int listenerLastState;
     private long listenerLastEvent;
+    private boolean stop;
 
     // TODO web: support online data editing like http://numsum.com/
 
@@ -68,6 +69,10 @@ class WebThread extends Thread implements DatabaseEventListener {
     void setSession(WebSession session, Properties attributes) {
         this.session = session;
         this.attributes = attributes;
+    }
+    
+    public void stopNow() {
+        this.stop = true;
     }
     
     private String getAllowedFile(String requestedFile) {
@@ -188,6 +193,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 output.flush();
                 output.close();
                 socket.close();
+                server.remove(this);
                 return;
             }
         } catch (Exception e) {
@@ -1183,8 +1189,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             sql = sql.trim();
             StringBuffer buff = new StringBuffer();
             String sqlUpper = StringUtils.toUpperEnglish(sql);
-            if (sqlUpper.startsWith("CREATE") || sqlUpper.startsWith("DROP") || sqlUpper.startsWith("ALTER")
-                    || sqlUpper.startsWith("RUNSCRIPT")) {
+            if (sqlUpper.indexOf("CREATE") >= 0 || sqlUpper.indexOf("DROP") >= 0 || sqlUpper.indexOf("ALTER") >= 0
+                    || sqlUpper.indexOf("RUNSCRIPT") >= 0) {
                 String sessionId = attributes.getProperty("jsessionid");
                 buff.append("<script type=\"text/javascript\">top['h2menu'].location='tables.do?jsessionid="
                         + sessionId + "';</script>");
@@ -1282,7 +1288,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String executeLoop(Connection conn, int count, String sql) throws SQLException {
         ArrayList params = new ArrayList();
         int idx = 0;
-        while (true) {
+        while (!stop) {
             idx = sql.indexOf('?', idx);
             if (idx < 0) {
                 break;
@@ -1303,7 +1309,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             sql = sql.substring("@STATEMENT".length()).trim();
             prepared = false;
             Statement stat = conn.createStatement();
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; !stop && i < count; i++) {
                 String s = sql;
                 for (int j = 0; j < params.size(); j++) {
                     idx = s.indexOf('?');
@@ -1316,7 +1322,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 if (stat.execute(s)) {
                     ResultSet rs = stat.getResultSet();
-                    while (rs.next()) {
+                    while (!stop && rs.next()) {
                         rows++;
                         // maybe get the data as well
                     }
@@ -1327,7 +1333,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else {
             prepared = true;
             PreparedStatement prep = conn.prepareStatement(sql);
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; !stop && i < count; i++) {
                 for (int j = 0; j < params.size(); j++) {
                     Integer type = (Integer) params.get(j);
                     if (type.intValue() == 1) {
@@ -1342,7 +1348,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 } else {
                     if (prep.execute()) {
                         ResultSet rs = prep.getResultSet();
-                        while (rs.next()) {
+                        while (!stop && rs.next()) {
                             rows++;
                             // maybe get the data as well
                         }
@@ -1603,16 +1609,16 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         switch(state) {
         case DatabaseEventListener.STATE_BACKUP_FILE:
-            log("Backing up " + name + " " + (100L * max / x) + "%");
+            log("Backing up " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_CREATE_INDEX:
-            log("Creating index " + name + " " + (100L * max / x) + "%");
+            log("Creating index " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_RECOVER:
-            log("Recovering " + name + " " + (100L * max / x) + "%");
+            log("Recovering " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_SCAN_FILE:
-            log("Scanning file " + name + " " + (100L * max / x) + "%");
+            log("Scanning file " + name + " " + (100L * x / max) + "%");
             break;
         default:
             log("Unknown state: " + state);

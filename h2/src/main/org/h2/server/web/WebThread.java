@@ -20,8 +20,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -33,6 +35,9 @@ import java.util.Map.Entry;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
+import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ObjectUtils;
@@ -151,6 +156,10 @@ class WebThread extends Thread implements DatabaseEventListener {
                 String hostname = socket.getInetAddress().getHostName();
 
                 file = processRequest(file, hostname);
+                if (file.length() == 0) {
+                    // asynchronous request
+                    return;
+                }
 
                 String message;
                 byte[] bytes;
@@ -184,20 +193,33 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 message += "\n";
                 server.trace(message);
-                DataOutputStream output;
-                output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-                output.write(message.getBytes());
+                DataOutputStream output = openOutput(message);
                 if (bytes != null) {
                     output.write(bytes);
                 }
-                output.flush();
-                output.close();
-                socket.close();
-                server.remove(this);
+                closeOutput(output);
                 return;
             }
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
+        }
+    }
+    
+    private DataOutputStream openOutput(String message) throws IOException {
+        DataOutputStream output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        output.write(message.getBytes());
+        return output;
+    }
+    
+    private void closeOutput(DataOutputStream output) {
+        try {
+            output.flush();
+            output.close();
+            socket.close();
+        } catch (IOException e) {
+            // ignore
+        } finally {
+            server.remove(this);
         }
     }
 
@@ -820,7 +842,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getLoginError(Exception e) {
-        if (e instanceof ClassNotFoundException) {
+        if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e);
         } else {
             return getStackTrace(0, e);
@@ -828,27 +850,142 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String login() {
-        String driver = attributes.getProperty("driver", "");
-        String url = attributes.getProperty("url", "");
-        String user = attributes.getProperty("user", "");
-        String password = attributes.getProperty("password", "");
-        try {
-            Connection conn = server.getConnection(driver, url, user, password, this);
-            session.setConnection(conn);
-            session.put("url", url);
-            session.put("user", user);
-            session.put("autoCommit", "checked");
-            session.put("autoComplete", "1");
-            session.put("maxrows", "1000");
-            session.remove("error");
-            settingSave();
-            return "frame.jsp";
-        } catch (Exception e) {
-            session.put("error", getLoginError(e));
-            return "index.jsp";
+        final String driver = attributes.getProperty("driver", "");
+        final String url = attributes.getProperty("url", "");
+        final String user = attributes.getProperty("user", "");
+        final String password = attributes.getProperty("password", "");
+        session.put("autoCommit", "checked");
+        session.put("autoComplete", "1");
+        session.put("maxrows", "1000");
+        boolean thread = false;
+        if (socket != null 
+                && url.startsWith("jdbc:h2:") 
+                && !url.startsWith("jdbc:h2:tcp:") 
+                && !url.startsWith("jdbc:h2:ssl:") 
+                && !url.startsWith("jdbc:h2:mem:")) {
+            thread = true;
         }
-    }
+        if (!thread) {
+            try {
+                Connection conn = server.getConnection(driver, url, user, password, this);
+                session.setConnection(conn);
+                session.put("url", url);
+                session.put("user", user);
+                session.remove("error");
+                settingSave();
+                return "frame.jsp";
+            } catch (Exception e) {
+                session.put("error", getLoginError(e));
+                return "index.jsp";
+            }
+        }
+        class LoginTask implements Runnable, DatabaseEventListener {
+            private DataOutputStream output;
+            private PrintWriter writer;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+            
+            LoginTask() throws IOException {
+                String message = "HTTP/1.1 200 OK\n";
+                message += "Content-Type: " + mimeType + "\n\n";
+                output = openOutput(message);
+                writer = new PrintWriter(output);
+                writer.println("<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheet.css\" /></head>");
+                writer.println("<body><h2>Opening Database</h2>URL: " + PageParser.escapeHtml(url) + "<br />");
+                writer.println("User: " + PageParser.escapeHtml(user) + "<br />");
+                writer.println("Version: " + Constants.getVersion() + "<br /><br />");
+                writer.flush();
+                log("Start...");
+            }
+            
+            public void closingDatabase() {
+                log("Closing database");
+            }
 
+            public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+                log("Disk space is low; still available: " + stillAvailable);
+            }
+
+            public void exceptionThrown(SQLException e, String sql) {
+                log("Exception: " + PageParser.escapeHtml(e.toString()) + " SQL: " + PageParser.escapeHtml(sql));
+            }
+
+            public void init(String url) {
+                log("Init: " + PageParser.escapeHtml(url));
+            }
+
+            public void opened() {
+                log("Database was opened");
+            }
+
+            public void setProgress(int state, String name, int x, int max) {
+                name = PageParser.escapeHtml(name);
+                if (state == listenerLastState) {
+                    long time = System.currentTimeMillis();
+                    if (listenerLastEvent + 500 < time) {
+                        return;
+                    }
+                    listenerLastEvent = time;
+                } else {
+                    listenerLastState = state;
+                }
+                switch(state) {
+                case DatabaseEventListener.STATE_BACKUP_FILE:
+                    log("Backing up " + name + " " + (100L * x / max) + "%");
+                    break;
+                case DatabaseEventListener.STATE_CREATE_INDEX:
+                    log("Creating index " + name + " " + (100L * x / max) + "%");
+                    break;
+                case DatabaseEventListener.STATE_RECOVER:
+                    log("Recovering " + name + " " + (100L * x / max) + "%");
+                    break;
+                case DatabaseEventListener.STATE_SCAN_FILE:
+                    log("Scanning file " + name + " " + (100L * x / max) + "%");
+                    break;
+                default:
+                    log("Unknown state: " + state);
+                }
+            }
+
+            private synchronized void log(String message) {
+                if (output != null) {
+                    message = dateFormat.format(new Date()) + ": " + message;
+                    writer.println(message + "<br />");
+                    writer.flush();
+                }
+            }
+            
+            public void run() {
+                String sessionId = (String) session.get("sessionId");
+                try {
+                    Connection conn = server.getConnection(driver, url, user, password, this);
+                    session.setConnection(conn);
+                    session.put("url", url);
+                    session.put("user", user);
+                    session.remove("error");
+                    settingSave();
+                    log("OK<script type=\"text/javascript\">top.location=\"frame.jsp?jsessionid=" +sessionId+ "\"</script></body></htm>");
+                    // return "frame.jsp";
+                } catch (Exception e) {
+                    session.put("error", getLoginError(e));
+                    log("Error<script type=\"text/javascript\">top.location=\"index.jsp?jsessionid=" +sessionId+ "\"</script></body></html>");
+                    // return "index.jsp";
+                }
+                synchronized (this) {
+                    closeOutput(output);
+                    output = null;
+                }
+            }
+        }
+        try {
+            LoginTask login = new LoginTask();
+            Thread t = new Thread(login);
+            t.start();
+        } catch (IOException e) {
+            // ignore
+        }
+        return "";
+    }
+    
     private String logout() {
         try {
             Connection conn = session.getConnection();
@@ -1572,11 +1709,6 @@ class WebThread extends Thread implements DatabaseEventListener {
         return session;
     }
     
-    private void log(String s) {
-        int test;
-        System.out.println(s);
-    }
-
     public void closingDatabase() {
         log("Closing database");
     }
@@ -1624,5 +1756,9 @@ class WebThread extends Thread implements DatabaseEventListener {
             log("Unknown state: " + state);
         }
     }
-    
+
+    private void log(String s) {
+        // System.out.println(s);
+    }
+
 }

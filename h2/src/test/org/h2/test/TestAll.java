@@ -4,6 +4,7 @@
  */
 package org.h2.test;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -144,25 +145,36 @@ java org.h2.test.TestAll timer
         
 /*
 
+
+Thanks for the response.  Yes I'm doing embedded so this is fine for
+me.  One other question, I have noticed that once I cancel my
+PreparedStatement, it does not seem to work again.  I couldn't find a
+way to clear it, so I guess I have to re-instantiate it?
+
+Also, how promptly should this cancel take effect?  It seemed to be
+fairly delayed, but there's still a chance my implementation wasn't
+correct.
+
+Hi,
+
+You are right, a PreparedStatement could not be reused after cancel was called.
+I have fixed this and added a test case. Thanks for reporting this!
+
+Delayed cancel: if you use the database in embedded mode, it depends on thread
+scheduling when the statement is cancelled (you need two threads). I also got
+this problem. What I did is use Thread.yield in my test, like this:
+CREATE ALIAS YIELD FOR "java.lang.Thread.yield";
+SELECT YIELD() FROM ...
+So for each row, Thread.yield() is called, letting other threads do some work.
+Another solution would be to use SET THROTTLE (see docs).
+
+Thomas
+
 web page translation
-
-set log 0;
-drop table test;
-create table test(id int primary key, name varchar);
-@LOOP 100000 insert into test values(?, space(1000));
-shutdown;
-a SHUTDOWN command is not enough? > 
-No, currently SHUTDOWN will not correctly close the objects if LOG is set to 0. 
-It _should_ be enough however. I will change the code so that in the future SHUTDOWN will be enough, and regular database closing will be enough. 
-
-run benchmark with newest version of apache derby and hsqldb
 
 TestMultiThreadedKernel  and integrate in unit tests; use also in-memory and so on
 
-Sorry.... I just read the doc  and it says using LOG=0 can lead to
-corruption...
-
-"At startup, when corrupted, say if LOG=0 was used before"
+At startup, when corrupted, say if LOG=0 was used before
 
 add MVCC
 
@@ -253,9 +265,6 @@ spell check / word list per language
 translated .pdf
 
 write tests using the PostgreSQL JDBC driver
-
-support Oracle functions:
-TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER;
 
 */        
         
@@ -561,7 +570,7 @@ TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER;
 
         // jdbc
         new TestCancel().runTest(this);
-//        new TestDatabaseEventListener().runTest(this);
+        new TestDatabaseEventListener().runTest(this);
         new TestDataSource().runTest(this);
         new TestManyJdbcObjects().runTest(this);
         new TestMetaData().runTest(this);

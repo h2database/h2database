@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testCancelReuse(conn);
         testCoalesce(conn);
         testPreparedStatementMetaData(conn);
         testDate(conn);
@@ -47,6 +48,33 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testCancelReuse(Connection conn) throws Exception {
+        conn.createStatement().execute("CREATE ALIAS YIELD FOR \"java.lang.Thread.yield\"");
+        final PreparedStatement prep = conn.prepareStatement("SELECT YIELD() FROM SYSTEM_RANGE(1, 1000000) LIMIT ?");
+        prep.setInt(1, 100000000);
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    prep.execute();
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
+        };
+        t.start();
+        Thread.sleep(10);
+        try {
+            prep.cancel();
+        } catch (SQLException e) {
+            this.checkNotGeneralException(e);
+        }
+        prep.setInt(1, 1);
+        ResultSet rs = prep.executeQuery();
+        check(rs.next());
+        check(rs.getInt(1), 0);
+        checkFalse(rs.next());
     }
     
     private void testCoalesce(Connection conn) throws Exception {

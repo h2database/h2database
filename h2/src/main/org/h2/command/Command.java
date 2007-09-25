@@ -85,6 +85,7 @@ public abstract class Command implements CommandInterface {
 
     public void checkCancelled() throws SQLException {
         if (cancel) {
+            cancel = false;
             throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
         }
         session.throttle();

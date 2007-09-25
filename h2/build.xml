@@ -235,7 +235,7 @@
 		<javadoc
 			sourcepath="src/main"
 			packagenames="org.h2.jdbc.*,org.h2.tools.*,org.h2.api.*,org.h2.store.*"
-			destDir="doc/javadoc"
+			destDir="docs/javadocImpl"
 		/> 		<!--	doclet="org.h2.tools.doclet.Doclet"  docletpath="bin"-->
 		<copy todir="docs/javadoc">
 			<fileset dir="src/docsrc/javadoc" includes="**/*"/>

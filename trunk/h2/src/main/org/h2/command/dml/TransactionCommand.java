@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 
@@ -112,7 +113,9 @@ public class TransactionCommand extends Prepared {
                     s.close();
                 }
             }
-            db.getLog().checkpoint();
+            LogSystem log = db.getLog();
+            log.setDisabled(false);
+            log.checkpoint();
             session.close();
             break;
         }

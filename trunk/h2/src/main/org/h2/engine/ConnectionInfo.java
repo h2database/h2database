@@ -306,7 +306,10 @@ public class ConnectionInfo {
     }
 
     public void setProperty(String key, String value) {
-        prop.setProperty(key, value);
+        // value is null if the value is an object
+        if (value != null) {
+            prop.setProperty(key, value);
+        }
     }
 
     public String getURL() {

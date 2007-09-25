@@ -22,6 +22,30 @@ public class TestLinkedTable extends TestBase {
         testLinkSchema();
         testLinkEmitUpdates();
         testLinkTable();
+        testLinkTwoTables();
+    }
+    
+    private void testLinkTwoTables() throws Exception {
+        Class.forName("org.h2.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:h2:mem:one", "linkuser", "linkpass");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA Y");
+        stat.execute("CREATE TABLE A( C INT)");
+        stat.execute("INSERT INTO A VALUES(1)");
+        stat.execute("CREATE TABLE Y.A (C INT)");
+        stat.execute("INSERT INTO Y.A VALUES(2)");
+        Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:two");
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("CREATE LINKED TABLE one('org.h2.Driver', 'jdbc:h2:mem:one', 'linkuser', 'linkpass', 'Y.A');");
+        stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', 'jdbc:h2:mem:one', 'linkuser', 'linkpass', 'A');");
+        ResultSet rs = stat2.executeQuery("SELECT * FROM one");
+        rs.next();
+        check(rs.getInt(1), 2);
+        rs = stat2.executeQuery("SELECT * FROM two");
+        rs.next();
+        check(rs.getInt(1), 1);
+        conn.close();
+        conn2.close();
     }
 
     private void testLinkDrop() throws Exception {

@@ -73,7 +73,22 @@ public class TableLink extends Table {
         int i = 0;
         ObjectArray columnList = new ObjectArray();
         HashMap columnMap = new HashMap();
+        String catalog = null, schema = null;
         while (rs.next()) {
+            String thisCatalog = rs.getString("TABLE_CAT");
+            if (catalog == null) {
+                catalog = thisCatalog;
+            }
+            String thisSchema = rs.getString("TABLE_SCHEM");
+            if (schema == null) {
+                schema = thisSchema;
+            }
+            if (!catalog.equals(thisCatalog) || !schema.equals(thisSchema)) {
+                // if the table exists in multiple schemas or tables, use the alternative solution
+                columnMap.clear();
+                columnList.clear();
+                break;
+            }
             String n = rs.getString("COLUMN_NAME");
             if (storesLowerCase && n.equals(StringUtils.toLowerEnglish(n))) {
                 n = StringUtils.toUpperEnglish(n);
@@ -87,6 +102,7 @@ public class TableLink extends Table {
             columnList.add(col);
             columnMap.put(n, col);
         }
+        // alternative solution
         if (columnList.size() == 0) {
             Statement stat = null;
             try {

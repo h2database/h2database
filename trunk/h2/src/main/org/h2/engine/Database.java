@@ -801,6 +801,9 @@ public class Database implements DataHandler {
                 }
             }
         }
+        if (log != null) {
+            log.setDisabled(false);
+        }
         traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName);
         if (eventListener != null) {
             // allow the event listener to connect to the database

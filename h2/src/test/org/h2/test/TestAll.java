@@ -145,31 +145,6 @@ java org.h2.test.TestAll timer
         
 /*
 
-
-Thanks for the response.  Yes I'm doing embedded so this is fine for
-me.  One other question, I have noticed that once I cancel my
-PreparedStatement, it does not seem to work again.  I couldn't find a
-way to clear it, so I guess I have to re-instantiate it?
-
-Also, how promptly should this cancel take effect?  It seemed to be
-fairly delayed, but there's still a chance my implementation wasn't
-correct.
-
-Hi,
-
-You are right, a PreparedStatement could not be reused after cancel was called.
-I have fixed this and added a test case. Thanks for reporting this!
-
-Delayed cancel: if you use the database in embedded mode, it depends on thread
-scheduling when the statement is cancelled (you need two threads). I also got
-this problem. What I did is use Thread.yield in my test, like this:
-CREATE ALIAS YIELD FOR "java.lang.Thread.yield";
-SELECT YIELD() FROM ...
-So for each row, Thread.yield() is called, letting other threads do some work.
-Another solution would be to use SET THROTTLE (see docs).
-
-Thomas
-
 web page translation
 
 TestMultiThreadedKernel  and integrate in unit tests; use also in-memory and so on

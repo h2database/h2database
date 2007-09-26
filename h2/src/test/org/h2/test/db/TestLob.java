@@ -101,17 +101,21 @@ public class TestLob extends TestBase {
         try {
             conn.createStatement().execute("DELETE FROM TEST");
             conn.commit();
-            // DELETE does now fail in all systems (Linux), but in some
+            // DELETE does not fail in Linux, but in Windows
             // error("Error expected");
             // but reading afterwards should fail
+            int len = 0;
             while (true) {
                 int x = in.read();
                 if (x < 0) {
                     break;
                 }
+                len++;
             }
             in.close();
-            error("Error expected");
+            if (len > 0) {
+                error("Error expected; len=" + len);
+            }
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

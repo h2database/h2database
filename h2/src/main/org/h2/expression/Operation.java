@@ -188,7 +188,12 @@ public class Operation extends Expression {
 
     public long getPrecision() {
         if (right != null) {
-            return Math.max(left.getPrecision(), right.getPrecision());
+            switch (opType) {
+                case CONCAT:
+                    return left.getPrecision() + right.getPrecision();
+                default:
+                    return Math.max(left.getPrecision(), right.getPrecision());
+            }
         }
         return left.getPrecision();
     }

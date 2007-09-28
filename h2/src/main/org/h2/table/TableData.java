@@ -322,12 +322,12 @@ public class TableData extends Table implements RecordReader {
                             return;
                         }
                         if (lockShared.isEmpty()) {
-                            traceLock(session, exclusive, "ok");
+                            traceLock(session, exclusive, "added for");
                             session.addLock(this);
                             lockExclusive = session;
                             return;
                         } else if (lockShared.size() == 1 && lockShared.contains(session)) {
-                            traceLock(session, exclusive, "ok (upgrade)");
+                            traceLock(session, exclusive, "add (upgraded) for ");
                             lockExclusive = session;
                             return;
                         }
@@ -353,11 +353,11 @@ public class TableData extends Table implements RecordReader {
                 }
                 long now = System.currentTimeMillis();
                 if (now >= max) {
-                    traceLock(session, exclusive, "timeout " + session.getLockTimeout());
+                    traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
                     throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, getName());
                 }
                 try {
-                    traceLock(session, exclusive, "waiting");
+                    traceLock(session, exclusive, "waiting for");
                     if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
                         for (int i = 0; i < 20; i++) {
                             long free = Runtime.getRuntime().freeMemory();
@@ -378,7 +378,7 @@ public class TableData extends Table implements RecordReader {
 
     private void traceLock(Session session, boolean exclusive, String s) {
         if (traceLock.debug()) {
-            traceLock.debug(session.getId() + " " + (exclusive ? "xlock" : "slock") + " " + s + " " + getName());
+            traceLock.debug(session.getId() + " " + (exclusive ? "exclusive write lock" : "shared read lock") + " " + s + " " + getName());
         }
     }
 

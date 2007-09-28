@@ -888,6 +888,10 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCode("setPoolable("+poolable+");");
         }
     }
+    
+    void debugCodeCallMe(String text, String param) {
+        debugCodeCall(text, param);
+    }
 
 }
 

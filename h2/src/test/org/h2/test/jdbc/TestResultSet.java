@@ -35,6 +35,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testColumnLength();
         testArray();
         testLimitMaxRows();
 
@@ -57,24 +58,29 @@ public class TestResultSet extends TestBase {
 
     }
 
+    private void testColumnLength() throws Exception {
+        trace("Test ColumnLength");
+        
+    }
+
     private void testLimitMaxRows() throws Exception {
         trace("Test LimitMaxRows");
         ResultSet rs;
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
-        stat.execute("INSERT INTO TEST VALUES(1), (2), (3), (4)");
-        rs = stat.executeQuery("SELECT * FROM TEST");
-        checkResultRowCount(rs, 4);
-        rs = stat.executeQuery("SELECT * FROM TEST LIMIT 2");
-        checkResultRowCount(rs, 2);
-        stat.setMaxRows(2);
-        rs = stat.executeQuery("SELECT * FROM TEST");
-        checkResultRowCount(rs, 2);
-        rs = stat.executeQuery("SELECT * FROM TEST LIMIT 1");
-        checkResultRowCount(rs, 1);
-        rs = stat.executeQuery("SELECT * FROM TEST LIMIT 3");
-        checkResultRowCount(rs, 2);
-        stat.setMaxRows(0);
-        stat.execute("DROP TABLE TEST");
+        stat.execute("CREATE TABLE one (C CHARACTER(10))");
+        rs = stat.executeQuery("SELECT C || C FROM one;");
+        ResultSetMetaData md = rs.getMetaData();
+        check(20, md.getPrecision(1));
+        ResultSet rs2 = stat.executeQuery("SELECT UPPER (C)  FROM one;");
+        ResultSetMetaData md2 = rs2.getMetaData();
+        check(10, md2.getPrecision(1));
+        rs = stat.executeQuery("SELECT UPPER (C), CHAR(10), CONCAT(C,C,C), HEXTORAW(C), RAWTOHEX(C) FROM one");
+        ResultSetMetaData meta = rs.getMetaData();
+        check(10, meta.getPrecision(1));
+        check(1, meta.getPrecision(2));
+        check(30, meta.getPrecision(3));
+        check(3, meta.getPrecision(4));
+        check(40, meta.getPrecision(5));
+        stat.execute("DROP TABLE one");
     }
 
     void testAutoIncrement() throws Exception {

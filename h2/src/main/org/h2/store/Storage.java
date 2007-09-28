@@ -90,28 +90,30 @@ public class Storage {
             lastCheckedPage = file.getPage(record.getPos());
             next = record.getPos() + blockCount;
         }
-        BitField used = file.getUsed();
-        while (true) {
-            int page = file.getPage(next);
-            if (lastCheckedPage != page) {
-                if (pageIndex < 0) {
-                    pageIndex = pages.findNextValueIndex(page);
+        synchronized (database) {
+            BitField used = file.getUsed();
+            while (true) {
+                int page = file.getPage(next);
+                if (lastCheckedPage != page) {
+                    if (pageIndex < 0) {
+                        pageIndex = pages.findNextValueIndex(page);
+                    } else {
+                        pageIndex++;
+                    }
+                    if (pageIndex >= pages.size()) {
+                        return -1;
+                    }
+                    lastCheckedPage = pages.get(pageIndex);
+                    next = Math.max(next, DiskFile.BLOCKS_PER_PAGE * lastCheckedPage);
+                }
+                if (used.get(next)) {
+                    return next;
+                }
+                if (used.getLong(next) == 0) {
+                    next = MathUtils.roundUp(next + 1, 64);
                 } else {
-                    pageIndex++;
+                    next++;
                 }
-                if (pageIndex >= pages.size()) {
-                    return -1;
-                }
-                lastCheckedPage = pages.get(pageIndex);
-                next = Math.max(next, DiskFile.BLOCKS_PER_PAGE * lastCheckedPage);
-            }
-            if (used.get(next)) {
-                return next;
-            }
-            if (used.getLong(next) == 0) {
-                next = MathUtils.roundUp(next + 1, 64);
-            } else {
-                next++;
             }
         }
     }
@@ -153,18 +155,20 @@ public class Storage {
     }
 
     private boolean isFreeAndMine(int pos, int blocks) {
-        BitField used = file.getUsed();
-        for (int i = blocks + pos - 1; i >= pos; i--) {
-            if (file.getPageOwner(file.getPage(i)) != id || used.get(i)) {
-                return false;
+        synchronized (database) {
+            BitField used = file.getUsed();
+            for (int i = blocks + pos - 1; i >= pos; i--) {
+                if (file.getPageOwner(file.getPage(i)) != id || used.get(i)) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
 
     public int allocate(int blockCount) throws SQLException {
         if (freeList.size() > 0) {
-            synchronized (file) {
+            synchronized (database) {
                 BitField used = file.getUsed();
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);

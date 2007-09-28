@@ -111,6 +111,8 @@ The reason is, a backup of the database is created whenever the database is open
 Version 10.3.1.4 was used for the test. Derby is clearly the slowest embedded database in this test.
 This seems to be a structural problem, because all operations are really slow. 
 It will not be easy for the developers of Derby to improve the performance to a reasonable level.
+A few problems have been identified: Leaving autocommit on is a problem for Derby. 
+If it is switched off during the whole test, the results are about 20% better for Derby.
 </p>
 
 <h4>PostgreSQL</h4>

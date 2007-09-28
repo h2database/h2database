@@ -181,9 +181,7 @@ public class Database implements DataHandler {
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", CacheLRU.TYPE_NAME));
         try {
-            synchronized (this) {
-                open(traceLevelFile, traceLevelSystemOut);
-            }
+            open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
                 closeOnExit = new DatabaseCloser(this, 0, true);
                 try {
@@ -199,9 +197,7 @@ public class Database implements DataHandler {
                 traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
                 traceSystem.close();
             }
-            synchronized (this) {
-                closeOpenFilesAndUnlock();
-            }
+            closeOpenFilesAndUnlock();
             throw Message.convert(e);
         }
     }
@@ -413,7 +409,7 @@ public class Database implements DataHandler {
         return StringUtils.toUpperEnglish(n);
     }
 
-    private void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
+    private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             if (FileUtils.exists(dataFileName)) {
@@ -626,7 +622,7 @@ public class Database implements DataHandler {
         infoSchema.add(m);
     }
 
-    private void addMeta(Session session, DbObject obj) throws SQLException {
+    private synchronized void addMeta(Session session, DbObject obj) throws SQLException {
         if (obj.getTemporary()) {
             return;
         }
@@ -642,7 +638,7 @@ public class Database implements DataHandler {
         }
     }
 
-    private void removeMeta(Session session, int id) throws SQLException {
+    private synchronized void removeMeta(Session session, int id) throws SQLException {
         SearchRow r = meta.getTemplateSimpleRow(false);
         r.setValue(0, ValueInt.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
@@ -685,7 +681,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public void addSchemaObject(Session session, SchemaObject obj) throws SQLException {
+    public synchronized void addSchemaObject(Session session, SchemaObject obj) throws SQLException {
         obj.getSchema().add(obj);
         int id = obj.getId();
         if (id > 0 && !starting) {
@@ -693,7 +689,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public void addDatabaseObject(Session session, DbObject obj) throws SQLException {
+    public synchronized void addDatabaseObject(Session session, DbObject obj) throws SQLException {
         HashMap map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
@@ -781,23 +777,21 @@ public class Database implements DataHandler {
         }
     }
 
-    void close(boolean fromShutdownHook) {
-        synchronized (this) {
-            closing = true;
-            if (sessions.size() > 0) {
-                if (!fromShutdownHook) {
-                    return;
-                }
-                traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
-                Session[] all = new Session[sessions.size()];
-                sessions.toArray(all);
-                for (int i = 0; i < all.length; i++) {
-                    Session s = all[i];
-                    try {
-                        s.close();
-                    } catch (SQLException e) {
-                        traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
-                    }
+    synchronized void close(boolean fromShutdownHook) {
+        closing = true;
+        if (sessions.size() > 0) {
+            if (!fromShutdownHook) {
+                return;
+            }
+            traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
+            Session[] all = new Session[sessions.size()];
+            sessions.toArray(all);
+            for (int i = 0; i < all.length; i++) {
+                Session s = all[i];
+                try {
+                    s.close();
+                } catch (SQLException e) {
+                    traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);
                 }
             }
         }
@@ -872,7 +866,7 @@ public class Database implements DataHandler {
         }
     }
 
-    private void closeOpenFilesAndUnlock() throws SQLException {
+    private synchronized void closeOpenFilesAndUnlock() throws SQLException {
         if (log != null) {
             stopWriter();
             log.close();
@@ -923,7 +917,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public int allocateObjectId(boolean needFresh, boolean dataFile) {
+    public synchronized int allocateObjectId(boolean needFresh, boolean dataFile) {
         // TODO refactor: use hash map instead of bit field for object ids
         needFresh = true;
         int i;
@@ -1008,18 +1002,18 @@ public class Database implements DataHandler {
         return list;
     }
 
-    public void update(Session session, DbObject obj) throws SQLException {
+    public synchronized void update(Session session, DbObject obj) throws SQLException {
         int id = obj.getId();
         removeMeta(session, id);
         addMeta(session, obj);
     }
 
-    public void renameSchemaObject(Session session, SchemaObject obj, String newName) throws SQLException {
+    public synchronized void renameSchemaObject(Session session, SchemaObject obj, String newName) throws SQLException {
         obj.getSchema().rename(obj, newName);
         updateWithChildren(session, obj);
     }
 
-    private void updateWithChildren(Session session, DbObject obj) throws SQLException {
+    private synchronized void updateWithChildren(Session session, DbObject obj) throws SQLException {
         ObjectArray list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
@@ -1035,7 +1029,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
+    public synchronized void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
         if (SysProperties.CHECK) {
@@ -1131,7 +1125,7 @@ public class Database implements DataHandler {
         return schema;
     }
 
-    public void removeDatabaseObject(Session session, DbObject obj) throws SQLException {
+    public synchronized void removeDatabaseObject(Session session, DbObject obj) throws SQLException {
         String objName = obj.getName();
         int type = obj.getType();
         HashMap map = getMap(type);
@@ -1163,7 +1157,7 @@ public class Database implements DataHandler {
         return null;
     }
 
-    public void removeSchemaObject(Session session, SchemaObject obj) throws SQLException {
+    public synchronized void removeSchemaObject(Session session, SchemaObject obj) throws SQLException {
         if (obj.getType() == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
             if (table.getTemporary() && !table.getGlobalTemporary()) {
@@ -1202,24 +1196,18 @@ public class Database implements DataHandler {
         return fileIndex;
     }
 
-    public void setCacheSize(int kb) throws SQLException {
+    public synchronized void setCacheSize(int kb) throws SQLException {
         if (fileData != null) {
-            synchronized (fileData) {
-                fileData.getCache().setMaxSize(kb);
-            }
+            fileData.getCache().setMaxSize(kb);
             int valueIndex = kb <= 32 ? kb : (kb >>> SysProperties.CACHE_SIZE_INDEX_SHIFT);
-            synchronized (fileIndex) {
-                fileIndex.getCache().setMaxSize(valueIndex);
-            }
+            fileIndex.getCache().setMaxSize(valueIndex);
             cacheSize = kb;
         }
     }
 
-    public void setMasterUser(User user) throws SQLException {
-        synchronized (this) {
-            addDatabaseObject(systemSession, user);
-            systemSession.commit(true);
-        }
+    public synchronized void setMasterUser(User user) throws SQLException {
+        addDatabaseObject(systemSession, user);
+        systemSession.commit(true);
     }
 
     public Role getPublicRole() {
@@ -1295,7 +1283,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public void freeUpDiskSpace() throws SQLException {
+    public synchronized void freeUpDiskSpace() throws SQLException {
         long sizeAvailable = 0;
         if (emergencyReserve != null) {
             sizeAvailable = emergencyReserve.length();
@@ -1383,7 +1371,7 @@ public class Database implements DataHandler {
         return logIndexChanges;
     }
 
-    public void setLog(int level) throws SQLException {
+    public synchronized void setLog(int level) throws SQLException {
         if (logLevel == level) {
             return;
         }
@@ -1495,7 +1483,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public void setMaxLogSize(long value) {
+    public synchronized void setMaxLogSize(long value) {
         long minLogSize = biggestFileSize / Constants.LOG_SIZE_DIVIDER;
         minLogSize = Math.max(value, minLogSize);
         long currentLogSize = getLog().getMaxLogSize();

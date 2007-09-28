@@ -70,6 +70,7 @@ public class Session implements SessionInterface {
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
+    private boolean isClosed;
 
     public Session() {
     }
@@ -109,7 +110,7 @@ public class Session implements SessionInterface {
         if (!SysProperties.runFinalize) {
             return;
         }
-        if (database != null) {
+        if (!isClosed) {
             throw Message.getInternalError("not closed", stackTrace);
         }
     }
@@ -164,7 +165,7 @@ public class Session implements SessionInterface {
     }
 
     public Command prepareLocal(String sql) throws SQLException {
-        if (database == null) {
+        if (isClosed) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
         Parser parser = new Parser(this);
@@ -176,13 +177,11 @@ public class Session implements SessionInterface {
     }
 
     public int getPowerOffCount() {
-        return database == null ? 0 : database.getPowerOffCount();
+        return database.getPowerOffCount();
     }
 
     public void setPowerOffCount(int count) {
-        if (database != null) {
-            database.setPowerOffCount(count);
-        }
+        database.setPowerOffCount(count);
     }
 
     public void commit(boolean ddl) throws SQLException {
@@ -277,12 +276,12 @@ public class Session implements SessionInterface {
     }
 
     public void close() throws SQLException {
-        if (database != null) {
+        if (!isClosed) {
             try {
                 cleanTempTables(true);
                 database.removeSession(this);
             } finally {
-                database = null;
+                isClosed = true;
             }
         }
     }
@@ -320,24 +319,28 @@ public class Session implements SessionInterface {
         for (int i = 0; i < locks.size(); i++) {
             Table t = (Table) locks.get(i);
             if (!t.isLockedExclusively()) {
-                t.unlock(this);
-                locks.remove(i);
+                synchronized (database) {
+                    t.unlock(this);
+                    locks.remove(i);
+                }
                 i--;
             }
         }
     }
-
+    
     private void unlockAll() throws SQLException {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
                 throw Message.getInternalError();
             }
         }
-        for (int i = 0; i < locks.size(); i++) {
-            Table t = (Table) locks.get(i);
-            t.unlock(this);
+        synchronized (database) {
+            for (int i = 0; i < locks.size(); i++) {
+                Table t = (Table) locks.get(i);
+                t.unlock(this);
+            }
+            locks.clear();
         }
-        locks.clear();
         savepoints = null;
     }
 
@@ -368,7 +371,7 @@ public class Session implements SessionInterface {
         if (traceModuleName == null) {
             traceModuleName = Trace.JDBC + "[" + id + "]";
         }
-        if (database == null) {
+        if (isClosed) {
             return new TraceSystem(null, false).getTrace(traceModuleName);
         }
         return database.getTrace(traceModuleName);
@@ -460,7 +463,7 @@ public class Session implements SessionInterface {
     }
 
     public boolean isClosed() {
-        return database == null;
+        return isClosed;
     }
 
     public void setThrottle(int throttle) {

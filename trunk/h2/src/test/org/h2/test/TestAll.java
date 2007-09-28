@@ -4,7 +4,6 @@
  */
 package org.h2.test;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -79,6 +78,7 @@ import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
+import org.h2.test.unit.TestMultiThreadedKernel;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestReader;
@@ -146,8 +146,6 @@ java org.h2.test.TestAll timer
 /*
 
 web page translation
-
-TestMultiThreadedKernel  and integrate in unit tests; use also in-memory and so on
 
 At startup, when corrupted, say if LOG=0 was used before
 
@@ -479,6 +477,7 @@ write tests using the PostgreSQL JDBC driver
         new TestFileLock().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
+        new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
         new TestPattern().runTest(this);
         new TestReader().runTest(this);

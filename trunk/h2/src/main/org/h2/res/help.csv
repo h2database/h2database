@@ -2090,7 +2090,7 @@ If a start position is used, the characters before it are ignored.
 INSTR(EMAIL,'@')
 "
 "Functions (String)","INSERT Function","
-INSERT(originalString, startInt, lengthInt, addInt): string
+INSERT(originalString, startInt, lengthInt, addString): string
 ","
 Inserts a additional string into the original string at a specified start position.
 The length specifies the number of characters that are removed at the start position

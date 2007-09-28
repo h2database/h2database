@@ -1419,6 +1419,52 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public long getPrecision() {
+        switch (info.type) {
+        case ENCRYPT:
+        case DECRYPT:
+            precision = args[2].getPrecision();
+            break;
+        case COMPRESS:
+            precision = args[0].getPrecision();
+            break;
+        case CHAR:
+            precision = 1;
+            break;
+        case CONCAT:
+            precision = 0;
+            for (int i = 0; i < args.length; i++) {
+                precision += args[i].getPrecision();
+                if (precision < 0) {
+                    precision = Long.MAX_VALUE;
+                }
+            }
+            break;
+        case HEXTORAW:
+            precision = (args[0].getPrecision() + 3) / 4;
+            break;
+        case LCASE:
+        case LTRIM:
+        case RIGHT:
+        case RTRIM:
+        case UCASE:
+        case LOWER:
+        case UPPER:
+        case TRIM:
+        case STRINGDECODE:
+        case UTF8TOSTRING:
+            precision = args[0].getPrecision();
+            break;
+        case RAWTOHEX:
+            precision = args[0].getPrecision() * 4;
+            break;
+        case SOUNDEX:
+            precision = 4;
+            break;
+        case DAYNAME:
+        case MONTHNAME:
+            precision = 20; // day and month names may be long in some languages
+            break;
+        }
         return precision;
     }
 

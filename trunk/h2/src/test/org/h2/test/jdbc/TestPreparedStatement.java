@@ -28,7 +28,8 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
-        testCancelReuse(conn);
+        testUnknownDataType(conn);
+        testCancelReuse(conn);        
         testCoalesce(conn);
         testPreparedStatementMetaData(conn);
         testDate(conn);
@@ -48,6 +49,13 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testUnknownDataType(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement(
+        "SELECT * FROM (SELECT ? FROM DUAL)");
+        prep.setInt(1, 1);
+        prep.execute();
     }
     
     private void testCancelReuse(Connection conn) throws Exception {

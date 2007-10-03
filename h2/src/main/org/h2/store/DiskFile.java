@@ -859,24 +859,6 @@ public class DiskFile implements CacheWriter {
                     return comp;
                 }
             });
-            
-//            RedoLogRecord last = null;
-//            for (int i = 0; i < redoBuffer.size(); i++) {
-//                RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
-//                if (entry.data != null) {
-//                    continue;
-//                }
-//                if (last != null && entry.recordId != last.recordId) {
-//                    writeRedoLog(last);
-//                }
-//                last = entry;
-//            }
-//            if (last != null) {
-//                writeRedoLog(last);
-//            }            
-            
-int test;
-
             // first write all deleted entries
             RedoLogRecord last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
@@ -892,7 +874,7 @@ int test;
             if (last != null) {
                 writeRedoLog(last);
             }
-            // now write the last entry, skipping the deleted entries
+            // now write the last entry, skipping deleted entries
             last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
                 RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);

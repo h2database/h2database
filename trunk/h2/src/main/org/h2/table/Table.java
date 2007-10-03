@@ -100,7 +100,11 @@ public abstract class Table extends SchemaObjectBase {
         int memory = 0;
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
-            memory += DataType.getDataType(col.getType()).memory;
+            int dataType = col.getType();
+            if (dataType == Value.UNKNOWN) {
+                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL());
+            }
+            memory += DataType.getDataType(dataType).memory;
             col.setTable(this, i);
             String columnName = col.getName();
             if (columnMap.get(columnName) != null) {

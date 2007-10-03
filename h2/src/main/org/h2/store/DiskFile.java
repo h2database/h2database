@@ -859,9 +859,31 @@ public class DiskFile implements CacheWriter {
                     return comp;
                 }
             });
+            
+//            RedoLogRecord last = null;
+//            for (int i = 0; i < redoBuffer.size(); i++) {
+//                RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
+//                if (entry.data != null) {
+//                    continue;
+//                }
+//                if (last != null && entry.recordId != last.recordId) {
+//                    writeRedoLog(last);
+//                }
+//                last = entry;
+//            }
+//            if (last != null) {
+//                writeRedoLog(last);
+//            }            
+            
+int test;
+
+            // first write all deleted entries
             RedoLogRecord last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
                 RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
+                if (entry.data != null) {
+                    continue;
+                }
                 if (last != null && entry.recordId != last.recordId) {
                     writeRedoLog(last);
                 }
@@ -870,6 +892,22 @@ public class DiskFile implements CacheWriter {
             if (last != null) {
                 writeRedoLog(last);
             }
+            // now write the last entry, skipping the deleted entries
+            last = null;
+            for (int i = 0; i < redoBuffer.size(); i++) {
+                RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
+                if (last != null && entry.recordId != last.recordId) {
+                    if (last.data != null) {
+                        writeRedoLog(last);
+                    }
+                }
+                last = entry;
+            }
+            if (last != null && last.data != null) {
+                writeRedoLog(last);
+            }
+
+
             redoBuffer.clear();
             redoBufferSize = 0;
         }

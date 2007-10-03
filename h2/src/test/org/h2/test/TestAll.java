@@ -61,6 +61,7 @@ import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbc.xa.TestXA;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
+import org.h2.test.synth.TestKillRestart;
 import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
@@ -556,6 +557,9 @@ write tests using the PostgreSQL JDBC driver
         new TestUpdatableResultSet().runTest(this);
         new TestXA().runTest(this);
         new TestZloty().runTest(this);
+        
+        // synthetic
+        new TestKillRestart().runTest(this);
 
         afterTest();
     }

@@ -141,6 +141,7 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
             frame.dispose();
             frame = null;
         }
+        System.exit(0);
     }
 
     private boolean createTrayIcon() {

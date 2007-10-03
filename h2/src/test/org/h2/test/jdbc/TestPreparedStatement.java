@@ -52,10 +52,15 @@ public class TestPreparedStatement extends TestBase {
     }
     
     private void testUnknownDataType(Connection conn) throws Exception {
-        PreparedStatement prep = conn.prepareStatement(
-        "SELECT * FROM (SELECT ? FROM DUAL)");
-        prep.setInt(1, 1);
-        prep.execute();
+        try {
+            PreparedStatement prep = conn.prepareStatement(
+            "SELECT * FROM (SELECT ? FROM DUAL)");
+            prep.setInt(1, 1);
+            prep.execute();
+            error("Must fail");
+        } catch (SQLException e) {
+            // expected
+        }
     }
     
     private void testCancelReuse(Connection conn) throws Exception {

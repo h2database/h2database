@@ -15,7 +15,6 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.ValueExpression;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
 import org.h2.message.Message;
@@ -30,7 +29,6 @@ import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 
 /**
@@ -259,15 +257,9 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryFlat(int columnCount, LocalResult result) throws SQLException {
-        int limitRows;
-        if (limit == null) {
-            limitRows = 0;
-        } else {
-            limitRows = limit.getValue(session).getInt();
-            if (offset != null) {
-                limitRows += offset.getValue(session).getInt();
-            }
+    private void queryFlat(int columnCount, LocalResult result, int limitRows) throws SQLException {
+        if (limitRows != 0 && offset != null) {
+            limitRows += offset.getValue(session).getInt();
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -307,12 +299,15 @@ public class Select extends Query {
         return result;
     }
 
-    public LocalResult queryWithoutCache(int maxrows) throws SQLException {
-        if (maxrows != 0) {
-            if (limit != null) {
-                maxrows = Math.min(limit.getValue(session).getInt(), maxrows);
+    public LocalResult queryWithoutCache(int maxRows) throws SQLException {
+        int limitRows = maxRows;
+        if (limit != null) {
+            int l = limit.getValue(session).getInt();
+            if (limitRows == 0) {
+                limitRows = l;
+            } else {
+                limitRows = Math.min(l, limitRows);
             }
-            limit = ValueExpression.get(ValueInt.get(maxrows));
         }
         int columnCount = expressions.size();
         LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
@@ -328,13 +323,13 @@ public class Select extends Query {
         } else if (isGroupQuery) {
             queryGroup(columnCount, result);
         } else {
-            queryFlat(columnCount, result);
+            queryFlat(columnCount, result, limitRows);
         }
         if (offset != null) {
             result.setOffset(offset.getValue(session).getInt());
         }
-        if (limit != null) {
-            result.setLimit(limit.getValue(session).getInt());
+        if (limitRows != 0) {
+            result.setLimit(limitRows);
         }
         result.done();
         return result;

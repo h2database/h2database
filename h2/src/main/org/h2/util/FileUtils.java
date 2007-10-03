@@ -10,8 +10,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.Reader;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Properties;
@@ -90,7 +92,14 @@ public class FileUtils {
         return fileName.startsWith(prefix);
     }
 
-    public static FileInputStream openFileInputStream(String fileName) throws IOException {
+    public static InputStream openFileInputStream(String fileName) throws IOException {
+        if (fileName.indexOf(':') > 1) {
+            // if the : is in position 1, a windows file access is assumed: C:.. or D:
+            // otherwise a URL is assumed
+            URL url = new URL(fileName);
+            InputStream in = url.openStream();
+            return in;
+        }
         fileName = translateFileName(fileName);
         FileInputStream in = new FileInputStream(fileName);
         trace("openFileInputStream", fileName, in);
@@ -448,7 +457,7 @@ public class FileUtils {
         original = translateFileName(original);
         copy = translateFileName(copy);
         FileOutputStream out = null;
-        FileInputStream in = null;
+        InputStream in = null;
         try {
             out = openFileOutputStream(copy);
             in = openFileInputStream(original);

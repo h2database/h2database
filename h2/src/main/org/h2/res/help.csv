@@ -96,6 +96,7 @@ This command can be used to restore a database from a backup.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 The compression algorithm must match to the one used when creating the script.
 When using encryption, only DEFLATE and LZF are supported.
+Instead of a file, an URL may be used.
 Admin rights are required to execute this command.
 ","
 RUNSCRIPT FROM 'backup'
@@ -2516,6 +2517,7 @@ those are used they are read from the file, otherwise (or if they are set to NUL
 of the file is interpreted as the column names.
 The default charset is the default value for this system, and the default field separator is a comma.
 This function can be used like a table: SELECT * FROM CSVREAD(...).
+Instead of a file, an URL may be used, for example jar:file:///c:/temp/example.zip!/org/example/nested.zip.
 Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv')

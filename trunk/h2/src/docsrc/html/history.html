@@ -39,8 +39,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
-<h3>Version 1.0.59 (2007-09-TODO)</h3><ul>
-<li>Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
+<h3>Version 1.0.59 (2007-10-03)</h3><ul>
+<li>When the data type was unknown in a subquery, sometimes the wrong exception (ArrayIndexOutOfBounds) was thrown. Fixed.
+</li><li>If the process was killed while the database was running, sometimes the database could not be opened 
+	('double allocation') except when the system property h2.check was set to false. Fixed.
+</li><li>Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
 </li><li>A PreparedStatement that was cancelled could not be reused. Fixed.
 </li><li>H2 Console: Progress information when logging into a H2 embedded database (useful when opening a database is slow).
 </li><li>When the database was closed while logging was disabled (LOG 0), re-opening the database was slow. Fixed.

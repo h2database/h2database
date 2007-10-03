@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testMaxRowsChange(conn);
         testUnknownDataType(conn);
         testCancelReuse(conn);        
         testCoalesce(conn);
@@ -49,6 +50,19 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testMaxRowsChange(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("SELECT * FROM SYSTEM_RANGE(1, 100)");
+        ResultSet rs;
+        for (int j = 1; j < 20; j++) {
+            prep.setMaxRows(j);
+            rs = prep.executeQuery();
+            for (int i = 0; i < j; i++) {
+                check(rs.next());
+            }
+            checkFalse(rs.next());
+        }
     }
     
     private void testUnknownDataType(Connection conn) throws Exception {

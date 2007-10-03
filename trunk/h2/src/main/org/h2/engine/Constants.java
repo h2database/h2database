@@ -16,6 +16,7 @@ import org.h2.constant.SysProperties;
  * - Run FindBugs
  * - Test with hibernate
  * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
+ * - Update latest version in mainWeb.html, download.html
  * - ant jarClient, check jar file size
  * 
  * - Compile with JDK 1.4, 1.5 and 1.6:

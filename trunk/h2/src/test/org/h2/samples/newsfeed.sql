@@ -10,11 +10,42 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(29,
+'New version available: 1.0.59 (2007-10-03)', '2007-10-03 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Fulltext search is now documented (see Tutorial).
+</li><li>H2 Console: Progress information when logging into a H2 embedded database.
+</li><li>SCRIPT: the SQL statements in the result set now include the terminating semicolon.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>If the process was killed while the database was running, 
+	sometimes the database could not be opened.
+</li><li>Comparing columns with constants that are out of range works again.
+</li><li>When the data type was unknown in a subquery, sometimes the wrong exception was thrown.
+</li><li>Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
+</li><li>A PreparedStatement that was cancelled could not be reused. 
+</li><li>When the database was closed while logging was disabled (LOG 0), 
+	re-opening the database was slow.
+</li><li>The Console did not always refresh the table list when required.
+</li><li>When creating a table using CREATE TABLE .. AS SELECT, 
+	the precision for some data types was wrong in some cases.
+</li><li>When using the (undocumented) in-memory file system 
+	(jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using multiple connections, 
+	a ConcurrentModificationException could occur. 
+</li><li>REGEXP compatibility: now Matcher.find is used.
+</li><li>When using a subquery with group by as a table, some columns could not be used.
+</li><li>Views with subqueries as tables and queries with nested subqueries as tables did not always work.
+</li></ul>
+For future plans, see the new ''Roadmap'' page on the web site.
+');
+
 INSERT INTO ITEM VALUES(28,
 'New version available: 1.0.58 (2007-09-15)', '2007-09-15 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
 (You may have to click ''Refresh'').
-
 <br />
 <b>Changes and new functionality:</b>
 <ul><li>Empty space in the database files is now better reused
@@ -375,81 +406,6 @@ INSERT INTO ITEM VALUES(21,
 <li>Parsing of LIKE .. ESCAPE did not stop at the expected point.</li>
 <li>Forum subscriptions (the emails sent from the forum) now work.</li>
 </ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(20,
-'New version available: 1.0 / 2007-01-17', '2007-01-17 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>The Console is now translated to Japanese thanks to 
-    IKEMOTO, Masahiro (ikeyan (at) arizona (dot) ne (dot) jp).
-</li><li>The database engine can now be compiled with JDK 1.3 using ant codeswitch. 
-    There are still some limitations, and the ant script to build the jar does not work yet.
-</li><li>SCRIPT NODATA now writes the row count for each table.
-</li><li>Timestamps with timezone information (Z or +/-hh:mm) and dates before year 1 
-    can now be parsed. However dates before year 1 are not formatted correctly.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Fixed a problem where data in the log file was not written to the data file 
-    (recovery failure) after a crash, if an index was deleted previously.
-</li><li>Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds).
-</li><li>Selecting a column using the syntax schemaName.tableName.columnName did not work in all cases.
-</li><li>When stopping the TCP server from an application and immediately afterwards starting 
-    it again using a different TCP password, an exception was thrown sometimes.
-</li><li>Now PreparedStatement.setBigDecimal(..) can only be called with an object of 
-    type java.math.BigDecimal. Derived classes are not allowed any more. Many thanks to 
-    Maciej Wegorkiewicz for finding this problem.
-</li><li>It was possible to manipulate values in the byte array after calling PreparedStatement.setBytes, 
-    and this could lead to problems if the same byte array was used again. Now the byte array 
-    is copied if required.
-</li><li>Date, time and timestamp objects were cloned in cases where it was not required. Fixed. 
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(19,
-'New version available: 1.0 / 2007-01-02', '2007-01-02 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>H2 is now available in Maven. The groupId is com.h2database,     the 
-    artifactId is h2 and the version 1.0.20061217 (the new version will be 
-    available in a few days). To create the maven artifacts yourself, use 
-    ''ant mavenUploadLocal'' and ''ant mavenBuildCentral''.
-</li><li>Many settings are now initialized from system properties and can be 
-    changed on the command line without having recompile the database. 
-    See Advances / Settings Read from System Properties.
-</li><li>The (relative or absolute) directory where the script files are stored 
-    or read can now be changed using the system property h2.scriptDirectory
-</li><li>Client trace files now created in the directory ''trace.db'' and no 
-    longer the application directory. This can be changed using the system 
-    property h2.clientTraceDirectory.
-</li><li>Build: Now using ant-build.properties. The JDK is automatically updated 
-    when using ant codeswitch...
-</li><li>Cluster: Now the server can detect if a query is read-only, and in this 
-    case the result is only read from the first cluster node. However, there 
-    is currently no load balancing made to avoid problems with transactions 
-    / locking.
-</li></ul>
-<b>Bugfixes:</b>
-<ul>
-<li>If a CLOB or BLOB was deleted in a transaction and the database crashed 
-    before the transaction was committed or rolled back, the object was lost if 
-    it was large. Fixed.
-</li><li>Prepared statements with non-constant functions such as 
-    CURRENT_TIMESTAMP() did not get re-evaluated if the result of the 
-    function changed. Fixed.
-</li><li>In some situations the log file got corrupt if the process was terminated 
-    while the database was opening.
-</li><li>Using ;RECOVER=1 in the database URL threw a syntax exception. Fixed.
-</li><li>It was possible to drop the sequence of a temporary tables with DROP 
-    ALL OBJECTS, resulting in a null pointer exception afterwards.
-</li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 ');
 

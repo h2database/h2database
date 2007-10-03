@@ -319,7 +319,7 @@ H2コンソールに接続する
 サービスのアンインストール
 
 @advanced_1106_p
-サービスをアンインストールするには、5_uninstall_service.bat をダブルクリックします。成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。 失敗したらメッセージが現れます。
+サービスをアンインストールするには、5_uninstall_service.bat をダブルクリックします。成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。 失敗したらメッセージが現れます。 
 
 @advanced_1107_h2
 ODBCドライバ
@@ -544,7 +544,7 @@ H2では、電源異常の後、1秒以上のコミットされたトランザ�
 永続性テストを実行する
 
 @advanced_1181_p
-このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
+このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。 
 
 @advanced_1182_h2
 リカバーツールを使用する
@@ -700,7 +700,7 @@ SSL/TLS 接続
 HTTPS 接続
 
 @advanced_1233_p
-webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
+webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。 
 
 @advanced_1234_h2
 汎用一意識別子 (UUID)
@@ -1045,802 +1045,802 @@ XTEA
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
-構築
+ビルド
 
 @build_1001_a
-#Portability
+ポータビリティ
 
 @build_1002_a
-#Environment
+環境
 
 @build_1003_a
-#Building the Software
+ソフトウェアのビルド
 
 @build_1004_a
-#Using Maven 2
+Maven 2 の利用
 
 @build_1005_h2
-#Portability
+ポータビリティ
 
 @build_1006_p
-#This database is written in Java and therefore works on many platforms. It can also be compiled to a native executable using GCJ.
+このデータベースはJavaによって記述されているため、多くのプラットフォームで動作します。また、GCJを利用することで、ネイティブでも実行可能に(ネイティブコードに)コンパイルすることが可能です
 
 @build_1007_h2
-#Environment
+環境
 
 @build_1008_p
-#To build the database executables, the following software stack was used. In most cases, newer version or compatible software works too.
+データベースを実行可能にビルドするために、以下のソフトウェアが用いられます。また、下記の最新版もしくは下記との互換性をもったソフトウェアでもビルドが可能です。
 
 @build_1009_li
-#Windows XP
+Windows XP
 
 @build_1010_li
-#Sun JDK Version 1.4 or 1.5
+Sun JDK Version 1.4 または 1.5
 
 @build_1011_li
-#Apache Ant Version 1.6.5
+Apache Ant Version 1.6.5
 
 @build_1012_li
-#Mozilla Firefox 1.5
+Mozilla Firefox 1.5
 
 @build_1013_li
-#Eclipse Version 3.2.2
+Eclipse Version 3.2.2
 
 @build_1014_li
-#YourKit Java Profiler
+YourKit Java Profiler
 
 @build_1015_h2
-#Building the Software
+ソフトウェアのビルド
 
 @build_1016_p
-#On the command line, go to the directory src and execute the following command:
+コマンドライン上でsrcディレクトリに移動し、以下のコマンドを実行してください:
 
 @build_1017_p
-#You will get a list of targets. If you want to build the jar files, execute:
+実行するとターゲットのリストが得られます。jarファイルをビルドしたい場合は、以下を実行してください:
 
 @build_1018_p
-#To create a jar file with the JDBC API and the classes required to connect to a server only, use the target jarClient:
+JDBC APIを実装し、サーバーにのみ接続するクラスを持つjarファイルをビルドするには、jarCliantターゲットを用います:
 
 @build_1019_p
-#The other targets may be used as well.
+これ以外のターゲットも実行が可能でしょう
 
 @build_1020_h2
-#Using Maven 2
+Maven 2 の利用
 
 @build_1021_h3
-#Using a Central Repository
+Centralリポジトリの利用
 
 @build_1022_p
-#You can include the database in your Maven 2 project as a dependency. Example:
+依存関係を取ることで、Maven 2プロジェクトでデータベースを組み込むことも可能です。例:
 
 @build_1023_h3
-#Using Snapshot Version
+スナップショットバージョンの利用
 
 @build_1024_p
-#To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
+スナップショット版のH2.jarファイルをビルドし、ローカルのMaven2リポジトリを更新するには以下のコマンドを実行します:
 
 @build_1025_p
-#Afterwards, you can include the database in your Maven 2 project as a dependency:
+実行後、Maven2プロジェクトにH2DBを依存させ組み込むことが出来るようになります:
 
 @download_1000_h1
-#Downloads
+ダウンロード
 
 @download_1001_h3
-#Version 1.0.58 (2007-09-15, Current)
+Version 1.0.58 (2007-09-15, Current)
 
 @download_1002_a
-#Windows Installer
+Windows Installer
 
 @download_1003_a
-#Platform-Independent Zip
+Platform-Independent Zip
 
 @download_1004_h3
-#Version 1.0 / 2007-03-04 (Last Stable)
+Version 1.0 / 2007-03-04 (Last Stable)
 
 @download_1005_a
-#Windows Installer
+Windows Installer
 
 @download_1006_a
-#Platform-Independent Zip
+Platform-Independent Zip
 
 @download_1007_h3
-#Download Mirror
+ダウンロードミラー
 
 @download_1008_a
-#Platform-Independent Zip
+Platform-Independent Zip
 
 @download_1009_h3
-#Subversion Source Repository
+サブバージョンのソースリポジトリ
 
 @download_1010_a
-#Google Code
+Google Code
 
 @download_1011_p
-#For details about changes, see the <a href="history.html">Change Log</a> .
+変更についての詳細は、<a href="history.html">変更ログ</a> をご覧下さい。
 
 @faq_1000_h1
-#Frequently Asked Questions
+F A Q
 
 @faq_1001_a
-#Are there any known bugs? When is the next release?
+発見されたバグはありますか？次のリリースはいつになりますか？
 
 @faq_1002_a
-#Is this Database Engine Open Source?
+このデータベースエンジンはオープンソースですか？
 
 @faq_1003_a
-#My query is slow
+クエリ実行に時間がかかります
 
 @faq_1004_a
-#How to Create a New Database?
+新規データベースの構築方法は？
 
 @faq_1005_a
-#How to Connect to a Database?
+データベースへの接続方法は？
 
 @faq_1006_a
-#Where are the Database Files Stored?
+データベースのファイルはどこに保存されますか？
 
 @faq_1007_a
-#What is the Size Limit (maximum size) of a Database?
+データベースのサイズ制限 (最大サイズ) はどれくらいですか？
 
 @faq_1008_a
-#Is it Reliable?
+これは信頼できるデータベースですか？
 
 @faq_1009_a
-#Is the GCJ version stable? Faster?
+GCJバージョンでの動作は安定していますか？高速ですか？
 
 @faq_1010_a
-#How to Translate this Project?
+このプロジェクトの翻訳方法は？
 
 @faq_1011_h3
-#Are there any known bugs? When is the next release?
+発見されたバグはありますか？次のリリースはいつになりますか？
 
 @faq_1012_p
-#Usually, bugs get fixes as they are found. There is a release every few weeks. Here is the list of known and confirmed issues as of 2007-10-03:
+バグは発見された時点で改修をしています。数週おきに更新版がリリースされています。以下は2007年9月15日の時点で発見され、確認された問題の一覧です:
 
 @faq_1013_li
-#Some problems have been found with right outer join. Internally, it is converted to left outer join, which  does not always produce the same results as other databases when used in combination with other joins.
+ライトアウタージョイン(右外部結合)時に一部問題が発生。内部において、他の結合と組み合わせて使用される時、他のデータベースと同様に、常に同じ結果を引き起こすとは限らないレフトアウタージョイン(左外部結合)に変換される
 
 @faq_1014_h3
-#Is this Database Engine Open Source?
+このデータベースエンジンはオープンソースですか？
 
 @faq_1015_p
-#Yes. It is free to use and distribute, and the source code is included. See also under license.
+はい、H2DBはフリーウェアであり、再配布も可能です。ソースコードも含まれています。ライセンスページも合わせてご確認ください。
 
 @faq_1016_h3
-#My query is slow
+クエリ実行に時間がかかります
 
 @faq_1017_p
-#Slow SELECT (or DELETE, UPDATE, MERGE) statement can have multiple reasons. Follow this checklist:
+SELECT (または DELETE、UPDATE、MERGE) ステートメント実行に時間がかかるのはいくつかの理由が考えられます。以下のチェックリストをご確認ください:
 
 @faq_1018_li
-#Run ANALYSE (see documentation for details).
+ANALYZEを実行する (詳細はドキュメントをご覧下さい)
 
 @faq_1019_li
-#Run the query with EXPLAIN and check if indexes are used (see documentation for details).
+クエリにEXPLAINオプションを付けて実行し、インデックスが利用されているかどうか確認する (詳細はドキュメントをご覧下さい)
 
 @faq_1020_li
-#If required, create additional indexes and try again using ANALYZE and EXPLAIN.
+必要に応じてインデックスを追加し、ANALYZE、EXPLAINオプションを用いて再度クエリを実行する
 
 @faq_1021_li
-#If it doesn't help please report the problem.
+それでも解決しない場合は、ご連絡ください
 
 @faq_1022_h3
-#How to Create a New Database?
+新規データベースの構築方法は？
 
 @faq_1023_p
-#By default, a new database is automatically created if it does not yet exist.
+データベースがまだ存在しない場合、デフォルト設定では自動的に新規作成されます
 
 @faq_1024_h3
-#How to Connect to a Database?
+データベースへの接続方法は？
 
 @faq_1025_p
-#The database driver is <code>org.h2.Driver</code> , and the database URL starts with <code>jdbc:h2:</code> . To connect to a database using JDBC, use the following code:
+データベースドライバは <code>org.h2.Driver</code> で、データベースURLは <code>jdbc:h2:</code> で始まります。JDBCを利用してデータベースに接続する場合は、以下のコードを利用して下さい:
 
 @faq_1026_h3
-#Where are the Database Files Stored?
+データベースのファイルはどこに保存されますか？
 
 @faq_1027_p
-#When using database URLs like jdbc:h2:~/test, the database is stored in the user directory. For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;. If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started (the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin. The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory). The directory must exist. It is also possible to use the fully qualified directory (and for Windows, drive) name. Example: jdbc:h2:file:C:/data/test
+jdbc:h2:~/test のようなデータベースURLを利用している場合は、データベースはユーザーディレクトリに保存されます。Windowsでは通常、C:\Documents and Settings\&lt;ユーザー名&gt; です。もしベースディレクトリが設定されていない場合 (jdbc:h2:test 内に)、データベースファイルはアプリケーションが起動されるディレクトリ (作業中のディレクトリ) に保存されます。スタートメニューからH2コンソールアプリケーションを起動している場合、[インストール先ディレクトリ]/bin下に保存されます。ベースディレクトリはデータベースURLで設定できます。絶対パス、または相対パスが利用できます。jdbc:h2:file:data/sample のURLを利用している場合、データベースはディレクトリデータの中に保存されます (現在作業中のディレクトリに関連します)。ディレクトリは必ず存在するものでなければいけません。また、完全に適切なディレクトリ名(Windows、ドライバ名)を利用することも可能です。例: jdbc:h2:file:C:/data/test
 
 @faq_1028_h3
-#What is the Size Limit (maximum size) of a Database?
+データベースのサイズ制限 (最大サイズ) はどれくらいですか？
 
 @faq_1029_p
-#The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data: Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
+理論上のデータの制限は現在256GBです。これはBLOBとCLOBデータを含まない状態での値です: BLOB、CLOBの最大値はそれぞれ256GB以上の設定が可能です。インデックスデータのサイズ制限も同様に256GBです。
 
 @faq_1030_p
-#The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT or FAT32, the limit is 4 GB for the data.
+FAT、FAT32ファイルシステムの最大ファイルサイズは4GBです。よって、FATやFAT32を利用する場合は、データの制限は4GBということになります。
 
 @faq_1031_h3
-#Is it Reliable?
+これは信頼できるデータベースですか？
 
 @faq_1032_p
-#That is not easy to say. It is still a quite new product. A lot of tests have been written, and the code coverage of these tests is very high. Randomized stress tests are run regularly. But as this is a relatively new product, there are probably some problems that have not yet been found. Areas that are not 100% tested:
+これに関しては一概には言えません。これはまだ非常に新しい製品です。多くのテストケースが書かれ、テストへのコードカバー率は非常に高い水準を持っています。ランダムストレステストは通常通り実行可能でした。しかし、比較的新しい製品であるゆえに、まだ発見され尽くしていない問題はあるかと思われます。以下は完全にはテストが終わっていない箇所です:
 
 @faq_1033_li
-#Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
+WindowsXP以外のプラットフォーム、及びSUN JVM1.4、1.5での動作確認
 
 @faq_1034_li
-#Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
+データ型 BLOB、CLOB、VARCHAR_IGNORECASE、OTHER
 
 @faq_1035_li
-#Cluster mode, 2-Phase Commit, Savepoints
+クラスタモード、2フェーズコミット、セーブポイント
 
 @faq_1036_li
-#Server mode (well tested, but not as well as Embedded mode)
+サーバーモード(十分にテストはしてありますが、組み込みモードほどではありません)
 
 @faq_1037_li
-#Multi-Threading and using multiple connections
+マルチスレッドと複数接続の利用
 
 @faq_1038_li
-#Updatable result sets
+Updatable result sets
 
 @faq_1039_li
-#Referential integrity and check constraints, Triggers
+参照整合性とCHECK制約、トリガー
 
 @faq_1040_li
-#ALTER TABLE statements, Views, Linked Tables, Schema, UNION
+ALTER TABLE ステートメント、ビュー、リンクテーブル、スキーマ、UNION
 
 @faq_1041_li
-#Not all built-in functions are completely tested
+すべての組み込み関数が完全にテストされたわけではありません
 
 @faq_1042_li
-#The Optimizer may not always select the best plan
+オプティマイザが必ずしも最良を選択するとは限らない
 
 @faq_1043_li
-#24/7 operation and large databases (500 MB and up)
+24/7オペレーション、大容量データベース (500MB以上)
 
 @faq_1044_li
-#Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
+大きなVARCHAR、VARBINARYカラム、または多数のカラムによる幅の広いインデックス
 
 @faq_1045_p
-#Areas considered Experimental:
+試験的に考慮された箇所は以下の通り:
 
 @faq_1046_li
-#ODBC driver and the GCJ native version on Windows
+WindowsでのODBCドライバとGCJのネイティブバージョン
 
 @faq_1047_li
-#Linear Hash Index
+ライナーハッシュインデックス
 
 @faq_1048_li
-#Compatibility modes for other databases (only some features are implemented)
+他のデータベースとの互換モード (一部の特徴のみ提供される)
 
 @faq_1049_li
-#The ARRAY data type and related functionality.
+ARRAYデータ型と関連機能
 
 @faq_1050_h3
-#Is the GCJ version stable? Faster?
+GCJバージョンでの動作は安定していますか？高速ですか？
 
 @faq_1051_p
-#The GCJ version is not as stable as the Java version. When running the regression test with the GCJ version, sometimes the application just stops at what seems to be a random point without error message. Currently, the GCJ version is also slower than when using the Sun VM. However, the startup of the GCJ version is faster than when using a VM.
+GCJバージョンは、Javaバージョンほどは安定していません。GCJバージョンでリグレッションテストを実行した時、アプリケーションはランダムポイントと思われるところで、エラーメッセージなしで停止する場合があります。現在、GCJバージョンはSun VMの使用時よりも低速です。しかし、GCJバージョンの起動はVM使用時よりも高速です。
 
 @faq_1052_h3
-#How to Translate this Project?
+このプロジェクトの翻訳方法は？
 
 @faq_1053_p
-#The following files can be translated at the moment:
+現在のところ、以下のファイルを翻訳することができます:
 
 @features_1000_h1
 特徴
 
 @features_1001_a
-#Feature List
+特徴一覧
 
 @features_1002_a
-#Comparison to Other Database Engines
+他のデータベースエンジンと比較する
 
 @features_1003_a
-#Products that Work with H2
+H2と共に動作する製品
 
 @features_1004_a
-#Connection Modes
+接続モード
 
 @features_1005_a
-#Database URL Overview
+データベースURL概要
 
 @features_1006_a
-#Connecting to a Database with File Encryption
+暗号化ファイルと共にデータベースへ接続する
 
 @features_1007_a
-#Database File Locking
+データベースファイルロック
 
 @features_1008_a
-#Opening a Database Only if it Already Exists
+すでに存在する場合のみ、データベースを開く
 
 @features_1009_a
-#Closing the Database
+データベースを終了する
 
 @features_1010_a
-#Log Index Changes
+ログインデックスの修正
 
 @features_1011_a
-#Custom File Access Mode
+#カスタムファイルアクセスモード
 
 @features_1012_a
-#Multiple Connections
+複数の接続
 
 @features_1013_a
-#Database File Layout
+データベースファイルレイアウト
 
 @features_1014_a
-#Logging and Recovery
+ログとリカバリー
 
 @features_1015_a
-#Compatibility Modes
+互換モード
 
 @features_1016_a
-#Using the Trace Options
+トレースオプションを使用する
 
 @features_1017_a
-#Read Only Databases
+読み取り専用データベース
 
 @features_1018_a
-#Binary and Text Storage Formats
+バイナリーとテキストストレージフォーマット
 
 @features_1019_a
-#Graceful Handling of Low Disk Space Situations
+ディスクスペースが少ない状況での正しい取り扱い
 
 @features_1020_a
-#Computed Columns / Function Based Index
+computed column / ベースインデックスの機能
 
 @features_1021_a
-#Multi-Dimensional Indexes
+多次元インデックス
 
 @features_1022_a
-#Using Passwords
+パスワードを使用する
 
 @features_1023_a
-#User Defined Functions and Stored Procedures
+ユーザー定義の関数とストアドプロシージャ
 
 @features_1024_a
-#Triggers
+トリガー
 
 @features_1025_a
-#Compacting a Database
+データベースをコンパクトにする
 
 @features_1026_a
-#Cache Settings
+キャッシュの設定
 
 @features_1027_a
-#Why Java
+なぜJavaなのか
 
 @features_1028_h2
-#Feature List
+特徴一覧
 
 @features_1029_h3
-#Main Features
+主な特徴
 
 @features_1030_li
-#Very fast database engine
+非常に高速なデータベースエンジン
 
 @features_1031_li
-#Free, with source code
+無料、ソースコード付き
 
 @features_1032_li
-#Written in Java
+#Javaで記載
 
 @features_1033_li
-#Supports standard SQL, JDBC API
+標準規格のSQL、JDBC APIをサポート
 
 @features_1034_li
-#Embedded and Server mode, Clustering support
+エンベッドモードとサーバーモード、クラスタリングをサポート
 
 @features_1035_li
-#Strong security features
+強力なセキュリティ機能
 
 @features_1036_li
-#Experimental native version (GCJ) and ODBC drivers
+試験用のネイティブバージョン (GCJ) とODBCドライバ
 
 @features_1037_h3
-#Additional Features
+追加された特徴
 
 @features_1038_li
-#Disk based or in-memory databases and tables, read-only database support, temporary tables
+ディスクベースデータベース、またはインメモリデータベースと、テーブル、読み取り専用データベースをサポート、テンポラリテーブル
 
 @features_1039_li
-#Transaction support (read committed and serializable transaction isolation), 2-phase-commit
+トランザクションをサポート (トランザクション分離の serializable (直列化))、2フェーズコミット
 
 @features_1040_li
-#Multiple connections, table level locking
+複数の接続、テーブルレベルのロック
 
 @features_1041_li
-#Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
+コストベースオプティマイザ、複雑なクエリーのために遺伝的アルゴリズムを使用、zero-administration
 
 @features_1042_li
-#Scrollable and updatable result set support, large result set, external result sorting, functions can return a result set
+スクロール可能result setと更新可能result setをサポート、大きなresult set、外部結果ソート、 関数はresult setを返す
 
 @features_1043_li
-#Encrypted database (AES or XTEA), SHA-256 password encryption, encryption functions, SSL
+暗号化されたデータベース (AES または XTEA), SHA-256 パスワード暗号化、暗号化関数、SSL
 
 @features_1044_h3
-#SQL Support
+SQLサポート
 
 @features_1045_li
-#Support for multiple schemas, information schema
+複数のスキーマ、インフォメーションスキーマをサポート
 
 @features_1046_li
-#Referential integrity / foreign key constraints with cascade, check constraints
+参照整合性 / カスケードでの外部キー制約、チェック制約
 
 @features_1047_li
-#Inner and outer joins, subqueries, read only views and inline views
+内部結合と外部結合、サブクエリー、読み取り専用ビューとインラインビュー
 
 @features_1048_li
-#Triggers and Java functions / stored procedures
+トリガーと Java関数 / ストアドプロシージャ
 
 @features_1049_li
-#Many built-in functions, including XML and lossless data compression
+多数の組み込み関数、XMLとlossless data compression (可逆圧縮) を含む
 
 @features_1050_li
-#Wide range of data types including large objects (BLOB/CLOB) and arrays
+大きなオブジェクト (BLOB/CLOB) とArrayを含む、広い範囲のデータ型
 
 @features_1051_li
-#Sequence and autoincrement columns, computed columns (can be used for function based indexes)
+シーケンスとautoincrement column、computed column、(関数ベースのインデックスに使用できます)
 
 @features_1052_li
-#ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
+ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
 
 @features_1053_li
-#Collation support, users, roles
+Collationをサポート、users、roles
 
 @features_1054_li
-#Compatibility modes for HSQLDB, MySQL and PostgreSQL
+HSQLDB、MySQLとPostgreSQLのための互換モード
 
 @features_1055_h3
-#Security Features
+セキュリティの特徴
 
 @features_1056_li
-#Includes a solution for the SQL injection problem
+SQLインジェクション問題の解決を含む
 
 @features_1057_li
-#User password authenticated uses SHA-256 and salt
+SHA-256とsaltを使ってユーザーパスワードが本物であることを証明する
 
 @features_1058_li
-#User passwords are never transmitted in plain text over the network (even when using insecure connections)
+ユーザーパスワードは決してプレーンテキストでネットワーク上に送信されることはない (たとえ不安定な接続を使用していたとしても)
 
 @features_1059_li
-#All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
+AES-256とXTEA暗号化アルゴリズムを使用することで、全てのデータベースファイル (データのバックアップを取るのに使用できるスクリプトファイルを含む) を暗号化できる
 
 @features_1060_li
-#The remote JDBC driver supports TCP/IP connections over SSL/TLS
+リモートJDBCドライバは、SSL/TLS上のTCP/IP接続をサポート
 
 @features_1061_li
-#The built-in web server supports connections over SSL/TLS
+組み込みwebサーバーは、SSL/TLS上の接続をサポート
 
 @features_1062_li
-#Passwords can be sent to the database using char arrays instead of Strings
+Stringの代わりにchar arrayを使うことで、パスワードをデータベースに送信可能
 
 @features_1063_h3
-#Other Features and Tools
+他の特徴とツール
 
 @features_1064_li
-#Small footprint (smaller than 1 MB), low memory requirements
+省スペース (1MBより小さい)、少ないメモリが必要条件
 
 @features_1065_li
 #Multiple index types (b-tree, tree, hash, linear hash)
 
 @features_1066_li
-#Support for multi-dimensional indexes
+複数のインデックスタイプ (b-tree、tree、hash、linear hash)
 
 @features_1067_li
-#CSV (comma separated values) file support
+CSV (comma separated values) ファイルサポート
 
 @features_1068_li
-#Support for linked tables, and a built-in virtual 'range' table
+リンクテーブルと組み込み仮想 "range" テーブルのサポート
 
 @features_1069_li
-#EXPLAIN PLAN support, sophisticated trace options
+EXPLAIN PLANをサポート、 洗練されたトレースオプション
 
 @features_1070_li
-#Database closing can be delayed or disabled to improve the performance
+パフォーマンスを向上させるために、データベースの終了を遅らせるか割り込みを抑制する
 
 @features_1071_li
-#Web-based Console application (English, German, partially French and Spanish) with autocomplete
+Webベースのコンソールアプリケーション (英語、ドイツ語、部分的にフランス語とスペイン語) が自動完備
 
 @features_1072_li
-#The database can generate SQL script files
+データベースはSQLスクリプトファイルを生成
 
 @features_1073_li
-#Contains a recovery tool that can dump the contents of the data file
+データファイルのコンテンツを移動することができるリカバリーツールを含む
 
 @features_1074_li
-#Automatic re-compilation of prepared statements
+prepared statementの自動再編集
 
 @features_1075_li
-#Uses a small number of database files, binary and text storage formats, graceful handling of low disk space situations
+少数のデータベースファイル、バイナリー、テキストストレージ形式を使用、ディスクスペースが少ない状況での正しい取り扱い
 
 @features_1076_li
-#Uses a checksum for each record and log entry for data integrity
+各レコードのためのチェックサムと、データ整合性のためのログエントリーを使用
 
 @features_1077_li
-#Well tested (high code coverage, randomized stress tests)
+十分なテスト済み (高いコードカバー率、ランダムストレステスト)
 
 @features_1078_h2
-#Comparison to Other Database Engines
+他のデータベースエンジンと比較する
 
 @features_1079_th
-#Feature
+特徴
 
 @features_1080_th
-#H2
+H2
 
 @features_1081_th
-#Derby
+Derby
 
 @features_1082_th
-#HSQLDB
+HSQLDB
 
 @features_1083_th
-#MySQL
+MySQL
 
 @features_1084_th
-#PostgreSQL
+PostgreSQL
 
 @features_1085_td
-#Embedded Mode (Java)
+エンベッドモード (Java)
 
 @features_1086_td
-#Yes
+対応
 
 @features_1087_td
-#Yes
+対応
 
 @features_1088_td
-#Yes
+対応
 
 @features_1089_td
-#No
+非対応
 
 @features_1090_td
-#No
+非対応
 
 @features_1091_td
-#Pure Java
+Pure Java
 
 @features_1092_td
-#Yes
+対応
 
 @features_1093_td
-#Yes
+対応
 
 @features_1094_td
-#Yes
+対応
 
 @features_1095_td
-#No
+非対応
 
 @features_1096_td
-#No
+非対応
 
 @features_1097_td
-#Performance (Embedded)
+パフォーマンス (エンベッド)
 
 @features_1098_td
-#Fast
+速い
 
 @features_1099_td
-#Slow
+遅い
 
 @features_1100_td
-#Fast
+速い
 
 @features_1101_td
-#N/A
+該当なし
 
 @features_1102_td
-#N/A
+該当なし
 
 @features_1103_td
 トランザクション分離
 
 @features_1104_td
-#Yes
+対応
 
 @features_1105_td
-#Yes
+対応
 
 @features_1106_td
-#No
+非対応
 
 @features_1107_td
-#Yes
+対応
 
 @features_1108_td
-#Yes
+対応
 
 @features_1109_td
-#Cost Based Optimizer
+コストベースオプティマイザ
 
 @features_1110_td
-#Yes
+対応
 
 @features_1111_td
-#Yes
+対応
 
 @features_1112_td
-#No
+非対応
 
 @features_1113_td
-#Yes
+対応
 
 @features_1114_td
-#Yes
+対応
 
 @features_1115_td
-#Clustering
+クラスタリング
 
 @features_1116_td
-#Yes
+対応
 
 @features_1117_td
-#No
+非対応
 
 @features_1118_td
-#No
+非対応
 
 @features_1119_td
-#Yes
+対応
 
 @features_1120_td
-#Yes
+対応
 
 @features_1121_td
-#Encrypted Database
+暗号化データベース
 
 @features_1122_td
-#Yes
+対応
 
 @features_1123_td
-#Yes
+対応
 
 @features_1124_td
-#No
+非対応
 
 @features_1125_td
-#No
+非対応
 
 @features_1126_td
-#No
+非対応
 
 @features_1127_td
-#Files per Database
+データベースごとのファイル
 
 @features_1128_td
-#Few
+少
 
 @features_1129_td
-#Many
+多
 
 @features_1130_td
-#Few
+少
 
 @features_1131_td
-#Many
+多
 
 @features_1132_td
-#Many
+多
 
 @features_1133_td
-#Footprint (jar/dll size)
+フットプリント (jar/dll size)
 
 @features_1134_td
-#~ 1 MB
+~ 1 MB
 
 @features_1135_td
-#~ 2 MB
+~ 2 MB
 
 @features_1136_td
-#~ 600 KB
+~ 600 KB
 
 @features_1137_td
-#~ 4 MB
+~ 4 MB
 
 @features_1138_td
-#~ 6 MB
+~ 6 MB
 
 @features_1139_h3
-#Derby and HSQLDB
+DerbyとHSQLDB
 
 @features_1140_p
-#After an unexpected process termination (for example power failure), H2 can recover safely and automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process').
+予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
 
 @features_1141_h3
-#DaffodilDb and One$Db
+DaffodilDbとOne$Db
 
 @features_1142_p
-#It looks like the development of this database has stopped. The last release was February 2006.
+このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
 
 @features_1143_h3
-#McKoi
+McKoi
 
 @features_1144_p
-#It looks like the development of this database has stopped. The last release was August 2004
+このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
 
 @features_1145_h2
-#Products that Work with H2
+H2と共に動作する製品
 
 @features_1146_th
-#Product
+製品
 
 @features_1147_th
 説明
 
 @features_1148_a
-#Apache Jackrabbit
+Apache Jackrabbit
 
 @features_1149_td
-#Open source implementation of the Java Content Repository API (JCR).
+Java Content Repository API (JCR) のオープンソース実装
 
 @features_1150_a
-#Apache OpenJPA
+Apache OpenJPA
 
 @features_1151_td
-#Open source implementation of the Java Persistence API (JPA).
+Java Persistence API (JPA) のオープンソース実装
 
 @features_1152_a
-#AppFuse
+AppFuse
 
 @features_1153_td
-#Helps building web applications.
+Webアプリケーションを組み立てるのを助ける
 
 @features_1154_a
-#Blojsom
+Blojsom
 
 @features_1155_td
-#Java-based multi-blog, multi-user software package (Mac OS X Weblog Server)
+Javaベースのマルチblog、マルチユーザーのソフトウェアパッケージ (Mac OS X Weblog Server)
 
 @features_1156_a
-#Bookmarks Portlet
+Bookmarks Portlet
 
 @features_1157_td
-#JSR168 compliant bookmarks management portlet application.
+JSR168対応のブックマークの管理ポートレットアプリケーション
 
 @features_1158_a
-#DB Solo
+DB Solo
 
 @features_1159_td
-#SQL query tool.
+SQLクエリーツール
 
 @features_1160_a
-#DbVisualizer
+DbVisualizer
 
 @features_1161_td
-#Database tool.
+データベースツール
 
 @features_1162_a
-#Execute Query
+Execute Query
 
 @features_1163_td
-#Database utility written in Java.
+Javaで書かれたデータベースユーティリティ
 
 @features_1164_a
-#Golden T Studios
+Golden T Studios
 
 @features_1165_td
-#Fun-to-play games with a simple interface.
+簡単なインターフェイスのFun-to-playゲーム
 
 @features_1166_a
-#Hibernate
+Hibernate
 
 @features_1167_td
-#Relational persistence for idiomatic Java (O-R mapping tool).
+慣用的なJavaのためのリレーショナル永続性 (O/Rマッピングツール)
 
 @features_1168_a
-#H2 Spatial
+H2 Spatial
 
 @features_1169_td
-#A project to add spatial functions to H2 database.
+空間的な機能をH2データベースに追加するプロジェクト
 
 @features_1170_a
-#JAMWiki
+JAMWiki
 
 @features_1171_td
-#Java-based Wiki engine.
+JavaベースのWikiエンジン
 
 @features_1172_a
-#JavaPlayer
+JavaPlayer
 
 @features_1173_td
-#Pure Java MP3 player.
+Pure JavaのMP3プレーヤー
 
 @features_1174_a
 #JMatter
@@ -1849,343 +1849,343 @@ XTEA
 #Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
 
 @features_1176_a
-#JPOX
+JPOX
 
 @features_1177_td
-#Java persistent objects.
+Java persistent objects.
 
 @features_1178_a
-#LiquiBase
+LiquiBase
 
 @features_1179_td
-#A tool to manage database changes and refactorings.
+データベースの変更とリファクタリングを管理するツール
 
 @features_1180_a
-#Luntbuild
+Luntbuild
 
 @features_1181_td
-#Build automation and management tool.
+自動制御とマネージメントツールを構築
 
 @features_1182_a
-#Mr. Persister
+Mr. Persister
 
 @features_1183_td
-#Simple, small and fast object relational mapping.
+簡単、小さくて速い、オブジェクトリレーショナルマッピング
 
 @features_1184_a
-#MyTunesRss
+MyTunesRss
 
 @features_1185_td
-#MyTunesRSS lets you listen to your music wherever you are.
+どこにいてもMyTunesRSSで音楽を聴ける
 
 @features_1186_a
-#PolePosition
+PolePosition
 
 @features_1187_td
-#Open source database benchmark.
+オープンソースデータベースのベンチマーク
 
 @features_1188_a
-#Scriptella
+Scriptella
 
 @features_1189_td
-#ETL (Extract-Transform-Load) and script execution tool.
+ETL (Extract-Transform-Load) とスクリプト実行ツール
 
 @features_1190_a
-#SemmleCode
+SemmleCode
 
 @features_1191_td
-#Eclipse plugin to help you improve software quality.
+ソフトウェアの品質向上を助けるEclipseプラグイン
 
 @features_1192_a
-#Shellbook
+Shellbook
 
 @features_1193_td
-#Desktop publishing application.
+デスクトップパブリッシングアプリケーション
 
 @features_1194_a
-#Signsoft intelliBO
+Signsoft intelliBO
 
 @features_1195_td
-#Persistence middleware supporting the JDO specification.
+JDO仕様をサポートする永続性ミドルウェア
 
 @features_1196_a
-#SQL Workbench/J
+SQL Workbench/J
 
 @features_1197_td
-#Free DBMS-independent SQL tool.
+無料のDBMS-independent SQLツール
 
 @features_1198_a
-#SQuirreL SQL Client
+SQuirreL SQL Client
 
 @features_1199_td
-#Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
+データベースのストラクチャーを見るためのグラフィカルツール、データ閲覧、SQLコマンド発行等
 
 @features_1200_a
-#SQuirreL DB Copy Plugin
+SQuirreL DB Copy Plugin
 
 @features_1201_td
-#Tool to copy data from one database to another.
+あるデータベースから別のデータベースへデータをコピーするツール
 
 @features_1202_a
-#StreamCruncher
+StreamCruncher
 
 @features_1203_td
-#Event (stream) processing kernel.
+イベント (stream) カーネル処理
 
 @features_1204_a
-#Tamava
+Tamava
 
 @features_1205_td
-#Newsgroups Reader.
+ニュースグループの読者
 
 @features_1206_a
-#Tune Backup
+Tune Backup
 
 @features_1207_td
-#Easy-to-use backup solution for your iTunes library.
+使用しやすいiTunesライブラリのバックアップソリューション
 
 @features_1208_a
-#Web of Web
+Web of Web
 
 @features_1209_td
-#Collaborative and realtime interactive media platform for the web.
+Webのための、共同制作でリアルタイムインタラクティブなメディアプラットフォーム
 
 @features_1210_h2
-#Connection Modes
+接続モード
 
 @features_1211_p
-#The following connection modes are supported:
+以下の接続モードがサポートされています:
 
 @features_1212_li
-#Local connections using JDBC (embedded)
+JDBC (エンベッド) を使用しているローカル接続
 
 @features_1213_li
-#Remote connections using JDBC over TCP/IP (client/server)
+TCP/IP上でJDBCを使用しているリモート接続 (クライアント/サーバー)
 
 @features_1214_li
-#Remote connections using ODBC over TCP/IP (client/server)
+TCP/IP上でODBCを使用しているリモート接続 (クライアント/サーバー)
 
 @features_1215_li
-#In-Memory databases (private and shared)
+インメモリデータベース (プライベートと共有)
 
 @features_1216_h2
-#Database URL Overview
+データベースURL概要
 
 @features_1217_p
-#This database does support multiple connection modes and features when connecting to a database. This is achieved using different database URLs. The settings in the URLs are not case sensitive.
+このデータベースは、データベースに接続している時、複数の接続モードと特徴をサポートしています。これは、異なったデータベースのURLを使用することにより可能となります。URLの設定は大文字と小文字を区別していません。
 
 @features_1218_th
-#Topic
+トピック
 
 @features_1219_th
-#URL Format and Examples
+URLフォーマットと例
 
 @features_1220_td
-#Embedded (local) connection
+エンベッド (ローカル) 接続
 
 @features_1221_td
-#jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;
+jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;
 
 @features_1222_td
-#jdbc:h2:~/test
+jdbc:h2:~/test
 
 @features_1223_td
-#jdbc:h2:file:/data/sample
+jdbc:h2:file:/data/sample
 
 @features_1224_td
-#jdbc:h2:file:C:/data/sample (Windows only)
+jdbc:h2:file:C:/data/sample (Windowsのみ)
 
 @features_1225_td
-#In-Memory (private)
+インメモリ (プライベート)
 
 @features_1226_td
-#jdbc:h2:mem:
+jdbc:h2:mem:
 
 @features_1227_td
-#In-Memory (named)
+インメモリ (名付ける)
 
 @features_1228_td
-#jdbc:h2:mem:&lt;databaseName&gt;
+jdbc:h2:mem:&lt;databaseName&gt;
 
 @features_1229_td
-#jdbc:h2:mem:test_mem
+jdbc:h2:mem:test_mem
 
 @features_1230_td
-#Remote using TCP/IP
+TCP/IPを使用したリモート
 
 @features_1231_td
-#jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
+jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
 @features_1232_td
-#jdbc:h2:tcp://localhost/test
+jdbc:h2:tcp://localhost/test
 
 @features_1233_td
-#jdbc:h2:tcp://dbserv:8084/sample
+jdbc:h2:tcp://dbserv:8084/sample
 
 @features_1234_td
-#Remote using SSL/TLS
+SSL/TLSを使用したリモート
 
 @features_1235_td
-#jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
+jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
 @features_1236_td
-#jdbc:h2:ssl://secureserv:8085/sample;
+jdbc:h2:ssl://secureserv:8085/sample;
 
 @features_1237_td
-#Using Encrypted Files
+暗号化ファイルの使用
 
 @features_1238_td
-#jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
+jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
 
 @features_1239_td
-#jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
+jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
 
 @features_1240_td
-#jdbc:h2:file:~/secure;CIPHER=XTEA
+jdbc:h2:file:~/secure;CIPHER=XTEA
 
 @features_1241_td
-#File Locking Methods
+ファイルロックメソッド
 
 @features_1242_td
-#jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
+jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
 
 @features_1243_td
-#jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
+jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
 
 @features_1244_td
-#jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
+jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
 
 @features_1245_td
-#Only Open if it Already Exists
+すでに存在する場合は起動のみ
 
 @features_1246_td
-#jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
+jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
 
 @features_1247_td
-#jdbc:h2:file:~/sample;IFEXISTS=TRUE
+jdbc:h2:file:~/sample;IFEXISTS=TRUE
 
 @features_1248_td
-#Don't Close the Database when the VM Exits
+VMが終了した時、データベースを終了しない
 
 @features_1249_td
-#jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
+jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
 
 @features_1250_td
-#User Name and/or Password
+ユーザー名、及びパスワード
 
 @features_1251_td
-#jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
+jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
 
 @features_1252_td
-#jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
+jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
 
 @features_1253_td
-#Log Index Changes
+ログインデックスの変更
 
 @features_1254_td
-#jdbc:h2:&lt;url&gt;;LOG=2
+jdbc:h2:&lt;url&gt;;LOG=2
 
 @features_1255_td
-#jdbc:h2:file:~/sample;LOG=2
+jdbc:h2:file:~/sample;LOG=2
 
 @features_1256_td
-#Debug Trace Settings
+デバックトレースの設定
 
 @features_1257_td
-#jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
+jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
 
 @features_1258_td
-#jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
+jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
 
 @features_1259_td
-#Ignore Unknown Settings
+未知の設定を無視
 
 @features_1260_td
-#jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
+jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
 
 @features_1261_td
-#Custom File Access Mode
+カスタムファイル アクセスモード
 
 @features_1262_td
-#jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
+jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
 
 @features_1263_td
-#Changing Other Settings
+他の設定の変更
 
 @features_1264_td
-#jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
 
 @features_1265_td
-#jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
+jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
 
 @features_1266_h3
-#Connecting to an Embedded (Local) Database
+エンベッド (ローカル) データベースに接続
 
 @features_1267_p
-#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is suggested to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+ローカルデータベースに接続するためのデータベースURLは、<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> です。接頭辞 <code>file:</code> はオプションです。相対パスが使われていない、または相対パスのみ使われている場合、現在作業しているディレクトリは、スターティングポイントとして使われます。パスとデータベース名の大文字と小文字の区別はOSに依存されますが、小文字のみの使用が推奨されています。データベース名は少なくとも3文字でなくてはなりません (File.createTempFile の制限)。ユーザーホームディレクトリを示すために、~/ を次のように使用します: jdbc:h2:~/test
 
 @features_1268_h3
-#Memory-Only Databases
+メモリオンリーデータベース
 
 @features_1269_p
-#For certain use cases (for example: rapid prototyping, testing, high performance operations, read-only databases), it may not be required to persist (changes to) the data at all. This database supports the memory-only mode, where the data is not persisted.
+特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
 
 @features_1270_p
-#In some cases, only one connection to a memory-only database is required. This means the database to be opened is private. In this case, the database URL is <code>jdbc:h2:mem:</code> Opening two connections within the same virtual machine means opening two different (private) databases.
+一部ケースでは、メモリオンリーデータベースへの接続はひとつの接続のみ必要とされます。これは、開かれるデータベースがプライベートだということを意味しています。このケースでは、データベースURLは <CODE>jdbc:h2:mem:</CODE> です。同じ仮想マシン内で二つの接続が開いているというのは、二つの異なった (プライベートの) データベースが開いているという意味です。
 
 @features_1271_p
-#Sometimes multiple connections to the same memory-only database are required. In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code> . Accessing the same database in this way only works within the same virtual machine and class loader environment.
+時々、複数の接続が同じメモリオンリーデータベースを必要とします。このケースでは、データベースのURLに名前が含まれていなければなりません。例: <code>jdbc:h2:mem:db1</code> この方法での同じデータベースのアクセスは、同じ仮想マシンとClassLoader環境内でのみ動作します。
 
 @features_1272_p
-#It is also possible to access a memory-only database remotely (or from multiple processes in the same machine) using TCP/IP or SSL/TLS. An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code> (using private database remotely is also possible).
+TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベースに間接的に (または、同じマシンの複数のプロセスから) 接続することも可能です。データベースURLの例: <code>jdbc:h2:tcp://localhost/mem:db1</code> (プライベートデータベースを間接的に使用することも可能です)
 
 @features_1273_h2
-#Connecting to a Database with File Encryption
+暗号化ファイルと共にデータベースへ接続する
 
 @features_1274_p
-#To use file encryption, it is required to specify the encryption algorithm (the 'cipher') and the file password. The algorithm needs to be specified using the connection parameter. Two algorithms are supported: XTEA and AES. The file password is specified in the password field, before the user password. A single space needs to be added between the file password and the user password; the file password itself may not contain spaces. File passwords (as well as user passwords) are case sensitive. Here is an example to connect to a password encrypted database:
+ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
 
 @features_1275_h2
-#Database File Locking
+データベースファイルロック
 
 @features_1276_p
-データベースが開かれている時はいつでも、他のプロセスでデータベースが使用中だということを 知らせるためにロックファイルが作られます。もしデータベースが閉じられたら、または データベースが開かれたプロセスが終了したら、このロックファイルは削除されます。
+データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
 
 @features_1277_p
-#The following file locking methods are implemented:
+以下のファイルロックメソッドが提供されます: 
 
 @features_1278_li
-#The default method is 'file' and uses a watchdog thread to protect the database file. The watchdog reads the lock file each second.
+デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
 
 @features_1279_li
-#The second method is 'socket' and opens a server socket. The socket method does not require reading the lock file every second. The socket method should only be used if the database files are only accessed by the one (and always the same) computer.
+二つめのメソッドは "socket" で、サーバーソケットを開きます。ソケットメソッドは、ロックファイルを秒単位で読むことを必要としていません。ソケットメソッドは、データベースファイルがひとつの (いつも同じ) コンピューターのみによってアクセスされる場合にのみ使用されます。
 
 @features_1280_li
-#It is also possible to open the database without file locking; in this case it is up to the application to protect the database files.
+ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
 
 @features_1281_p
-#To open the database with a different file locking method, use the parameter 'FILE_LOCK'. The following code opens the database with the 'socket' locking method:
+異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
 
 @features_1282_p
-#The following code forces the database to not create a lock file at all. Please note that this is unsafe as another process is able to open the same database, possibly leading to data corruption:
+以下のコードは、データベースにロックファイルを全く作らないよう強要させます。これは、データ破損を導く可能性のある、同じデータベースを開くことができる他のプロセスのように、安全ではないということに注意して下さい:
 
 @features_1283_p
-#For more information about the algorithms please see in Advanced Topics under File Locking Protocol.
+アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
 
 @features_1284_h2
-#Opening a Database Only if it Already Exists
+すでに存在する場合のみ、データベースを開く
 
 @features_1285_p
-#By default, when an application calls <code>DriverManager.getConnection(url,...)</code> and the database specified in the URL does not yet exist, a new (empty) database is created. In some situations, it is better to restrict creating new database, and only open the database if it already exists. This can be done by adding <code>;ifexists=true</code> to the URL. In this case, if the database does not already exist, an exception is thrown when trying to connect. The connection only succeeds when the database already exists. The complete URL may look like this:
+デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
 
 @features_1286_h2
-#Closing the Database
+データベースを終了する
 
 @features_1287_h3
-#Delayed Database Closing
+データベースの遅延終了
 
 @features_1288_p
-#Usually, the database is closed when the last connection to it is closed. In some situations this slows down the application, for example when it is not possible leave the connection open. The automatic closing of the database can be delayed or disabled with the SQL statement SET DB_CLOSE_DELAY &lt;seconds&gt;. The seconds specifies the number of seconds to keep a database open after the last connection to it was closed. For example the following statement will keep the database open for 10 seconds:
+通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
 
 @features_1289_p
 #The value -1 means the database is never closed automatically. The value 0 is the default and means the database is closed when the last connection is closed. This setting is persistent and can be set by an administrator only. It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code> .
@@ -2770,7 +2770,7 @@ XTEA
 H2 (for 'Hypersonic 2') is free a Java SQL DBMS. Clustering, embedded and server mode, transactions, referential integrity, views, subqueries, triggers, encryption, and disk based or in-memory operation are supported. A browser based console application is included. If you see this page your browser does not support frames. Please click here to view the<a href="search_ja.html">index</a>.
 
 @history_1000_h1
-歴�?��?�ロードマップ
+歴史とロードマップ
 
 @history_1001_a
 #History of this Database Engine
@@ -4543,25 +4543,25 @@ H2 (for 'Hypersonic 2') is free a Java SQL DBMS. Clustering, embedded and server
 必要条件
 
 @installation_1006_p
-データベースを実行するために、以下のソフトウェアが動作することを確認します。 互換性のあるソフトウェアでも動作しますが、テストはされていません。
+データベースを実行するために、以下のソフトウェアが動作することを確認します。
 
 @installation_1007_li
-Windows XP, MacOS, or Linux
+Windows XP、MacOS、またはLinux
 
 @installation_1008_li
-Recommended Windows file system: NTFS (FAT32 supports files up to 4 GB)
+推奨されるWindowsファイルシステム: NTFS (FAT32は4GB以上ファイルをサポートします)
 
 @installation_1009_li
-Sun JDK 1.4 or newer
+Sun JDK 1.4以降
 
 @installation_1010_li
-Mozilla Firefox 1.5 or newer
+Mozilla Firefox 1.5以降
 
 @installation_1011_h2
 サポートされているプラットフォーム
 
 @installation_1012_p
-このデータベースはJavaで書かれているため、多くの異なったプラットフォームで実行することができます。 Java 1.4 と 1.5でテストされましたが、GCJを使用することでネイティブコードにコンパイルすることもできます。 ソースコードはJava 1.5の特徴は使われていません。現在、データベースはWindows XPでSun JDKを使用して開発、テストされていますが、 おそらく、他の多くのOSと他のJava Runtime Environmentを使用しても動作するでしょう。
+このデータベースはJavaで書かれているため、多くの異なったプラットフォームで実行することができます。 Java 1.4、1.5、1.6でテストされましたが、GCJを使用することでネイティブコードにコンパイルすることもできます。 ソースコードはJava 1.5の特徴は使われていません。現在、データベースはWindows XPでSun JDK 1.4を使用して開発、テストされていますが、恐らく他の多くのOSと他のJava Runtime Environmentを使用しても動作するでしょう。
 
 @installation_1013_h2
 ソフトウェアのインストール
@@ -4585,43 +4585,43 @@ Mozilla Firefox 1.5 or newer
 bin
 
 @installation_1020_td
-JAR and batch files
+JARとbatchファイル
 
 @installation_1021_td
 docs
 
 @installation_1022_td
-Documentation
+ドキュメント
 
 @installation_1023_td
 docs/html
 
 @installation_1024_td
-HTML pages
+HTMLページ
 
 @installation_1025_td
 docs/javadoc
 
 @installation_1026_td
-Javadoc files
+Javadocファイル
 
 @installation_1027_td
 odbc
 
 @installation_1028_td
-ODBC drivers and tools
+ODBCドライバーとツール
 
 @installation_1029_td
 service
 
 @installation_1030_td
-Tools to run the database as a Windows Service
+Windows Serviceとしてデータベースを実行するツール
 
 @installation_1031_td
 src
 
 @installation_1032_td
-Source files
+Sourceファイル
 
 @license_1000_h1
 ライセンス
@@ -6308,19 +6308,19 @@ Embedding H2 in an Application
 H2 コンソール アプリケーション
 
 @quickstartText_1003_h2
-Embedding H2 in an Application
+アプリケーションのエンベッドH2
 
 @quickstartText_1004_p
-This database can be used in embedded mode, or in server mode. To use it in embedded mode, you need to:
+このデータベースはエンベッドモード、またはサーバーモードで使用可能です。エンベッドモードで使用する場合、以下を行う必要があります:
 
 @quickstartText_1005_li
-Add<code>h2.jar</code>to the classpath
+クラスパスに <code>h2.jar</code> を追加する
 
 @quickstartText_1006_li
-Use the JDBC driver class:<code>org.h2.Driver</code>
+JDBCドライバークラスを使用する: <code>org.h2.Driver</code>
 
 @quickstartText_1007_li
-The database URL<code>jdbc:h2:~/test</code>opens the database 'test' in your user home directory
+データベースURL <code>jdbc:h2:~/test</code> ユーザーホームディレクトリ内の "test" でデータベースを開く
 
 @quickstartText_1008_h2
 H2 コンソール アプリケーション
@@ -6329,7 +6329,7 @@ H2 コンソール アプリケーション
 このコンソールはブラウザインターフェースを使ってSQL データベースにアクセスします。
 
 @quickstartText_1010_p
-Windows XPをご使用でなかったり、 期待通りに機能しない場合は、<a href="tutorial.html">チュートリアル</a>内の 詳細説明をご覧下さい。
+Windows XPをご使用でなかったり、期待通りに機能しない場合は、<a href="tutorial.html">チュートリアル</a>内の詳細説明をご覧下さい。
 
 @quickstartText_1011_h3
 手順
@@ -6422,13 +6422,13 @@ Highlight keyword(s)
 パフォーマンス
 
 @search_1008_a
-Advanced Topics
+進歩したトピックス
 
 @search_1009_b
 参照
 
 @search_1010_a
-SQL文
+SQL文法
 
 @search_1011_a
 関数
@@ -6446,13 +6446,13 @@ PDFドキュメント
 付録
 
 @search_1016_a
-構築
+ビルド
 
 @search_1017_a
 歴史とロードマップ
 
 @search_1018_a
-Q&A
+FAQ
 
 @search_1019_a
 ライセンス

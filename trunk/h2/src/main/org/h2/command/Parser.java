@@ -3692,6 +3692,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("DATABASE_EVENT_LISTENER_OBJECT")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("RECOVER")) {
             readIfEqualOrTo();
             read();

@@ -39,6 +39,13 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 <h3>Version 1.0 (Current)</h3>
 
+<h3>Version 1.0.60 (2007-10-?)</h3><ul>
+<li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
+</li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
+</li><li>CSVREAD, RUNSCRIPT and so on now support URLs as well, using
+	URL.openStream(). Example: select * from csvread('jar:file:///c:/temp/test.jar!/test.csv');
+</li></ul>
+
 <h3>Version 1.0.59 (2007-10-03)</h3><ul>
 <li>When the data type was unknown in a subquery, sometimes the wrong exception (ArrayIndexOutOfBounds) was thrown. Fixed.
 </li><li>If the process was killed while the database was running, sometimes the database could not be opened 
@@ -494,23 +501,23 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
-</li><li>Allow editing NULL values in the Console
-</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true (for insert, delete, update)
-    Simple solution: automatically calls 'refresh' when the result was changed.
-    Compare with other databases.
+</li><li>User defined aggregate functions
+</li><li>Procedural language / script language (Javascript)
 </li></ul>
 
 <h3>Priority 2</h3>
 <ul>
-<li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
-</li><li>Procedural language / script language (Javascript)
+<li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true (for insert, delete, update)
+    Simple solution: automatically calls 'refresh' when the result was changed.
+    Compare with other databases.
+</li><li>Allow editing NULL values in the Console
+</li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Set the database in an 'exclusive' mode (restrict to one user at a time)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>System table / function: cache usage
-</li><li>User defined aggregate functions
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer

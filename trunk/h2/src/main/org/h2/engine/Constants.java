@@ -93,7 +93,7 @@ public class Constants {
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs
     public static final String START_URL = "jdbc:h2:";
     public static final String URL_FORMAT = START_URL + "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
-    public static final String PRODUCT_NAME = "H2";
+    public static final String PRODUCT_NAME = "H2"; // must stay like that (http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682)
     public static final String DRIVER_NAME = "H2 JDBC Driver";
     public static final int IO_BUFFER_SIZE = 4 * 1024;
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;

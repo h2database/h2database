@@ -62,6 +62,10 @@ public class ValueExpression extends Expression {
     public boolean isConstant() {
         return true;
     }
+    
+    public boolean isValueSet() {
+        return true;
+    }    
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
     }

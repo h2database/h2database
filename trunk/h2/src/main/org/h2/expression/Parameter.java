@@ -70,6 +70,10 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public boolean isConstant() {
+        return false;
+    }
+    
+    public boolean isValueSet() {
         return value != null;
     }
 

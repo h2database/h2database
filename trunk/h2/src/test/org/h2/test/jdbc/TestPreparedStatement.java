@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testPrepareRecompile(conn);
         testMaxRowsChange(conn);
         testUnknownDataType(conn);
         testCancelReuse(conn);        
@@ -50,6 +51,41 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testPrepareRecompile(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        PreparedStatement prep;
+        ResultSet rs;
+        
+        prep = conn.prepareStatement("SELECT COUNT(*) FROM DUAL WHERE ? IS NULL");
+        prep.setString(1, null);
+        prep.executeQuery();
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.execute("DROP TABLE TEST");
+        prep.setString(1, null);
+        prep.executeQuery();
+        prep.setString(1, "X");
+        rs = prep.executeQuery();
+        rs.next();
+        check(rs.getInt(1), 0);
+
+        stat.execute("CREATE TABLE t1 (c1 INT, c2 VARCHAR(10))");
+        stat.execute("INSERT INTO t1 SELECT X, CONCAT('Test', X)  FROM SYSTEM_RANGE(1, 5);");
+        prep = conn.prepareStatement("SELECT c1, c2 FROM t1 WHERE c1 = ?");
+        prep.setInt(1, 1);
+        prep.executeQuery();
+        stat.execute("CREATE TABLE t2 (x int PRIMARY KEY)");
+        prep.setInt(1, 2);
+        rs = prep.executeQuery();
+        rs.next();
+        check(rs.getInt(1), 2);
+        prep.setInt(1, 3);
+        rs = prep.executeQuery();
+        rs.next();
+        check(rs.getInt(1), 3);
+        stat.execute("DROP TABLE t1, t2");
+        
     }
     
     private void testMaxRowsChange(Connection conn) throws Exception {

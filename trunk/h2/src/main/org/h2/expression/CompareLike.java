@@ -69,7 +69,7 @@ public class CompareLike extends Condition {
         if (left.getType() == Value.STRING_IGNORECASE) {
             ignoreCase = true;
         }
-        if (left.isConstant()) {
+        if (left.isValueSet()) {
             Value l = left.getValue(session);
             if (l == ValueNull.INSTANCE) {
                 // NULL LIKE something > NULL
@@ -79,8 +79,8 @@ public class CompareLike extends Condition {
         if (escape != null) {
             escape = escape.optimize(session);
         }
-        if (right.isConstant() && (escape == null || escape.isConstant())) {
-            if (left.isConstant()) {
+        if (right.isValueSet() && (escape == null || escape.isValueSet())) {
+            if (left.isValueSet()) {
                 return ValueExpression.get(getValue(session));
             }
             Value r = right.getValue(session);
@@ -130,10 +130,10 @@ public class CompareLike extends Condition {
         // otherwise we would need to prepare at execute time,
         // which is maybe slower (but maybe not in this case!)
         // TODO optimizer: like: check what other databases do!
-        if (!right.isConstant()) {
+        if (!right.isValueSet()) {
             return;
         }
-        if (escape != null && !escape.isConstant()) {
+        if (escape != null && !escape.isValueSet()) {
             return;
         }
         String p = right.getValue(session).getString();

@@ -40,10 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.60 (2007-10-?)</h3><ul>
-<li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
+<li>Prepared statements could not be used after data definition statements (creating tables and so on). Fixed.
+</li><li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
 </li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
 </li><li>CSVREAD, RUNSCRIPT and so on now support URLs as well, using
-	URL.openStream(). Example: select * from csvread('jar:file:///c:/temp/test.jar!/test.csv');
+    URL.openStream(). Example: select * from csvread('jar:file:///c:/temp/test.jar!/test.csv');
 </li></ul>
 
 <h3>Version 1.0.59 (2007-10-03)</h3><ul>

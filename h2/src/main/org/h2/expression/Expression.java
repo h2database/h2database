@@ -47,6 +47,10 @@ public abstract class Expression {
         return false;
     }
     
+    public boolean isValueSet() {
+        return false;
+    }
+    
     public boolean isAutoIncrement() {
         return false;
     }

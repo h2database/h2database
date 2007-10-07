@@ -146,12 +146,9 @@ public class Csv implements SimpleRowSource {
      * set are created on demand, that means the file is kept open until all
      * rows are read or the result set is closed.
      * 
-     * @param fileName
-     *            the file name
-     * @param colNames
-     *            or null if the column names should be read from the CSV file
-     * @param charset
-     *            the charset or null to use UTF-8
+     * @param fileName the file name
+     * @param colNames or null if the column names should be read from the CSV file
+     * @param charset the charset or null to use UTF-8
      * @return the result set
      * @throws SQLException
      */
@@ -169,13 +166,10 @@ public class Csv implements SimpleRowSource {
      * result set are created on demand, that means the reader is kept open
      * until all rows are read or the result set is closed.
      * 
-     * @param reader
-     *            the reader
-     * @param colNames
-     *            or null if the column names should be read from the CSV file
+     * @param reader the reader
+     * @param colNames or null if the column names should be read from the CSV file
      * @return the result set
-     * @throws SQLException,
-     *             IOException
+     * @throws SQLException, IOException
      */
     public ResultSet read(Reader reader, String[] colNames) throws SQLException, IOException {
         init(null, null);
@@ -500,39 +494,103 @@ public class Csv implements SimpleRowSource {
         IOUtils.closeSilently(writer);
         writer = null;
     }
+    
+    /**
+     * INTERNAL
+     */
+    public void reset() throws SQLException {
+        throw new SQLException("Method is not supported", "CSV");
+    }
 
     /**
      * Override the field separator for writing. The default is ",".
      * 
-     * @param fieldSeparatorWrite
+     * @param fieldSeparatorWrite the field separator
      */
     public void setFieldSeparatorWrite(String fieldSeparatorWrite) {
         this.fieldSeparatorWrite = fieldSeparatorWrite;
     }
 
     /**
+     * Get the current field reparator for writing.
+     * 
+     * @return the field separator
+     */
+    public String getFieldSeparatorWrite() {
+        return fieldSeparatorWrite;
+    }
+
+    /**
      * Override the field separator for reading. The default is ','.
      * 
-     * @param fieldSeparatorRead
+     * @param fieldSeparatorRead the field separator
      */
     public void setFieldSeparatorRead(char fieldSeparatorRead) {
         this.fieldSeparatorRead = fieldSeparatorRead;
     }
 
     /**
-     * Override the end-of-row marker for writing. The default is null.
+     * Get the current field separator for reading.
      * 
-     * @param rowSeparatorWrite
+     * @return the field separator
+     */
+    public char getFieldSeparatorRead() {
+        return fieldSeparatorRead;
+    }
+
+    /**
+     * Get the current row separator for writing.
+     * 
+     * @return the row separator
+     */
+    public String getRowSeparatorWrite() {
+        return rowSeparatorWrite;
+    }
+
+    /**
+     * Override the end-of-row marker for writing. The default is null.
+     * After writing the end-of-row marker, a line feed is written (\n or \r\n depending on the system settings).
+     * 
+     * @param rowSeparatorWrite the row separator
      */
     public void setRowSeparatorWrite(String rowSeparatorWrite) {
         this.rowSeparatorWrite = rowSeparatorWrite;
     }
 
     /**
-     * INTERNAL
+     * Set the field delimiter. The default is " (a double quote).
+     * 
+     * @param fieldDelimiter the field delimiter
      */
-    public void reset() throws SQLException {
-        throw new SQLException("Method is not supported", "CSV");
+    public void setFieldDelimiter(char fieldDelimiter) {
+        this.fieldDelimiter = fieldDelimiter;
+    }
+
+    /**
+     * Get the current field delimiter.
+     * 
+     * @return the field delimiter
+     */
+    public char getFieldDelimiter() {
+        return fieldDelimiter;
+    }
+
+    /**
+     * Set the escape character (used to escape the field delimiter). The default is " (a double quote).
+     * 
+     * @param escapeCharacter the escape character
+     */
+    public void setEscapeCharacter(char escapeCharacter) {
+        this.escapeCharacter = escapeCharacter;
+    }
+
+    /**
+     * Get the current escape character.
+     * 
+     * @return the escape character
+     */
+    public char getEscapeCharacter() {
+        return escapeCharacter;
     }
 
 }

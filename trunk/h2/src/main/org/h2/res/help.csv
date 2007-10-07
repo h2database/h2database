@@ -2509,7 +2509,7 @@ CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString]]]): resultSet
+CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString [, fieldDelimiterString [, escapeCharacterString]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 If the column names are specified (a comma separated list of column names),
@@ -2524,11 +2524,12 @@ CALL CSVREAD('test.csv')
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString]]): null
+CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString [, fieldDelimiterString [, escapeCharacterString]]]]): int
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.
 The default charset is the default value for this system, and the default field separator is a comma.
+The returned value is the number or rows written.
 Admin rights are required to execute this command.
 ","
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST')
@@ -2560,7 +2561,7 @@ GREATEST(A, B, C)
 "
 
 "Functions (System)","IDENTITY","
-IDENTITY(): int
+IDENTITY(): long
 ","
 Returns the last inserted identity value for this session.
 ","

@@ -22,19 +22,19 @@ INSERT INTO ITEM VALUES(29,
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>If the process was killed while the database was running, 
-	sometimes the database could not be opened.
+    sometimes the database could not be opened.
 </li><li>Comparing columns with constants that are out of range works again.
 </li><li>When the data type was unknown in a subquery, sometimes the wrong exception was thrown.
 </li><li>Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
 </li><li>A PreparedStatement that was cancelled could not be reused. 
 </li><li>When the database was closed while logging was disabled (LOG 0), 
-	re-opening the database was slow.
+    re-opening the database was slow.
 </li><li>The Console did not always refresh the table list when required.
 </li><li>When creating a table using CREATE TABLE .. AS SELECT, 
-	the precision for some data types was wrong in some cases.
+    the precision for some data types was wrong in some cases.
 </li><li>When using the (undocumented) in-memory file system 
-	(jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using multiple connections, 
-	a ConcurrentModificationException could occur. 
+    (jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using multiple connections, 
+    a ConcurrentModificationException could occur. 
 </li><li>REGEXP compatibility: now Matcher.find is used.
 </li><li>When using a subquery with group by as a table, some columns could not be used.
 </li><li>Views with subqueries as tables and queries with nested subqueries as tables did not always work.

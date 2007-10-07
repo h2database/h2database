@@ -114,10 +114,10 @@ public class TestLob extends TestBase {
             }
             in.close();
             if (len > 0) {
-            	// in Linux, it seems it is still possible to read in files even if they are deleted
-            	if(System.getProperty("os.name").indexOf("Windows") > 0) {
-            		error("Error expected; len=" + len);
-            	}
+                // in Linux, it seems it is still possible to read in files even if they are deleted
+                if (System.getProperty("os.name").indexOf("Windows") > 0) {
+                    error("Error expected; len=" + len);
+                }
             }
         } catch (SQLException e) {
             checkNotGeneralException(e);

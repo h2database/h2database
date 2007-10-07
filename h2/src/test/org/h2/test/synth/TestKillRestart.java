@@ -22,7 +22,7 @@ public class TestKillRestart extends TestBase {
         // String url = getURL("corrupt;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         String user = getUser(), password = getPassword();
         
-        String[] procDef = new String[] { "java.exe", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
+        String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
         
         for (int i = 0; i < 10; i++) {

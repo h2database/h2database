@@ -799,11 +799,19 @@ public class Function extends Expression implements FunctionCall {
             String columnList = v1 == null ? null : v1.getString();
             String charset = v2 == null ? null : v2.getString();
             String fieldSeparatorRead = v3 == null ? null : v3.getString();
+            String fieldDelimiter = v4 == null ? null : v4.getString();
+            String escapeCharacter = v5 == null ? null : v5.getString();
             Csv csv = Csv.getInstance();
-            char fieldSeparator = ',';
+            char fieldSeparator = csv.getFieldSeparatorRead();
             if (fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
                 fieldSeparator = fieldSeparatorRead.charAt(0);
                 csv.setFieldSeparatorRead(fieldSeparator);
+            }
+            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
+                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
+            }
+            if (escapeCharacter != null && escapeCharacter.length() > 0) {
+                csv.setEscapeCharacter(escapeCharacter.charAt(0));
             }
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
@@ -823,10 +831,18 @@ public class Function extends Expression implements FunctionCall {
             Connection conn = session.createConnection(false);
             String charset = v2 == null ? null : v2.getString();
             String fieldSeparatorWrite = v3 == null ? null : v3.getString();
+            String fieldDelimiter = v4 == null ? null : v4.getString();
+            String escapeCharacter = v5 == null ? null : v5.getString();            
             Csv csv = Csv.getInstance();
             if (fieldSeparatorWrite != null) {
                 csv.setFieldSeparatorWrite(fieldSeparatorWrite);
             }
+            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
+                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
+            }
+            if (escapeCharacter != null && escapeCharacter.length() > 0) {
+                csv.setEscapeCharacter(escapeCharacter.charAt(0));
+            }            
             int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
             return ValueInt.get(rows);
         }
@@ -1549,11 +1565,19 @@ public class Function extends Expression implements FunctionCall {
             String columnList = args.length < 2 ? null : args[1].getValue(session).getString();
             String charset = args.length < 3 ? null : args[2].getValue(session).getString();
             String fieldSeparatorRead = args.length < 4 ? null : args[3].getValue(session).getString();
+            String fieldDelimiter = args.length < 5 ? null : args[4].getValue(session).getString();
+            String escapeCharacter = args.length < 6 ? null : args[5].getValue(session).getString();
             Csv csv = Csv.getInstance();
             char fieldSeparator = ',';
             if (fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
                 fieldSeparator = fieldSeparatorRead.charAt(0);
                 csv.setFieldSeparatorRead(fieldSeparator);
+            }
+            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
+                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
+            }
+            if (escapeCharacter != null && escapeCharacter.length() > 0) {
+                csv.setEscapeCharacter(escapeCharacter.charAt(0));
             }
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ResultSet rs = csv.read(fileName, columns, charset);

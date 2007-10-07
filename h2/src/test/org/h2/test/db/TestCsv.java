@@ -17,10 +17,41 @@ import org.h2.tools.Csv;
 public class TestCsv extends TestBase {
 
     public void test() throws Exception {
+        testFieldDelimiter();
         testAsTable();
         testWriteRead();
         testRead();
         testPipe();
+    }
+    
+    private void testFieldDelimiter() throws Exception {
+        File f = new File(baseDir + "/test.csv");
+        f.delete();
+        RandomAccessFile file = new RandomAccessFile(f, "rw");
+        file.write("'A'; 'B'\n\'It\\'s nice\'; '\nHello\\*\n'".getBytes());
+        file.close();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, ';', '''', '\\')");
+        ResultSetMetaData meta = rs.getMetaData();
+        check(meta.getColumnCount(), 2);
+        check(meta.getColumnLabel(1), "A");
+        check(meta.getColumnLabel(2), "B");
+        check(rs.next());
+        check(rs.getString(1), "It's nice");
+        check(rs.getString(2), "\nHello*\n");
+        checkFalse(rs.next());
+        stat.execute("call csvwrite('" + baseDir + "/test2.csv', 'select * from csvread(''" + baseDir + "/test.csv'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
+        rs = stat.executeQuery("select * from csvread('" + baseDir + "/test2.csv', null, null, '+', '*', '#')");
+        meta = rs.getMetaData();
+        check(meta.getColumnCount(), 2);
+        check(meta.getColumnLabel(1), "A");
+        check(meta.getColumnLabel(2), "B");
+        check(rs.next());
+        check(rs.getString(1), "It's nice");
+        check(rs.getString(2), "\nHello*\n");
+        checkFalse(rs.next());
+        conn.close();
     }
 
     private void testPipe() throws Exception {

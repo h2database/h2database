@@ -1287,7 +1287,7 @@ public class Database implements DataHandler {
         long sizeAvailable = 0;
         if (emergencyReserve != null) {
             sizeAvailable = emergencyReserve.length();
-            long newLength = sizeAvailable / 2;
+            long newLength = sizeAvailable / 4;
             if (newLength < SysProperties.EMERGENCY_SPACE_MIN) {
                 newLength = 0;
                 noDiskSpace = true;

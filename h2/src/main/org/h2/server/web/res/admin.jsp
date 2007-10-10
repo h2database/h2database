@@ -67,10 +67,10 @@ Initial Developer: H2 Group
         ${text.adminHttps}<br />
     </p>
     <h3>
-        Port number
+        ${text.adminPort}
     </h3>
     <p>
-        ${text.adminPort}: <input type="text" name="port" value="${port}" />
+        ${text.adminPortWeb}: <input type="text" name="port" value="${port}" />
     </p>
     <hr />
     <p>

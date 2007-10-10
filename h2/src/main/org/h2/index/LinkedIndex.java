@@ -26,12 +26,12 @@ import org.h2.value.ValueNull;
 public class LinkedIndex extends BaseIndex {
 
     private TableLink link;
-    private String originalTable;
+    private String targetTableName;
     
     public LinkedIndex(TableLink table, int id, Column[] columns, IndexType indexType) {
         super(table, id, null, columns, indexType);
         link = table;
-        originalTable = link.getOriginalTable();
+        targetTableName = link.getQualifiedTable();
     }
     
     public String getCreateSQL() {
@@ -47,7 +47,7 @@ public class LinkedIndex extends BaseIndex {
 
     public void add(Session session, Row row) throws SQLException {
         StringBuffer buff = new StringBuffer("INSERT INTO ");
-        buff.append(originalTable);
+        buff.append(targetTableName);
         buff.append(" VALUES(");
         for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
             Value v = row.getValue(i);
@@ -104,7 +104,7 @@ public class LinkedIndex extends BaseIndex {
         if (buff.length() > 0) {
             buff.insert(0, " WHERE ");
         }
-        buff.insert(0, "SELECT * FROM " + originalTable + " T");
+        buff.insert(0, "SELECT * FROM " + targetTableName + " T");
         String sql = buff.toString();
         try {
             PreparedStatement prep = link.getPreparedStatement(sql);
@@ -169,7 +169,7 @@ public class LinkedIndex extends BaseIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         StringBuffer buff = new StringBuffer("DELETE FROM ");
-        buff.append(originalTable);
+        buff.append(targetTableName);
         buff.append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
             if (i > 0) {
@@ -202,7 +202,7 @@ public class LinkedIndex extends BaseIndex {
 
     public void update(Session session, Row oldRow, Row newRow) throws SQLException {
         StringBuffer buff = new StringBuffer("UPDATE ");
-        buff.append(originalTable).append(" SET ");
+        buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
             if (i > 0) {
                 buff.append(", ");

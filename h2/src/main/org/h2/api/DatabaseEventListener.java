@@ -12,7 +12,6 @@ import java.util.EventListener;
  * A database event listener can be registered when connecting to a database.
  * Example database URL: jdbc:h2:test;DATABASE_EVENT_LISTENER='com.acme.DbListener' *
  */
-
 public interface DatabaseEventListener extends EventListener {
 
     int STATE_SCAN_FILE = 0, STATE_CREATE_INDEX = 1, STATE_RECOVER = 2, STATE_BACKUP_FILE = 3;

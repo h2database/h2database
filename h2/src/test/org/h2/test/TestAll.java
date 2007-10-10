@@ -146,7 +146,9 @@ java org.h2.test.TestAll timer
         
 /*
 
-web page translation
+CREATE USER "Pawel" PASSWORD 'pawel' // can't establish connection
+CREATE USER PAWEL PASSWORD 'pawel' // everything OK
+
 
 At startup, when corrupted, say if LOG=0 was used before
 

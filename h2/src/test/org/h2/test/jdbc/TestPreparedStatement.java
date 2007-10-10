@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testInsertFunction(conn);
         testPrepareRecompile(conn);
         testMaxRowsChange(conn);
         testUnknownDataType(conn);
@@ -51,6 +52,26 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testInsertFunction(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        PreparedStatement prep;
+        ResultSet rs;
+        
+        stat.execute("CREATE TABLE TEST(ID INT, H BINARY)");
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, HASH('SHA256', STRINGTOUTF8(?), 5))");
+        prep.setInt(1, 1);
+        prep.setString(2, "One");
+        prep.execute();
+        prep.setInt(1, 2);
+        prep.setString(2, "Two");
+        prep.execute();
+        rs = stat.executeQuery("SELECT COUNT(DISTINCT H) FROM TEST");
+        rs.next();
+        check(rs.getInt(1), 2);
+        
+        stat.execute("DROP TABLE TEST");
     }
     
     private void testPrepareRecompile(Connection conn) throws Exception {

@@ -11,9 +11,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import org.h2.Driver;
 import org.h2.engine.Constants;
@@ -39,7 +41,7 @@ public class TcpServer implements Service {
     private boolean ssl;
     private boolean stop;
     private ServerSocket serverSocket;
-    private HashSet running = new HashSet();
+    private Set running = Collections.synchronizedSet(new HashSet());
     private String baseDir;
     private String url;
     private boolean allowOthers;

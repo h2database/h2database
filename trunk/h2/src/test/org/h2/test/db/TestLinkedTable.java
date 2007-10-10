@@ -18,11 +18,29 @@ import org.h2.test.TestBase;
 public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
+        testLinkOtherSchema();
         testLinkDrop();
         testLinkSchema();
         testLinkEmitUpdates();
         testLinkTable();
         testLinkTwoTables();
+    }
+    
+    private void testLinkOtherSchema() throws Exception {
+        Class.forName("org.h2.Driver");
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE GOOD (X NUMBER)");
+        sa.execute("CREATE SCHEMA S");
+        sa.execute("CREATE TABLE S.BAD (X NUMBER)");
+        sb.execute("CALL LINK_SCHEMA('G', '', 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC'); ");
+        sb.execute("CALL LINK_SCHEMA('B', '', 'jdbc:h2:mem:one', 'sa', 'sa', 'S'); ");
+        sb.executeQuery("SELECT * FROM G.GOOD");  //OK
+        sb.executeQuery("SELECT * FROM B.BAD");  // FAILED
+        ca.close();
+        cb.close();
     }
     
     private void testLinkTwoTables() throws Exception {

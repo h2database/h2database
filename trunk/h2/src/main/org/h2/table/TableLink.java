@@ -34,7 +34,7 @@ import org.h2.value.DataType;
 
 public class TableLink extends Table {
 
-    private String driver, url, user, password, originalTable;
+    private String driver, url, user, password, originalTable, qualifiedTableName;
     private Connection conn;
     private HashMap prepared = new HashMap();
     private final ObjectArray indexes = new ObjectArray();
@@ -102,12 +102,18 @@ public class TableLink extends Table {
             columnList.add(col);
             columnMap.put(n, col);
         }
-        // alternative solution
-        if (columnList.size() == 0) {
-            Statement stat = null;
-            try {
-                stat = conn.createStatement();
-                rs = stat.executeQuery("SELECT * FROM " + originalTable + " T WHERE 1=0");
+        if (originalTable.indexOf('.') < 0 && !StringUtils.isNullOrEmpty(schema)) {
+            qualifiedTableName = schema + "." + originalTable;
+        } else {
+            qualifiedTableName = originalTable;
+        }
+        // check if the table is accessible
+        Statement stat = null;
+        try {
+            stat = conn.createStatement();
+            rs = stat.executeQuery("SELECT * FROM " + qualifiedTableName + " T WHERE 1=0");
+            if (columnList.size() == 0) {
+                // alternative solution
                 ResultSetMetaData rsMeta = rs.getMetaData();
                 for (i = 0; i < rsMeta.getColumnCount();) {
                     String n = rsMeta.getColumnName(i + 1);
@@ -123,12 +129,12 @@ public class TableLink extends Table {
                     columnList.add(col);
                     columnMap.put(n, col);
                 }
-            } catch (SQLException e) {
-                throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[] { originalTable + "("
-                        + e.toString() + ")" }, e);
-            } finally {
-                JdbcUtils.closeSilently(stat);
             }
+        } catch (SQLException e) {
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[] { originalTable + "("
+                    + e.toString() + ")" }, e);
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
         Column[] cols = new Column[columnList.size()];
         columnList.toArray(cols);
@@ -262,7 +268,7 @@ public class TableLink extends Table {
     }
 
     public long getRowCount(Session session) throws SQLException {
-        PreparedStatement prep = getPreparedStatement("SELECT COUNT(*) FROM " + originalTable);
+        PreparedStatement prep = getPreparedStatement("SELECT COUNT(*) FROM " + qualifiedTableName);
         ResultSet rs = prep.executeQuery();
         rs.next();
         long count = rs.getLong(1);
@@ -270,8 +276,8 @@ public class TableLink extends Table {
         return count;
     }
 
-    public String getOriginalTable() {
-        return originalTable;
+    public String getQualifiedTable() {
+        return qualifiedTableName;
     }
 
     public PreparedStatement getPreparedStatement(String sql) throws SQLException {

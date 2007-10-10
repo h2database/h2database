@@ -14,7 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.h2.engine.Constants;
 import org.h2.server.Service;
@@ -32,7 +34,7 @@ public class PgServer implements Service {
     private boolean stop;
     private boolean log;
     private ServerSocket serverSocket;
-    private HashSet running = new HashSet();
+    private Set running = Collections.synchronizedSet(new HashSet());
     private String baseDir;
     private String url;
     private boolean allowOthers;

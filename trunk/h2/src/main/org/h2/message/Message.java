@@ -139,12 +139,10 @@ public class Message {
     public static SQLException addSQL(SQLException e, String sql) {
         if (e instanceof JdbcSQLException) {
             JdbcSQLException j = (JdbcSQLException) e;
-            if (j.getSQL() != null) {
-                return j;
+            if (j.getSQL() == null) {
+                j.setSQL(sql);
             }
-            return new JdbcSQLException(j.getOriginalMessage(), j.getSQL(), 
-                    j.getSQLState(), 
-                    j.getErrorCode(), j, null);
+            return j;
         } else {
             return new JdbcSQLException(e.getMessage(), sql, 
                     e.getSQLState(), 

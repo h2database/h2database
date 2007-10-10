@@ -14,11 +14,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.h2.api.DatabaseEventListener;
@@ -54,6 +56,7 @@ public class WebServer implements Service {
         { "in", "Indonesia"},
         { "pt_PT", "Portugu\u00eas (Europeu)"},
         { "pl", "Polski"},
+        { "it", "Italiano"},
     };
     
     private static final String[] GENERIC = new String[] {
@@ -78,7 +81,7 @@ public class WebServer implements Service {
     private static int ticker;
     private int port;
     private boolean allowOthers;
-    private HashSet running = new HashSet();
+    private Set running = Collections.synchronizedSet(new HashSet());
     private boolean ssl;
     private HashMap connInfoMap = new HashMap();
     

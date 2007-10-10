@@ -851,7 +851,7 @@ public class Parser {
         } else if (currentTokenType == IDENTIFIER) {
             // left and right are not keywords (because they are functions as
             // well)
-            if (!isToken("LEFT") && !isToken("RIGHT")) {
+            if (!isToken("LEFT") && !isToken("RIGHT") && !isToken("FULL")) {
                 alias = readAliasIdentifier();
             }
         }
@@ -1070,6 +1070,8 @@ public class Parser {
                 }
                 top.addJoin(join, true, on);
                 last = join;
+            } else if (readIf("FULL")) {
+                throw this.getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);

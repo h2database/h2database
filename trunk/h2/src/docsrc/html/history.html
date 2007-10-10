@@ -40,7 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.60 (2007-10-?)</h3><ul>
-<li>CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
+<li>Stack traces did not include the SQL statement in all cases where they could have. 
+	Also, stack traces with SQL statement are now shorter.
+</li><li>Linked tables: now tables in non-default schemas are supported as well 
+</li><li>New Italian translation from PierPaolo Ucchino. Thanks a lot!
+</li><li>CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
 </li><li>Prepared statements could not be used after data definition statements (creating tables and so on). Fixed.
 </li><li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
 </li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
@@ -554,6 +558,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Eclipse plugin
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
+</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CACHE, CYCLE
 </li><li>Compression of the cache
 </li><li>Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
@@ -745,7 +750,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Implement a SQLData interface to map your data over to a custom object
 </li><li>Extend H2 Console to run tools (show command line as well)
 </li><li>Make DDL (Data Definition) operations transactional
-</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CACHE, CYCLE
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 

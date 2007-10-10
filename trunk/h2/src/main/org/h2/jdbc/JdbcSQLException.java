@@ -17,9 +17,10 @@ public class JdbcSQLException extends SQLException {
 
     private static final long serialVersionUID = -8200821788226954151L;
     private final String originalMessage;
-    private final String sql;
     private final Throwable cause;
     private final String trace;
+    private String message;
+    private String sql;
 
     /**
      * Creates a SQLException a message, sqlstate and cause.
@@ -29,28 +30,26 @@ public class JdbcSQLException extends SQLException {
      * @param cause the exception that was the reason for this exception
      */
     public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String trace) {
-        super(buildMessage(message, sql, state), state, errorCode);
+        super(message, state, errorCode);
         this.originalMessage = message;
         this.sql = sql;
         this.cause = cause;
         this.trace = trace;
+        buildMessage();
 //#ifdef JDK14
         initCause(cause);
 //#endif        
     }
     
-    private static String buildMessage(String message, String sql, String state) {
-        if (message == null) {
-            message = "";
-        }
-        StringBuffer buff = new StringBuffer(message);
-        if (sql != null) {
-            buff.append("; SQL statement: ");
-            buff.append(sql);
-        }
-        return message + " [" + state + "-" + Constants.BUILD_ID + "]";
+    /**
+     * Get the detail error message.
+     * 
+     * @return the message
+     */
+    public String getMessage() {
+        return message;
     }
-
+    
     /**
      * INTERNAL
      */
@@ -133,6 +132,28 @@ public class JdbcSQLException extends SQLException {
         return sql;
     }
     
+    /**
+     * INTERNAL
+     */
+    public void setSQL(String sql) {
+        this.sql = sql;
+        buildMessage();
+    }    
+    
+    private void buildMessage() {
+        StringBuffer buff = new StringBuffer(originalMessage);
+        if (sql != null) {
+            buff.append("; SQL statement:\n");
+            buff.append(sql);
+        }
+        buff.append(" [");
+        buff.append(getSQLState());
+        buff.append('-');
+        buff.append(Constants.BUILD_ID);
+        buff.append(']');
+        message = buff.toString();
+    }
+
     /**
      * Returns the class name, the message, and in the server mode, the stack trace of the server
      * 

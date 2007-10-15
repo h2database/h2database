@@ -68,8 +68,11 @@ public class Engine {
             if (user == null) {
                 try {
                     database.checkFilePasswordHash(cipher, ci.getFilePasswordHash());
-                    user = database.getUser(ci.getUserName());
-                    user.checkUserPasswordHash(ci.getUserPasswordHash());
+                    //create the exception here so it is not possible from the stack trace 
+                    // to see if the user name was wrong or the password
+                    SQLException wrongUserOrPassword = Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+                    user = database.getUser(ci.getUserName(), wrongUserOrPassword);
+                    user.checkUserPasswordHash(ci.getUserPasswordHash(), wrongUserOrPassword);
                     if (opened && !user.getAdmin()) {
                         // reset - because the user is not an admin, and has no
                         // right to listen to exceptions

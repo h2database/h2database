@@ -23,6 +23,7 @@ public interface DbObject {
     int SCHEMA = 10;
     int COMMENT = 13;
     int USER_DATATYPE = 12;
+    int AGGREGATE = 14;
 
     void setModified();
 

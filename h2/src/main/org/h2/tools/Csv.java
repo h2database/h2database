@@ -512,7 +512,7 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Get the current field reparator for writing.
+     * Get the current field separator for writing.
      * 
      * @return the field separator
      */

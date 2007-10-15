@@ -40,8 +40,11 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.60 (2007-10-?)</h3><ul>
-<li>Stack traces did not include the SQL statement in all cases where they could have. 
-	Also, stack traces with SQL statement are now shorter.
+<li>User defined aggregate functions are not supported.
+</li><li>Server.shutdownTcpServer was blocked when first called with force=false and then force=true.
+    Now documentation is improved, and it is no longer blocked.
+</li><li>Stack traces did not include the SQL statement in all cases where they could have. 
+    Also, stack traces with SQL statement are now shorter.
 </li><li>Linked tables: now tables in non-default schemas are supported as well 
 </li><li>New Italian translation from PierPaolo Ucchino. Thanks a lot!
 </li><li>CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
@@ -507,7 +510,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Better support large transactions, large updates / deletes: use less memory
 </li><li>Better support large transactions, large updates / deletes: allow tables without primary key
 </li><li>Support Oracle RPAD and LPAD(string, n[, pad]) (truncate the end if longer)
-</li><li>User defined aggregate functions
 </li><li>Procedural language / script language (Javascript)
 </li></ul>
 

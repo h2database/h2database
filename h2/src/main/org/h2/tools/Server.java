@@ -221,7 +221,11 @@ public class Server implements Runnable, ShutdownHandler {
     }
     
     /**
-     * Shutdown a TCP server.
+     * Shutdown a TCP server. If force is set to false, the server will not allow new connections,
+     * but not kill existing connections, instead it will stop if the last connection is closed. 
+     * If force is set to true, existing connections are killed.
+     * After calling the method with force=false, it is not possible to call it again with
+     * force=true because new connections are not allowed.
      * 
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)

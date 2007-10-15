@@ -34,6 +34,7 @@ public class Trace {
     public static final String SCHEMA = "schema";
     public static final String DATABASE = "database";
     public static final String SESSION = "session";
+    public static final String AGGREGATE = "aggregate";
     
     public Trace(TraceSystem traceSystem, String module) {
         this.traceSystem = traceSystem;

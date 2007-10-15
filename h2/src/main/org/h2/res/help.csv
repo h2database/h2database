@@ -268,7 +268,7 @@ ALTER TABLE TEST RENAME TO MY_DATA
 ALTER USER userName ADMIN {TRUE | FALSE}
 ","
 Switches the admin flag of a user on or off.
-The user name is converted to uppercase if it is not quoted (with double quotes).
+For compatibility, only unquoted or uppercase user names are allowed.
 Admin rights are required to execute this command.
 ","
 ALTER USER TOM ADMIN TRUE
@@ -278,7 +278,7 @@ ALTER USER TOM ADMIN TRUE
 ALTER USER userName RENAME TO newUserName
 ","
 Renames a user.
-The user name is converted to uppercase if it is not quoted (with double quotes).
+For compatibility, only unquoted or uppercase user names are allowed.
 After renaming a user the password becomes invalid and needs to be changed as well.
 Admin rights are required to execute this command.
 ","
@@ -290,7 +290,7 @@ ALTER USER userName SET
 {PASSWORD string | SALT bytes HASH bytes}
 ","
 Changes the password of a user.
-The user name is converted to uppercase if it is not quoted (with double quotes).
+For compatibility, only unquoted or uppercase user names are allowed.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 The salt and hash values are hex strings.
 Admin rights are required to execute this command.
@@ -330,6 +330,16 @@ Sets the comment of a database object. Use NULL to remove the comment.
 Admin rights are required to execute this command.
 ","
 COMMENT ON TABLE TEST IS 'Table used for testing'
+"
+
+"Commands (DDL)","CREATE AGGREGATE","
+CREATE AGGREGATE [IF NOT EXISTS] newAggregateName FOR className
+","
+Creates a new user defined aggregate function. The method name must be the full qualified class name.
+The class must implement the interface org.h2.api.AggregateFunction.
+Admin rights are required to execute this command.
+","
+CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
@@ -460,7 +470,7 @@ CREATE USER [IF NOT EXISTS] newUserName
 ","
 Creates a new user.
 Admin rights are required to execute this command.
-The user name is converted to uppercase if it is not quoted (with double quotes).
+For compatibility, only unquoted or uppercase user names are allowed.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 The salt and hash values are hex strings.
 ","
@@ -475,6 +485,15 @@ Creates a new view. If the force option is used, then the view is created even i
 Admin rights are required to execute this command.
 ","
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
+"
+
+"Commands (DDL)","DROP AGGREGATE","
+DROP AGGREGATE [IF EXISTS] aggregateName
+","
+Drops an existing user defined aggregate function.
+Admin rights are required to execute this command.
+","
+CREATE AGGREGATE MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
@@ -548,7 +567,7 @@ DROP USER [IF EXISTS] userName
 Drops a user.
 Admin rights are required to execute this command.
 The current user cannot be dropped.
-The user name is converted to uppercase if it is not quoted (with double quotes).
+For compatibility, only unquoted or uppercase user names are allowed.
 ","
 DROP USER TOM
 "

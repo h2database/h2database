@@ -52,13 +52,7 @@ public class FunctionAlias extends DbObjectBase {
         if (javaMethod != null) {
             return;
         }
-        Class javaClass;
-        try {
-            javaClass = database.loadClass(className);
-        } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className + " (" + methodName
-                    + ")" }, e);
-        }
+        Class javaClass = database.loadClass(className);
         Method[] methods = javaClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];

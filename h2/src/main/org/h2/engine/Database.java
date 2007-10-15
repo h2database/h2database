@@ -81,6 +81,7 @@ public class Database implements DataHandler {
     private final HashMap rights = new HashMap();
     private final HashMap functionAliases = new HashMap();
     private final HashMap userDataTypes = new HashMap();
+    private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
     private final HashSet sessions = new HashSet();
     private final BitField objectIds = new BitField();
@@ -676,6 +677,8 @@ public class Database implements DataHandler {
             return userDataTypes;
         case DbObject.COMMENT:
             return comments;
+        case DbObject.AGGREGATE:
+            return aggregates;
         default:
             throw Message.getInternalError("type=" + type);
         }
@@ -727,19 +730,25 @@ public class Database implements DataHandler {
     public FunctionAlias findFunctionAlias(String name) {
         return (FunctionAlias) functionAliases.get(name);
     }
+    
+    public UserAggregate findAggregate(String name) {
+        return (UserAggregate) aggregates.get(name);
+    }
 
     public UserDataType findUserDataType(String name) {
         return (UserDataType) userDataTypes.get(name);
     }
 
-    public User getUser(String name) throws SQLException {
+    public User getUser(String name, SQLException notFound) throws SQLException {
         User user = (User) users.get(name);
         if (user == null) {
-            // TODO security: from the stack trace the attacker now knows the
-            // user name is ok
-            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD, name);
+            throw notFound;
         }
         return user;
+    }
+    
+    public User getUser(String name) throws SQLException {
+        return getUser(name, Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name));
     }
 
     public synchronized Session createSession(User user) {
@@ -969,6 +978,10 @@ public class Database implements DataHandler {
 
     public ObjectArray getAllFunctionAliases() {
         return new ObjectArray(functionAliases.values());
+    }
+    
+    public ObjectArray getAllAggregates() {
+        return new ObjectArray(aggregates.values());
     }
 
     public ObjectArray getAllUserDataTypes() {
@@ -1261,8 +1274,12 @@ public class Database implements DataHandler {
         }
     }
 
-    public Class loadClass(String className) throws ClassNotFoundException {
-        return ClassUtils.loadClass(className);
+    public Class loadClass(String className) throws SQLException {
+        try {
+            return ClassUtils.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+        }            
     }
 
     public void setEventListener(String className) throws SQLException {

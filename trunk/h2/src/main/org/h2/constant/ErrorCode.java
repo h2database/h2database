@@ -312,6 +312,7 @@ public class ErrorCode {
     public static final int TRANSACTION_NOT_FOUND_1 = 90129;
     public static final int METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT = 90130;
     public static final int CONCURRENT_UPDATE_1 = 90131;
+    public static final int AGGREGATE_NOT_FOUND_1 = 90132;
 
     /**
      * INTERNAL

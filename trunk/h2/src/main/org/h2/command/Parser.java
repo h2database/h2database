@@ -19,6 +19,7 @@ import org.h2.command.ddl.AlterTableRenameColumn;
 import org.h2.command.ddl.AlterUser;
 import org.h2.command.ddl.AlterView;
 import org.h2.command.ddl.Analyze;
+import org.h2.command.ddl.CreateAggregate;
 import org.h2.command.ddl.CreateConstant;
 import org.h2.command.ddl.CreateFunctionAlias;
 import org.h2.command.ddl.CreateIndex;
@@ -32,6 +33,7 @@ import org.h2.command.ddl.CreateUser;
 import org.h2.command.ddl.CreateUserDataType;
 import org.h2.command.ddl.CreateView;
 import org.h2.command.ddl.DeallocateProcedure;
+import org.h2.command.ddl.DropAggregate;
 import org.h2.command.ddl.DropConstant;
 import org.h2.command.ddl.DropDatabase;
 import org.h2.command.ddl.DropFunctionAlias;
@@ -80,6 +82,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
+import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
 import org.h2.expression.Aggregate;
 import org.h2.expression.Alias;
@@ -95,6 +98,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.Function;
 import org.h2.expression.FunctionCall;
+import org.h2.expression.JavaAggregate;
 import org.h2.expression.JavaFunction;
 import org.h2.expression.Operation;
 import org.h2.expression.Parameter;
@@ -1032,6 +1036,8 @@ public class Parser {
             return parseDropUserDataType();
         } else if (readIf("DATATYPE")) {
             return parseDropUserDataType();
+        } else if (readIf("AGGREGATE")) {
+            return parseDropAggregate();
         }
         throw getSyntaxError();
     }
@@ -1040,6 +1046,15 @@ public class Parser {
         boolean ifExists = readIfExists(false);
         DropUserDataType command = new DropUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
+        ifExists = readIfExists(ifExists);
+        command.setIfExists(ifExists);
+        return command;
+    }
+    
+    DropAggregate parseDropAggregate() throws SQLException {
+        boolean ifExists = readIfExists(false);
+        DropAggregate command = new DropAggregate(session);
+        command.setName(readUniqueIdentifier());
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
         return command;
@@ -1718,6 +1733,19 @@ public class Parser {
         JavaFunction func = new JavaFunction(functionAlias, args);
         return func;
     }
+    
+    private JavaAggregate readJavaAggregate(UserAggregate aggregate) throws SQLException {
+        ObjectArray params = new ObjectArray();
+        do {
+            params.add(readExpression());
+        } while(readIf(","));
+        read(")");
+        Expression[] list = new Expression[params.size()];
+        params.toArray(list);
+        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect);
+        currentSelect.setGroupQuery();
+        return agg;
+    }
 
     private Expression readFunction(String name) throws SQLException {
         int agg = Aggregate.getAggregateType(name);
@@ -1726,6 +1754,10 @@ public class Parser {
         }
         Function function = Function.getFunction(database, name);
         if (function == null) {
+            UserAggregate aggregate = database.findAggregate(name);
+            if (aggregate != null) {
+                return readJavaAggregate(aggregate);
+            }
             return readJavaFunction(name);
         }
         switch (function.getFunctionType()) {
@@ -3113,6 +3145,8 @@ public class Parser {
             return parseCreateUserDataType();
         } else if (readIf("DATATYPE")) {
             return parseCreateUserDataType();
+        } else if (readIf("AGGREGATE")) {
+            return parseCreateAggregate(force);
         } else {
             boolean hash = false, primaryKey = false, unique = false;
             String indexName = null;
@@ -3284,6 +3318,21 @@ public class Parser {
         command.setExpression(expr);
         command.setIfNotExists(ifNotExists);
         return command;
+    }
+    
+    private CreateAggregate parseCreateAggregate(boolean force) throws SQLException {
+        boolean ifNotExists = readIfNoExists();
+        CreateAggregate command = new CreateAggregate(session);
+        command.setForce(force);
+        String name = readUniqueIdentifier();
+        if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
+            throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
+        }
+        command.setName(name);
+        command.setIfNotExists(ifNotExists);
+        read("FOR");
+        command.setJavaClassMethod(readUniqueIdentifier());
+        return command;        
     }
 
     private CreateUserDataType parseCreateUserDataType() throws SQLException {
@@ -3527,8 +3576,7 @@ public class Parser {
         if (readIf("SET")) {
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
-            User user = database.getUser(userName);
-            command.setUser(user);
+            command.setUser(database.getUser(userName));
             if (readIf("PASSWORD")) {
                 command.setPassword(readString());
             } else if (readIf("SALT")) {

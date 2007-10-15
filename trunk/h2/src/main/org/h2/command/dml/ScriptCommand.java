@@ -27,6 +27,7 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
+import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -163,6 +164,14 @@ public class ScriptCommand extends ScriptBase {
                     add(alias.getDropSQL(), false);
                 }
                 add(alias.getCreateSQL(), false);
+            }
+            ObjectArray aggregates = db.getAllAggregates();
+            for (int i = 0; i < aggregates.size(); i++) {
+                UserAggregate agg = (UserAggregate) aggregates.get(i);
+                if (drop) {
+                    add(agg.getDropSQL(), false);
+                }
+                add(agg.getCreateSQL(), false);
             }
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
             // sort by id, so that views are after tables and views on views

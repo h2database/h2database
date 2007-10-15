@@ -18,6 +18,7 @@ import org.h2.test.TestBase;
 public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
+        // testLinkAutoAdd();
         testLinkOtherSchema();
         testLinkDrop();
         testLinkSchema();
@@ -25,6 +26,22 @@ public class TestLinkedTable extends TestBase {
         testLinkTable();
         testLinkTwoTables();
     }
+    
+    // this is not a bug, it is the documented behavior
+//    private void testLinkAutoAdd() throws Exception {
+//        Class.forName("org.h2.Driver");
+//        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+//        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+//        Statement sa = ca.createStatement();
+//        Statement sb = cb.createStatement();
+//        sa.execute("CREATE TABLE ONE (X NUMBER)");
+//        sb.execute("CALL LINK_SCHEMA('GOOD', '', 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC'); ");
+//        sb.executeQuery("SELECT * FROM GOOD.ONE");
+//        sa.execute("CREATE TABLE TWO (X NUMBER)");
+//        sb.executeQuery("SELECT * FROM GOOD.TWO"); // FAILED
+//        ca.close();
+//        cb.close();
+//    }
     
     private void testLinkOtherSchema() throws Exception {
         Class.forName("org.h2.Driver");

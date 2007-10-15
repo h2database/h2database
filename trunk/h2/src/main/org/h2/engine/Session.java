@@ -77,7 +77,7 @@ public class Session implements SessionInterface {
 
     public Table findLocalTempTable(String name) {
         Table t = null;
-        if (t == null && localTempTables != null) {
+        if (localTempTables != null) {
             t = (Table) localTempTables.get(name);
         }
         return t;

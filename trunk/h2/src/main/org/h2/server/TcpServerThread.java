@@ -42,11 +42,15 @@ public class TcpServerThread implements Runnable {
         transfer = new Transfer(null);
         transfer.setSocket(socket);
     }
+    
+    private void log(String s) {
+        server.log(this + " " + s);
+    }
 
     public void run() {
         try {
             transfer.init();
-            server.log("Connect");
+            log("Connect");
             // TODO server: should support a list of allowed databases and a
             // list of allowed clients
             try {
@@ -83,7 +87,7 @@ public class TcpServerThread implements Runnable {
                 session = engine.getSession(ci);
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK).flush();
-                server.log("Connected");
+                log("Connected");
             } catch (Throwable e) {
                 sendError(e);
                 stop = true;
@@ -95,7 +99,7 @@ public class TcpServerThread implements Runnable {
                     sendError(e);
                 }
             }
-            server.log("Disconnect");
+            log("Disconnect");
         } catch (Throwable e) {
             server.logError(e);
         } finally {
@@ -122,7 +126,7 @@ public class TcpServerThread implements Runnable {
             stop = true;
             closeSession();
             transfer.close();
-            server.log("Close");
+            log("Close");
         } catch (Exception e) {
             server.logError(e);
         }

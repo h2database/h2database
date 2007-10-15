@@ -14,9 +14,28 @@ import org.h2.test.TestBase;
 
 public class TestRights extends TestBase {
 
-    Statement stat;
-
+    private Statement stat;
+    
     public void test() throws Exception {
+        // testLowerCaseUser();
+        testAccessRights();
+    }
+    
+//    public void testLowerCaseUser() throws Exception {
+    // Documentation: For compatibility, only unquoted or uppercase user names are allowed.
+//        deleteDb("rights");
+//        Connection conn = getConnection("rights");
+//        stat = conn.createStatement();
+//        stat.execute("CREATE USER \"TEST1\" PASSWORD 'abc'");
+//        stat.execute("CREATE USER \"Test2\" PASSWORD 'abc'");
+//        conn.close();
+//        conn = getConnection("rights", "TEST1", "abc");
+//        conn.close();
+//        conn = getConnection("rights", "Test2", "abc");
+//        conn.close();
+//    }
+
+    public void testAccessRights() throws Exception {
         if (config.memory) {
             return;
         }

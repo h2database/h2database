@@ -118,11 +118,11 @@ public class User extends RightOwner {
         return buff.toString();
     }
 
-    public void checkUserPasswordHash(byte[] buff) throws SQLException {
+    public void checkUserPasswordHash(byte[] buff, SQLException onError) throws SQLException {
         SHA256 sha = new SHA256();
         byte[] hash = sha.getHashWithSalt(buff, salt);
         if (!ByteUtils.compareSecure(hash, passwordHash)) {
-            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+            throw onError;
         }
     }
 

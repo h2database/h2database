@@ -13,15 +13,57 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 
+import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 
 public class TestFunctions extends TestBase {
 
-    Statement stat;
+    private Statement stat;
 
     public void test() throws Exception {
+        testAggregate();
+        testFunctions();
+    }
+    
+    public static class MedianString implements AggregateFunction {
+        
+        private ArrayList list = new ArrayList();
+
+        public void add(Object value) throws SQLException {
+            list.add(value.toString());
+        }
+
+        public Object getResult() throws SQLException {
+            return list.get(list.size() / 2);
+        }
+
+        public int getType(int[] inputType) throws SQLException {
+            return Types.VARCHAR;
+        }
+
+        public void init(Connection conn) throws SQLException {
+        }
+        
+    }
+    
+    private void testAggregate() throws Exception {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        stat = conn.createStatement();
+        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" + MedianString.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + MedianString.class.getName() + "\"");
+        ResultSet rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        rs.next();
+        check("5", rs.getString(1));
+        stat.execute("DROP AGGREGATE MEDIAN");
+        stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
+        conn.close();
+    }
+    
+    private void testFunctions() throws Exception {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         stat = conn.createStatement();

@@ -39,7 +39,6 @@ import org.h2.value.ValueString;
  */
 
 public class Aggregate extends Expression {
-    // TODO aggregates: make them 'pluggable'
     // TODO incompatibility to hsqldb: aggregates: hsqldb uses automatic data
     // type for sum if value is too big,
     // h2 uses the same type as the data

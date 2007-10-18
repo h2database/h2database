@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.text.Collator;
 import java.util.Locale;
 import java.util.Properties;
+
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -29,6 +30,7 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
+import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
@@ -434,7 +436,7 @@ public class MetaTable extends Table {
             indexColumn = -1;
         } else {
             indexColumn = getColumn(indexColumnName).getColumnId();
-            Column[] indexCols = new Column[] { cols[indexColumn] };
+            IndexColumn[] indexCols = IndexColumn.wrap(new Column[] { cols[indexColumn] });
             index = new MetaIndex(this, indexCols, false);
         }
     }
@@ -466,7 +468,7 @@ public class MetaTable extends Table {
         return null;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -864,6 +866,23 @@ public class MetaTable extends Table {
                         ""+ returnsResult, // RETURNS_RESULT SMALLINT
                         replaceNullWithEmpty(alias.getComment()), // REMARKS
                         "" + alias.getId() // ID
+                });
+            }
+            ObjectArray aggregates = database.getAllAggregates();
+            for (int i = 0; i < aggregates.size(); i++) {
+                UserAggregate agg = (UserAggregate) aggregates.get(i);
+                int returnsResult = DatabaseMetaData.procedureReturnsResult;
+                add(rows, new String[] {
+                        catalog, // ALIAS_CATALOG
+                        Constants.SCHEMA_MAIN, // ALIAS_SCHEMA
+                        identifier(agg.getName()), // ALIAS_NAME
+                        agg.getJavaClassName(), // JAVA_CLASS
+                        "", // JAVA_METHOD
+                        ""+DataType.convertTypeToSQLType(Value.NULL), // DATA_TYPE
+                        "1", // COLUMN_COUNT INT
+                        ""+ returnsResult, // RETURNS_RESULT SMALLINT
+                        replaceNullWithEmpty(agg.getComment()), // REMARKS
+                        "" + agg.getId() // ID
                 });
             }
             break;
@@ -1293,7 +1312,7 @@ public class MetaTable extends Table {
     }
 
     public Index getScanIndex(Session session) throws SQLException {
-        return new MetaIndex(this, columns, true);
+        return new MetaIndex(this, IndexColumn.wrap(columns), true);
     }
 
     public ObjectArray getIndexes() {
@@ -1301,7 +1320,7 @@ public class MetaTable extends Table {
             return null;
         }
         ObjectArray list = new ObjectArray();
-        list.add(new MetaIndex(this, columns, true));
+        list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
         // TODO fixed scan index
         list.add(index);
         return list;

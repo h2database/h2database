@@ -17,6 +17,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Storage;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
@@ -37,7 +38,7 @@ public class ScanIndex extends BaseIndex {
     private HashMap sessionRowCount;
     private HashSet delta;
 
-    public ScanIndex(TableData table, int id, Column[] columns, IndexType indexType) throws SQLException {
+    public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) throws SQLException {
         super(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = new HashMap();
@@ -52,7 +53,7 @@ public class ScanIndex extends BaseIndex {
         table.setRowCount(count);
         trace.info("open existing " + table.getName() + " rows: " + count);
         for (int i = 0; i < columns.length; i++) {
-            if (DataType.isLargeObject(columns[i].getType())) {
+            if (DataType.isLargeObject(columns[i].column.getType())) {
                 containsLargeObject = true;
             }
         }

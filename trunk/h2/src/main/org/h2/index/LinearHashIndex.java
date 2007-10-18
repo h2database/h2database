@@ -19,6 +19,7 @@ import org.h2.store.Record;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -46,7 +47,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
     private boolean needRebuild;
     // private ObjectArray buckets = new ObjectArray();
 
-    public LinearHashIndex(Session session, TableData table, int id, String indexName, Column[] columns, IndexType indexType)
+    public LinearHashIndex(Session session, TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType)
             throws SQLException {
         super(table, id, indexName, columns, indexType);
         this.tableData = table;

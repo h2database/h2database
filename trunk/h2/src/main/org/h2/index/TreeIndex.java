@@ -11,7 +11,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -22,7 +22,7 @@ public class TreeIndex extends BaseIndex {
     private TreeNode root;
     private TableData tableData;
 
-    public TreeIndex(TableData table, int id, String indexName, Column[] columns, IndexType indexType) {
+    public TreeIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         tableData = table;
     }
@@ -351,7 +351,7 @@ public class TreeIndex extends BaseIndex {
             Cursor cursor = find(session, null, null);
             while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();
-                Value v = row.getValue(columnIndex[0]);
+                Value v = row.getValue(columnIds[0]);
                 if (v != ValueNull.INSTANCE) {
                     return row;
                 }

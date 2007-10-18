@@ -38,6 +38,7 @@ import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.store.WriterThread;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableData;
@@ -479,7 +480,8 @@ public class Database implements DataHandler {
         cols.add(new Column("TYPE", Value.INT, 0, 0));
         cols.add(new Column("SQL", Value.STRING, 0, 0));
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false);
-        metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, new Column[] { columnId }, IndexType.createPrimaryKey(
+        IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
+        metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
         objectIds.set(0);
         // there could be views on system tables, so they must be added first

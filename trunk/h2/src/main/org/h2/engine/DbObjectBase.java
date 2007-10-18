@@ -140,8 +140,10 @@ public abstract class DbObjectBase implements DbObject {
             return 11;
         case RIGHT:
             return 12;
-        case COMMENT:
+        case AGGREGATE:
             return 13;
+        case COMMENT:
+            return 14;
         default:
             throw Message.getInternalError("type="+type);
         }

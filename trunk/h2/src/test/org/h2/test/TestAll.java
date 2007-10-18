@@ -146,9 +146,9 @@ java org.h2.test.TestAll timer
         
 /*
 
-CREATE USER "Pawel" PASSWORD 'pawel' // can't establish connection
-CREATE USER PAWEL PASSWORD 'pawel' // everything OK
-
+----
+A file is sent although the Japanese translation has not been completed yet.
+----
 
 At startup, when corrupted, say if LOG=0 was used before
 

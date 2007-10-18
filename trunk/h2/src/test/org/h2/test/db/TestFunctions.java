@@ -8,6 +8,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,6 +59,28 @@ public class TestFunctions extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         check("5", rs.getString(1));
+        conn.close();
+        
+        if (config.memory) {
+            return;
+        }
+        
+        conn = getConnection("functions");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        DatabaseMetaData meta = conn.getMetaData();
+        rs = meta.getProcedures(null, null, "MEDIAN");
+        check(rs.next());
+        checkFalse(rs.next());
+        rs = stat.executeQuery("SCRIPT");
+        boolean found = false;
+        while (rs.next()) {
+            String sql = rs.getString(1);
+            if (sql.indexOf("MEDIAN") >= 0) {
+                found = true;
+            }
+        }
+        check(found);
         stat.execute("DROP AGGREGATE MEDIAN");
         stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
         conn.close();

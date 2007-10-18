@@ -114,6 +114,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
+import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableData;
@@ -668,19 +669,31 @@ public class Parser {
         setSQL(command, "DELETE", start);
         return command;
     }
+    
+    private IndexColumn[] parseIndexColumnList() throws SQLException {
+        ObjectArray columns = new ObjectArray();
+        do {
+            IndexColumn column = new IndexColumn();
+            column.columnName = readColumnIdentifier();
+            columns.add(column);
+            if (readIf("ASC")) {
+                // ignore
+            } else {
+                readIf("DESC");
+                column.descending = true;
+            }
+        } while (readIf(","));
+        read(")");
+        IndexColumn[] cols = new IndexColumn[columns.size()];
+        columns.toArray(cols);
+        return cols;
+    }
 
-    private String[] parseColumnList(boolean ascDesc) throws SQLException {
+    private String[] parseColumnList() throws SQLException {
         ObjectArray columns = new ObjectArray();
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
-            if (ascDesc) {
-                if (readIf("ASC")) {
-                    // ignore
-                } else {
-                    readIf("DESC");
-                }
-            }
         } while (readIf(","));
         read(")");
         String[] cols = new String[columns.size()];
@@ -3187,7 +3200,7 @@ public class Parser {
             command.setIndexName(indexName);
             command.setComment(readCommentIf());
             read("(");
-            command.setColumnNames(parseColumnList(true));
+            command.setIndexColumns(parseIndexColumnList());
             return command;
         }
     }
@@ -3443,7 +3456,7 @@ public class Parser {
         Schema schema = getSchema();
         TableData recursiveTable;
         read("(");
-        String[] cols = parseColumnList(false);
+        String[] cols = parseColumnList();
         ObjectArray columns = new ObjectArray();
         for (int i = 0; i < cols.length; i++) {
             columns.add(new Column(cols[i], Value.STRING, 0, 0));
@@ -3478,7 +3491,7 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         command.setComment(readCommentIf());
         if (readIf("(")) {
-            String[] cols = parseColumnList(false);
+            String[] cols = parseColumnList();
             command.setColumnNames(cols);
         }
         String select = StringCache.getNew(sqlCommand.substring(parseIndex));
@@ -4095,7 +4108,7 @@ public class Parser {
                 command.setHash(true);
             }
             read("(");
-            command.setColumnNames(parseColumnList(true));
+            command.setIndexColumns(parseIndexColumnList());
             return command;
         } else if (Mode.getCurrentMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
             // MySQL
@@ -4106,7 +4119,7 @@ public class Parser {
                 command.setIndexName(readUniqueIdentifier());
                 read("(");
             }
-            command.setColumnNames(parseColumnList(true));
+            command.setIndexColumns(parseIndexColumnList());
             return command;
         }
         AlterTableAddConstraint command;
@@ -4122,7 +4135,7 @@ public class Parser {
                 name = readUniqueIdentifier();
                 read("(");
             }
-            command.setColumnNames(parseColumnList(true));
+            command.setColumnNames(parseColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(indexName));
@@ -4132,7 +4145,7 @@ public class Parser {
             command.setType(AlterTableAddConstraint.REFERENTIAL);
             read("KEY");
             read("(");
-            String[] cols = parseColumnList(true);
+            String[] cols = parseColumnList();
             command.setColumnNames(cols);
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
@@ -4162,13 +4175,13 @@ public class Parser {
         String[] cols;
         if (readIf("(")) {
             command.setRefTableName(schema, tableName);
-            cols = parseColumnList(false);
+            cols = parseColumnList();
             command.setRefColumnNames(cols);
         } else {
             String refTableName = readIdentifierWithSchema(schema.getName());
             command.setRefTableName(getSchema(), refTableName);
             if (readIf("(")) {
-                cols = parseColumnList(false);
+                cols = parseColumnList();
                 command.setRefColumnNames(cols);
             }
         }
@@ -4249,7 +4262,9 @@ public class Parser {
                         String columnName = readColumnIdentifier();
                         Column column = parseColumnForTable(columnName);
                         if (column.getAutoIncrement()) {
-                            command.setPrimaryKeyColumnNames(new String[] { column.getName() });
+                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            cols[0].columnName = column.getName();
+                            command.setPrimaryKeyColumns(cols);
                         }
                         command.addColumn(column);
                         String constraintName = null;
@@ -4261,7 +4276,9 @@ public class Parser {
                             if (readIf("HASH")) {
                                 command.setHashPrimaryKey(true);
                             }
-                            command.setPrimaryKeyColumnNames(new String[] { column.getName() });
+                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            cols[0].columnName = column.getName();
+                            command.setPrimaryKeyColumns(cols);
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema);
                             unique.setConstraintName(constraintName);

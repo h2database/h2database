@@ -16,6 +16,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -26,21 +27,26 @@ import org.h2.value.ValueNull;
  */
 public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
+    protected IndexColumn[] indexColumns;
     protected Column[] columns;
-    protected int[] columnIndex;
+    protected int[] columnIds;
+    protected boolean[] descending;
     protected Table table;
     protected IndexType indexType;
     protected long rowCount;
 
-    public BaseIndex(Table table, int id, String name, Column[] columns, IndexType indexType) {
+    public BaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
         super(table.getSchema(), id, name, Trace.INDEX);
         this.indexType = indexType;
         this.table = table;
-        if (columns != null) {
-            this.columns = columns;
-            columnIndex = new int[columns.length];
+        if (indexColumns != null) {
+            this.indexColumns = indexColumns;
+            columns = new Column[indexColumns.length];
+            columnIds = new int[columns.length];
             for (int i = 0; i < columns.length; i++) {
-                columnIndex[i] = columns[i].getColumnId();
+                Column col = indexColumns[i].column;
+                columns[i] = col;
+                columnIds[i] = col.getColumnId();
             }
         }
     }
@@ -139,7 +145,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public int compareRows(SearchRow rowData, SearchRow compare) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
-            int index = columnIndex[i];
+            int index = columnIds[i];
             Value v = compare.getValue(index);
             if (v == null) {
                 // can't compare further
@@ -155,7 +161,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public boolean isNull(Row newRow) {
         for (int i = 0; i < columns.length; i++) {
-            int index = columnIndex[i];
+            int index = columnIds[i];
             Value v = newRow.getValue(index);
             if (v == ValueNull.INSTANCE) {
                 return true;
@@ -228,6 +234,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public String getCreateSQL() {
         return getCreateSQLForCopy(table, getSQL());
+    }
+
+    public IndexColumn[] getIndexColumns() {
+        return indexColumns;
     }
 
     public Column[] getColumns() {

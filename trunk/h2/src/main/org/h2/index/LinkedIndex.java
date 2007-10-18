@@ -14,7 +14,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableLink;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -28,7 +28,7 @@ public class LinkedIndex extends BaseIndex {
     private TableLink link;
     private String targetTableName;
     
-    public LinkedIndex(TableLink table, int id, Column[] columns, IndexType indexType) {
+    public LinkedIndex(TableLink table, int id, IndexColumn[] columns, IndexType indexType) {
         super(table, id, null, columns, indexType);
         link = table;
         targetTableName = link.getQualifiedTable();

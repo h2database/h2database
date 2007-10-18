@@ -127,7 +127,7 @@ public abstract class Table extends SchemaObjectBase {
 
     public abstract void unlock(Session s);
 
-    public abstract Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException;
 
     public abstract void removeRow(Session session, Row row) throws SQLException;

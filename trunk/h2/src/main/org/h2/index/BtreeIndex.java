@@ -18,6 +18,7 @@ import org.h2.store.Record;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -39,7 +40,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     private int headPos;
     private long lastChange;
 
-    public BtreeIndex(Session session, TableData table, int id, String indexName, Column[] columns,
+    public BtreeIndex(Session session, TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos) throws SQLException {
         // TODO we need to log index data
         super(table, id, indexName, columns, indexType);
@@ -293,7 +294,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             Cursor cursor = find(session, null, null);
             while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();
-                Value v = row.getValue(columnIndex[0]);
+                Value v = row.getValue(columnIds[0]);
                 if (v != ValueNull.INSTANCE) {
                     return row;
                 }

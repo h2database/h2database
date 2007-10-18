@@ -476,10 +476,12 @@ public class Select extends Query {
                 condition.createIndexConditions(session, f);
             }
         }
-        if (condition == null && isGroupQuery && groupIndex == null && havingIndex < 0 && filters.size() == 1) {
-            ExpressionVisitor optimizable = ExpressionVisitor.get(ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL);
-            optimizable.table = ((TableFilter) filters.get(0)).getTable();
-            isQuickQuery = isEverything(optimizable);
+        if (isGroupQuery && groupIndex == null && havingIndex < 0 && filters.size() == 1) {
+            if (condition == null) {
+                ExpressionVisitor optimizable = ExpressionVisitor.get(ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL);
+                optimizable.table = ((TableFilter) filters.get(0)).getTable();
+                isQuickQuery = isEverything(optimizable);
+            }
         }
         cost = preparePlan();
         if (sort != null && !isQuickQuery && !isGroupQuery && !distinct) {

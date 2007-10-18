@@ -55,7 +55,7 @@ public class RangeTable extends Table {
         return false;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
@@ -92,7 +92,7 @@ public class RangeTable extends Table {
     }
 
     public Index getScanIndex(Session session) throws SQLException {
-        return new RangeIndex(this, columns, min, max);
+        return new RangeIndex(this, IndexColumn.wrap(columns), min, max);
     }
 
     public ObjectArray getIndexes() {

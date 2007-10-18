@@ -22,6 +22,7 @@ import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
@@ -186,7 +187,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
         String indexName = getSchema().getUniqueIndexName(prefix + "_INDEX_");
-        return t.addIndex(session, indexName, indexId, cols, indexType, Index.EMPTY_HEAD, null);
+        IndexColumn[] idxCols = IndexColumn.wrap(cols);
+        return t.addIndex(session, indexName, indexId, idxCols, indexType, Index.EMPTY_HEAD, null);
     }
 
     public void setDeleteAction(int action) {

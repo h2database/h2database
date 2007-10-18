@@ -12,6 +12,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
@@ -27,7 +28,7 @@ public class MultiVersionIndex implements Index {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
-        this.delta = new TreeIndex(table, -1, "DELTA", base.getColumns(), deltaIndexType);
+        this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(), deltaIndexType);
         this.sync = base.getDatabase();
     }    
 
@@ -135,6 +136,10 @@ public class MultiVersionIndex implements Index {
     public Column[] getColumns() {
         return base.getColumns();
     }
+    
+    public IndexColumn[] getIndexColumns() {
+        return base.getIndexColumns();
+    }    
 
     public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
         return base.getCostRangeIndex(masks, rowCount);

@@ -11,6 +11,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 
 public interface Index extends SchemaObject {
@@ -56,6 +57,8 @@ public interface Index extends SchemaObject {
     int getColumnIndex(Column col);
 
     String getColumnListSQL();
+
+    IndexColumn[] getIndexColumns();
 
     Column[] getColumns();
 

@@ -11,6 +11,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.ObjectUtils;
@@ -27,7 +28,7 @@ public class HashIndex extends BaseIndex {
     private IntIntHashMap intMap;
     private TableData tableData;
 
-    public HashIndex(TableData table, int id, String indexName, Column[] columns, IndexType indexType) {
+    public HashIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         this.tableData = table;
         reset();

@@ -70,7 +70,7 @@ public class FunctionTable extends Table {
         return false;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -100,7 +100,7 @@ public class FunctionTable extends Table {
     }
 
     public Index getScanIndex(Session session) throws SQLException {
-        return new FunctionIndex(this, columns, function);
+        return new FunctionIndex(this, IndexColumn.wrap(columns), function);
     }
 
     public ObjectArray getIndexes() {

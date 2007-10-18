@@ -226,6 +226,8 @@ public class Server implements Runnable, ShutdownHandler {
      * If force is set to true, existing connections are killed.
      * After calling the method with force=false, it is not possible to call it again with
      * force=true because new connections are not allowed.
+     * Example:
+     * <pre>Server.shutdownTcpServer("tcp://localhost:9094", password, true);</pre>
      * 
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
@@ -302,6 +304,9 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new web server, but does not start it yet.
+     * Example:
+     * <pre>Server server = Server.createWebServer(new String[]{"-log", "true"}).start();</pre>
+     * 
      * @param args
      * @return the server
      */
@@ -314,6 +319,9 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new ftp server, but does not start it yet.
+     * Example:
+     * <pre>Server server = Server.createFtpServer(new String[]{"-log", "true"}).start();</pre>
+     * 
      * @param args
      * @return the server
      */
@@ -323,6 +331,9 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new TCP server, but does not start it yet.
+     * Example:
+     * <pre>Server server = Server.createTcpServer(new String[]{"-tcpAllowOthers", "true"}).start();</pre>
+     * 
      * @param args
      * @return the server
      */
@@ -332,6 +343,9 @@ public class Server implements Runnable, ShutdownHandler {
     
     /**
      * Create a new PG server, but does not start it yet.
+     * Example:
+     * <pre>Server server = Server.createPgServer(new String[]{"-pgAllowOthers", "true"}).start();</pre>
+     * 
      * @param args
      * @return the server
      */

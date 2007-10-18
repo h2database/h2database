@@ -60,7 +60,7 @@ public class TableLink extends Table {
             }
             Column[] cols = new Column[0];
             setColumns(cols);
-            linkedIndex = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
+            linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), IndexType.createNonUnique(false));
             indexes.add(linkedIndex);
         }
     }
@@ -83,7 +83,7 @@ public class TableLink extends Table {
             if (schema == null) {
                 schema = thisSchema;
             }
-            if (!catalog.equals(thisCatalog) || !schema.equals(thisSchema)) {
+            if (!StringUtils.equals(catalog, thisCatalog) || !StringUtils.equals(schema, thisSchema)) {
                 // if the table exists in multiple schemas or tables, use the alternative solution
                 columnMap.clear();
                 columnList.clear();
@@ -140,7 +140,7 @@ public class TableLink extends Table {
         columnList.toArray(cols);
         setColumns(cols);
         int id = getId();
-        linkedIndex = new LinkedIndex(this, id, cols, IndexType.createNonUnique(false));
+        linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
         rs = meta.getPrimaryKeys(null, null, originalTable);
         String pkName = "";
@@ -199,7 +199,7 @@ public class TableLink extends Table {
     private void addIndex(ObjectArray list, IndexType indexType) {
         Column[] cols = new Column[list.size()];
         list.toArray(cols);
-        Index index = new LinkedIndex(this, 0, cols, indexType);
+        Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
         indexes.add(index);
     }
 
@@ -232,7 +232,7 @@ public class TableLink extends Table {
         return buff.toString();
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }

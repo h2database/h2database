@@ -58,7 +58,7 @@ public class TableData extends Table implements RecordReader {
         setColumns(cols);
         this.clustered = clustered;
         if (!clustered) {
-            scanIndex = new ScanIndex(this, id, cols, IndexType.createScan(persistent));
+            scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));
             indexes.add(scanIndex);
         }
         traceLock = database.getTrace(Trace.LOCK);
@@ -138,12 +138,12 @@ public class TableData extends Table implements RecordReader {
         return indexes;
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String indexComment) throws SQLException {
         if (indexType.isPrimaryKey()) {
             indexName = getSchema().getUniqueIndexName(Constants.PRIMARY_KEY_PREFIX);
             for (int i = 0; i < cols.length; i++) {
-                Column column = cols[i];
+                Column column = cols[i].column;
                 if (column.getNullable()) {
                     throw Message.getSQLException(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }

@@ -13,7 +13,7 @@ import org.h2.engine.Session;
 import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
-import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 
 /**
@@ -23,7 +23,7 @@ public class CreateIndex extends SchemaCommand {
 
     private String tableName;
     private String indexName;
-    private String[] columnNames;
+    private IndexColumn[] indexColumns;
     private boolean primaryKey, unique, hash;
     private boolean ifNotExists;
     private String comment;
@@ -44,16 +44,16 @@ public class CreateIndex extends SchemaCommand {
         this.indexName = indexName;
     }
 
-    public void setColumnNames(String[] columnNames) {
-        this.columnNames = columnNames;
+    public void setIndexColumns(IndexColumn[] columns) {
+        this.indexColumns = columns;
     }
 
     public boolean getPrimaryKey() {
         return primaryKey;
     }
 
-    public String[] getColumnNames() {
-        return columnNames;
+    public IndexColumn[] getIndexColumns() {
+        return indexColumns;
     }
 
     public int update() throws SQLException {
@@ -88,8 +88,8 @@ public class CreateIndex extends SchemaCommand {
         } else {
             indexType = IndexType.createNonUnique(persistent);
         }
-        Column[] columns = table.getColumns(columnNames);
-        table.addIndex(session, indexName, id, columns, indexType, headPos, comment);
+        IndexColumn.mapColumns(indexColumns, table);
+        table.addIndex(session, indexName, id, indexColumns, indexType, headPos, comment);
         return 0;
     }
 

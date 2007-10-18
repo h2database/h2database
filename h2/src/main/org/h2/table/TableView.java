@@ -169,7 +169,7 @@ public class TableView extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public Index addIndex(Session session, String indexName, int indexId, Column[] cols, IndexType indexType,
+    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
     }

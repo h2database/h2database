@@ -5,21 +5,22 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+
 import org.h2.engine.Session;
 import org.h2.expression.FunctionCall;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
 import org.h2.table.FunctionTable;
+import org.h2.table.IndexColumn;
 
 public class FunctionIndex extends BaseIndex {
     
     private FunctionTable functionTable;
     private LocalResult result;
     
-    public FunctionIndex(FunctionTable functionTable, Column[] columns, FunctionCall function) {
+    public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns, FunctionCall function) {
         super(functionTable, 0, null, columns, IndexType.createNonUnique(true));
         this.functionTable = functionTable;
     }

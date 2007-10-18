@@ -5,6 +5,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+
 import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
@@ -18,6 +19,7 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
@@ -30,7 +32,7 @@ public class CreateTable extends SchemaCommand {
     private String tableName;
     private ObjectArray constraintCommands = new ObjectArray();
     private ObjectArray columns = new ObjectArray();
-    private String[] pkColumnNames;
+    private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean persistent = true;
     private boolean hashPrimaryKey;
@@ -66,7 +68,7 @@ public class CreateTable extends SchemaCommand {
         if (command instanceof CreateIndex) {
             CreateIndex create = (CreateIndex) command;
             if (create.getPrimaryKey()) {
-                setPrimaryKeyColumnNames(create.getColumnNames());
+                setPrimaryKeyColumns(create.getIndexColumns());
                 setHashPrimaryKey(create.getHash());
             } else {
                 constraintCommands.add(command);
@@ -96,12 +98,12 @@ public class CreateTable extends SchemaCommand {
         if (asQuery != null) {
             generateColumnFromQuery();
         }
-        if (pkColumnNames != null) {
-            int len = pkColumnNames.length;
+        if (pkColumns != null) {
+            int len = pkColumns.length;
             for (int i = 0; i < columns.size(); i++) {
                 Column c = (Column) columns.get(i);
                 for (int j = 0; j < len; j++) {
-                    if (c.getName().equals(pkColumnNames[j])) {
+                    if (c.getName().equals(pkColumns[j].columnName)) {
                         c.setNullable(false);
                     }
                 }
@@ -140,10 +142,10 @@ public class CreateTable extends SchemaCommand {
                 Column c = (Column) columns.get(i);
                 c.prepareExpression(session);
             }
-            if (pkColumnNames != null) {
-                Column[] pk = table.getColumns(pkColumnNames);
+            if (pkColumns != null) {
+                IndexColumn.mapColumns(pkColumns, table);
                 int indexId = getObjectId(true, false);
-                table.addIndex(session, null, indexId, pk, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
+                table.addIndex(session, null, indexId, pkColumns, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
                         Index.EMPTY_HEAD, null);
             }
             for (int i = 0; i < sequences.size(); i++) {
@@ -199,18 +201,18 @@ public class CreateTable extends SchemaCommand {
         }
     }
 
-    public void setPrimaryKeyColumnNames(String[] colNames) throws SQLException {
-        if (pkColumnNames != null) {
-            if (colNames.length != pkColumnNames.length) {
+    public void setPrimaryKeyColumns(IndexColumn[] columns) throws SQLException {
+        if (pkColumns != null) {
+            if (columns.length != pkColumns.length) {
                 throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
             }
-            for (int i = 0; i < colNames.length; i++) {
-                if (!colNames[i].equals(pkColumnNames[i])) {
+            for (int i = 0; i < columns.length; i++) {
+                if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
                     throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
         }
-        this.pkColumnNames = colNames;
+        this.pkColumns = columns;
     }
 
     public void setPersistent(boolean persistent) {

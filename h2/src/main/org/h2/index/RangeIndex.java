@@ -10,7 +10,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
@@ -19,7 +19,7 @@ public class RangeIndex extends BaseIndex {
     
     private long min, max; 
     
-    public RangeIndex(RangeTable table, Column[] columns, long min, long max) {
+    public RangeIndex(RangeTable table, IndexColumn[] columns, long min, long max) {
         super(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
         this.min = min;
         this.max = max;

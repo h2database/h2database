@@ -40,7 +40,8 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 <h3>Version 1.0 (Current)</h3>
 
 <h3>Version 1.0.60 (2007-10-?)</h3><ul>
-<li>User defined aggregate functions are not supported.
+<li>JdbcXAConnection: starting a transaction before getting the connection didn't switch off autocommit.
+</li><li>User defined aggregate functions are not supported.
 </li><li>Server.shutdownTcpServer was blocked when first called with force=false and then force=true.
     Now documentation is improved, and it is no longer blocked.
 </li><li>Stack traces did not include the SQL statement in all cases where they could have. 
@@ -489,7 +490,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Read-only databases inside a jar (splitting large files to speed up random access)
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
-</li><li>Improve performance for create table (if this is possible)
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Document how to use H2 with PHP (generic database API)
 </li><li>Optimization: result set caching (like MySQL)
@@ -562,7 +562,6 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CACHE, CYCLE
 </li><li>Compression of the cache
-</li><li>Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 </li><li>Make the jar more modular
 </li><li>Drop with restrict (currently cascade is the default)
@@ -802,6 +801,7 @@ Hypersonic SQL or HSQLDB. H2 is built from scratch.
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 </li><li>Support setQueryTimeout (using System.currentTimeMillis in a loop; not using a thread)
+</li><li>Support large updates and deletes (currently all rows are loaded into memory)
 </li></ul>
 
 <h3>Not Planned</h3>

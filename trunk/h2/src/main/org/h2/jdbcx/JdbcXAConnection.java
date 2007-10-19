@@ -88,6 +88,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
         info.setProperty("password", password);
         JdbcConnection conn = new JdbcConnection(url, info);
         conn.setJdbcConnectionListener(this);
+        if (currentTransaction != null) {
+            conn.setAutoCommit(false);
+        }
         return conn;
     }
 

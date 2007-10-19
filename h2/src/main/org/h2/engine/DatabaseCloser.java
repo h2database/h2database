@@ -28,7 +28,11 @@ public class DatabaseCloser extends Thread {
             // and cause a memory leak if never started.
             // Need to start it, otherwise it leaks memory in JDK 1.4 and below
             stopImmediately = true;
-            start();
+            try {
+                start();
+            } catch (Throwable e) {
+                // ignore
+            }
         }
     }
 

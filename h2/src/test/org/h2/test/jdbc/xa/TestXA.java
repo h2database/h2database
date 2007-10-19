@@ -23,11 +23,40 @@ public class TestXA extends TestBase {
     private static final String DB_URL2 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME2;
 
     public void test() throws Exception {
+        testXAAutoCommit();
         deleteDb(baseDir, "xa");
         testXA(true);
         deleteDb(baseDir, DB_NAME1);
         deleteDb(baseDir, DB_NAME2);
         testXA(false);
+    }
+    
+    public static class MyXid implements Xid {
+        private byte[] branchQualifier = new byte[1];
+        private byte[] globalTransactionId = new byte[1];
+        public byte[] getBranchQualifier() {
+            return branchQualifier;
+        }
+        public int getFormatId() {
+            return 0;
+        }
+        public byte[] getGlobalTransactionId() {
+            return globalTransactionId;
+        }
+    }    
+    
+    private void testXAAutoCommit() throws Exception {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:mem:test");
+        ds.setUser("sa");
+        ds.setPassword("");
+        XAConnection xa = ds.getXAConnection();
+        MyXid xid = new MyXid();
+        xa.getXAResource().start(xid,
+                XAResource.TMNOFLAGS);
+        Connection c = xa.getConnection();
+        check(!c.getAutoCommit());
+        c.close();
     }
     
     private void testXA(boolean useOneDatabase) {

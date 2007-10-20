@@ -2786,7 +2786,7 @@ Change Log
 Version 1.0 (Current)
 
 @history_1009_h3
-Version 1.0.60 (2007-10-?)
+Version 1.0.60 (2007-10-20)
 
 @history_1010_li
 JdbcXAConnection: starting a transaction before getting the connection didn't switch off autocommit.

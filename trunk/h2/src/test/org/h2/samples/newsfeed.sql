@@ -10,6 +10,33 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(30,
+'New version available: 1.0.60 (2007-10-20)', '2007-10-20 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>User defined aggregate functions are now supported.
+</li><li>New Italian translation from PierPaolo Ucchino. Thanks a lot!
+</li><li>CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
+</li><li>CSVREAD, RUNSCRIPT and so on now support URLs as well, using
+    URL.openStream(). Example: select * from csvread(''jar:file:///c:/temp/test.jar!/test.csv'');
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Prepared statements could not be used after data definition statements (creating tables and so on). Fixed.
+</li><li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
+</li><li>Linked tables: now tables in non-default schemas are supported as well 
+</li><li>JdbcXAConnection: starting a transaction before getting the connection didn''t switch off autocommit.
+</li><li>Server.shutdownTcpServer was blocked when first called with force=false and then force=true.
+    Now documentation is improved, and it is no longer blocked.
+</li><li>Stack traces did not include the SQL statement in all cases where they could have. 
+    Also, stack traces with SQL statement are now shorter.
+</li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
+</li></ul>
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(29,
 'New version available: 1.0.59 (2007-10-03)', '2007-10-03 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -379,32 +406,6 @@ INSERT INTO ITEM VALUES(22,
 </li><li>The function CASE WHEN ... didn''t convert the returned value to the same data type,
     resulting in unexpected behavior in many cases. Fixed.
 </li>
-</ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(21,
-'New version available: 1.0 / 2007-01-30', '2007-01-30 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>Experimental online backup feature using the SQL statement BACKUP TO ''fileName''.</li>
-<li>Temporary files are now deleted earlier.</li>
-<li>Benchmark: Added a multi-client test case, BenchB (similar to TPC-B).</li>
-<li>The Console is now translated to Hungarian thanks to Andras Hideg, and to Indonesian thanks to Joko Yuliantoro.</li>
-<li>Can now use UUID columns as generated key values.</li>
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>In some situations, it was possible that SUM threw a class cast exception.</li>
-<li>Compatibility: SCHEMA_NAME.SEQUENCE_NAME.NEXTVAL now works as expected.</li>
-<li>XAConnection: A NullPointerException was thrown if addConnectionEventListener was called before opening the connection.</li>
-<li>In case the result set of a subquery was re-used, an exception was throws if the subquery result did not fit in memory.</li>
-<li>The command "drop all objects delete files" did not work on Linux.</li>
-<li>DataSource: improved exception when setting the URL to an empty string.</li>
-<li>Parsing of LIKE .. ESCAPE did not stop at the expected point.</li>
-<li>Forum subscriptions (the emails sent from the forum) now work.</li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 ');

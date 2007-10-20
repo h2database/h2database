@@ -1126,7 +1126,7 @@ Centralリポジトリの利用
 ダウンロード
 
 @download_1001_h3
-#Version 1.0.60 (2007-10-20, Current) #Version 1.0.58 (2007-09-15, Current)
+#Version 1.0.60 (2007-10-20, Current)
 
 @download_1002_a
 Windows Installer
@@ -1186,7 +1186,7 @@ GCJバージョンでの動作は安定していますか？高速ですか？
 発見されたバグはありますか？次のリリースはいつになりますか？
 
 @faq_1012_p
-#Usually, bugs get fixes as they are found. There is a release every few weeks. Here is the list of known and confirmed issues as of 2007-10-20: #バグは発見された時点で改修をしています。数週おきに更新版がリリースされています。以下は2007年9月15日の時点で発見され、確認された問題の一覧です:
+#Usually, bugs get fixes as they are found. There is a release every few weeks. Here is the list of known and confirmed issues as of 2007-10-20:
 
 @faq_1013_li
 ライトアウタージョイン(右外部結合)時に一部問題が発生。内部において、他の結合と組み合わせて使用される時、他のデータベースと同様に、常に同じ結果を引き起こすとは限らないレフトアウタージョイン(左外部結合)に変換される
@@ -2788,7 +2788,7 @@ H2DBの開発は2004年の5月に開始されましたが、初めて世に出�
 Version 1.0 (最新版)
 
 @history_1009_h3
-#Version 1.0.60 (2007-10-?)
+#Version 1.0.60 (2007-10-20)
 
 @history_1010_li
 #JdbcXAConnection: starting a transaction before getting the connection didn't switch off autocommit.
@@ -2809,7 +2809,7 @@ Version 1.0 (最新版)
 #New Italian translation from PierPaolo Ucchino. Thanks a lot!
 
 @history_1016_li
-#CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods. #データ定義ステートメント (テーブル作成等) の後にPrepared statementが使用できませんでしたが、これを修正しました
+#CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
 
 @history_1017_li
 データ定義ステートメント (テーブル作成等) の後にPrepared statementが使用できませんでしたが、これを修正しました
@@ -5014,7 +5014,7 @@ JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
 ダウンロード
 
 @mainWeb_1007_td
-#Version 1.0.60 (2007-10-20): #Version 1.0.59 (2007-10-03):
+#Version 1.0.60 (2007-10-20):
 
 @mainWeb_1008_a
 Windows Installer (2.7 MB)
@@ -6914,121 +6914,4 @@ PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト 
 
 @tutorial_1144_p
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
-
-@~download_1006_a
-Platform-Independent Zip
-
-@~download_1007_h3
-ダウンロードミラー
-
-@~download_1008_a
-Platform-Independent Zip
-
-@~download_1009_h3
-サブバージョンのソースリポジトリ
-
-@~download_1010_a
-Google Code
-
-@~download_1011_p
-変更についての詳細は、<a href="history.html">変更ログ</a> をご覧下さい。
-
-@~history_1020_h3
-Version 1.0.59 (2007-10-03)
-
-@~history_1021_li
-サブクエリーのデータ型が分からない時、誤った例外 (ArrayIndexOutOfBounds) が投げられることが度々ありましたが、これを修正しました
-
-@~history_1036_h3
-Version 1.0.58 (2007-09-15)
-
-@~history_1037_li
-System.exit はもはやWebサーバー、コンソール、サーバーツールによって呼ばれません (必要な場合にexit codeを設定する場合を除く)。これはOSGiを使用する際に重要です
-
-@~history_1061_h3
-Version 1.0.57 (2007-08-25)
-
-@~history_1062_li
-新しい試験的な機能 MVCC (multi version concurrency control) を追加しました。データベースを開いた時にオプションとして設定 (jdbc:h2:test;MVCC=TRUE)、またはシステムプロパティとして設定 (-Dh2.mvcc=true) が可能です。これは開発途中で、利用する際にリスクを伴います。フィードバックを歓迎します
-
-@~history_1088_h3
-Version 1.0.56 (2007-08-02)
-
-@~history_1089_li
-翻訳補助ツールが開発されています：src/tools/org/h2/tools/i18n/PrepareTranslation　このツールはオリジナル(英語)データの変更点を見つけ出し、オリジナルテキストに変更があれば、翻訳文の頭に"#"を追加します。また、ユーザーのドキュメントから文章を引用することも可能です (ただしこれは不完全です)
-
-@~history_1115_h3
-Version 1.0.55 (2007-07-12)
-
-@~history_1116_li
-システムプロパティ baseDirのサポートを行います。これは同様に組み込みデータベースにも機能します。設定は-Dh2.baseDir もしくは -baseDir を利用することで、H2コンソールによってサポートされています
-
-@~history_1141_h3
-Version 1.0.50 (2007-06-17)
-
-@~history_1142_li
-~で始まるファイル名がユーザーディレクトリに含まれるようになりました (Javaシステムプロパティではuser.home)
-
-@~history_1166_h3
-Version 1.0.46 (2007-04-29)
-
-@~history_1167_li
-#Unnamed private in-memory database (jdbc:h2:mem:) were not 'private' as documented. Fixed.
-
-@~history_1200_h3
-#Version 1.0.44 (2007-03-04)
-
-@~history_1201_li
-#System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now  random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
-
-@~history_1217_h3
-#Version 1.0.41 (2007-01-30)
-
-@~history_1218_li
-#Experimental online backup feature using the SQL statement BACKUP TO 'fileName'.  This creates a backup in the form of a zip file. Unlike the SCRIPT TO command, the data tables are not locked.
-
-@~history_1232_h3
-#Version 1.0.40 (2007-01-17)
-
-@~history_1233_li
-#Setting the collation (SET COLLATOR) was very slow on some systems (up to 24 seconds).  Thanks a lot to Martina Nissler for finding this problem!
-
-@~history_1244_h3
-#Version 1.0.36 (2007-01-02)
-
-@~history_1245_li
-#It was possible to drop the sequence of a temporary tables with DROP ALL OBJECTS, resulting in a null pointer exception afterwards.
-
-@~history_1256_h3
-#Version 1.0.25 (2006-08-31)
-
-@~history_1257_li
-#In some situations, wide b-tree indexes (with large VARCHAR columns for example) could get corrupted. Fixed.
-
-@~history_1259_h3
-#Version 0.9 (2005-12-13)
-
-@~history_1260_li
-#First public release.
-
-@~history_1261_h2
-ロードマップ
-
-@~history_1262_h3
-#Highest Priority
-
-@~history_1263_li
-#Improve test code coverage
-
-@~history_1267_h3
-#In Version 1.1
-
-@~history_1268_li
-#Add version number. Install directory: h2-1.0, jar file: h2-1.0.jar. Micro version: use build number, staring with 1.1.100
-
-@~history_1276_h3
-#Priority 1
-
-@~history_1277_li
-#MVCC (Multi Version Concurrency Control)
 

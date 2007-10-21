@@ -7,16 +7,9 @@ package org.h2.engine;
 import org.h2.constant.SysProperties;
 
 /*
- * Coding rules:
- * - boolean CHECK = x > boolean CHECK = Database.CHECK
- * - Database.CHECK = false (or true for debug build)
- * - System.out > trace messages
- *
  * Release checklist
+ * - Test with Hibernate
  * - Run FindBugs
- * - Test with hibernate
- * - Update latest version in build.html: http://mirrors.ibiblio.org/pub/mirrors/maven2/com/h2database/h2/
- * - Update latest version in mainWeb.html, download.html
  * - ant jarClient, check jar file size
  * 
  * - Compile with JDK 1.4, 1.5 and 1.6:
@@ -30,25 +23,29 @@ import org.h2.constant.SysProperties;
  *   ant codeswitchJdk14
  *   ant javadocImpl
  *   
- * - Change FAQ (next release planned, known bugs)
- * - Check version, change build number in Constants.java and ant-build.properties
+ * - Change version and build number in 
+ *     Constants.java
+ *     ant-build.properties
+ *     build.html
+ *     mainWeb.html
+ *     download.html
  * - Maybe increase TCP_DRIVER_VERSION
  * - Check code coverage
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
+ * 
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
  *
  * - Documentation: if there are new files, add them to MergeDocs
- * - Documentation: check if all javadoc files are in the index
+ * - Documentation: check if all Javadoc files are in the index
  * - ant docs
- * - PDF (15 min)
+ * - PDF
  *      - footer
  *      - front page
  *      - orphan control
- *      - tables (optimal size), page breaks
  *      - table of contents
  * - Switch off auto-build
  * - ant all
@@ -58,13 +55,11 @@ import org.h2.constant.SysProperties;
  * - Windows installer (nsis)
  * - Test
  * - Test the windows service
- * - TestSystemExit
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge
- * - Newsletter: send to h2database-news@googlegroups.com (http://groups.google.com/group/h2database-news)
+ * - Newsletter: send without 'to unsubscribe...' to h2database-news@googlegroups.com, but 
  * - Newsletter: prepare, send (always send to BCC!!)
- * - Newsletter: send to google groups, but without 'to unsubscribe...'
  * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
  * 
  * @author Thomas

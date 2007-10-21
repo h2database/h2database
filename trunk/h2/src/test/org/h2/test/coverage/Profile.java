@@ -7,9 +7,11 @@ package org.h2.test.coverage;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.LineNumberReader;
-
-import org.h2.util.IOUtils;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * The class used at runtime to measure the code usage and performance.
@@ -92,7 +94,37 @@ public class Profile extends Thread {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            IOUtils.closeSilently(reader);
+            closeSilently(reader);
+        }
+    }
+
+    private void closeSilently(Reader reader) {
+        if (reader != null) {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+    
+    private void closeSilently(Writer writer) {
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+    
+    public static void closeSilently(OutputStream out) {
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
     }
 
@@ -147,8 +179,8 @@ public class Profile extends Thread {
             print("Not covered: " + percent + " % " + " (" + unvisited + " of " + maxIndex + "; throw="
                     + unvisitedThrow + ")");
         } finally {
-            IOUtils.closeSilently(fileWriter);
-            IOUtils.closeSilently(reader);
+            closeSilently(fileWriter);
+            closeSilently(reader);
         }
     }
 
@@ -206,7 +238,7 @@ public class Profile extends Thread {
                 print(text[i]);
             }
         } finally {
-            IOUtils.closeSilently(reader);
+            closeSilently(reader);
         }
     }
 

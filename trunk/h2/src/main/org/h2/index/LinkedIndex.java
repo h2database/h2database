@@ -237,7 +237,9 @@ public class LinkedIndex extends BaseIndex {
                     j++;
                 }
             }
-            prep.executeUpdate();
+            int count = prep.executeUpdate();
+            // this has no effect but at least it allows to debug the update count
+            rowCount = rowCount + count - count;
         } catch (SQLException e) {
             throw wrapException(sql, e);
         }

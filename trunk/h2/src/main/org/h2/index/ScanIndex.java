@@ -177,6 +177,8 @@ public class ScanIndex extends BaseIndex {
             firstFree = key;
         }
         if (database.isMultiVersion()) {
+            // if storage is null, the delete flag is not yet set
+            row.setDeleted(true);
             if (delta == null) {
                 delta = new HashSet();
             }

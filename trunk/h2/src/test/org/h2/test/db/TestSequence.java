@@ -13,6 +13,36 @@ import org.h2.test.TestBase;
 public class TestSequence extends TestBase {
 
     public void test() throws Exception {
+        testCache();
+        testTwo();
+    }
+    
+    private void testCache() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("sequence");
+        Connection conn = getConnection("sequence");
+        Statement stat = conn.createStatement();
+        stat.execute("create sequence testSequence");
+        stat.execute("create sequence testSequence3 cache 3");
+        conn.close();
+        conn = getConnection("sequence");
+        stat = conn.createStatement();
+        stat.execute("call next value for testSequence");
+        stat.execute("call next value for testSequence3");
+        ResultSet rs = stat.executeQuery("select * from information_schema.sequences");
+        rs.next();
+        check(rs.getString("SEQUENCE_NAME"), "TESTSEQUENCE3");
+        check(rs.getString("CACHE"), "3");
+        rs.next();
+        check(rs.getString("SEQUENCE_NAME"), "TESTSEQUENCE");
+        check(rs.getString("CACHE"), "32");
+        checkFalse(rs.next());
+        conn.close();
+    }
+    
+    private void testTwo() throws Exception {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();

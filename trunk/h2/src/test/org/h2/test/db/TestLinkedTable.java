@@ -131,6 +131,25 @@ public class TestLinkedTable extends TestBase {
         stat2.executeUpdate("UPDATE TEST_LINK_DI SET ID=ID+1");
         stat2.executeUpdate("UPDATE TEST_LINK_U SET NAME=NAME || ID");
         ResultSet rs;
+        
+        rs = stat2.executeQuery("SELECT * FROM TEST_LINK_DI ORDER BY ID");
+        rs.next();
+        check(rs.getInt(1), 2);
+        check(rs.getString(2), "Hello2");
+        rs.next();
+        check(rs.getInt(1), 3);
+        check(rs.getString(2), "World3");
+        checkFalse(rs.next());
+        
+        rs = stat2.executeQuery("SELECT * FROM TEST_LINK_U ORDER BY ID");
+        rs.next();
+        check(rs.getInt(1), 2);
+        check(rs.getString(2), "Hello2");
+        rs.next();
+        check(rs.getInt(1), 3);
+        check(rs.getString(2), "World3");
+        checkFalse(rs.next());
+
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         check(rs.getInt(1), 2);

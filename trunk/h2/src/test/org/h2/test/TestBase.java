@@ -135,6 +135,9 @@ public abstract class TestBase {
         if (config.diskUndo && admin) {
             url += ";MAX_MEMORY_UNDO=3";
         }
+        if (config.mvcc) {
+            url += ";MVCC=TRUE";
+        }
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";
         }

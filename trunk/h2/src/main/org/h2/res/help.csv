@@ -423,8 +423,11 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 CREATE SEQUENCE [IF NOT EXISTS] newSequenceName
 [START WITH long]
 [INCREMENT BY long]
+[CACHE long]
 ","
 Creates a new sequence. The data type of a sequence is BIGINT.
+The cache is the number of pre-allocated numbers. If the system crashes without closing the 
+database, at most this many numbers are lost. The default cache size is 32.
 ","
 CREATE SEQUENCE SEQ_ID
 "

@@ -19,6 +19,7 @@ public class CreateSequence extends SchemaCommand {
     private boolean ifNotExists;
     private long start = 1;
     private long increment = 1;
+    private long cacheSize = Sequence.DEFAULT_CACHE_SIZE;
     private boolean belongsToTable;
 
     public CreateSequence(Session session, Schema schema) {
@@ -46,6 +47,7 @@ public class CreateSequence extends SchemaCommand {
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);
         sequence.setStartValue(start);
         sequence.setIncrement(increment);
+        sequence.setCacheSize(cacheSize);
         db.addSchemaObject(session, sequence);
         return 0;
     }
@@ -64,6 +66,10 @@ public class CreateSequence extends SchemaCommand {
 
     public void setBelongsToTable(boolean belongsToTable) {
         this.belongsToTable = belongsToTable;
+    }
+    
+    public void setCacheSize(long cacheSize) {
+        this.cacheSize = cacheSize;
     }
 
 }

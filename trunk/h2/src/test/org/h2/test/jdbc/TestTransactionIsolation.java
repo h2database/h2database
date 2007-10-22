@@ -14,7 +14,7 @@ public class TestTransactionIsolation extends TestBase {
     Connection conn1, conn2;
 
     public void test() throws Exception {
-        if (config.isMVCC()) {
+        if (config.mvcc) {
             // no tests yet
         } else {
             testTableLevelLocking();

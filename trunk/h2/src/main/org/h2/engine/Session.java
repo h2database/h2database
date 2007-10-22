@@ -71,6 +71,7 @@ public class Session implements SessionInterface {
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private boolean isClosed;
+    private boolean rollbackMode;
 
     public Session() {
     }
@@ -252,7 +253,12 @@ public class Session implements SessionInterface {
     public void rollbackTo(int index) throws SQLException {
         while (undoLog.size() > index) {
             UndoLogRecord entry = undoLog.getAndRemoveLast();
-            entry.undo(this);
+            rollbackMode = true;
+            try {
+                entry.undo(this);
+            } finally {
+                rollbackMode = false;
+            }
         }
         if (savepoints != null) {
             String[] names = new String[savepoints.size()];
@@ -586,6 +592,10 @@ public class Session implements SessionInterface {
     public void begin() {
         autoCommitAtTransactionEnd = true;
         autoCommit = false;
+    }
+    
+    public boolean getRollbackMode() {
+        return rollbackMode;
     }
     
 }

@@ -176,7 +176,7 @@ public class Database implements DataHandler {
         if (ignoreSummary != null) {
             this.recovery = true;
         }
-        this.multiVersion = ci.removeProperty("MVCC", false) || SysProperties.MVCC;
+        this.multiVersion = ci.removeProperty("MVCC", false);
         boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,

@@ -116,6 +116,16 @@
 			<fileset dir="src/test" includes="**/*.properties"/>
 		</copy>
 	</target>
+    
+    <target name="compileCoverage" depends="compile">
+		<copy todir="bin" overwrite="true">
+			<fileset dir="src/main"/>
+		</copy>
+		<java classname="org.h2.test.coverage.Coverage" classpath="bin" dir="bin" fork="true">
+			<arg line="-e org/h2/web -e org/h2/jdbcx -e org/h2/bnf -r org/h2"/>
+		</java>
+		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
+    </target>
 	
 	<target name="compileTest" unless="java.version.ok">
 		<echo message="Java version is ${java.specification.version} but source code is switched to ${jdk}."/>
@@ -303,14 +313,7 @@
 		<java classname="org.h2.test.TestAll" fork="true" classpath="bin" />
 	</target>
 
-	<target name="testCoverage" depends="compile">
-		<copy todir="bin" overwrite="true">
-			<fileset dir="src/main"/>
-		</copy>
-		<java classname="org.h2.test.coverage.Coverage" classpath="bin" dir="bin" fork="true">
-			<arg line="-e org/h2/web -e org/h2/jdbcx -e org/h2/bnf -r org/h2"/>
-		</java>
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
+	<target name="testCoverage" depends="compileCoverage">
 		<java classname="org.h2.test.TestAll" fork="true" classpath="bin" dir="bin">
 			<arg line="codeCoverage"/>
 		</java>

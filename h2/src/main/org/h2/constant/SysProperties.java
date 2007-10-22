@@ -21,7 +21,6 @@ import org.h2.message.TraceSystem;
  */
 public class SysProperties {
 
-    public static final boolean MVCC = getBooleanSetting("h2.mvcc", false);
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);

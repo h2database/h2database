@@ -7,22 +7,23 @@ package org.h2.test.mvcc;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.constant.ErrorCode;
+import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 
-public class TestMVCC {
+public class TestMVCC extends TestBase {
     
     Connection c1, c2;
     Statement s1, s2;
     
-    public static void main(String[] args) throws Exception {
-        TestMVCC app = new TestMVCC();
-        app.test();
-    }
-    
-    void test() throws Exception {
+    public void test() throws Exception {
+        if (!config.mvcc) {
+            return;
+        }
         // TODO Prio 1: make unit test work
         // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
         // TODO Prio 1: free up disk space (for deleted rows and old versions of updated rows) on commit
@@ -36,8 +37,7 @@ public class TestMVCC {
         // TODO Prio 2: snapshot isolation (currently read-committed, not repeatable read)
 
         // TODO test: one thread appends, the other selects new data (select * from test where id > ?) and deletes
-        
-        // System.setProperty("h2.mvcc", "true");
+
         DeleteDbFiles.execute(null, "test", true);
         Class.forName("org.h2.Driver");
         c1 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE", "sa", "sa");
@@ -46,7 +46,6 @@ public class TestMVCC {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
-        
         
         s1.execute("create table test(id int primary key, name varchar(255))");
         s2.execute("insert into test values(4, 'Hello')");
@@ -196,7 +195,11 @@ public class TestMVCC {
                 s.execute("INSERT INTO TEST VALUES(" + i + ", 'Hello')");
                 break;
             case 1:
-                s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
+                try {
+                    s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
+                } catch (SQLException e) {
+                    check(e.getErrorCode(), ErrorCode.CONCURRENT_UPDATE_1);
+                }
                 break;
             case 2:
                 s.execute("DELETE FROM TEST WHERE ID=" + random.nextInt(i));
@@ -246,6 +249,37 @@ public class TestMVCC {
         test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
         test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
         s1.execute("DROP TABLE TEST");
+        c1.commit();
+        c2.commit();
+        
+        
+        s1.execute("create table test(id int primary key, name varchar(255))");
+        s1.execute("insert into test values(1, 'Hello'), (2, 'World')");
+        c1.commit();
+        try {
+            s1.execute("update test set id=2 where id=1");
+            error("unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        ResultSet rs = s1.executeQuery("select * from test order by id");
+        check(rs.next());
+        check(rs.getInt(1), 1);
+        check(rs.getString(2), "Hello");
+        check(rs.next());
+        check(rs.getInt(1), 2);
+        check(rs.getString(2), "World");
+        checkFalse(rs.next());
+        
+        rs = s2.executeQuery("select * from test order by id");
+        check(rs.next());
+        check(rs.getInt(1), 1);
+        check(rs.getString(2), "Hello");
+        check(rs.next());
+        check(rs.getInt(1), 2);
+        check(rs.getString(2), "World");
+        checkFalse(rs.next());
+        s1.execute("drop table test");
         c1.commit();
         c2.commit();
         

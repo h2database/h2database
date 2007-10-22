@@ -3302,6 +3302,9 @@ public class Parser {
             long increment = readLong();
             command.setIncrement(increment);
         }
+        if (readIf("CACHE")) {
+            command.setCacheSize(readLong());
+        }
         if (readIf("BELONGS_TO_TABLE")) {
             command.setBelongsToTable(true);
         }

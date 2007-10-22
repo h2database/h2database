@@ -59,6 +59,7 @@ import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
 import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbc.xa.TestXA;
+import org.h2.test.mvcc.TestMVCC;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestKillRestart;
@@ -125,7 +126,7 @@ java org.h2.test.TestAll timer
 */
 
     public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
-    public boolean codeCoverage;
+    public boolean codeCoverage, mvcc;
     public int logMode = 1, traceLevelFile, throttle;
     public String cipher;
 
@@ -139,20 +140,17 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();      
 
-
-        
-//int testMVCC;        
-//        System.setProperty("h2.mvcc", "true");
-        
 /*
 
 ----
 A file is sent although the Japanese translation has not been completed yet.
 ----
 
+Code coverage
+
 At startup, when corrupted, say if LOG=0 was used before
 
-add MVCC
+add more MVCC tests
 
 slow:
 select ta.attname, ia.attnum, ic.relname 
@@ -369,6 +367,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
+        mvcc = false;
         testAll();
 
         diskUndo = false;
@@ -382,6 +381,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
+        mvcc = false;
         testAll();
         
         big = false;
@@ -397,6 +397,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = 0;
         throttle = 0;
         cipher = null;
+        mvcc = false;
         testAll();        
 
         diskUndo = true;
@@ -410,6 +411,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = 3;
         throttle = 1;
         cipher = "XTEA";
+        mvcc = false;
         testAll();
 
         diskUndo = false;
@@ -426,6 +428,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = 1;
         throttle = 0;
         cipher = null;
+        mvcc = false;
         testAll();
 
         big = true;
@@ -441,6 +444,7 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = 2;
         throttle = 0;
         cipher = null;
+        mvcc = false;
         testAll();
         
         big = true;
@@ -456,14 +460,18 @@ write tests using the PostgreSQL JDBC driver
         traceLevelFile = 0;
         throttle = 0;
         cipher = "AES";
+        mvcc = false;
+        testAll();
+        
+        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
+        traceLevelFile = throttle = 0;
+        logMode = 1;
+        cipher = null;
+        mvcc = true;
         testAll();
         
     }
     
-    public boolean isMVCC() {
-        return SysProperties.MVCC;
-    }
-
     void testAll() throws Exception {
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         testDatabase();
@@ -495,8 +503,11 @@ write tests using the PostgreSQL JDBC driver
     }
 
     void testDatabase() throws Exception {
-        System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult);
+        System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
+        
+        // int testMvcc;
+        // mvcc = true;
 
         // db
         new TestScriptSimple().runTest(this);
@@ -514,18 +525,14 @@ write tests using the PostgreSQL JDBC driver
         new TestCsv().runTest(this);
         new TestFunctions().runTest(this);
         new TestIndex().runTest(this);
-        if (!SysProperties.MVCC) {
-            new TestLinkedTable().runTest(this);
-        }
+        new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
         new TestLob().runTest(this);
         new TestLogFile().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
-        if (!SysProperties.MVCC) {
-            new TestMultiThread().runTest(this);
-        }
+        new TestMultiThread().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestPowerOff().runTest(this);
@@ -560,6 +567,9 @@ write tests using the PostgreSQL JDBC driver
         new TestXA().runTest(this);
         new TestZloty().runTest(this);
         
+        // mvcc
+        new TestMVCC().runTest(this);
+            
         // synthetic
         new TestKillRestart().runTest(this);
 

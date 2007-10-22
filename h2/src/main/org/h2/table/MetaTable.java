@@ -202,6 +202,7 @@ public class MetaTable extends Table {
                     "INCREMENT BIGINT",
                     "IS_GENERATED BIT",
                     "REMARKS",
+                    "CACHE BIGINT",
                     "ID INT"
             });
             break;
@@ -783,6 +784,7 @@ public class MetaTable extends Table {
                         String.valueOf(s.getIncrement()), // INCREMENT
                         s.getBelongsToTable() ? "TRUE" : "FALSE", // IS_GENERATED
                         replaceNullWithEmpty(s.getComment()), // REMARKS
+                        String.valueOf(s.getCacheSize()), // CACHE
                         "" + s.getId() // ID
                     });
             }

@@ -120,6 +120,9 @@ public class MultiVersionCursor implements Cursor {
                             return true;
                         }
                     }
+int test;
+this.index.debug("error", session, deltaRow);
+System.exit(1);
                     throw Message.getInternalError();
                 }
                 int compare = index.compareRows(deltaRow, baseRow);

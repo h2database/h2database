@@ -15,10 +15,11 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 
 public class Sequence extends SchemaObjectBase {
-    private static final int BLOCK_INCREMENT = 32;
+    public static final int DEFAULT_CACHE_SIZE = 32;
     private long value = 1;
     private long valueWithMargin;
     private long increment = 1;
+    private long cacheSize = DEFAULT_CACHE_SIZE;
     private boolean belongsToTable;
 
     public Sequence(Schema schema, int id, String name, boolean belongsToTable) {
@@ -67,6 +68,10 @@ public class Sequence extends SchemaObjectBase {
             buff.append(" INCREMENT BY ");
             buff.append(increment);
         }
+        if (cacheSize != DEFAULT_CACHE_SIZE) {
+            buff.append(" CACHE ");
+            buff.append(cacheSize);
+        }
         if (belongsToTable) {
             buff.append(" BELONGS_TO_TABLE");
         }
@@ -75,7 +80,7 @@ public class Sequence extends SchemaObjectBase {
 
     public synchronized long getNext() throws SQLException {
         if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
-            valueWithMargin += increment * BLOCK_INCREMENT;
+            valueWithMargin += increment * cacheSize;
             flush();
         }
         long v = value;
@@ -123,6 +128,14 @@ public class Sequence extends SchemaObjectBase {
 
     public void setBelongsToTable(boolean b) {
         this.belongsToTable = b;
+    }
+
+    public void setCacheSize(long cacheSize) {
+        this.cacheSize = cacheSize;
+    }
+
+    public long getCacheSize() {
+        return cacheSize;
     }
 
 }

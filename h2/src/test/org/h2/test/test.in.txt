@@ -2343,14 +2343,14 @@ insert into test values(1, 'Y');
 > update count: 1
 
 call select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */
-> ----------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */ ORDER BY =ID
+> -----------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
 select select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */
-> ----------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */ ORDER BY =ID
+> -----------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
@@ -4444,8 +4444,8 @@ SELECT LIMIT (1+0) (2+0) NAME, -ID, ID _ID_ FROM TEST ORDER BY _ID_;
 
 EXPLAIN SELECT LIMIT (1+0) (2+0) * FROM TEST ORDER BY ID;
 > PLAN
-> --------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */ LIMIT 2 OFFSET 1
+> -------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_1 */ ORDER BY 1 LIMIT 2 OFFSET 1
 > rows (ordered): 1
 
 SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;

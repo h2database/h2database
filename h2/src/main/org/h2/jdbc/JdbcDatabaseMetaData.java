@@ -420,41 +420,41 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks is NULL values are sorted high (bigger than any non-null values).
      *
-     * @return true or false
+     * @return false
      */
     public boolean nullsAreSortedHigh() {
         debugCodeCall("nullsAreSortedHigh");
-        return Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_HIGH;
+        return false;
     }
 
     /**
      * Checks is NULL values are sorted low (smaller than any non-null values).
      *
-     * @return true or false
+     * @return true
      */
     public boolean nullsAreSortedLow() {
         debugCodeCall("nullsAreSortedLow");
-        return Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_LOW;
+        return true;
     }
 
     /**
      * Checks is NULL values are sorted at the beginning (no matter if ASC or DESC is used).
      *
-     * @return true or false
+     * @return false
      */
     public boolean nullsAreSortedAtStart() {
         debugCodeCall("nullsAreSortedAtStart");
-        return Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_START;
+        return false;
     }
 
     /**
      * Checks is NULL values are sorted at the end (no matter if ASC or DESC is used).
      *
-     * @return true or false
+     * @return false
      */
     public boolean nullsAreSortedAtEnd() {
         debugCodeCall("nullsAreSortedAtEnd");
-        return Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_END;
+        return false;
     }
 
     /**

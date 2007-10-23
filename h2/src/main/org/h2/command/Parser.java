@@ -109,6 +109,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
 import org.h2.message.Message;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
@@ -137,6 +138,9 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
+/**
+ * The parser is used to convert a SQL statement string to an command object.
+ */
 public class Parser {
 
     // used during the tokenizer phase
@@ -677,10 +681,19 @@ public class Parser {
             column.columnName = readColumnIdentifier();
             columns.add(column);
             if (readIf("ASC")) {
-                // ignore
+                 // ignore
+            } else if (readIf("DESC")) {
+                column.sortType = SortOrder.DESCENDING;
+            }
+            if (readIf("NULLS")) {
+                if (readIf("FIRST")) {
+                    column.sortType |= SortOrder.NULLS_FIRST;
+                } else {
+                    read("LAST");
+                    column.sortType |= SortOrder.NULLS_LAST;
+                }
             } else {
-                readIf("DESC");
-                column.descending = true;
+                
             }
         } while (readIf(","));
         read(")");

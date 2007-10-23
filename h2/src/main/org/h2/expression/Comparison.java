@@ -19,7 +19,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
  */
 public class Comparison extends Condition {
 

@@ -20,13 +20,16 @@ import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
 /**
- * @author Thomas
+ * A table filter represents a table that is used in a query. There is one such object whenever a table
+ * (or view) is used in a query. For example the following query has 2 table filters:
+ * SELECT * FROM TEST T1, TEST T2.
  */
 public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
@@ -35,6 +38,7 @@ public class TableFilter implements ColumnResolver {
     private final Select select;
     private Session session;
     private Index index;
+    private IndexColumn[] indexColumns;
     private Cursor cursor;
     private int scanCount;
     private boolean used; // used in the plan
@@ -134,7 +138,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     public void setPlanItem(PlanItem item) {
-        this.index = item.getIndex();
+        setIndex(item.getIndex());
         for (int i = 0; joins != null && i < joins.size(); i++) {
             TableFilter join = getTableFilter(i);
             if (item.getJoinPlan() != null) {
@@ -204,17 +208,24 @@ public class TableFilter implements ColumnResolver {
                 int type = column.getType();
                 int id = column.getColumnId();
                 Value v = condition.getCurrentValue(session).convertTo(type);
-                if (condition.isStart()) {
-                    // TODO index: start.setExpression(id,
-                    // bigger(start.getValue(id), e));
+                boolean isStart = condition.isStart(), isEnd = condition.isEnd();
+                IndexColumn idxCol = indexColumns[id];
+                if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
+                    // if the index column is sorted the other way, we swap end and start
+                    // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
+                    boolean temp = isStart;
+                    isStart = isEnd;
+                    isEnd = temp;
+                }
+                if (isStart) {
+                    // TODO index: start.setExpression(id, bigger(start.getValue(id), e));
                     if (start == null) {
                         start = table.getTemplateRow();
                     }
                     start.setValue(id, v);
                 }
-                if (condition.isEnd()) {
-                    // TODO index: end.setExpression(id,
-                    // smaller(end.getExpression(id), e));
+                if (isEnd) {
+                    // TODO index: end.setExpression(id, smaller(end.getExpression(id), e));
                     if (end == null) {
                         end = table.getTemplateRow();
                     }
@@ -459,6 +470,17 @@ public class TableFilter implements ColumnResolver {
 
     public void setIndex(Index index) {
         this.index = index;
+        Column[] columns = table.getColumns();
+        indexColumns = new IndexColumn[columns.length];
+        IndexColumn[] idxCols = index.getIndexColumns();
+        if (idxCols != null) {
+            for (int i = 0; i < columns.length; i++) {
+                int idx = index.getColumnIndex(columns[i]);
+                if (idx >= 0) {
+                    indexColumns[i] = idxCols[idx];
+                }
+            }
+        }
     }
 
     public void setUsed(boolean used) {

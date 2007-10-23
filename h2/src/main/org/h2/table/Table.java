@@ -22,6 +22,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
@@ -32,9 +33,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * A table contains a list of columns and a list of rows.
  */
-
 public abstract class Table extends SchemaObjectBase {
     
     public static final int TYPE_CACHED = 0, TYPE_MEMORY = 1;
@@ -489,7 +489,12 @@ public abstract class Table extends SchemaObjectBase {
         ObjectArray indexes = getIndexes();
         for (int i = 1; indexes != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            if (index.canGetFirstOrLast(first)) {
+            if (index.canGetFirstOrLast()) {
+                IndexColumn idxCol = index.getIndexColumns()[0];
+                if ((idxCol.sortType & SortOrder.DESCENDING) != 0 && (idxCol.sortType & SortOrder.NULLS_FIRST) == 0) {
+                    // for descending sorted columns, if the NULLs are at the end, it does not work for some index types
+                    continue;
+                }
                 int idx = index.getColumnIndex(column);
                 if (idx == 0) {
                     return index;

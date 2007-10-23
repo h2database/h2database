@@ -161,6 +161,10 @@ public class Aggregate extends Expression {
             case MAX:
                 boolean first = type == MIN;
                 Index index = getColumnIndex(first);
+                int sortType = index.getIndexColumns()[0].sortType;
+                if ((sortType & SortOrder.DESCENDING) != 0) {
+                    first = !first;
+                }
                 SearchRow row = index.findFirstOrLast(session, first);
                 Value v;
                 if (row == null) {

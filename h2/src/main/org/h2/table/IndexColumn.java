@@ -6,15 +6,26 @@ package org.h2.table;
 
 import java.sql.SQLException;
 
+import org.h2.result.SortOrder;
+
+/**
+ * This represents a column item of an index. This is required because some 
+ * indexes support descending sorted columns.
+ */
 public class IndexColumn {
     public String columnName;
     public Column column;
-    public boolean descending;
+    public int sortType = SortOrder.ASCENDING;
     
     public String getSQL() {
         StringBuffer buff = new StringBuffer(column.getSQL());
-        if (descending) {
+        if ((sortType & SortOrder.DESCENDING) != 0) {
             buff.append(" DESC");
+        }
+        if ((sortType & SortOrder.NULLS_FIRST) != 0) {
+            buff.append(" NULLS FIRST");
+        } else if ((sortType & SortOrder.NULLS_LAST) != 0) {
+            buff.append(" NULLS LAST");
         }
         return buff.toString();
     }

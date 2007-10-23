@@ -6,6 +6,9 @@ package org.h2.engine;
 
 import java.lang.ref.WeakReference;
 
+/**
+ * This class is reponsible to close a database if the application did not close a connection.
+ */
 public class DatabaseCloser extends Thread {
 
     private final boolean shutdownHook;
@@ -52,13 +55,14 @@ public class DatabaseCloser extends Thread {
                 return;
             }
         }
+        Database database = null;
         synchronized (this) {
             if (databaseRef != null) {
-                Database database = (Database) databaseRef.get();
-                if (database != null) {
-                    database.close(shutdownHook);
-                }
+                database = (Database) databaseRef.get();
             }
+        }
+        if (database != null) {
+            database.close(shutdownHook);
         }
     }
 

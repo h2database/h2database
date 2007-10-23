@@ -33,7 +33,7 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
- * @author Thomas
+ * This class represents a column in a table.
  */
 public class Column {
     private final int type;

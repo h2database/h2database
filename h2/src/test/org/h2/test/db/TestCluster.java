@@ -41,6 +41,7 @@ public class TestCluster extends TestBase {
             prep.setString(2, "Data" + i);
             prep.executeUpdate();
         }
+        check(conn, len);        
         conn.close();
 
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",

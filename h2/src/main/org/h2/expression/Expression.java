@@ -15,7 +15,7 @@ import org.h2.value.Value;
 
 
 /**
- * @author Thomas
+ * An expression is a operation, a value, or a function in a query.
  */
 public abstract class Expression {
     

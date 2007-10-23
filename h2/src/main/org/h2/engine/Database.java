@@ -59,10 +59,11 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
 /**
+ * There is one database object per open database.
+ * 
  * @author Thomas
  * @since 2004-04-15 22:49
  */
-
 /*
  * MetaData format: int id int headPos (for indexes) int objectType String sql
  */

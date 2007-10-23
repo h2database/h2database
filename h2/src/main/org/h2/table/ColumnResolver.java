@@ -9,6 +9,10 @@ import java.sql.SQLException;
 import org.h2.command.dml.Select;
 import org.h2.value.Value;
 
+/**
+ * A column resolver is list of column (for example, a table) that can map a 
+ * column name to an actual column.
+ */
 public interface ColumnResolver {
 
     String getTableAlias();

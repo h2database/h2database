@@ -142,7 +142,7 @@ public class HashIndex extends BaseIndex {
         return true;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

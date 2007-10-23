@@ -65,7 +65,7 @@ public class FunctionIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

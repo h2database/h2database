@@ -15,9 +15,9 @@ import org.h2.message.Message;
 import org.h2.table.Column;
 import org.h2.value.Value;
 
-
 /**
- * @author Thomas
+ * A index condition object is made for each condition that can potentially use an index.
+ * This class does not extend expression, but in general there is one expression that maps to each index condition.
  */
 public class IndexCondition {
     public static final int EQUALITY = 1, START = 2, END = 4, RANGE = START | END, ALWAYS_FALSE = 8;

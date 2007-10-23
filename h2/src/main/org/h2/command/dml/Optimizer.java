@@ -15,6 +15,9 @@ import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
 import org.h2.util.Permutations;
 
+/**
+ * The optimizer is responsible to find the best execution plan for a given query.
+ */
 public class Optimizer {
 
     private static final int MAX_BRUTE_FORCE_FILTERS = 7;

@@ -25,7 +25,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * This is the most common type of index, a b tree index.
  */
 public class BtreeIndex extends BaseIndex implements RecordReader {
 
@@ -284,7 +284,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return lastChange;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return true;
     }
 

@@ -82,7 +82,7 @@ public class MetaIndex extends BaseIndex {
         return null;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

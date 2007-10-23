@@ -7,7 +7,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.constant.SysProperties;
 import org.h2.server.TcpServer;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -142,10 +141,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+
 ----
 A file is sent although the Japanese translation has not been completed yet.
 ----
 
+reverse index 
 Code coverage
 
 At startup, when corrupted, say if LOG=0 was used before

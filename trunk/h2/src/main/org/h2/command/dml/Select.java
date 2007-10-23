@@ -22,6 +22,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
@@ -32,6 +33,8 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
+ * This class represents a simple SELECT statement.
+ * 
  * visibleColumnCount <= distinctColumnCount <= expressionCount
  * Sortable count could include ORDER BY expressions that are not in the select list
  * Expression count could include GROUP BY expressions
@@ -60,6 +63,7 @@ public class Select extends Query {
     private double cost;
     private boolean isQuickQuery;
     private boolean isPrepared, checkInit;
+    private boolean sortUsingIndex;
     private SortOrder sort;
 
     public Select(Session session) {
@@ -190,15 +194,17 @@ public class Select extends Query {
         }
     }
 
+    /**
+     * Get the index that matches the ORDER BY list, if one exists.
+     * This is to avoid running a separate ORDER BY if an index can be used.
+     * This is specially important for large result sets, if only the first few rows are important
+     * (LIMIT is used)
+     * 
+     * @return the index if one is found
+     */
     private Index getSortIndex() throws SQLException {
         if (sort == null) {
             return null;
-        }
-        int[] sortTypes = sort.getSortTypes();
-        for (int i = 0; i < sortTypes.length; i++) {
-            if ((sortTypes[i] & (SortOrder.DESCENDING | SortOrder.NULLS_LAST)) != 0) {
-                return null;
-            }
         }
         int[] indexes = sort.getIndexes();
         ObjectArray sortColumns = new ObjectArray();
@@ -223,6 +229,7 @@ public class Select extends Query {
         }
         Column[] sortCols = new Column[sortColumns.size()];
         sortColumns.toArray(sortCols);
+        int[] sortTypes = sort.getSortTypes();
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
             return topTableFilter.getTable().getScanIndex(session);
@@ -237,15 +244,22 @@ public class Select extends Query {
             if (index.getIndexType().isHash()) {
                 continue;
             }
-            Column[] indexCols = index.getColumns();
+            IndexColumn[] indexCols = index.getIndexColumns();
             if (indexCols.length < sortCols.length) {
                 continue;
             }
             boolean ok = true;
             for (int j = 0; j < sortCols.length; j++) {
-                // the index and the sort order must start with the exact same
-                // columns
-                if (indexCols[j] != sortCols[j]) {
+                // the index and the sort order must start 
+                // with the exact same columns
+                IndexColumn idxCol = indexCols[j];
+                Column sortCol = sortCols[j];
+                if (idxCol.column != sortCol) {
+                    ok = false;
+                    break;
+                }
+                if (idxCol.sortType != sortTypes[j]) {
+                    // TODO NULL FIRST for ascending and NULLS LAST for descending would actually match the default
                     ok = false;
                     break;
                 }
@@ -274,7 +288,7 @@ public class Select extends Query {
                 }
                 result.addRow(row);
                 rowNumber++;
-                if (sort == null && limitRows != 0 && result.getRowCount() >= limitRows) {
+                if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
                     break;
                 }
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -311,7 +325,9 @@ public class Select extends Query {
         }
         int columnCount = expressions.size();
         LocalResult result = new LocalResult(session, expressions, visibleColumnCount);
-        result.setSortOrder(sort);
+        if (!sortUsingIndex) {
+            result.setSortOrder(sort);
+        }
         if (distinct) {
             result.setDistinct();
         }
@@ -489,7 +505,7 @@ public class Select extends Query {
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
-                sort = null;
+                sortUsingIndex = true;
             }
         }
     }

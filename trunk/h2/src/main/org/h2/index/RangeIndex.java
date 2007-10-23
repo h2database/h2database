@@ -66,7 +66,7 @@ public class RangeIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return true;
     }
 

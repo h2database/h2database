@@ -64,6 +64,9 @@ import org.h2.constant.SysProperties;
  * 
  * @author Thomas
  */
+/**
+ * Constants are fixed values that are used in the whole database code.
+ */
 public class Constants {
 
     public static final int BUILD_ID = 60;
@@ -82,9 +85,6 @@ public class Constants {
         return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID + " (" + BUILD + ")";
     }
 
-    public static final int NULL_SORT_LOW = 1, NULL_SORT_HIGH = 2;
-    public static final int NULL_SORT_START = 3, NULL_SORT_END = 4;
-    public static final int NULL_SORT_DEFAULT = NULL_SORT_LOW;
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs
     public static final String START_URL = "jdbc:h2:";
     public static final String URL_FORMAT = START_URL + "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";

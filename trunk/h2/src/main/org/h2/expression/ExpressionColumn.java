@@ -22,9 +22,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
-/**
- * @author Thomas
- */
 public class ExpressionColumn extends Expression {
     private Database database;
     private String schemaName;

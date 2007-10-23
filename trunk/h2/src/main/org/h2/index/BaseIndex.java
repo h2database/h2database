@@ -14,6 +14,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -23,7 +24,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * Most index implementations extend the base index.
  */
 public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
@@ -90,7 +91,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public abstract void truncate(Session session) throws SQLException;
 
-    public abstract boolean canGetFirstOrLast(boolean first);
+    public abstract boolean canGetFirstOrLast();
 
     public abstract SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
 
@@ -144,14 +145,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public int compareRows(SearchRow rowData, SearchRow compare) throws SQLException {
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0; i < indexColumns.length; i++) {
             int index = columnIds[i];
             Value v = compare.getValue(index);
             if (v == null) {
                 // can't compare further
                 return 0;
             }
-            int c = compareValues(rowData.getValue(index), v);
+            int c = compareValues(rowData.getValue(index), v, indexColumns[i].sortType);
             if (c != 0) {
                 return c;
             }
@@ -179,17 +180,19 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return k1 > k2 ? 1 : -1;
     }
 
-    private int compareValues(Value v1, Value v2) throws SQLException {
-        if (v1 == null) {
-            if (v2 == null) {
+    private int compareValues(Value a, Value b, int sortType) throws SQLException {
+        boolean aNull = a == null, bNull = b == null;
+        if (aNull || bNull) {
+            if (aNull == bNull) {
                 return 0;
             }
-            return 1;
+            return SortOrder.compareNull(aNull, bNull, sortType);
         }
-        if (v2 == null) {
-            return -1;
+        int comp = database.compareTypeSave(a, b);
+        if ((sortType & SortOrder.DESCENDING) != 0) {
+            comp = -comp;
         }
-        return database.compareTypeSave(v1, v2);
+        return comp;
     }
 
     public int getColumnIndex(Column col) {

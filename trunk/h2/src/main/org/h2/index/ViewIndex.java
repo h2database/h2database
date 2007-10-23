@@ -21,6 +21,11 @@ import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 
+/**
+ * This object represents a virtual index for a query.
+ * Actually it only represents a prepared statement that is
+ * a SELECT statement.
+ */
 public class ViewIndex extends BaseIndex {
 
     private String querySQL;
@@ -233,7 +238,7 @@ public class ViewIndex extends BaseIndex {
         return false;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

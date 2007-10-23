@@ -341,7 +341,7 @@ public class TreeIndex extends BaseIndex {
         return true;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return true;
     }
 

@@ -532,7 +532,7 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
         return bucketSize;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

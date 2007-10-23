@@ -36,7 +36,7 @@ public interface Index extends SchemaObject {
 
     void truncate(Session session) throws SQLException;
 
-    boolean canGetFirstOrLast(boolean first);
+    boolean canGetFirstOrLast();
 
     SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
 

@@ -157,7 +157,7 @@ public class LinkedIndex extends BaseIndex {
         return false;
     }
 
-    public boolean canGetFirstOrLast(boolean first) {
+    public boolean canGetFirstOrLast() {
         return false;
     }
 

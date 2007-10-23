@@ -6,7 +6,6 @@ package org.h2.result;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.ObjectArray;
@@ -15,10 +14,10 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
-/**
- * @author Thomas
- */
 
+/**
+ * A sort order represents an ORDER BY clause in a query.
+ */
 public class SortOrder {
     public static final int ASCENDING = 0, DESCENDING = 1;
     public static final int NULLS_FIRST = 2, NULLS_LAST = 4;
@@ -60,39 +59,33 @@ public class SortOrder {
         }
         return buff.toString();
     }
+    
+    public static int compareNull(boolean aNull, boolean bNull, int type) {
+        if ((type & NULLS_FIRST) != 0) {
+            return aNull ? -1 : 1;
+        } else if ((type & NULLS_LAST) != 0) {
+            return aNull ? 1 : -1;
+        } else {
+            // see also JdbcDatabaseMetaData.nullsAreSorted*
+            int comp = aNull ? -1 : 1;
+            return (type & DESCENDING) == 0 ? comp : -comp;
+        }
+    }
 
     public int compare(Value[] a, Value[] b) throws SQLException {
         for (int i = 0; i < len; i++) {
             int idx = indexes[i];
             int type = sortTypes[i];
-            Value o1 = a[idx];
-            Value o2 = b[idx];
-            boolean b1 = o1 == ValueNull.INSTANCE, b2 = o2 == ValueNull.INSTANCE;
-            if (b1 || b2) {
-                if (b1 == b2) {
+            Value ao = a[idx];
+            Value bo = b[idx];
+            boolean aNull = ao == ValueNull.INSTANCE, bNull = bo == ValueNull.INSTANCE;
+            if (aNull || bNull) {
+                if (aNull == bNull) {
                     continue;
                 }
-                if ((type & NULLS_FIRST) != 0) {
-                    return b1 ? -1 : 1;
-                } else if ((type & NULLS_LAST) != 0) {
-                    return b1 ? 1 : -1;
-                } else {
-                    // this depends on NULL_SORT_DEFAULT
-                    int comp;
-                    if (Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_LOW) {
-                        comp = b1 ? -1 : 1;
-                        return (type & DESCENDING) == 0 ? comp : -comp;
-                    } else if (Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_HIGH) {
-                        comp = b1 ? 1 : -1;
-                        return (type & DESCENDING) == 0 ? comp : -comp;
-                    } else if (Constants.NULL_SORT_DEFAULT == Constants.NULL_SORT_START) {
-                        return b1 ? 1 : -1;
-                    } else {
-                        return b1 ? -1 : 1;
-                    }
-                }
+                return compareNull(aNull, bNull, type);
             }
-            int comp = database.compare(o1, o2);
+            int comp = database.compare(ao, bo);
             if (comp != 0) {
                 return (type & DESCENDING) == 0 ? comp : -comp;
             }

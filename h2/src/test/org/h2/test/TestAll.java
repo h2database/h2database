@@ -146,9 +146,6 @@ java org.h2.test.TestAll timer
 A file is sent although the Japanese translation has not been completed yet.
 ----
 
-reverse index 
-Code coverage
-
 At startup, when corrupted, say if LOG=0 was used before
 
 add more MVCC tests

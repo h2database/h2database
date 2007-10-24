@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 
 public class TestIndex extends TestBase {
@@ -28,6 +29,8 @@ public class TestIndex extends TestBase {
     }
 
     public void test() throws Exception {
+        testDescIndex();
+        
         if (config.networked && config.big) {
             return;
         }
@@ -66,6 +69,33 @@ public class TestIndex extends TestBase {
         testMultiColumnHashIndex();
 
         conn.close();
+    }
+    
+    void testDescIndex() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        ResultSet rs;
+        reconnect();
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.execute("CREATE INDEX IDX_ND ON TEST(ID DESC)");
+        rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
+        rs.next();
+        check(rs.getString("ASC_OR_DESC"), "D");
+        check(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 30)");
+        rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
+        rs.next();
+        check(rs.getInt(1), 11);
+        reconnect();
+        rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
+        rs.next();
+        check(rs.getString("ASC_OR_DESC"), "D");
+        check(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
+        rs.next();
+        check(rs.getInt(1), 11);
+        stat.execute("DROP TABLE TEST");
     }
 
     String getRandomString(int len) {

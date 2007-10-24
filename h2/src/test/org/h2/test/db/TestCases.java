@@ -148,7 +148,7 @@ public class TestCases extends TestBase {
     }
 
     private void testDisconnect() throws Exception {
-        if (config.networked) {
+        if (config.networked || config.codeCoverage) {
             return;
         }
         deleteDb("cases");

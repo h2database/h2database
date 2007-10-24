@@ -4,55 +4,44 @@
  */
 package org.h2.security;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
-
-//#ifdef JDK14
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Enumeration;
+import java.sql.SQLException;
 import java.util.Properties;
+
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+
 import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-//#endif
 
 /**
- * 
- * keytool -genkey -alias h2 -keyalg RSA -dname "cn=H2" -validity 25000 -keypass h2pass -keystore h2.keystore -storepass h2pass
- * 
- * 
- * 
- * @author Thomas
+ * A factory to create encrypted sockets. To generate new keystore, use the 
+ * SecureKeyStoreBuilder tool.
  */
 public class SecureSocketFactory {
 
     private static final String KEYSTORE = ".h2.keystore";
     private static final String KEYSTORE_KEY = "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
-    private static final String KEYSTORE_PASSWORD = "h2pass";
+    public static final String KEYSTORE_PASSWORD = "h2pass";
     
     // TODO security / SSL: need a way to disable anonymous ssl
     private static final boolean ENABLE_ANONYMOUS_SSL = true;
@@ -107,7 +96,7 @@ public class SecureSocketFactory {
         return ByteUtils.convertStringToBytes(hex);
     }
     
-    private byte[] getKeyStoreBytes(KeyStore store, String password) throws SQLException {
+    private static byte[] getKeyStoreBytes(KeyStore store, String password) throws SQLException {
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             store.store(bout, KEYSTORE_PASSWORD.toCharArray());
@@ -117,16 +106,7 @@ public class SecureSocketFactory {
         }
     }
     
-    public static void main(String[] a) throws Exception {
-        // first, create a keystore using:
-        // keytool -genkey -alias h2 -keyalg RSA -dname "cn=H2" -validity 25000 -keypass h2pass -keystore h2.keystore -storepass h2pass
-        // then run this application to generate the source code
-        // then replace the code in the function getKeyStore as specified
-        KeyStore store = getKeyStore(KEYSTORE_PASSWORD);
-        printKeystore(store, KEYSTORE_PASSWORD);
-    }
-        
-    private static KeyStore getKeyStore(String password) throws SQLException {
+    public static KeyStore getKeyStore(String password) throws SQLException {
         try {
             // The following source code can be re-generated when you have a keystore file.
             // This code is (hopefully) more Java version independent than using keystores directly.
@@ -154,38 +134,6 @@ public class SecureSocketFactory {
         }
     }
             
-    private static void printKeystore(KeyStore store, String password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateEncodingException {
-        System.out.println("KeyStore store = KeyStore.getInstance(\""+store.getType()+"\");");
-        System.out.println("store.load(null, password.toCharArray());");
-        //System.out.println("keystore provider="+store.getProvider().getName());
-        Enumeration en = store.aliases();
-        while (en.hasMoreElements()) {
-            String alias = (String) en.nextElement();
-            Key key = store.getKey(alias, password.toCharArray());
-            System.out.println("KeyFactory keyFactory = KeyFactory.getInstance(\"" + key.getAlgorithm() + "\");");
-            System.out.println("store.load(null, password.toCharArray());");
-            String pkFormat = key.getFormat();
-            String encoded = ByteUtils.convertBytesToString(key.getEncoded());
-            System.out.println(pkFormat + "EncodedKeySpec keySpec = new " + pkFormat + "EncodedKeySpec(getBytes(\""
-                    + encoded + "\"));");
-            System.out.println("PrivateKey privateKey = keyFactory.generatePrivate(keySpec);");
-            System.out.println("Certificate[] certs = new Certificate[]{");
-            Certificate[] certs = store.getCertificateChain(alias);
-            for (int i = 0; i < certs.length; i++) {
-                Certificate cert = certs[i];
-                System.out.println("  CertificateFactory.getInstance(\""+cert.getType()+"\").");
-                String enc = ByteUtils.convertBytesToString(cert.getEncoded());
-                System.out.println("        generateCertificate(new ByteArrayInputStream(getBytes(\""+enc+"\"))),");
-                // PublicKey pubKey = cert.getPublicKey();
-                // System.out.println("    publicKey algorithm="+pubKey.getAlgorithm());
-                // System.out.println("    publicKey format="+pubKey.getFormat());
-                // System.out.println("    publicKey format="+ByteUtils.convertBytesToString(pubKey.getEncoded()));
-            }
-            System.out.println("};");
-            System.out.println("store.setKeyEntry(\""+alias+"\", privateKey, password.toCharArray(), certs);");
-        }          
-    }
-
     private void setKeystore() throws IOException, SQLException {        
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
@@ -220,16 +168,6 @@ public class SecureSocketFactory {
         return newList;
     }
 
-    // private void listCipherSuites(SSLServerSocketFactory f) {
-    // String[] def = f.getDefaultCipherSuites();
-    // for(int i=0; i<def.length; i++) {
-    // System.out.println("default = " + def[i]);
-    // }
-    // String[] sup = f.getSupportedCipherSuites();
-    // for(int i=0; i<sup.length; i++) {
-    // System.out.println("supported = " + sup[i]);
-    // }
-    // }
 //#endif
 
 }

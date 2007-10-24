@@ -15,15 +15,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
@@ -35,8 +32,6 @@ import org.h2.util.StringUtils;
  * 
  */
 public class RunScript {
-
-    private static final boolean MULTI_THREAD = false;
 
     private void showUsage() {
         System.out.println("java " + getClass().getName() + " -url <url> -user <user> [-password <pwd>] [-script <file>] [-driver <driver] [-options <option> ...]");
@@ -156,19 +151,19 @@ public class RunScript {
         return rs;
     }
 
-    private static void execute(Connection conn, HashMap threadMap, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
+    private static void execute(Connection conn, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
         InputStream in = FileUtils.openFileInputStream(fileName);
         String path = FileUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
             InputStreamReader reader = new InputStreamReader(in, charsetName);
-            execute(conn, threadMap, continueOnError, path, reader, charsetName);
+            execute(conn, continueOnError, path, reader, charsetName);
         } finally {
             IOUtils.closeSilently(in);
         }
     }
 
-    private static void execute(Connection conn, HashMap threadMap, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
+    private static void execute(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
         Statement stat = conn.createStatement();
         ScriptReader r = new ScriptReader(reader);
         while (true) {
@@ -182,24 +177,7 @@ public class RunScript {
                 if (!FileUtils.isAbsolute(sql)) {
                     sql = path + File.separator + sql;
                 }
-                execute(conn, threadMap, sql, continueOnError, charsetName);
-            } else if (MULTI_THREAD && sql.startsWith("/*")) {
-                int idx = sql.indexOf(']');
-                Integer id = ObjectUtils.getInteger(Integer.parseInt(sql.substring("/*".length(), idx)));
-                RunScriptThread thread = (RunScriptThread) threadMap.get(id);
-                if (thread == null) {
-                    Connection c = DriverManager.getConnection(conn.getMetaData().getURL());
-                    thread = new RunScriptThread(id.intValue(), c);
-                    threadMap.put(id, thread);
-                    thread.start();
-                }
-                sql = sql.substring(sql.indexOf("*/") + 2).trim();
-                String up = StringUtils.toUpperEnglish(sql);
-                thread.addStatement(sql);
-                if (up.startsWith("CREATE") || up.startsWith("DROP") || up.startsWith("ALTER")) {
-                    thread.executeAll();
-                } else {
-                }
+                execute(conn, sql, continueOnError, charsetName);
             } else {
                 try {
                     if (sql.trim().length() > 0) {
@@ -212,15 +190,6 @@ public class RunScript {
                         throw e;
                     }
                 }
-            }
-        }
-        Iterator it = threadMap.values().iterator();
-        while (it.hasNext()) {
-            RunScriptThread thread = (RunScriptThread) it.next();
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -258,9 +227,8 @@ public class RunScript {
             if (charsetName == null) {
                 charsetName = Constants.UTF8;
             }
-            HashMap threadMap = new HashMap();
             try {
-                execute(conn, threadMap, fileName, continueOnError, charsetName);
+                execute(conn, fileName, continueOnError, charsetName);
             } finally {
                 conn.close();
             }

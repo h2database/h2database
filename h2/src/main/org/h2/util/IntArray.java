@@ -24,30 +24,6 @@ public class IntArray {
         this.data = data;
         size = data.length;
     }
-    
-    public static int[] clone(int[] array) {
-        if (array == null) {
-            return null;
-        }
-        int[] copy = new int[array.length];
-        System.arraycopy(array, 0, copy, 0, array.length);
-        return copy;
-    }
-
-    public static boolean equals(int[] a, int[] b) {
-        if (a == null || b == null) {
-            return a == b;
-        }
-        if (a.length != b.length) {
-            return false;
-        }
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] != b[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public void add(int value) {
         checkCapacity();

@@ -40,6 +40,7 @@ import org.h2.log.InDoubtTransaction;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -143,7 +144,8 @@ public class MetaTable extends Table {
                     "FILTER_CONDITION",
                     "REMARKS",
                     "SQL",
-                    "ID INT"
+                    "ID INT",
+                    "SORT_TYPE INT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -614,9 +616,10 @@ public class MetaTable extends Table {
                     if (index.getCreateSQL() == null) {
                         continue;
                     }
-                    Column[] cols = index.getColumns();
+                    IndexColumn[] cols = index.getIndexColumns();
                     for (int k = 0; k < cols.length; k++) {
-                        Column column = cols[k];
+                        IndexColumn idxCol = cols[k];
+                        Column column = idxCol.column;
                         add(rows, new String[] {
                                 catalog, // TABLE_CATALOG
                                 identifier(table.getSchema().getName()), // TABLE_SCHEMA
@@ -630,12 +633,13 @@ public class MetaTable extends Table {
                                 index.getIndexType().getSQL(), // INDEX_TYPE_NAME
                                 index.getIndexType().belongsToConstraint() ? "TRUE" : "FALSE", // IS_GENERATED
                                 "" + DatabaseMetaData.tableIndexOther, // INDEX_TYPE
-                                "A", // ASC_OR_DESC
+                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A", // ASC_OR_DESC
                                 "0", // PAGES
                                 "", // FILTER_CONDITION
                                 replaceNullWithEmpty(index.getComment()), // REMARKS
                                 index.getSQL(), // SQL
-                                "" + index.getId() // ID
+                                "" + index.getId(), // ID
+                                "" + idxCol.sortType, // SORT_TYPE
                             });
                     }
                 }

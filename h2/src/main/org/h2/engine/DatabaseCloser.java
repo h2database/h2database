@@ -7,7 +7,7 @@ package org.h2.engine;
 import java.lang.ref.WeakReference;
 
 /**
- * This class is reponsible to close a database if the application did not close a connection.
+ * This class is responsible to close a database if the application did not close a connection.
  */
 public class DatabaseCloser extends Thread {
 

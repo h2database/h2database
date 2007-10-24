@@ -235,7 +235,7 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, data clob)");
         stat.execute("insert into test values(1, space(1000));");
-        stat.execute("insert into test values(2, space(1000));");
+        stat.execute("insert into test values(2, space(10000));");
         stat.execute("create table test2(id int, data clob);");
         stat.execute("insert into test2 select * from test;");
         stat.execute("drop table test;");

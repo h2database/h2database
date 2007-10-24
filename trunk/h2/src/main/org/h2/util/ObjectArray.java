@@ -28,11 +28,6 @@ public class ObjectArray {
         data = new Object[size > 1 ? size : 1];
     }
 
-    public ObjectArray(Object[] data) {
-        this.data = data;
-        size = data.length;
-    }
-
     public ObjectArray(Collection collection) {
         // TODO lib: Collection should not be required
         size = collection.size();

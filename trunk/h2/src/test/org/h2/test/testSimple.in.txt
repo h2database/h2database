@@ -1,6 +1,6 @@
 CREATE TABLE TEST(ID INT);
 INSERT INTO TEST VALUES(1), (2), (3);
-create index idxdesc on test(id desc);
+create index idx_desc on test(id desc);
 select * from test where id between 0 and 1;
 > 1;
 select * from test where id between 3 and 4;

@@ -24,20 +24,20 @@ public class TestSequence extends TestBase {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
-        stat.execute("create sequence testSequence");
-        stat.execute("create sequence testSequence3 cache 3");
+        stat.execute("create sequence test_Sequence");
+        stat.execute("create sequence test_Sequence3 cache 3");
         conn.close();
         conn = getConnection("sequence");
         stat = conn.createStatement();
-        stat.execute("call next value for testSequence");
-        stat.execute("call next value for testSequence3");
+        stat.execute("call next value for test_Sequence");
+        stat.execute("call next value for test_Sequence3");
         ResultSet rs = stat.executeQuery("select * from information_schema.sequences");
         rs.next();
-        check(rs.getString("SEQUENCE_NAME"), "TESTSEQUENCE3");
-        check(rs.getString("CACHE"), "3");
-        rs.next();
-        check(rs.getString("SEQUENCE_NAME"), "TESTSEQUENCE");
+        check(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE");
         check(rs.getString("CACHE"), "32");
+        rs.next();
+        check(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE3");
+        check(rs.getString("CACHE"), "3");
         checkFalse(rs.next());
         conn.close();
     }

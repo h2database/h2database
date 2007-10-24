@@ -252,6 +252,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li><li>11 CARDINALITY (int) numbers of unique values
      * </li><li>12 PAGES (int) number of pages use (always 0)
      * </li><li>13 FILTER_CONDITION (String) filter condition (always empty)
+     * </li><li>14 SORT_TYPE (int) the sort type bit map: 1=DESCENDING, 2=NULLS_FIRST, 4=NULLS_LAST
      * </li></ul>
      *
      * @param catalog null (to get all objects) or the catalog name
@@ -289,7 +290,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ASC_OR_DESC, "
                     + "CARDINALITY, " // TODO meta data for number of unique values in an index
                     + "PAGES, "
-                    + "FILTER_CONDITION "
+                    + "FILTER_CONDITION, "
+                    + "SORT_TYPE "
                     + "FROM INFORMATION_SCHEMA.INDEXES "
                     + "WHERE TABLE_CATALOG LIKE ? "
                     + "AND TABLE_SCHEMA LIKE ? "

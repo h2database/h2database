@@ -569,11 +569,11 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("CREATE INDEX IDX_TEXT_DEC ON TEST(TEXT_V,DEC_V)");
         stat.executeUpdate("CREATE UNIQUE INDEX IDX_DATE ON TEST(DATE_V)");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        testResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
+        testResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
                 "INDEX_QUALIFIER", "INDEX_NAME", "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE"}, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 DataType.TYPE_BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR }, null, null);
+                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER}, null, null);
         testResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "IDX_DATE",
                         "" + DatabaseMetaData.tableIndexOther, "1", "DATE_V", "A", "0", "0", "" },
@@ -586,11 +586,11 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("DROP INDEX IDX_TEXT_DEC");
         stat.executeUpdate("DROP INDEX IDX_DATE");
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        testResultSetMeta(rs, 13, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
+        testResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
                 "INDEX_QUALIFIER", "INDEX_NAME", "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 DataType.TYPE_BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
-                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR }, null, null);
+                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER }, null, null);
         testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog,
                 "PRIMARY_KEY_1", "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" } });
         trace("getPrimaryKeys");

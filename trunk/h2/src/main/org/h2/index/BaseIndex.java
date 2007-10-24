@@ -206,11 +206,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public String getColumnListSQL() {
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0; i < indexColumns.length; i++) {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(columns[i].getSQL());
+            buff.append(indexColumns[i].getSQL());
         }
         return buff.toString();
     }

@@ -258,7 +258,7 @@ public class MultiVersionIndex implements Index {
     }
     
     void debug(String s, Session session, SearchRow row) throws SQLException {
-        // System.out.println(this + " " + s + " sess:" + (session == null ? -1: session.getId()) + " " + (row == null ? "" : row.getValue(0).getString()));
+        // System.out.println(this + " " + s + " session:" + (session == null ? -1: session.getId()) + " " + (row == null ? "" : row.getValue(0).getString()));
     }
 
 }

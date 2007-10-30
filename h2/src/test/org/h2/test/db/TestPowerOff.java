@@ -212,6 +212,10 @@ public class TestPowerOff extends TestBase {
         if (config.networked) {
             return;
         }
+        if (config.cipher != null) {
+            // this would take too long (setLength uses individual writes, many thousand operations)
+            return;
+        }
         deleteDb(dir, dbName);
 
         // ((JdbcConnection)conn).setPowerOffCount(Integer.MAX_VALUE);

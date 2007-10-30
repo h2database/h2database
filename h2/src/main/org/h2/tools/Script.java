@@ -5,7 +5,6 @@
 package org.h2.tools;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.Connection;
@@ -14,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -143,8 +141,6 @@ public class Script {
                 writer.println(s + ";");
             }
             writer.close();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);

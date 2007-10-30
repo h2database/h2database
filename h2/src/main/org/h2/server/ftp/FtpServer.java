@@ -4,16 +4,12 @@
  */
 package org.h2.server.ftp;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,9 +17,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 
-import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
@@ -54,7 +50,7 @@ public class FtpServer implements Service {
     private String readUserName = DEFAULT_READ;
     private HashMap tasks = new HashMap();
 
-    private FileSystemDatabase db;
+    private FileSystem fs;
     private boolean log;
     private boolean allowTask;
     static final String TASK_SUFFIX = ".task";
@@ -87,18 +83,18 @@ public class FtpServer implements Service {
         return dataSocket;
     }
 
-    void appendFile(StringBuffer buff, FileObject f) {
-        buff.append(f.isDirectory() ? 'd' : '-');
-        buff.append(f.canRead() ? 'r' : '-');
-        buff.append(f.canWrite() ? 'w' : '-');
+    void appendFile(StringBuffer buff, String fileName) throws SQLException {
+        buff.append(fs.isDirectory(fileName) ? 'd' : '-');
+        buff.append('r');
+        buff.append(fs.canWrite(fileName) ? 'w' : '-');
         buff.append("------- 1 owner group ");
-        String size = String.valueOf(f.length());
+        String size = String.valueOf(fs.length(fileName));
         for (int i = size.length(); i < 15; i++) {
             buff.append(' ');
         }
         buff.append(size);
         buff.append(' ');
-        Date now = new Date(), mod = new Date(f.lastModified());
+        Date now = new Date(), mod = new Date(fs.getLastModified(fileName));
         String date;
         if (mod.after(now) || Math.abs((now.getTime() - mod.getTime()) / 1000 / 60 / 60 / 24) > 180) {
             synchronized (dateFormatOld) {
@@ -111,17 +107,21 @@ public class FtpServer implements Service {
         }
         buff.append(date);
         buff.append(' ');
-        buff.append(f.getName());
+        buff.append(FileUtils.getFileName(fileName));
         buff.append("\r\n");
     }
 
-    String formatLastModified(FileObject file) {
+    String formatLastModified(String fileName) {
         synchronized (dateFormat) {
-            return dateFormat.format(new Date(file.lastModified()));
+            return dateFormat.format(new Date(fs.getLastModified(fileName)));
         }
     }
 
-    FileObject getFile(String path) {
+    String getFileName(String path) {
+        return root + getPath(path);
+    }
+    
+    String getPath(String path) {
         if (path.indexOf("..") > 0) {
             path = "/";
         }
@@ -131,21 +131,17 @@ public class FtpServer implements Service {
         while (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        log("file: " + root + path);
-        if (db != null) {
-            return FileObjectDatabase.get(db, root + path);
-        } else {
-            return FileObjectNative.get(root + path);
-        }
+        log("path: " + path);
+        return path;
     }
 
-    String getDirectoryListing(FileObject directory, boolean listDirectories) {
-        FileObject[] list = directory.listFiles();
+    String getDirectoryListing(String directory, boolean listDirectories) throws SQLException {
+        String[] list = fs.listFiles(directory);
         StringBuffer buff = new StringBuffer();
         for (int i = 0; list != null && i < list.length; i++) {
-            FileObject f = list[i];
-            if (f.isFile() || (f.isDirectory() && listDirectories)) {
-                appendFile(buff, f);
+            String fileName = list[i];
+            if (!fs.isDirectory(fileName) || (fs.isDirectory(fileName) && listDirectories)) {
+                appendFile(buff, fileName);
             }
         }
         return buff.toString();
@@ -164,7 +160,7 @@ public class FtpServer implements Service {
             if ("-ftpPort".equals(args[i])) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-ftpDir".equals(args[i])) {
-                root = FileUtils.translateFileName(args[++i]);
+                root = FileUtils.normalize(args[++i]);
             } else if ("-ftpRead".equals(args[i])) {
                 readUserName = args[++i];
             } else if ("-ftpWrite".equals(args[i])) {
@@ -177,17 +173,8 @@ public class FtpServer implements Service {
                 allowTask = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
-        if (root.startsWith("jdbc:")) {
-            Connection conn;
-            if (root.startsWith("jdbc:h2:")) {
-                // avoid using DriverManager if possible
-                conn = Driver.load().connect(root, new Properties());
-            } else {
-                conn = DriverManager.getConnection(root);
-            }
-            db = new FileSystemDatabase(conn, log);
-            root = "/";
-        }
+        fs = FileSystem.getInstance(root);
+        root = fs.normalize(root);
     }
 
     public String getURL() {
@@ -195,7 +182,7 @@ public class FtpServer implements Service {
     }
 
     public void start() throws SQLException {
-        getFile("").mkdirs();
+        fs.mkdirs(root);
         serverSocket = NetUtils.createServerSocket(port, false);
     }
 
@@ -245,31 +232,24 @@ public class FtpServer implements Service {
         return allowTask;
     }
 
-    void startTask(FileObject file) throws IOException {
-        stopTask(file);
-        String processName = file.getName();
-        if (file.getName().endsWith(".zip.task")) {
-            log("expand: " + file.getName());
-            Process p = Runtime.getRuntime().exec("jar -xf " + file.getName(), null, new File(root));
-            String processFile = root + "/" + processName;
-            new StreamRedirect(processFile, p.getInputStream(), null).start();
+    void startTask(String path) throws IOException {
+        stopTask(path);
+        if (path.endsWith(".zip.task")) {
+            log("expand: " + path);
+            Process p = Runtime.getRuntime().exec("jar -xf " + path, null, new File(root));
+            new StreamRedirect(path, p.getInputStream(), null).start();
             return;
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        file.read(0, out);
-        byte[] data = out.toByteArray();
-        Properties prop = new Properties();
-        prop.load(new ByteArrayInputStream(data));
+        Properties prop = FileUtils.loadProperties(path);
         String command = prop.getProperty("command");
-        String outFile = processName.substring(0, processName.length() - TASK_SUFFIX.length());
+        String outFile = path.substring(0, path.length() - TASK_SUFFIX.length());
         String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");
         String outputFile = root + "/" + prop.getProperty("output", outFile + ".out.txt");
-        String processFile = root + "/" + processName;
-        log("start process: " + processName + " / " + command);
+        log("start process: " + path + " / " + command);
         Process p = Runtime.getRuntime().exec(command, null, new File(root));
-        new StreamRedirect(processFile, p.getErrorStream(), errorFile).start();
-        new StreamRedirect(processFile, p.getInputStream(), outputFile).start();
-        tasks.put(processName, p);
+        new StreamRedirect(path, p.getErrorStream(), errorFile).start();
+        new StreamRedirect(path, p.getInputStream(), outputFile).start();
+        tasks.put(path, p);
     }
 
     private static class StreamRedirect extends Thread {
@@ -287,7 +267,7 @@ public class FtpServer implements Service {
         private void openOutput() {
             if (outFile != null) {
                 try {
-                    this.out = FileUtils.openFileOutputStream(outFile);
+                    this.out = FileUtils.openFileOutputStream(outFile, false);
                 } catch (Exception e) {
                     // ignore
                 }
@@ -316,14 +296,17 @@ public class FtpServer implements Service {
         }
     }
 
-    void stopTask(FileObject file) {
-        String processName = file.getName();
+    void stopTask(String processName) {
         log("kill process: " + processName);
         Process p = (Process) tasks.remove(processName);
         if (p == null) {
             return;
         }
         p.destroy();
+    }
+
+    public FileSystem getFileSystem() {
+        return fs;
     }
 
 }

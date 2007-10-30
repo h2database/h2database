@@ -54,7 +54,7 @@ public class BackupCommand extends Prepared {
         try {
             String name = db.getName();
             name = FileUtils.getFileName(name);
-            OutputStream zip = FileUtils.openFileOutputStream(fileName);
+            OutputStream zip = FileUtils.openFileOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
             LogSystem log = db.getLog();
             try {

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
@@ -37,6 +38,7 @@ import org.h2.store.FileStore;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.store.WriterThread;
+import org.h2.store.fs.FileSystem;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
@@ -51,7 +53,6 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
-import org.h2.util.MemoryFile;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -224,14 +225,8 @@ public class Database implements DataHandler {
         byte[] magicText = Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
         byte[] magicBinary = Constants.MAGIC_FILE_HEADER.getBytes();
         try {
-            byte[] magic;
-            if (FileUtils.isInMemory(fileName)) {
-                MemoryFile file = FileUtils.getMemoryFile(fileName);
-                magic = file.getMagic();
-            } else {
-                InputStream fin = FileUtils.openFileInputStream(fileName);
-                magic = IOUtils.readBytesAndClose(fin, magicBinary.length);
-            }
+            InputStream fin = FileUtils.openFileInputStream(fileName);
+            byte[] magic = IOUtils.readBytesAndClose(fin, magicBinary.length);
             if (ByteUtils.compareNotNull(magic, magicText) == 0) {
                 return true;
             } else if (ByteUtils.compareNotNull(magic, magicBinary) == 0) {
@@ -422,7 +417,7 @@ public class Database implements DataHandler {
         }
         dummy = DataPage.create(this, 0);
         if (persistent) {
-            if (readOnly || FileUtils.isInMemory(databaseName)) {
+            if (readOnly) {
                 traceSystem = new TraceSystem(null, false);
             } else {
                 traceSystem = new TraceSystem(databaseName + Constants.SUFFIX_TRACE_FILE, true);
@@ -1069,7 +1064,7 @@ public class Database implements DataHandler {
             boolean inTempDir = readOnly;
             String name = databaseName;
             if (!persistent) {
-                name = FileUtils.MEMORY_PREFIX + name;
+                name = FileSystem.MEMORY_PREFIX + name;
             }
             return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, inTempDir);
         } catch (IOException e) {

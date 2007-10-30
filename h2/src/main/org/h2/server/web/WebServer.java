@@ -42,21 +42,19 @@ public class WebServer implements Service {
     
     private static final String DEFAULT_LANGUAGE = "en";
     
-    /**
-     * Hungarian spec chars: &eacute;&#369;&aacute;&#337;&uacute;&ouml;&uuml;&oacute;&iacute;&Eacute;&Aacute;&#368;&#336;&Uacute;&Ouml;&Uuml;&Oacute;&Iacute;
-     */
     private static final String[][] LANGUAGES = {
-        { "en", "English" },
         { "de", "Deutsch" },
-        { "fr", "Fran\u00e7ais" },
+        { "en", "English" },
         { "es", "Espa\u00f1ol" },
-        { "zh_CN", "\u4E2D\u6587"},
-        { "ja", "\u65e5\u672c\u8a9e"},
+        { "fr", "Fran\u00e7ais" },
         { "hu", "Magyar"},
         { "in", "Indonesia"},
-        { "pt_PT", "Portugu\u00eas (Europeu)"},
-        { "pl", "Polski"},
         { "it", "Italiano"},
+        { "ja", "\u65e5\u672c\u8a9e"},
+        { "pl", "Polski"},
+        { "pt_PT", "Portugu\u00eas (Europeu)"},
+        { "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"},
+        { "zh_CN", "\u4E2D\u6587"},
     };
     
     private static final String[] GENERIC = new String[] {
@@ -76,6 +74,18 @@ public class WebServer implements Service {
         "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
     };
 
+/*
+    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
+        java.util.Locale.CHINESE.getDisplayLanguage(
+        java.util.Locale.CHINESE);
+       for(int i=0; i<lang.length(); i++)
+         System.out.println(Integer.toHexString(lang.charAt(i))+" ");    
+*/         
+    /**
+     * Hungarian spec chars: &eacute;&#369;&aacute;&#337;&uacute;&ouml;&uuml;&oacute;&iacute;&Eacute;&Aacute;&#368;&#336;&Uacute;&Ouml;&Uuml;&Oacute;&Iacute;
+     * Or use PropertiesToUTF8
+     */
+    
     // private URLClassLoader urlClassLoader;
     private String driverList;
     private static int ticker;
@@ -84,14 +94,6 @@ public class WebServer implements Service {
     private Set running = Collections.synchronizedSet(new HashSet());
     private boolean ssl;
     private HashMap connInfoMap = new HashMap();
-    
-/*
-    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
-        java.util.Locale.CHINESE.getDisplayLanguage(
-        java.util.Locale.CHINESE);
-       for(int i=0; i<lang.length(); i++)
-         System.out.println(Integer.toHexString(lang.charAt(i))+" ");    
-*/         
     
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // timeout is 30 min
     private long lastTimeoutCheck;
@@ -445,7 +447,7 @@ public class WebServer implements Service {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
             }
-            OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName());
+            OutputStream out = FileUtils.openFileOutputStream(getPropertiesFileName(), false);
             prop.store(out, Constants.SERVER_PROPERTIES_TITLE);
             out.close();
         } catch (Exception e) {

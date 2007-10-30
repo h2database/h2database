@@ -805,17 +805,22 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getStackTrace(int id, Throwable e) {
-        StringWriter writer = new StringWriter();
-        e.printStackTrace(new PrintWriter(writer));
-        String s = writer.toString();
-        s = PageParser.escapeHtml(s);
-        s = StringUtils.replaceAll(s, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-        String message = PageParser.escapeHtml(e.getMessage());
-        s = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
-                + "').style;x.display=x.display==''?'none':'';\">" + message
-                + "</a><span style=\"display: none;\" id=\"st" + id + "\"><br />" + s + "</span>";
-        s = formatAsError(s);
-        return s;
+        try {
+            StringWriter writer = new StringWriter();
+            e.printStackTrace(new PrintWriter(writer));
+            String s = writer.toString();
+            s = PageParser.escapeHtml(s);
+            s = StringUtils.replaceAll(s, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+            String message = PageParser.escapeHtml(e.getMessage());
+            s = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
+                    + "').style;x.display=x.display==''?'none':'';\">" + message
+                    + "</a><span style=\"display: none;\" id=\"st" + id + "\"><br />" + s + "</span>";
+            s = formatAsError(s);
+            return s;
+        } catch (OutOfMemoryError e2) {
+            e.printStackTrace();
+            return e.toString();
+        }
     }
 
     private String formatAsError(String s) {

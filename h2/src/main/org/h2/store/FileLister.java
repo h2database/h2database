@@ -4,7 +4,6 @@
  */
 package org.h2.store;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -35,12 +34,12 @@ public class FileLister {
      * @throws SQLException
      */
     public static ArrayList getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
-        dir = FileUtils.translateFileName(dir);
+        dir = FileUtils.normalize(dir);
         ArrayList files = new ArrayList();
         if (dir == null || dir.equals("")) {
             dir = ".";
         }
-        String start = db == null ? null : FileUtils.normalize(dir + File.separator + db);
+        String start = db == null ? null : FileUtils.normalize(dir + "/" + db);
         String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];
@@ -68,7 +67,7 @@ public class FileLister {
                 }
             }
             if (ok) {
-                if (db == null || FileUtils.fileStartsWith(f, start + ".") || FileUtils.isInMemory(dir)) {
+                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
                     String fileName = f;
                     files.add(fileName);
                 }

@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 import org.h2.server.web.DbContextRule;
 import org.h2.tools.Csv;
 import org.h2.util.Resources;
+import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
 public class Bnf {
@@ -254,6 +255,8 @@ public class Bnf {
         StringTokenizer tokenizer = new StringTokenizer(syntax, SEPARATORS, true);
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
+            // avoid duplicate strings
+            s = StringCache.get(s);
             if (s.length() == 1) {
                 if (" \r\n".indexOf(s.charAt(0)) >= 0) {
                     continue;

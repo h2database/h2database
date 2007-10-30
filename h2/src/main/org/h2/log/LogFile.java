@@ -97,6 +97,11 @@ public class LogFile {
         }
         String s = fileName.substring(fileNamePrefix.length() + 1, fileName.length()
                 - Constants.SUFFIX_LOG_FILE.length());
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return null;
+            }
+        }
         int id = Integer.parseInt(s);
         return new LogFile(log, id, fileNamePrefix);
     }

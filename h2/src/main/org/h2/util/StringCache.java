@@ -4,13 +4,13 @@
  */
 package org.h2.util;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 
 import org.h2.constant.SysProperties;
 
 public class StringCache {
     private static final boolean ENABLED = true;
-    private static WeakReference weakCache = new WeakReference(null);
+    private static SoftReference softCache = new SoftReference(null);
 
     // testing: cacheHit / miss are public!
     // public static int cacheHit = 0, cacheMiss = 0;
@@ -54,11 +54,11 @@ public class StringCache {
         } else if (s.length() == 0) {
             return "";
         }
-        String[] cache = (String[]) weakCache.get();
+        String[] cache = (String[]) softCache.get();
         int hash = s.hashCode();
         if (cache == null) {
             cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            weakCache = new WeakReference(cache);
+            softCache = new SoftReference(cache);
         }
         int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
         String cached = cache[index];
@@ -81,11 +81,11 @@ public class StringCache {
         } else if (s.length() == 0) {
             return "";
         }
-        String[] cache = (String[]) weakCache.get();
+        String[] cache = (String[]) softCache.get();
         int hash = s.hashCode();
         if (cache == null) {
             cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            weakCache = new WeakReference(cache);
+            softCache = new SoftReference(cache);
         }
         int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
         String cached = cache[index];
@@ -102,7 +102,7 @@ public class StringCache {
     }
     
     public static void clearCache() {
-        weakCache = new WeakReference(null);
+        softCache = new SoftReference(null);
     }
 
 }

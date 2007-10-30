@@ -71,7 +71,7 @@ public class ConvertTraceFile {
      * @param javaClassName
      * @throws IOException
      */
-    private void convertFile(String traceFileName, String javaClassName, String script) throws IOException {
+    private void convertFile(String traceFileName, String javaClassName, String script) throws IOException, SQLException {
         LineNumberReader reader = new LineNumberReader(FileUtils.openFileReader(traceFileName));
         PrintWriter javaWriter = new PrintWriter(FileUtils.openFileWriter(javaClassName + ".java", false));
         PrintWriter scriptWriter = new PrintWriter(FileUtils.openFileWriter(script, false));

@@ -46,7 +46,7 @@
 		<delete file="src/tools/org/h2/tools/code/CodeSwitch.class"/>
 	</target>
 
-	<target name="codeswitchPrepare">
+	<target name="codeswitchPrepare" depends="clean">
 		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/tools/code/CodeSwitch.java"/>
 	</target>
 

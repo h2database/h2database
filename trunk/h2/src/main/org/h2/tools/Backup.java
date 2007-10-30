@@ -88,13 +88,13 @@ public class Backup {
             }
             return;
         }
-        zipFileName = FileUtils.translateFileName(zipFileName);
+        zipFileName = FileUtils.normalize(zipFileName);
         if (FileUtils.exists(zipFileName)) {
             FileUtils.delete(zipFileName);
         }
         OutputStream out = null;
         try {
-            out = FileUtils.openFileOutputStream(zipFileName);
+            out = FileUtils.openFileOutputStream(zipFileName, false);
             ZipOutputStream zipOut = new ZipOutputStream(out);
             String base = "";
             for (int i = 0; i < list.size(); i++) {

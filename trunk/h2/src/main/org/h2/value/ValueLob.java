@@ -20,6 +20,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
@@ -621,7 +622,7 @@ public class ValueLob extends Value {
 
     private void copyFile(DataHandler handler, String fileName, String live) throws SQLException {
         synchronized (handler.getLobSyncObject()) {
-            FileUtils.copy(fileName, live);
+            FileSystem.getInstance(fileName).copy(fileName, live);
         }
     }
 

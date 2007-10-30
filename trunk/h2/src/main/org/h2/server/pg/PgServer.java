@@ -143,7 +143,10 @@ public class PgServer implements Service {
             PgServerThread c = (PgServerThread) list.get(i);
             c.close();
             try {
-                c.getThread().join(100);
+                Thread t = c.getThread();
+                if (t != null) {
+                    t.join(100);
+                }
             } catch (Exception e) {
                 // TODO log exception
                 e.printStackTrace();

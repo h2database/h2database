@@ -5,7 +5,6 @@
 package org.h2.store;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.ref.Reference;
 import java.sql.SQLException;
 
@@ -14,8 +13,9 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.security.SecureFileStore;
+import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
 import org.h2.util.TempFileDeleter;
 
 /**
@@ -31,7 +31,7 @@ public class FileStore {
     protected String name;
     protected DataHandler handler;
     private byte[] magic;
-    private RandomAccessFile file;
+    private FileObject file;
     private long filePos;
     private long fileLength;
     private Reference autoDeleteReference;
@@ -50,9 +50,7 @@ public class FileStore {
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher,
             byte[] key, int keyIterations) throws SQLException {
         FileStore store;
-        if (FileUtils.isInMemory(name)) {
-            store = new MemoryFileStore(handler, name, magic);
-        } else if (cipher == null) {
+        if (cipher == null) {
             store = new FileStore(handler, name, mode, magic);
         } else {
             store = new SecureFileStore(handler, name, mode, magic, cipher, key, keyIterations);
@@ -61,17 +59,18 @@ public class FileStore {
     }
 
     protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
+        FileSystem fs = FileSystem.getInstance(name);
         this.handler = handler;
         this.name = name;
         this.magic = magic;
         this.mode = mode;
         try {
-            FileUtils.createDirs(name);
-            if (FileUtils.exists(name) && !FileUtils.canWrite(name)) {
+            fs.createDirs(name);
+            if (fs.exists(name) && !fs.canWrite(name)) {
                 mode = "r";
                 this.mode = mode;
             }
-            file = FileUtils.openRandomAccessFile(name, mode);
+            file = fs.openFileObject(name, mode);
             if (mode.length() > 2) {
                 synchronousMode = true;
             }
@@ -124,7 +123,7 @@ public class FileStore {
             write(magic, 0, len);
             checkedWriting = true;
         } else {
-            // write unencrypted
+            // read unencrypted
             seek(0);
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
@@ -262,13 +261,13 @@ public class FileStore {
                 }
                 file.seek(pos);
             } else {
-                FileUtils.setLength(file, newLength);
+                file.setLength(newLength);
             }
             fileLength = newLength;
         } catch (IOException e) {
             if (freeUpDiskSpace()) {
                 try {
-                    FileUtils.setLength(file, newLength);
+                    file.setLength(newLength);
                 } catch (IOException e2) {
                     throw Message.convertIOException(e2, name);
                 }
@@ -289,7 +288,7 @@ public class FileStore {
             }
             if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
-                FileUtils.setLength(file, newLength);
+                file.setLength(newLength);
                 fileLength = newLength;
                 throw Message.getInternalError("unaligned file length " + name + " len " + len);
             }
@@ -314,7 +313,7 @@ public class FileStore {
 
     public void sync() {
         try {
-            file.getFD().sync();
+            file.sync();
         } catch (IOException e) {
             // TODO log exception
         }
@@ -340,7 +339,7 @@ public class FileStore {
 
     public void openFile() throws IOException {
         if (file == null) {
-            file = FileUtils.openRandomAccessFile(name, mode);
+            file = FileSystem.getInstance(name).openFileObject(name, mode);
             file.seek(filePos);
         }
     }

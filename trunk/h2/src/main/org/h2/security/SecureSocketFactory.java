@@ -149,7 +149,7 @@ public class SecureSocketFactory {
                 }
             }
             if (needWrite) {
-                OutputStream out = FileUtils.openFileOutputStream(fileName);
+                OutputStream out = FileUtils.openFileOutputStream(fileName, false);
                 out.write(data);
                 out.close();
             }

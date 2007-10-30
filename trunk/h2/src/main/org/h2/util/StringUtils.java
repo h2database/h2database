@@ -153,6 +153,18 @@ public class StringUtils {
                 case 'f':
                     buff.append('\f');
                     break;
+                case '#':
+                    // for properties files
+                    buff.append('#');
+                    break;
+                case '=':
+                    // for properties files
+                    buff.append('=');
+                    break;
+                case ':':
+                    // for properties files
+                    buff.append(':');
+                    break;
                 case '"':
                     buff.append('"');
                     break;

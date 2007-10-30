@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
 /**
@@ -337,6 +338,7 @@ public class Csv implements SimpleRowSource {
     private String readValue() throws IOException {
         endOfLine = false;
         String value = null;
+        outer:
         while (true) {
             int ch = readChar();
             if (ch < 0 || ch == '\r' || ch == '\n') {
@@ -362,7 +364,8 @@ public class Csv implements SimpleRowSource {
                 while (true) {
                     ch = readChar();
                     if (ch < 0) {
-                        return buff.toString();
+                        value = buff.toString();
+                        break outer;
                     } else if (ch == fieldDelimiter) {
                         ch = readChar();
                         if (ch == fieldDelimiter) {
@@ -425,7 +428,8 @@ public class Csv implements SimpleRowSource {
                 break;
             }
         }
-        return value;
+        // save memory
+        return StringCache.get(value);
     }
 
     private String unEscape(String s) {

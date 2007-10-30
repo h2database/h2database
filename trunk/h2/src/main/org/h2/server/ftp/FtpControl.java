@@ -11,8 +11,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 
 import org.h2.engine.Constants;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.StringUtils;
 
 public class FtpControl extends Thread {
@@ -20,6 +22,7 @@ public class FtpControl extends Thread {
     private static final String SERVER_NAME = "Small FTP Server";
 
     private FtpServer server;
+    private FileSystem fs;
     private Socket control;
     private FtpData data;
     private PrintWriter output;
@@ -34,6 +37,7 @@ public class FtpControl extends Thread {
 
     public FtpControl(Socket control, FtpServer server, boolean stop) {
         this.server = server;
+        this.fs = server.getFileSystem();
         this.control = control;
         this.stop = stop;
     }
@@ -70,7 +74,7 @@ public class FtpControl extends Thread {
         server.closeConnection();
     }
 
-    private void process(String command) throws IOException {
+    private void process(String command) throws SQLException, IOException {
         int idx = command.indexOf(' ');
         String param = "";
         if (idx >= 0) {
@@ -122,17 +126,17 @@ public class FtpControl extends Thread {
         }
     }
 
-    private void processConnected(String command, String param) throws IOException {
+    private void processConnected(String command, String param) throws SQLException, IOException {
         switch (command.charAt(0)) {
         case 'C':
             if ("CWD".equals(command)) {
-                param = getFileName(param);
-                FileObject file = server.getFile(param);
-                if (file.exists() && file.isDirectory()) {
-                    if (!param.endsWith("/")) {
-                        param += "/";
+                String path = getPath(param);
+                String fileName = getFileName(path);
+                if (fs.exists(fileName) && fs.isDirectory(fileName)) {
+                    if (!path.endsWith("/")) {
+                        path += "/";
                     }
-                    currentDir = param;
+                    currentDir = path;
                     reply(250, "Ok");
                 } else {
                     reply(550, "Failed");
@@ -149,10 +153,10 @@ public class FtpControl extends Thread {
             break;
         case 'D':
             if ("DELE".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (!readonly && file.exists() && file.isFile() && file.delete()) {
-                    if (server.getAllowTask() && param.endsWith(FtpServer.TASK_SUFFIX)) {
-                        server.stopTask(file);
+                String fileName = getFileName(param);
+                if (!readonly && fs.exists(fileName) && !fs.isDirectory(fileName) && fs.tryDelete(fileName)) {
+                    if (server.getAllowTask() && fileName.endsWith(FtpServer.TASK_SUFFIX)) {
+                        server.stopTask(fileName);
                     }
                     reply(250, "Ok");
                 } else {
@@ -167,12 +171,18 @@ public class FtpControl extends Thread {
             break;
         case 'M':
             if ("MKD".equals(command)) {
-                param = getFileName(param);
-                FileObject file = server.getFile(param);
-                if (!readonly && file.mkdirs()) {
-                    reply(257, "\"" + param + "\" directory"); // TODO quote ("
-                                                                // > "")
-                } else {
+                String fileName = getFileName(param);
+                boolean ok = false;
+                if (!readonly) {
+                    try {
+                        fs.mkdirs(fileName);
+                        reply(257, "\"" + param + "\" directory"); // TODO quote (" > "")
+                        ok = true;
+                    } catch (SQLException e) {
+                        server.logError(e);
+                    }
+                }
+                if (!ok) {
                     reply(500, "Failed");
                 }
             } else if ("MODE".equals(command)) {
@@ -182,9 +192,9 @@ public class FtpControl extends Thread {
                     reply(504, "Invalid");
                 }
             } else if ("MDTM".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (file.exists() && file.isFile()) {
-                    reply(213, server.formatLastModified(file));
+                String fileName = getFileName(param);
+                if (fs.exists(fileName) && !fs.isDirectory(fileName)) {
+                    reply(213, server.formatLastModified(fileName));
                 } else {
                     reply(550, "Failed");
                 }
@@ -199,8 +209,7 @@ public class FtpControl extends Thread {
             break;
         case 'P':
             if ("PWD".equals(command)) {
-                reply(257, "\"" + currentDir + "\" directory"); // TODO quote ("
-                                                                // > "")
+                reply(257, "\"" + currentDir + "\" directory"); // TODO quote (" > "")
             } else if ("PASV".equals(command)) {
                 ServerSocket dataSocket = server.createDataSocket();
                 data = new FtpData(server, control.getInetAddress(), dataSocket);
@@ -212,10 +221,9 @@ public class FtpControl extends Thread {
             break;
         case 'R':
             if ("RNFR".equals(command)) {
-                param = getFileName(param);
-                FileObject file = server.getFile(param);
-                if (file.exists()) {
-                    renameFrom = param;
+                String fileName = getFileName(param);
+                if (fs.exists(fileName)) {
+                    renameFrom = fileName;
                     reply(350, "Ok");
                 } else {
                     reply(450, "Not found");
@@ -224,22 +232,31 @@ public class FtpControl extends Thread {
                 if (renameFrom == null) {
                     reply(503, "RNFR required");
                 } else {
-                    FileObject fileOld = server.getFile(renameFrom);
-                    FileObject fileNew = server.getFile(getFileName(param));
-                    if (!readonly && fileOld.renameTo(fileNew)) {
-                        reply(250, "Ok");
-                    } else {
+                    String fileOld = renameFrom;
+                    String fileNew = getFileName(param);
+                    boolean ok = false;
+                    if (!readonly) {
+                        try {
+                            fs.rename(fileOld, fileNew);
+                            reply(250, "Ok");
+                            ok = true;
+                        } catch (SQLException e) {
+                            server.logError(e);
+                        }
+                    }
+                    if (!ok) {
                         reply(550, "Failed");
                     }
                 }
             } else if ("RETR".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (file.exists() && file.isFile()) {
+                String fileName = getFileName(param);
+                if (fs.exists(fileName) && !fs.isDirectory(fileName)) {
                     reply(150, "Starting transfer");
                     try {
-                        data.send(file, restart);
+                        data.send(fs, fileName, restart);
                         reply(226, "Ok");
                     } catch (IOException e) {
+                        server.logError(e);
                         reply(426, "Failed");
                     }
                     restart = 0;
@@ -249,8 +266,8 @@ public class FtpControl extends Thread {
                     // reply(426, "Not a file");
                 }
             } else if ("RMD".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (!readonly && file.exists() && file.isDirectory() && file.delete()) {
+                String fileName = getFileName(param);
+                if (!readonly && fs.exists(fileName) && fs.isDirectory(fileName) && fs.tryDelete(fileName)) {
                     reply(250, "Ok");
                 } else {
                     reply(500, "Failed");
@@ -270,23 +287,24 @@ public class FtpControl extends Thread {
             } else if ("SITE".equals(command)) {
                 reply(500, "Not understood");
             } else if ("SIZE".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (file.exists() && file.isFile()) {
-                    reply(250, String.valueOf(file.length()));
+                param = getFileName(param);
+                if (fs.exists(param) && !fs.isDirectory(param)) {
+                    reply(250, String.valueOf(fs.length(param)));
                 } else {
                     reply(500, "Failed");
                 }
             } else if ("STOR".equals(command)) {
-                FileObject file = server.getFile(getFileName(param));
-                if (!readonly && !file.exists() || file.isFile()) {
+                String fileName = getFileName(param);
+                if (!readonly && !fs.exists(fileName) || !fs.isDirectory(fileName)) {
                     reply(150, "Starting transfer");
                     try {
-                        data.receive(file);
+                        data.receive(fs, fileName);
                         if (server.getAllowTask() && param.endsWith(FtpServer.TASK_SUFFIX)) {
-                            server.startTask(file);
+                            server.startTask(fileName);
                         }
                         reply(226, "Ok");
-                    } catch (IOException e) {
+                    } catch (Exception e) {
+                        server.logError(e);
                         reply(426, "Failed");
                     }
                 } else {
@@ -318,15 +336,19 @@ public class FtpControl extends Thread {
     }
 
     private String getFileName(String file) {
-        return file.startsWith("/") ? file : currentDir + file;
+        return server.getFileName(file.startsWith("/") ? file : currentDir + file);
     }
 
-    private void processList(String param, boolean directories) throws IOException {
-        FileObject directory = server.getFile(getFileName(param));
-        if (!directory.exists()) {
+    private String getPath(String path) {
+        return path.startsWith("/") ? path : currentDir + path;
+    }
+
+    private void processList(String param, boolean directories) throws SQLException, IOException {
+        String directory = getFileName(param);
+        if (!fs.exists(directory)) {
             reply(450, "Directory does not exist");
             return;
-        } else if (!directory.isDirectory()) {
+        } else if (!fs.isDirectory(directory)) {
             reply(450, "Not a directory");
             return;
         }

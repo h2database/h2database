@@ -271,7 +271,7 @@ public class Recover implements DataHandler {
         }
     }
 
-    private static PrintWriter getWriter(String fileName, String suffix) throws IOException {
+    private static PrintWriter getWriter(String fileName, String suffix) throws IOException, SQLException {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         System.out.println("Created file: " + outputFile);
@@ -310,7 +310,7 @@ public class Recover implements DataHandler {
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
-            out = FileUtils.openFileOutputStream(n);
+            out = FileUtils.openFileOutputStream(n, false);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, "r", magic);

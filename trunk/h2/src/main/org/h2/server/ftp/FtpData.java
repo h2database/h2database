@@ -10,6 +10,10 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
+
+import org.h2.store.fs.FileSystem;
+import org.h2.util.IOUtils;
 
 public class FtpData extends Thread {
 
@@ -58,22 +62,27 @@ public class FtpData extends Thread {
         socket = null;
     }
 
-    public synchronized void receive(FileObject file) throws IOException {
+    public synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
         waitUntilConnected();
         try {
             InputStream in = socket.getInputStream();
-            file.write(in);
+            OutputStream out = fs.openFileOutputStream(fileName, false);
+            IOUtils.copy(in, out);
+            out.close();
         } finally {
             socket.close();
         }
         server.log("closed");
     }
 
-    public synchronized void send(FileObject file, long skip) throws IOException {
+    public synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
         waitUntilConnected();
         try {
             OutputStream out = socket.getOutputStream();
-            file.read(skip, out);
+            InputStream in = fs.openFileInputStream(fileName);
+            in.skip(skip);
+            IOUtils.copy(in, out);
+            in.close();
         } finally {
             socket.close();
         }

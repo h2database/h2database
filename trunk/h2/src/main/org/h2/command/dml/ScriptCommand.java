@@ -376,7 +376,7 @@ public class ScriptCommand extends ScriptBase {
         }
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT BDATA FROM SYSTEM_LOB_STREAM WHERE ID=" + id + " ORDER BY PART");
-        OutputStream out = FileUtils.openFileOutputStream(TEMP_LOB_FILENAME);
+        OutputStream out = FileUtils.openFileOutputStream(TEMP_LOB_FILENAME, false);
         while (rs.next()) {
             InputStream in = rs.getBinaryStream(1);
             IOUtils.copyAndCloseInput(in, out);

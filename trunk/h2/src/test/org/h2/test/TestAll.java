@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.server.TcpServer;
+import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBatchUpdates;
@@ -77,6 +78,7 @@ import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
+import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMultiThreadedKernel;
@@ -93,7 +95,6 @@ import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.FileUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -141,6 +142,19 @@ java org.h2.test.TestAll timer
 
 /*
 
+replicating file system
+
+test DbStarter
+
+TestFileSystem
+
+create table test(id int, name varchar);
+insert into test select x, '' from system_range(1, 10000);
+-- fast
+update test set name = 'y' where cast(id as varchar) like '1%';
+-- slow
+update test set name = 'x' where id in (select x from system_range(1, 10000) where cast(x as varchar) like '1%');
+drop table test;
 
 ----
 A file is sent although the Japanese translation has not been completed yet.
@@ -484,6 +498,7 @@ write tests using the PostgreSQL JDBC driver
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
+        new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
@@ -575,7 +590,7 @@ write tests using the PostgreSQL JDBC driver
     }
 
     public void beforeTest() throws SQLException {
-        FileUtils.deleteRecursive("trace.db");
+        FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {
             TcpServer.logInternalErrors = true;
             String[] args = ssl ? new String[] { "-tcpSSL", "true" } : new String[0];
@@ -590,7 +605,7 @@ write tests using the PostgreSQL JDBC driver
     }
 
     public void afterTest() throws SQLException {
-        FileUtils.deleteRecursive("trace.db");
+        FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked && server != null) {
             server.stop();
         }

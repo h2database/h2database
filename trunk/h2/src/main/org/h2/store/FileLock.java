@@ -21,6 +21,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.RandomUtils;
@@ -46,6 +47,7 @@ public class FileLock {
     private  int sleep;
     private long lastWrite;
     private Properties properties;
+    private FileSystem fs;
     private volatile String fileName;
     private volatile ServerSocket socket;
     private boolean locked;
@@ -59,6 +61,7 @@ public class FileLock {
     }
 
     public synchronized void lock(String fileName, boolean allowSocket) throws SQLException {
+        this.fs = FileSystem.getInstance(fileName);
         this.fileName = fileName;
         if (locked) {
             throw Message.getInternalError("already locked");
@@ -95,7 +98,7 @@ public class FileLock {
         try {
             if (fileName != null) {
                 if (load().equals(properties)) {
-                    FileUtils.delete(fileName);
+                    fs.delete(fileName);
                 }
             }
             if (socket != null) {
@@ -111,14 +114,14 @@ public class FileLock {
 
     void save() throws SQLException {
         try {
-            OutputStream out = FileUtils.openFileOutputStream(fileName);
+            OutputStream out = fs.openFileOutputStream(fileName, false);
             try {
                 properties.setProperty("method", String.valueOf(method));
                 properties.store(out, MAGIC);
             } finally {
                 out.close();
             }
-            lastWrite = FileUtils.getLastModified(fileName);
+            lastWrite = fs.getLastModified(fileName);
             trace.debug("save " + properties);
         } catch (IOException e) {
             throw getException(e);
@@ -137,7 +140,7 @@ public class FileLock {
 
     private void waitUntilOld() throws SQLException {
         for (int i = 0; i < 10; i++) {
-            long last = FileUtils.getLastModified(fileName);
+            long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
                 throw error("Lock file modified in the future: dist=" + dist);
@@ -161,7 +164,7 @@ public class FileLock {
         byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
         String random = ByteUtils.convertBytesToString(bytes);
         properties.setProperty("id", Long.toHexString(System.currentTimeMillis())+random);
-        if (!FileUtils.createNewFile(fileName)) {
+        if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
             if (!m2.equals(FILE)) {
@@ -172,8 +175,8 @@ public class FileLock {
             if (!load().equals(properties)) {
                 throw error("Locked by another process");
             }
-            FileUtils.delete(fileName);
-            if (!FileUtils.createNewFile(fileName)) {
+            fs.delete(fileName);
+            if (!fs.createNewFile(fileName)) {
                 throw error("Another process was faster");
             }
         }
@@ -189,7 +192,7 @@ public class FileLock {
                     while (fileName != null) {
                         // trace.debug("watchdog check");
                         try {
-                            if (!FileUtils.exists(fileName) || FileUtils.getLastModified(fileName) != lastWrite) {
+                            if (!fs.exists(fileName) || fs.getLastModified(fileName) != lastWrite) {
                                 save();
                             }
                             Thread.sleep(sleep);
@@ -218,9 +221,9 @@ public class FileLock {
         } catch (UnknownHostException e) {
             throw getException(e);
         }
-        if (!FileUtils.createNewFile(fileName)) {
+        if (!fs.createNewFile(fileName)) {
             waitUntilOld();
-            long read = FileUtils.getLastModified(fileName);
+            long read = fs.getLastModified(fileName);
             Properties p2 = load();
             String m2 = p2.getProperty("method", SOCKET);
             if (m2.equals(FILE)) {
@@ -254,11 +257,11 @@ public class FileLock {
                     throw error("IOException");
                 }
             }
-            if (read != FileUtils.getLastModified(fileName)) {
+            if (read != fs.getLastModified(fileName)) {
                 throw error("Concurrent update");
             }
-            FileUtils.delete(fileName);
-            if (!FileUtils.createNewFile(fileName)) {
+            fs.delete(fileName);
+            if (!fs.createNewFile(fileName)) {
                 throw error("Another process was faster");
             }
         }

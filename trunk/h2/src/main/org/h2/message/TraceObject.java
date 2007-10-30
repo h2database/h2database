@@ -4,7 +4,6 @@
  */
 package org.h2.message;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -189,7 +188,7 @@ public class TraceObject {
                     e.printStackTrace(p);
                     p.close();
                     writer.close();
-                } catch (IOException e2) {
+                } catch (Exception e2) {
                     e2.printStackTrace();
                 }
             }

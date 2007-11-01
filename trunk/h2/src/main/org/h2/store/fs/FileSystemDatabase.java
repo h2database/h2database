@@ -357,7 +357,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
-        return new FileInputStream(openFileObject(fileName, "r"));
+        return new FileObjectInputStream(openFileObject(fileName, "r"));
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
@@ -382,7 +382,7 @@ public class FileSystemDatabase extends FileSystem {
 
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         try {
-            return new FileOutputStream(openFileObject(fileName, "rw"), append);
+            return new FileObjectOutputStream(openFileObject(fileName, "rw"), append);
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }

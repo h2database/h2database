@@ -5,7 +5,6 @@
 package org.h2.server.pg;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
@@ -159,7 +158,7 @@ public class PgServer implements Service {
             return false;
         }
         try {
-            Socket s = NetUtils.createSocket(InetAddress.getLocalHost(), serverSocket.getLocalPort(), false);
+            Socket s = NetUtils.createLoopbackSocket(serverSocket.getLocalPort(), false);
             s.close();
             return true;
         } catch (Exception e) {

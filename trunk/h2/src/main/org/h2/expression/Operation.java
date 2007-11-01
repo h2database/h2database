@@ -121,6 +121,9 @@ public class Operation extends Expression {
         switch (opType) {
         case NEGATE:
             dataType = left.getType();
+            if (dataType == Value.UNKNOWN) {
+                dataType = Value.DECIMAL;
+            }
             break;
         case CONCAT:
             right = right.optimize(session);
@@ -136,7 +139,7 @@ public class Operation extends Expression {
             right = right.optimize(session);
             int l = left.getType();
             int r = right.getType();
-            if (l == Value.NULL && r == Value.NULL) {
+            if ((l == Value.NULL && r == Value.NULL) || (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
                 // example: (? + ?) - the most safe data type is probably
                 // decimal
                 dataType = Value.DECIMAL;

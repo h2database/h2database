@@ -322,6 +322,10 @@ public class Session implements SessionInterface {
     }
 
     public void unlockReadLocks() {
+        if (database.isMultiVersion()) {
+            // MVCC: keep shared locks (insert / update / delete)
+            return;
+        }
         for (int i = 0; i < locks.size(); i++) {
             Table t = (Table) locks.get(i);
             if (!t.isLockedExclusively()) {

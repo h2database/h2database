@@ -47,6 +47,19 @@ public class TestMVCC extends TestBase {
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
         
+        s1.execute("create table test(id int primary key)");
+        s1.execute("insert into test values(1)");
+        try {
+            s2.execute("drop table test");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            // lock timeout expected
+            checkNotGeneralException(e);
+        }
+        c1.rollback();
+        s2.execute("drop table test");
+        c2.rollback();
+        
         s1.execute("create table test(id int primary key, name varchar(255))");
         s2.execute("insert into test values(4, 'Hello')");
         c2.rollback();
@@ -176,6 +189,7 @@ public class TestMVCC extends TestBase {
             s1.execute("SELECT * FROM TEST ORDER BY ID");
             s2.execute("SELECT * FROM TEST ORDER BY ID");
         }
+        c2.rollback();
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
@@ -215,6 +229,7 @@ public class TestMVCC extends TestBase {
             s1.execute("SELECT * FROM TEST ORDER BY ID");
             s2.execute("SELECT * FROM TEST ORDER BY ID");
         }
+        c2.rollback();
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();

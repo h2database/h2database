@@ -17,17 +17,40 @@ import org.h2.security.SecureSocketFactory;
 
 public class NetUtils {
     
-    public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException, SQLException {
-        InetAddress address = InetAddress.getByName("127.0.0.1");
-        return createSocket(address, port, ssl);
+    public static Socket createLoopbackSocket(int port, boolean ssl) throws SQLException {
+        return createSocket("127.0.0.1", port, ssl);
     }
     
-    public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException, SQLException {
-        if (ssl) {
-            SecureSocketFactory f = SecureSocketFactory.getInstance();
-            return f.createSocket(address, port);
-        } else {
-            return new Socket(address, port);
+    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws SQLException {
+        int port = defaultPort;
+        // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
+        // '[a:b:c:d:e:f:g:h]:port'
+        // RFC 2396 format is 'a.b.c.d' or 'a.b.c.d:port' or 'hostname' or
+        // 'hostname:port'
+        int startIndex = server.startsWith("[") ? server.indexOf(']') : 0;
+        int idx = server.indexOf(':', startIndex);
+        if (idx >= 0) {
+            port = MathUtils.decodeInt(server.substring(idx + 1));
+            server = server.substring(0, idx);
+        }
+        try {
+            InetAddress address = InetAddress.getByName(server);
+            return createSocket(address, port, ssl);
+        } catch (IOException e) {
+            throw Message.convert(e);
+        }
+    }
+    
+    public static Socket createSocket(InetAddress address, int port, boolean ssl) throws SQLException {
+        try {
+            if (ssl) {
+                SecureSocketFactory f = SecureSocketFactory.getInstance();
+                return f.createSocket(address, port);
+            } else {
+                return new Socket(address, port);
+            }
+        } catch (IOException e) {
+            throw Message.convert(e);
         }
     }
 

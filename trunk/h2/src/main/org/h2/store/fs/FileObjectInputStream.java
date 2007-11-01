@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class FileInputStream extends InputStream {
+public class FileObjectInputStream extends InputStream {
     
     private FileObject file;
     private byte[] buffer = new byte[1];
     
-    FileInputStream(FileObject file) {
+    FileObjectInputStream(FileObject file) {
         this.file = file;
     }
 

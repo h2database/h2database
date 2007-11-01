@@ -1,3 +1,5 @@
+select instr('asgisj','s', -1) from dual;
+> 5;
 CREATE TABLE TEST(ID INT);
 INSERT INTO TEST VALUES(1), (2), (3);
 create index idx_desc on test(id desc);

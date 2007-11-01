@@ -7,12 +7,12 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class FileOutputStream extends OutputStream {
+public class FileObjectOutputStream extends OutputStream {
 
     private FileObject file;
     private byte[] buffer = new byte[1];
     
-    FileOutputStream(FileObject file, boolean append) throws IOException {
+    FileObjectOutputStream(FileObject file, boolean append) throws IOException {
         this.file = file;
         if (append) {
             file.seek(file.length());

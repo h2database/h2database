@@ -1128,8 +1128,13 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static int locate(String search, String s, int start) {
-        int i = (start < 0) ? 0 : start - 1;
-        return s.indexOf(search, i) + 1;
+        if (start < 0) {
+            int i = s.length() + start;
+            return s.lastIndexOf(search, i) + 1;
+        } else {
+            int i = (start == 0) ? 0 : start - 1;
+            return s.indexOf(search, i) + 1;
+        }
     }
 
     private static String right(String s, int count) {

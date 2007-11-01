@@ -5,7 +5,6 @@
 package org.h2.engine;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.sql.SQLException;
 
@@ -21,7 +20,6 @@ import org.h2.message.TraceSystem;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.util.FileUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
@@ -61,19 +59,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private Object lobSyncObject = new Object();
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
-        int port = Constants.DEFAULT_SERVER_PORT;
-        // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
-        // '[a:b:c:d:e:f:g:h]:port'
-        // RFC 2396 format is 'a.b.c.d' or 'a.b.c.d:port' or 'hostname' or
-        // 'hostname:port'
-        int startIndex = server.startsWith("[") ? server.indexOf(']') : 0;
-        int idx = server.indexOf(':', startIndex);
-        if (idx >= 0) {
-            port = MathUtils.decodeInt(server.substring(idx + 1));
-            server = server.substring(0, idx);
-        }
-        InetAddress address = InetAddress.getByName(server);
-        Socket socket = NetUtils.createSocket(address, port, ci.isSSL());
+        Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
         Transfer trans = new Transfer(this);
         trans.setSocket(socket);
         trans.init();

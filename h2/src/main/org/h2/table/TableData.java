@@ -316,11 +316,17 @@ public class TableData extends Table implements RecordReader {
                 if (lockExclusive == session) {
                     return;
                 }
+                if (!force && database.isMultiVersion()) {
+                    // MVCC: update, delete, and insert use a shared lock
+                    // but select doesn't lock
+                    if (exclusive) {
+                        exclusive = false;
+                    } else {
+                        return;
+                    }
+                }
                 if (exclusive) {
                     if (lockExclusive == null) {
-                        if (!force && database.isMultiVersion()) {
-                            return;
-                        }
                         if (lockShared.isEmpty()) {
                             traceLock(session, exclusive, "added for");
                             session.addLock(this);
@@ -333,11 +339,8 @@ public class TableData extends Table implements RecordReader {
                         }
                     }
                 } else {
-                    if (!force && database.isMultiVersion()) {
-                        return;
-                    }
                     if (lockExclusive == null) {
-                        if (lockMode == Constants.LOCK_MODE_READ_COMMITTED && !SysProperties.multiThreadedKernel) {
+                        if (lockMode == Constants.LOCK_MODE_READ_COMMITTED && !SysProperties.multiThreadedKernel && !database.isMultiVersion()) {
                             // READ_COMMITTED read locks are acquired but they
                             // are released immediately
                             // when allowing only one thread, no read locks are

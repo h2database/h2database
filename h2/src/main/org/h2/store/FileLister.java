@@ -34,11 +34,11 @@ public class FileLister {
      * @throws SQLException
      */
     public static ArrayList getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
-        dir = FileUtils.normalize(dir);
-        ArrayList files = new ArrayList();
         if (dir == null || dir.equals("")) {
             dir = ".";
         }
+        dir = FileUtils.normalize(dir);
+        ArrayList files = new ArrayList();
         String start = db == null ? null : FileUtils.normalize(dir + "/" + db);
         String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {

@@ -132,6 +132,13 @@ public class TestPreparedStatement extends TestBase {
         } catch (SQLException e) {
             // expected
         }
+        PreparedStatement prep = conn.prepareStatement("SELECT -?");
+        prep.setInt(1, 1);
+        prep.execute();
+        prep = conn.prepareStatement("SELECT ?-?");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        prep.execute();
     }
     
     private void testCancelReuse(Connection conn) throws Exception {

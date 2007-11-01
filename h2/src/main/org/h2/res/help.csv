@@ -2108,6 +2108,7 @@ INSTR(string, searchString, [, startInt]): int
 ","
 Returns the location of a search string in a string (s).
 If a start position is used, the characters before it are ignored.
+If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
 ","
 INSTR(EMAIL,'@')
@@ -2154,6 +2155,7 @@ LOCATE(searchString, string [, startInt]): int
 ","
 Returns the location of a search string in a string (s).
 If a start position is used, the characters before it are ignored.
+If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
 ","
 LOCATE('.', NAME)

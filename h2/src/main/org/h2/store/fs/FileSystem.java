@@ -15,18 +15,21 @@ public abstract class FileSystem {
     public static final String MEMORY_PREFIX = "memFS:";
     public static final String MEMORY_PREFIX_LZF = "memLZF:";
     public static final String DB_PREFIX = "jdbc:";
+    public static final String ZIP_PREFIX = "zip:";
     
     public static FileSystem getInstance(String fileName) {
         if (isInMemory(fileName)) {
             return FileSystemMemory.getInstance();
         } else if (fileName.startsWith(DB_PREFIX)) {
             return FileSystemDatabase.getInstance(fileName);
+        } else if (fileName.startsWith(ZIP_PREFIX)) {
+            return FileSystemZip.getInstance();
         }
         return FileSystemDisk.getInstance();
     }
     
     private static boolean isInMemory(String fileName) {
-        return fileName != null && fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_LZF);
+        return fileName != null && (fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_LZF));
     }    
   
     public abstract long length(String fileName);

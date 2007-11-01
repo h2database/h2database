@@ -148,14 +148,14 @@ public class FileSystemMemory extends FileSystem {
 
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         try {
-            return new FileOutputStream(getMemoryFile(fileName), append);
+            return new FileObjectOutputStream(getMemoryFile(fileName), append);
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
     }
     
     public InputStream openFileInputStream(String fileName) throws IOException {
-        return new FileInputStream(getMemoryFile(fileName));
+        return new FileObjectInputStream(getMemoryFile(fileName));
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {

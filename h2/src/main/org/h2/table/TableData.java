@@ -311,19 +311,19 @@ public class TableData extends Table implements RecordReader {
             return;
         }
         long max = System.currentTimeMillis() + session.getLockTimeout();
+        if (!force && database.isMultiVersion()) {
+            // MVCC: update, delete, and insert use a shared lock
+            // select doesn't lock
+            if (exclusive) {
+                exclusive = false;
+            } else {
+                return;
+            }
+        }
         synchronized (database) {
             while (true) {
                 if (lockExclusive == session) {
                     return;
-                }
-                if (!force && database.isMultiVersion()) {
-                    // MVCC: update, delete, and insert use a shared lock
-                    // but select doesn't lock
-                    if (exclusive) {
-                        exclusive = false;
-                    } else {
-                        return;
-                    }
                 }
                 if (exclusive) {
                     if (lockExclusive == null) {

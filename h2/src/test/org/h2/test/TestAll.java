@@ -142,15 +142,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-
-TODO history:
-Math operations using unknown data types (for example -? and ?+?) are now interpreted as decimal.
-INSTR, LOCATE: backward searching is not supported by using a negative start position
-
-TODO doc:
-MVCC still locks the table exclusively when adding or removing columns and when dropping the table.
-Also, a shared lock is still added when inserting or removing rows.
-
 replicating file system
 background thread writing file system (all writes)
 

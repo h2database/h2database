@@ -20,6 +20,8 @@ Advanced Topics
     Linked Tables</a><br />
 <a href="#transaction_isolation">
     Transaction Isolation</a><br />
+<a href="#mvcc">
+    Multi-Version Concurrency Control (MVCC)</a><br />
 <a href="#clustering">
     Clustering / High Availability</a><br />
 <a href="#two_phase_commit">
@@ -174,6 +176,26 @@ lock commits and it is then possible to get the lock. If this is not possible be
 the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
+</p>
+
+<br /><a name="mvcc"></a>
+<h2>Multi-Version Concurrency Control (MVCC)</h2>
+<p>
+The MVCC feature allows higher concurrency than using (table level or row level) locks. 
+When using MVCC in this database, delete, insert and update operations will only issue a 
+shared lock on the table. Table are still locked exclusively when adding or removing columns, 
+when dropping the table, and when using SELECT ... FOR UPDATE. Connections
+only 'see' committed data, and own changes. That means, if connection A updates
+a row but doesn't commit this change yet, connection B will see the old value.
+Only when the change is committed, the new value is visible by other connections
+(read committed). If multiple connections concurrently try to update the same row, this
+database fails fast: a concurrent update exception is thrown. 
+</p>
+<p>
+To use the MVCC feature, append MVCC=TRUE to the database URL:
+<pre>
+jdbc:h2:~/test;MVCC=TRUE
+</pre>
 </p>
 
 <br /><a name="clustering"></a>

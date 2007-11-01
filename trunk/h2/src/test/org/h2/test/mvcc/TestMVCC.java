@@ -40,13 +40,14 @@ public class TestMVCC extends TestBase {
 
         DeleteDbFiles.execute(null, "test", true);
         Class.forName("org.h2.Driver");
-        c1 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE", "sa", "sa");
+        c1 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE;LOCK_TIMEOUT=10", "sa", "sa");
         s1 = c1.createStatement();
-        c2 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE", "sa", "sa");
+        c2 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE;LOCK_TIMEOUT=10", "sa", "sa");
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
         
+        // it should not be possible to drop a table when an uncommitted transaction changed something
         s1.execute("create table test(id int primary key)");
         s1.execute("insert into test values(1)");
         try {
@@ -59,6 +60,23 @@ public class TestMVCC extends TestBase {
         c1.rollback();
         s2.execute("drop table test");
         c2.rollback();
+        
+        // select for update should do an exclusive lock, even with mvcc
+        s1.execute("create table test(id int primary key, name varchar(255))");
+        s1.execute("insert into test values(1, 'y')");
+        c1.commit();
+        s2.execute("select * from test for update");
+        try {
+            s1.execute("insert into test values(2, 'x')");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            // lock timeout expected
+            checkNotGeneralException(e);
+        }
+        c2.rollback();
+        s1.execute("drop table test");
+        c1.commit();
+        c2.commit();
         
         s1.execute("create table test(id int primary key, name varchar(255))");
         s2.execute("insert into test values(4, 'Hello')");

@@ -87,7 +87,7 @@ public class ObjectArray {
 
     private void ensureCapacity(int i) {
         while (i >= data.length) {
-            Object[] d = new Object[data.length * 2];
+            Object[] d = new Object[Math.max(SIZE_INIT, data.length * 2)];
             System.arraycopy(data, 0, d, 0, data.length);
             data = d;
         }

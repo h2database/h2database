@@ -667,18 +667,6 @@ public class Select extends Query {
         return expressions;
     }
 
-    public Expression getCondition() {
-        return condition;
-    }
-
-    public boolean isDistinct() {
-        return distinct;
-    }
-
-    public ObjectArray getGroupBy() {
-        return group;
-    }
-
     public void setForUpdate(boolean b) {
         this.isForUpdate = b;
     }

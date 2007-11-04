@@ -223,10 +223,6 @@ public class TcpServer implements Service {
         running.remove(t);
     }
 
-    boolean getLog() {
-        return log;
-    }
-
     String getBaseDir() {
         return baseDir;
     }

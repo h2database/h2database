@@ -170,10 +170,6 @@ public class LogSystem {
         }
     }
 
-    boolean needMoreUndo() {
-        return sessions.size() > 0;
-    }
-
     void addUndoLogRecord(LogFile log, int logRecordId, int sessionId) {
         LogRecord record = new LogRecord(log, logRecordId, sessionId);
         undo.add(record);

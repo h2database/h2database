@@ -163,7 +163,7 @@ public abstract class Query extends Prepared {
                 }
             } else {
                 String s = e.getSQL();
-                for (int j = 0; j < expressionSQL.size(); j++) {
+                for (int j = 0; expressionSQL != null && j < expressionSQL.size(); j++) {
                     String s2 = (String) expressionSQL.get(j);
                     if (s2.equals(s)) {
                         idx = j;

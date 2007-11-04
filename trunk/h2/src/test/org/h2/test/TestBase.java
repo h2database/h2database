@@ -138,6 +138,9 @@ public abstract class TestBase {
         if (config.mvcc) {
             url += ";MVCC=TRUE";
         }
+        if (config.cache2Q) {
+            url += ";CACHE_TYPE=TQ";
+        }
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";
         }

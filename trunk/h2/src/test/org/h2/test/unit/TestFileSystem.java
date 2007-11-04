@@ -18,19 +18,22 @@ import org.h2.test.TestBase;
 public class TestFileSystem extends TestBase {
 
     public void test() throws Exception {
-        testFileSystem(FileSystem.getInstance(FileSystemMemory.MEMORY_PREFIX));
-        testFileSystem(FileSystem.getInstance(baseDir + "/fs"));
-        testFileSystem(FileSystem.getInstance(FileSystemMemory.MEMORY_PREFIX_LZF));
+        testFileSystem(FileSystemMemory.MEMORY_PREFIX);
+        testFileSystem(baseDir + "/fs");
+        testFileSystem(FileSystemMemory.MEMORY_PREFIX_LZF);
+        int test;
+//        testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=0/");
     }
 
-    private void testFileSystem(FileSystem fs) throws Exception {
-        testTempFile(fs);
-        testRandomAccess(fs);
+    private void testFileSystem(String fsBase) throws Exception {
+        testTempFile(fsBase);
+        testRandomAccess(fsBase);
     }
     
-    private void testRandomAccess(FileSystem fs) throws Exception {
-        String s = fs.createTempFile("temp", "tmp", false, false);
-        File file = new File(baseDir + "temp");
+    private void testRandomAccess(String fsBase) throws Exception {
+        FileSystem fs = FileSystem.getInstance(fsBase);
+        String s = fs.createTempFile(fsBase + "/temp", ".tmp", false, false);
+        File file = new File(baseDir + "/temp");
         file.delete();
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         fs.delete(s);
@@ -100,8 +103,9 @@ public class TestFileSystem extends TestBase {
         ra.close();
     }
 
-    private void testTempFile(FileSystem fs) throws Exception {    
-        String s = fs.createTempFile("temp", "tmp", false, false);
+    private void testTempFile(String fsBase) throws Exception {
+        FileSystem fs = FileSystem.getInstance(fsBase);
+        String s = fs.createTempFile(fsBase + "/temp", ".tmp", false, false);
         OutputStream out = fs.openFileOutputStream(s, false);
         byte[] buffer = new byte[10000];
         out.write(buffer);

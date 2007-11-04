@@ -17,7 +17,7 @@ import java.io.Writer;
  * The class used at runtime to measure the code usage and performance.
  */
 public class Profile extends Thread {
-    public static final boolean LIST_UNVISITED = true;
+    public static final boolean LIST_UNVISITED = false;
     public static final boolean FAST = false;
     public static final boolean TRACE = false;
     public static final Profile MAIN = new Profile();

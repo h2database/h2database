@@ -79,6 +79,7 @@ import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
 import org.h2.test.unit.TestFileSystem;
+import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMultiThreadedKernel;
@@ -134,6 +135,7 @@ java org.h2.test.TestAll timer
     public boolean jdk14 = true;
 
     private Server server;
+    public boolean cache2Q;
     
     public static void main(String[] args) throws Exception {
         long time = System.currentTimeMillis();
@@ -141,6 +143,10 @@ java org.h2.test.TestAll timer
         test.printSystem();      
 
 /*
+
+unit tests for ftp
+
+start writing javadocs for jdbcx package
 
 replicating file system
 background thread writing file system (all writes)
@@ -276,6 +282,12 @@ write tests using the PostgreSQL JDBC driver
 
 // repeatable test with a very big database (making backups of the database files)
         
+/*
+Features of H2
+- Case insensitive string data type
+- GROUP_CONCAT aggregate, User defined aggregates
+*/        
+        
         if (args.length > 0) {
             if ("crash".equals(args[0])) {
                 new TestCrashAPI().runTest(test);
@@ -381,6 +393,7 @@ write tests using the PostgreSQL JDBC driver
         logMode = 1;
         cipher = null;
         mvcc = false;
+        cache2Q = false;        
         testAll();
 
         diskUndo = false;
@@ -395,6 +408,7 @@ write tests using the PostgreSQL JDBC driver
         logMode = 1;
         cipher = null;
         mvcc = false;
+        cache2Q = false;        
         testAll();
         
         big = false;
@@ -411,6 +425,7 @@ write tests using the PostgreSQL JDBC driver
         throttle = 0;
         cipher = null;
         mvcc = false;
+        cache2Q = false;        
         testAll();        
 
         diskUndo = true;
@@ -425,6 +440,7 @@ write tests using the PostgreSQL JDBC driver
         throttle = 1;
         cipher = "XTEA";
         mvcc = false;
+        cache2Q = false;        
         testAll();
 
         diskUndo = false;
@@ -442,6 +458,7 @@ write tests using the PostgreSQL JDBC driver
         throttle = 0;
         cipher = null;
         mvcc = false;
+        cache2Q = false;        
         testAll();
 
         big = true;
@@ -458,6 +475,7 @@ write tests using the PostgreSQL JDBC driver
         throttle = 0;
         cipher = null;
         mvcc = false;
+        cache2Q = true;        
         testAll();
         
         big = true;
@@ -474,6 +492,7 @@ write tests using the PostgreSQL JDBC driver
         throttle = 0;
         cipher = "AES";
         mvcc = false;
+        cache2Q = false;        
         testAll();
         
         smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
@@ -481,6 +500,7 @@ write tests using the PostgreSQL JDBC driver
         logMode = 1;
         cipher = null;
         mvcc = true;
+        cache2Q = false;        
         testAll();
         
     }
@@ -499,6 +519,7 @@ write tests using the PostgreSQL JDBC driver
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
+        new TestFtp().runTest(this);
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);

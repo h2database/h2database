@@ -31,10 +31,6 @@ public class ScanCursor implements Cursor {
         row = null;
     }
 
-    Session getSession() {
-        return session;
-    }
-
     public Row get() {
         return row;
     }

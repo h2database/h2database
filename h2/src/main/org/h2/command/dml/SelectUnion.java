@@ -324,14 +324,6 @@ public class SelectUnion extends Query {
         return left.isReadOnly() && right.isReadOnly();
     }
 
-    public Query getLeftQuery() {
-        return left;
-    }
-
-    public Query getRightQuery() {
-        return right;
-    }
-
     public void updateAggregate(Session session) throws SQLException {
         left.updateAggregate(session);
         right.updateAggregate(session);

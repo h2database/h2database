@@ -176,7 +176,7 @@ public class FtpControl extends Thread {
                 if (!readonly) {
                     try {
                         fs.mkdirs(fileName);
-                        reply(257, "\"" + param + "\" directory"); // TODO quote (" > "")
+                        reply(257, StringUtils.quoteIdentifier(param) + " directory");
                         ok = true;
                     } catch (SQLException e) {
                         server.logError(e);
@@ -209,14 +209,13 @@ public class FtpControl extends Thread {
             break;
         case 'P':
             if ("PWD".equals(command)) {
-                reply(257, "\"" + currentDir + "\" directory"); // TODO quote (" > "")
+                reply(257, StringUtils.quoteIdentifier(currentDir) + " directory");
             } else if ("PASV".equals(command)) {
                 ServerSocket dataSocket = server.createDataSocket();
                 data = new FtpData(server, control.getInetAddress(), dataSocket);
                 data.start();
                 int port = dataSocket.getLocalPort();
                 reply(227, "Passive Mode (" + serverIpAddress + "," + (port >> 8) + "," + (port & 255) + ")");
-                // reply(501, ne.getMessage());
             }
             break;
         case 'R':
@@ -261,8 +260,7 @@ public class FtpControl extends Thread {
                     }
                     restart = 0;
                 } else {
-                    processList(param, true); // Firefox compatibility (still
-                                                // not good)
+                    processList(param, true); // Firefox compatibility (still not good)
                     // reply(426, "Not a file");
                 }
             } else if ("RMD".equals(command)) {
@@ -355,8 +353,7 @@ public class FtpControl extends Thread {
         String list = server.getDirectoryListing(directory, directories);
         reply(150, "Starting transfer");
         server.log(list);
-        // need to use the current locale (UTF-8 would be wrong for the Windows
-        // Explorer)
+        // need to use the current locale (UTF-8 would be wrong for the Windows Explorer)
         data.send(list.getBytes());
         reply(226, "Done");
     }

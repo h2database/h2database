@@ -77,9 +77,6 @@ public class UpdatableRow {
         return isUpdatable;
     }
 
-    void initKey() throws SQLException {
-    }
-
     private int getColumnIndex(String columnName) throws SQLException {
         for (int i = 0; i < columnCount; i++) {
             String col = result.getColumnName(i);

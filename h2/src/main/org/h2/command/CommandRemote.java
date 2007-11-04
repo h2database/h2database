@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
-import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
@@ -190,10 +189,6 @@ public class CommandRemote implements CommandInterface {
             ParameterInterface p = (ParameterInterface) parameters.get(i);
             transfer.writeValue(p.getParamValue());
         }
-    }
-
-    public SessionInterface getSession() {
-        return session;
     }
 
     public void close() {

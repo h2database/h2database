@@ -122,7 +122,7 @@
 			<fileset dir="src/main"/>
 		</copy>
 		<java classname="org.h2.test.coverage.Coverage" classpath="bin" dir="bin" fork="true">
-			<arg line="-e org/h2/server/web -e org/h2/server/ftp -e org/h2/server/pg -e org/h2/fulltext -e org/h2/tools/Console -e org/h2/tools/Recover -e org/h2/util/StartBrowser -e org/h2/tools/ConvertTraceFile -e org/h2/util/Resources -e org/h2/jdbcx -e org/h2/bnf -r org/h2"/>
+			<arg line="-e org/h2/server/web -e org/h2/server/ftp -e org/h2/server/pg -e org/h2/fulltext -e org/h2/tools/Console -e org/h2/tools/Recover -e org/h2/util/StartBrowser -e org/h2/tools/ConvertTraceFile -e org/h2/util/Resources -e org/h2/jdbcx -e org/h2/bnf -e org/h2/store/fs -r org/h2"/>
 		</java>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
     </target>

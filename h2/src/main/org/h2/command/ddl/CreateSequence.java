@@ -60,10 +60,6 @@ public class CreateSequence extends SchemaCommand {
         this.increment = increment;
     }
 
-    public boolean getBelongsToTable() {
-        return belongsToTable;
-    }
-
     public void setBelongsToTable(boolean belongsToTable) {
         this.belongsToTable = belongsToTable;
     }

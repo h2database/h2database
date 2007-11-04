@@ -34,8 +34,6 @@ import org.h2.message.Message;
 
 /**
  * A data source for H2 database connections
- * 
- * @author Tom
  */
 public class JdbcDataSource extends TraceObject implements 
 //#ifdef JDK14

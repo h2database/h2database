@@ -62,10 +62,6 @@ public abstract class DataPage {
         }
     }
 
-    protected DataPage(DataHandler handler, int capacity) {
-        this(handler, new byte[capacity]);
-    }
-
     protected DataPage(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;

@@ -139,8 +139,4 @@ public abstract class Command implements CommandInterface {
     public void cancel() {
         this.cancel = true;
     }
-    public String getSQL() {
-        return null;
-    }
-    
 }

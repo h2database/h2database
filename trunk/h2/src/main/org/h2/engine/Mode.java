@@ -10,9 +10,7 @@ import org.h2.util.StringUtils;
 
 public class Mode {
     
-    // TODO isolation: this setting should not be global
-    private static Mode currentMode;
-    public static final String REGULAR_NAME = "REGULAR";
+    public static final String REGULAR = "REGULAR";
     
     public boolean nullConcatIsNull;
     public boolean convertInsertNullToZero;
@@ -27,17 +25,8 @@ public class Mode {
     
     private String name;
     
-    public static void setCurrentMode(Mode mode) {
-        currentMode = mode;
-    }
-    
-    public static Mode getCurrentMode() {
-        return currentMode;
-    }
-    
     static {
-        Mode mode = new Mode(REGULAR_NAME); 
-        setCurrentMode(mode);
+        Mode mode = new Mode(REGULAR); 
         add(mode);
 
         mode = new Mode("PostgreSQL");
@@ -72,7 +61,7 @@ public class Mode {
         this.name = name;
     }
     
-    public static Mode getMode(String name) {
+    public static Mode getInstance(String name) {
         return (Mode) MODES.get(StringUtils.toUpperEnglish(name));
     }
     

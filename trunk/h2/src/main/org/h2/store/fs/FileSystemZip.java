@@ -4,6 +4,7 @@
  */
 package org.h2.store.fs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -146,6 +147,9 @@ public class FileSystemZip extends FileSystem {
 
     public String[] listFiles(String path) throws SQLException {
         try {
+            if (path.indexOf('!') < 0) {
+                path += "!";
+            }
             if (!path.endsWith("/")) {
                 path += "/";
             }
@@ -188,6 +192,9 @@ public class FileSystemZip extends FileSystem {
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         ZipFile file = openZipFile(translateFileName(fileName));
         ZipEntry entry = file.getEntry(getEntryName(fileName));
+        if (entry == null) {
+            throw new FileNotFoundException(fileName);
+        }
         return new FileObjectZip(file, entry);
     }
 

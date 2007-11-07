@@ -8,10 +8,13 @@ import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,10 +41,11 @@ import org.h2.store.FileStoreInputStream;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * Dumps the contents of a database file to a human readable text file.
@@ -110,6 +114,20 @@ public class Recover implements DataHandler {
         } else {
             process(dir, db);
         }
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public static Reader readClob(String fileName) throws IOException {
+        return new InputStreamReader(readBlob(fileName));
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public static InputStream readBlob(String fileName) throws IOException {
+        return new FileInputStream(fileName);
     }
     
     private void removePassword(String dir, String db) throws SQLException {
@@ -368,7 +386,7 @@ public class Recover implements DataHandler {
                     if (valueId > 0) {
                         sb.append(", ");
                     }
-                    sb.append(v.getSQL());
+                    sb.append(getSQL(v));
                 } catch (Exception e) {
                     if (log) {
                         logError("log data", e);
@@ -389,6 +407,22 @@ public class Recover implements DataHandler {
                 writeError(writer, e);
             }
         }
+    }
+
+    private String getSQL(Value v) {
+        if (v instanceof ValueLob) {
+            ValueLob lob = (ValueLob) v;
+            byte[] small = lob.getSmall();
+            if (small == null) {
+                String file = lob.getFileName();
+                if (lob.getType() == Value.BLOB) {
+                    return "READ_BLOB('" + file + ".txt')";
+                } else {
+                    return "READ_CLOB('" + file + ".txt')";
+                }
+            }
+        }
+        return v.getSQL();
     }
 
     private void dumpLog(String fileName) throws SQLException {
@@ -629,6 +663,8 @@ public class Recover implements DataHandler {
         try {
             databaseName = fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
             writer = getWriter(fileName, ".sql");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
             ObjectArray schema = new ObjectArray();
             HashSet objectIdSet = new HashSet();
             HashMap tableMap = new HashMap();
@@ -735,7 +771,7 @@ public class Recover implements DataHandler {
                         if (valueId > 0) {
                             sb.append(", ");
                         }
-                        sb.append(v.getSQL());
+                        sb.append(getSQL(v));
                     } catch (Exception e) {
                         writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                         continue;
@@ -781,6 +817,8 @@ public class Recover implements DataHandler {
                 Integer objectId = (Integer) it.next();
                 writer.println("DROP TABLE O_" + objectId + ";");
             }
+            writer.println("DROP ALIAS READ_CLOB;");
+            writer.println("DROP ALIAS READ_BLOB;");
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {

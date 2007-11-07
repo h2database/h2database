@@ -24,7 +24,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -57,9 +56,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
 /**
- * @author Thomas
+ * This class is responsible to build the database meta data pseudo tables.
  */
-
 public class MetaTable extends Table {
 
     // TODO INFORMATION_SCHEMA.tables: select table_name from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
@@ -458,7 +456,7 @@ public class MetaTable extends Table {
                 type = DataType.getTypeByName(nameType.substring(idx + 1)).type;
                 name = nameType.substring(0, idx);
             }
-            cols[i] = new Column(name, type, 0, 0);
+            cols[i] = new Column(name, type, 0, 0, 0);
         }
         return cols;
     }
@@ -485,7 +483,7 @@ public class MetaTable extends Table {
     }
 
     private String identifier(String s) {
-        if (Mode.getCurrentMode().lowerCaseIdentifiers) {
+        if (database.getMode().lowerCaseIdentifiers) {
             s = (s == null ? null : StringUtils.toLowerEnglish(s));
         }
         return s;
@@ -688,7 +686,8 @@ public class MetaTable extends Table {
                     add(rows, new String[] { "property." + s, prop.getProperty(s, "") });
                 }
             }
-            add(rows, new String[] { "MODE", Mode.getCurrentMode().getName() });
+            add(rows, new String[] { "MODE", database.getMode().getName() });
+            add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
             DiskFile dataFile = database.getDataFile();
             if (dataFile != null) {
                 add(rows, new String[] { "CACHE_TYPE", dataFile.getCache().getTypeName() });
@@ -703,7 +702,6 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.check2", "" + SysProperties.CHECK2});
             add(rows, new String[]{"h2.lobFilesInDirectories", "" + SysProperties.LOB_FILES_IN_DIRECTORIES});
             add(rows, new String[]{"h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY});
-            add(rows, new String[]{"h2.multiThreadedKernel", "" + SysProperties.multiThreadedKernel});
             add(rows, new String[]{"h2.runFinalize", "" + SysProperties.runFinalize});
             add(rows, new String[]{"h2.optimizeMinMax", "" + SysProperties.OPTIMIZE_MIN_MAX});
             add(rows, new String[]{"h2.optimizeIn", "" + SysProperties.OPTIMIZE_IN});

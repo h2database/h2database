@@ -77,6 +77,10 @@ public class ValueExpression extends Expression {
     public long getPrecision() {
         return value.getPrecision();
     }
+    
+    public int getDisplaySize() {
+        return value.getDisplaySize();
+    }
 
     public String getSQL() {
         return value.getSQL();

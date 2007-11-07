@@ -66,6 +66,11 @@ public class ExpressionList extends Expression {
     public long getPrecision() {
         return 0;
     }
+    
+    public int getDisplaySize() {
+        // TODO display size of a list
+        return 255;
+    }
 
     public String getSQL() {
         StringBuffer buff = new StringBuffer();

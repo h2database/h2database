@@ -25,7 +25,8 @@ public class TestKillRestart extends TestBase {
         String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
         
-        for (int i = 0; i < 10; i++) {
+        int len = getSize(1, 10);
+        for (int i = 0; i < len; i++) {
             Process p = Runtime.getRuntime().exec(procDef);
             // InputStream err = p.getErrorStream();
             InputStream in = p.getInputStream();

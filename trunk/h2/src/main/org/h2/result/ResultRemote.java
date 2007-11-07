@@ -25,20 +25,12 @@ public class ResultRemote implements ResultInterface {
     private ObjectArray result;
     private ObjectArray lobValues;
 
-    private boolean isUpdateCount;
-    private int updateCount;
-
-    public ResultRemote(int updateCount) {
-        this.isUpdateCount = true;
-        this.updateCount = updateCount;
-    }
-
     public boolean isUpdateCount() {
-        return isUpdateCount;
+        return false;
     }
 
     public int getUpdateCount() {
-        return updateCount;
+        return 0;
     }
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int readRows)

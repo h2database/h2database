@@ -21,6 +21,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -39,6 +40,7 @@ public class Column {
     private final int type;
     private final long precision;
     private final int scale;
+    private final int displaySize;
     private Table table;
     private String name;
     private int columnId;
@@ -63,15 +65,16 @@ public class Column {
     // columnNullableUnknown
     public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
 
-    public Column(String name, int type, long precision, int scale) {
+    public Column(String name, int type, long precision, int scale, int displaySize) {
         this.name = name;
         this.type = type;
         this.precision = precision;
         this.scale = scale;
+        this.displaySize = displaySize;
     }
 
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale);
+        Column newColumn = new Column(name, type, precision, scale, displaySize);
         // table is not set
         // columnId is not set
         newColumn.nullable = nullable;
@@ -143,6 +146,10 @@ public class Column {
     public long getPrecision() {
         return precision;
     }
+    
+    public int getDisplaySize() {
+        return displaySize;
+    }
 
     public int getScale() {
         return scale;
@@ -165,6 +172,7 @@ public class Column {
                 }
             }
         }
+        Mode mode = session.getDatabase().getMode();
         if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
                 synchronized (this) {
@@ -172,7 +180,7 @@ public class Column {
                 }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
-                if (Mode.getCurrentMode().convertInsertNullToZero) {
+                if (mode.convertInsertNullToZero) {
                     DataType dt = DataType.getDataType(type);
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
@@ -202,7 +210,7 @@ public class Column {
                 throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
             }
         }
-        value = value.convertScale(Mode.getCurrentMode().convertOnlyToSmallerScale, scale);
+        value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
         if (precision > 0) {
             if (!value.checkPrecision(precision)) {
                 throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_1, name);
@@ -437,7 +445,7 @@ public class Column {
     }
 
     public int getPrecisionAsInt() {
-        return precision > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) precision;
+        return MathUtils.convertLongToInt(precision);
     }
 
     public DataType getDataType() {

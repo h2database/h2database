@@ -12,7 +12,8 @@ import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 public class ValueUuid extends Value {
-    public static final int PRECISION = 36;
+    public static final int PRECISION = 16; // number of bytes
+    public static final int DISPLAY_SIZE = 36; // cd38d882-7ada-4589-b5fb-7da0ca559d9a
     private final long high, low;
 
     private ValueUuid(long high, long low) {
@@ -77,10 +78,6 @@ public class ValueUuid extends Value {
         return PRECISION;
     }
 
-    public int getDisplaySize() {
-        return 0;
-    }
-
     private void appendHex(StringBuffer buff, long x, int bytes) {
         for (int i = bytes * 8 - 4; i >= 0; i -= 8) {
             buff.append(Integer.toHexString((int) (x >> i) & 0xf));
@@ -139,6 +136,10 @@ public class ValueUuid extends Value {
 
     public long getLow() {
         return low;
+    }
+    
+    public int getDisplaySize() {
+        return DISPLAY_SIZE;
     }
 
 }

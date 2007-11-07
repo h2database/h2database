@@ -63,6 +63,10 @@ public class Wildcard extends Expression {
         throw Message.getInternalError();
     }
 
+    public int getDisplaySize() {
+        throw Message.getInternalError();
+    }
+
     public String getSchema() {
         return schema;
     }

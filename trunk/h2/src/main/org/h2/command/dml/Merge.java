@@ -24,7 +24,7 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * Represents a MERGE statement.
  */
 public class Merge extends Prepared {
 

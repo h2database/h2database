@@ -60,6 +60,10 @@ public class Alias extends Expression {
         return expr.getPrecision();
     }
     
+    public int getDisplaySize() {
+        return expr.getDisplaySize();
+    }
+    
     public boolean isAutoIncrement() {
         return expr.isAutoIncrement();
     }    

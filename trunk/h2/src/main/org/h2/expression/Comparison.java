@@ -77,14 +77,14 @@ public class Comparison extends Condition {
         return "(" + sql + ")";
     }
 
-    private Expression getCast(Expression expr, int dataType, long precision, int scale, Session session)
+    private Expression getCast(Expression expr, int dataType, long precision, int scale, int displaySize, Session session)
             throws SQLException {
         if (expr == ValueExpression.NULL) {
             return expr;
         }
         Function function = Function.getFunction(session.getDatabase(), "CAST");
         function.setParameter(0, expr);
-        function.setDataType(dataType, precision, scale);
+        function.setDataType(dataType, precision, scale, displaySize);
         function.doneWithParameters();
         return function.optimize(session);
     }
@@ -97,9 +97,9 @@ public class Comparison extends Condition {
             right = right.optimize(session);
             try {
                 if (left instanceof ExpressionColumn && right.isConstant()) {
-                    right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), session);
+                    right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
                 } else if (right instanceof ExpressionColumn && left.isConstant()) {
-                    left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), session);
+                    left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), right.getDisplaySize(), session);
                 }
             } catch (SQLException e) {
                 int code = e.getErrorCode();
@@ -121,11 +121,12 @@ public class Comparison extends Condition {
                 dataType = Value.getHigherOrder(left.getType(), right.getType());
                 long precision = Math.max(left.getPrecision(), right.getPrecision());
                 int scale = Math.max(left.getScale(), right.getScale());
+                int displaySize = Math.max(left.getDisplaySize(), right.getDisplaySize());
                 if (dataType != lt) {
-                    left = getCast(left, dataType, precision, scale, session);
+                    left = getCast(left, dataType, precision, scale, displaySize, session);
                 }
                 if (dataType != rt) {
-                    right = getCast(right, dataType, precision, scale, session);
+                    right = getCast(right, dataType, precision, scale, displaySize, session);
                 }
             }
         }

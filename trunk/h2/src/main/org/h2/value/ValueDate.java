@@ -16,6 +16,7 @@ import org.h2.util.DateTimeUtils;
  */
 public class ValueDate extends Value {
     public static final int PRECISION = 8;
+    public static final int DISPLAY_SIZE = 10; // 2000-01-02
 
     private final Date value;
 
@@ -79,13 +80,9 @@ public class ValueDate extends Value {
     public static ValueDate getNoCopy(Date date) {
         return (ValueDate) Value.cache(new ValueDate(date));
     }    
-
-//    public String getJavaString() {
-//        return "Date.valueOf(\"" + toString() + "\")";
-//    }
     
     public int getDisplaySize() {
-        return "2001-01-01".length();
+        return DISPLAY_SIZE;
     }
 
     protected boolean isEqual(Value v) {

@@ -35,13 +35,12 @@ import org.h2.value.ValueNull;
 /**
  * This class represents a simple SELECT statement.
  * 
- * visibleColumnCount <= distinctColumnCount <= expressionCount
- * Sortable count could include ORDER BY expressions that are not in the select list
- * Expression count could include GROUP BY expressions
- *
- * init
- * (maybe additional mapColumns if it's a subquery)
- * prepare
+ * For each select statement:
+ * visibleColumnCount <= distinctColumnCount <= expressionCount.
+ * Sortable count could include ORDER BY expressions that are not in the select list.
+ * Expression count could include GROUP BY expressions.
+ * 
+ * The call sequence is init(), mapColumns() if it's a subquery, prepare().
  */
 public class Select extends Query {
     private TableFilter topTableFilter;

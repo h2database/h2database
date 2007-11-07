@@ -22,7 +22,7 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * Represents an INSERT statement.
  */
 public class Insert extends Prepared {
 

@@ -29,6 +29,7 @@ public class ValueDecimal extends Value {
     
     public static final int DEFAULT_PRECISION = 65535;
     public static final int DEFAULT_SCALE = 32767;
+    public static final int DEFAULT_DISPLAY_SIZE = 255;
     private static final int DIVIDE_SCALE_ADD = 25;
 
     private ValueDecimal(BigDecimal value) {
@@ -175,14 +176,9 @@ public class ValueDecimal extends Value {
         // check max cache size
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }
-
-//    public String getJavaString() {
-//        return toString();
-//    }
     
     public int getDisplaySize() {
-        // TODO displaySize: this is probably very slow
-        return getString().length();
+        return MathUtils.convertLongToInt(getPrecision() + 2); // - .
     }    
     
     protected boolean isEqual(Value v) {

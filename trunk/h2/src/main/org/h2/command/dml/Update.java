@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * Represents a union UPDATE statement.
  */
 public class Update extends Prepared {
 

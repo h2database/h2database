@@ -13,6 +13,9 @@ import org.h2.result.LocalResult;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
+/**
+ * Represents a ALTER TABLE statement.
+ */
 public class AlterTableSet  extends SchemaCommand {
     
     private String tableName;

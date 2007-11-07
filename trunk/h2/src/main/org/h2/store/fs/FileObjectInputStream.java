@@ -22,11 +22,21 @@ public class FileObjectInputStream extends InputStream {
             return -1;
         }
         file.readFully(buffer, 0, 1);
-        return buffer[0];
+        return buffer[0] & 0xff;
     }
     
-    private int todoWriteFtpTest;
-    private int todoReadBlock;
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+    
+    public int read(byte[] b, int off, int len) throws IOException {
+        if (file.getFilePointer() + len < file.length()) {
+            file.readFully(b, off, len);
+            return len;
+        } else {
+            return super.read(b, off, len);
+        }
+    }
 
     public void close() throws IOException {
         file.close();

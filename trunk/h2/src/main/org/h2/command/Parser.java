@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
 import java.util.HashSet;
+
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;
@@ -76,7 +77,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Mode;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -122,6 +122,7 @@ import org.h2.table.TableData;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
@@ -1647,7 +1648,7 @@ public class Parser {
             } else if (readIf("~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
-                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 0));
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 255, 255));
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -1655,7 +1656,7 @@ public class Parser {
             } else if (readIf("!~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
-                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 0));
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 255, 255));
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -2673,7 +2674,7 @@ public class Parser {
                 }
                 break;
             case '[':
-                if (Mode.getCurrentMode().squareBracketQuotedNames) {
+                if (database.getMode().squareBracketQuotedNames) {
                     // SQL Server alias for "
                     command[i] = '"';
                     changed = true;
@@ -2933,7 +2934,7 @@ public class Parser {
     private Column parseColumnForTable(String columnName) throws SQLException {
         Column column;
         if (readIf("IDENTITY") || readIf("SERIAL")) {
-            column = new Column(columnName, Value.LONG, ValueLong.PRECISION, 0);
+            column = new Column(columnName, Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE);
             column.setOriginalSQL("IDENTITY");
             long start = 1, increment = 1;
             if (readIf("(")) {
@@ -3106,7 +3107,8 @@ public class Parser {
             }
         }
         int type = dataType.type;
-        Column column = new Column(columnName, type, precision, scale);
+        int displaySize = MathUtils.convertLongToInt(Math.max(precision, dataType.defaultDisplaySize));
+        Column column = new Column(columnName, type, precision, scale, displaySize);
         if (templateColumn != null) {
             column.setNullable(templateColumn.getNullable());
             column.setDefaultExpression(session, templateColumn.getDefaultExpression());
@@ -3475,7 +3477,7 @@ public class Parser {
         String[] cols = parseColumnList();
         ObjectArray columns = new ObjectArray();
         for (int i = 0; i < cols.length; i++) {
-            columns.add(new Column(cols[i], Value.STRING, 0, 0));
+            columns.add(new Column(cols[i], Value.STRING, 0, 255, 255));
         }
         int id = database.allocateObjectId(true, true);
         recursiveTable = schema.createTable(tempViewName, id, columns, false, false);
@@ -4126,7 +4128,7 @@ public class Parser {
             read("(");
             command.setIndexColumns(parseIndexColumnList());
             return command;
-        } else if (Mode.getCurrentMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
+        } else if (database.getMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
             // MySQL
             CreateIndex command = new CreateIndex(session, schema);
             command.setComment(comment);

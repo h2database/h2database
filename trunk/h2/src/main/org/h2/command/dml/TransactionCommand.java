@@ -13,9 +13,8 @@ import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 
-
 /**
- * @author Thomas
+ * Represents a transactional statement.
  */
 public class TransactionCommand extends Prepared {
     public static final int AUTOCOMMIT_TRUE = 1;

@@ -27,6 +27,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 
+/**
+ * Represents a SELECT statement (simple, or union).
+ */
 public abstract class Query extends Prepared {
     
     protected Expression limit, offset;

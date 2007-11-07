@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
+import org.h2.util.MathUtils;
 
 public class ValueArray extends Value {
     private final Value[] values;
@@ -135,11 +136,11 @@ public class ValueArray extends Value {
     }
     
     public int getDisplaySize() {
-        int size = 0;
+        long size = 0;
         for (int i = 0; i < values.length; i++) {
             size += values[i].getDisplaySize();
         }
-        return size;
+        return MathUtils.convertLongToInt(size);
     }
 
     protected boolean isEqual(Value o) {

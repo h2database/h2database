@@ -28,6 +28,7 @@ public abstract class Expression {
     public abstract void setEvaluatable(TableFilter tableFilter, boolean b);
     public abstract int getScale();
     public abstract long getPrecision();
+    public abstract int getDisplaySize();
     public abstract String getSQL();
     public abstract void updateAggregate(Session session) throws SQLException;
     public abstract boolean isEverything(ExpressionVisitor visitor);

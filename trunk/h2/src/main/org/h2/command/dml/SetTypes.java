@@ -6,6 +6,9 @@ package org.h2.command.dml;
 
 import org.h2.util.ObjectArray;
 
+/**
+ * The list of setting for a SET statement.
+ */
 public class SetTypes {
 
     public static final int IGNORECASE = 1, MAX_LOG_SIZE = 2, MODE = 3, READONLY = 4, LOCK_TIMEOUT = 5;

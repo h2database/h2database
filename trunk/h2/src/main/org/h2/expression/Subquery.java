@@ -79,6 +79,10 @@ public class Subquery extends Expression {
     public long getPrecision() {
         return getExpression().getPrecision();
     }
+    
+    public int getDisplaySize() {
+        return getExpression().getDisplaySize();
+    }    
 
     public String getSQL() {
         return "(" + query.getPlanSQL() + ")";

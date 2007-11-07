@@ -56,6 +56,10 @@ public class SequenceValue extends Expression {
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
+    
+    public int getDisplaySize() {
+        return ValueInt.DISPLAY_SIZE;
+    }    
 
     public String getSQL() {
         return "(NEXT VALUE FOR " + sequence.getSQL() +")";

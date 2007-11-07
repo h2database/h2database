@@ -26,6 +26,9 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
+/**
+ * Represents a union SELECT statement.
+ */
 public class SelectUnion extends Query {
     public static final int UNION = 0, UNION_ALL = 1, EXCEPT = 2, INTERSECT = 3;
     private int unionType;
@@ -203,7 +206,8 @@ public class SelectUnion extends Query {
             int type = Value.getHigherOrder(l.getType(), r.getType());
             long prec = Math.max(l.getPrecision(), r.getPrecision());
             int scale = Math.max(l.getScale(), r.getScale());
-            Column col = new Column(l.getAlias(), type, prec, scale);
+            int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
+            Column col = new Column(l.getAlias(), type, prec, scale, displaySize);
             Expression e = new ExpressionColumn(session.getDatabase(), null, col);
             expressions.add(e);
         }

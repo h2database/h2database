@@ -174,7 +174,14 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public void copy(String original, String copy) throws SQLException {
-        throw Message.getUnsupportedException();
+        try {
+            OutputStream out = openFileOutputStream(copy, false);
+            InputStream in = openFileInputStream(original);
+            IOUtils.copyAndClose(in, out);
+        } catch (IOException e) {
+            rollback();
+            throw Message.convertIOException(e, "Can not copy " + original + " to " + copy);
+        }
     }
 
     public void createDirs(String fileName) throws SQLException {

@@ -143,6 +143,8 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
+    private Mode mode = Mode.getInstance(Mode.REGULAR);
+    private boolean multiThreaded;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);
@@ -469,12 +471,12 @@ public class Database implements DataHandler {
         // TODO storage: antivir scans .script files, maybe other scanners scan
         // .db files?
         ObjectArray cols = new ObjectArray();
-        Column columnId = new Column("ID", Value.INT, 0, 0);
+        Column columnId = new Column("ID", Value.INT, 0, 0, 0);
         columnId.setNullable(false);
         cols.add(columnId);
-        cols.add(new Column("HEAD", Value.INT, 0, 0));
-        cols.add(new Column("TYPE", Value.INT, 0, 0));
-        cols.add(new Column("SQL", Value.STRING, 0, 0));
+        cols.add(new Column("HEAD", Value.INT, 0, 0, 0));
+        cols.add(new Column("TYPE", Value.INT, 0, 0, 0));
+        cols.add(new Column("SQL", Value.STRING, 0, 0, 0));
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
@@ -531,7 +533,9 @@ public class Database implements DataHandler {
         addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
-        removeUnusedStorages(systemSession);
+        if (!readOnly) {
+            removeUnusedStorages(systemSession);
+        }
         systemSession.commit(true);
         if (!readOnly && persistent) {
             emergencyReserve = openFile(createTempFile(), "rw", false);
@@ -1573,6 +1577,22 @@ public class Database implements DataHandler {
         if (eventListener != null) {
             eventListener.opened();
         }
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+    
+    public Mode getMode() {
+        return mode;
+    }
+
+    public boolean getMultiThreaded() {
+        return multiThreaded;
+    }
+
+    public void setMultiThreaded(boolean multiThreaded) {
+        this.multiThreaded = multiThreaded;
     }
 
 }

@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
@@ -556,15 +555,15 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Column[] getSystemColumns() {
-        if (!Mode.getCurrentMode().systemColumns) {
+        if (!session.getDatabase().getMode().systemColumns) {
             return null;
         }
         Column[] sys = new Column[3];
-        sys[0] = new Column("oid", Value.INT, ValueInt.PRECISION, 0);
+        sys[0] = new Column("oid", Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE);
         sys[0].setTable(table, 0);
-        sys[1] = new Column("ctid", Value.STRING, ValueInt.PRECISION, 0);
+        sys[1] = new Column("ctid", Value.STRING, 255, 0, 255);
         sys[1].setTable(table, 0);
-        sys[2] = new Column("CTID", Value.STRING, ValueInt.PRECISION, 0);
+        sys[2] = new Column("CTID", Value.STRING, 255, 0, 255);
         sys[2].setTable(table, 0);
         return sys;
     }

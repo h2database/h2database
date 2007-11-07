@@ -25,9 +25,8 @@ import org.h2.store.FileLock;
 import org.h2.tools.DeleteDbFiles;
 
 /**
- * @author Thomas
+ * The base class for all tests.
  */
-
 public abstract class TestBase {
 
     protected static String baseDir = "data";
@@ -158,7 +157,9 @@ public abstract class TestBase {
             password = "filePassword " + password;
             Properties info = new Properties();
             info.setProperty("user", user);
-            info.put("password", password.toCharArray());
+            info.setProperty("password", password);
+            // a bug in the PostgreSQL driver: throws a NullPointerException if we do this
+            // info.put("password", password.toCharArray());
             conn = DriverManager.getConnection(url, info);
         } else {
             conn = DriverManager.getConnection(url, user, password);
@@ -167,7 +168,7 @@ public abstract class TestBase {
     }
 
     protected int getSize(int small, int big) throws Exception {
-        return config.big ? big : small;
+        return config.endless ? Integer.MAX_VALUE : config.big ? big : small;
     }
 
     protected String getUser() {

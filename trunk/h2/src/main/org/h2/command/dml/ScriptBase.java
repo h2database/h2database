@@ -28,6 +28,9 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
+/**
+ * This class is the base for RunScriptCommand and ScriptCommand.
+ */
 public abstract class ScriptBase extends Prepared implements DataHandler {
 
     private String cipher;

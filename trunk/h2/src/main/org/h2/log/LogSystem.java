@@ -428,6 +428,9 @@ public class LogSystem {
         byte[] summary;
         DiskFile file;
         file = database.getDataFile();
+        if (file == null) {
+            return;
+        }
         summary = file.getSummary();
         if (summary != null) {
             currentLog.addSummary(true, summary);

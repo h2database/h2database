@@ -28,7 +28,7 @@ public class FileObjectDisk implements FileObject {
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
-        file.read(b, off, len);
+        file.readFully(b, off, len);
     }
 
     public void seek(long pos) throws IOException {

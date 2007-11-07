@@ -16,6 +16,9 @@ import org.h2.result.LocalResult;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
+/**
+ * Represents a RUNSCRIPT statement.
+ */
 public class RunScriptCommand extends ScriptBase {
     
     private String charset = StringUtils.getDefaultCharset();

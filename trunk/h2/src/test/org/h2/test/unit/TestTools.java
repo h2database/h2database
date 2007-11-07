@@ -13,7 +13,9 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangePassword;
+import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
 import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
@@ -24,12 +26,89 @@ public class TestTools extends TestBase {
 
     public void test() throws Exception {
         deleteDb("utils");
+        testRemove();
+        testConvertTraceFile();
         testManagementDb();
         testResourceGenerator();
         testChangePassword();
         testServer();
         testScriptRunscript();
         testBackupRestore();
+        testRecover();
+    }
+    
+    private void testConvertTraceFile() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + baseDir + "/toolsConvertTraceFile";
+        Connection conn = DriverManager.getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello')");
+        conn.close();
+        ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});
+        deleteDb("toolsConvertTraceFile");
+        RunScript.main(new String[]{"-url", url, "-user", "test", "-password", "test", "-script", baseDir + "/test.sql"});
+        conn = DriverManager.getConnection(url, "test", "test");
+        stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        check(1, rs.getInt(1));
+        check("Hello", rs.getString(2));
+        checkFalse(rs.next());
+        conn.close();
+    }
+
+    private void testRemove() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + baseDir + "/toolsRemove";
+        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello')");
+        conn.close();
+        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword"});
+        conn = DriverManager.getConnection(url, "sa", "");
+        stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        check(1, rs.getInt(1));
+        check("Hello", rs.getString(2));
+        conn.close();
+    }
+    
+    private void testRecover() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + baseDir + "/toolsRecover";
+        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
+        stat.execute("insert into test values(1, 'Hello', SECURE_RAND(2000), space(2000))");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        byte[] b1 = rs.getBytes(3);
+        String s1 = rs.getString(4);
+        
+        conn.close();
+        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRecover"});
+        deleteDb("toolsRecover");
+        conn = DriverManager.getConnection(url, "another", "another");
+        stat = conn.createStatement();
+        stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        check(1, rs.getInt(1));
+        check("Hello", rs.getString(2));
+        byte[] b2 = rs.getBytes(3);
+        String s2 = rs.getString(4);
+        check(2000, b2.length);
+        check(2000, s2.length());
+        check(b1, b2);
+        check(s1, s2);
+        checkFalse(rs.next());
+        conn.close();
     }
 
     private void testManagementDb() throws Exception {

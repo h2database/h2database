@@ -4,6 +4,7 @@
  */
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 
@@ -37,7 +38,7 @@ public class FileObjectDatabase implements FileObject {
 
     public void readFully(byte[] b, int off, int len) throws IOException {
         if (pos + len > length) {
-            throw new IOException("Can not read past EOF");
+            throw new EOFException();
         }
         System.arraycopy(data, pos, b, off, len);
         pos += len;
@@ -55,6 +56,7 @@ public class FileObjectDatabase implements FileObject {
             data = n;
             changed = true;
         }
+        pos = Math.min(pos, length);
     }
 
     public void sync() throws IOException {
@@ -66,7 +68,7 @@ public class FileObjectDatabase implements FileObject {
 
     public void write(byte[] b, int off, int len) throws IOException {
         if (pos + len > data.length) {
-            int newLen = Math.max(data.length * 2, 1024);
+            int newLen = Math.max(data.length * 2, pos + len);
             byte[] n = new byte[newLen];
             System.arraycopy(data, 0, n, 0, length);
             data = n;

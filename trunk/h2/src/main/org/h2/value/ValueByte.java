@@ -14,6 +14,7 @@ import org.h2.util.ObjectUtils;
 
 public class ValueByte extends Value {
     public static final int PRECISION = 3;
+    public static final int DISPLAY_SIZE = 4;
 
     private final byte value;
 
@@ -117,7 +118,7 @@ public class ValueByte extends Value {
     }
 
     public int getDisplaySize() {
-        return PRECISION;
+        return DISPLAY_SIZE;
     }
 
     protected boolean isEqual(Value v) {

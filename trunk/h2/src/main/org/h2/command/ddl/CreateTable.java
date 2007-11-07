@@ -187,6 +187,7 @@ public class CreateTable extends SchemaCommand {
             int type = expr.getType();
             String name = expr.getColumnName();
             long precision = expr.getPrecision();
+            int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);
             if (precision > 0 && (dt.defaultPrecision == 0 || (dt.defaultPrecision > precision && dt.defaultPrecision < Byte.MAX_VALUE))) {
                 // dont' set precision to MAX_VALUE if this is the default
@@ -196,7 +197,7 @@ public class CreateTable extends SchemaCommand {
             if (scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
                 precision = dt.defaultScale;
             }
-            Column col = new Column(name, type, precision, scale);
+            Column col = new Column(name, type, precision, scale, displaySize);
             addColumn(col);
         }
     }

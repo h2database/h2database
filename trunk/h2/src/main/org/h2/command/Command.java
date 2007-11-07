@@ -7,7 +7,6 @@ package org.h2.command;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -63,7 +62,7 @@ public abstract class Command implements CommandInterface {
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = SysProperties.multiThreadedKernel ? (Object) session : (Object) database;
+        Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
         synchronized (sync) {
             try {
                 database.checkPowerOff();
@@ -97,7 +96,7 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (SysProperties.multiThreadedKernel) {
+        } else if (session.getDatabase().getMultiThreaded()) {
             Database db = session.getDatabase();
             if (db != null && db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
                 session.unlockReadLocks();
@@ -114,7 +113,7 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = SysProperties.multiThreadedKernel ? (Object) session : (Object) database;
+        Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
         synchronized (sync) {
             int rollback = session.getLogId();
             session.setCurrentCommand(this);

@@ -9,7 +9,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 public class TestMultiThreadedKernel extends TestBase implements Runnable {
@@ -28,7 +27,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
         Thread[] list = new Thread[count];
         for (int i = 0; i < count; i++) {
             TestMultiThreadedKernel r = new TestMultiThreadedKernel();
-            r.url = getURL("multiThreadedKernel", true);
+            r.url = getURL("multiThreadedKernel;MULTI_THREADED=1", true);
             r.user = getUser();
             r.password = getPassword();
             r.master = this;
@@ -43,7 +42,6 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
         for (int i = 0; i < count; i++) {
             list[i].join();
         }
-        SysProperties.multiThreadedKernel = false;
     }
     
     public void run() {

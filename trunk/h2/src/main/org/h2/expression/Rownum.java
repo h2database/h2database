@@ -47,6 +47,10 @@ public class Rownum extends Expression {
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
+    
+    public int getDisplaySize() {
+        return ValueInt.DISPLAY_SIZE;
+    }
 
     public String getSQL() {
         return "ROWNUM()";

@@ -45,10 +45,6 @@ abstract class ValueStringBase extends Value {
         return ValueString.get(value.substring(0, p));
     }
 
-//    public String getJavaString() {
-//        return StringUtils.quoteJavaString(value);
-//    }
-
     public int getDisplaySize() {
         return value.length();
     }   

@@ -335,6 +335,10 @@ public class ValueLob extends Value {
     public boolean isLinked() {
         return linked;
     }
+    
+    public String getFileName() {
+        return fileName;
+    }
 
     public void close() throws SQLException {
         if (fileName != null) {
@@ -536,7 +540,7 @@ public class ValueLob extends Value {
 
     public int getDisplaySize() {
         // TODO display size of lob?
-        return 40;
+        return MathUtils.convertLongToInt(getPrecision());
     }
 
     protected boolean isEqual(Value v) {

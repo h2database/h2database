@@ -29,11 +29,14 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
 import org.h2.api.Trigger;
+import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * This class implements the full text search based on Apache Lucene.
+ */
 public class FullTextLucene implements Trigger {
     
     private static HashMap indexers = new HashMap();
@@ -145,7 +148,7 @@ public class FullTextLucene implements Trigger {
                 throw convertException(e);
             }
         }
-        FileUtils.deleteRecursive(path);
+        FileSystem.getInstance(path).deleteRecursive(path);
     }
 
     /**

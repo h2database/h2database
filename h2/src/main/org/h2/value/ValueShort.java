@@ -14,6 +14,7 @@ import org.h2.util.ObjectUtils;
 
 public class ValueShort extends Value {
     public static final int PRECISION = 5;
+    public static final int DISPLAY_SIZE = 6; // -32768    
 
     private final short value;
 
@@ -115,13 +116,9 @@ public class ValueShort extends Value {
     public static ValueShort get(short i) {
         return (ValueShort) Value.cache(new ValueShort(i));
     }
-
-//    public String getJavaString() {
-//        return getString();
-//    }
-
+    
     public int getDisplaySize() {
-        return PRECISION;
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

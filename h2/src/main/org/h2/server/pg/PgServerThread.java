@@ -41,7 +41,6 @@ import org.h2.util.ScriptReader;
  * http://www.postgresql.org/docs/7.4/static/catalogs.html
  * @author Thomas
  */
-
 public class PgServerThread implements Runnable {
     private static final int TYPE_STRING = Types.VARCHAR;
     private PgServer server;
@@ -179,7 +178,15 @@ public class PgServerThread implements Runnable {
             server.log("PasswordMessage");
             String password = readString();
             try {
-                String url = "jdbc:h2:" + databaseName + ";MODE=PostgreSQL";
+                String baseDir = server.getBaseDir();
+                String db = databaseName;
+                if (baseDir != null) {
+                    db = baseDir + "/" + db;
+                }
+                if (server.getIfExists()) {
+                    db += ";IFEXISTS=TRUE";
+                }
+                String url = "jdbc:h2:" + db + ";MODE=PostgreSQL";
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs
                 // conn = DriverManager.getConnection(url, userName, password);

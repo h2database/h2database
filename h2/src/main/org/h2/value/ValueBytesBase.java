@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.util.ByteUtils;
+import org.h2.util.MathUtils;
 
 abstract class ValueBytesBase extends Value {
 
@@ -59,15 +60,11 @@ abstract class ValueBytesBase extends Value {
     }
 
     public int getDisplaySize() {
-        return value.length * 2;
+        return MathUtils.convertLongToInt(value.length * 2L);
     }    
     
     protected boolean isEqual(Value v) {
         return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) v).value) == 0;
     }    
-
-//  public String getJavaString() {
-//  return "ByteUtils.convertStringToBytes(\"" + toString() + "\")";
-//}
 
 }

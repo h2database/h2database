@@ -17,6 +17,7 @@ import org.h2.util.ObjectUtils;
 
 public class ValueFloat extends Value {
     public static final int PRECISION = 7;
+    public static final int DISPLAY_SIZE = 15; // -1.12345676E-20
 
     private final float value;
     private static final float FLOAT_ZERO = 0.0F;
@@ -114,12 +115,8 @@ public class ValueFloat extends Value {
         return (ValueFloat) Value.cache(new ValueFloat(d));
     }
 
-//    public String getJavaString() {
-//        return getString();
-//    }
-
     public int getDisplaySize() {
-        return PRECISION + 2;
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

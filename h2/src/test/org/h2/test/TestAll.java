@@ -19,6 +19,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCsv;
+import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestIndex;
 import org.h2.test.db.TestLinkedTable;
@@ -61,6 +62,8 @@ import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbc.xa.TestXA;
 import org.h2.test.mvcc.TestMVCC;
 import org.h2.test.server.TestNestedLoop;
+import org.h2.test.server.TestPgServer;
+import org.h2.test.server.TestWeb;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestKillRestart;
 import org.h2.test.synth.TestCrashAPI;
@@ -99,7 +102,8 @@ import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * The main test application. JUnit is not used because loops are easier to write in 
+ * regular java applications (most tests are ran multiple times using different settings).
  */
 public class TestAll {
 
@@ -127,7 +131,7 @@ java org.h2.test.TestAll timer
 */
 
     public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
-    public boolean codeCoverage, mvcc;
+    public boolean codeCoverage, mvcc, endless;
     public int logMode = 1, traceLevelFile, throttle;
     public String cipher;
 
@@ -144,12 +148,18 @@ java org.h2.test.TestAll timer
 
 /*
 
-unit tests for ftp
+Compile and include FullTextLucene.java
+
+toString() method to print something useful
+
+getDisplaySize
+"The display size gives you the limit for how many characters normally fit in a specified column"
+
 
 start writing javadocs for jdbcx package
 
-replicating file system
-background thread writing file system (all writes)
+Feature request: file system that writes to two file systems (for replication)
+Feature request: file system with background thread writing file system (all writes)
 
 test DbStarter
 
@@ -296,6 +306,7 @@ Features of H2
             } else if ("kill".equals(args[0])) {
                 new TestKill().runTest(test);
             } else if ("random".equals(args[0])) {
+                test.endless = true;
                 new TestRandomSQL().runTest(test);
             } else if ("join".equals(args[0])) {
                 new TestJoin().runTest(test);
@@ -558,6 +569,7 @@ Features of H2
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);
+        new TestFullText().runTest(this);
         new TestFunctions().runTest(this);
         new TestIndex().runTest(this);
         new TestLinkedTable().runTest(this);
@@ -586,6 +598,8 @@ Features of H2
 
         // server
         new TestNestedLoop().runTest(this);
+        new TestWeb().runTest(this);
+        new TestPgServer().runTest(this);
 
         // jdbc
         new TestCancel().runTest(this);
@@ -606,6 +620,7 @@ Features of H2
         new TestMVCC().runTest(this);
             
         // synthetic
+        new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
 
         afterTest();

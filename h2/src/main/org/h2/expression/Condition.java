@@ -5,6 +5,7 @@
 package org.h2.expression;
 
 import org.h2.value.Value;
+import org.h2.value.ValueBoolean;
 
 /**
  * @author Thomas
@@ -20,7 +21,11 @@ public abstract class Condition extends Expression {
     }
 
     public long getPrecision() {
-        return 0;
+        return ValueBoolean.PRECISION;
+    }
+    
+    public int getDisplaySize() {
+        return ValueBoolean.DISPLAY_SIZE;
     }
 
 }

@@ -26,6 +26,9 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 
+/**
+ * This class implements the native full text search.
+ */
 public class FullText implements Trigger {
 
    private static final String TRIGGER_PREFIX = "FT_";

@@ -30,6 +30,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -57,6 +58,7 @@ public class Aggregate extends Expression {
     private SortOrder sort;
     private int dataType, scale;
     private long precision;
+    private int displaySize;
 
     private static final HashMap AGGREGATES = new HashMap();
 
@@ -257,6 +259,7 @@ public class Aggregate extends Expression {
             dataType = on.getType();
             scale = on.getScale();
             precision = on.getPrecision();
+            displaySize = on.getDisplaySize();
         }
         if (orderList != null) {
             for (int i = 0; i < orderList.size(); i++) {
@@ -272,18 +275,21 @@ public class Aggregate extends Expression {
         case GROUP_CONCAT:
             dataType = Value.STRING;
             scale = 0;
-            precision = 0;
+            precision = 255;
+            displaySize = 255;
             break;
         case COUNT_ALL:
         case COUNT:
             dataType = Value.LONG;
             scale = 0;
-            precision = 0;
+            precision = ValueLong.PRECISION;
+            displaySize = ValueLong.DISPLAY_SIZE;
             break;
         case SELECTIVITY:
             dataType = Value.INT;
             scale = 0;
-            precision = 0;
+            precision = ValueInt.PRECISION;
+            displaySize = ValueInt.DISPLAY_SIZE;
             break;
         case SUM:
         case AVG:
@@ -300,12 +306,14 @@ public class Aggregate extends Expression {
         case VAR_SAMP:
             dataType = Value.DOUBLE;
             precision = ValueDouble.PRECISION;
+            displaySize = ValueDouble.DISPLAY_SIZE;
             scale = 0;
             break;
         case EVERY:
         case SOME:
             dataType = Value.BOOLEAN;
             precision = ValueBoolean.PRECISION;
+            displaySize = ValueBoolean.DISPLAY_SIZE;
             scale = 0;
             break;
         default:
@@ -335,6 +343,10 @@ public class Aggregate extends Expression {
 
     public long getPrecision() {
         return precision;
+    }
+    
+    public int getDisplaySize() {
+        return displaySize;
     }
 
     public String getSQL() {

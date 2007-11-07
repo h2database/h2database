@@ -15,6 +15,9 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
+/**
+ * Represents an EXPLAIN statement.
+ */
 public class ExplainPlan extends Prepared {
 
     private Prepared command;
@@ -39,7 +42,7 @@ public class ExplainPlan extends Prepared {
     public LocalResult query(int maxrows) throws SQLException {
         // TODO rights: are rights required for explain?
         ObjectArray expressions = new ObjectArray();
-        Column column = new Column("PLAN", Value.STRING, 0, 0);
+        Column column = new Column("PLAN", Value.STRING, 0, 255, 255);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), null, column);
         expressions.add(expr);
         result = new LocalResult(session, expressions, 1);

@@ -56,8 +56,8 @@ public class ValueResultSet extends Value {
     }
 
     public int getDisplaySize() {
-        // it doesn't make sense to calculate this
-        return 100;
+        // it doesn't make sense to calculate it
+        return 255;
     }
 
     public String getString() throws SQLException {

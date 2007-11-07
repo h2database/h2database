@@ -20,7 +20,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * Represents a DELETE statement.
  */
 public class Delete extends Prepared {
 

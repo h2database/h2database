@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.FileLister;
@@ -110,6 +111,7 @@ public class Backup {
                     throw Message.getInternalError(f + " does not start with " + base);
                 }
                 f = f.substring(base.length());
+                f = BackupCommand.correctFileName(f);
                 ZipEntry entry = new ZipEntry(f);
                 zipOut.putNextEntry(entry);
                 InputStream in = null;

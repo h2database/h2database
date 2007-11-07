@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -52,7 +53,8 @@ public class LocalResult implements ResultInterface {
             types[i] = type;
             int precision = meta.getPrecision(i + 1);
             int scale = meta.getScale(i + 1);
-            Column col = new Column(name, type, precision, scale);
+            int displaySize = meta.getColumnDisplaySize(i + 1);
+            Column col = new Column(name, type, precision, scale, displaySize);
             Expression expr = new ExpressionColumn(db, null, col);
             cols.add(expr);
         }
@@ -280,7 +282,11 @@ public class LocalResult implements ResultInterface {
     }
 
     public int getDisplaySize(int i) {
-        return displaySizes[i];
+        if (SysProperties.NEW_DISPLAY_SIZE) {
+            return expressions[i].getDisplaySize();
+        } else {
+            return displaySizes[i];
+        }
     }
 
     public String getColumnName(int i) {

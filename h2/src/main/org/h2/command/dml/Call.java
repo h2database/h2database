@@ -19,9 +19,8 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
 
 /**
- * @author Thomas
+ * Represents a CALL statement.
  */
-
 public class Call extends Prepared {
     private Expression value;
     private ObjectArray expressions;
@@ -46,7 +45,7 @@ public class Call extends Prepared {
             ObjectArray expr = new ObjectArray();
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
-                Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale());
+                Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
                 expr.add(new ExpressionColumn(session.getDatabase(), null, col));
             }
             LocalResult result = new LocalResult(session, expr, list.length);

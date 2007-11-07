@@ -14,6 +14,9 @@ import org.h2.expression.Parameter;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 
+/**
+ * Represents an EXECUTE statement.
+ */
 public class ExecuteProcedure extends Prepared {
     
     private ObjectArray expressions = new ObjectArray();

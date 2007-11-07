@@ -26,6 +26,7 @@ public class FileObjectMemory implements FileObject {
     private long length;
     private long pos;
     private byte[][] data;
+    private long lastModified;
     
     private static final CompressLZF LZF = new CompressLZF();
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
@@ -116,14 +117,11 @@ public class FileObjectMemory implements FileObject {
         this.name = name;
         this.compress = compress;
         data = new byte[0][];
+        touch();
     }
     
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
+    private void touch() {
+        lastModified = System.currentTimeMillis();
     }
     
     public long length() {
@@ -131,6 +129,7 @@ public class FileObjectMemory implements FileObject {
     }
     
     public void setLength(long l) {
+        touch();
         if (l < length) {
             pos = Math.min(pos, l);
             changeLength(l);
@@ -203,6 +202,7 @@ public class FileObjectMemory implements FileObject {
     }
     
     public void write(byte[] b, int off, int len) throws IOException {
+        touch();
         readWrite(b, off, len, true);
     }
 
@@ -219,5 +219,17 @@ public class FileObjectMemory implements FileObject {
     }
 
     public void sync() throws IOException {
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public long getLastModified() {
+        return lastModified;
     }
 }

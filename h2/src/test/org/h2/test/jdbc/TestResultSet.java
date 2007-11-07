@@ -363,8 +363,8 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(2,.0)");
         stat.execute("INSERT INTO TEST VALUES(3,1.)");
         stat.execute("INSERT INTO TEST VALUES(4,12345678.89)");
-        stat.execute("INSERT INTO TEST VALUES(6,99999999.99)");
-        stat.execute("INSERT INTO TEST VALUES(7,-99999999.99)");
+        stat.execute("INSERT INTO TEST VALUES(6,99999998.99)");
+        stat.execute("INSERT INTO TEST VALUES(7,-99999998.99)");
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
@@ -393,11 +393,11 @@ public class TestResultSet extends TestBase {
         rs.next();
         checkColumnBigDecimal(rs, 2, 1, "1.00");
         rs.next();
-        checkColumnBigDecimal(rs, 2, 12345678, "12345678.89");
+        checkColumnBigDecimal(rs, 2, 12345679, "12345678.89");
         rs.next();
-        checkColumnBigDecimal(rs, 2, 99999999, "99999999.99");
+        checkColumnBigDecimal(rs, 2, 99999999, "99999998.99");
         rs.next();
-        checkColumnBigDecimal(rs, 2, -99999999, "-99999999.99");
+        checkColumnBigDecimal(rs, 2, -99999999, "-99999998.99");
         rs.next();
         checkColumnBigDecimal(rs, 2, 0, null);
         check(!rs.next());

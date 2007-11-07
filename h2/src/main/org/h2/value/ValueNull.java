@@ -24,6 +24,7 @@ public class ValueNull extends Value {
     public static final ValueNull DELETED = new ValueNull();
 
     public static final int PRECISION = 1;
+    public static final int DISPLAY_SIZE = 4; // null
 
     private ValueNull() {
     }
@@ -120,12 +121,8 @@ public class ValueNull extends Value {
         prep.setNull(parameterIndex, DataType.convertTypeToSQLType(Value.NULL));
     }
 
-//    public String getJavaString() {
-//        return "null";
-//    }
-
     public int getDisplaySize() {
-        return "null".length();
+        return DISPLAY_SIZE;
     }
 
     protected boolean isEqual(Value v) {

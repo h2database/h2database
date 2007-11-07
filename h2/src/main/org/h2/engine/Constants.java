@@ -49,6 +49,7 @@ import org.h2.constant.SysProperties;
  *      - table of contents
  * - Switch off auto-build
  * - ant all
+ * - Make sure FullTextLucene is included in h2.jar
  * - Copy the pdf file to h2/docs
  * - Make sure the build files are removed
  * - ant zip
@@ -144,6 +145,7 @@ public class Constants {
     public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
     public static final int SELECTIVITY_DEFAULT = 50;
     public static final int SELECTIVITY_ANALYZE_SAMPLE_ROWS = 10000;
+    public static final boolean CONVERT_TO_LONG_ROUND = true;
 
     // the cost is calculated on rowcount + this offset, to avoid using the wrong or no index
     // if the table contains no rows _currently_ (when preparing the statement)

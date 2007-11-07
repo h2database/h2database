@@ -181,10 +181,10 @@ Phantom Reads (ファントムリード)
 #Multi-Version Concurrency Control (MVCC)
 
 @advanced_1060_p
-#The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. Table are still locked exclusively when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown. #クラスタリングはサーバーモードでのみ使用できます (エンベッドモードはクラスタリングをサポートしていません)。 サーバーを停止しないでクラスタを回復することは可能ですが、二番目のデータベースが回復している間に、 他のどんなアプリケーションでも最初のデータベースのデータを変更しないことは重要なため、 クラスタを回復するのは現在手動プロセスです。
+#The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. Table are still locked exclusively when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
 
 @advanced_1061_p
-#To use the MVCC feature, append MVCC=TRUE to the database URL: #クラスタを初期化するには、次の手順に従います:
+#To use the MVCC feature, append MVCC=TRUE to the database URL:
 
 @advanced_1062_h2
 クラスタリング / 高可用性
@@ -844,216 +844,207 @@ h2.maxFileRetry
 再試行ファイルの削除と改名の回数
 
 @advanced_1281_td
-h2.multiThreadedKernel
-
-@advanced_1282_td
-false
-
-@advanced_1283_td
-同時に実行する複数セッションを許可する
-
-@advanced_1284_td
 h2.objectCache
 
-@advanced_1285_td
+@advanced_1282_td
 true
 
-@advanced_1286_td
+@advanced_1283_td
 一般に使用されるオブジェクトをキャッシュする (integer、string)
 
-@advanced_1287_td
+@advanced_1284_td
 h2.objectCacheMaxPerElementSize
 
-@advanced_1288_td
+@advanced_1285_td
 4096
 
-@advanced_1289_td
+@advanced_1286_td
 キャッシュのオブジェクトの最大サイズ
 
-@advanced_1290_td
+@advanced_1287_td
 h2.objectCacheSize
 
-@advanced_1291_td
+@advanced_1288_td
 1024
 
-@advanced_1292_td
+@advanced_1289_td
 オブジェクトキャッシュのサイズ
 
-@advanced_1293_td
+@advanced_1290_td
 h2.optimizeEvaluatableSubqueries
+
+@advanced_1291_td
+true
+
+@advanced_1292_td
+外部クエリに依存していないサブクエリの最適化
+
+@advanced_1293_td
+h2.optimizeIn
 
 @advanced_1294_td
 true
 
 @advanced_1295_td
-外部クエリに依存していないサブクエリの最適化
+最適化 IN(...) 比較
 
 @advanced_1296_td
-h2.optimizeIn
+h2.optimizeMinMax
 
 @advanced_1297_td
 true
 
 @advanced_1298_td
-最適化 IN(...) 比較
+最適化 MIN と MAX の集合関数
 
 @advanced_1299_td
-h2.optimizeMinMax
+h2.optimizeSubqueryCache
 
 @advanced_1300_td
 true
 
 @advanced_1301_td
-最適化 MIN と MAX の集合関数
+サブクエリの結果をキャッシュ
 
 @advanced_1302_td
-h2.optimizeSubqueryCache
+h2.overflowExceptions
 
 @advanced_1303_td
 true
 
 @advanced_1304_td
-サブクエリの結果をキャッシュ
-
-@advanced_1305_td
-h2.overflowExceptions
-
-@advanced_1306_td
-true
-
-@advanced_1307_td
 integerのオーバーフローに例外を投げる
 
-@advanced_1308_td
+@advanced_1305_td
 h2.recompileAlways
 
-@advanced_1309_td
+@advanced_1306_td
 false
 
-@advanced_1310_td
+@advanced_1307_td
 常にprepared statementを再コンパイルする
 
-@advanced_1311_td
+@advanced_1308_td
 h2.redoBufferSize
 
-@advanced_1312_td
+@advanced_1309_td
 262144
 
-@advanced_1313_td
+@advanced_1310_td
 redo bufferのサイズ (回復時に起動で使用)
 
-@advanced_1314_td
+@advanced_1311_td
 h2.runFinalizers
 
-@advanced_1315_td
+@advanced_1312_td
 true
 
-@advanced_1316_td
+@advanced_1313_td
 閉じられていない接続を検出するために finalizers を実行する
 
-@advanced_1317_td
+@advanced_1314_td
 h2.scriptDirectory
 
-@advanced_1318_td
+@advanced_1315_td
 スクリプトファイルが保存されるか、読み込まれる相対、または絶対ディレクトリ
 
-@advanced_1319_td
+@advanced_1316_td
 h2.serverCachedObjects
 
-@advanced_1320_td
+@advanced_1317_td
 64
 
-@advanced_1321_td
+@advanced_1318_td
 TCPサーバー: セッションごとのキャッシュオブジェクトの数
 
-@advanced_1322_td
+@advanced_1319_td
 h2.serverSmallResultSetSize
 
-@advanced_1323_td
+@advanced_1320_td
 100
 
-@advanced_1324_td
+@advanced_1321_td
 TCPサーバー: このサイズ以下のresult setがひとつのブロックに送信される
 
-@advanced_1325_h2
+@advanced_1322_h2
 用語集とリンク
 
-@advanced_1326_th
+@advanced_1323_th
 用語
 
-@advanced_1327_th
+@advanced_1324_th
 説明
 
-@advanced_1328_td
+@advanced_1325_td
 AES-128
 
-@advanced_1329_td
+@advanced_1326_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1330_td
+@advanced_1327_td
 Birthday Paradox
 
-@advanced_1331_td
+@advanced_1328_td
 部屋にいる二人が同じ誕生日の可能性が期待された以上に高いということを説明する。 また、有効なランダムに生成されたUUID。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1332_td
+@advanced_1329_td
 Digest
 
-@advanced_1333_td
+@advanced_1330_td
 パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1334_td
+@advanced_1331_td
 GCJ
 
-@advanced_1335_td
+@advanced_1332_td
 JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1336_td
+@advanced_1333_td
 HTTPS
 
-@advanced_1337_td
+@advanced_1334_td
 セキュリティをHTTP接続に提供するプロトコル。こちらもご覧下さい: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1338_td
+@advanced_1335_td
 Modes of Operation
 
-@advanced_1339_a
+@advanced_1336_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1340_td
+@advanced_1337_td
 Salt
 
-@advanced_1341_td
+@advanced_1338_td
 パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1342_td
+@advanced_1339_td
 SHA-256
 
-@advanced_1343_td
+@advanced_1340_td
 暗号化の一方方向のハッシュ関数。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1344_td
+@advanced_1341_td
 SQLインジェクション
 
-@advanced_1345_td
+@advanced_1342_td
 組み込みのユーザー入力でアプリケーションがSQLステートメントを生成するセキュリティ脆弱性 こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1346_td
+@advanced_1343_td
 Watermark Attack (透かし攻撃)
 
-@advanced_1347_td
+@advanced_1344_td
 復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 
-@advanced_1348_td
+@advanced_1345_td
 SSL/TLS
 
-@advanced_1349_td
+@advanced_1346_td
 Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1350_td
+@advanced_1347_td
 XTEA
 
-@advanced_1351_td
+@advanced_1348_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -1081,57 +1072,60 @@ Maven 2 の利用
 環境
 
 @build_1008_p
-データベースを実行可能にビルドするために、以下のソフトウェアが用いられます。また、下記の最新版もしくは下記との互換性をもったソフトウェアでもビルドが可能です。
+#A Java Runtime Environment (JRE) version 1.4 or higher is required to run this database.
 
-@build_1009_li
-Windows XP
+@build_1009_p
+#To build the database executables, the following software stack was used. Newer version or compatible software works too.
 
 @build_1010_li
-Sun JDK Version 1.4 または 1.5
+Windows XP
 
 @build_1011_li
-Apache Ant Version 1.6.5
+Sun JDK Version 1.4 または 1.5
 
 @build_1012_li
-Mozilla Firefox 1.5
+Apache Ant Version 1.6.5
 
 @build_1013_li
-Eclipse Version 3.2.2
+Mozilla Firefox 1.5
 
 @build_1014_li
+Eclipse Version 3.2.2
+
+@build_1015_li
 YourKit Java Profiler
 
-@build_1015_h2
+@build_1016_h2
 ソフトウェアのビルド
 
-@build_1016_p
+@build_1017_p
 コマンドライン上でsrcディレクトリに移動し、以下のコマンドを実行してください:
 
-@build_1017_p
+@build_1018_p
 実行するとターゲットのリストが得られます。jarファイルをビルドしたい場合は、以下を実行してください:
 
-@build_1018_p
+@build_1019_p
 JDBC APIを実装し、サーバーにのみ接続するクラスを持つjarファイルをビルドするには、jarCliantターゲットを用います:
 
-@build_1019_p
+@build_1020_p
 これ以外のターゲットも実行が可能でしょう
 
-@build_1020_h2
+@build_1021_h2
 Maven 2 の利用
 
-@build_1021_h3
+@build_1022_h3
 Centralリポジトリの利用
 
-@build_1022_p
+@build_1023_p
 依存関係を取ることで、Maven 2プロジェクトでデータベースを組み込むことも可能です。例:
 
-@build_1023_h3
+@build_1024_h3
 スナップショットバージョンの利用
 
-@build_1024_p
+@build_1025_p
 スナップショット版のH2.jarファイルをビルドし、ローカルのMaven2リポジトリを更新するには以下のコマンドを実行します:
 
-@build_1025_p
+@build_1026_p
 実行後、Maven2プロジェクトにH2DBを依存させ組み込むことが出来るようになります:
 
 @download_1000_h1
@@ -5015,4 +5009,61 @@ PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト 
 
 @tutorial_1144_p
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
+
+@~advanced_1322_td
+h2.serverSmallResultSetSize
+
+@~advanced_1323_td
+100
+
+@~advanced_1324_td
+TCPサーバー: このサイズ以下のresult setがひとつのブロックに送信される
+
+@~advanced_1325_h2
+用語集とリンク
+
+@~advanced_1326_th
+用語
+
+@~advanced_1327_th
+説明
+
+@~advanced_1336_td
+HTTPS
+
+@~advanced_1339_a
+Wikipedia: Block cipher modes of operation
+
+@~advanced_1349_td
+Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
+
+@~advanced_1350_td
+XTEA
+
+@~advanced_1351_td
+ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
+
+@~build_1009_li
+Windows XP
+
+@~build_1015_h2
+ソフトウェアのビルド
+
+@~build_1016_p
+コマンドライン上でsrcディレクトリに移動し、以下のコマンドを実行してください:
+
+@~build_1020_h2
+Maven 2 の利用
+
+@~build_1021_h3
+Centralリポジトリの利用
+
+@~build_1022_p
+依存関係を取ることで、Maven 2プロジェクトでデータベースを組み込むことも可能です。例:
+
+@~build_1023_h3
+スナップショットバージョンの利用
+
+@~build_1024_p
+スナップショット版のH2.jarファイルをビルドし、ローカルのMaven2リポジトリを更新するには以下のコマンドを実行します:
 

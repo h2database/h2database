@@ -88,6 +88,10 @@ public class Parameter extends Expression implements ParameterInterface {
     public long getPrecision() {
         return value == null ? 0 : value.getPrecision();
     }
+    
+    public int getDisplaySize() {
+        return value == null ? 0 : value.getDisplaySize();
+    }    
 
     public void updateAggregate(Session session) {
         // nothing to do

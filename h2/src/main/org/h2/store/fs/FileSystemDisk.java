@@ -318,7 +318,6 @@ public class FileSystemDisk extends FileSystem {
     }
     
     public InputStream openFileInputStream(String fileName) throws IOException {
-        int todoMaybeUseAnotherFileSystem;
         if (fileName.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
             // otherwise a URL is assumed

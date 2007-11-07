@@ -52,6 +52,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 
+/**
+ * Represents a SCRIPT statement.
+ */
 public class ScriptCommand extends ScriptBase {
 
     private boolean passwords;
@@ -104,7 +107,7 @@ public class ScriptCommand extends ScriptBase {
     
     private LocalResult createResult() {
         ObjectArray cols = new ObjectArray();
-        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING, 0, 0)));
+        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING, 0, 255, 255)));
         return new LocalResult(session, cols, 1);
     }
 

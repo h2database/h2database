@@ -16,6 +16,7 @@ import org.h2.util.MathUtils;
 
 public class ValueTimestamp extends Value {
     public static final int PRECISION = 23;
+    public static final int DISPLAY_SIZE = 23; // 2001-01-01 23:59:59.000
     public static final int DEFAULT_SCALE = 10;
     private final Timestamp value;
 
@@ -106,13 +107,9 @@ public class ValueTimestamp extends Value {
         t2.setNanos(n2);
         return ValueTimestamp.getNoCopy(t2);
     }
-
-//    public String getJavaString() {
-//        return "Timestamp.valueOf(\"" + toString() + "\")";
-//    }
     
     public int getDisplaySize() {
-        return "2001-01-01 23:59:59.000".length();
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

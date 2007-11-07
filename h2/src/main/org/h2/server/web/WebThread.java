@@ -839,10 +839,10 @@ class WebThread extends Thread implements DatabaseEventListener {
             Connection conn = server.getConnection(driver, url, user, password, this);
             JdbcUtils.closeSilently(conn);
             session.put("error", "${text.login.testSuccessful}");
-            return "index.jsp";
+            return "login.jsp";
         } catch (Exception e) {
             session.put("error", getLoginError(e));
-            return "index.jsp";
+            return "login.jsp";
         }
     }
 
@@ -881,7 +881,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 return "frame.jsp";
             } catch (Exception e) {
                 session.put("error", getLoginError(e));
-                return "index.jsp";
+                return "login.jsp";
             }
         }
         class LoginTask implements Runnable, DatabaseEventListener {

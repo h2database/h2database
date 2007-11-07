@@ -17,6 +17,7 @@ import org.h2.util.ObjectUtils;
 
 public class ValueDouble extends Value {
     public static final int PRECISION = 17;
+    public static final int DISPLAY_SIZE = 24; // -3.3333333333333334E-100
 
     private final double value;
     private static final double DOUBLE_ZERO = 0.0;
@@ -114,12 +115,8 @@ public class ValueDouble extends Value {
         return (ValueDouble) Value.cache(new ValueDouble(d));
     }
 
-//    public String getJavaString() {
-//        return getString();
-//    }
-
     public int getDisplaySize() {
-        return PRECISION + 2;
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

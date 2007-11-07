@@ -140,7 +140,7 @@ public class TcpServer implements Service {
                 c.setThread(thread);
                 thread.start();
             }
-            serverSocket.close();
+            serverSocket = NetUtils.closeSilently(serverSocket);
         } catch (Exception e) {
             if (!stop) {
                 TraceSystem.traceThrowable(e);

@@ -8,6 +8,9 @@ import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.result.LocalResult;
 
+/**
+ * Represents an empty statement or a statement that has no effect.
+ */
 public class NoOperation extends Prepared {
 
     public NoOperation(Session session) {

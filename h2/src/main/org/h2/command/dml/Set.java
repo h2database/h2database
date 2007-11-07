@@ -10,7 +10,6 @@ import java.text.Collator;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
@@ -29,9 +28,8 @@ import org.h2.value.CompareMode;
 import org.h2.value.ValueInt;
 
 /**
- * @author Thomas
+ * Represents a SET statement.
  */
-
 public class Set extends Prepared {
 
     private int type;
@@ -102,11 +100,11 @@ public class Set extends Prepared {
             break;
         case SetTypes.MODE:
             session.getUser().checkAdmin();
-            Mode mode = Mode.getMode(stringValue);
+            Mode mode = Mode.getInstance(stringValue);
             if (mode == null) {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
             }
-            Mode.setCurrentMode(mode);
+            database.setMode(mode);
             break;
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
@@ -170,7 +168,7 @@ public class Set extends Prepared {
         }
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();
-            SysProperties.multiThreadedKernel = (getIntValue() == 1);
+            database.setMultiThreaded(getIntValue() == 1);
             break;
         }
         case SetTypes.DB_CLOSE_DELAY: {

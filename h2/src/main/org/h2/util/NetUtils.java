@@ -88,5 +88,16 @@ public class NetUtils {
 //#endif
         return result;
     }
+    
+    public static ServerSocket closeSilently(ServerSocket socket) {
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+        return null;
+    }
 
 }

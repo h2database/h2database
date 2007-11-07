@@ -46,6 +46,14 @@ public class JavaAggregate extends Expression {
     }
 
     public long getPrecision() {
+        return 255;
+    }
+    
+    public int getDisplaySize() {
+        return 255;
+    }
+    
+    public int getScale() {
         return 0;
     }
 
@@ -62,10 +70,6 @@ public class JavaAggregate extends Expression {
         }
         buff.append(')');
         return buff.toString();
-    }
-
-    public int getScale() {
-        return 0;
     }
 
     public int getType() {

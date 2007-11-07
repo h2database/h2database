@@ -27,7 +27,13 @@ public class FileObjectOutputStream extends OutputStream {
         file.write(buffer, 0, 1);
     }
     
-    private int todoWriteBlock;
+    public void write(byte[] b) throws IOException {
+        file.write(b, 0, b.length);
+    }
+    
+    public void write(byte[] b, int off, int len) throws IOException {
+        file.write(b, off, len);
+    }
     
     public void close() throws IOException {
         file.close();

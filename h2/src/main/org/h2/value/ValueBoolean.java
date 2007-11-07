@@ -12,6 +12,7 @@ import java.sql.SQLException;
  */
 public class ValueBoolean extends Value {
     public static final int PRECISION = 1;
+    public static final int DISPLAY_SIZE = 5; // false
 
     private final Boolean value;
 
@@ -68,12 +69,8 @@ public class ValueBoolean extends Value {
         return b ? TRUE : FALSE;
     }
 
-//    public String getJavaString() {
-//        return value.booleanValue() ? "true" : "false";
-//    }
-    
     public int getDisplaySize() {
-        return "FALSE".length();
+        return DISPLAY_SIZE;
     }
 
     protected boolean isEqual(Value v) {

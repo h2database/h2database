@@ -119,6 +119,7 @@ public class BackupCommand extends Prepared {
             throw Message.getInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
+        f = correctFileName(f);
         out.putNextEntry(new ZipEntry(f));
         InputStream in = FileUtils.openFileInputStream(fn);
         IOUtils.copyAndCloseInput(in, out);
@@ -128,7 +129,14 @@ public class BackupCommand extends Prepared {
     public boolean isTransactional() {
         return true;
     }
-
+    
+    public static String correctFileName(String f) {
+        f = f.replace('\\', '/');
+        if (f.startsWith("/")) {
+            f = f.substring(1);
+        }
+        return f;
+    }
     public boolean needRecompile() {
         return false;
     }

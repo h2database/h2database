@@ -842,216 +842,207 @@ h2.maxFileRetry
 Number of times to retry file delete and rename
 
 @advanced_1281_td
-h2.multiThreadedKernel
-
-@advanced_1282_td
-false
-
-@advanced_1283_td
-Allow multiple sessions to run concurrently
-
-@advanced_1284_td
 h2.objectCache
 
-@advanced_1285_td
+@advanced_1282_td
 true
 
-@advanced_1286_td
+@advanced_1283_td
 Cache commonly used objects (integers, strings)
 
-@advanced_1287_td
+@advanced_1284_td
 h2.objectCacheMaxPerElementSize
 
-@advanced_1288_td
+@advanced_1285_td
 4096
 
-@advanced_1289_td
+@advanced_1286_td
 Maximum size of an object in the cache
 
-@advanced_1290_td
+@advanced_1287_td
 h2.objectCacheSize
 
-@advanced_1291_td
+@advanced_1288_td
 1024
 
-@advanced_1292_td
+@advanced_1289_td
 Size of object cache
 
-@advanced_1293_td
+@advanced_1290_td
 h2.optimizeEvaluatableSubqueries
+
+@advanced_1291_td
+true
+
+@advanced_1292_td
+Optimize subqueries that are not dependent on the outer query
+
+@advanced_1293_td
+h2.optimizeIn
 
 @advanced_1294_td
 true
 
 @advanced_1295_td
-Optimize subqueries that are not dependent on the outer query
+Optimize IN(...) comparisons
 
 @advanced_1296_td
-h2.optimizeIn
+h2.optimizeMinMax
 
 @advanced_1297_td
 true
 
 @advanced_1298_td
-Optimize IN(...) comparisons
+Optimize MIN and MAX aggregate functions
 
 @advanced_1299_td
-h2.optimizeMinMax
+h2.optimizeSubqueryCache
 
 @advanced_1300_td
 true
 
 @advanced_1301_td
-Optimize MIN and MAX aggregate functions
+Cache subquery results
 
 @advanced_1302_td
-h2.optimizeSubqueryCache
+h2.overflowExceptions
 
 @advanced_1303_td
 true
 
 @advanced_1304_td
-Cache subquery results
-
-@advanced_1305_td
-h2.overflowExceptions
-
-@advanced_1306_td
-true
-
-@advanced_1307_td
 Throw an exception on integer overflows
 
-@advanced_1308_td
+@advanced_1305_td
 h2.recompileAlways
 
-@advanced_1309_td
+@advanced_1306_td
 false
 
-@advanced_1310_td
+@advanced_1307_td
 Always recompile prepared statements
 
-@advanced_1311_td
+@advanced_1308_td
 h2.redoBufferSize
 
-@advanced_1312_td
+@advanced_1309_td
 262144
 
-@advanced_1313_td
+@advanced_1310_td
 Size of the redo buffer (used at startup when recovering)
 
-@advanced_1314_td
+@advanced_1311_td
 h2.runFinalizers
 
-@advanced_1315_td
+@advanced_1312_td
 true
 
-@advanced_1316_td
+@advanced_1313_td
 Run finalizers to detect unclosed connections
 
-@advanced_1317_td
+@advanced_1314_td
 h2.scriptDirectory
 
-@advanced_1318_td
+@advanced_1315_td
 Relative or absolute directory where the script files are stored to or read from
 
-@advanced_1319_td
+@advanced_1316_td
 h2.serverCachedObjects
 
-@advanced_1320_td
+@advanced_1317_td
 64
 
-@advanced_1321_td
+@advanced_1318_td
 TCP Server: number of cached objects per session
 
-@advanced_1322_td
+@advanced_1319_td
 h2.serverSmallResultSetSize
 
-@advanced_1323_td
+@advanced_1320_td
 100
 
-@advanced_1324_td
+@advanced_1321_td
 TCP Server: result sets below this size are sent in one block
 
-@advanced_1325_h2
+@advanced_1322_h2
 Glossary and Links
 
-@advanced_1326_th
+@advanced_1323_th
 Term
 
-@advanced_1327_th
+@advanced_1324_th
 Description
 
-@advanced_1328_td
+@advanced_1325_td
 AES-128
 
-@advanced_1329_td
+@advanced_1326_td
 A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1330_td
+@advanced_1327_td
 Birthday Paradox
 
-@advanced_1331_td
+@advanced_1328_td
 Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1332_td
+@advanced_1329_td
 Digest
 
-@advanced_1333_td
+@advanced_1330_td
 Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1334_td
+@advanced_1331_td
 GCJ
 
-@advanced_1335_td
+@advanced_1332_td
 GNU Compiler for Java. <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1336_td
+@advanced_1333_td
 HTTPS
 
-@advanced_1337_td
+@advanced_1334_td
 A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1338_td
+@advanced_1335_td
 Modes of Operation
 
-@advanced_1339_a
+@advanced_1336_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1340_td
+@advanced_1337_td
 Salt
 
-@advanced_1341_td
+@advanced_1338_td
 Random number to increase the security of passwords.  See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1342_td
+@advanced_1339_td
 SHA-256
 
-@advanced_1343_td
+@advanced_1340_td
 A cryptographic one-way hash function.  See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1344_td
+@advanced_1341_td
 SQL Injection
 
-@advanced_1345_td
+@advanced_1342_td
 A security vulnerability where an application generates SQL statements with embedded user input.  See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1346_td
+@advanced_1343_td
 Watermark Attack
 
-@advanced_1347_td
+@advanced_1344_td
 Security problem of certain encryption programs where the existence of certain  data can be proven without decrypting.  For more information, search in the internet for 'watermark attack cryptoloop'
 
-@advanced_1348_td
+@advanced_1345_td
 SSL/TLS
 
-@advanced_1349_td
+@advanced_1346_td
 Secure Sockets Layer / Transport Layer Security.  See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1350_td
+@advanced_1347_td
 XTEA
 
-@advanced_1351_td
+@advanced_1348_td
 A block encryption algorithm.  See also: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -1079,57 +1070,60 @@ This database is written in Java and therefore works on many platforms. It can a
 Environment
 
 @build_1008_p
-To build the database executables, the following software stack was used. In most cases, newer version or compatible software works too.
+A Java Runtime Environment (JRE) version 1.4 or higher is required to run this database.
 
-@build_1009_li
-Windows XP
+@build_1009_p
+To build the database executables, the following software stack was used. Newer version or compatible software works too.
 
 @build_1010_li
-Sun JDK Version 1.4 or 1.5
+Windows XP
 
 @build_1011_li
-Apache Ant Version 1.6.5
+Sun JDK Version 1.4 or 1.5
 
 @build_1012_li
-Mozilla Firefox 1.5
+Apache Ant Version 1.6.5
 
 @build_1013_li
-Eclipse Version 3.2.2
+Mozilla Firefox 1.5
 
 @build_1014_li
+Eclipse Version 3.2.2
+
+@build_1015_li
 YourKit Java Profiler
 
-@build_1015_h2
+@build_1016_h2
 Building the Software
 
-@build_1016_p
+@build_1017_p
 On the command line, go to the directory src and execute the following command:
 
-@build_1017_p
+@build_1018_p
 You will get a list of targets. If you want to build the jar files, execute:
 
-@build_1018_p
+@build_1019_p
 To create a jar file with the JDBC API and the classes required to connect to a server only, use the target jarClient:
 
-@build_1019_p
+@build_1020_p
 The other targets may be used as well.
 
-@build_1020_h2
+@build_1021_h2
 Using Maven 2
 
-@build_1021_h3
+@build_1022_h3
 Using a Central Repository
 
-@build_1022_p
+@build_1023_p
 You can include the database in your Maven 2 project as a dependency. Example:
 
-@build_1023_h3
+@build_1024_h3
 Using Snapshot Version
 
-@build_1024_p
+@build_1025_p
 To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
 
-@build_1025_p
+@build_1026_p
 Afterwards, you can include the database in your Maven 2 project as a dependency:
 
 @download_1000_h1

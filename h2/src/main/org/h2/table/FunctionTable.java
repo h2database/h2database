@@ -21,6 +21,7 @@ import org.h2.schema.Schema;
 import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
 public class FunctionTable extends Table {
@@ -52,7 +53,7 @@ public class FunctionTable extends Table {
         Column[] cols = new Column[columnCount];
         for (int i = 0; i < columnCount; i++) {
             cols[i] = new Column(meta.getColumnName(i + 1), DataType.convertSQLTypeToValueType(meta
-                    .getColumnType(i + 1)), meta.getPrecision(i + 1), meta.getScale(i + 1));
+                    .getColumnType(i + 1)), meta.getPrecision(i + 1), meta.getScale(i + 1), meta.getColumnDisplaySize(i + 1));
         }
         setColumns(cols);
     }
@@ -129,8 +130,13 @@ public class FunctionTable extends Table {
 
     public LocalResult getResult(Session session) throws SQLException {
         function.optimize(session);
-        ValueResultSet value = (ValueResultSet) function.getValue(session);
-        return LocalResult.read(session, value.getResultSet(), 0);
+        Value v = function.getValue(session);
+        if (v == ValueNull.INSTANCE) {
+            return new LocalResult(0);
+        } else {
+            ValueResultSet value = (ValueResultSet) v;
+            return LocalResult.read(session, value.getResultSet(), 0);
+        }
     }
 
     public long getMaxDataModificationId() {

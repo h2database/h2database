@@ -402,7 +402,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         try {
             debugCodeCall("getColumnDisplaySize", column);
             checkColumnIndex(column);
-            return result.getDisplaySize(--column);
+            return (int) result.getDisplaySize(--column);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }

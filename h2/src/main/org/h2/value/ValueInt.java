@@ -17,6 +17,7 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueInt extends Value {
     public static final int PRECISION = 10;
+    public static final int DISPLAY_SIZE = 11; // -2147483648
 
     private final int value;
     private static final int STATIC_SIZE = 100;
@@ -140,12 +141,8 @@ public class ValueInt extends Value {
         prep.setInt(parameterIndex, value);
     }
 
-//    public String getJavaString() {
-//        return getString();
-//    }
-
     public int getDisplaySize() {
-        return PRECISION;
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

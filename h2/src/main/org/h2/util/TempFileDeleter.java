@@ -14,20 +14,20 @@ import org.h2.message.Message;
 
 public class TempFileDeleter {
 
-    private static ReferenceQueue queue = new ReferenceQueue();
-    private static HashMap refMap = new HashMap();
+    private static final ReferenceQueue QUEUE = new ReferenceQueue();
+    private static final HashMap REF_MAP = new HashMap();
 
     public static synchronized Reference addFile(String fileName, Object file) {
         FileUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference ref = new PhantomReference(file, queue);
-        refMap.put(ref, fileName);
+        PhantomReference ref = new PhantomReference(file, QUEUE);
+        REF_MAP.put(ref, fileName);
         deleteUnused();
         return ref;
     }
 
     public static synchronized void deleteFile(Reference ref, String fileName) {
         if (ref != null) {
-            String f2 = (String) refMap.remove(ref);
+            String f2 = (String) REF_MAP.remove(ref);
             if (SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
                 throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
             }
@@ -45,7 +45,7 @@ public class TempFileDeleter {
     
     public static void deleteUnused() {
         while (true) {
-            Reference ref = queue.poll();
+            Reference ref = QUEUE.poll();
             if (ref == null) {
                 break;
             }
@@ -56,7 +56,7 @@ public class TempFileDeleter {
     public static void stopAutoDelete(Reference ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
-            String f2 = (String) refMap.remove(ref);
+            String f2 = (String) REF_MAP.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
                 throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
             }

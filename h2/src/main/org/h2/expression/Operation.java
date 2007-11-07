@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -65,14 +66,15 @@ public class Operation extends Expression {
         case NEGATE:
             return l == ValueNull.INSTANCE ? l : l.negate();
         case CONCAT: {
+            Mode mode = session.getDatabase().getMode();
             if (l == ValueNull.INSTANCE) {
-                if (Mode.getCurrentMode().nullConcatIsNull) {
+                if (mode.nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 } else {
                     return r;
                 }
             } else if (r == ValueNull.INSTANCE) {
-                if (Mode.getCurrentMode().nullConcatIsNull) {
+                if (mode.nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 } else {
                     return l;
@@ -199,6 +201,18 @@ public class Operation extends Expression {
             }
         }
         return left.getPrecision();
+    }
+    
+    public int getDisplaySize() {
+        if (right != null) {
+            switch (opType) {
+                case CONCAT:
+                    return MathUtils.convertLongToInt((long) left.getDisplaySize() + (long) right.getDisplaySize());
+                default:
+                    return Math.max(left.getDisplaySize(), right.getDisplaySize());
+            }
+        }
+        return left.getDisplaySize();
     }
 
     public int getScale() {

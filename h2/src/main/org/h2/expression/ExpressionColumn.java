@@ -184,6 +184,10 @@ public class ExpressionColumn extends Expression {
     public long getPrecision() {
         return column.getPrecision();
     }
+    
+    public int getDisplaySize() {
+        return column.getDisplaySize();
+    }
 
     public String getOriginalColumnName() {
         return columnName;

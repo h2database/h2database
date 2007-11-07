@@ -7,7 +7,7 @@ package org.h2.command.dml;
 import org.h2.expression.Expression;
 
 /**
- * @author Thomas
+ * Describes the ORDER BY clause of a query.
  */
 public class SelectOrderBy {
     public Expression expression;

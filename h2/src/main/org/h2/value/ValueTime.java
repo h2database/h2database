@@ -12,6 +12,8 @@ import org.h2.util.DateTimeUtils;
 
 public class ValueTime extends Value {
     public static final int PRECISION = 6;
+    public static final int DISPLAY_SIZE = 8; // 10:00:00
+
     private final Time value;
 
     private ValueTime(Time value) {
@@ -73,13 +75,9 @@ public class ValueTime extends Value {
     public static ValueTime getNoCopy(Time time) {
         return (ValueTime) Value.cache(new ValueTime(time));
     }    
-
-//    public String getJavaString() {
-//        return "Time.valueOf(\"" + toString() + "\")";
-//    }
     
     public int getDisplaySize() {
-        return "23:59:59".length();
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

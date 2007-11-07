@@ -61,7 +61,11 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public long getPrecision() {
-        return 0;
+        return 255;
+    }
+
+    public int getDisplaySize() {
+        return 255;
     }
 
     public String getSQL() {

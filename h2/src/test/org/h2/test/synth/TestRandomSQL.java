@@ -12,8 +12,10 @@ import java.util.ArrayList;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.RuleHead;
 import org.h2.constant.SysProperties;
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.tools.DeleteDbFiles;
 import org.h2.util.RandomUtils;
 
 public class TestRandomSQL extends TestBase {
@@ -35,8 +37,12 @@ public class TestRandomSQL extends TestBase {
     }
 
     private String getDatabaseName() {
+        if (config.big) {
+            return "dataSynth/randomSql" + dbId;
+        } else {
+            return "memFS:/randomSql" + dbId;
+        }
         // return "dataSynth/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
-        return "dataSynth/randomSql" + dbId;
     }
 
     private Connection connect() throws Exception {
@@ -46,26 +52,35 @@ public class TestRandomSQL extends TestBase {
             } catch (SQLException e) {
                 dbId--;
                 try {
-                    deleteDb(getDatabaseName());
+                    deleteDb();
                 } catch (Exception e2) {
                     // ignore
                 }
                 dbId++;
                 try {
-                    deleteDb(getDatabaseName());
+                    deleteDb();
                 } catch (Exception e2) {
                     // ignore
                 }
                 dbId++;
                 try {
-                    deleteDb(getDatabaseName());
+                    deleteDb();
                 } catch (SQLException e2) {
                     dbId++;
-                    deleteDb(getDatabaseName());
+                    deleteDb();
                 }
             }
         }
 
+    }
+    
+    private void deleteDb() throws SQLException {
+        String name = getDatabaseName();
+        if (name.startsWith(FileSystem.MEMORY_PREFIX)) {
+            DeleteDbFiles.execute("memFS:/", name, true);        
+        } else {
+            DeleteDbFiles.execute(baseDir, name, true);        
+        }
     }
 
     public TestBase init(TestAll conf) throws Exception {
@@ -80,17 +95,17 @@ public class TestRandomSQL extends TestBase {
             String topic = r.getTopic();
             int weight = 0;
             if (topic.equals("select")) {
-                weight = 50;
-            } else if (topic.equals("createtable")) {
-                weight = 20;
-            } else if (topic.equals("insert")) {
-                weight = 20;
-            } else if (topic.startsWith("update")) {
                 weight = 10;
+            } else if (topic.equals("createtable")) {
+                weight = 5;
+            } else if (topic.equals("insert")) {
+                weight = 5;
+            } else if (topic.startsWith("update")) {
+                weight = 3;
             } else if (topic.startsWith("delete")) {
-                weight = 5;
+                weight = 3;
             } else if (topic.startsWith("drop")) {
-                weight = 5;
+                weight = 2;
             }
             if (showSQL) {
                 System.out.println(r.getTopic());
@@ -119,11 +134,13 @@ public class TestRandomSQL extends TestBase {
             String rand = r.getRule().random(config, 0);
             if (rand.length() > 0) {
                 try {
-                    if (showSQL) {
-                        System.out.println(i + "  " + rand);
-                    }
                     Thread.yield();
-                    if (rand.indexOf("TRACE_LEVEL_SYSTEM_OUT") < 0) {
+                    if (rand.indexOf("TRACE_LEVEL_") < 0 && rand.indexOf("COLLATION") < 0
+                            && rand.indexOf("SCRIPT ") < 0 && rand.indexOf("CSVWRITE") < 0
+                            && rand.indexOf("BACKUP") < 0) {
+                        if (showSQL) {
+                            System.out.println(i + "  " + rand);
+                        }
                         stat.execute(rand);
                     }
                 } catch (SQLException e) {
@@ -144,7 +161,7 @@ public class TestRandomSQL extends TestBase {
         seed = i;
         printTime("TestRandomSQL " + seed);
         try {
-            deleteDb(getDatabaseName());
+            deleteDb();
         } catch (SQLException e) {
             processException("deleteDb", e);
         }
@@ -153,9 +170,10 @@ public class TestRandomSQL extends TestBase {
     }
 
     public void test() throws Exception {
+        int len = getSize(2, 6);
         exitOnError = false;
         showSQL = false;
-        for (int a = 0;; a++) {
+        for (int a = 0; a < len; a++) {
             int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
             testCase(seed);
         }

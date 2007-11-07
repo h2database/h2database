@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import org.h2.message.Message;
+import org.h2.util.IOUtils;
 
 public class FileSystemMemory extends FileSystem {
 
@@ -32,6 +33,7 @@ public class FileSystemMemory extends FileSystem {
         FileObjectMemory f = getMemoryFile(oldName);
         f.setName(newName);
         synchronized (MEMORY_FILES) {
+            MEMORY_FILES.remove(oldName);
             MEMORY_FILES.put(newName, f);
         }
     }
@@ -121,8 +123,7 @@ public class FileSystemMemory extends FileSystem {
     }
     
     public long getLastModified(String fileName) {
-        // TODO last modified is not supported
-        return 0;
+        return getMemoryFile(fileName).getLastModified();
     }
     
     public boolean canWrite(String fileName) {
@@ -130,11 +131,17 @@ public class FileSystemMemory extends FileSystem {
     }
     
     public void copy(String original, String copy) throws SQLException {
-        // TODO support copying
-        throw Message.getUnsupportedException();
+        try {
+            OutputStream out = openFileOutputStream(copy, false);
+            InputStream in = openFileInputStream(original);
+            IOUtils.copyAndClose(in, out);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "Can not copy " + original + " to " + copy);
+        }
     }
 
     public void createDirs(String fileName) throws SQLException {
+        // TODO directories are not really supported
     }
 
     public String getFileName(String name) throws SQLException {

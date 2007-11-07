@@ -72,7 +72,8 @@ public class TableView extends Table {
                 int type = expr.getType();
                 long precision = expr.getPrecision();
                 int scale = expr.getScale();
-                Column col = new Column(name, type, precision, scale);
+                int displaySize = expr.getDisplaySize();
+                Column col = new Column(name, type, precision, scale, displaySize);
                 col.setTable(this, i);
                 list.add(col);
             }
@@ -93,7 +94,7 @@ public class TableView extends Table {
             if (recursive && columnNames != null) {
                 cols = new Column[columnNames.length];
                 for (int i = 0; i < columnNames.length; i++) {
-                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0);
+                    cols[i] = new Column(columnNames[i], Value.STRING, 255, 0, 255);
                 }
                 index.setRecursive(true);
                 recursive = true;

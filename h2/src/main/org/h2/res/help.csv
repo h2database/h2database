@@ -945,9 +945,8 @@ SET MAX_MEMORY_UNDO 1000
 SET MODE {REGULAR | HSQLDB | POSTGRESQL | MYSQL}
 ","
 Changes to another database mode.
+This setting is not persistent.
 Admin rights are required to execute this command.
-This is a global setting, which means it is not possible to open multiple databases
-with different modes at the same time in the same virtual machine.
 This setting can be appended to the database URL: jdbc:h2:test;MODE=MYSQL
 ","
 SET MODE HSQLDB
@@ -961,8 +960,7 @@ By default, this setting is disabled. Currently, enabling this is experimental o
 Admin rights are required to execute this command.
 This is a global setting, which means it is not possible to open multiple databases
 with different modes at the same time in the same virtual machine.
-This setting is not persistent, however the value is kept until the virtual machine exits
-or it is changed.
+This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
 This setting can be appended to the database URL: jdbc:h2:test;MULTI_THREADED=1
 ","
 SET MULTI_THREADED 1

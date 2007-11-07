@@ -18,6 +18,7 @@ public class ValueLong extends Value {
     private final long value;
     
     public static final int PRECISION = 19;
+    public static final int DISPLAY_SIZE = 20; // -9223372036854775808
     private static final int STATIC_SIZE = 10;
     private static ValueLong[] cache;
     private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
@@ -170,13 +171,9 @@ public class ValueLong extends Value {
         }
         return (ValueLong) Value.cache(new ValueLong(i));
     }
-
-//    public String getJavaString() {
-//        return getString();
-//    }
     
     public int getDisplaySize() {
-        return PRECISION;
+        return DISPLAY_SIZE;
     }    
     
     protected boolean isEqual(Value v) {

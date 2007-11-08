@@ -45,7 +45,12 @@ public class Message {
                     for (Iterator it = p.entrySet().iterator(); it.hasNext();) {
                         Entry e = (Entry) it.next();
                         String key = (String) e.getKey();
-                        MESSAGES.put(key, e.getValue() + "\n" + MESSAGES.getProperty(key));
+                        String translation = (String) e.getValue();
+                        if (translation != null && !translation.startsWith("#")) {
+                            String original = MESSAGES.getProperty(key);
+                            String message = translation + "\n" + original;
+                            MESSAGES.put(key, message);
+                        }
                     }
                 }
             }

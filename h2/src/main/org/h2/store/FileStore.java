@@ -21,7 +21,7 @@ import org.h2.util.TempFileDeleter;
 /**
  * This class is an abstraction of a random access file.
  * Each file contains a magic header, and reading / writing is done in blocks.
- * See also {@link MemoryFileStore} and {@link SecureFileStore}
+ * See also {@link SecureFileStore}
  */
 public class FileStore {
 

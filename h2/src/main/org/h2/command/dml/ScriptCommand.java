@@ -66,7 +66,7 @@ public class ScriptCommand extends ScriptBase {
     private byte[] buffer;
     private boolean tempLobTableCreated;
     private int nextLobId;
-    private int lobBlockSize = Integer.MAX_VALUE;
+    private int lobBlockSize = Constants.FILE_BLOCK_SIZE;
     private static final String TEMP_LOB_FILENAME = "system_temp_lob.db";
 
     public ScriptCommand(Session session) {
@@ -330,8 +330,8 @@ public class ScriptCommand extends ScriptBase {
                 for (int i = 0;; i++) {
                     StringBuffer buff = new StringBuffer(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", NULL, '");
-                    int len = IOUtils.readFully(in, bytes, lobBlockSize);
-                    if (len < 0) {
+                    int len = IOUtils.readFully(in, bytes, 0, lobBlockSize);
+                    if (len <= 0) {
                         break;
                     }
                     buff.append(ByteUtils.convertBytesToString(bytes, len));

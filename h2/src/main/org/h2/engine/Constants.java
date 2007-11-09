@@ -19,7 +19,8 @@ import org.h2.constant.SysProperties;
  *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
  *   ant codeswitchJdk16
  *   ant compile
- *   ant javadocImpl
+ *   set classpath=
+ *   ant javadocImpl (to find missing javadocs)
  *   ant codeswitchJdk14
  *   ant javadocImpl
  *   
@@ -70,8 +71,8 @@ import org.h2.constant.SysProperties;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 60;
-    private static final String BUILD = "2007-10-20";
+    public static final int BUILD_ID = 61;
+    private static final String BUILD = "2007-11-09";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

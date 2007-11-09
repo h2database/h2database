@@ -17,7 +17,6 @@ import java.util.Random;
 
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
-import org.h2.store.fs.FileSystemMemory;
 import org.h2.test.TestBase;
 
 public class TestFileSystem extends TestBase {
@@ -25,10 +24,10 @@ public class TestFileSystem extends TestBase {
     public void test() throws Exception {
         testDatabaseInJar();
         testFileSystem(baseDir + "/fs");
-        testFileSystem(FileSystemMemory.MEMORY_PREFIX);
+        testFileSystem(FileSystem.MEMORY_PREFIX);
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
         testFileSystem("jdbc:h2:mem:fs");
-        testFileSystem(FileSystemMemory.MEMORY_PREFIX_LZF);
+        testFileSystem(FileSystem.MEMORY_PREFIX_LZF);
         testUserHome();
     }
     

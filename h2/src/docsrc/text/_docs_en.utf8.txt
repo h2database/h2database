@@ -1130,7 +1130,7 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
 Downloads
 
 @download_1001_h3
-Version 1.0.60 (2007-10-20, Current)
+Version 1.0.61 (2007-11-09, Current)
 
 @download_1002_a
 Windows Installer
@@ -3122,7 +3122,7 @@ JDBC and (partial) ODBC API; Web Client application
 Download
 
 @mainWeb_1007_td
-Version 1.0.60 (2007-10-20):
+Version 1.0.61 (2007-11-09):
 
 @mainWeb_1008_a
 Windows Installer (2.8 MB)

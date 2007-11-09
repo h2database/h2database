@@ -171,6 +171,7 @@ public class LogSystem {
     }
 
     void addUndoLogRecord(LogFile log, int logRecordId, int sessionId) {
+        getOrAddSessionState(sessionId);
         LogRecord record = new LogRecord(log, logRecordId, sessionId);
         undo.add(record);
     }
@@ -286,19 +287,13 @@ public class LogSystem {
     }
 
     void setLastCommitForSession(int sessionId, int logId, int pos) {
-        Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessions.get(key);
-        if (state == null) {
-            state = new SessionState();
-            sessions.put(key, state);
-            state.sessionId = sessionId;
-        }
+        SessionState state = getOrAddSessionState(sessionId);
         state.lastCommitLog = logId;
         state.lastCommitPos = pos;
         state.inDoubtTransaction = null;
     }
-
-    void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
+    
+    SessionState getOrAddSessionState(int sessionId) {
         Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
         if (state == null) {
@@ -306,6 +301,11 @@ public class LogSystem {
             sessions.put(key, state);
             state.sessionId = sessionId;
         }
+        return state;
+    }
+
+    void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
+        SessionState state = getOrAddSessionState(sessionId);
         // this is potentially a commit, so don't roll back the action before it (currently)
         setLastCommitForSession(sessionId, log.getId(), pos);
         state.inDoubtTransaction = new InDoubtTransaction(log, sessionId, pos, transaction, blocks);

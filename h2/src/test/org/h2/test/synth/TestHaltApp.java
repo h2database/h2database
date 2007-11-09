@@ -121,7 +121,7 @@ public class TestHaltApp extends TestHalt {
                 trace("committed: " + rowCount, null);
             }
             if ((flags & FLAG_NO_DELAY) != 0) {
-                if (random.nextInt(100) == 0) {
+                if (random.nextInt(10) == 0 && (rowCount % 2 == 0)) {
                     execute(stat, "CHECKPOINT");
                 }
             }

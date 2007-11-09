@@ -290,6 +290,7 @@ public class LogFile {
                 logSystem.addRedoLog(storage, recordId, blockCount, null);
                 storage.setRecordCount(storage.getRecordCount() - 1);
             } else {
+                logSystem.getOrAddSessionState(sessionId);
                 logSystem.addRedoLog(storage, recordId, blockCount, rec);
                 storage.setRecordCount(storage.getRecordCount() + 1);
             }
@@ -299,6 +300,7 @@ public class LogFile {
                 logSystem.addRedoLog(storage, recordId, blockCount, rec);
                 storage.setRecordCount(storage.getRecordCount() + 1);
             } else {
+                logSystem.getOrAddSessionState(sessionId);
                 logSystem.addRedoLog(storage, recordId, blockCount, null);
                 storage.setRecordCount(storage.getRecordCount() - 1);
             }

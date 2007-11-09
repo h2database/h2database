@@ -174,23 +174,19 @@ public class IOUtils {
         }
     }
 
-    public static int readFully(InputStream in, byte[] buffer, int max) throws IOException {
-        int off = 0, len = Math.min(max, buffer.length);
-        if (len == 0) {
-            return 0;
-        }
-        while (true) {
-            int l = len - off;
-            if (l <= 0) {
-                break;
-            }
-            l = in.read(buffer, off, l);
+    public static int readFully(InputStream in, byte[] buffer, int off, int max) throws IOException {
+        int len = Math.min(max, buffer.length);
+        int result = 0;
+        while (len > 0) {
+            int l = in.read(buffer, off, len);
             if (l < 0) {
                 break;
             }
+            result += l;
             off += l;
+            len -= l;
         }
-        return off <= 0 ? -1 : off;
+        return result;
     }
 
     public static int readFully(Reader in, char[] buffer, int max) throws IOException {

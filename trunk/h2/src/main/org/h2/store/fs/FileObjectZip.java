@@ -4,10 +4,13 @@
  */
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.h2.util.IOUtils;
 
 public class FileObjectZip implements FileObject {
 
@@ -47,10 +50,13 @@ public class FileObjectZip implements FileObject {
             inPos = 0;
         }
         if (inPos < pos) {
-            in.skip(pos - inPos);
+            IOUtils.skipFully(in, pos - inPos);
             inPos = pos;
         }
-        in.read(b, off, len);
+        int l = IOUtils.readFully(in, b, off, len);
+        if (l != len) {
+            throw new EOFException();
+        }
         pos += len;
         inPos += len;
     }

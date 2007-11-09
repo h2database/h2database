@@ -149,6 +149,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+implement & test: checkpoint commits running transactions
+
 start writing javadocs for jdbcx package
 
 toString() method to print something useful

@@ -253,8 +253,7 @@ public class ValueLob extends Value {
             }
             int len = getBufferSize(handler, compress, remaining);
             byte[] buff = new byte[len];
-            len = IOUtils.readFully(in, buff, len);
-            len = len < 0 ? 0 : len;
+            len = IOUtils.readFully(in, buff, 0, len);
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = new byte[len];
                 System.arraycopy(buff, 0, small, 0, len);
@@ -306,7 +305,7 @@ public class ValueLob extends Value {
                         break;
                     }
                     len = getBufferSize(handler, compress, remaining);
-                    len = IOUtils.readFully(in, buff, len);
+                    len = IOUtils.readFully(in, buff, 0, len);
                     if (len <= 0) {
                         break;
                     }

@@ -254,9 +254,7 @@
 	</target>
     
 	<target name="javadocImpl">
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true" includes="org/h2/test/bnf/*.java"/>
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/tools/doclet/*.java"/>
-		<mkdir dir="docs/javadoc"/>
+		<mkdir dir="docs/javadocImpl"/>
 		<javadoc
 			sourcepath="src/main"
 			packagenames="org.h2.jdbc.*,org.h2.tools.*,org.h2.api.*,org.h2.store.*"

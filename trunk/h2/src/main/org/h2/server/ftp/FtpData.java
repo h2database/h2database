@@ -80,7 +80,7 @@ public class FtpData extends Thread {
         try {
             OutputStream out = socket.getOutputStream();
             InputStream in = fs.openFileInputStream(fileName);
-            in.skip(skip);
+            IOUtils.skipFully(in, skip);
             IOUtils.copy(in, out);
             in.close();
         } finally {

@@ -354,6 +354,17 @@ This is achieved using different database URLs. The settings in the URLs are not
   </td>
 </tr>
 <tr>
+  <td>In-Memory (private)</td>
+  <td>jdbc:h2:mem:</td>
+</tr>
+<tr>
+  <td>Database in Jar or Zip File</td>
+  <td>
+    jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
+    jdbc:h2:zip:db.zip!/test
+  </td>
+</tr>
+<tr>
   <td>Changing Other Settings</td>
   <td>
     jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />

@@ -33,7 +33,8 @@ import org.h2.message.Message;
 //#endif
 
 /**
- * A data source for H2 database connections
+ * A data source for H2 database connections. It is a factory for XAConnection and Connection objects.
+ * This class is usually registered in a JNDI naming service.
  */
 public class JdbcDataSource extends TraceObject implements 
 //#ifdef JDK14
@@ -45,7 +46,7 @@ Serializable, Referenceable  {
     
     private transient JdbcDataSourceFactory factory;
     private transient PrintWriter logWriter;
-    private int timeout;
+    private int loginTimeout;
     private String user = "";
     private String password = "";
     private String url = "";
@@ -54,6 +55,9 @@ Serializable, Referenceable  {
         org.h2.Driver.load();
     }
     
+    /**
+     * Public constructor.
+     */
     public JdbcDataSource() {
         initFactory();
         int id = getNextId(TraceObject.DATA_SOURCE);
@@ -69,37 +73,72 @@ Serializable, Referenceable  {
         factory = new JdbcDataSourceFactory();
     }
 
+    /**
+     * Get the login timeout in seconds, 0 meaning no timeout.
+     * 
+     * @return the timeout in seconds
+     */
     public int getLoginTimeout() throws SQLException {
         debugCodeCall("getLoginTimeout");
-        return timeout;
+        return loginTimeout;
     }
 
+    /**
+     * Set the login timeout in seconds, 0 meaning no timeout.
+     * The default value is 0.
+     * This value is ignored by this database.
+     * 
+     * @param timeout the timeout in seconds
+     */
     public void setLoginTimeout(int timeout) throws SQLException {
         debugCodeCall("setLoginTimeout", timeout);
-        this.timeout = timeout;
+        this.loginTimeout = timeout;
     }
 
+    /**
+     * Get the current log writer for this object.
+     * 
+     * @return the log writer
+     */
     public PrintWriter getLogWriter() throws SQLException {
         debugCodeCall("getLogWriter");
         return logWriter;
     }
 
+    /**
+     * Set the current log writer for this object.
+     * This value is ignored by this database.
+     * 
+     * @param out the log writer
+     */
     public void setLogWriter(PrintWriter out) throws SQLException {
         debugCodeCall("setLogWriter(out)");
         logWriter = out;
     }
 
+    /**
+     * Open a new connection using the current URL, user name and password.
+     * 
+     * @return the connection
+     */
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         return getJdbcConnection(user, password);
     }
 
+    /**
+     * Open a new connection using the current URL and the specified user name and password.
+     * 
+     * @param the user name
+     * @param the password
+     * @return the connection
+     */
     public Connection getConnection(String user, String password) throws SQLException {
         debugCode("getConnection("+quote(user)+", "+quote(password)+");");
         return getJdbcConnection(user, password);
     }
 
-    public JdbcConnection getJdbcConnection(String user, String password) throws SQLException {
+    private JdbcConnection getJdbcConnection(String user, String password) throws SQLException {
         debugCode("getJdbcConnection("+quote(user)+", "+quote(password)+");");
         Properties info = new Properties();
         info.setProperty("user", user);
@@ -107,43 +146,79 @@ Serializable, Referenceable  {
         return new JdbcConnection(url, info);
     }
     
+    /**
+     * Get the current URL.
+     * 
+     * @return the URL
+     */
     public String getURL() {
         debugCodeCall("getURL");
         return url;
     }
-
+    
+    /**
+     * Set the current URL.
+     * 
+     * @param url the new URL
+     */
     public void setURL(String url) {
         debugCodeCall("setURL", url);
         this.url = url;
     }
 
-    public String getPassword() {
-        debugCodeCall("getPassword");
-        return password;
-    }
-
+    /**
+     * Set the current password
+     * 
+     * @param password the new password.
+     */
     public void setPassword(String password) {
         debugCodeCall("setPassword", password);
         this.password = password;
     }
 
+    /**
+     * Get the current password.
+     * 
+     * @return the password
+     */
+    public String getPassword() {
+        debugCodeCall("getPassword");
+        return password;
+    }
+    
+    /**
+     * Get the current user name.
+     * 
+     * @return the user name
+     */
     public String getUser() {
         debugCodeCall("getUser");
         return user;
     }
 
+    /**
+     * Set the current user name.
+     * 
+     * @param user the new user name
+     */
     public void setUser(String user) {
         debugCodeCall("setUser", user);
         this.user = user;
     }
     
+    /**
+     * Get a new reference for this object, using the current settings.
+     * 
+     * @return the new reference
+     */
     public Reference getReference() throws NamingException {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();
         Reference ref = new Reference(getClass().getName(), factoryClassName, null);
-        ref.add(new StringRefAddr("url", getURL()));
-        ref.add(new StringRefAddr("user", getUser()));
+        ref.add(new StringRefAddr("url", url));
+        ref.add(new StringRefAddr("user", user));
         ref.add(new StringRefAddr("password", password));
+        ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
         return ref;
     }
 

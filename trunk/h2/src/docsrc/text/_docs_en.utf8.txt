@@ -1916,660 +1916,675 @@ Custom File Access Mode
 jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
 
 @features_1200_td
-Changing Other Settings
+In-Memory (private)
 
 @features_1201_td
-jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+jdbc:h2:mem:
 
 @features_1202_td
+Database in Jar or Zip File
+
+@features_1203_td
+jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
+
+@features_1204_td
+jdbc:h2:zip:db.zip!/test
+
+@features_1205_td
+Changing Other Settings
+
+@features_1206_td
+jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+
+@features_1207_td
 jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
 
-@features_1203_h3
+@features_1208_h3
 Connecting to an Embedded (Local) Database
 
-@features_1204_p
+@features_1209_p
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is suggested to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 
-@features_1205_h3
+@features_1210_h3
 Memory-Only Databases
 
-@features_1206_p
+@features_1211_p
 For certain use cases (for example: rapid prototyping, testing, high performance operations, read-only databases), it may not be required to persist (changes to) the data at all. This database supports the memory-only mode, where the data is not persisted.
 
-@features_1207_p
+@features_1212_p
 In some cases, only one connection to a memory-only database is required. This means the database to be opened is private. In this case, the database URL is <code>jdbc:h2:mem:</code> Opening two connections within the same virtual machine means opening two different (private) databases.
 
-@features_1208_p
+@features_1213_p
 Sometimes multiple connections to the same memory-only database are required. In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code> . Accessing the same database in this way only works within the same virtual machine and class loader environment.
 
-@features_1209_p
+@features_1214_p
 It is also possible to access a memory-only database remotely (or from multiple processes in the same machine) using TCP/IP or SSL/TLS. An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code> (using private database remotely is also possible).
 
-@features_1210_h2
+@features_1215_h2
 Connecting to a Database with File Encryption
 
-@features_1211_p
+@features_1216_p
 To use file encryption, it is required to specify the encryption algorithm (the 'cipher') and the file password. The algorithm needs to be specified using the connection parameter. Two algorithms are supported: XTEA and AES. The file password is specified in the password field, before the user password. A single space needs to be added between the file password and the user password; the file password itself may not contain spaces. File passwords (as well as user passwords) are case sensitive. Here is an example to connect to a password encrypted database:
 
-@features_1212_h2
+@features_1217_h2
 Database File Locking
 
-@features_1213_p
+@features_1218_p
 Whenever a database is opened, a lock file is created to signal other processes that the database is in use. If database is closed, or if the process that opened the database terminates, this lock file is deleted.
 
-@features_1214_p
+@features_1219_p
 The following file locking methods are implemented:
 
-@features_1215_li
+@features_1220_li
 The default method is 'file' and uses a watchdog thread to protect the database file. The watchdog reads the lock file each second.
 
-@features_1216_li
+@features_1221_li
 The second method is 'socket' and opens a server socket. The socket method does not require reading the lock file every second. The socket method should only be used if the database files are only accessed by the one (and always the same) computer.
 
-@features_1217_li
+@features_1222_li
 It is also possible to open the database without file locking; in this case it is up to the application to protect the database files.
 
-@features_1218_p
+@features_1223_p
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'. The following code opens the database with the 'socket' locking method:
 
-@features_1219_p
+@features_1224_p
 The following code forces the database to not create a lock file at all. Please note that this is unsafe as another process is able to open the same database, possibly leading to data corruption:
 
-@features_1220_p
+@features_1225_p
 For more information about the algorithms please see in Advanced Topics under File Locking Protocol.
 
-@features_1221_h2
+@features_1226_h2
 Opening a Database Only if it Already Exists
 
-@features_1222_p
+@features_1227_p
 By default, when an application calls <code>DriverManager.getConnection(url,...)</code> and the database specified in the URL does not yet exist, a new (empty) database is created. In some situations, it is better to restrict creating new database, and only open the database if it already exists. This can be done by adding <code>;ifexists=true</code> to the URL. In this case, if the database does not already exist, an exception is thrown when trying to connect. The connection only succeeds when the database already exists. The complete URL may look like this:
 
-@features_1223_h2
+@features_1228_h2
 Closing the Database
 
-@features_1224_h3
+@features_1229_h3
 Delayed Database Closing
 
-@features_1225_p
+@features_1230_p
 Usually, the database is closed when the last connection to it is closed. In some situations this slows down the application, for example when it is not possible leave the connection open. The automatic closing of the database can be delayed or disabled with the SQL statement SET DB_CLOSE_DELAY &lt;seconds&gt;. The seconds specifies the number of seconds to keep a database open after the last connection to it was closed. For example the following statement will keep the database open for 10 seconds:
 
-@features_1226_p
+@features_1231_p
 The value -1 means the database is never closed automatically. The value 0 is the default and means the database is closed when the last connection is closed. This setting is persistent and can be set by an administrator only. It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code> .
 
-@features_1227_h3
+@features_1232_h3
 Don't Close the Database when the VM Exits
 
-@features_1228_p
+@features_1233_p
 By default, a database is closed when the last connection is closed. However, if it is never closed, the database is closed when the virtual machine exits normally. This is done using a shutdown hook. In some situations, the database should not be closed in this case, for example because the database is still used at virtual machine shutdown (to store the shutdown process in the database for example). For those cases, the automatic closing of the database can be disabled in the database URL. The first connection (the one that is opening the database) needs to set the option in the database URL (it is not possible to change the setting afterwards). The database URL to disable database closing on exit is:
 
-@features_1229_h2
+@features_1234_h2
 Log Index Changes
 
-@features_1230_p
+@features_1235_p
 Usually, changes to the index file are not logged for performance. If the index file is corrupt or missing when opening a database, it is re-created from the data. The index file can get corrupt when the database is not shut down correctly, because of power failure or abnormal program termination. In some situations, for example when using very large databases (over a few hundred MB), re-creating the index file takes very long. In these situations it may be better to log changes to the index file, so that recovery from a corrupted index file is fast. To enable log index changes, add LOG=2 to the URL, as in jdbc:h2:~/test;LOG=2 This setting should be specified when connecting. The update performance of the database will be reduced when using this option.
 
-@features_1231_h3
+@features_1236_h3
 Ignore Unknown Settings
 
-@features_1232_p
+@features_1237_p
 Some applications (for example OpenOffice.org Base) pass some additional parameters when connecting to the database. Why those parameters are passed is unknown. The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples, they are simply ignored to improve the compatibility with OpenOffice.org. If an application passes other parameters when connecting to the database, usually the database throws an exception saying the parameter is not supported. It is possible to ignored such parameters by adding ;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL.
 
-@features_1233_h3
+@features_1238_h3
 Changing Other Settings when Opening a Connection
 
-@features_1234_p
+@features_1239_p
 In addition to the settings already described (cipher, file_lock, ifexists, user, password), other database settings can be passed in the database URL. Adding <code>setting=value</code> at the end of an URL is the same as executing the statement <code>SET setting value</code> just after connecting. For a list of settings supported by this database please see the SQL grammar documentation.
 
-@features_1235_h2
+@features_1240_h2
 Custom File Access Mode
 
-@features_1236_p
+@features_1241_p
 Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
 
-@features_1237_p
+@features_1242_p
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a> . On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
 
-@features_1238_h2
+@features_1243_h2
 Multiple Connections
 
-@features_1239_h3
+@features_1244_h3
 Opening Multiple Databases at the Same Time
 
-@features_1240_p
+@features_1245_p
 An application can open multiple databases at the same time, including multiple connections to the same database. The number of open database is only limited by the memory available.
 
-@features_1241_h3
+@features_1246_h3
 Multiple Connections to the Same Database: Client/Server
 
-@features_1242_p
+@features_1247_p
 If you want to access the same database at the same time from different processes or computers, you need to use the client / server mode. In this case, one process acts as the server, and the other processes (that could reside on other computers as well) connect to the server via TCP/IP (or SSL/TLS over TCP/IP for improved security).
 
-@features_1243_h3
+@features_1248_h3
 Multithreading Support
 
-@features_1244_p
+@features_1249_p
 This database is multithreading-safe. That means, if an application is multi-threaded, it does not need o worry about synchronizing the access to the database. Internally, most requests to the same database are synchronized. That means an application can use multiple threads all accessing the same database at the same time, however if one thread executes a long running query, the other threads need to wait.
 
-@features_1245_h3
+@features_1250_h3
 Locking, Lock-Timeout, Deadlocks
 
-@features_1246_p
+@features_1251_p
 The database uses table level locks to give each connection a consistent state of the data. There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks). If a connection wants to reads from a table, and there is no write lock on the table, then a read lock is added to the table. If there is a write lock, then this connection waits for the other connection to release the lock. If connection cannot get a lock for a specified time, then a lock timeout exception is thrown.
 
-@features_1247_p
+@features_1252_p
 Usually, SELECT statement will generate read locks. This includes subqueries. Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data, using the statement SELECT ... FOR UPDATE. The statements COMMIT and ROLLBACK releases all open locks. The commands SAVEPOINT and ROLLBACK TO SAVEPOINT don't affect locks. The locks are also released when the autocommit mode changes, and for connections with autocommit set to true (this is the default), locks are released after each statement. Here is an overview on what statements generate what type of lock:
 
-@features_1248_th
+@features_1253_th
 Type of Lock
 
-@features_1249_th
+@features_1254_th
 SQL Statement
 
-@features_1250_td
+@features_1255_td
 Read
 
-@features_1251_td
+@features_1256_td
 SELECT * FROM TEST
 
-@features_1252_td
+@features_1257_td
 CALL SELECT MAX(ID) FROM TEST
 
-@features_1253_td
+@features_1258_td
 SCRIPT
 
-@features_1254_td
-Write
-
-@features_1255_td
-SELECT * FROM TEST WHERE 1=0 FOR UPDATE
-
-@features_1256_td
-Write
-
-@features_1257_td
-INSERT INTO TEST VALUES(1, 'Hello')
-
-@features_1258_td
-INSERT INTO TEST SELECT * FROM TEST
-
 @features_1259_td
-UPDATE TEST SET NAME='Hi'
+Write
 
 @features_1260_td
-DELETE FROM TEST
+SELECT * FROM TEST WHERE 1=0 FOR UPDATE
 
 @features_1261_td
 Write
 
 @features_1262_td
-ALTER TABLE TEST ...
+INSERT INTO TEST VALUES(1, 'Hello')
 
 @features_1263_td
-CREATE INDEX ... ON TEST ...
+INSERT INTO TEST SELECT * FROM TEST
 
 @features_1264_td
+UPDATE TEST SET NAME='Hi'
+
+@features_1265_td
+DELETE FROM TEST
+
+@features_1266_td
+Write
+
+@features_1267_td
+ALTER TABLE TEST ...
+
+@features_1268_td
+CREATE INDEX ... ON TEST ...
+
+@features_1269_td
 DROP INDEX ...
 
-@features_1265_p
+@features_1270_p
 The number of seconds until a lock timeout exception is thrown can be set separately for each connection using the SQL command SET LOCK_TIMEOUT &lt;milliseconds&gt;. The initial lock timeout (that is the timeout used for new connections) can be set using the SQL command SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persistent.
 
-@features_1266_h2
+@features_1271_h2
 Database File Layout
 
-@features_1267_p
+@features_1272_p
 There are a number of files created for persistent databases. Other than some databases, not every table and/or index is stored in its own file. Instead, usually only the following files are created: A data file, an index file, a log file, and a database lock file (exists only while the database is in use). In addition to that, a file is created for each large object (CLOB/BLOB), a file for each linear index, and temporary files for large result sets. Then the command SCRIPT can create script files. If the database trace option is enabled, trace files are created. The following files can be created by the database:
 
-@features_1268_th
+@features_1273_th
 File Name
 
-@features_1269_th
+@features_1274_th
 Description
 
-@features_1270_th
+@features_1275_th
 Number of Files
 
-@features_1271_td
+@features_1276_td
 test.data.db
 
-@features_1272_td
+@features_1277_td
 Data file
 
-@features_1273_td
+@features_1278_td
 Contains the data for all tables
 
-@features_1274_td
-Format: &lt;database&gt;.data.db
-
-@features_1275_td
-1 per database
-
-@features_1276_td
-test.index.db
-
-@features_1277_td
-Index file
-
-@features_1278_td
-Contains the data for all (btree) indexes
-
 @features_1279_td
-Format: &lt;database&gt;.index.db
+Format: &lt;database&gt;.data.db
 
 @features_1280_td
 1 per database
 
 @features_1281_td
-test.0.log.db
+test.index.db
 
 @features_1282_td
-Log file
+Index file
 
 @features_1283_td
-The log file is used for recovery
+Contains the data for all (btree) indexes
 
 @features_1284_td
-Format: &lt;database&gt;.&lt;id&gt;.log.db
+Format: &lt;database&gt;.index.db
 
 @features_1285_td
-0 or more per database
+1 per database
 
 @features_1286_td
-test.lock.db
+test.0.log.db
 
 @features_1287_td
-Database lock file
+Log file
 
 @features_1288_td
-Exists only if the database is open
+The log file is used for recovery
 
 @features_1289_td
-Format: &lt;database&gt;.lock.db
+Format: &lt;database&gt;.&lt;id&gt;.log.db
 
 @features_1290_td
-1 per database
+0 or more per database
 
 @features_1291_td
-test.trace.db
+test.lock.db
 
 @features_1292_td
-Trace file
+Database lock file
 
 @features_1293_td
-Contains trace information
+Exists only if the database is open
 
 @features_1294_td
-Format: &lt;database&gt;.trace.db
+Format: &lt;database&gt;.lock.db
 
 @features_1295_td
-If the file is too big, it is renamed to &lt;database&gt;.trace.db.old
-
-@features_1296_td
 1 per database
 
+@features_1296_td
+test.trace.db
+
 @features_1297_td
-test.14.15.lob.db
+Trace file
 
 @features_1298_td
-Large object
+Contains trace information
 
 @features_1299_td
-Contains the data for BLOB or CLOB
+Format: &lt;database&gt;.trace.db
 
 @features_1300_td
-Format: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
+If the file is too big, it is renamed to &lt;database&gt;.trace.db.old
 
 @features_1301_td
-1 per object
+1 per database
 
 @features_1302_td
-test.123.temp.db
+test.14.15.lob.db
 
 @features_1303_td
-Temporary file
+Large object
 
 @features_1304_td
-Contains a temporary blob or a large result set
+Contains the data for BLOB or CLOB
 
 @features_1305_td
-Format: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
+Format: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
 
 @features_1306_td
 1 per object
 
 @features_1307_td
-test.7.hash.db
+test.123.temp.db
 
 @features_1308_td
-Hash index file
+Temporary file
 
 @features_1309_td
-Contains the data for a linear hash index
+Contains a temporary blob or a large result set
 
 @features_1310_td
-Format: &lt;database&gt;.&lt;object id&gt;.hash.db
+Format: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
 
 @features_1311_td
+1 per object
+
+@features_1312_td
+test.7.hash.db
+
+@features_1313_td
+Hash index file
+
+@features_1314_td
+Contains the data for a linear hash index
+
+@features_1315_td
+Format: &lt;database&gt;.&lt;object id&gt;.hash.db
+
+@features_1316_td
 1 per linear hash index
 
-@features_1312_h3
+@features_1317_h3
 Moving and Renaming Database Files
 
-@features_1313_p
+@features_1318_p
 Database name and location are not stored inside the database names.
 
-@features_1314_p
+@features_1319_p
 While a database is closed, the files can be moved to another directory, and they can be renamed as well (as long as all files start with the same name).
 
-@features_1315_p
+@features_1320_p
 As there is no platform specific data in the files, they can be moved to other operating systems without problems.
 
-@features_1316_h3
+@features_1321_h3
 Backup
 
-@features_1317_p
+@features_1322_p
 When the database is closed, it is possible to backup the database files. Please note that index files do not need to be backed up, because they contain redundant data, and will be recreated automatically if they don't exist.
 
-@features_1318_p
+@features_1323_p
 To backup data while the database is running, the SQL command SCRIPT can be used.
 
-@features_1319_h2
+@features_1324_h2
 Logging and Recovery
 
-@features_1320_p
+@features_1325_p
 Whenever data is modified in the database and those changes are committed, the changes are logged to disk (except for in-memory objects). The changes to the data file itself are usually written later on, to optimize disk access. If there is a power failure, the data and index files are not up-to-date. But because the changes are in the log file, the next time the database is opened, the changes that are in the log file are re-applied automatically.
 
-@features_1321_p
+@features_1326_p
 Please note that index file updates are not logged by default. If the database is opened and recovery is required, the index file is rebuilt from scratch.
 
-@features_1322_p
+@features_1327_p
 There is usually only one log file per database. This file grows until the database is closed successfully, and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id). It is possible to force the log switching by using the CHECKPOINT command.
 
-@features_1323_p
+@features_1328_p
 If the database file is corrupted, because the checksum of a record does not match (for example, if the file was edited with another application), the database can be opened in recovery mode. In this case, errors in the database are logged but not thrown. The database should be backed up to a script and re-built as soon as possible. To open the database in the recovery mode, use a database URL must contain RECOVER=1, as in jdbc:h2:~/test;RECOVER=1. Indexes are rebuilt in this case, and the summary (object allocation table) is not read in this case, so opening the database takes longer.
 
-@features_1324_h2
+@features_1329_h2
 Compatibility Modes
 
-@features_1325_p
+@features_1330_p
 All database engines behave a little bit different. For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
 
-@features_1326_th
+@features_1331_th
 Mode
 
-@features_1327_th
+@features_1332_th
 Differences
 
-@features_1328_td
+@features_1333_td
 PostgreSQL
 
-@features_1329_td
+@features_1334_td
 Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
 
-@features_1330_td
+@features_1335_td
 MySQL
 
-@features_1331_td
+@features_1336_td
 When inserting data, if a column is defined to be NOT NULL and NULL is inserted, then a 0 (or empty string, or the current timestamp for timestamp columns) value is used. Usually, this operation is not allowed and an exception is thrown.
 
-@features_1332_td
+@features_1337_td
 HSQLDB
 
-@features_1333_td
+@features_1338_td
 When converting the scale of decimal data, the number is only converted if the new scale is smaller then current scale. Usually, the scale is converted and 0s are added if required.
 
-@features_1334_h2
+@features_1339_h2
 Using the Trace Options
 
-@features_1335_p
+@features_1340_p
 To find problems in an application, it is sometimes good to see what database operations where executed. This database offers the following trace features:
 
-@features_1336_li
+@features_1341_li
 Trace to System.out and/or a file
 
-@features_1337_li
+@features_1342_li
 Support for trace levels OFF, ERROR, INFO, and DEBUG
 
-@features_1338_li
+@features_1343_li
 The maximum size of the trace file can be set
 
-@features_1339_li
+@features_1344_li
 The Java code generation is possible
 
-@features_1340_li
+@features_1345_li
 Trace can be enabled at runtime by manually creating a file
 
-@features_1341_h3
+@features_1346_h3
 Trace Options
 
-@features_1342_p
+@features_1347_p
 The simplest way to enable the trace option is setting it in the database URL. There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, and one for file tracing (TRACE_LEVEL_FILE). The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG. A database URL with both levels set to DEBUG is:
 
-@features_1343_p
+@features_1348_p
 The trace level can be changed at runtime by executing the SQL command <code>SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing) or <code>SET TRACE_LEVEL_FILE level</code> (for file tracing). Example:
 
-@features_1344_h3
+@features_1349_h3
 Setting the Maximum Size of the Trace File
 
-@features_1345_p
+@features_1350_p
 When using a high trace level, the trace file can get very big quickly. The size of the file can be limited by executing the SQL statement <code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code> . If the log file exceeds the limit, the file is renamed to .old and a new file is created. If another .old file exists, it is deleted. The default setting is 16 MB. Example:
 
-@features_1346_h3
+@features_1351_h3
 Java Code Generation
 
-@features_1347_p
+@features_1352_p
 When setting the trace level to INFO or DEBUG, Java source code is generated as well, so that problem can be reproduced more easily. The trace file looks like this:
 
-@features_1348_p
+@features_1353_p
 You need to filter out the lines without /**/ to get the Java source code. In Windows, a simple way to do that is:
 
-@features_1349_p
+@features_1354_p
 Afterwards, you need to complete the file Trace.java before it can be compiled, for example with:
 
-@features_1350_p
+@features_1355_p
 Also, the user name and password needs to be set, because they are not listed in the trace file.
 
-@features_1351_h3
+@features_1356_h3
 Enabling the Trace Option at Runtime by Manually Creating a File
 
-@features_1352_p
+@features_1357_p
 Sometimes, you can't or don't want to change the application or database URL. There is still a way to enable the trace mode in these cases, even at runtime (while the database connection is open). You only need to create a special file in the directory where the database files are stored. The database engine checks every 4 seconds if this file exists (only while executing a statement). The file name is the database name plus '.trace.db.start'. This feature is disabled if the database is encrypted.
 
-@features_1353_p
+@features_1358_p
 Example: if a database is called 'test', then the file to start tracing is 'test.trace.db.start'. The database engine tries to delete this file when it detects it. If trace is enabled using the start file, the trace level is not persistent to the database, and trace is switched back to the level that was set before when connecting to the database. However, if the start file is read only, the database engine cannot delete the file and will always enable the trace mode when connecting.
 
-@features_1354_h2
+@features_1359_h2
 Read Only Databases
 
-@features_1355_p
+@features_1360_p
 If the database files are read-only, then the database is read-only as well. It is not possible to create new tables, add or modify data in this database. Only SELECT statements are allowed. To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file. Then, make the database files read-only using the operating system. When you open the database now, it is read-only. There are two ways an application can find out a database is read-only: By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
 
-@features_1356_h2
+@features_1361_h2
 Binary and Text Storage Formats
 
-@features_1357_p
+@features_1362_p
 This database engine supports both binary and text storage formats. The binary format is faster, but the text storage format can be useful as well, for example to debug the database engine. If a database already exists, the storage format is recognized automatically. New databases are created in the binary storage format by default. To create a new database in the text storage format, the database URL must contain the parameter STORAGE=TEXT. Example URL: jdbc:h2:~/test;STORAGE=TEXT
 
-@features_1358_h2
+@features_1363_h2
 Graceful Handling of Low Disk Space Situations
 
-@features_1359_p
+@features_1364_p
 The database is able to deal with situations where the disk space available is running low. Whenever the database starts, an 'emergency space' file is created (size is 1 MB), and if there is no more space available, the file will shrink. If the space available is lower than 128 KB, the database will go into a special read only mode, where writing operations are no longer allowed: All writing operations will throw the exception 'No disk space available' from this point on. To go back to the normal operating mode, all connections to the database need to be closed first, and space needs to be freed up.
 
-@features_1360_p
+@features_1365_p
 It is possible to install a database event listener to detect low disk space situations early on (when only 1 MB if space is available). To do this, use the SQL statement SET DATABASE_EVENT_LISTENER. The listener can also be set at connection time, using an URL of the form jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (the quotes around the class name are required). See also the DatabaseEventListener API.
 
-@features_1361_h3
+@features_1366_h3
 Opening a Corrupted Database
 
-@features_1362_p
+@features_1367_p
 If a database can not be opened because the boot info (the SQL script that is run at startup) is corrupted, then the database can be opened by specifying a database event listener. The exceptions are logged, but opening the database will continue.
 
-@features_1363_h2
+@features_1368_h2
 Computed Columns / Function Based Index
 
-@features_1364_p
+@features_1369_p
 Function indexes are not directly supported by this database, but they can be easily emulated by using computed columns. For example, if an index on the upper-case version of a column is required, just create a computed column with the upper-case version of the original column, and index this column:
 
-@features_1365_p
+@features_1370_p
 When inserting data, it is not required (better: not allowed) to specify a value for the upper-case version of the column, because the value is generated. But you can use the column when querying the table:
 
-@features_1366_h2
+@features_1371_h2
 Multi-Dimensional Indexes
 
-@features_1367_p
+@features_1372_p
 A tool is provided to execute efficient multi-dimension (spatial) range queries. This database does not support a specialized spatial index (R-Tree or similar). Instead, the B-Tree index is used. For each record, the multi-dimensional key is converted (mapped) to a single dimensional (scalar) value. This value specifies the location on a space-filling curve.
 
-@features_1368_p
+@features_1373_p
 Currently, Z-order (also called N-order or Morton-order) is used; Hilbert curve could also be used, but the implementation is more complex. The algorithm to convert the multi-dimensional value is called bit-interleaving. The scalar value is indexed using a B-Tree index (usually using a computed column).
 
-@features_1369_p
+@features_1374_p
 The method can result in a drastic performance improvement over just using an index on the first column. Depending on the data and number of dimensions, the improvement is usually higher than factor 5. The tool generates a SQL query from a specified multi-dimensional range. The method used is not database dependent, and the tool can easily be ported to other databases. For an example how to use the tool, please have a look at the sample code provided in TestMultiDimension.java.
 
-@features_1370_h2
+@features_1375_h2
 Using Passwords
 
-@features_1371_h3
+@features_1376_h3
 Using Secure Passwords
 
-@features_1372_p
+@features_1377_p
 Remember that weak passwords can be broken no matter of the encryption and security protocol. Don't use passwords that can be found in a dictionary. Also appending numbers does not make them secure. A way to create good passwords that can be remembered is, take the first letters of a sentence, use upper and lower case characters, and creatively include special characters. Example:
 
-@features_1373_p
+@features_1378_p
 i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
 
-@features_1374_h3
+@features_1379_h3
 Passwords: Using Char Arrays instead of Strings
 
-@features_1375_p
+@features_1380_p
 Java Strings are immutable objects and cannot be safely 'destroyed' by the application. After creating a String, it will remain in the main memory of the computer at least until it is garbage collected. The garbage collection cannot be controlled by the application, and even if it is garbage collected the data may still remain in memory. It might also be possible that the part of memory containing the password is swapped to disk (because not enough main memory is available).
 
-@features_1376_p
+@features_1381_p
 An attacker might have access to the swap file of the operating system. It is therefore a good idea to use char arrays instead of Strings to store passwords. Char arrays can be cleared (filled with zeros) after use, and therefore the password will not be stored in the swap file.
 
-@features_1377_p
+@features_1382_p
 This database supports using char arrays instead of String to pass user and file passwords. The following code can be used to do that:
 
-@features_1378_p
+@features_1383_p
 In this example, the password is hard code in the application, which is not secure of course. However, Java Swing supports a way to get passwords using a char array (JPasswordField).
 
-@features_1379_h3
+@features_1384_h3
 Passing the User Name and/or Password in the URL
 
-@features_1380_p
+@features_1385_p
 Instead of passing the user name as a separate parameter as in <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
 
-@features_1381_h2
+@features_1386_h2
 User Defined Functions and Stored Procedures
 
-@features_1382_p
+@features_1387_p
 In addition to the built-in functions, this database supports user defined Java functions. In this database, Java functions can be used as stored procedures as well. A function must be declared (registered) before it can be used. Only static Java methods are supported; both the class and the method must be public. Example Java method:
 
-@features_1383_p
+@features_1388_p
 The Java function must be registered in the database by calling CREATE ALIAS:
 
-@features_1384_p
+@features_1389_p
 For a complete sample application, see src/test/org/h2/samples/Function.java.
 
-@features_1385_h3
+@features_1390_h3
 Function Data Type Mapping
 
-@features_1386_p
+@features_1391_p
 Functions that accept non-nullable parameters such as 'int' will not be called if one of those parameters is NULL. In this case, the value NULL is used as the result. If the function should be called in this case, you need to use 'java.lang.Integer' instead of 'int'.
 
-@features_1387_h3
+@features_1392_h3
 Functions that require a Connection
 
-@features_1388_p
+@features_1393_p
 If the first parameter in a Java function is a java.sql.Connection, then the connection to database is provided. This connection does not need to be closed before returning.
 
-@features_1389_h3
+@features_1394_h3
 Functions throwing an Exception
 
-@features_1390_p
+@features_1395_p
 If a function throws an Exception, then the current statement is rolled back and the exception is thrown to the application.
 
-@features_1391_h3
+@features_1396_h3
 Functions returning a Result Set
 
-@features_1392_p
+@features_1397_p
 Functions may returns a result set. Such a function can be called with the CALL statement:
 
-@features_1393_h3
+@features_1398_h3
 Using SimpleResultSet
 
-@features_1394_p
+@features_1399_p
 A function that returns a result set can create this result set from scratch using the SimpleResultSet tool:
 
-@features_1395_h3
+@features_1400_h3
 Using a Function as a Table
 
-@features_1396_p
+@features_1401_p
 A function returning a result set can be like a table. However, in this case the function is called at least twice: First while parsing the statement to collect the column names (with parameters set to null where not known at compile time). And then, while executing the statement to get the data (may be repeatedly if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is jdbc:columnlist:connection. Otherwise, the URL of the connection is jdbc:default:connection.
 
-@features_1397_h2
+@features_1402_h2
 Triggers
 
-@features_1398_p
+@features_1403_p
 This database supports Java triggers that are called before or after a row is updated, inserted or deleted. Triggers can be used for complex consistency checks, or to update related data in the database. It is also possible to use triggers to simulate materialized views. For a complete sample application, see src/test/org/h2/samples/TriggerSample.java. A Java trigger must implement the interface org.h2.api.Trigger:
 
-@features_1399_p
+@features_1404_p
 The connection can be used to query or update data in other tables. The trigger then needs to be defined in the database:
 
-@features_1400_p
+@features_1405_p
 The trigger can be used to veto a change, by throwing a SQL Exception.
 
-@features_1401_h2
+@features_1406_h2
 Compacting a Database
 
-@features_1402_p
+@features_1407_p
 Empty space in the database file is re-used automatically. To re-build the indexes, the most simple way is to delete the .index.db file while the database is closed. However in some situations (for example after deleting a lot of data in a database), one sometimes wants to shrink the size of the database (compact a database). Here is a sample function to do this:
 
-@features_1403_p
+@features_1408_p
 See also the sample application org.h2.samples.Compact. The commands SCRIPT / RUNSCRIPT can be used as well to create the a backup of a database and re-build the database from the script.
 
-@features_1404_h2
+@features_1409_h2
 Cache Settings
 
-@features_1405_p
+@features_1410_p
 The database keeps most frequently used data and index pages in the main memory. The amount of memory used for caching can be changed using the setting CACHE_SIZE. This setting can be set in the database connection URL (jdbc:h2:~/test;CACHE_SIZE=131072), or it can be changed at runtime using SET CACHE_SIZE size.
 
-@features_1406_p
+@features_1411_p
 This database supports two cache page replacement algorithms: LRU (the default) and 2Q. For LRU, the pages that were least frequently used are removed from the cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two queues are used. The 2Q algorithm is more resistant to table scans, however the overhead is a bit higher compared to the LRU. To use the cache algorithm 2Q, use a database URL of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm can not be changed once the database is open.
 
-@features_1407_p
+@features_1412_p
 To get information about page reads and writes, and the current caching algorithm in use, call SELECT * FROM INFORMATION_SCHEMA.SETTINGS. The number of pages read / written is listed for the data and index file.
 
-@features_1408_h2
+@features_1413_h2
 Why Java
 
-@features_1409_p
+@features_1414_p
 A few reasons using a Java database are:
 
-@features_1410_li
+@features_1415_li
 Very simple to integrate in Java applications
 
-@features_1411_li
+@features_1416_li
 Support for many different platforms
 
-@features_1412_li
+@features_1417_li
 More secure than native applications (no buffer overflows)
 
-@features_1413_li
+@features_1418_li
 User defined functions (or triggers) run very fast
 
-@features_1414_li
+@features_1419_li
 Unicode support
 
-@features_1415_p
+@features_1420_p
 Some people think that Java is still too slow for low level operations, but this is not the case (not any more). In general, the code can be written a lot faster than using C or C++. Like that, it is possible to concentrate on improving the algorithms (that make the application faster) rather than porting the code and dealing with low level stuff (such as memory management or dealing with threads). Garbage collection is now probably faster than manual memory management.
 
-@features_1416_p
+@features_1421_p
 A lot of features are already built in (for example Unicode, network libraries). It is very easy to write secure code because buffer overflows and such problems can be detected very easily. Some features such as the reflection mechanism can be used for randomized testing.
 
-@features_1417_p
+@features_1422_p
 Java is also future proof: A lot of companies support Java, and it is now open source.
 
-@features_1418_p
+@features_1423_p
 This software does not rely on many Java libraries or other software, to increase the portability and ease of use, and for performance reasons. For example, the encryption algorithms and many library functions are implemented in the database instead of using the existing libraries. Libraries that are not available in open source Java implementations (such as Swing) are not used or only used for specific features.
 
 @frame_1000_p

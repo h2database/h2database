@@ -63,6 +63,7 @@ public class TestMetaData extends TestBase {
         checkFalse(rs.next());
 
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null, new String[] { "TABLE" });
+        check(rs.getStatement() == null);
         rs.next();
         check(rs.getString("TABLE_NAME"), "TEST");
         checkFalse(rs.next());

@@ -54,8 +54,7 @@ public class TableFilter implements ColumnResolver {
     private Row current;
     private int state;
     
-    private ObjectArray joins;
-    // private TableFilter join;
+    private TableFilter join;
     
     private boolean outerJoin;
     private boolean foundOne;
@@ -82,13 +81,9 @@ public class TableFilter implements ColumnResolver {
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         table.lock(session, exclusive, force);
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            getTableFilter(i).lock(session, exclusive, force);
+        if (join != null) {
+            join.lock(session, exclusive, force);
         }
-    }
-
-    private TableFilter getTableFilter(int i) {
-        return (TableFilter) joins.get(i);
     }
 
     public PlanItem getBestPlanItem(Session session) throws SQLException {
@@ -114,8 +109,7 @@ public class TableFilter implements ColumnResolver {
             }
             item = table.getBestPlanItem(session, masks);
         }
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             setEvaluatable(join);
             item.setJoinPlan(join.getBestPlanItem(session));
             // TODO optimizer: calculate cost of a join: should use separate
@@ -138,8 +132,7 @@ public class TableFilter implements ColumnResolver {
 
     public void setPlanItem(PlanItem item) {
         setIndex(item.getIndex());
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             if (item.getJoinPlan() != null) {
                 join.setPlanItem(item.getJoinPlan());
             }
@@ -158,8 +151,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
         }
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             if (SysProperties.CHECK && join == this) {
                 throw Message.getInternalError("self join");
             }
@@ -176,15 +168,13 @@ public class TableFilter implements ColumnResolver {
     public void startQuery(Session session) throws SQLException {
         this.session = session;
         scanCount = 0;
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             join.startQuery(session);
         }
     }
 
     public void reset() {
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             join.reset();
         }
         state = BEFORE_FIRST;
@@ -233,23 +223,14 @@ public class TableFilter implements ColumnResolver {
             }
             if (!alwaysFalse) {
                 cursor = index.find(session, start, end);
-                for (int i = 0; joins != null && i < joins.size(); i++) {
-                    TableFilter join = getTableFilter(i);
+                if (join != null) {
                     join.reset();
                 }
             }
         } else {
             // state == FOUND || LAST_ROW
             // the last row was ok - try next row of the join
-            boolean found = joins != null;
-            for (int i = 0; joins != null && i < joins.size(); i++) {
-                TableFilter join = getTableFilter(i);
-                if (!join.next()) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) {
+            if (join != null && join.next()) {
                 return true;
             }
         }
@@ -290,13 +271,11 @@ public class TableFilter implements ColumnResolver {
             if (state == FOUND && joinConditionOk) {
                 foundOne = true;
             }
-            for (int i = 0; joins != null && i < joins.size(); i++) {
-                TableFilter join = getTableFilter(i);
+            if (join != null) {
                 join.reset();
             }
             boolean doContinue = false;
-            for (int i = 0; joins != null && i < joins.size(); i++) {
-                TableFilter join = getTableFilter(i);
+            if (join != null) {
                 if (!join.next()) {
                     doContinue = true;
                 }
@@ -376,16 +355,13 @@ public class TableFilter implements ColumnResolver {
         if (on != null) {
             on.mapColumns(this, 0);
         }
-        if (joins == null) {
-            this.joins = new ObjectArray();
-            joins.add(filter);
+        if (join == null) {
+            this.join = filter;
             filter.outerJoin = outer;
             if (on != null) {
                 filter.mapAndAddFilter(on);
             }
         } else {
-            int todoAddJoinNestedOrSameLevel;
-            TableFilter join = getTableFilter(0);
             join.addJoin(filter, outer, on);
         }
     }
@@ -394,15 +370,13 @@ public class TableFilter implements ColumnResolver {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             join.mapAndAddFilter(on);
         }
     }
 
     public TableFilter getJoin() {
-        int todoGetJoin;
-        return joins == null ? null : getTableFilter(0);
+        return join;
     }
 
     public boolean isJoinOuter() {
@@ -495,8 +469,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     public void removeJoin() {
-        int todoRemoveJoin;
-        this.joins = null;
+        this.join = null;
     }
 
     public Expression getJoinCondition() {
@@ -517,8 +490,7 @@ public class TableFilter implements ColumnResolver {
 
     public void setFullCondition(Expression condition) {
         this.fullCondition = condition;
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             join.setFullCondition(condition);
         }
     }
@@ -526,8 +498,7 @@ public class TableFilter implements ColumnResolver {
     public void optimizeFullCondition(boolean fromOuterJoin) {
         if (fullCondition != null) {
             fullCondition.addFilterConditions(this, fromOuterJoin || outerJoin);
-            for (int i = 0; joins != null && i < joins.size(); i++) {
-                TableFilter join = getTableFilter(i);
+            if (join != null) {
                 join.optimizeFullCondition(fromOuterJoin || outerJoin);
             }
         }
@@ -540,8 +511,7 @@ public class TableFilter implements ColumnResolver {
         if (joinCondition != null) {
             joinCondition.setEvaluatable(filter, b);
         }
-        for (int i = 0; joins != null && i < joins.size(); i++) {
-            TableFilter join = getTableFilter(i);
+        if (join != null) {
             join.setEvaluatable(filter, b);
         }
     }

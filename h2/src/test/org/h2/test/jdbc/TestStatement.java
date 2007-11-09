@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 
+import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
 
 public class TestStatement extends TestBase {
@@ -22,11 +23,24 @@ public class TestStatement extends TestBase {
         if (config.jdk14) {
             testSavepoint();
         }
+        testConnectionRollback();
         testStatement();
         if (config.jdk14) {
             testIdentity();
         }
         conn.close();
+    }
+
+    private void testConnectionRollback() throws Exception {
+        Statement stat = conn.createStatement();
+        conn.setAutoCommit(false);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        conn.rollback();
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        checkFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.setAutoCommit(true);
     }
 
     void testSavepoint() throws Exception {
@@ -86,6 +100,36 @@ public class TestStatement extends TestBase {
     void testStatement() throws Exception {
 
         Statement stat = conn.createStatement();
+        
+//#ifdef JDK14        
+        check(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
+        conn.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+        check(ResultSet.CLOSE_CURSORS_AT_COMMIT, conn.getHoldability());
+//#endif
+        
+        // ignored
+        stat.setCursorName("x");
+        // fixed return value
+        check(stat.getFetchDirection(), ResultSet.FETCH_FORWARD);
+        // ignored
+        stat.setFetchDirection(ResultSet.FETCH_REVERSE);
+        // ignored
+        stat.setMaxFieldSize(100);
+        
+        check(0, stat.getFetchSize());
+        stat.setFetchSize(10);
+        check(10, stat.getFetchSize());
+        check(ResultSet.TYPE_FORWARD_ONLY, stat.getResultSetType());
+        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+        check(ResultSet.TYPE_SCROLL_SENSITIVE, stat2.getResultSetType());
+        check(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat2.getResultSetHoldability());
+        check(ResultSet.CONCUR_UPDATABLE, stat2.getResultSetConcurrency());
+        check(0, stat.getMaxFieldSize());
+        check(!((JdbcStatement) stat2).isClosed());
+        stat2.close();
+        check(((JdbcStatement) stat2).isClosed());
+        
+        
         ResultSet rs;
         int count;
         boolean result;

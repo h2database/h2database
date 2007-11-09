@@ -53,6 +53,7 @@ public class TestResultSet extends TestBase {
         testBlob();
         testClob();
         testAutoIncrement();
+        testSerialize();
 
         conn.close();
 
@@ -60,7 +61,11 @@ public class TestResultSet extends TestBase {
 
     private void testColumnLength() throws Exception {
         trace("Test ColumnLength");
-        
+        int todo;
+    }
+    
+    private void testSerialize() throws Exception {
+        int todo;
     }
 
     private void testLimitMaxRows() throws Exception {

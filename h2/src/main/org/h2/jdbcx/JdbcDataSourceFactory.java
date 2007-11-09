@@ -39,6 +39,8 @@ public class JdbcDataSourceFactory implements ObjectFactory {
             dataSource.setURL((String) ref.get("url").getContent());
             dataSource.setUser((String) ref.get("user").getContent());
             dataSource.setPassword((String) ref.get("password").getContent());
+            String s = (String) ref.get("loginTimeout").getContent();
+            dataSource.setLoginTimeout(Integer.parseInt(s));
             return dataSource;
         }
         return null;

@@ -47,6 +47,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
+import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDataSource;
 import org.h2.test.jdbc.TestDatabaseEventListener;
@@ -148,15 +149,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-Compile and include FullTextLucene.java
+start writing javadocs for jdbcx package
 
 toString() method to print something useful
-
-getDisplaySize
-"The display size gives you the limit for how many characters normally fit in a specified column"
-
-
-start writing javadocs for jdbcx package
 
 Feature request: file system that writes to two file systems (for replication)
 Feature request: file system with background thread writing file system (all writes)
@@ -602,6 +597,7 @@ Features of H2
         new TestPgServer().runTest(this);
 
         // jdbc
+        new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);
         new TestDataSource().runTest(this);
@@ -615,10 +611,10 @@ Features of H2
         new TestUpdatableResultSet().runTest(this);
         new TestXA().runTest(this);
         new TestZloty().runTest(this);
-        
+
         // mvcc
         new TestMVCC().runTest(this);
-            
+
         // synthetic
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);

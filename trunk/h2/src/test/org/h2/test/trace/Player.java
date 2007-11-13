@@ -35,8 +35,7 @@ public class Player {
 
     private boolean log;
 
-    private static final String[] IMPORTED_PACKAGES = { "", "java.lang.",
-            "java.sql." };
+    private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
 
     private HashMap objects = new HashMap();
     private String lastReturn;
@@ -53,7 +52,6 @@ public class Player {
      * @param args the arguments of the application
      */
     public static void main(String[] args) throws Exception {
-        int todoTest;
         new Player().run(args);
     }
 
@@ -69,7 +67,7 @@ public class Player {
     }
 
     private void run(String[] args) throws IOException {
-        String fileName;
+        String fileName = "test.log.db";
         try {
             fileName = args[args.length - 1];
             for (int i = 0; i < args.length - 1; i++) {

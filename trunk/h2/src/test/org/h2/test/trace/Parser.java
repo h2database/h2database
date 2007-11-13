@@ -177,7 +177,7 @@ class Parser {
     private Arg parseValue() {
         if (tokenType == STRING) {
             String s = readToken();
-            s = StringUtils.javaDecode(s.substring(1, s.length() - 1));
+            s = StringTools.javaDecode(s.substring(1, s.length() - 1));
             return new Arg(player, String.class, s);
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();

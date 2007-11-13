@@ -145,6 +145,7 @@ public abstract class Value {
     public abstract int getType();
     public abstract long getPrecision();
     public abstract int getDisplaySize();
+    
     public abstract String getString() throws SQLException;
     protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
     protected abstract boolean isEqual(Value v);
@@ -658,6 +659,10 @@ public abstract class Value {
 
     public boolean checkPrecision(long precision) {
         return getPrecision() <= precision;
+    }
+    
+    public String toString() {
+        return getSQL();
     }
     
 }

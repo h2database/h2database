@@ -29,7 +29,7 @@ public class ValueDecimal extends Value {
     
     public static final int DEFAULT_PRECISION = 65535;
     public static final int DEFAULT_SCALE = 32767;
-    public static final int DEFAULT_DISPLAY_SIZE = 255;
+    public static final int DEFAULT_DISPLAY_SIZE = 65535;
     private static final int DIVIDE_SCALE_ADD = 25;
 
     private ValueDecimal(BigDecimal value) {

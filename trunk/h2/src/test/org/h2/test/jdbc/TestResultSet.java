@@ -60,7 +60,40 @@ public class TestResultSet extends TestBase {
     }
 
     private void testColumnLength() throws Exception {
-        trace("Test ColumnLength");
+        trace("testColumnDisplayLength");
+        ResultSet rs;
+        ResultSetMetaData meta;
+        
+        stat.execute("CREATE TABLE one (ID INT, NAME VARCHAR(255))");
+        rs = stat.executeQuery("select * from one");
+        meta = rs.getMetaData();
+        check("ID", meta.getColumnLabel(1));
+        check(11, meta.getColumnDisplaySize(1));
+        check("NAME", meta.getColumnLabel(2));
+        check(255, meta.getColumnDisplaySize(2));
+        stat.execute("DROP TABLE one");
+        
+        rs = stat.executeQuery("select 1, 'Hello' union select 2, 'Hello World!'");
+        meta = rs.getMetaData();
+        check(11, meta.getColumnDisplaySize(1));
+        check(12, meta.getColumnDisplaySize(2));
+        
+        rs = stat.executeQuery("explain select * from dual");
+        meta = rs.getMetaData();
+        check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
+        check(Integer.MAX_VALUE, meta.getPrecision(1));
+        
+        rs = stat.executeQuery("script");
+        meta = rs.getMetaData();
+        check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
+        check(Integer.MAX_VALUE, meta.getPrecision(1));
+        
+        rs = stat.executeQuery("select group_concat(table_name) from information_schema.tables");
+        rs.next();
+        meta = rs.getMetaData();
+        check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
+        check(Integer.MAX_VALUE, meta.getPrecision(1));
+        
         int todo;
     }
     

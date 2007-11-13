@@ -21,7 +21,7 @@ public class LinkSchema {
         Statement stat = null;
         ResultSet rs = null;
         SimpleResultSet result = new SimpleResultSet();
-        result.addColumn("TABLE_NAME", Types.VARCHAR, 255, 0);
+        result.addColumn("TABLE_NAME", Types.VARCHAR, Integer.MAX_VALUE, 0);
         try {
             c2 = JdbcUtils.getConnection(driver, url, user, password);
             stat = conn.createStatement();

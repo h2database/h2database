@@ -64,12 +64,11 @@ public class ExpressionList extends Expression {
     }
 
     public long getPrecision() {
-        return 0;
+        return Integer.MAX_VALUE;
     }
     
     public int getDisplaySize() {
-        // TODO display size of a list
-        return 255;
+        return Integer.MAX_VALUE;
     }
 
     public String getSQL() {

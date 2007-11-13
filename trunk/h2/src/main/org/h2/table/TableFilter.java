@@ -23,7 +23,6 @@ import org.h2.result.SortOrder;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
 
 /**
  * A table filter represents a table that is used in a query. There is one such object whenever a table
@@ -529,11 +528,11 @@ public class TableFilter implements ColumnResolver {
             return null;
         }
         Column[] sys = new Column[3];
-        sys[0] = new Column("oid", Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE);
+        sys[0] = new Column("oid", Value.INT);
         sys[0].setTable(table, 0);
-        sys[1] = new Column("ctid", Value.STRING, 255, 0, 255);
+        sys[1] = new Column("ctid", Value.STRING);
         sys[1].setTable(table, 0);
-        sys[2] = new Column("CTID", Value.STRING, 255, 0, 255);
+        sys[2] = new Column("CTID", Value.STRING);
         sys[2].setTable(table, 0);
         return sys;
     }

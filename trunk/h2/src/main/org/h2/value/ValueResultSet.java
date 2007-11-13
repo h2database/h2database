@@ -57,7 +57,7 @@ public class ValueResultSet extends Value {
 
     public int getDisplaySize() {
         // it doesn't make sense to calculate it
-        return 255;
+        return Integer.MAX_VALUE;
     }
 
     public String getString() throws SQLException {

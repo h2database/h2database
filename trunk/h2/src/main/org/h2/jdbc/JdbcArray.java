@@ -273,4 +273,10 @@ public class JdbcArray extends TraceObject implements Array {
         }
     }
     
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + value.getSQL();
+    }
 }

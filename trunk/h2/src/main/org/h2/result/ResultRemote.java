@@ -228,5 +228,9 @@ public class ResultRemote implements ResultInterface {
             }
         }
     }
+    
+    public String toString() {
+        return "columns: " + columns.length + " rows: " + rowCount + " pos: " + rowId;
+    }
 
 }

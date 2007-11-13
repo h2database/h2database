@@ -65,9 +65,19 @@ public class Column {
     // columnNullableUnknown
     public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
 
+    public Column(String name, int type) {
+        this(name, type, -1, -1, -1);
+    }
+
     public Column(String name, int type, long precision, int scale, int displaySize) {
         this.name = name;
         this.type = type;
+        if (precision == -1 && scale == -1 && displaySize == -1) {
+            DataType dt = DataType.getDataType(type);
+            precision = dt.defaultPrecision;
+            scale = dt.defaultScale;
+            displaySize = dt.defaultDisplaySize;
+        }
         this.precision = precision;
         this.scale = scale;
         this.displaySize = displaySize;

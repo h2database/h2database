@@ -248,5 +248,12 @@ public class JdbcBlob extends TraceObject implements Blob {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + value.getSQL();
+    }
 
 }

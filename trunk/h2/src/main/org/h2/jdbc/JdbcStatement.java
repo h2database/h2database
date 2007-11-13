@@ -51,8 +51,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
             if (debug()) {
-                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
-                debugCodeCall("executeQuery", sql);
+                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery(" + quote(sql) + ")");
             }
             checkClosed();
             closeOld();
@@ -176,9 +175,10 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosed();
             if (resultSet != null) {
                 int id = resultSet.getTraceId();
-                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
+                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getResultSet()");
+            } else {
+                debugCodeCall("getResultSet");
             }
-            debugCodeCall("getResultSet");
             return resultSet;
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -628,9 +628,14 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     public ResultSet getGeneratedKeys() throws SQLException {
         try {
-            debugCodeCall("getGeneratedKeys");
+            int id = getNextId(TraceObject.RESULT_SET);
+            if (debug()) {
+                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
+            }
+            ResultInterface result = conn.getGeneratedKeys(this, id);
             checkClosed();
-            return conn.getGeneratedKeys(this);
+            ResultSet rs = new JdbcResultSet(session, conn, this, result, id, false, true);
+            return rs;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -889,9 +894,12 @@ public class JdbcStatement extends TraceObject implements Statement {
         }
     }
     
-    void debugCodeCallMe(String text, String param) {
-        debugCodeCall(text, param);
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName();
     }
-
+    
 }
 

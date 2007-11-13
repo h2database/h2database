@@ -24,13 +24,15 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
+import org.h2.util.StringUtils;
+
 /**
  * Some String manipulations / formatting functions used by this tool.
  *
  * @author Thomas Mueller
  *
  */
-public class StringUtils {
+public class StringTools {
 
 //    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 //            "yyyy-MM-dd HH:mm:ss.SSS Z");
@@ -144,158 +146,6 @@ public class StringUtils {
         return buff.toString();
     }
 
-    private static String javaEncode(String s) {
-        StringBuffer buff = new StringBuffer(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-            // case '\b':
-            // // BS backspace
-            // // not supported in properties files
-            // buff.append("\\b");
-            // break;
-            case '\t':
-                // HT horizontal tab
-                buff.append("\\t");
-                break;
-            case '\n':
-                // LF linefeed
-                buff.append("\\n");
-                break;
-            case '\f':
-                // FF form feed
-                buff.append("\\f");
-                break;
-            case '\r':
-                // CR carriage return
-                buff.append("\\r");
-                break;
-            case '"':
-                // double quote
-                buff.append("\\\"");
-                break;
-            case '\\':
-                // backslash
-                buff.append("\\\\");
-                break;
-            default:
-                int ch = (c & 0xffff);
-                if (ch >= ' ' && (ch < 0x80)) {
-                    buff.append(c);
-                    // not supported in properties files
-                    // } else if(ch < 0xff) {
-                    // buff.append("\\");
-                    // // make sure it's three characters (0x200 is octal
-                    // 1000)
-                    // buff.append(Integer.toOctalString(0x200 |
-                    // ch).substring(1));
-                } else {
-                    buff.append("\\u");
-                    // make sure it's four characters
-                    buff.append(Integer.toHexString(0x10000 | ch).substring(1));
-                }
-            }
-        }
-        return buff.toString();
-    }
-
-    static String quoteString(String result) {
-        if (result == null) {
-            return "null";
-        }
-        return "\"" + javaEncode(result) + "\"";
-    }
-
-//    static String quoteArray(Class clazz, String name, Object[] array) {
-//        if (array == null) {
-//            return "null";
-//        }
-//        StringBuffer buff = new StringBuffer("new ");
-//        buff.append(name);
-//        buff.append("[]{");
-//        for (int i = 0; i < array.length; i++) {
-//            if (i > 0) {
-//                buff.append(", ");
-//            }
-//            buff.append(quote(clazz, array[i]));
-//        }
-//        buff.append("}");
-//        return buff.toString();
-//    }
-
-    private static String quoteLongArray(long[] array) {
-        if (array == null) {
-            return "null";
-        }
-        StringBuffer buff = new StringBuffer("new long[]{");
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(array[i] + "L");
-        }
-        buff.append("}");
-        return buff.toString();
-    }
-
-    private static String quoteStringArray(String[] array) {
-        if (array == null) {
-            return "null";
-        }
-        StringBuffer buff = new StringBuffer("new String[]{");
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(quoteString(array[i]));
-        }
-        buff.append("}");
-        return buff.toString();
-    }
-
-//    static String quoteArgs(Class[] argClasses, Object[] args) {
-//        if (args == null) {
-//            return "";
-//        }
-//        StringBuffer buff = new StringBuffer();
-//        for (int i = 0; i < args.length; i++) {
-//            if (i > 0) {
-//                buff.append(", ");
-//            }
-//            buff.append(StringUtils.quote(argClasses[i], args[i]));
-//        }
-//        return buff.toString();
-//    }
-
-    /**
-     * Format an object as Java source code.
-     *
-     * @param o the object
-     * @return the formatted string
-     */
-    public static String quoteSimple(Object o) {
-        if (o instanceof String) {
-            return quoteString((String) o);
-        } else if (o.getClass().isArray()) {
-            if (o instanceof String[]) {
-                return quoteStringArray((String[]) o);
-            } else if (o instanceof long[]) {
-                return quoteLongArray((long[]) o);
-            } else {
-                return null;
-            }
-        } else if (o instanceof Integer) {
-            return o.toString();
-        } else if (o instanceof Long) {
-            return o.toString() + "L";
-        } else if (o instanceof Boolean) {
-            return o.toString();
-        } else if (o instanceof Double) {
-            return o.toString() + "d";
-        }
-        return null;
-    }
-
     static String convertBytesToString(byte[] value) {
         StringBuffer buff = new StringBuffer(value.length * 2);
         for (int i = 0; value != null && i < value.length; i++) {
@@ -332,4 +182,25 @@ public class StringUtils {
         return out.toByteArray();
     }
 
+    /**
+     * Format an object as Java source code.
+     *
+     * @param o the object
+     * @return the formatted string
+     */
+    public static String quote(Class clazz, Object value) {
+        if (value == null) {
+            return null;
+        } else if (clazz == String.class) {
+            return StringUtils.quoteJavaString(value.toString());
+        } else if (clazz.isArray()) {
+            if (clazz == String[].class) {
+                return StringUtils.quoteJavaStringArray((String[]) value);
+            } else if (clazz == int[].class) {
+                return StringUtils.quoteJavaIntArray((int[]) value);
+            }
+        }
+        return value.toString();
+    }
+    
 }

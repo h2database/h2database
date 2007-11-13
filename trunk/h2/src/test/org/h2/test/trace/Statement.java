@@ -114,8 +114,7 @@ class Statement {
         }
         Class clazz;
         if (staticCall) {
-            if (staticCallClass == null || staticCallClass.length() == 0
-                    || !staticCallClass.startsWith("org.")) {
+            if (staticCallClass == null || staticCallClass.length() == 0) {
                 player.log("?class? " + staticCallClass);
             }
             clazz = Player.getClass(staticCallClass);

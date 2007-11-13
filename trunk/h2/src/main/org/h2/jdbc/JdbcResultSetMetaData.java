@@ -447,5 +447,12 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     }
 */
 //#endif
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": columns=" + columnCount;
+    }
 
 }

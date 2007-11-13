@@ -112,8 +112,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             int id = getNextId(TraceObject.RESULT_SET_META_DATA);
             if (debug()) {
-                debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id);
-                debugCodeCall("getMetaData");
+                debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id, "getMetaData()");
             }
             checkClosed();
             String catalog = conn.getCatalog();
@@ -917,8 +916,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Blob getBlob(int columnIndex) throws SQLException {
         try {
             int id = getNextId(TraceObject.BLOB);
-            debugCodeAssign("Blob", TraceObject.BLOB, id);
-            debugCodeCall("getBlob", columnIndex);
+            debugCodeAssign("Blob", TraceObject.BLOB, id, "getBlob(" + columnIndex + ")");
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcBlob(session, conn, v, id);
         } catch (Throwable e) {
@@ -936,8 +934,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Blob getBlob(String columnName) throws SQLException {
         try {
             int id = getNextId(TraceObject.BLOB);
-            debugCodeAssign("Blob", TraceObject.BLOB, id);
-            debugCodeCall("getBlob", columnName);
+            debugCodeAssign("Blob", TraceObject.BLOB, id, "getBlob(" + quote(columnName) + ")");
             Value v = get(columnName);
             return v == ValueNull.INSTANCE ? null : new JdbcBlob(session, conn, v, id);
         } catch (Throwable e) {
@@ -1020,8 +1017,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Clob getClob(int columnIndex) throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
-            debugCodeAssign("Clob", TraceObject.CLOB, id);
-            debugCodeCall("getClob", columnIndex);
+            debugCodeAssign("Clob", TraceObject.CLOB, id, "getClob(" + columnIndex + ")");
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcClob(session, conn, v, id);
         } catch (Throwable e) {
@@ -1039,8 +1035,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Clob getClob(String columnName) throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
-            debugCodeAssign("Clob", TraceObject.CLOB, id);
-            debugCodeCall("getClob", columnName);
+            debugCodeAssign("Clob", TraceObject.CLOB, id, "getClob(" + quote(columnName) + ")");
             Value v = get(columnName);
             return v == ValueNull.INSTANCE ? null : new JdbcClob(session, conn, v, id);
         } catch (Throwable e) {
@@ -1058,8 +1053,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Array getArray(int columnIndex) throws SQLException {
         try {
             int id = getNextId(TraceObject.ARRAY);
-            debugCodeAssign("Clob", TraceObject.ARRAY, id);
-            debugCodeCall("getArray", columnIndex);
+            debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" + columnIndex + ")");
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcArray(session, conn, v, id);
         } catch (Throwable e) {
@@ -1077,8 +1071,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Array getArray(String columnName) throws SQLException {
         try {
             int id = getNextId(TraceObject.ARRAY);
-            debugCodeAssign("Clob", TraceObject.ARRAY, id);
-            debugCodeCall("getArray", columnName);
+            debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" + quote(columnName) + ")");
             Value v = get(columnName);
             return v == ValueNull.INSTANCE ? null : new JdbcArray(session, conn, v, id);
         } catch (Throwable e) {
@@ -3414,5 +3407,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 */
 //#endif
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + result;
+    }
 
 }

@@ -275,8 +275,8 @@ public class Aggregate extends Expression {
         case GROUP_CONCAT:
             dataType = Value.STRING;
             scale = 0;
-            precision = 255;
-            displaySize = 255;
+            precision = Integer.MAX_VALUE;
+            displaySize = Integer.MAX_VALUE;
             break;
         case COUNT_ALL:
         case COUNT:

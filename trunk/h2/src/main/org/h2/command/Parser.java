@@ -134,7 +134,6 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -1648,7 +1647,7 @@ public class Parser {
             } else if (readIf("~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
-                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 255, 255));
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE));
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -1656,7 +1655,7 @@ public class Parser {
             } else if (readIf("!~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
-                    function.setDataType(new Column("X", Value.STRING_IGNORECASE, 0, 255, 255));
+                    function.setDataType(new Column("X", Value.STRING_IGNORECASE));
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -2934,7 +2933,7 @@ public class Parser {
     private Column parseColumnForTable(String columnName) throws SQLException {
         Column column;
         if (readIf("IDENTITY") || readIf("SERIAL")) {
-            column = new Column(columnName, Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE);
+            column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
             long start = 1, increment = 1;
             if (readIf("(")) {
@@ -3043,6 +3042,7 @@ public class Parser {
         }
         DataType dataType = DataType.getTypeByName(original);
         long precision = -1;
+        int displaySize = -1;
         int scale = -1;
         Column templateColumn = null;
         if (dataType == null) {
@@ -3054,6 +3054,7 @@ public class Parser {
                 dataType = DataType.getDataType(templateColumn.getType());
                 original = templateColumn.getOriginalSQL();
                 precision = templateColumn.getPrecision();
+                displaySize = templateColumn.getDisplaySize();
                 scale = templateColumn.getScale();
             }
         }
@@ -3065,6 +3066,7 @@ public class Parser {
             read();
         }
         precision = precision == -1 ? dataType.defaultPrecision : precision;
+        displaySize = displaySize == -1 ? dataType.defaultDisplaySize : displaySize;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
             if (readIf("(")) {
@@ -3079,6 +3081,7 @@ public class Parser {
                 if (precision > Long.MAX_VALUE) {
                     precision = Long.MAX_VALUE;
                 }
+                displaySize = MathUtils.convertLongToInt(precision);
                 original += "(" + precision;
                 // oracle syntax
                 readIf("CHAR");
@@ -3107,7 +3110,6 @@ public class Parser {
             }
         }
         int type = dataType.type;
-        int displaySize = MathUtils.convertLongToInt(Math.max(precision, dataType.defaultDisplaySize));
         Column column = new Column(columnName, type, precision, scale, displaySize);
         if (templateColumn != null) {
             column.setNullable(templateColumn.getNullable());
@@ -3477,7 +3479,7 @@ public class Parser {
         String[] cols = parseColumnList();
         ObjectArray columns = new ObjectArray();
         for (int i = 0; i < cols.length; i++) {
-            columns.add(new Column(cols[i], Value.STRING, 0, 255, 255));
+            columns.add(new Column(cols[i], Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
         recursiveTable = schema.createTable(tempViewName, id, columns, false, false);

@@ -53,5 +53,5 @@ public class JdbcDataSourceFactory implements ObjectFactory {
     Trace getTrace() {
         return trace;
     }
-
+    
 }

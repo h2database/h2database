@@ -84,7 +84,6 @@ public class SelectUnion extends Query {
             }
             limit = ValueExpression.get(ValueInt.get(maxrows));
         }
-        ObjectArray expressions = left.getExpressions();
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, expressions, columnCount);
         result.setSortOrder(sort);

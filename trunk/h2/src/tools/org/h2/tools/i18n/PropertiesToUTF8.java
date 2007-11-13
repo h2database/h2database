@@ -30,6 +30,7 @@ import org.h2.util.StringUtils;
 public class PropertiesToUTF8 {
 
     public static void main(String[] args) throws Exception {
+        convert("bin/org/h2/res", ".");
         convert("bin/org/h2/server/web/res", ".");
     }
 
@@ -99,22 +100,33 @@ public class PropertiesToUTF8 {
             String s = IOUtils.readStringAndClose(r, -1);
             in.close();
             String name = f.getName();
+            String utf8, html;
             if (name.startsWith("utf8")) {
-                s = HtmlConverter.convertStringToHtml(s);
-                RandomAccessFile out = new RandomAccessFile(name.substring(4), "rw");
-                out.write(s.getBytes());
+                utf8 = HtmlConverter.convertHtmlToString(s);
+                html = HtmlConverter.convertStringToHtml(utf8);
+                RandomAccessFile out = new RandomAccessFile("_" + name.substring(4), "rw");
+                out.write(html.getBytes());
+                out.setLength(out.getFilePointer());
                 out.close();
             } else {
                 new CheckTextFiles().checkOrFixFile(f, false, false);
-                s = HtmlConverter.convertHtmlToString(s);
+                html = s;
+                utf8 = HtmlConverter.convertHtmlToString(html);
                 // s = unescapeHtml(s);
-                s = StringUtils.javaDecode(s);
-                FileOutputStream out = new FileOutputStream("utf8" + f.getName());
+                utf8 = StringUtils.javaDecode(utf8);
+                FileOutputStream out = new FileOutputStream("_utf8" + f.getName());
                 OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
-                w.write(s);
+                w.write(utf8);
                 w.close();
                 out.close();
             }
+            String java = StringUtils.javaEncode(utf8);
+            java = StringUtils.replaceAll(java, "\\r", "\r");
+            java = StringUtils.replaceAll(java, "\\n", "\n");
+            RandomAccessFile out = new RandomAccessFile("_java." + name, "rw");
+            out.write(java.getBytes());
+            out.setLength(out.getFilePointer());
+            out.close();
         }
     }
 

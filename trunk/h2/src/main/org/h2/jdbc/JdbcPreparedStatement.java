@@ -77,8 +77,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             int id = getNextId(TraceObject.RESULT_SET);
             if (debug()) {
-                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id);
-                debugCodeCall("executeQuery");
+                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery()");
             }
             checkClosed();
             closeOld();
@@ -965,8 +964,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             int id = getNextId(TraceObject.RESULT_SET_META_DATA);
             if (debug()) {
-                debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id);
-                debugCodeCall("getMetaData");
+                debugCodeAssign("ResultSetMetaData", TraceObject.RESULT_SET_META_DATA, id, "getMetaData()");
             }
             String catalog = conn.getCatalog();
             JdbcResultSetMetaData meta = new JdbcResultSetMetaData(null, this, result, catalog, session.getTrace(), id);
@@ -1188,8 +1186,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             int id = getNextId(TraceObject.PARAMETER_META_DATA);
             if (debug()) {
-                debugCodeAssign("ParameterMetaData", TraceObject.PARAMETER_META_DATA, id);
-                debugCodeCall("getParameterMetaData");
+                debugCodeAssign("ParameterMetaData", TraceObject.PARAMETER_META_DATA, id, "getParameterMetaData()");
             }
             checkClosed();
             JdbcParameterMetaData meta = new JdbcParameterMetaData(session, this, command, id);
@@ -1401,4 +1398,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 */
 //#endif
 
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + command.toString();
+    }
+    
 }

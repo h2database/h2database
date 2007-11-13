@@ -456,7 +456,7 @@ public class MetaTable extends Table {
                 type = DataType.getTypeByName(nameType.substring(idx + 1)).type;
                 name = nameType.substring(0, idx);
             }
-            cols[i] = new Column(name, type, 0, 0, 0);
+            cols[i] = new Column(name, type);
         }
         return cols;
     }

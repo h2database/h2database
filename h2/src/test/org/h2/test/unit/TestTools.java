@@ -4,6 +4,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -11,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.test.trace.Player;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangePassword;
 import org.h2.tools.ConvertTraceFile;
@@ -23,7 +25,7 @@ import org.h2.tools.Server;
 import org.h2.util.Resources;
 
 public class TestTools extends TestBase {
-
+    
     public void test() throws Exception {
         deleteDb("utils");
         testRemove();
@@ -38,6 +40,7 @@ public class TestTools extends TestBase {
     }
     
     private void testConvertTraceFile() throws Exception {
+        deleteDb("toolsConvertTraceFile");
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + baseDir + "/toolsConvertTraceFile";
         Connection conn = DriverManager.getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
@@ -45,11 +48,30 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
+        
         ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});
+        new File(baseDir + "/Test.java").delete();
+
+        File trace = new File(baseDir + "/toolsConvertTraceFile.trace.db");
+        check(trace.exists());
+        File newTrace = new File(baseDir + "/test.trace.db");
+        newTrace.delete();
+        check(trace.renameTo(newTrace));
         deleteDb("toolsConvertTraceFile");
-        RunScript.main(new String[]{"-url", url, "-user", "test", "-password", "test", "-script", baseDir + "/test.sql"});
-        conn = DriverManager.getConnection(url, "test", "test");
-        stat = conn.createStatement();
+        Player.main(new String[]{baseDir + "/test.trace.db"});
+        testTraceFile(url);
+        
+        deleteDb("toolsConvertTraceFile");
+        RunScript.main(new String[]{"-url", url, "-user", "sa", "-script", baseDir + "/test.sql"});
+        testTraceFile(url);
+        
+    }
+    
+    private void testTraceFile(String url) throws Exception {
+        Connection conn;
+        Recover.main(new String[]{"-removePassword", "-log", "false", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
+        conn = DriverManager.getConnection(url, "sa", "");
+        Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -67,7 +89,7 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
-        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword"});
+        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword", "-log", "false"});
         conn = DriverManager.getConnection(url, "sa", "");
         stat = conn.createStatement();
         ResultSet rs;

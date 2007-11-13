@@ -97,6 +97,7 @@ import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
 import org.h2.test.unit.TestTools;
+import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
@@ -149,11 +150,39 @@ java org.h2.test.TestAll timer
 
 /*
 
+toString() method of command, PreparedStatement to print something useful
+
+
+History:
+The default value for h2.emergencySpaceInitial is now 256 KB (to speed up creating encrypted databases)
+Eduardo Velasques has translated the H2 Console and the error messages to Brazilian Portuguese. Thanks a lot!
+Creating a table from GROUP_CONCAT didn't work if the data was longer than 255 characters
+
+
+
+
+Known Problems:
+link to history page
+Creating a table from GROUP_CONCAT doesn't work if the data was longer than 255 characters
+
+
+
+GROUP_CONCAT more than 255
+You are right, this is a bug. It was introduced by the getDisplaySize change. Unfortunately there is no workaround at the moment... I will fix for the next release and add a test case. I will also check if other things stopped working because of this change.
+Search for 255 in whole project
+
+CryptGenRandom.
+
+drop table test;
+create table test(id int primary key, name varchar(255));
+@META select * from test;
+drop table test;
+
+ddlutils
+
 implement & test: checkpoint commits running transactions
 
 start writing javadocs for jdbcx package
-
-toString() method to print something useful
 
 Feature request: file system that writes to two file systems (for replication)
 Feature request: file system with background thread writing file system (all writes)
@@ -542,6 +571,7 @@ Features of H2
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
+        new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
     }
 

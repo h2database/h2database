@@ -94,5 +94,13 @@ implements Savepoint
             throw logAndConvert(e);
         }
     }
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": id=" + savepointId + " name=" + name;
+    }
+    
 
 }

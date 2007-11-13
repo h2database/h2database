@@ -532,6 +532,14 @@ public class ValueLob extends Value {
             throw Message.convertToInternal(e);
         }
     }
+    
+    public String toString() {
+        if (small == null) {
+            return getClass().getName() + " file: " + fileName + " type: " + type + " precision: " + precision;
+        } else {
+            return getSQL();
+        }
+    }
 
     public byte[] getSmall() {
         return small;

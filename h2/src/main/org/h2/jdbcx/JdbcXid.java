@@ -82,5 +82,12 @@ implements Xid
         debugCodeCall("getGlobalTransactionId");                
         return globalTransactionId;
     }
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + getAsString();
+    }
 
 }

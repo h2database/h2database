@@ -211,5 +211,12 @@ implements ParameterMetaData
     }
 */
 //#endif
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": parameterCount=" + paramCount;
+    }    
 
 }

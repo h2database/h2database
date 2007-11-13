@@ -779,8 +779,6 @@ public class Function extends Expression implements FunctionCall {
         case NULLIF:
             return database.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
         case CAST:
-            // TODO function convert compatibility with MS SQL Server:
-            // convert(varchar(255), name)
         case CONVERT: {
             v0 = v0.convertTo(dataType);
             Mode mode = database.getMode();
@@ -1393,8 +1391,8 @@ public class Function extends Expression implements FunctionCall {
             if (dataType == Value.UNKNOWN) {
                 dataType = Value.STRING;
                 scale = 0;
-                precision = 255;
-                displaySize = 255;
+                precision = Integer.MAX_VALUE;
+                displaySize = Integer.MAX_VALUE;
             }
             break;
         }

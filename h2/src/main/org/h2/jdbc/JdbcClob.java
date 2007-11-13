@@ -229,5 +229,12 @@ public class JdbcClob extends TraceObject implements Clob
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + value.getSQL();
+    }
 
 }

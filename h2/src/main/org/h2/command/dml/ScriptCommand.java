@@ -107,7 +107,7 @@ public class ScriptCommand extends ScriptBase {
     
     private LocalResult createResult() {
         ObjectArray cols = new ObjectArray();
-        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING, 0, 255, 255)));
+        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING)));
         return new LocalResult(session, cols, 1);
     }
 

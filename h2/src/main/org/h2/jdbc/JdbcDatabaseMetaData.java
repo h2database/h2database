@@ -2677,6 +2677,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         debugCodeCall("getFunctions");        
         throw Message.getUnsupportedException();
     }
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": " + conn;
+    }
 
 }
 

@@ -261,5 +261,12 @@ Serializable, Referenceable  {
     }
 */
 //#endif
+    
+    /**
+     * INTERNAL
+     */
+    public String toString() {
+        return getTraceObjectName() + ": url=" + url + " user=" + user;
+    }
 
 }

@@ -188,12 +188,12 @@ public class LocalResult implements ResultInterface {
     }
 
     public void addRow(Value[] values) throws SQLException {
-        for (int i = 0; i < values.length; i++) {
-            // TODO display sizes: check if this is a performance problem, maybe
-            // provide a setting to not do it
-            Value v = values[i];
-            int size = v.getDisplaySize();
-            displaySizes[i] = Math.max(displaySizes[i], size);
+        if (!SysProperties.NEW_DISPLAY_SIZE) {
+            for (int i = 0; i < values.length; i++) {
+                Value v = values[i];
+                int size = v.getDisplaySize();
+                displaySizes[i] = Math.max(displaySizes[i], size);
+            }
         }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
@@ -339,6 +339,10 @@ public class LocalResult implements ResultInterface {
                 rowCount -= offset;
             }
         }
+    }
+    
+    public String toString() {
+        return "columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
     }
 
 }

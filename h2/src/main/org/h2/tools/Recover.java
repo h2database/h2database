@@ -102,6 +102,7 @@ public class Recover implements DataHandler {
                 db = args[++i];
             } else if ("-removePassword".equals(args[i])) {
                 removePassword = true;
+                log = true;
             } else if ("-log".equals(args[i])) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
             } else {
@@ -249,7 +250,9 @@ public class Recover implements DataHandler {
                     s.updateChecksum();
                     store.seek(start);
                     store.write(s.getBytes(), 0, s.length());
-                    System.out.println("User: " + userName);
+                    if (log) {
+                        System.out.println("User: " + userName);
+                    }
                     break;
                 } catch (Throwable e) {
                     e.printStackTrace();

@@ -26,13 +26,11 @@ package org.h2.test.trace;
  *
  */
 class Arg {
-    // private Player player;
     private Class clazz;
     private Object obj;
     private Statement stat;
 
     Arg(Player player, Class clazz, Object obj) {
-        // this.player = player;
         this.clazz = clazz;
         this.obj = obj;
     }
@@ -41,13 +39,13 @@ class Arg {
         this.stat = stat;
     }
 
-//    public String toString() {
-//        if (stat != null) {
-//            return stat.toString();
-//        } else {
-//            return StringUtils.quote(clazz, getValue());
-//        }
-//    }
+    public String toString() {
+        if (stat != null) {
+            return stat.toString();
+        } else {
+            return StringTools.quote(clazz, getValue());
+        }
+    }
 
     void execute() throws Exception {
         if (stat != null) {

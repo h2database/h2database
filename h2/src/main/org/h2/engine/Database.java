@@ -471,12 +471,12 @@ public class Database implements DataHandler {
         // TODO storage: antivir scans .script files, maybe other scanners scan
         // .db files?
         ObjectArray cols = new ObjectArray();
-        Column columnId = new Column("ID", Value.INT, 0, 0, 0);
+        Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
         cols.add(columnId);
-        cols.add(new Column("HEAD", Value.INT, 0, 0, 0));
-        cols.add(new Column("TYPE", Value.INT, 0, 0, 0));
-        cols.add(new Column("SQL", Value.STRING, 0, 0, 0));
+        cols.add(new Column("HEAD", Value.INT));
+        cols.add(new Column("TYPE", Value.INT));
+        cols.add(new Column("SQL", Value.STRING));
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(

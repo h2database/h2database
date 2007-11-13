@@ -5,6 +5,7 @@
 package org.h2.table;
 
 import java.sql.SQLException;
+
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -14,7 +15,6 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
 
 public class RangeTable extends Table {
     
@@ -24,7 +24,7 @@ public class RangeTable extends Table {
     public RangeTable(Schema schema, long min, long max) throws SQLException {
         super(schema, 0, NAME, true);
         Column[] cols = new Column[]{
-                new Column("X", Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE)
+                new Column("X", Value.LONG)
         };
         this.min = min;
         this.max = max;

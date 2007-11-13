@@ -44,7 +44,7 @@ public class TraceObject {
     /**
      * INTERNAL
      */
-    public String toString() {
+    public String getTraceObjectName() {
         return PREFIX[type] + id;
     }
 
@@ -64,46 +64,34 @@ public class TraceObject {
         return trace;
     }
 
-    protected void debugCodeAssign(String className, int type, int id) {
-        if (!trace.debug()) {
-            return;
+    protected void debugCodeAssign(String className, int type, int id, String value) {
+        if (trace.debug()) {
+            trace.debugCode(className + " " + PREFIX[type] + id + " = " + getTraceObjectName() + "." + value + ";");
         }
-        trace.debugCode(className + " " + PREFIX[type] + id + " = ");
-    }
-
-    protected void infoCodeAssign(String className, int type, int id) {
-        if (!trace.info()) {
-            return;
-        }
-        trace.infoCode(className + " " + PREFIX[type] + id + " = ");
     }
 
     protected void debugCodeCall(String text) {
-        if (!trace.debug()) {
-            return;
+        if (trace.debug()) {
+            trace.debugCode(getTraceObjectName() + "." + text + "();");
         }
-        trace.debugCode(toString() + "." + text + "();");
     }
 
     protected void debugCodeCall(String text, long param) {
-        if (!trace.debug()) {
-            return;
+        if (trace.debug()) {
+            trace.debugCode(getTraceObjectName() + "." + text + "(" + param + ");");
         }
-        trace.debugCode(toString() + "." + text + "(" + param + ");");
     }
 
     protected void debugCodeCall(String text, String param) {
-        if (!trace.debug()) {
-            return;
+        if (trace.debug()) {
+            trace.debugCode(getTraceObjectName() + "." + text + "(" + quote(param) + ");");
         }
-        trace.debugCode(toString() + "." + text + "(" + quote(param) + ");");
     }
 
     protected void debugCode(String text) {
-        if (!trace.debug()) {
-            return;
+        if (trace.debug()) {
+            trace.debugCode(getTraceObjectName() + "." + text);
         }
-        trace.debugCode(toString() + "." + text);
     }
 
     protected String quote(String s) {

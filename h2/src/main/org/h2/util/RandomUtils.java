@@ -23,6 +23,10 @@ public class RandomUtils {
         if (secureRandom != null) {
             return secureRandom;
         }
+        // Workaround for SecureRandom problem as described in
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6202721
+        // Can not do that in a static initializer block, because
+        // threads are not started after the initializer block exits
         try {
             secureRandom = SecureRandom.getInstance("SHA1PRNG");
             // On some systems, secureRandom.generateSeed() is very slow.

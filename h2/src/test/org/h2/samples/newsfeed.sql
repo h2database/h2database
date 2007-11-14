@@ -10,6 +10,33 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(31,
+'New version available: 1.0.61 (2007-11-10)', '2007-11-10 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Read-only databases in zip (or jar) files are now supported: jdbc:h2:zip:c:/temp/db.zip!/test
+</li><li>File access is now done using an extensible API. Additional file systems are easy to implement.
+</li><li>Descending indexes are supported.
+</li><li>The Lucene fulltext search is included in the h2.jar.
+</li><li>MODE is now a database level setting (not global).
+</li><li>Vlad Alexahin has translated H2 Console to Russian. Thanks a lot!
+</li><li>INSTR, LOCATE: backward searching is now supported by using a negative start position.
+</li><li>CREATE SEQUENCE: New option CACHE (number of pre-allocated numbers).
+</li><li>Converting decimal to integer now rounds like MySQL and PostgreSQL.
+</li><li>Math operations using only parameters are now interpreted as decimal.
+</li><li>MVCC: The system property h2.mvcc has been removed.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>ResultSetMetaData.getColumnDisplaySize is now calculated correctly.
+</li><li>A few MVCC bugs have been fixed.
+</li><li>The code coverage is now at 83%.
+</li></ul>
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(30,
 'New version available: 1.0.60 (2007-10-20)', '2007-10-20 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -367,44 +394,6 @@ INSERT INTO ITEM VALUES(23,
 </li><li>When ORDER BY was used together with DISTINCT, it was required to type the column
     name exactly in the select list and the order list exactly in the same way. 
     This is not required any longer.
-</li>
-</ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(22,
-'New version available: 1.0 / 2007-03-04', '2007-03-04 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>System sequences (automatically created sequences for IDENTITY or AUTO_INCREMENT columns) are now
-    random (UUIDs) to avoid clashes when merging databases using RUNSCRIPT.
-</li><li>Now the server tool (org.h2.tools.Server) terminates with an exit code if a problem occured.
-</li><li>The JDBC driver is now loaded if the JdbcDataSource class is loaded.
-</li><li>After renaming a user the password becomes invalid. This is now documented.
-</li><li>Truncating a table is now allowed if the table references another table 
-    (but still not allowed if the table is references by another table).
-</li>
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>The precision for linked tables was not correct for some data types, for example VARCHAR. Fixed.
-</li><li>Many problems and bugs in the XA support (package javax.sql) have been fixed.
-</li><li>ORDER BY picked the wrong column if the same column name (but with a different table name) 
-    was used twice in the select list.
-</li><li>When a subquery was used in the select list of a query, and GROUP BY was used at the same time,
-    a NullPointerException could occur. Fixed.
-</li><li>ORDER BY did not work when DISTINCT was used at the same time in some situations. Fixed.
-</li><li>When using IN(...) on a case insensitive column (VARCHAR_IGNORECASE), 
-    an incorrect optimization was made and the result was wrong sometimes.
-</li><li>XAResource.recover didn''t work. Fixed. 
-</li><li>XAResource.recover did throw an exception with the code XAER_OUTSIDE if there
-    was no connection. Now the code is XAER_RMERR.  
-</li><li>SCRIPT did not work correctly with BLOB or CLOB data. Fixed.
-</li><li>BACKUP TO ''test.zip'' now works with encrypted databases and CLOB and BLOB data.
-</li><li>The function CASE WHEN ... didn''t convert the returned value to the same data type,
-    resulting in unexpected behavior in many cases. Fixed.
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.

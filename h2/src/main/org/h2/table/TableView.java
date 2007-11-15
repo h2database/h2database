@@ -57,6 +57,7 @@ public class TableView extends Table {
                 throw Message.getSyntaxError(querySQL, 0);
             }
             Query query = (Query) p;
+            querySQL = query.getPlanSQL();
             tables = new ObjectArray(query.getTables());
             ObjectArray expressions = query.getExpressions();
             ObjectArray list = new ObjectArray();

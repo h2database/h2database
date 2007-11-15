@@ -4,6 +4,7 @@
  */
 package org.h2.command.dml;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -395,7 +396,7 @@ public class ScriptCommand extends ScriptBase {
         ResultSet rs = stat.executeQuery("SELECT CDATA FROM SYSTEM_LOB_STREAM WHERE ID=" + id + " ORDER BY PART");
         Writer out = FileUtils.openFileWriter(TEMP_LOB_FILENAME, false);
         while (rs.next()) {
-            Reader in = rs.getCharacterStream(1);
+            Reader in = new BufferedReader(rs.getCharacterStream(1));
             IOUtils.copyAndCloseInput(in, out);
         }
         out.close();

@@ -4,7 +4,6 @@
  */
 package org.h2.tools;
 
-import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.Connection;
@@ -134,7 +133,7 @@ public class Script {
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
             fileWriter = FileUtils.openFileWriter(fileName, false);
-            PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
+            PrintWriter writer = new PrintWriter(fileWriter);
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);

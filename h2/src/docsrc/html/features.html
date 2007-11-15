@@ -47,6 +47,8 @@ Features
     Using the Trace Options</a><br />
 <a href="#read_only">
     Read Only Databases</a><br />
+<a href="#database_in_zip">
+    Read Only Databases in Zip or Jar File</a><br />
 <a href="#storage_formats">
     Binary and Text Storage Formats</a><br />
 <a href="#low_disk_space">
@@ -358,7 +360,7 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>jdbc:h2:mem:</td>
 </tr>
 <tr>
-  <td>Database in Jar or Zip File</td>
+  <td>Database in or Zip File</td>
   <td>
     jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
     jdbc:h2:zip:db.zip!/test
@@ -925,6 +927,29 @@ Then, make the database files read-only using the operating system.
 When you open the database now, it is read-only.
 There are two ways an application can find out a database is read-only:
 By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
+</p>
+
+<br /><a name="database_in_zip"></a>
+<h2>Read Only Databases in Zip or Jar File</h2>
+<p>
+To create a read-only database in a zip, first create a regular persistent database, and then create a backup.
+If you are using a database named 'test', an easy way to do that is using the BACKUP SQL statement:
+</p>
+<pre>
+BACKUP TO 'data.zip'
+</pre>
+<p>
+Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
+</p>
+<pre>
+jdbc:h2:zip:data.zip!/test
+</pre>
+<p>
+Databases in a zip file are read-only. The performance for some queries will be slower than when using
+a regular database, because random access in zip files is not supported (only streaming). How much this
+affects the performance depends on the queries and the data. The database 
+is not read in memory, so large databases are supported as well. The same indexes are used than when using
+a regular database. 
 </p>
 
 <br /><a name="storage_formats"></a>

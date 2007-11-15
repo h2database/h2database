@@ -41,8 +41,8 @@ explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_ho
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT X.DIR_NUM, X.CNT FROM (select dir_num, count(*) as cnt from multi_pages  t, b_holding bh where t.bh_id=bh.id and bh.site='Hello' group by dir_num) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES_TABLE_SCAN ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_1: ID = T.BH_ID ++/ WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM (SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES_TABLE_SCAN */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_1: ID = T.BH_ID */ WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES_TABLE_SCAN ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_1: ID = T.BH_ID ++/ WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= CAST(?1 AS BIGINT): CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
 > rows (ordered): 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
@@ -5163,9 +5163,9 @@ CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 
 SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
 > TABLE_NAME SQL
-> ---------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AID, A.NAME A_NAME, B.ID BID, B.NAME B_NAME FROM TEST_A A, TEST_B B WHERE A.ID = B.ID
-> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT * FROM TEST_A WHERE ID < 2
+> ---------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A /* PUBLIC.TEST_A_TABLE_SCAN */ INNER JOIN PUBLIC.TEST_B B /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ WHERE A.ID = B.ID
+> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT TEST_A.ID, TEST_A.NAME FROM PUBLIC.TEST_A /* PUBLIC.PRIMARY_KEY_1: ID < 2 */ WHERE ID < 2
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;

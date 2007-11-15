@@ -41,7 +41,7 @@ public class ScriptReader {
         if (end) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(200);
         int c = read();
         while (true) {
             if (c < 0) {

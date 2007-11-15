@@ -4,6 +4,7 @@
  */
 package org.h2.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -211,7 +212,7 @@ public class IOUtils {
     public static Reader getReader(InputStream in) throws SQLException {
         try {
             // InputStreamReader may read some more bytes
-            return in == null ? null : new InputStreamReader(in, Constants.UTF8);
+            return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
         }

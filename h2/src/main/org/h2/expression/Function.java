@@ -803,17 +803,8 @@ public class Function extends Expression implements FunctionCall {
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
             Csv csv = Csv.getInstance();
+            setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
             char fieldSeparator = csv.getFieldSeparatorRead();
-            if (fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
-                fieldSeparator = fieldSeparatorRead.charAt(0);
-                csv.setFieldSeparatorRead(fieldSeparator);
-            }
-            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
-                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
-            }
-            if (escapeCharacter != null && escapeCharacter.length() > 0) {
-                csv.setEscapeCharacter(escapeCharacter.charAt(0));
-            }
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
             return vr;
@@ -835,15 +826,7 @@ public class Function extends Expression implements FunctionCall {
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();            
             Csv csv = Csv.getInstance();
-            if (fieldSeparatorWrite != null) {
-                csv.setFieldSeparatorWrite(fieldSeparatorWrite);
-            }
-            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
-                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
-            }
-            if (escapeCharacter != null && escapeCharacter.length() > 0) {
-                csv.setEscapeCharacter(escapeCharacter.charAt(0));
-            }            
+            setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
             int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
             return ValueInt.get(rows);
         }
@@ -1606,17 +1589,8 @@ public class Function extends Expression implements FunctionCall {
             String fieldDelimiter = args.length < 5 ? null : args[4].getValue(session).getString();
             String escapeCharacter = args.length < 6 ? null : args[5].getValue(session).getString();
             Csv csv = Csv.getInstance();
-            char fieldSeparator = ',';
-            if (fieldSeparatorRead != null && fieldSeparatorRead.length() > 0) {
-                fieldSeparator = fieldSeparatorRead.charAt(0);
-                csv.setFieldSeparatorRead(fieldSeparator);
-            }
-            if (fieldDelimiter != null && fieldDelimiter.length() > 0) {
-                csv.setFieldDelimiter(fieldDelimiter.charAt(0));
-            }
-            if (escapeCharacter != null && escapeCharacter.length() > 0) {
-                csv.setEscapeCharacter(escapeCharacter.charAt(0));
-            }
+            setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+            char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ResultSet rs = csv.read(fileName, columns, charset);
             ValueResultSet vr = ValueResultSet.getCopy(rs, 0);
@@ -1629,6 +1603,24 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         return (ValueResultSet) getValueWithArgs(session, args);
+    }
+    
+    private void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {
+        if (fieldSeparator != null) {
+            csv.setFieldSeparatorWrite(fieldSeparator);
+            if (fieldSeparator.length() > 0) {
+                char fs = fieldSeparator.charAt(0);
+                csv.setFieldSeparatorRead(fs);
+            }
+        }
+        if (fieldDelimiter != null) {
+            char fd = fieldDelimiter.length() == 0 ? 0 : fieldDelimiter.charAt(0);
+            csv.setFieldDelimiter(fd);
+        }
+        if (escapeCharacter != null) {
+            char ec = escapeCharacter.length() == 0 ? 0 : escapeCharacter.charAt(0);
+            csv.setEscapeCharacter(ec);
+        }
     }
 
     public Expression[] getArgs() {

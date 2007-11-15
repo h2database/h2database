@@ -53,7 +53,6 @@ public class TestResultSet extends TestBase {
         testBlob();
         testClob();
         testAutoIncrement();
-        testSerialize();
 
         conn.close();
 
@@ -93,12 +92,7 @@ public class TestResultSet extends TestBase {
         meta = rs.getMetaData();
         check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
         check(Integer.MAX_VALUE, meta.getPrecision(1));
-        
-        int todo;
-    }
-    
-    private void testSerialize() throws Exception {
-        int todo;
+
     }
 
     private void testLimitMaxRows() throws Exception {

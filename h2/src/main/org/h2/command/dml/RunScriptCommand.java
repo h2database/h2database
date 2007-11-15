@@ -4,6 +4,7 @@
  */
 package org.h2.command.dml;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -33,7 +34,7 @@ public class RunScriptCommand extends ScriptBase {
         try {
             openInput();
             Reader reader = new InputStreamReader(in, charset);
-            ScriptReader r = new ScriptReader(reader);
+            ScriptReader r = new ScriptReader(new BufferedReader(reader));
             while (true) {
                 String sql = r.readStatement();
                 if (sql == null) {

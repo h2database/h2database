@@ -138,4 +138,8 @@ public abstract class Command implements CommandInterface {
     public void cancel() {
         this.cancel = true;
     }
+    
+    public String toString() {
+        return sql;
+    }
 }

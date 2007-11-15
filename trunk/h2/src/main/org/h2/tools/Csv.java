@@ -6,6 +6,8 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -221,10 +223,7 @@ public class Csv implements SimpleRowSource {
             try {
                 OutputStream out = new FileOutputStream(fileName);
                 out = new BufferedOutputStream(out, bufferSize);
-                writer = new PrintWriter(new OutputStreamWriter(out, charset));
-                // TODO performance: what is faster? one, two, or both?
-                // writer = new PrintWriter(new BufferedWriter(new
-                // OutputStreamWriter(out, encoding), bufferSize));
+                writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(out, charset)));
             } catch (IOException e) {
                 close();
                 throw e;
@@ -283,8 +282,7 @@ public class Csv implements SimpleRowSource {
                 InputStream in = FileUtils.openFileInputStream(fileName);
                 in = new BufferedInputStream(in, bufferSize);
                 reader = new InputStreamReader(in, charset);
-                // TODO what is faster, 1, 2, 1+2
-                // reader = new BufferedReader(new InputStreamReader(in, encoding), bufferSize);
+                reader = new BufferedReader(reader);
             } catch (IOException e) {
                 close();
                 throw e;
@@ -563,6 +561,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Set the field delimiter. The default is " (a double quote).
+     * 0 means no field delimiter is used.
      * 
      * @param fieldDelimiter the field delimiter
      */
@@ -572,6 +571,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current field delimiter.
+     * 0 means no field delimiter is used.
      * 
      * @return the field delimiter
      */
@@ -581,6 +581,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Set the escape character (used to escape the field delimiter). The default is " (a double quote).
+     * 0 means no escape character is used.
      * 
      * @param escapeCharacter the escape character
      */
@@ -590,6 +591,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current escape character.
+     * 0 means no escape character is used.
      * 
      * @return the escape character
      */

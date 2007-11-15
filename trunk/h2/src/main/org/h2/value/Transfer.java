@@ -6,6 +6,7 @@ package org.h2.value;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -262,7 +263,7 @@ public class Transfer {
                 public void flush() {
                 }
             };
-            Writer writer = new OutputStreamWriter(out2, Constants.UTF8);
+            Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));
             long written = IOUtils.copyAndCloseInput(reader, writer);
             if (SysProperties.CHECK && written != length) {
                 throw Message.getInternalError("length:" + length + " written:" + written);

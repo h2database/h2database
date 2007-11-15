@@ -4,6 +4,8 @@
  */
 package org.h2.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,7 +101,8 @@ public class FileUtils {
     }
     
     public static Reader openFileReader(String fileName) throws IOException {
-        return new InputStreamReader(openFileInputStream(fileName));
+        Reader reader = new InputStreamReader(openFileInputStream(fileName));
+        return new BufferedReader(reader);
     }
 
     public static String getFileName(String name) throws SQLException {
@@ -152,7 +155,8 @@ public class FileUtils {
     }
 
     public static Writer openFileWriter(String fileName, boolean append) throws SQLException {
-        return new OutputStreamWriter(FileSystem.getInstance(fileName).openFileOutputStream(fileName, append));
+        OutputStream out = FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
+        return new BufferedWriter(new OutputStreamWriter(out));
     }
 
     public static boolean fileStartsWith(String fileName, String prefix) {

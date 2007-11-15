@@ -5,7 +5,7 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -121,14 +121,14 @@ public class Recover implements DataHandler {
      * INTERNAL
      */
     public static Reader readClob(String fileName) throws IOException {
-        return new InputStreamReader(readBlob(fileName));
+        return new BufferedReader(new InputStreamReader(readBlob(fileName)));
     }
     
     /**
      * INTERNAL
      */
     public static InputStream readBlob(String fileName) throws IOException {
-        return new FileInputStream(fileName);
+        return new BufferedInputStream(new FileInputStream(fileName));
     }
     
     private void removePassword(String dir, String db) throws SQLException {
@@ -296,7 +296,7 @@ public class Recover implements DataHandler {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         System.out.println("Created file: " + outputFile);
-        return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
+        return new PrintWriter(FileUtils.openFileWriter(outputFile, false));
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {

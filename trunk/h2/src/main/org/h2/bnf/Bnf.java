@@ -4,6 +4,7 @@
  */
 package org.h2.bnf;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -81,6 +82,7 @@ public class Bnf {
     }
     
     public void parse(Reader csv) throws Exception {
+        csv = new BufferedReader(csv);
         Rule functions = null;
         statements = new ArrayList();
         ResultSet rs = Csv.getInstance().read(csv, null);

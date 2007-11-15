@@ -28,6 +28,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testTempView(conn);
         testInsertFunction(conn);
         testPrepareRecompile(conn);
         testMaxRowsChange(conn);
@@ -52,6 +53,30 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+    }
+    
+    private void testTempView(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        PreparedStatement prep;
+        stat.execute("CREATE TABLE TEST(FLD INT PRIMARY KEY)");
+        stat.execute("INSERT INTO TEST VALUES(1)");
+        stat.execute("INSERT INTO TEST VALUES(2)");
+        prep = conn.prepareStatement("select FLD FROM " 
+                + "(select FLD FROM (SELECT FLD  FROM TEST WHERE FLD = ?) AS TBL2 "
+                + "WHERE TBL2.FLD = ?) AS TBL3 WHERE TBL3.FLD = ?");
+        prep.setInt(1, 1);
+        prep.setInt(2, 1);
+        prep.setInt(3, 1);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        check(1, rs.getInt(1));
+        prep.setInt(1, 2);
+        prep.setInt(2, 2);
+        prep.setInt(3, 2);
+        rs = prep.executeQuery();
+        rs.next();
+        check(2, rs.getInt(1));
+        stat.execute("DROP TABLE TEST");
     }
     
     private void testInsertFunction(Connection conn) throws Exception {

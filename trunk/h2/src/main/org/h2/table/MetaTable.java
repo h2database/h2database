@@ -4,6 +4,7 @@
  */
 package org.h2.table;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -757,7 +758,7 @@ public class MetaTable extends Table {
             String resource = "/org/h2/res/help.csv";
             try {
                 byte[] data = Resources.get(resource);
-                Reader reader = new InputStreamReader(new ByteArrayInputStream(data));
+                Reader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data)));
                 ResultSet rs = Csv.getInstance().read(reader, null);
                 for (int i = 0; rs.next(); i++) {
                     add(rows, new String[] {

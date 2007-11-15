@@ -4,12 +4,14 @@
  */
 package org.h2.util;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.sql.SQLException;
 
 import org.h2.engine.Constants;
@@ -24,7 +26,7 @@ public class ReaderInputStream extends InputStream {
     private final Reader reader;
     private final char[] chars;
     private final ByteArrayOutputStream out;
-    private final OutputStreamWriter writer;
+    private final Writer writer;
     private int pos;
     private int remaining;
     private byte[] buffer;
@@ -34,7 +36,7 @@ public class ReaderInputStream extends InputStream {
         this.reader = reader;
         out = new ByteArrayOutputStream(Constants.IO_BUFFER_SIZE);
         try {
-            writer = new OutputStreamWriter(out, Constants.UTF8);
+            writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
         }

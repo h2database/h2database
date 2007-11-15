@@ -4,6 +4,7 @@
  */
 package org.h2.value;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -412,7 +413,11 @@ public class DataType {
                 v = ValueLob.createSmallLob(Value.CLOB, StringUtils.utf8Encode(rs.getString(columnIndex)));
             } else {
                 Reader in = rs.getCharacterStream(columnIndex);
-                v = (in == null) ? (Value) ValueNull.INSTANCE : ValueLob.createClob(in, -1, session.getDataHandler());
+                if (in == null) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = ValueLob.createClob(new BufferedReader(in), -1, session.getDataHandler());
+                }
             }
             break;
         }
@@ -651,9 +656,11 @@ public class DataType {
         } else if (x instanceof java.util.Date) {
             return ValueTimestamp.get(new Timestamp(((java.util.Date) x).getTime()));
         } else if (x instanceof java.io.Reader) {
-            return ValueLob.createClob((java.io.Reader) x, -1, session.getDataHandler());
+            Reader r = new BufferedReader((java.io.Reader) x);
+            return ValueLob.createClob(r, -1, session.getDataHandler());
         } else if (x instanceof java.sql.Clob) {
-            return ValueLob.createClob(((java.sql.Clob) x).getCharacterStream(), -1, session.getDataHandler());
+            Reader r = new BufferedReader(((java.sql.Clob) x).getCharacterStream());
+            return ValueLob.createClob(r, -1, session.getDataHandler());
         } else if (x instanceof java.io.InputStream) {
             return ValueLob.createBlob((java.io.InputStream) x, -1, session.getDataHandler());
         } else if (x instanceof java.sql.Blob) {

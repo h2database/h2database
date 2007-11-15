@@ -5,6 +5,7 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -131,6 +132,7 @@ public class RunScript {
      * @return the last result set
      */
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
+        reader = new BufferedReader(reader);
         Statement stat = conn.createStatement();
         ResultSet rs = null;
         ScriptReader r = new ScriptReader(reader);
@@ -156,7 +158,7 @@ public class RunScript {
         String path = FileUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            InputStreamReader reader = new InputStreamReader(in, charsetName);
+            Reader reader = new InputStreamReader(in, charsetName);
             execute(conn, continueOnError, path, reader, charsetName);
         } finally {
             IOUtils.closeSilently(in);
@@ -165,7 +167,7 @@ public class RunScript {
 
     private static void execute(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
         Statement stat = conn.createStatement();
-        ScriptReader r = new ScriptReader(reader);
+        ScriptReader r = new ScriptReader(new BufferedReader(reader));
         while (true) {
             String sql = r.readStatement();
             if (sql == null) {

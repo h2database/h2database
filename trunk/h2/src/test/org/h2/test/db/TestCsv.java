@@ -5,6 +5,7 @@
 package org.h2.test.db;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.RandomAccessFile;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -13,10 +14,13 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
+import org.h2.util.IOUtils;
+import org.h2.util.StringUtils;
 
 public class TestCsv extends TestBase {
 
     public void test() throws Exception {
+        testEmptyFieldDelimiter();
         testFieldDelimiter();
         testAsTable();
         testWriteRead();
@@ -24,6 +28,29 @@ public class TestCsv extends TestBase {
         testPipe();
     }
     
+    private void testEmptyFieldDelimiter() throws Exception {
+        File f = new File(baseDir + "/test.csv");
+        f.delete();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '')");
+        FileReader reader = new FileReader(baseDir + "/test.csv");
+        String text = IOUtils.readStringAndClose(reader, -1).trim();
+        text = StringUtils.replaceAll(text, "\r", "");
+        text = StringUtils.replaceAll(text, "\n", " ");
+        check("ID|NAME 1|Hello", text);
+        ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, '|', '')");
+        ResultSetMetaData meta = rs.getMetaData();
+        check(meta.getColumnCount(), 2);
+        check(meta.getColumnLabel(1), "ID");
+        check(meta.getColumnLabel(2), "NAME");
+        check(rs.next());
+        check(rs.getString(1), "1");
+        check(rs.getString(2), "Hello");
+        checkFalse(rs.next());
+        conn.close();
+    }
+
     private void testFieldDelimiter() throws Exception {
         File f = new File(baseDir + "/test.csv");
         f.delete();

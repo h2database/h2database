@@ -171,5 +171,9 @@ public abstract class Prepared {
     public int getCurrentRowNumber() {
         return currentRowNumber;
     }
+    
+    public String toString() {
+        return sql;
+    }
 
 }

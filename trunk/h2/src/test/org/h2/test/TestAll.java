@@ -150,46 +150,30 @@ java org.h2.test.TestAll timer
 
 /*
 
-toString() method of command, PreparedStatement to print something useful
+History
+Now using custom toString() for most JDBC objects and commands.
+Nested temporary views (SELECT * FROM (SELECT ...)) with parameters didn't work in some cases. Fixed.
+CSV: Using an empty field delimiter didn't work (a workaround was using char(0)). Fixed.
 
+Performance: use BufferedReader, BufferedWriter everywhere where possible (BufferInputStream alone doesn't help)
 
-History:
-The default value for h2.emergencySpaceInitial is now 256 KB (to speed up creating encrypted databases)
-Eduardo Velasques has translated the H2 Console and the error messages to Brazilian Portuguese. Thanks a lot!
-Creating a table from GROUP_CONCAT didn't work if the data was longer than 255 characters
+document Memory-Only databases > In-Memory Databases
+By default, when the last connection to a in-memory database is closed, the contents are lost.
+This can be disabled by adding this to the database URL: ;DB_CLOSE_DELAY=-1
+That means to keep the contents of an in-memory database as long as the virtual machine is alive, use
+jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
 
-
-
+document translation (what files to translate)
 
 Known Problems:
-link to history page
-Creating a table from GROUP_CONCAT doesn't work if the data was longer than 255 characters
-
-
-
-GROUP_CONCAT more than 255
-You are right, this is a bug. It was introduced by the getDisplaySize change. Unfortunately there is no workaround at the moment... I will fix for the next release and add a test case. I will also check if other things stopped working because of this change.
-Search for 255 in whole project
-
-CryptGenRandom.
-
-drop table test;
-create table test(id int primary key, name varchar(255));
-@META select * from test;
-drop table test;
-
-ddlutils
+link to history page, bug page
+Add a link to the google code bug page
 
 implement & test: checkpoint commits running transactions
 
 start writing javadocs for jdbcx package
 
-Feature request: file system that writes to two file systems (for replication)
-Feature request: file system with background thread writing file system (all writes)
-
 test DbStarter
-
-TestFileSystem
 
 create table test(id int, name varchar);
 insert into test select x, '' from system_range(1, 10000);
@@ -204,8 +188,6 @@ A file is sent although the Japanese translation has not been completed yet.
 ----
 
 At startup, when corrupted, say if LOG=0 was used before
-
-add more MVCC tests
 
 slow:
 select ta.attname, ia.attnum, ic.relname 

@@ -632,8 +632,8 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (debug()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
-            ResultInterface result = conn.getGeneratedKeys(this, id);
             checkClosed();
+            ResultInterface result = conn.getGeneratedKeys(this, id);
             ResultSet rs = new JdbcResultSet(session, conn, this, result, id, false, true);
             return rs;
         } catch (Throwable e) {

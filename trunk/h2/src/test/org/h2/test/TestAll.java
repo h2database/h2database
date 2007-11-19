@@ -150,6 +150,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+FAQ, build? translation
+
 History
 Now using custom toString() for most JDBC objects and commands.
 Nested temporary views (SELECT * FROM (SELECT ...)) with parameters didn't work in some cases. Fixed.
@@ -173,6 +175,24 @@ document translation (what files to translate)
 Known Problems:
 link to history page, bug page
 Add a link to the google code bug page
+
+Email: h2@olivercomputing.com
+Message:
+Very cool project, I sent you a few euros yesterday.
+I have a feature suggestion in the way that you sort array columns in ORDER BY. To take a concrete example, given
+ (0,1)
+ (0,1,1)
+ (0,2)
+then PostgreSQL would order them as above, but H2 orders them as:
+ (0,1)
+ (0,2)
+ (0,1,1)
+i.e. the ordering is evidently applied so that the array length is used in the count. While either way could be arguable, I would argue for the PostgreSQL ordering for two reasons:
+- PostgreSQL compatibility itself
+- Because, at least for my use case, I am using the arrays to represent XML hierarchy information.   The first (PG) way of ordering naturally represents the XML document node order, but the current H2 way does not. Given the variable hierarchy of an XML document, such ordering can be difficult to do efficiently in a relational "shredded" node representation.
+So, given that arrays are noted as experimental at this point, I thought I would ask if you could change their ordering scheme to match PostgreSQL's. Alternatively, perhaps a system variable could be used to pre-select the desired ordering. Thanks.
+Phil Oliver
+
 
 implement & test: checkpoint commits running transactions
 
@@ -570,16 +590,16 @@ Features of H2
 //         mvcc = true;
 
         // db
-//        new TestScriptSimple().runTest(this);
-//        new TestScript().runTest(this);
-//        new TestAutoRecompile().runTest(this);
-//        new TestBackup().runTest(this);
-//        new TestBatchUpdates().runTest(this);
-//        new TestBigDb().runTest(this);
-//        new TestBigResult().runTest(this);
-//        new TestCache().runTest(this);
-//        new TestCases().runTest(this);
-//        new TestCheckpoint().runTest(this);
+        new TestScriptSimple().runTest(this);
+        new TestScript().runTest(this);
+        new TestAutoRecompile().runTest(this);
+        new TestBackup().runTest(this);
+        new TestBatchUpdates().runTest(this);
+        new TestBigDb().runTest(this);
+        new TestBigResult().runTest(this);
+        new TestCache().runTest(this);
+        new TestCases().runTest(this);
+        new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);

@@ -16,6 +16,9 @@ import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.util.ByteUtils;
 
+/**
+ * An object of this class represents a transaction id.
+ */
 public class JdbcXid extends TraceObject 
 //#ifdef JDK14
 implements Xid 
@@ -51,6 +54,9 @@ implements Xid
 //        this.globalTransactionId = clone(xid.getGlobalTransactionId());
 //    }
     
+    /**
+     * INTERNAL
+     */
     public String getAsString() {
         StringBuffer buff = new StringBuffer(PREFIX);
         buff.append('_');
@@ -68,16 +74,31 @@ implements Xid
 //        return d2;
 //    }
     
+    /**
+     * Get the format id.
+     * 
+     * @return the format id
+     */
     public int getFormatId() {
         debugCodeCall("getFormatId");
         return formatId;
     }
 
+    /**
+     * The transaction branch identifier.
+     * 
+     * @return the identifier
+     */
     public byte[] getBranchQualifier() {
         debugCodeCall("getBranchQualifier");        
         return branchQualifier;
     }
 
+    /** 
+     * The global transaction identifier.
+     * 
+     * @return the transaction id
+     */
     public byte[] getGlobalTransactionId() {
         debugCodeCall("getGlobalTransactionId");                
         return globalTransactionId;

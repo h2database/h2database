@@ -16,6 +16,9 @@ import org.h2.engine.Constants;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 
+/**
+ * This class is used to create new JdbcDataSource objects.
+ */
 public class JdbcDataSourceFactory implements ObjectFactory {
     
     private static TraceSystem traceSystem;
@@ -27,13 +30,25 @@ public class JdbcDataSourceFactory implements ObjectFactory {
         traceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
     }
     
+    /**
+     * The public constructor to create new factory objects.
+     */
     public JdbcDataSourceFactory() {
         trace = traceSystem.getTrace("JDBCX");
     }
     
+    /**
+     * Creates a new object using the specified location or reference information.
+     * 
+     * @param obj the reference (this factory only supports objects of type javax.naming.Reference)
+     * @param name unused
+     * @param nameCtx unused
+     * @param environment unused
+     * @return the new JdbcDataSource, or null if the reference class name is not JdbcDataSource.
+     */
     public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment) throws Exception {
         trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
-        Reference ref     = (Reference) obj;
+        Reference ref = (Reference) obj;
         if (ref.getClassName().equals(JdbcDataSource.class.getName())) {
             JdbcDataSource dataSource = new JdbcDataSource();
             dataSource.setURL((String) ref.get("url").getContent());

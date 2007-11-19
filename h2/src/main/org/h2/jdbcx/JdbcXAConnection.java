@@ -30,6 +30,11 @@ import javax.sql.StatementEventListener;
 */
 //#endif
 
+/**
+ * This class provides support for distributed transactions. 
+ * An application developer usually does not use this interface.
+ * It is used by the transaction manager internally.
+ */
 public class JdbcXAConnection extends TraceObject 
 //#ifdef JDK14
 implements XAConnection, XAResource, JdbcConnectionListener
@@ -60,11 +65,20 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getConnection();        
     }
 
+    /**
+     * Get the XAResource object.
+     * 
+     * @return itself
+     */
     public XAResource getXAResource() throws SQLException {
         debugCodeCall("getXAResource");
         return this;
     }
 
+    /**
+     * Close the physical connection.
+     * This method is usually called by the connection pool.
+     */
     public void close() throws SQLException {
         debugCodeCall("close");
         try {
@@ -94,6 +108,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return conn;
     }
 
+    /**
+     * Get a new connection.
+     * This method is usually called by the connection pool when there are no more connections in the pool.
+     * 
+     * @return the connection
+     */
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         if (conn != null) {
@@ -105,6 +125,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return conn;
     }
 
+    /**
+     * Register a new listener for the connection.
+     * 
+     * @param listener the event listener
+     */
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener)");
         listeners.add(listener);
@@ -113,11 +138,19 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 
+    /**
+     * Remove the event listener.
+     * 
+     * @param listener the event listener
+     */
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         debugCode("removeConnectionEventListener(listener)");
         listeners.remove(listener);
     }
 
+    /**
+     * INTERNAL
+     */
     public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
         debugCode("fatalErrorOccurred(conn, e)");
         for (int i = 0; i < listeners.size(); i++) {
@@ -128,6 +161,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
         close();
     }
 
+    /**
+     * INTERNAL
+     */
     public void closed(JdbcConnection conn) {
         debugCode("closed(conn)");
         for (int i = 0; i < listeners.size(); i++) {
@@ -137,21 +173,46 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 
+    /**
+     * Get the transaction timeout.
+     * 
+     * @return 0
+     */
     public int getTransactionTimeout() throws XAException {
         debugCodeCall("getTransactionTimeout");
         return 0;
     }
 
+    /**
+     * Set the transaction timeout.
+     * 
+     * @param seconds ignored
+     * @return false
+     */
     public boolean setTransactionTimeout(int seconds) throws XAException {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
     }
 
+    /**
+     * Checks if this is the same XAResource.
+     * 
+     * @param xares the other object
+     * @return true if this is the same object
+     */
     public boolean isSameRM(XAResource xares) throws XAException {
         debugCode("isSameRM(xares)");
         return xares == this;
     }
 
+    /**
+     * Get the list of prepared transaction branches.
+     * This method is called by the transaction manager during recovery.
+     * 
+     * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are set,
+     *  TMNOFLAGS must be used.
+     *  @return zero or more Xid objects
+     */
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
@@ -185,6 +246,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 
+    /**
+     * Prepare a transaction.
+     * 
+     * @param xid the transaction id
+     */
     public int prepare(Xid xid) throws XAException {
         debugCode("prepare("+quoteXid(xid)+")");
         checkOpen();
@@ -206,11 +272,21 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return XA_OK;
     }
 
+    /**
+     * Forget a transaction.
+     * This method does not have an effect for this database.
+     * 
+     * @param xid the transaction id
+     */
     public void forget(Xid xid) throws XAException {
         debugCode("forget("+quoteXid(xid)+")");
-        // TODO
     }
 
+    /**
+     * Roll back a transaction.
+     * 
+     * @param xid the transaction id
+     */
     public void rollback(Xid xid) throws XAException {
         debugCode("rollback("+quoteXid(xid)+")");
         try {
@@ -222,8 +298,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
         currentTransaction = null;        
     }
 
+    /**
+     * End a transaction.
+     * 
+     * @param xid the transaction id
+     * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
+     */
     public void end(Xid xid, int flags) throws XAException {
         debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+")");
+        // TODO transaction end: implement this method
         if (flags == TMSUSPEND) {
             return;
         }
@@ -285,6 +368,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return buff.toString();
     }
 
+    /**
+     * Start or continue to work on a transaction.
+     * 
+     * @param xid the transaction id
+     * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
+     */
     public void start(Xid xid, int flags) throws XAException {
         debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+")");
         if (flags == TMRESUME) {
@@ -308,6 +397,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return new XAException(e.getMessage());
     }
 
+    /**
+     * Commit a transaction.
+     * 
+     * @param xid the transaction id
+     * @param onePhase use a one-phase protocol if true
+     */
     public void commit(Xid xid, boolean onePhase) throws XAException {
         debugCode("commit("+quoteXid(xid)+", "+onePhase+")");
         Statement stat = null;

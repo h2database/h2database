@@ -23,6 +23,8 @@ Features
     Connection Modes</a><br />
 <a href="#database_url">
     Database URL Overview</a><br />
+<a href="#memory_only_databases">
+    Memory-Only Databases</a><br />
 <a href="#file_encryption">
     Connecting to a Database with File Encryption</a><br />
 <a href="#database_file_locking">
@@ -239,8 +241,6 @@ http://groups.google.com/group/h2-database/web/h2-in-use
 </a>
 </p>
 
-<br /><a name="connection_modes"></a>
-<h2>Connection Modes</h2>
 <p>
 The following connection modes are supported:
 </p>
@@ -385,7 +385,8 @@ The database name must be at least three characters long (a limitation of File.c
 To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 </p>
 
-<h3>Memory-Only Databases</h3>
+<br /><a name="memory_only_databases"></a>
+<h2>Memory-Only Databases</h2>
 <p>
 For certain use cases (for example: rapid prototyping, testing, high performance
 operations, read-only databases), it may not be required to persist (changes to) the data at all. 
@@ -405,6 +406,11 @@ It is also possible to access a memory-only database remotely
 (or from multiple processes in the same machine) using TCP/IP or SSL/TLS.
 An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>
 (using private database remotely is also possible).
+</p><p>
+By default, when the last connection to a in-memory database is closed, the contents are lost. 
+This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep 
+the contents of an in-memory database as long as the virtual machine is alive, use 
+jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
 </p>
 
 <br /><a name="file_encryption"></a>

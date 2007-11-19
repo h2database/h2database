@@ -20,6 +20,8 @@ Build
     Building the Software</a><br />
 <a href="#maven2">
     Using Maven 2</a><br />
+<a href="#translating">
+    Translating</a><br />
 
 <br /><a name="portability"></a>
 <h2>Portability</h2>
@@ -99,6 +101,22 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;
 </pre>
+</p>
+
+<br /><a name="translating"></a>
+<h2>Translating</h2>
+<p>
+The translation of this software is split into the following parts:
+</p>
+<ul>
+<li>H2 Console: src/main/org/h2/server/web/res/_text_*.properties
+</li><li>Error messages: src/main/org/h2/res/_messages_*.properties
+</li><li>Web site: src/docsrc/text/_docs_*.utf8.txt
+</li></ul>
+<p>
+The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&#..;)
+is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
+using <code>ant docs</code>.
 </p>
 
 </div></td></tr></table></body></html>

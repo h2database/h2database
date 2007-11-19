@@ -59,7 +59,7 @@ public class SecureSocketFactory {
         return factory;
     }
     
-    public Socket createSocket(InetAddress address, int port) throws SQLException, IOException {
+    public Socket createSocket(InetAddress address, int port) throws IOException {
         Socket socket = null;
 //#ifdef JDK14
         setKeystore();
@@ -96,17 +96,17 @@ public class SecureSocketFactory {
         return ByteUtils.convertStringToBytes(hex);
     }
     
-    private static byte[] getKeyStoreBytes(KeyStore store, String password) throws SQLException {
+    private static byte[] getKeyStoreBytes(KeyStore store, String password) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
             store.store(bout, KEYSTORE_PASSWORD.toCharArray());
-            return bout.toByteArray();
         } catch (Exception e) {
-            throw Message.convert(e);
+            throw Message.convertToIOException(e);
         }
+        return bout.toByteArray();
     }
     
-    public static KeyStore getKeyStore(String password) throws SQLException {
+    public static KeyStore getKeyStore(String password) throws IOException {
         try {
             // The following source code can be re-generated when you have a keystore file.
             // This code is (hopefully) more Java version independent than using keystores directly.
@@ -130,11 +130,11 @@ public class SecureSocketFactory {
             // --- generated code end ---
             return store;
         } catch (Exception e) {
-            throw Message.convert(e);
+            throw Message.convertToIOException(e);
         }
     }
             
-    private void setKeystore() throws IOException, SQLException {        
+    private void setKeystore() throws IOException {        
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
             String fileName = FileUtils.getFileInUserHome(KEYSTORE);
@@ -149,9 +149,13 @@ public class SecureSocketFactory {
                 }
             }
             if (needWrite) {
-                OutputStream out = FileUtils.openFileOutputStream(fileName, false);
-                out.write(data);
-                out.close();
+                try {
+                    OutputStream out = FileUtils.openFileOutputStream(fileName, false);
+                    out.write(data);
+                    out.close();
+                } catch (SQLException e) {
+                    throw Message.convertToIOException(e);
+                }
             }
             String absolutePath = FileUtils.getAbsolutePath(fileName);
             System.setProperty(KEYSTORE_KEY, absolutePath);

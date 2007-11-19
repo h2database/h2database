@@ -47,7 +47,6 @@ public class TestCluster extends TestBase {
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
                 "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
                 "localhost:9091,localhost:9092" });
-
         Server n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9091", "-baseDir", baseDir + "/node1" }).start();
         Server n2 = org.h2.tools.Server.createTcpServer(
@@ -67,9 +66,31 @@ public class TestCluster extends TestBase {
             checkNotGeneralException(e);
         }
 
+        // test regular cluster connection
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091,localhost:9092/test", "sa", "");
+        check(conn, len);
+        conn.close();
+
+        // test if only one server is available at the beginning
+        n2.stop();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091,localhost:9092/test", "sa", "");
         stat = conn.createStatement();
         check(conn, len);
+        conn.close();
+        
+        // disable the cluster
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test;CLUSTER=''", "sa", "");
+        conn.close();
+        n1.stop();
+        
+        // re-create the cluster
+        CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
+                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
+                "localhost:9091,localhost:9092" });        
+        n1 = org.h2.tools.Server.createTcpServer(
+                new String[] { "-tcpPort", "9091", "-baseDir", baseDir + "/node1" }).start();
+        n2 = org.h2.tools.Server.createTcpServer(
+                new String[] { "-tcpPort", "9092", "-baseDir", baseDir + "/node2" }).start();        
 
         stat.execute("CREATE TABLE BOTH(ID INT)");
 

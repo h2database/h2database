@@ -163,6 +163,11 @@ This can be disabled by adding this to the database URL: ;DB_CLOSE_DELAY=-1
 That means to keep the contents of an in-memory database as long as the virtual machine is alive, use
 jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
 
+History:
+The default value for h2.emergencySpaceInitial is now 256 KB (to speed up creating encrypted databases)
+Eduardo Velasques has translated the H2 Console and the error messages to Brazilian Portuguese. Thanks a lot!
+Creating a table from GROUP_CONCAT didn't work if the data was longer than 255 characters
+
 document translation (what files to translate)
 
 Known Problems:
@@ -565,16 +570,16 @@ Features of H2
 //         mvcc = true;
 
         // db
-        new TestScriptSimple().runTest(this);
-        new TestScript().runTest(this);
-        new TestAutoRecompile().runTest(this);
-        new TestBackup().runTest(this);
-        new TestBatchUpdates().runTest(this);
-        new TestBigDb().runTest(this);
-        new TestBigResult().runTest(this);
-        new TestCache().runTest(this);
-        new TestCases().runTest(this);
-        new TestCheckpoint().runTest(this);
+//        new TestScriptSimple().runTest(this);
+//        new TestScript().runTest(this);
+//        new TestAutoRecompile().runTest(this);
+//        new TestBackup().runTest(this);
+//        new TestBatchUpdates().runTest(this);
+//        new TestBigDb().runTest(this);
+//        new TestBigResult().runTest(this);
+//        new TestCache().runTest(this);
+//        new TestCases().runTest(this);
+//        new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);

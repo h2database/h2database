@@ -6,10 +6,12 @@ package org.h2.jdbcx;
 
 import java.util.Hashtable;
 
+//#ifdef JDK14
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
+//#endif
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -19,7 +21,11 @@ import org.h2.message.TraceSystem;
 /**
  * This class is used to create new JdbcDataSource objects.
  */
-public class JdbcDataSourceFactory implements ObjectFactory {
+public class JdbcDataSourceFactory 
+//#ifdef JDK14
+implements ObjectFactory 
+//#endif
+{
     
     private static TraceSystem traceSystem;
     private Trace trace;
@@ -46,6 +52,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
      * @param environment unused
      * @return the new JdbcDataSource, or null if the reference class name is not JdbcDataSource.
      */
+//#ifdef JDK14
     public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment) throws Exception {
         trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
         Reference ref = (Reference) obj;
@@ -60,6 +67,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
         }
         return null;
     }
+//#endif    
     
     TraceSystem getTraceSystem() {
         return traceSystem;

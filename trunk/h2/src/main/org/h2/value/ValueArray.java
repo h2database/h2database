@@ -38,18 +38,6 @@ public class ValueArray extends Value {
         return values;
     }
     
-    public int compareTo(ValueArray other, CompareMode mode) throws SQLException {
-        for (int i = 0; i < values.length; i++) {
-            Value v1 = values[i];
-            Value v2 = other.values[i];
-            int comp = v1.compareTo(v2, mode);
-            if (comp != 0) {
-                return comp;
-            }
-        }
-        return 0;
-    }
-
     public int getType() {
         return Value.ARRAY;
     }
@@ -71,43 +59,23 @@ public class ValueArray extends Value {
         return buff.toString();
     }
 
-//    public String getJavaString() {
-//        StringBuffer buff = new StringBuffer();
-//        buff.append('{');
-//        for (int i = 0; i < values.length; i++) {
-//            if (i > 0) {
-//                buff.append(", ");
-//            }
-//            buff.append(values[i].getJavaString());
-//        }
-//        buff.append('}');
-//        return buff.toString();
-//    }
-
     protected int compareSecure(Value o, CompareMode mode) throws SQLException {
         ValueArray v = (ValueArray) o;
         if (values == v.values) {
             return 0;
         }
-        if (values.length != v.values.length) {
-            return values.length > v.values.length ? 1 : -1;
-        }
-        for (int i = 0; i < values.length; i++) {
+        int l = values.length;
+        int ol = v.values.length;
+        int len = Math.min(l, ol);
+        for (int i = 0; i < len; i++) {
             Value v1 = values[i];
             Value v2 = v.values[i];
-            int c;
-            if (v1 == ValueNull.INSTANCE) {
-                c = v2 == ValueNull.INSTANCE ? 0 : -1;
-            } else if (v2 == ValueNull.INSTANCE) {
-                c = 1;
-            } else {
-                c = v1.compareSecure(v2, mode);
-            }
-            if (c != 0) {
-                return c;
+            int comp = v1.compareTo(v2, mode);
+            if (comp != 0) {
+                return comp;
             }
         }
-        return 0;
+        return l > ol ? 1 : l == ol ? 0 : -1;
     }
 
     public Object getObject() throws SQLException {

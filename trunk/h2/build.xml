@@ -50,12 +50,21 @@
 		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/tools/code/CodeSwitch.java"/>
 	</target>
 
+	<target name="codeswitchAndroid" depends="codeswitchPrepare">
+		<propertyfile file="ant-build.properties">
+			<entry key="jdk" value="1.3" />
+		</propertyfile>
+		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
+			<arg line="+JDK13 -JDK14 -JDK16 -AWT ../src/main/org/h2"/>
+		</java>
+	</target>
+    
 	<target name="codeswitchJdk13" depends="codeswitchPrepare">
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
 		</propertyfile>
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="+JDK13 -JDK14 -JDK16 ../src/main/org/h2"/>
+			<arg line="+JDK13 -JDK14 -JDK16 +AWT ../src/main/org/h2"/>
 		</java>
 	</target>
 
@@ -64,7 +73,7 @@
 			<entry key="jdk" value="1.4" />
 		</propertyfile>
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="-JDK13 +JDK14 -JDK16 ../src/main/org/h2"/>
+			<arg line="-JDK13 +JDK14 -JDK16 +AWT ../src/main/org/h2"/>
 		</java>
 	</target>
 
@@ -73,7 +82,7 @@
 			<entry key="jdk" value="1.6" />
 		</propertyfile>
 		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="-JDK13 +JDK16 +JDK14 ../src/main/org/h2"/>
+			<arg line="-JDK13 +JDK14 +JDK16 +AWT ../src/main/org/h2"/>
 		</java>
 	</target>
 

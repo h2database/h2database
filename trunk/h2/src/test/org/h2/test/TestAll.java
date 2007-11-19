@@ -150,49 +150,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-FAQ, build? translation
-
-History
-Now using custom toString() for most JDBC objects and commands.
-Nested temporary views (SELECT * FROM (SELECT ...)) with parameters didn't work in some cases. Fixed.
-CSV: Using an empty field delimiter didn't work (a workaround was using char(0)). Fixed.
-
-Performance: use BufferedReader, BufferedWriter everywhere where possible (BufferInputStream alone doesn't help)
-
-document Memory-Only databases > In-Memory Databases
-By default, when the last connection to a in-memory database is closed, the contents are lost.
-This can be disabled by adding this to the database URL: ;DB_CLOSE_DELAY=-1
-That means to keep the contents of an in-memory database as long as the virtual machine is alive, use
-jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
-
-History:
-The default value for h2.emergencySpaceInitial is now 256 KB (to speed up creating encrypted databases)
-Eduardo Velasques has translated the H2 Console and the error messages to Brazilian Portuguese. Thanks a lot!
-Creating a table from GROUP_CONCAT didn't work if the data was longer than 255 characters
-
-document translation (what files to translate)
-
 Known Problems:
 link to history page, bug page
 Add a link to the google code bug page
 
-Email: h2@olivercomputing.com
-Message:
-Very cool project, I sent you a few euros yesterday.
-I have a feature suggestion in the way that you sort array columns in ORDER BY. To take a concrete example, given
- (0,1)
- (0,1,1)
- (0,2)
-then PostgreSQL would order them as above, but H2 orders them as:
- (0,1)
- (0,2)
- (0,1,1)
-i.e. the ordering is evidently applied so that the array length is used in the count. While either way could be arguable, I would argue for the PostgreSQL ordering for two reasons:
-- PostgreSQL compatibility itself
-- Because, at least for my use case, I am using the arrays to represent XML hierarchy information.   The first (PG) way of ordering naturally represents the XML document node order, but the current H2 way does not. Given the variable hierarchy of an XML document, such ordering can be difficult to do efficiently in a relational "shredded" node representation.
-So, given that arrays are noted as experimental at this point, I thought I would ask if you could change their ordering scheme to match PostgreSQL's. Alternatively, perhaps a system variable could be used to pre-select the desired ordering. Thanks.
-Phil Oliver
-
+Google Android support: use 'ant codeswitchAndroid' to switch the source code to Android.
 
 implement & test: checkpoint commits running transactions
 

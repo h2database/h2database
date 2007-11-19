@@ -1,4 +1,21 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int primary key, data array);
+> ok
+
+insert into test values(1, (1, 1)), (2, (1, 2)), (3, (1, 1, 1));
+> update count: 3
+
+select * from test order by data;
+> ID DATA
+> -- ---------
+> 1  (1, 1)
+> 3  (1, 1, 1)
+> 2  (1, 2)
+> rows (ordered): 3
+
+drop table test;
+> ok
+
 CREATE TABLE FOO (A CHAR(10));
 > ok
 

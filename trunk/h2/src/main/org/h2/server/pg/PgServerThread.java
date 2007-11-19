@@ -600,7 +600,7 @@ public class PgServerThread implements Runnable {
                     }
                 }
             }
-            r = new InputStreamReader(getClass().getResourceAsStream("pg_catalog.sql"));
+            r = new InputStreamReader(PgServerThread.class.getResourceAsStream("pg_catalog.sql"));
             ScriptReader reader = new ScriptReader(new BufferedReader(r));
             while (true) {
                 String sql = reader.readStatement();

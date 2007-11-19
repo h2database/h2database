@@ -17,11 +17,11 @@ import org.h2.security.SecureSocketFactory;
 
 public class NetUtils {
     
-    public static Socket createLoopbackSocket(int port, boolean ssl) throws SQLException {
+    public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
         return createSocket("127.0.0.1", port, ssl);
     }
     
-    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws SQLException {
+    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
         int port = defaultPort;
         // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
         // '[a:b:c:d:e:f:g:h]:port'
@@ -33,24 +33,16 @@ public class NetUtils {
             port = MathUtils.decodeInt(server.substring(idx + 1));
             server = server.substring(0, idx);
         }
-        try {
-            InetAddress address = InetAddress.getByName(server);
-            return createSocket(address, port, ssl);
-        } catch (IOException e) {
-            throw Message.convert(e);
-        }
+        InetAddress address = InetAddress.getByName(server);
+        return createSocket(address, port, ssl);
     }
     
-    public static Socket createSocket(InetAddress address, int port, boolean ssl) throws SQLException {
-        try {
-            if (ssl) {
-                SecureSocketFactory f = SecureSocketFactory.getInstance();
-                return f.createSocket(address, port);
-            } else {
-                return new Socket(address, port);
-            }
-        } catch (IOException e) {
-            throw Message.convert(e);
+    public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
+        if (ssl) {
+            SecureSocketFactory f = SecureSocketFactory.getInstance();
+            return f.createSocket(address, port);
+        } else {
+            return new Socket(address, port);
         }
     }
 

@@ -64,21 +64,25 @@ implements XAConnection, XAResource, JdbcConnectionListener
         connSentinel = openConnection();
         getConnection();        
     }
+//#endif
 
     /**
      * Get the XAResource object.
      * 
      * @return itself
      */
+//#ifdef JDK14
     public XAResource getXAResource() throws SQLException {
         debugCodeCall("getXAResource");
         return this;
     }
+//#endif
 
     /**
      * Close the physical connection.
      * This method is usually called by the connection pool.
      */
+//#ifdef JDK14
     public void close() throws SQLException {
         debugCodeCall("close");
         try {
@@ -89,31 +93,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
             connSentinel = null;
         }
     }
+//#endif
     
-    private void closeConnection(JdbcConnection conn) throws SQLException {
-        if (conn != null) {
-            conn.closeConnection();
-        }
-    }
-    
-    private JdbcConnection openConnection() throws SQLException {
-        Properties info = new Properties();
-        info.setProperty("user", user);
-        info.setProperty("password", password);
-        JdbcConnection conn = new JdbcConnection(url, info);
-        conn.setJdbcConnectionListener(this);
-        if (currentTransaction != null) {
-            conn.setAutoCommit(false);
-        }
-        return conn;
-    }
-
     /**
      * Get a new connection.
      * This method is usually called by the connection pool when there are no more connections in the pool.
      * 
      * @return the connection
      */
+//#ifdef JDK14
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         if (conn != null) {
@@ -124,12 +112,14 @@ implements XAConnection, XAResource, JdbcConnectionListener
         conn.setJdbcConnectionListener(this);
         return conn;
     }
-
+//#endif
+    
     /**
      * Register a new listener for the connection.
      * 
      * @param listener the event listener
      */
+//#ifdef JDK14
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener)");
         listeners.add(listener);
@@ -137,20 +127,24 @@ implements XAConnection, XAResource, JdbcConnectionListener
             conn.setJdbcConnectionListener(this);
         }
     }
-
+//#endif
+    
     /**
      * Remove the event listener.
      * 
      * @param listener the event listener
      */
+//#ifdef JDK14
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         debugCode("removeConnectionEventListener(listener)");
         listeners.remove(listener);
     }
-
+//#endif
+    
     /**
      * INTERNAL
      */
+//#ifdef JDK14
     public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
         debugCode("fatalErrorOccurred(conn, e)");
         for (int i = 0; i < listeners.size(); i++) {
@@ -160,10 +154,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         close();
     }
-
+//#endif
+    
     /**
      * INTERNAL
      */
+//#ifdef JDK14
     public void closed(JdbcConnection conn) {
         debugCode("closed(conn)");
         for (int i = 0; i < listeners.size(); i++) {
@@ -172,16 +168,19 @@ implements XAConnection, XAResource, JdbcConnectionListener
             listener.connectionClosed(event);
         }
     }
-
+//#endif
+    
     /**
      * Get the transaction timeout.
      * 
      * @return 0
      */
+//#ifdef JDK14
     public int getTransactionTimeout() throws XAException {
         debugCodeCall("getTransactionTimeout");
         return 0;
     }
+//#endif
 
     /**
      * Set the transaction timeout.
@@ -189,22 +188,26 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param seconds ignored
      * @return false
      */
+//#ifdef JDK14
     public boolean setTransactionTimeout(int seconds) throws XAException {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
     }
-
+//#endif
+    
     /**
      * Checks if this is the same XAResource.
      * 
      * @param xares the other object
      * @return true if this is the same object
      */
+//#ifdef JDK14
     public boolean isSameRM(XAResource xares) throws XAException {
         debugCode("isSameRM(xares)");
         return xares == this;
     }
-
+//#endif
+    
     /**
      * Get the list of prepared transaction branches.
      * This method is called by the transaction manager during recovery.
@@ -213,6 +216,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *  TMNOFLAGS must be used.
      *  @return zero or more Xid objects
      */
+//#ifdef JDK14
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
@@ -238,19 +242,14 @@ implements XAConnection, XAResource, JdbcConnectionListener
             JdbcUtils.closeSilently(stat);
         }
     }
+//#endif
     
-    private void checkOpen() throws XAException {
-        if (conn == null) {
-            getTrace().debug("conn==null");
-            throw new XAException(XAException.XAER_RMERR);
-        }
-    }
-
     /**
      * Prepare a transaction.
      * 
      * @param xid the transaction id
      */
+//#ifdef JDK14
     public int prepare(Xid xid) throws XAException {
         debugCode("prepare("+quoteXid(xid)+")");
         checkOpen();
@@ -271,22 +270,26 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("return XA_OK");     
         return XA_OK;
     }
-
+//#endif
+    
     /**
      * Forget a transaction.
      * This method does not have an effect for this database.
      * 
      * @param xid the transaction id
      */
+//#ifdef JDK14
     public void forget(Xid xid) throws XAException {
         debugCode("forget("+quoteXid(xid)+")");
     }
-
+//#endif
+    
     /**
      * Roll back a transaction.
      * 
      * @param xid the transaction id
      */
+//#ifdef JDK14
     public void rollback(Xid xid) throws XAException {
         debugCode("rollback("+quoteXid(xid)+")");
         try {
@@ -297,13 +300,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("rolled back");
         currentTransaction = null;        
     }
-
+//#endif
+    
     /**
      * End a transaction.
      * 
      * @param xid the transaction id
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
      */
+//#ifdef JDK14
     public void end(Xid xid, int flags) throws XAException {
         debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+")");
         // TODO transaction end: implement this method
@@ -315,65 +320,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw new XAException(XAException.XAER_OUTSIDE);
         }
     }
+//#endif
     
-    private String quoteFlags(int flags) {
-        StringBuffer buff = new StringBuffer();
-        if ((flags & XAResource.TMENDRSCAN) != 0) {
-            buff.append("|XAResource.TMENDRSCAN");
-        }
-        if ((flags & XAResource.TMFAIL) != 0) {
-            buff.append("|XAResource.TMFAIL");
-        }
-        if ((flags & XAResource.TMJOIN) != 0) {
-            buff.append("|XAResource.TMJOIN");
-        }
-        if ((flags & XAResource.TMONEPHASE) != 0) {
-            buff.append("|XAResource.TMONEPHASE");
-        }
-        if ((flags & XAResource.TMRESUME) != 0) {
-            buff.append("|XAResource.TMRESUME");
-        }
-        if ((flags & XAResource.TMSTARTRSCAN) != 0) {
-            buff.append("|XAResource.TMSTARTRSCAN");
-        }
-        if ((flags & XAResource.TMSUCCESS) != 0) {
-            buff.append("|XAResource.TMSUCCESS");
-        }
-        if ((flags & XAResource.TMSUSPEND) != 0) {
-            buff.append("|XAResource.TMSUSPEND");
-        }
-        if ((flags & XAResource.XA_OK) != 0) {
-            buff.append("|XAResource.XA_OK");
-        }
-        if ((flags & XAResource.XA_RDONLY) != 0) {
-            buff.append("|XAResource.XA_RDONLY");
-        }        
-        if (buff.length() == 0) {
-            buff.append("|XAResource.TMNOFLAGS");
-        }
-        return buff.toString().substring(1);
-    }
-    
-    private String quoteXid(Xid xid) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("\"f:");
-        buff.append(xid.getFormatId());
-        buff.append(",bq:");
-        buff.append(ByteUtils.convertBytesToString(xid.getBranchQualifier()));
-        buff.append(",gx:");
-        buff.append(ByteUtils.convertBytesToString(xid.getGlobalTransactionId()));
-        buff.append(",c:");
-        buff.append(xid.getClass().getName());
-        buff.append("\"");
-        return buff.toString();
-    }
-
     /**
      * Start or continue to work on a transaction.
      * 
      * @param xid the transaction id
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
      */
+//#ifdef JDK14
     public void start(Xid xid, int flags) throws XAException {
         debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+")");
         if (flags == TMRESUME) {
@@ -391,18 +346,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("currentTransaction=xid");
         currentTransaction = xid;
     }
+//#endif
     
-    private XAException convertException(SQLException e) {
-        getTrace().debug("throw XAException("+e.getMessage()+")");
-        return new XAException(e.getMessage());
-    }
-
     /**
      * Commit a transaction.
      * 
      * @param xid the transaction id
      * @param onePhase use a one-phase protocol if true
      */
+//#ifdef JDK14
     public void commit(Xid xid, boolean onePhase) throws XAException {
         debugCode("commit("+quoteXid(xid)+", "+onePhase+")");
         Statement stat = null;
@@ -442,8 +394,92 @@ implements XAConnection, XAResource, JdbcConnectionListener
     /**
      * INTERNAL
      */
+//#ifdef JDK14
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
     }
+    
+    private void closeConnection(JdbcConnection conn) throws SQLException {
+        if (conn != null) {
+            conn.closeConnection();
+        }
+    }
+    
+    private JdbcConnection openConnection() throws SQLException {
+        Properties info = new Properties();
+        info.setProperty("user", user);
+        info.setProperty("password", password);
+        JdbcConnection conn = new JdbcConnection(url, info);
+        conn.setJdbcConnectionListener(this);
+        if (currentTransaction != null) {
+            conn.setAutoCommit(false);
+        }
+        return conn;
+    }
+
+    private XAException convertException(SQLException e) {
+        getTrace().debug("throw XAException("+e.getMessage()+")");
+        return new XAException(e.getMessage());
+    }
+
+    private String quoteXid(Xid xid) {
+        StringBuffer buff = new StringBuffer();
+        buff.append("\"f:");
+        buff.append(xid.getFormatId());
+        buff.append(",bq:");
+        buff.append(ByteUtils.convertBytesToString(xid.getBranchQualifier()));
+        buff.append(",gx:");
+        buff.append(ByteUtils.convertBytesToString(xid.getGlobalTransactionId()));
+        buff.append(",c:");
+        buff.append(xid.getClass().getName());
+        buff.append("\"");
+        return buff.toString();
+    }
+    
+    private String quoteFlags(int flags) {
+        StringBuffer buff = new StringBuffer();
+        if ((flags & XAResource.TMENDRSCAN) != 0) {
+            buff.append("|XAResource.TMENDRSCAN");
+        }
+        if ((flags & XAResource.TMFAIL) != 0) {
+            buff.append("|XAResource.TMFAIL");
+        }
+        if ((flags & XAResource.TMJOIN) != 0) {
+            buff.append("|XAResource.TMJOIN");
+        }
+        if ((flags & XAResource.TMONEPHASE) != 0) {
+            buff.append("|XAResource.TMONEPHASE");
+        }
+        if ((flags & XAResource.TMRESUME) != 0) {
+            buff.append("|XAResource.TMRESUME");
+        }
+        if ((flags & XAResource.TMSTARTRSCAN) != 0) {
+            buff.append("|XAResource.TMSTARTRSCAN");
+        }
+        if ((flags & XAResource.TMSUCCESS) != 0) {
+            buff.append("|XAResource.TMSUCCESS");
+        }
+        if ((flags & XAResource.TMSUSPEND) != 0) {
+            buff.append("|XAResource.TMSUSPEND");
+        }
+        if ((flags & XAResource.XA_OK) != 0) {
+            buff.append("|XAResource.XA_OK");
+        }
+        if ((flags & XAResource.XA_RDONLY) != 0) {
+            buff.append("|XAResource.XA_RDONLY");
+        }        
+        if (buff.length() == 0) {
+            buff.append("|XAResource.TMNOFLAGS");
+        }
+        return buff.toString().substring(1);
+    }
+
+    private void checkOpen() throws XAException {
+        if (conn == null) {
+            getTrace().debug("conn==null");
+            throw new XAException(XAException.XAER_RMERR);
+        }
+    }
+//#endif
 
 }

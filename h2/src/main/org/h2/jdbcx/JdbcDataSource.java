@@ -6,16 +6,16 @@ package org.h2.jdbcx;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
+//#ifdef JDK14
+import java.io.Serializable;
 import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
-//#ifdef JDK14
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
@@ -36,11 +36,11 @@ import org.h2.message.Message;
  * A data source for H2 database connections. It is a factory for XAConnection and Connection objects.
  * This class is usually registered in a JNDI naming service.
  */
-public class JdbcDataSource extends TraceObject implements 
+public class JdbcDataSource extends TraceObject 
 //#ifdef JDK14
-XADataSource, DataSource, ConnectionPoolDataSource, 
+implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Referenceable
 //#endif
-Serializable, Referenceable  {
+{
     
     private static final long serialVersionUID = 1288136338451857771L;
     
@@ -211,6 +211,7 @@ Serializable, Referenceable  {
      * 
      * @return the new reference
      */
+//#ifdef JDK14
     public Reference getReference() throws NamingException {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();
@@ -221,9 +222,14 @@ Serializable, Referenceable  {
         ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
         return ref;
     }
+//#endif
 
+    /**
+     * 
+     */
 //#ifdef JDK14
     public XAConnection getXAConnection() throws SQLException {
+int document;        
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);

@@ -4,6 +4,7 @@
  */
 package org.h2.fulltext;
 
+//#ifdef JDK14
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -33,26 +34,33 @@ import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.StringUtils;
+//#endif
 
 /**
  * This class implements the full text search based on Apache Lucene.
  */
-public class FullTextLucene implements Trigger {
+public class FullTextLucene 
+//#ifdef JDK14
+implements Trigger 
+//#endif
+{
     
+//#ifdef JDK14
     private static HashMap indexers = new HashMap();
     private static final String FIELD_DATA = "data";
     private static final String FIELD_QUERY = "query";
     private static final String FIELD_COLUMN_PREFIX = "_";
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
-    private IndexModifier indexer;
     private String schemaName;
     private String tableName;
     private int[] keys;
     private int[] indexColumns;
     private String[] columnNames;
     private int[] dataTypes;
-
+    private IndexModifier indexer;
+//#endif
+    
     /**
      * Create a new full text index for a table and column list. Each table may only have one index at any time.
      *
@@ -62,6 +70,7 @@ public class FullTextLucene implements Trigger {
      * @param table the table name
      * @param columnList the column list (null for all columns)
      */
+//#ifdef JDK14
     public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO "+SCHEMA+".INDEXES(SCHEMA, TABLE, COLUMNS) VALUES(?, ?, ?)");
@@ -72,42 +81,14 @@ public class FullTextLucene implements Trigger {
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
-
-    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
-        Statement stat = conn.createStatement();
-        String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
-        stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-        StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
-        buff.append(trigger);
-        buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        buff.append(" FOR EACH ROW CALL \"");
-        buff.append(FullTextLucene.class.getName());
-        buff.append("\"");
-        stat.execute(buff.toString());
-    }
-
-    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
-        FullTextLucene existing = new FullTextLucene();
-        existing.init(conn, schema, null, table);
-        StringBuffer buff = new StringBuffer("SELECT * FROM ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
-        int columnCount = rs.getMetaData().getColumnCount();
-        while (rs.next()) {
-            Object[] row = new Object[columnCount];
-            for (int i = 0; i < columnCount; i++) {
-                row[i] = rs.getObject(i + 1);
-            }
-            existing.fire(conn, null, row);
-        }
-    }
+//#endif    
 
     /**
      * Re-creates the full text index for this database
      *
      * @param conn the connection
      */
+//#ifdef JDK14
     public static void reindex(Connection conn) throws SQLException {
         init(conn);
         removeAllTriggers(conn);
@@ -121,47 +102,21 @@ public class FullTextLucene implements Trigger {
             indexExistingRows(conn, schema, table);
         }
     }
-
-    private static void removeAllTriggers(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
-        Statement stat2 = conn.createStatement();
-        while (rs.next()) {
-            String schema = rs.getString("TRIGGER_SCHEMA");
-            String name = rs.getString("TRIGGER_NAME");
-            if (name.startsWith(TRIGGER_PREFIX)) {
-                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
-                stat2.execute("DROP TRIGGER " + name);
-            }
-        }
-    }
-
-    private static void removeIndexFiles(Connection conn) throws SQLException {
-        String path = getIndexPath(conn);
-        IndexModifier index = (IndexModifier) indexers.get(path);
-        if (index != null) {
-            indexers.remove(path);
-            try {
-                index.flush();
-                index.close();
-            } catch (IOException e) {
-                throw convertException(e);
-            }
-        }
-        FileSystem.getInstance(path).deleteRecursive(path);
-    }
+//#endif    
 
     /**
      * Drops all full text indexes from the database.
      *
      * @param conn the connection
      */
+//#ifdef JDK14
     public static void dropAll(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
         removeAllTriggers(conn);
         removeIndexFiles(conn);
     }
+//#endif    
 
     /**
      * Initializes full text search functionality for this database. This adds the following Java functions to the
@@ -182,6 +137,7 @@ public class FullTextLucene implements Trigger {
      *
      * @param conn
      */
+//#ifdef JDK14
     public static void init(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
@@ -191,40 +147,12 @@ public class FullTextLucene implements Trigger {
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
     }
-
-    private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
-        try {
-            String path = getIndexPath(conn);
-            IndexModifier indexer;
-            synchronized (indexers) {
-                indexer = (IndexModifier) indexers.get(path);
-                if (indexer == null) {
-                    // TODO: create flag = true means re-create
-                    indexer = new IndexModifier(path, new StandardAnalyzer(), true);
-                    indexers.put(path, indexer);
-                }
-            }
-            return indexer;
-        } catch (IOException e) {
-            throw convertException(e);
-        }
-    }
-
-    private static String getIndexPath(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
-        rs.next();
-        String path = rs.getString(1);
-        if (path == null) {
-            throw new SQLException("FULLTEXT", "Fulltext search for in-memory databases is not supported.");
-        }
-        rs.close();
-        return path;
-    }
+//#endif    
 
     /**
      * INTERNAL
      */
+//#ifdef JDK14
     public void init(Connection conn, String schemaName, String triggerName, String tableName) throws SQLException {
         init(conn);
         this.schemaName = schemaName;
@@ -275,27 +203,12 @@ public class FullTextLucene implements Trigger {
         indexColumns = new int[indexList.size()];
         setColumns(indexColumns, indexList, columnList);
     }
-
-    private void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            int found = -1;
-            for (int j = 0; found == -1 && j < columns.size(); j++) {
-                String column = (String) columns.get(j);
-                if (column.equals(key)) {
-                    found = j;
-                }
-            }
-            if (found < 0) {
-                throw new SQLException("FULLTEXT", "Column not found: " + key);
-            }
-            index[i] = found;
-        }
-    }
+//#endif    
 
     /**
      * INTERNAL
      */
+//#ifdef JDK14
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
         if (oldRow != null) {
             delete(oldRow);
@@ -304,7 +217,81 @@ public class FullTextLucene implements Trigger {
             insert(newRow);
         }
     }
+//#endif    
 
+    /**
+     * Searches from the full text index for this database.
+     *
+     * @param conn the connection
+     * @param text the search query
+     * @param limit the maximum number of rows or 0 for no limit
+     * @param offset the offset or 0 for no offset
+     * @return the result set
+     */
+//#ifdef JDK14
+    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn(FIELD_QUERY, Types.VARCHAR, 0, 0);
+        if (text == null) {
+            // this is just to query the result set columns
+            return rs;
+        }
+        String path = getIndexPath(conn);
+        try {
+            IndexModifier indexer = getIndexModifier(conn);
+            indexer.flush();
+            IndexReader reader = IndexReader.open(path);
+            Analyzer analyzer = new StandardAnalyzer();
+            Searcher searcher = new IndexSearcher(reader);
+            QueryParser parser = new QueryParser(FIELD_DATA, analyzer);
+            Query query = parser.parse(text);
+            Hits hits = searcher.search(query);
+            int max = hits.length();
+            if (limit == 0) {
+                limit = max;
+            }
+            for (int i = 0; i < limit && i + offset < max; i++) {
+                Document doc = hits.doc(i + offset);
+                String q = doc.get(FIELD_QUERY);
+                rs.addRow(new Object[] { q });
+            }
+            // TODO keep it open if possible
+            reader.close();
+        } catch (Exception e) {
+            throw convertException(e);
+        }
+        return rs;
+    }
+    
+    private static void removeAllTriggers(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
+        Statement stat2 = conn.createStatement();
+        while (rs.next()) {
+            String schema = rs.getString("TRIGGER_SCHEMA");
+            String name = rs.getString("TRIGGER_NAME");
+            if (name.startsWith(TRIGGER_PREFIX)) {
+                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
+                stat2.execute("DROP TRIGGER " + name);
+            }
+        }
+    }
+
+    private static void removeIndexFiles(Connection conn) throws SQLException {
+        String path = getIndexPath(conn);
+        IndexModifier index = (IndexModifier) indexers.get(path);
+        if (index != null) {
+            indexers.remove(path);
+            try {
+                index.flush();
+                index.close();
+            } catch (IOException e) {
+                throw convertException(e);
+            }
+        }
+        FileSystem.getInstance(path).deleteRecursive(path);
+    }
+    
     private String getQuery(Object[] row) throws SQLException {
         StringBuffer buff = new StringBuffer();
         if (schemaName != null) {
@@ -475,48 +462,85 @@ public class FullTextLucene implements Trigger {
         SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
         e2.initCause(e);
         return e2;
+    }    
+    
+    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+        Statement stat = conn.createStatement();
+        String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
+        stat.execute("DROP TRIGGER IF EXISTS " + trigger);
+        StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
+        buff.append(trigger);
+        buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
+        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+        buff.append(" FOR EACH ROW CALL \"");
+        buff.append(FullTextLucene.class.getName());
+        buff.append("\"");
+        stat.execute(buff.toString());
     }
 
-    /**
-     * Searches from the full text index for this database.
-     *
-     * @param conn the connection
-     * @param text the search query
-     * @param limit the maximum number of rows or 0 for no limit
-     * @param offset the offset or 0 for no offset
-     * @return the result set
-     */
-    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn(FIELD_QUERY, Types.VARCHAR, 0, 0);
-        if (text == null) {
-            // this is just to query the result set columns
-            return rs;
+    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+        FullTextLucene existing = new FullTextLucene();
+        existing.init(conn, schema, null, table);
+        StringBuffer buff = new StringBuffer("SELECT * FROM ");
+        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
+        int columnCount = rs.getMetaData().getColumnCount();
+        while (rs.next()) {
+            Object[] row = new Object[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                row[i] = rs.getObject(i + 1);
+            }
+            existing.fire(conn, null, row);
         }
-        String path = getIndexPath(conn);
+    }
+
+
+    private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         try {
-            IndexModifier indexer = getIndexModifier(conn);
-            indexer.flush();
-            IndexReader reader = IndexReader.open(path);
-            Analyzer analyzer = new StandardAnalyzer();
-            Searcher searcher = new IndexSearcher(reader);
-            QueryParser parser = new QueryParser(FIELD_DATA, analyzer);
-            Query query = parser.parse(text);
-            Hits hits = searcher.search(query);
-            int max = hits.length();
-            if (limit == 0) {
-                limit = max;
+            String path = getIndexPath(conn);
+            IndexModifier indexer;
+            synchronized (indexers) {
+                indexer = (IndexModifier) indexers.get(path);
+                if (indexer == null) {
+                    // TODO: create flag = true means re-create
+                    indexer = new IndexModifier(path, new StandardAnalyzer(), true);
+                    indexers.put(path, indexer);
+                }
             }
-            for (int i = 0; i < limit && i + offset < max; i++) {
-                Document doc = hits.doc(i + offset);
-                String q = doc.get(FIELD_QUERY);
-                rs.addRow(new Object[] { q });
-            }
-            // TODO keep it open if possible
-            reader.close();
-        } catch (Exception e) {
+            return indexer;
+        } catch (IOException e) {
             throw convertException(e);
         }
-        return rs;
     }
+
+    private static String getIndexPath(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
+        rs.next();
+        String path = rs.getString(1);
+        if (path == null) {
+            throw new SQLException("FULLTEXT", "Fulltext search for in-memory databases is not supported.");
+        }
+        rs.close();
+        return path;
+    }
+    
+    private void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            int found = -1;
+            for (int j = 0; found == -1 && j < columns.size(); j++) {
+                String column = (String) columns.get(j);
+                if (column.equals(key)) {
+                    found = j;
+                }
+            }
+            if (found < 0) {
+                throw new SQLException("FULLTEXT", "Column not found: " + key);
+            }
+            index[i] = found;
+        }
+    }
+//#endif    
+
 }

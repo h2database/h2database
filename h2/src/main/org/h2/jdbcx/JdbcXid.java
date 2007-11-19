@@ -47,13 +47,6 @@ implements Xid
         }
     }
     
-//    private JdbcXid(JdbcDataSourceFactory factory, int id, Xid xid) {
-//        setTrace(factory.getTrace(), TraceObject.XID, id);        
-//        this.formatId = xid.getFormatId();
-//        this.branchQualifier = clone(xid.getBranchQualifier());
-//        this.globalTransactionId = clone(xid.getGlobalTransactionId());
-//    }
-    
     /**
      * INTERNAL
      */
@@ -67,12 +60,6 @@ implements Xid
         buff.append(ByteUtils.convertBytesToString(globalTransactionId));
         return buff.toString();
     }
-    
-//    private byte[] clone(byte[] data) {
-//        byte[] d2 = new byte[data.length];
-//        System.arraycopy(data, 0, d2, 0, data.length);
-//        return d2;
-//    }
     
     /**
      * Get the format id.

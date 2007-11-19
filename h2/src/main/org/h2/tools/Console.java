@@ -4,6 +4,7 @@
  */
 package org.h2.tools;
 
+//#ifdef AWT
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -24,11 +25,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import org.h2.util.IOUtils;
 import java.io.InputStream;
+//#endif
 import java.sql.SQLException;
 
 import org.h2.server.ShutdownHandler;
-import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
 
 /**
@@ -37,11 +39,17 @@ import org.h2.util.StartBrowser;
  * Otherwise, a small window opens.
  * 
  */
-public class Console implements ActionListener, MouseListener, ShutdownHandler {
+public class Console implements 
+//#ifdef AWT
+ActionListener, MouseListener, 
+//#endif
+ShutdownHandler {
 
+//#ifdef AWT
     private Font font;
     private Image icon;
     private Frame frame;
+//#endif
     private static final int EXIT_ERROR = 1;    
     private Server web, tcp, pg;
 
@@ -92,10 +100,11 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
                 System.out.println(pg.getStatus());
             }
         }
+//#ifdef AWT
         if (!GraphicsEnvironment.isHeadless()) {
             font = new Font("Dialog", Font.PLAIN, 11);
             try {
-                InputStream in = getClass().getResourceAsStream("/org/h2/res/h2.png");
+                InputStream in = Console.class.getResourceAsStream("/org/h2/res/h2.png");
                 if (in != null) {
                     byte[] imageData = IOUtils.readBytesAndClose(in, -1);
                     icon = Toolkit.getDefaultToolkit().createImage(imageData);
@@ -107,6 +116,8 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
                 e.printStackTrace();
             }
         }
+//#endif
+
         // start browser anyway (even if the server is already running)
         // because some people don't look at the output,
         // but are wondering why nothing happens
@@ -137,13 +148,16 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
             pg.stop();
             pg = null;
         }
+//#ifdef AWT
         if (frame != null) {
             frame.dispose();
             frame = null;
         }
+//#endif
         System.exit(0);
     }
 
+//#ifdef AWT
     private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
@@ -260,10 +274,18 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
         frame.setLocation((screenSize.width - width) / 2, (screenSize.height - height) / 2);
         frame.setVisible(true);
     }
+    
+    private void startBrowser() {
+        if (web != null) {
+            StartBrowser.openURL(web.getURL());
+        }
+    }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
@@ -274,44 +296,49 @@ public class Console implements ActionListener, MouseListener, ShutdownHandler {
             showWindow(false);
         }
     }
-
-    private void startBrowser() {
-        if (web != null) {
-            StartBrowser.openURL(web.getURL());
-        }
-    }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
         }
     }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void mouseEntered(MouseEvent e) {
     }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void mouseExited(MouseEvent e) {
     }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void mousePressed(MouseEvent e) {
     }
+//#endif
 
     /**
      * INTERNAL
      */
+//#ifdef AWT
     public void mouseReleased(MouseEvent e) {
     }
+//#endif
 
 }

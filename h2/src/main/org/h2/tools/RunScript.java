@@ -39,8 +39,8 @@ public class RunScript {
     }
 
     /**
-     * The command line interface for this tool. The options must be split into strings like this: "-user", "sa",... The
-     * following options are supported:
+     * The command line interface for this tool. The options must be split into strings like this: "-user", "sa",... 
+     * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-url jdbc:h2:... (database URL)

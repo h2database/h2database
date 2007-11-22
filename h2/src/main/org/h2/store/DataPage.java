@@ -222,14 +222,19 @@ public abstract class DataPage {
             lob.convertToFileIfRequired(handler);
             byte[] small = lob.getSmall();
             if (small == null) {
-                // TODO lob: currently use -2 for historical reasons (-1 didn't
-                // store precision)
-                writeInt(-2);
+                // -2 for historical reasons (-1 didn't store precision)
+                int type = -2;
+                if (!lob.isLinked()) {
+                    type = -3;
+                }
+                writeInt(type);
                 writeInt(lob.getTableId());
                 writeInt(lob.getObjectId());
                 writeLong(lob.getPrecision());
-                writeByte((byte) (lob.useCompression() ? 1 : 0)); // compression
-                                                                    // flag
+                writeByte((byte) (lob.useCompression() ? 1 : 0));
+                if (type == -3) {
+                    writeString(lob.getFileName());
+                }
             } else {
                 writeInt(small.length);
                 write(small, 0, small.length);
@@ -304,6 +309,9 @@ public abstract class DataPage {
                 len += getIntLen() + small.length;
             } else {
                 len += getIntLen() + getIntLen() + getIntLen() + getLongLen(lob.getPrecision()) + 1;
+                if (!lob.isLinked()) {
+                    len += getStringLen(lob.getFileName());
+                }
             }
             return len;
         }
@@ -385,13 +393,16 @@ public abstract class DataPage {
                 int objectId = readInt();
                 long precision = 0;
                 boolean compression = false;
-                // TODO lob: -2 is for historical reasons (-1 didn't store
-                // precision)
-                if (smallLen == -2) {
+                // -2 is for historical reasons (-1 didn't store precision)
+                if (smallLen == -2 || smallLen == -3) {
                     precision = readLong();
                     compression = readByte() == 1;
                 }
-                return ValueLob.open(type, handler, tableId, objectId, precision, compression);
+                ValueLob lob = ValueLob.open(type, handler, tableId, objectId, precision, compression);
+                if (smallLen == -3) {
+                    lob.setFileName(readString());
+                }
+                return lob;
             }
         }
         case Value.ARRAY: {

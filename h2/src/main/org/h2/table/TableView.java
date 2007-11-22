@@ -47,17 +47,22 @@ public class TableView extends Table {
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
+    
+    public Query recompileQuery(Session session) throws SQLException {
+        Prepared p = session.prepare(querySQL);
+        if (!(p instanceof Query)) {
+            throw Message.getSyntaxError(querySQL, 0);
+        }
+        Query query = (Query) p;        
+        querySQL = query.getPlanSQL();
+        return query;
+    }
 
     private void initColumnsAndTables(Session session) throws SQLException {
         Column[] cols;
         removeViewFromTables();
         try {
-            Prepared p = session.prepare(querySQL);
-            if (!(p instanceof Query)) {
-                throw Message.getSyntaxError(querySQL, 0);
-            }
-            Query query = (Query) p;
-            querySQL = query.getPlanSQL();
+            Query query = recompileQuery(session);
             tables = new ObjectArray(query.getTables());
             ObjectArray expressions = query.getExpressions();
             ObjectArray list = new ObjectArray();

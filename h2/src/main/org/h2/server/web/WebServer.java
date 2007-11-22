@@ -105,6 +105,7 @@ public class WebServer implements Service {
     private String url;
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
+    private boolean ifExists;
 
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
@@ -180,15 +181,18 @@ public class WebServer implements Service {
         ssl = FileUtils.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
         allowOthers = FileUtils.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
         for (int i = 0; args != null && i < args.length; i++) {
-            if ("-webPort".equals(args[i])) {
+            String a = args[i];
+            if ("-webPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else if ("-webSSL".equals(args[i])) {
+            } else if ("-webSSL".equals(a)) {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
-            } else if ("-webAllowOthers".equals(args[i])) {
+            } else if ("-webAllowOthers".equals(a)) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
-            } else if ("-baseDir".equals(args[i])) {
+            } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
+            } else if ("-ifExists".equals(a)) {
+                ifExists = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
 //            if(driverList != null) {
@@ -464,7 +468,14 @@ public class WebServer implements Service {
         p.setProperty("user", user.trim());
         p.setProperty("password", password.trim());
         if (url.startsWith("jdbc:h2:")) {
+            if (ifExists) {
+                url += ";IFEXISTS=TRUE";
+            }
             p.put("DATABASE_EVENT_LISTENER_OBJECT", listener);
+            // PostgreSQL would throw a NullPointerException 
+            // if it is loaded before the H2 driver
+            // because it can't deal with non-String objects in the connection Properties
+            return org.h2.Driver.load().connect(url, p);
         }
 //            try {
 //                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();

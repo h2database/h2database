@@ -1,4 +1,13 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE TEST(ID INTEGER NOT NULL, ID2 INTEGER DEFAULT 0);
+> ok
+
+ALTER TABLE test ALTER COLUMN ID2 RENAME TO ID;
+> exception
+
+drop table test;
+> ok
+
 create table test(id int primary key, data array);
 > ok
 

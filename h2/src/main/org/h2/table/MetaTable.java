@@ -687,6 +687,7 @@ public class MetaTable extends Table {
                     add(rows, new String[] { "property." + s, prop.getProperty(s, "") });
                 }
             }
+            add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
             add(rows, new String[] { "MODE", database.getMode().getName() });
             add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
             DiskFile dataFile = database.getDataFile();

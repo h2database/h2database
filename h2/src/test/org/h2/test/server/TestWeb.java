@@ -28,7 +28,7 @@ public class TestWeb extends TestBase {
         result = client.get(url, "index.do?language=en");
         result = client.get(url, "login.jsp");
         check(result.indexOf("Einstellung") < 0);
-        result = client.get(url, "test.do?driver=abc&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
+        result = client.get(url, "test.do?driver=abc&url=jdbc:abc:mem:web&user=sa&password=sa&name=_test_");
         check(result.indexOf("Exception") >= 0);
         result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
         check(result.indexOf("Exception") < 0);

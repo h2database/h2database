@@ -44,7 +44,11 @@ public class TempFileDeleter {
     }
     
     public static void deleteUnused() {
-        while (true) {
+        // Mystery: I don't know how QUEUE could get null, but two independent
+        // people reported NullPointerException here - if somebody understands
+        // how it could happend please report it!
+        // Setup: webapp under Tomcat, exception occurs during undeploy
+        while (QUEUE != null) {
             Reference ref = QUEUE.poll();
             if (ref == null) {
                 break;

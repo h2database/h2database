@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
 import org.h2.security.SHA256;
 import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
@@ -138,14 +139,21 @@ public class User extends RightOwner {
 
     public ObjectArray getChildren() {
         ObjectArray all = database.getAllRights();
-        ObjectArray rights = new ObjectArray();
+        ObjectArray children = new ObjectArray();
         for (int i = 0; i < all.size(); i++) {
             Right right = (Right) all.get(i);
             if (right.getGrantee() == this) {
-                rights.add(right);
+                children.add(right);
             }
         }
-        return rights;
+        all = database.getAllSchemas();
+        for (int i = 0; i < all.size(); i++) {
+            Schema schema = (Schema) all.get(i);
+            if (schema.getOwner() == this) {
+                children.add(schema);
+            }
+        }
+        return children;
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
@@ -164,6 +172,16 @@ public class User extends RightOwner {
 
     public void checkRename() {
         // ok
+    }
+
+    public void checkNoSchemas() throws SQLException {
+        ObjectArray schemas = database.getAllSchemas();
+        for (int i = 0; i < schemas.size(); i++) {
+            Schema s = (Schema) schemas.get(i);
+            if (this == s.getOwner()) {
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{ getName(), s.getName() });
+            }
+        }
     }
 
 }

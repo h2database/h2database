@@ -225,27 +225,53 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 //#endif
 
     /**
+     * Open a new XA connection using the current URL, user name and password.
      * 
+     * @return the connection
      */
 //#ifdef JDK14
     public XAConnection getXAConnection() throws SQLException {
-int document;        
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
+//#endif    
 
+    /**
+     * Open a new XA connection using the current URL and the specified user name and password.
+     * 
+     * @param the user name
+     * @param the password
+     * @return the connection
+     */    
+//#ifdef JDK14
     public XAConnection getXAConnection(String user, String password) throws SQLException {
         debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
+//#endif    
 
+    /**
+     * Open a new XA connection using the current URL, user name and password.
+     * 
+     * @return the connection
+     */    
+//#ifdef JDK14
     public PooledConnection getPooledConnection() throws SQLException {
         debugCodeCall("getPooledConnection");
         return getXAConnection();
     }
+//#endif    
 
+    /**
+     * Open a new XA connection using the current URL and the specified user name and password.
+     * 
+     * @param the user name
+     * @param the password
+     * @return the connection
+     */    
+//#ifdef JDK14
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
         debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
         return getXAConnection(user, password);

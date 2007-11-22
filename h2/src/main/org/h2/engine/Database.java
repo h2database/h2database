@@ -145,6 +145,7 @@ public class Database implements DataHandler {
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
+    private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERERATION_MEMORY;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);
@@ -468,8 +469,7 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
-        // TODO storage: antivir scans .script files, maybe other scanners scan
-        // .db files?
+        // TODO storage: antivir scans .script files, maybe other scanners scan .db files?
         ObjectArray cols = new ObjectArray();
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
@@ -567,6 +567,22 @@ public class Database implements DataHandler {
                 }
             }
         } while (recompileSuccessful);
+        // when opening a database, views are initialized before indexes, so they may not have the optimal plan yet
+        // this is not a problem, it is just nice to see the newest plan
+        ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        for (int i = 0; i < list.size(); i++) {
+            DbObject obj = (DbObject) list.get(i);
+            if (obj instanceof TableView) {
+                TableView view = (TableView) obj;
+                if (!view.getInvalid()) {
+                    try {
+                        view.recompile(systemSession);
+                    } catch (SQLException e) {
+                        // ignore
+                    }
+                }
+            }
+        }
     }
 
     private void removeUnusedStorages(Session session) throws SQLException {
@@ -824,7 +840,7 @@ public class Database implements DataHandler {
             closing = true;
         }
         try {
-            if (persistent && fileData != null) {
+            if (systemSession != null) {
                 ObjectArray tablesAndViews = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
                 for (int i = 0; i < tablesAndViews.size(); i++) {
                     Table table = (Table) tablesAndViews.get(i);
@@ -1593,6 +1609,14 @@ public class Database implements DataHandler {
 
     public void setMultiThreaded(boolean multiThreaded) {
         this.multiThreaded = multiThreaded;
+    }
+    
+    public void setMaxOperationMemory(int maxOperationMemory) {
+        this.maxOperationMemory  = maxOperationMemory;
+    }
+
+    public int getMaxOperationMemory() {
+        return maxOperationMemory;
     }
 
 }

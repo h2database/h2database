@@ -18,6 +18,7 @@ import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.util.ByteUtils;
+import org.h2.util.JdbcConnectionListener;
 import org.h2.util.JdbcUtils;
 import org.h2.jdbc.JdbcConnection;
 //#endif

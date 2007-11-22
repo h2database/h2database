@@ -28,7 +28,7 @@ public class CreateCluster {
     /**
      * The command line interface for this tool.
      * The options must be split into strings like this: "-urlSource", "jdbc:h2:test",... 
-     * The following options are supported:
+     * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-urlSource jdbc:h2:... (the database URL of the source database)

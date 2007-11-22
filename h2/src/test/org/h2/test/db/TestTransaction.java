@@ -18,8 +18,34 @@ import org.h2.test.TestBase;
 public class TestTransaction extends TestBase {
 
     public void test() throws Exception {
+        testReferential();
         testSavepoint();
         testIsolation();
+    }
+    
+    private void testReferential() throws Exception {
+        deleteDb("transaction");        
+        Connection c1 = getConnection("transaction");
+        c1.setAutoCommit(false);
+        Statement s1 = c1.createStatement();
+        s1.execute("drop table if exists a");
+        s1.execute("drop table if exists b");
+        s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
+        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
+        Connection c2 = getConnection("transaction");
+        c2.setAutoCommit(false);
+        s1.executeUpdate("insert into A(code) values('un cod')");
+        Statement s2 = c2.createStatement();
+        try {
+            s2.executeUpdate("insert into B values('un B', 1)");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        c2.commit();
+        c1.rollback();      
+        c1.close();
+        c2.close();
     }
 
     public void testSavepoint() throws Exception {

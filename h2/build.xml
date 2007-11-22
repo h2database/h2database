@@ -253,7 +253,7 @@
 		<mkdir dir="docs/javadoc"/>
 		<javadoc
 			sourcepath="src/main"
-			packagenames="org.h2.jdbc.*,org.h2.tools.*,org.h2.api.*"
+			packagenames="org.h2.jdbc.*,org.h2.jdbcx.*,org.h2.tools.*,org.h2.api.*"
 			doclet="org.h2.tools.doclet.Doclet"
 			docletpath="bin"
 		/>

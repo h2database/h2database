@@ -3657,6 +3657,12 @@ public class Parser {
             boolean value = readBooleanSetting();
             int setting = value ? TransactionCommand.AUTOCOMMIT_TRUE : TransactionCommand.AUTOCOMMIT_FALSE;
             return new TransactionCommand(session, setting);
+        } else if (readIf("MVCC")) {
+            readIfEqualOrTo();
+            boolean value = readBooleanSetting();
+            Set command = new Set(session, SetTypes.MVCC);
+            command.setInt(value ? 1 : 0);
+            return command;
         } else if (readIf("IGNORECASE")) {
             readIfEqualOrTo();
             boolean value = readBooleanSetting();
@@ -3756,10 +3762,6 @@ public class Parser {
             read();
             return new NoOperation(session);
         } else if (readIf("DB_CLOSE_ON_EXIT")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
-        } else if (readIf("MVCC")) {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);

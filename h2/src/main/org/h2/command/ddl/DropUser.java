@@ -42,6 +42,7 @@ public class DropUser extends DefineCommand {
             if (user == session.getUser()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_CURRENT_USER);
             }
+            user.checkNoSchemas();
             db.removeDatabaseObject(session, user);
         }
         return 0;

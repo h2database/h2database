@@ -19,12 +19,37 @@ public class TestMVCC extends TestBase {
     
     Connection c1, c2;
     Statement s1, s2;
-    
+
     public void test() throws Exception {
+        testSetMode();
+        testCases();
+    }
+
+    private void testSetMode() throws Exception {
+        DeleteDbFiles.execute(null, "test", true);
+        Class.forName("org.h2.Driver");
+        c1 = DriverManager.getConnection("jdbc:h2:test", "sa", "sa");
+        Statement stat = c1.createStatement();
+        ResultSet rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
+        rs.next();
+        check("FALSE", rs.getString("VALUE"));
+        try {
+            stat.execute("SET MVCC TRUE");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            check(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
+        }
+        rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
+        rs.next();
+        check("FALSE", rs.getString("VALUE"));        
+        c1.close();
+    }
+    
+    private void testCases() throws Exception {
         if (!config.mvcc) {
             return;
         }
-        // TODO Prio 1: make unit test work
+        // TODO Prio 1: make unit test work (remaining problem: optimization for select min/max)
         // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
         // TODO Prio 1: free up disk space (for deleted rows and old versions of updated rows) on commit
         // TODO Prio 1: ScanIndex: never remove uncommitted data from cache (lost sessionId)
@@ -60,6 +85,21 @@ public class TestMVCC extends TestBase {
         c1.rollback();
         s2.execute("drop table test");
         c2.rollback();
+        
+        // referential integrity problem
+        s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
+        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");        
+        s1.execute("insert into a(code) values('un cod')");        
+        try {
+             s2.execute("insert into b values('un B', 1)");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        c2.commit();
+        c1.rollback();
+        s1.execute("drop table a, b");
+        c2.commit();
         
         // select for update should do an exclusive lock, even with mvcc
         s1.execute("create table test(id int primary key, name varchar(255))");

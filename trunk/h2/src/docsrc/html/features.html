@@ -15,6 +15,8 @@ Features
 
 <a href="#feature_list">
     Feature List</a><br />
+<a href="#limitations">
+    Limitations</a><br />
 <a href="#comparison">
     Comparison to Other Database Engines</a><br />
 <a href="#products_work_with">
@@ -43,8 +45,8 @@ Features
     Database File Layout</a><br />
 <a href="#logging_recovery">
     Logging and Recovery</a><br />
-<a href="#compatibility_modes">
-    Compatibility Modes</a><br />
+<a href="#compatibility">
+    Compatibility</a><br />
 <a href="#trace_options">
     Using the Trace Options</a><br />
 <a href="#read_only">
@@ -137,6 +139,13 @@ Features
 </li><li>Uses a checksum for each record and log entry for data integrity
 </li><li>Well tested (high code coverage, randomized stress tests)
 </li></ul>
+
+<br /><a name="limitations"></a>
+<h2>Limitations</h2>
+For the list of limitations, please have a look at the road map page at:
+<a href="http://groups.google.com/group/h2-database/web/roadmap">
+http://groups.google.com/group/h2-database/web/roadmap
+</a>.
 
 <br /><a name="comparison"></a>
 <h2>Comparison to Other Database Engines</h2>
@@ -793,11 +802,20 @@ must contain RECOVER=1, as in jdbc:h2:~/test;RECOVER=1. Indexes are rebuilt in t
 the summary (object allocation table) is not read in this case, so opening the database takes longer.
 </p>
 
-<br /><a name="compatibility_modes"></a>
-<h2>Compatibility Modes</h2>
+<br /><a name="compatibility"></a>
+<h2>Compatibility</h2>
 <p>
-All database engines behave a little bit different. For certain features, 
-this database can emulate the behavior of specific databases. Not all features or differences of those
+All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard,
+and tries to be compatible to other databases. There are still a few differences however:
+</p>
+<p>
+In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However
+H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append
+IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
+</p>
+
+<h3>Compatibility Modes</h3>
+For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those
 databases are implemented. Currently, this feature is mainly used for randomized comparative testing 
 (where random statements are executed against multiple databases and the results are compared).
 The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE.
@@ -829,6 +847,10 @@ Here is the list of currently supported modes and the difference to the regular 
   Usually, the scale is converted and 0s are added if required.
 </td></tr>
 </table>
+<p>
+
+
+</p>
 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>

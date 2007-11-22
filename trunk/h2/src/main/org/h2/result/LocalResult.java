@@ -115,12 +115,12 @@ public class LocalResult implements ResultInterface {
         } else {
             this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
         }
-        this.expressions = new Expression[cols.size()];
-        cols.toArray(expressions);
-        this.displaySizes = new int[cols.size()];
         rows = new ObjectArray();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
+        this.expressions = new Expression[cols.size()];
+        cols.toArray(expressions);
+        this.displaySizes = new int[cols.size()];
     }
 
     public void setSortOrder(SortOrder sort) {

@@ -6,6 +6,7 @@ package org.h2.table;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
@@ -19,6 +20,7 @@ import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.RowList;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
@@ -115,7 +117,16 @@ public abstract class Table extends SchemaObjectBase {
         memoryPerRow = memory;
     }
 
-    public void renameColumn(Column column, String newName) {
+    public void renameColumn(Column column, String newName) throws SQLException {
+        for (int i = 0; i < columns.length; i++) {
+            Column c = columns[i];
+            if (c == column) {
+                continue;
+            }
+            if (c.getName().equals(newName)) {
+                throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, newName);
+            }
+        }
         columnMap.remove(column.getName());
         column.rename(newName);
         columnMap.put(newName, column);
@@ -150,19 +161,21 @@ public abstract class Table extends SchemaObjectBase {
 
     public abstract long getMaxDataModificationId();
 
-    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows)
+    public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
         // remove the old rows
-        for (int i = 0; i < oldRows.size(); i++) {
+        for (rows.reset(); rows.hasNext();) {
             prepared.checkCancelled();
-            Row o = (Row) oldRows.get(i);
+            Row o = rows.next();
+            rows.next();
             removeRow(session, o);
             session.log(this, UndoLogRecord.DELETE, o);
         }
         // add the new rows
-        for (int i = 0; i < newRows.size(); i++) {
+        for (rows.reset(); rows.hasNext();) {
             prepared.checkCancelled();
-            Row n = (Row) newRows.get(i);
+            rows.next();
+            Row n = rows.next();
             addRow(session, n);
             session.log(this, UndoLogRecord.INSERT, n);
         }

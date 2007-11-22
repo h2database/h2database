@@ -55,7 +55,9 @@ ShutdownHandler {
 
     /**
      * The command line interface for this tool.
-     * The command line options are the same as in the Server tool.
+     * The command line options are the same as in the Server tool, 
+     * but this tool will always start the TCP, TCP and PG server.
+     * Options are case sensitive. 
      * 
      * @param args the command line arguments
      * @throws Exception

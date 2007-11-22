@@ -261,6 +261,18 @@ public class Set extends Prepared {
             database.setReferentialIntegrity(value == 1);
             break;
         }
+        case SetTypes.MVCC: {
+            if (database.isMultiVersion() != (getIntValue() == 1)) {
+                throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
+            }
+            break;
+        }
+        case SetTypes.MAX_OPERATION_MEMORY: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            database.setMaxOperationMemory(value);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

@@ -155,7 +155,7 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 <h3>Table Level Locking</h3>
 <p>
 The database allows multiple concurrent connections to the same database.
-To make sure all connections only see consistent data, table level locking is used.
+To make sure all connections only see consistent data, table level locking is used by default.
 This mechanism does not allow high concurrency, but is very fast.
 Shared locks and exclusive locks are supported.
 Before reading from a table, the database tries to add a shared lock to the table
@@ -929,7 +929,7 @@ INFORMATION_SCHEMA.SETTINGS
 <tr><td>h2.overflowExceptions</td><td>true</td><td>Throw an exception on integer overflows</td></tr>
 <tr><td>h2.recompileAlways</td><td>false</td><td>Always recompile prepared statements</td></tr>
 <tr><td>h2.redoBufferSize</td><td>262144</td><td>Size of the redo buffer (used at startup when recovering)</td></tr>
-<tr><td>h2.runFinalizers</td><td>true</td><td>Run finalizers to detect unclosed connections</td></tr>
+<tr><td>h2.runFinalize</td><td>true</td><td>Run finalizers to detect unclosed connections</td></tr>
 <tr><td>h2.scriptDirectory</td><td></td><td>Relative or absolute directory where the script files are stored to or read from</td></tr>
 <tr><td>h2.serverCachedObjects</td><td>64</td><td>TCP Server: number of cached objects per session</td></tr>
 <tr><td>h2.serverSmallResultSetSize</td><td>100</td><td>TCP Server: result sets below this size are sent in one block</td></tr>

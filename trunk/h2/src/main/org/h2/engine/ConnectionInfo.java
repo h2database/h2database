@@ -42,7 +42,7 @@ public class ConnectionInfo {
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "STORAGE", "USER", "MVCC", "DATABASE_EVENT_LISTENER_OBJECT" };
+                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT" };
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
             if (SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {

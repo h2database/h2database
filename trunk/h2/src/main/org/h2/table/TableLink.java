@@ -22,6 +22,7 @@ import org.h2.index.LinkedIndex;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.RowList;
 import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -351,14 +352,14 @@ public class TableLink extends Table {
         return null;
     }
 
-    public void updateRows(Prepared prepared, Session session, ObjectArray oldRows, ObjectArray newRows)
+    public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
         boolean deleteInsert;
         if (emitUpdates) {
-            for (int i = 0; i < oldRows.size(); i++) {
+            for (rows.reset(); rows.hasNext();) {
                 session.checkCancelled();
-                Row oldRow = (Row) oldRows.get(i);
-                Row newRow = (Row) newRows.get(i);
+                Row oldRow = rows.next();
+                Row newRow = rows.next();
                 linkedIndex.update(session, oldRow, newRow);
                 session.log(this, UndoLogRecord.DELETE, oldRow);
                 session.log(this, UndoLogRecord.INSERT, newRow);
@@ -368,7 +369,7 @@ public class TableLink extends Table {
             deleteInsert = true;
         }
         if (deleteInsert) {
-            super.updateRows(prepared, session, oldRows, newRows);
+            super.updateRows(prepared, session, rows);
         }
     }
 

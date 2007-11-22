@@ -288,6 +288,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     private boolean found(Session session, Index index, SearchRow check) throws SQLException {
+        index.getTable().lock(session, false, false);
         Cursor cursor = index.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;

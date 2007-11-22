@@ -13,10 +13,10 @@ import org.h2.expression.Expression;
 import org.h2.log.UndoLogRecord;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
+import org.h2.result.RowList;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
 /**
@@ -46,38 +46,37 @@ public class Delete extends Prepared {
         session.getUser().checkRight(table, Right.DELETE);
         table.fireBefore(session);
         table.lock(session, true, false);
-        ObjectArray rows = new ObjectArray();
-        setCurrentRowNumber(0);
-        while (tableFilter.next()) {
-            checkCancelled();
-            setCurrentRowNumber(rows.size() + 1);
-            if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
-                Row row = tableFilter.get();
-                rows.add(row);
-            }
-        }
-        if (table.fireRow()) {
-            for (int i = 0; i < rows.size(); i++) {
+        RowList rows = new RowList(session);
+        try {
+            setCurrentRowNumber(0);
+            while (tableFilter.next()) {
                 checkCancelled();
-                Row row = (Row) rows.get(i);
-                table.fireBeforeRow(session, row, null);
+                setCurrentRowNumber(rows.size() + 1);
+                if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+                    Row row = tableFilter.get();
+                    if (table.fireRow()) {
+                        table.fireBeforeRow(session, row, null);
+                    }
+                    rows.add(row);
+                }
             }
-        }
-        for (int i = 0; i < rows.size(); i++) {
-            checkCancelled();
-            Row row = (Row) rows.get(i);
-            table.removeRow(session, row);
-            session.log(table, UndoLogRecord.DELETE, row);
-        }
-        if (table.fireRow()) {
-            for (int i = 0; i < rows.size(); i++) {
+            for (rows.reset(); rows.hasNext();) {
                 checkCancelled();
-                Row row = (Row) rows.get(i);
-                table.fireAfterRow(session, row, null);
+                Row row = rows.next();
+                table.removeRow(session, row);
+                session.log(table, UndoLogRecord.DELETE, row);
             }
+            if (table.fireRow()) {
+                for (rows.reset(); rows.hasNext();) {
+                    Row row = rows.next();
+                    table.fireAfterRow(session, row, null);
+                }
+            }
+            table.fireAfter(session);
+            return rows.size();
+        } finally {
+            rows.close();
         }
-        table.fireAfter(session);
-        return rows.size();
     }
 
     public String getPlanSQL() {

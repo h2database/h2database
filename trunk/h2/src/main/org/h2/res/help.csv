@@ -941,6 +941,18 @@ Admin rights are required to execute this command.
 SET MAX_MEMORY_UNDO 1000
 "
 
+"Commands (Other)","SET MAX_OPERATION_MEMORY","
+SET MAX_OPERATION_MEMORY int
+","
+Sets the maximum memory size used for large operations (delete and insert).
+Operations that use more memory are buffered to disk, slowing down the operation.
+The default max size is 100000. 0 means no limit.
+This setting is not persistent.
+Admin rights are required to execute this command.
+","
+SET MAX_OPERATION_MEMORY 0
+"
+
 "Commands (Other)","SET MODE","
 SET MODE {REGULAR | HSQLDB | POSTGRESQL | MYSQL}
 ","

@@ -313,6 +313,7 @@ public class ErrorCode {
     public static final int METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT = 90130;
     public static final int CONCURRENT_UPDATE_1 = 90131;
     public static final int AGGREGATE_NOT_FOUND_1 = 90132;
+    public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
 
     /**
      * INTERNAL

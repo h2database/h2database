@@ -18,9 +18,21 @@ public class TestBigResult extends TestBase {
         if (config.memory) {
             return;
         }
+        testLargeUpdateDelete();
         testCloseConnectionDelete();
         testOrderGroup();
         testLimitBufferedResult();
+    }
+    
+    private void testLargeUpdateDelete() throws Exception {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        int len = getSize(10000, 100000);
+        stat.execute("CREATE TABLE TEST AS SELECT * FROM SYSTEM_RANGE(1, " + len + ")");
+        stat.execute("UPDATE TEST SET X=X+1");
+        stat.execute("DELETE FROM TEST");
+        conn.close();
     }
 
     private void testCloseConnectionDelete() throws Exception {

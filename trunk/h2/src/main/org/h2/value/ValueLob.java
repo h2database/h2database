@@ -637,4 +637,8 @@ public class ValueLob extends Value {
         }
     }
 
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
 }

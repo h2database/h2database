@@ -76,7 +76,7 @@ public class Recover implements DataHandler {
     /**
      * The command line interface for this tool.
      * The options must be split into strings like this: "-db", "test",... 
-     * The following options are supported:
+     * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-dir database directory (the default is the current directory)

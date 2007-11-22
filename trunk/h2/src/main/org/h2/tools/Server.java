@@ -36,7 +36,8 @@ public class Server implements Runnable, ShutdownHandler {
     
     private void showUsage() {
         System.out.println("java "+getClass().getName() + " [options]");
-        System.out.println("By default, -tcp, -web, -browser and -pg are started");
+        System.out.println("By default, -tcp, -web, -browser and -pg are started.");
+        System.out.println("Options are case sensitive. Options:");
         System.out.println("-tcp (start the TCP Server)");
         System.out.println("-tcpPort <port> (default: " + TcpServer.DEFAULT_PORT+")");
         System.out.println("-tcpSSL [true|false]");        
@@ -62,9 +63,9 @@ public class Server implements Runnable, ShutdownHandler {
         System.out.println("-ftpWrite <writeUserName> (default: " + FtpServer.DEFAULT_WRITE+")");
         System.out.println("-ftpWritePassword <password> (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");        
 
-        System.out.println("-log [true|false]");
-        System.out.println("-baseDir <directory> (sets the base directory for H2 databases)");
-        System.out.println("-ifExists [true|false] (only existing databases may be opened)");
+        System.out.println("-log [true|false] (for all servers)");
+        System.out.println("-baseDir <directory> (sets the base directory for H2 databases, for all servers)");
+        System.out.println("-ifExists [true|false] (only existing databases may be opened, for all servers)");
     }
     
     private Server() {
@@ -75,6 +76,7 @@ public class Server implements Runnable, ShutdownHandler {
      * The options must be split into strings like this: "-baseDir", "/temp/data",...
      * By default, -tcp, -web, -browser and -pg are started.
      * If there is a problem starting a service, the program terminates with an exit code of 1.
+     * Options are case sensitive.
      * The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -152,6 +154,9 @@ public class Server implements Runnable, ShutdownHandler {
             } else if ("-browser".equals(a)) {
                 startDefaultServers = false;
                 browserStart = true;
+            } else {
+                showUsage();
+                return EXIT_ERROR;
             }
         }
         int exitCode = 0;

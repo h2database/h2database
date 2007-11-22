@@ -22,11 +22,11 @@ public class ConvertTraceFile {
         System.out.println("java "+getClass().getName()
                 + " [-traceFile <trace file name>] [-javaClass <java class name>] [-script <sql script file>]");
     }
-
+    
     /**
      * The command line interface for this tool.
      * The options must be split into strings like this: "-traceFile", "test.trace.db",... 
-     * The following options are supported:
+     * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-traceFile filename (the default is test.trace.db)

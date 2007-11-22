@@ -18,6 +18,7 @@ public class TestRights extends TestBase {
     
     public void test() throws Exception {
         // testLowerCaseUser();
+        testSchemaRenameUser();
         testAccessRights();
     }
     
@@ -35,6 +36,39 @@ public class TestRights extends TestBase {
 //        conn.close();
 //    }
 
+    public void testSchemaRenameUser() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password '' admin");
+        stat.execute("create schema b authorization test");
+        stat.execute("create table b.test(id int)");
+        stat.execute("alter user test rename to test1");
+        conn.close();
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("select * from b.test");
+        try {
+            stat.execute("alter user test1 admin false");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        try {
+            stat.execute("drop user test1");
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        stat.execute("drop schema b");
+        stat.execute("alter user test1 admin false");
+        stat.execute("drop user test1");
+        conn.close();
+    }
+    
     public void testAccessRights() throws Exception {
         if (config.memory) {
             return;

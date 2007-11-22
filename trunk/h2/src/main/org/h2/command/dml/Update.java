@@ -14,11 +14,11 @@ import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
+import org.h2.result.RowList;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -58,62 +58,61 @@ public class Update extends Prepared {
     public int update() throws SQLException {
         tableFilter.startQuery(session);
         tableFilter.reset();
-        // TODO optimization: update old / new list: maybe use a linked list (to avoid array allocation)
-        ObjectArray oldRows = new ObjectArray();
-        ObjectArray newRows = new ObjectArray();
-        Table table = tableFilter.getTable();
-        session.getUser().checkRight(table, Right.UPDATE);
-        table.fireBefore(session);
-        table.lock(session, true, false);
-        int columnCount = table.getColumns().length;
-        // get the old rows, compute the new rows
-        setCurrentRowNumber(0);
-        while (tableFilter.next()) {
-            checkCancelled();
-            setCurrentRowNumber(oldRows.size()+1);
-            if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
-                Row oldRow = tableFilter.get();
-                Row newRow = table.getTemplateRow();
-                for (int i = 0; i < columnCount; i++) {
-                    Expression newExpr = expressions[i];
-                    Value newValue;
-                    if (newExpr == null) {
-                        newValue = oldRow.getValue(i);
-                    } else {
-                        Column column = table.getColumn(i);
-                        newValue = newExpr.getValue(session).convertTo(column.getType());
+        RowList rows = new RowList(session);
+        try {
+            Table table = tableFilter.getTable();
+            session.getUser().checkRight(table, Right.UPDATE);
+            table.fireBefore(session);
+            table.lock(session, true, false);
+            int columnCount = table.getColumns().length;
+            // get the old rows, compute the new rows
+            setCurrentRowNumber(0);
+            int count = 0;
+            while (tableFilter.next()) {
+                checkCancelled();
+                setCurrentRowNumber(count+1);
+                if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+                    Row oldRow = tableFilter.get();
+                    Row newRow = table.getTemplateRow();
+                    for (int i = 0; i < columnCount; i++) {
+                        Expression newExpr = expressions[i];
+                        Value newValue;
+                        if (newExpr == null) {
+                            newValue = oldRow.getValue(i);
+                        } else {
+                            Column column = table.getColumn(i);
+                            newValue = newExpr.getValue(session).convertTo(column.getType());
+                        }
+                        newRow.setValue(i, newValue);
                     }
-                    newRow.setValue(i, newValue);
+                    table.validateConvertUpdateSequence(session, newRow);
+                    if (table.fireRow()) {
+                        table.fireBeforeRow(session, oldRow, newRow);
+                    }
+                    rows.add(oldRow);
+                    rows.add(newRow);
+                    count++;
                 }
-                table.validateConvertUpdateSequence(session, newRow);
-                oldRows.add(oldRow);
-                newRows.add(newRow);
             }
-        }
-        // TODO performance: loop only if required
-        // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition! 
-        // probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
-        // TODO update in-place (but if the position changes, we need to update all indexes)
-        // before row triggers
-        if (table.fireRow()) {
-            for (int i = 0; i < oldRows.size(); i++) {
-                checkCancelled();
-                Row o = (Row) oldRows.get(i);
-                Row n = (Row) newRows.get(i);
-                table.fireBeforeRow(session, o, n);
+            // TODO performance: loop only if required
+            // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition! 
+            // probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
+            // TODO update in-place (but if the position changes, we need to update all indexes)
+            // before row triggers
+            table.updateRows(this, session, rows);
+            if (table.fireRow()) {
+                for (rows.reset(); rows.hasNext();) {
+                    checkCancelled();
+                    Row o = rows.next();
+                    Row n = rows.next();
+                    table.fireAfterRow(session, o, n);
+                }
             }
+            table.fireAfter(session);
+            return count;
+        } finally {
+            rows.close();
         }
-        table.updateRows(this, session, oldRows, newRows);
-        if (table.fireRow()) {
-            for (int i = 0; i < newRows.size(); i++) {
-                checkCancelled();
-                Row n = (Row) newRows.get(i);
-                Row o = (Row) oldRows.get(i);
-                table.fireAfterRow(session, o, n);
-            }
-        }
-        table.fireAfter(session);
-        return newRows.size();
     }
     
     public String getPlanSQL() {

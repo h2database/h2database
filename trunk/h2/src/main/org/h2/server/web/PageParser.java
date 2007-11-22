@@ -227,16 +227,19 @@ public class PageParser {
             return "&nbsp;";
         }
         StringBuffer buff = new StringBuffer(s.length());
-        boolean leadingSpace = true;
+        boolean convertSpace = true;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if (leadingSpace) {
-                if (c == ' ') {
+            if (c == ' ') {
+                if (convertSpace) {
                     buff.append("&nbsp;");
-                    continue;
                 } else {
-                    leadingSpace = false;
+                    buff.append(' ');
+                    convertSpace = true;
                 }
+                continue;
+            } else {
+                convertSpace = false;
             }
             switch (c) {
             case '$':
@@ -261,7 +264,7 @@ public class PageParser {
             case '\n':
                 if (convertBreak) {
                     buff.append("<br />");
-                    leadingSpace = true;
+                    convertSpace = true;
                 } else {
                     buff.append(c);
                 }

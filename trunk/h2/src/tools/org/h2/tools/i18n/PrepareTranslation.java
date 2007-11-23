@@ -47,7 +47,7 @@ public class PrepareTranslation {
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
-        // buildHtml("src/docsrc/text", "docs/html", "de");
+        buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
 
         // convert the properties files back to utf8 text files, including the
@@ -388,6 +388,8 @@ public class PrepareTranslation {
         PropertiesToUTF8.storeProperties(p, main.getAbsolutePath());
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
+            String language = trans.getName();
+            // language = language.substring(language.lastIndexOf('_'), language.lastIndexOf('.'));
             prepare(p, base, trans);
         }
         PropertiesToUTF8.storeProperties(p, baseDir + "/" + main.getName());

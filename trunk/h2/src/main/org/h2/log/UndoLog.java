@@ -79,15 +79,21 @@ public class UndoLog {
                 file.autoDelete();
                 file.seek(FileStore.HEADER_LENGTH);
                 rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
-            }
-            DataPage buff = rowBuff;
-            for (int i = 0; i < records.size(); i++) {
-                UndoLogRecord r = (UndoLogRecord) records.get(i);
-                if (!r.isStored() && r.canStore()) {
-                    r.save(buff, file);
-                    memoryUndo--;
+                DataPage buff = rowBuff;
+                for (int i = 0; i < records.size(); i++) {
+                    UndoLogRecord r = (UndoLogRecord) records.get(i);
+                    saveIfPossible(r, buff);
                 }
+            } else {
+                saveIfPossible(entry, rowBuff);
             }
+        }
+    }
+    
+    private void saveIfPossible(UndoLogRecord r, DataPage buff) throws SQLException {
+        if (!r.isStored() && r.canStore()) {
+            r.save(buff, file);
+            memoryUndo--;
         }
     }
     

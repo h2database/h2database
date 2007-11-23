@@ -150,20 +150,12 @@ java org.h2.test.TestAll timer
 
 /*
 
-support large updates/deletes
-
 Known Problems:
 link to history page, bug page
 Add a link to the google code bug page
 
 History:
-MVCC: now an exception is thrown when an application tries to change the MVCC setting while the database is already open.
-Referential integrity checks didn't lock the referenced table, and thus could read uncommitted rows of other connections. In that way the referential contraints could get violated (except when using MVCC).
-Renaming or dropping a user with a schema, or removing the admin property of that user made the schema inaccessible after re-opening the database. Fixed.
-The H2 Console now also support the command line option -ifExists when started from the Server tool, but only when connecting to H2 databases.
-Duplicate column names were not detected when renaming columns. Fixed.
-The console did not display multiple embedded spaces in text correctly. Fixed.
-Google Android support: use 'ant codeswitchAndroid' to switch the source code to Android.
+
 
 implement & test: checkpoint commits running transactions
 

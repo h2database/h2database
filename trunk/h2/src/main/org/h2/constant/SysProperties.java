@@ -61,10 +61,7 @@ public class SysProperties {
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     public static final boolean NEW_DISPLAY_SIZE = getBooleanSetting("h2.newDisplaySize", true);
-private int test;    
-    public static final int DEFAULT_MAX_OPERERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 0);
-//    public static final int DEFAULT_MAX_OPERERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
-//    public static final int DEFAULT_MAX_OPERERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 1);
+    public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
     
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);

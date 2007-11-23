@@ -134,6 +134,10 @@ public abstract class TestBase {
         if (config.diskUndo && admin) {
             url += ";MAX_MEMORY_UNDO=3";
         }
+        if (config.big && admin) {
+            // force operations to disk
+            url += ";MAX_OPERATION_MEMORY=1";
+        }
         if (config.mvcc) {
             url += ";MVCC=TRUE";
         }

@@ -198,7 +198,9 @@ public class Message {
             }
         }
         IOException io = new IOException(e.toString());
-        io.fillInStackTrace();
+//#ifdef JDK14
+        io.initCause(e);
+//#endif
         return io;
     }
 

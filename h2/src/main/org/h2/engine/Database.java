@@ -145,7 +145,7 @@ public class Database implements DataHandler {
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
-    private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERERATION_MEMORY;
+    private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null);

@@ -18,6 +18,9 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
+/**
+ * A list of rows. If the list grows too large, it is buffered to disk automatically.
+ */
 public class RowList {
     private final Session session;
     private ObjectArray list = new ObjectArray();
@@ -29,10 +32,11 @@ public class RowList {
     private ObjectArray lobs;
     private int memory, maxMemory;
     private boolean written;
+    private boolean readUncached;
     
     public RowList(Session session) {
         this.session = session;
-        if (SysProperties.DEFAULT_MAX_OPERERATION_MEMORY > 0 && session.getDatabase().isPersistent()) {
+        if (SysProperties.DEFAULT_MAX_OPERATION_MEMORY > 0 && session.getDatabase().isPersistent()) {
             maxMemory = session.getDatabase().getMaxOperationMemory();
         }
     }
@@ -105,8 +109,6 @@ public class RowList {
     }
     
     public void add(Row r) throws SQLException {
-int test;
-//print(" add " + r);        
         list.add(r);
         memory += r.getMemorySize();
         if (maxMemory > 0 && memory > maxMemory) {
@@ -116,8 +118,6 @@ int test;
     }
     
     public void reset() throws SQLException {
-int test;
-//print(" reset");
         index = 0;
         if (file != null) {
             listIndex = 0;
@@ -131,8 +131,6 @@ int test;
     }
     
     public boolean hasNext() {
-int test;
-//print(" hasNext " + (index < size) + " index:" + index + " size:" + size);
         return index < size;
     }
     
@@ -143,6 +141,9 @@ int test;
         int memory = buff.readInt();
         int columnCount = buff.readInt();
         int pos = buff.readInt();
+        if (readUncached) {
+            pos = 0;
+        }
         boolean deleted = buff.readInt() == 1;
         int sessionId = buff.readInt();
         int storageId = buff.readInt();
@@ -163,7 +164,7 @@ int test;
         row.setStorageId(storageId);
         return row;
     }
-    
+
     public Row next() throws SQLException {
         Row r;
         if (file == null) {
@@ -193,13 +194,15 @@ int test;
             index++;
             r = (Row) list.get(listIndex++);
         }
-int test;
-//print(" get " + r + " index:" + index + " listIndex:" + listIndex);        
         return r;
     }
     
     public int size() {
         return size;
+    }
+    
+    public void invalidateCache() {
+        readUncached = true;
     }
     
     public void close() {
@@ -209,9 +212,5 @@ int test;
             rowBuff = null;
         }        
     }
-    
-//    private void print(String s) {
-//        int test;
-//        System.out.println(this + s);        
-//    }
+
 }

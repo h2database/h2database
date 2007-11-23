@@ -49,12 +49,6 @@ public class ReaderInputStream extends InputStream {
             if (remaining < 0) {
                 return;
             }          
-//            String s = new String(chars, 0, remaining);
-//            try {
-//                buffer = StringUtils.asBytes(s);
-//            } catch(SQLException e) {
-//                throw new IOException(e.toString());
-//            }
             writer.write(chars, 0, remaining);
             writer.flush();
             buffer = out.toByteArray();

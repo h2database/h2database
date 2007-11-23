@@ -944,11 +944,12 @@ SET MAX_MEMORY_UNDO 1000
 "Commands (Other)","SET MAX_OPERATION_MEMORY","
 SET MAX_OPERATION_MEMORY int
 ","
-Sets the maximum memory size used for large operations (delete and insert).
+Sets the maximum memory used for large operations (delete and insert), in bytes.
 Operations that use more memory are buffered to disk, slowing down the operation.
 The default max size is 100000. 0 means no limit.
 This setting is not persistent.
 Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;MAX_OPERATION_MEMORY=10000
 ","
 SET MAX_OPERATION_MEMORY 0
 "

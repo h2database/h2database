@@ -34,10 +34,10 @@ public class TestTransaction extends TestBase {
         s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
         Connection c2 = getConnection("transaction");
         c2.setAutoCommit(false);
-        s1.executeUpdate("insert into A(code) values('un cod')");
+        s1.executeUpdate("insert into A(code) values('one')");
         Statement s2 = c2.createStatement();
         try {
-            s2.executeUpdate("insert into B values('un B', 1)");
+            s2.executeUpdate("insert into B values('two', 1)");
             error("Unexpected success");
         } catch (SQLException e) {
             checkNotGeneralException(e);

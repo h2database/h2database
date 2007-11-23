@@ -58,12 +58,12 @@ public class TestPreparedStatement extends TestBase {
     private void testTempView(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
-        stat.execute("CREATE TABLE TEST(FLD INT PRIMARY KEY)");
+        stat.execute("CREATE TABLE TEST(FIELD INT PRIMARY KEY)");
         stat.execute("INSERT INTO TEST VALUES(1)");
         stat.execute("INSERT INTO TEST VALUES(2)");
-        prep = conn.prepareStatement("select FLD FROM " 
-                + "(select FLD FROM (SELECT FLD  FROM TEST WHERE FLD = ?) AS TBL2 "
-                + "WHERE TBL2.FLD = ?) AS TBL3 WHERE TBL3.FLD = ?");
+        prep = conn.prepareStatement("select FIELD FROM " 
+                + "(select FIELD FROM (SELECT FIELD  FROM TEST WHERE FIELD = ?) AS T2 "
+                + "WHERE T2.FIELD = ?) AS T3 WHERE T3.FIELD = ?");
         prep.setInt(1, 1);
         prep.setInt(2, 1);
         prep.setInt(3, 1);

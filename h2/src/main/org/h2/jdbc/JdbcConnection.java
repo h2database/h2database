@@ -1269,12 +1269,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     public NClob createNClob() throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
-            debugCodeAssign("NClob", TraceObject.CLOB, id);
-            debugCodeCall("createNClob");
+            debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
             return new JdbcClob(session, this, v, id);
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
@@ -1388,7 +1387,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 //#ifdef JDK16
 /*
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */

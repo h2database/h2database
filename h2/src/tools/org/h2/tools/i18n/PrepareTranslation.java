@@ -24,8 +24,8 @@ import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
-import com.google.api.translate.Language;
-import com.google.api.translate.Translate;
+//import com.google.api.translate.Language;
+//import com.google.api.translate.Translate;
 
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
@@ -55,7 +55,7 @@ public class PrepareTranslation {
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
-        buildHtml("src/docsrc/text", "docs/html", "de");
+        // buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
 
         // convert the properties files back to utf8 text files, including the
@@ -424,7 +424,7 @@ public class PrepareTranslation {
                 if (t == null) {
                     System.out.println(trans.getName() + ": key " + key
                             + " not found in translation file; added dummy # 'translation'");
-                    t = "#" + now;
+                    t = "#" + autoTranslate(now, language);
                 }
                 p.put(key, t);
             } else {
@@ -473,17 +473,24 @@ public class PrepareTranslation {
     }
     
     private String autoTranslate(String original, String language) {
+        if (original == null || original.trim().length() == 0) {
+            return original;
+        }
         String translation = original;
         if (!AUTO_TRANSLATE) {
             return "#" + translation;
         }
-        if ("de".equals(language)) {
-            try {
-                return "#" + Translate.translate(original, Language.ENGLISH, Language.GERMAN);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+//        if ("de".equals(language)) {
+//            try {
+//                Thread.sleep(5000);
+//                translation = Translate.translate(original, Language.ENGLISH, Language.GERMAN);
+//                System.out.println("original: " + original);
+//                System.out.println("translation: " + translation);
+//            } catch (Throwable e) {
+//                System.out.println("Exception translating [" + original + "]: " + e);
+//                // e.printStackTrace();
+//            }
+//        }
         return "#" + translation;
     }
 }

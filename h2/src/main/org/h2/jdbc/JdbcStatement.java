@@ -867,7 +867,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
 //#ifdef JDK16
 /*
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */

@@ -24,11 +24,19 @@ import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
+import com.google.api.translate.Language;
+import com.google.api.translate.Translate;
+
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
     private static final String DELETED_PREFIX = "~";
+    private static final boolean AUTO_TRANSLATE = false;
 
     public static void main(String[] args) throws Exception {
+        new PrepareTranslation().run(args);
+    }
+    
+    private void run(String[] args) throws Exception {
         String baseDir = "src/docsrc/textbase";
         prepare(baseDir, "src/main/org/h2/res");
         prepare(baseDir, "src/main/org/h2/server/web/res");
@@ -368,7 +376,7 @@ public class PrepareTranslation {
         prop.setProperty(document, s);
     }
 
-    private static void prepare(String baseDir, String path) throws IOException {
+    private void prepare(String baseDir, String path) throws IOException {
         File dir = new File(path);
         File[] list = dir.listFiles();
         File main = null;
@@ -389,13 +397,13 @@ public class PrepareTranslation {
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
             String language = trans.getName();
-            // language = language.substring(language.lastIndexOf('_'), language.lastIndexOf('.'));
-            prepare(p, base, trans);
+            language = language.substring(language.lastIndexOf('_') + 1, language.lastIndexOf('.'));
+            prepare(p, base, trans, language);
         }
         PropertiesToUTF8.storeProperties(p, baseDir + "/" + main.getName());
     }
 
-    private static void prepare(Properties main, Properties base, File trans) throws IOException {
+    private void prepare(Properties main, Properties base, File trans, String language) throws IOException {
         Properties p = FileUtils.loadProperties(trans.getAbsolutePath());
         Properties oldTranslations = new Properties();
         for (Iterator it = base.keySet().iterator(); it.hasNext();) {
@@ -437,7 +445,7 @@ public class PrepareTranslation {
                         System.out.println(trans.getName() + ": key " + key + " changed, please review; last=" + last
                                 + " now=" + now);
                         String old = p.getProperty(key);
-                        t = "#" + now + " #" + old;
+                        t = "#" + autoTranslate(now, language) + " #" + old;
                     }
                     p.put(key, t);
                 }
@@ -462,5 +470,20 @@ public class PrepareTranslation {
             }
         }
         PropertiesToUTF8.storeProperties(p, trans.getAbsolutePath());
+    }
+    
+    private String autoTranslate(String original, String language) {
+        String translation = original;
+        if (!AUTO_TRANSLATE) {
+            return "#" + translation;
+        }
+        if ("de".equals(language)) {
+            try {
+                return "#" + Translate.translate(original, Language.ENGLISH, Language.GERMAN);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return "#" + translation;
     }
 }

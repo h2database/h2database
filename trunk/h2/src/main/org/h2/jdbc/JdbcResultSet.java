@@ -3156,8 +3156,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public NClob getNClob(int columnIndex) throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
-            debugCodeAssign("NClob", TraceObject.CLOB, id);
-            debugCodeCall("getNClob", columnIndex);
+            debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + columnIndex + ")");
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcClob(session, conn, v, id);
         } catch (Throwable e) {
@@ -3179,8 +3178,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public NClob getNClob(String columnName) throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
-            debugCodeAssign("NClob", TraceObject.CLOB, id);
-            debugCodeCall("getNClob", columnName);
+            debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + columnName + ")");
             Value v = get(columnName);
             return v == ValueNull.INSTANCE ? null : new JdbcClob(session, conn, v, id);
         } catch (Throwable e) {
@@ -3401,7 +3399,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 //#ifdef JDK16
 /*
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCode("isWrapperFor");
         throw Message.getUnsupportedException();
     }

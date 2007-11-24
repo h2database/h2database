@@ -2655,7 +2655,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
 //#ifdef JDK16
 /*
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");        
         throw Message.getUnsupportedException();
     }

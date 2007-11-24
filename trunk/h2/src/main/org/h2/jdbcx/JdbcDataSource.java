@@ -288,7 +288,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 
 //#ifdef JDK16
 /*
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
 */

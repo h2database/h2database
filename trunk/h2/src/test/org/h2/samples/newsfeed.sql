@@ -10,6 +10,37 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(32,
+'New version available: 1.0.62 (2007-11-25)', '2007-11-25 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Large updates and deletes are now supported.
+</li><li>Google Android is supported.
+</li><li>Large CSV operations are now faster.
+</li><li>A patch for Apache DDL Utils is available.
+</li><li>Eduardo Velasques has translated H2 to Brazilian Portuguese.
+</li><li>Now using custom toString() for JDBC objects.
+</li><li>The setting h2.emergencySpaceInitial is now 256 KB.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Creating a table from GROUP_CONCAT didn''t always work.
+</li><li>CSV: Using an empty field delimiter didn''t work.
+</li><li>Nested temporary views with parameters didn''t always work.
+</li><li>Cluster mode: could not connect if only one server was running.
+</li><li>ARRAY values are now sorted as in PostgreSQL.
+</li><li>The console did not display multiple spaces correctly.
+</li><li>Duplicate column names were not detected when renaming columns.
+</li><li>The H2 Console now also supports -ifExists.
+</li><li>Changing a user with a schema made the schema inaccessible.
+</li><li>Referential integrity checks didn''t lock the referenced table.
+</li><li>Now changing MVCC too late throws an Exception.
+</li></ul>
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(31,
 'New version available: 1.0.61 (2007-11-10)', '2007-11-10 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

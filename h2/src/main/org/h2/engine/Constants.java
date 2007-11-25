@@ -60,9 +60,10 @@ import org.h2.constant.SysProperties;
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge
- * - Newsletter: send without 'to unsubscribe...' to h2database-news@googlegroups.com, but 
+ * - Newsletter: send without 'to unsubscribe...' to h2database-news@googlegroups.com
  * - Newsletter: prepare, send (always send to BCC!!)
- * - Add to freshmeat, http://code.google.com/p/h2database/downloads/list
+ * - Add to freshmeat
+ * - Upload to http://code.google.com/p/h2database/downloads/list
  * 
  * @author Thomas
  */

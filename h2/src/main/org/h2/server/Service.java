@@ -14,5 +14,6 @@ public interface Service {
     void stop();
     boolean isRunning();
     boolean getAllowOthers();
+    String getName();
     String getType();
 }

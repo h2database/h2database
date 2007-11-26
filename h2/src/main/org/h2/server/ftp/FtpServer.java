@@ -157,19 +157,20 @@ public class FtpServer implements Service {
 
     public void init(String[] args) throws Exception {
         for (int i = 0; args != null && i < args.length; i++) {
-            if ("-ftpPort".equals(args[i])) {
+            String a = args[i];
+            if ("-ftpPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
-            } else if ("-ftpDir".equals(args[i])) {
+            } else if ("-ftpDir".equals(a)) {
                 root = FileUtils.normalize(args[++i]);
-            } else if ("-ftpRead".equals(args[i])) {
+            } else if ("-ftpRead".equals(a)) {
                 readUserName = args[++i];
-            } else if ("-ftpWrite".equals(args[i])) {
+            } else if ("-ftpWrite".equals(a)) {
                 writeUserName = args[++i];
-            } else if ("-ftpWritePassword".equals(args[i])) {
+            } else if ("-ftpWritePassword".equals(a)) {
                 writePassword = args[++i];
-            } else if ("-log".equals(args[i])) {
+            } else if ("-log".equals(a)) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
-            } else if ("-ftpTask".equals(args[i])) {
+            } else if ("-ftpTask".equals(a)) {
                 allowTask = Boolean.valueOf(args[++i]).booleanValue();
             }
         }
@@ -214,6 +215,10 @@ public class FtpServer implements Service {
 
     public String getType() {
         return "FTP";
+    }
+
+    public String getName() {
+        return "H2 FTP Server";
     }
 
     void log(String s) {

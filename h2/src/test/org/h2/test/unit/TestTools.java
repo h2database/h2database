@@ -4,7 +4,9 @@
  */
 package org.h2.test.unit;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,6 +30,7 @@ public class TestTools extends TestBase {
     
     public void test() throws Exception {
         deleteDb("utils");
+        testServerMain();
         testRemove();
         testConvertTraceFile();
         testManagementDb();
@@ -37,6 +40,51 @@ public class TestTools extends TestBase {
         testScriptRunscript();
         testBackupRestore();
         testRecover();
+    }
+    
+    private void testServerMain() throws Exception {
+        String result;
+        Connection conn;
+        org.h2.Driver.load();
+        
+        result = runServer(new String[]{"-?"}, 1);
+        check(result.indexOf("[options]") >= 0);
+        check(result.indexOf("Unknown option") < 0);
+        
+        result = runServer(new String[]{"-xy"}, 1);
+        check(result.indexOf("[options]") >= 0);
+        check(result.indexOf("Unknown option") >= 0);
+        
+        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "false", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
+        check(result.indexOf("tcp://") >= 0);
+        check(result.indexOf(":9001") >= 0);
+        check(result.indexOf("only local") >= 0);
+        check(result.indexOf("[options]") < 0);
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
+        conn.close();
+        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
+        check(result.indexOf("Shutting down") >= 0);
+        
+        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9001", "-tcpPassword", "def", "-tcpSSL", "true"}, 0);
+        check(result.indexOf("ssl://") >= 0);
+        check(result.indexOf(":9001") >= 0);
+        check(result.indexOf("others can") >= 0);
+        check(result.indexOf("[options]") < 0);
+        conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+        conn.close();
+        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "def", "-tcpShutdownForce", "false"}, 0);
+        check(result.indexOf("Shutting down") >= 0);
+
+    }
+    
+    private String runServer(String[] args, int exitCode) throws Exception {
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(buff);
+        int gotCode = new Server().run(args, ps);
+        check(exitCode, gotCode);
+        ps.flush();
+        String s = new String(buff.toByteArray());
+        return s;
     }
     
     private void testConvertTraceFile() throws Exception {
@@ -213,7 +261,6 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
         conn.close();
         server.stop();
-
         server = Server.createTcpServer(
                 new String[] { "-ifExists", "true", "-tcpPassword", "abc", "-baseDir", baseDir }).start();
         try {

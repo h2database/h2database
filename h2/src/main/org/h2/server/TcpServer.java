@@ -248,6 +248,10 @@ public class TcpServer implements Service {
         return "TCP";
     }
 
+    public String getName() {
+        return "H2 TCP Server";
+    }
+    
     public void logInternalError(String string) {
         if (TcpServer.logInternalErrors) {
             System.out.println(string);

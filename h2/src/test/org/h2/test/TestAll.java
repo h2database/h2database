@@ -150,6 +150,13 @@ java org.h2.test.TestAll timer
 
 /*
 
+write more tests for the command line tools
+
+Changelog:
+Certain setting in the Server didn't work (see bug...)
+
+avoid creating thousands of trace.db files
+
 Known Problems:
 link to history page, bug page
 Add a link to the google code bug page

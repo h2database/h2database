@@ -336,6 +336,10 @@ public class WebServer implements Service {
         return "Web";
     }
 
+    public String getName() {
+        return "H2 Console Server";
+    }
+
     void setAllowOthers(boolean b) {
         allowOthers = b;
     }

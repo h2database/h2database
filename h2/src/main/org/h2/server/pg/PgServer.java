@@ -177,6 +177,10 @@ public class PgServer implements Service {
     public String getType() {
         return "PG";
     }
+    
+    public String getName() {
+        return "H2 PG Server";
+    }
 
     public boolean getIfExists() {
         return ifExists;

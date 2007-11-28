@@ -391,7 +391,7 @@ userString, passwordString, originalTableString)
 ","
 Creates a table link to an external table.
 The driver name may be empty if the driver is already loaded.
-Usually, for update statements, the old rows are deleted first 
+Usually, for update statements, the old rows are deleted first
 and then the new rows inserted. It is possible to emit update
 statements (however this is not possible on rollback), however
 in this case multi-row unique key updates may not always work.
@@ -426,7 +426,7 @@ CREATE SEQUENCE [IF NOT EXISTS] newSequenceName
 [CACHE long]
 ","
 Creates a new sequence. The data type of a sequence is BIGINT.
-The cache is the number of pre-allocated numbers. If the system crashes without closing the 
+The cache is the number of pre-allocated numbers. If the system crashes without closing the
 database, at most this many numbers are lost. The default cache size is 32.
 ","
 CREATE SEQUENCE SEQ_ID
@@ -933,7 +933,7 @@ SET MAX_MEMORY_ROWS 1000
 SET MAX_MEMORY_UNDO int
 ","
 The maximum number of undo records per a session that are kept in-memory.
-If a transaction is larger, the records are buffered to disk. The default value is 100000. 
+If a transaction is larger, the records are buffered to disk. The default value is 100000.
 Changes to tables without a primary key can not be buffered to disk.
 This setting is persistent.
 Admin rights are required to execute this command.
@@ -1177,7 +1177,7 @@ TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 {int | expression} [ASC | DESC]
 [NULLS {FIRST | LAST}]
 ","
-Sorts the result by the given column number, or by an expression. 
+Sorts the result by the given column number, or by an expression.
 If the expression is a single parameter, then the value is interpreted
 as a column number. Negative column numbers reverse the sort order.
 ","
@@ -1215,7 +1215,7 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 | [NOT] LIKE operand [ESCAPE string]
 | [NOT] REGEXP operand
 ","
-The right hand side of a condition. 
+The right hand side of a condition.
 When comparing with LIKE, the wildcards characters are _ (any one character) and % (any characters).
 When comparing with REGEXP, regular expression matching is used. See Java Matcher.find for details.
 ","
@@ -2636,7 +2636,7 @@ LOCK_TIMEOUT()
 "
 
 "Functions (System)","LINK_SCHEMA","
-LINK_SCHEMA(targetSchemaString, driverString, urlString, 
+LINK_SCHEMA(targetSchemaString, driverString, urlString,
 userString, passwordString, sourceSchemaString): resultSet
 ","
 Creates table links for all tables in a schema.
@@ -2724,9 +2724,9 @@ CALL SESSION_ID()
 "
 
 "Functions (System)","TABLE","
-TABLE( { name dataType = expression } [,..]): result set
+TABLE|TABLE_DISTINCT( { name dataType = expression } [,..]): result set
 ","
-Returns the result set.
+Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
 SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
 "

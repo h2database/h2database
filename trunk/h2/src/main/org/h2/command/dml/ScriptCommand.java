@@ -77,7 +77,7 @@ public class ScriptCommand extends ScriptBase {
     public boolean isQuery() {
         return true;
     }
-    
+
     // TODO lock all tables for 'script' command
 
     public void setData(boolean data) {
@@ -91,24 +91,24 @@ public class ScriptCommand extends ScriptBase {
     public void setSettings(boolean settings) {
         this.settings = settings;
     }
-    
+
     public void setLobBlockSize(long blockSize) {
         this.lobBlockSize = MathUtils.convertLongToInt(blockSize);
     }
-    
+
     public void setDrop(boolean drop) {
         this.drop = drop;
     }
-    
+
     public LocalResult queryMeta() throws SQLException {
         LocalResult result = createResult();
         result.done();
         return result;
     }
-    
+
     private LocalResult createResult() {
         ObjectArray cols = new ObjectArray();
-        cols.add(new ExpressionColumn(session.getDatabase(), null, new Column("SCRIPT", Value.STRING)));
+        cols.add(new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", Value.STRING)));
         return new LocalResult(session, cols, 1);
     }
 
@@ -314,7 +314,7 @@ public class ScriptCommand extends ScriptBase {
         reset();
         return r;
     }
-    
+
     private int writeLobStream(ValueLob v) throws IOException, SQLException {
         if (!tempLobTableCreated) {
             add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT, PART INT, CDATA VARCHAR, BDATA BINARY, PRIMARY KEY(ID, PART))", true);
@@ -371,7 +371,7 @@ public class ScriptCommand extends ScriptBase {
         }
         return id;
     }
-    
+
     // called from the script
     public static InputStream combineBlob(Connection conn, int id) throws SQLException, IOException {
         if (id < 0) {

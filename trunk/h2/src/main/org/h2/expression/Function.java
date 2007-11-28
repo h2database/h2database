@@ -21,6 +21,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
@@ -31,14 +32,12 @@ import org.h2.table.LinkSchema;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.tools.SimpleResultSet;
-import org.h2.util.ObjectUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -85,7 +84,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221;
+            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221, TABLE_DISTINCT = 222;
 
     private static final int VAR_ARGS = -1;
 
@@ -286,6 +285,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
         addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
     }
@@ -817,14 +817,16 @@ public class Function extends Expression implements FunctionCall {
             return ValueResultSet.get(rs);
         }
         case TABLE:
-            return getTable(session, args, false);
+            return getTable(session, args, false, false);
+        case TABLE_DISTINCT:
+            return getTable(session, args, false, true);
         case CSVWRITE: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
             String charset = v2 == null ? null : v2.getString();
             String fieldSeparatorWrite = v3 == null ? null : v3.getString();
             String fieldDelimiter = v4 == null ? null : v4.getString();
-            String escapeCharacter = v5 == null ? null : v5.getString();            
+            String escapeCharacter = v5 == null ? null : v5.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
             int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
@@ -1266,6 +1268,7 @@ public class Function extends Expression implements FunctionCall {
             case COALESCE:
             case CSVREAD:
             case TABLE:
+            case TABLE_DISTINCT:
             case LEAST:
             case GREATEST:
                 min = 1;
@@ -1438,14 +1441,14 @@ public class Function extends Expression implements FunctionCall {
         }
         return precision;
     }
-    
+
     public int getDisplaySize() {
         if (precision == 0) {
             calculatePrecisionAndDisplaySize();
         }
         return displaySize;
     }
-    
+
     private void calculatePrecisionAndDisplaySize() {
         switch (info.type) {
         case ENCRYPT:
@@ -1529,6 +1532,7 @@ public class Function extends Expression implements FunctionCall {
             buff.append(args[1].getSQL());
             break;
         }
+        case TABLE_DISTINCT:
         case TABLE: {
             for (int i = 0; i < args.length; i++) {
                 if (i > 0) {
@@ -1597,14 +1601,17 @@ public class Function extends Expression implements FunctionCall {
             return vr;
         }
         case TABLE: {
-            return getTable(session, args, true);
+            return getTable(session, args, true, false);
+        }
+        case TABLE_DISTINCT: {
+            return getTable(session, args, true, true);
         }
         default:
             break;
         }
         return (ValueResultSet) getValueWithArgs(session, args);
     }
-    
+
     private void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {
         if (fieldSeparator != null) {
             csv.setFieldSeparatorWrite(fieldSeparator);
@@ -1648,19 +1655,21 @@ public class Function extends Expression implements FunctionCall {
         return cost;
     }
 
-    public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList) throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
+    public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
         int len = columnList.length;
+        Expression[] header = new Expression[len];
+        Database db = session.getDatabase();
         for (int i = 0; i < len; i++) {
             Column c = columnList[i];
-            String columnName = c.getName();
-            int dataType = DataType.convertTypeToSQLType(c.getType());
-            int precision = MathUtils.convertLongToInt(c.getPrecision());
-            int scale = c.getScale();
-            rs.addColumn(columnName, dataType, precision, scale);
+            ExpressionColumn col = new ExpressionColumn(db, c);
+            header[i] = col;
+        }
+        LocalResult result = new LocalResult(session, header, len);
+        if (distinct) {
+            result.setDistinct();
         }
         if (!onlyColumnList) {
-            Value[][] list = new Value[args.length][];
+            Value[][] list = new Value[len][];
             int rowCount = 0;
             for (int i = 0; i < len; i++) {
                 Value v = args[i].getValue(session);
@@ -1674,7 +1683,7 @@ public class Function extends Expression implements FunctionCall {
                 }
             }
             for (int row = 0; row < rowCount; row++) {
-                Object[] r = new Object[len];
+                Value[] r = new Value[len];
                 for (int j = 0; j < len; j++) {
                     Value[] l = list[j];
                     Value v;
@@ -1687,12 +1696,13 @@ public class Function extends Expression implements FunctionCall {
                         v = v.convertPrecision(c.getPrecision());
                         v = v.convertScale(true, c.getScale());
                     }
-                    r[j] = v.getObject();
+                    r[j] = v;
                 }
-                rs.addRow(r);
+                result.addRow(r);
             }
         }
-        ValueResultSet vr = ValueResultSet.get(rs);
+        result.done();
+        ValueResultSet vr = ValueResultSet.getCopy(result, Integer.MAX_VALUE);
         return vr;
     }
 

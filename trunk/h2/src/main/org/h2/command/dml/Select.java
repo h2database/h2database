@@ -10,6 +10,7 @@ import java.util.HashSet;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
+import org.h2.expression.Alias;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
@@ -34,12 +35,12 @@ import org.h2.value.ValueNull;
 
 /**
  * This class represents a simple SELECT statement.
- * 
+ *
  * For each select statement:
  * visibleColumnCount <= distinctColumnCount <= expressionCount.
  * Sortable count could include ORDER BY expressions that are not in the select list.
  * Expression count could include GROUP BY expressions.
- * 
+ *
  * The call sequence is init(), mapColumns() if it's a subquery, prepare().
  */
 public class Select extends Query {
@@ -198,7 +199,7 @@ public class Select extends Query {
      * This is to avoid running a separate ORDER BY if an index can be used.
      * This is specially important for large result sets, if only the first few rows are important
      * (LIMIT is used)
-     * 
+     *
      * @return the index if one is found
      */
     private Index getSortIndex() throws SQLException {
@@ -249,7 +250,7 @@ public class Select extends Query {
             }
             boolean ok = true;
             for (int j = 0; j < sortCols.length; j++) {
-                // the index and the sort order must start 
+                // the index and the sort order must start
                 // with the exact same columns
                 IndexColumn idxCol = indexCols[j];
                 Column sortCol = sortCols[j];
@@ -270,8 +271,9 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryFlat(int columnCount, LocalResult result, int limitRows) throws SQLException {
+    private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
+            // limitRows must be long, otherwise we get an int overflow if limitRows is at or near Integer.MAX_VALUE
             limitRows += offset.getValue(session).getInt();
         }
         int rowNumber = 0;
@@ -386,7 +388,7 @@ public class Select extends Query {
                 Column[] columns = t.getColumns();
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
-                    ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), this, null, alias, c.getName());
+                    ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), null, alias, c.getName());
                     expressions.add(i++, ec);
                 }
                 i--;
@@ -425,8 +427,8 @@ public class Select extends Query {
             havingIndex = -1;
         }
 
-        // first visible columns, then order by, then having, and then group by
-        // at the end
+        // first visible columns, then order by, then having,
+        // and group by at the end
         if (group != null) {
             groupIndex = new int[group.size()];
             for (int i = 0; i < group.size(); i++) {
@@ -486,6 +488,9 @@ public class Select extends Query {
         }
         if (condition != null) {
             condition = condition.optimize(session);
+            if (SysProperties.OPTIMIZE_IN_JOIN) {
+                condition = condition.optimizeInJoin(session, this);
+            }
             for (int j = 0; j < filters.size(); j++) {
                 TableFilter f = (TableFilter) filters.get(j);
                 condition.createIndexConditions(session, f);
@@ -561,7 +566,7 @@ public class Select extends Query {
             for (int i = 0; i < expressions.size(); i++) {
                 Expression e = (Expression) expressions.get(i);
                 e.setEvaluatable(f, true);
-            }        
+            }
             f = f.getJoin();
         }
         topTableFilter.prepare();
@@ -638,7 +643,7 @@ public class Select extends Query {
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }
-        
+
         if (isQuickQuery) {
             buff.append("\n/* direct lookup query */");
         }
@@ -775,6 +780,22 @@ public class Select extends Query {
 
     public boolean isReadOnly() {
         return isEverything(ExpressionVisitor.READONLY);
+    }
+
+    public String getFirstColumnAlias(Session session) {
+        if (SysProperties.CHECK) {
+            if (visibleColumnCount > 1) {
+                throw Message.getInternalError("" + visibleColumnCount);
+            }
+        }
+        Expression expr = (Expression) expressions.get(0);
+        if (expr instanceof Alias) {
+            return expr.getAlias();
+        } else {
+            expr = new Alias(expr,  session.getNextTempViewName() + "_X");
+            expressions.set(0, expr);
+        }
+        return expr.getAlias();
     }
 
 }

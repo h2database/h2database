@@ -104,7 +104,7 @@ import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 
 /**
- * The main test application. JUnit is not used because loops are easier to write in 
+ * The main test application. JUnit is not used because loops are easier to write in
  * regular java applications (most tests are ran multiple times using different settings).
  */
 public class TestAll {
@@ -117,7 +117,7 @@ public class TestAll {
 /*
 
 Random test:
- 
+
 cd bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"
@@ -142,31 +142,13 @@ java org.h2.test.TestAll timer
 
     private Server server;
     public boolean cache2Q;
-    
+
     public static void main(String[] args) throws Exception {
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
-        test.printSystem();      
+        test.printSystem();
 
 /*
-
-write more tests for the command line tools
-
-Changelog:
-Certain setting in the Server didn't work (see bug...)
-
-avoid creating thousands of trace.db files
-
-Known Problems:
-link to history page, bug page
-Add a link to the google code bug page
-
-History:
-
-
-implement & test: checkpoint commits running transactions
-
-test DbStarter
 
 create table test(id int, name varchar);
 insert into test select x, '' from system_range(1, 10000);
@@ -176,6 +158,37 @@ update test set name = 'y' where cast(id as varchar) like '1%';
 update test set name = 'x' where id in (select x from system_range(1, 10000) where cast(x as varchar) like '1%');
 drop table test;
 
+Optimize IN(...), IN(select), ID=? OR ID=?: create temp table and use join
+
+Bug:
+H2 1.0.62 (2007-11-25) has regressed on this query. Parser syntax error is returned (query is OK for derby, oracle, and earlier H2 versions).
+SELECT COUNT(*) FROM (
+SELECT TT.id,TT.table_name FROM (
+SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8 UNION  SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8) AS TT
+) AS AWR  WHERE AWR.id=-8
+Remove the final predicate and the query parses & runs fine:
+SELECT COUNT(*) FROM (
+SELECT TT.id,TT.table_name FROM (
+SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8 UNION  SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8) AS TT
+) AS AWR
+
+
+
+
+
+write more tests for the command line tools
+
+
+avoid creating thousands of trace.db files
+
+Known Problems:
+link to history page, bug page
+Add a link to the google code bug page
+
+implement & test: checkpoint commits running transactions
+
+test DbStarter
+
 ----
 A file is sent although the Japanese translation has not been completed yet.
 ----
@@ -183,17 +196,17 @@ A file is sent although the Japanese translation has not been completed yet.
 At startup, when corrupted, say if LOG=0 was used before
 
 slow:
-select ta.attname, ia.attnum, ic.relname 
-from pg_catalog.pg_attribute ta, pg_catalog.pg_attribute ia, pg_catalog.pg_class ic, pg_catalog.pg_index i, pg_catalog.pg_namespace n 
-where ic.relname = 'dummy_pkey' 
-AND n.nspname = '' 
-AND ic.oid = i.indexrelid 
-AND n.oid = ic.relnamespace 
-AND ia.attrelid = i.indexrelid 
-AND ta.attrelid = i.indrelid 
-AND ta.attnum = i.indkey[ia.attnum-1] 
-AND (NOT ta.attisdropped) 
-AND (NOT ia.attisdropped) 
+select ta.attname, ia.attnum, ic.relname
+from pg_catalog.pg_attribute ta, pg_catalog.pg_attribute ia, pg_catalog.pg_class ic, pg_catalog.pg_index i, pg_catalog.pg_namespace n
+where ic.relname = 'dummy_pkey'
+AND n.nspname = ''
+AND ic.oid = i.indexrelid
+AND n.oid = ic.relnamespace
+AND ia.attrelid = i.indexrelid
+AND ta.attrelid = i.indrelid
+AND ta.attnum = i.indkey[ia.attnum-1]
+AND (NOT ta.attisdropped)
+AND (NOT ia.attisdropped)
 order by ia.attnum;
 
 DROP TABLE IF EXISTS TEST;
@@ -229,7 +242,7 @@ move Products that Work with H2 > Comparison
 move Performance Tuning > Advanced Topics
 
 testHalt
-java org.h2.test.TestAll halt 
+java org.h2.test.TestAll halt
 
 timer test
 
@@ -237,18 +250,18 @@ java.lang.Exception: query was too quick; result: 0 time:968
         at org.h2.test.TestBase.logError(TestBase.java:220)
         at org.h2.test.db.TestCases$1.run(TestCases.java:170)
         at java.lang.Thread.run(Thread.java:595)
-        
+
 ftp server: problem with multithreading?
 
 h2\src\docsrc\html\images\SQLInjection.txt
 
-send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide, 
+send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide,
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 MySQL, PostgreSQL
 
-READ_TEXT(fileName String) returning a CLOB. 
-I am not sure if this will read the CLOB in memory however. 
+READ_TEXT(fileName String) returning a CLOB.
+I am not sure if this will read the CLOB in memory however.
 
 Improve LOB in directories performance
 
@@ -270,8 +283,8 @@ translated .pdf
 
 write tests using the PostgreSQL JDBC driver
 
-*/        
-        
+*/
+
 // run  TestHalt
 
 // GroovyServlet
@@ -292,13 +305,13 @@ write tests using the PostgreSQL JDBC driver
 // long running test with the same database
 
 // repeatable test with a very big database (making backups of the database files)
-        
+
 /*
 Features of H2
 - Case insensitive string data type
 - GROUP_CONCAT aggregate, User defined aggregates
-*/        
-        
+*/
+
         if (args.length > 0) {
             if ("crash".equals(args[0])) {
                 new TestCrashAPI().runTest(test);
@@ -331,7 +344,7 @@ Features of H2
     }
 
     void runTests() throws Exception {
-        
+
 //        TODO test set lock_mode=0, 1; max_trace_file_size; modes; collation; assert
 //        TODO test shutdown immediately
 
@@ -353,7 +366,7 @@ Features of H2
 //        big = true;
 //        memory = false;
 //
-        
+
         testQuick();
         testCombination();
 
@@ -405,7 +418,7 @@ Features of H2
         logMode = 1;
         cipher = null;
         mvcc = false;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
 
         diskUndo = false;
@@ -420,9 +433,9 @@ Features of H2
         logMode = 1;
         cipher = null;
         mvcc = false;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
-        
+
         big = false;
         smallLog = false;
         networked = false;
@@ -437,8 +450,8 @@ Features of H2
         throttle = 0;
         cipher = null;
         mvcc = false;
-        cache2Q = false;        
-        testAll();        
+        cache2Q = false;
+        testAll();
 
         diskUndo = true;
         smallLog = false;
@@ -452,7 +465,7 @@ Features of H2
         throttle = 1;
         cipher = "XTEA";
         mvcc = false;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
 
         diskUndo = false;
@@ -470,7 +483,7 @@ Features of H2
         throttle = 0;
         cipher = null;
         mvcc = false;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
 
         big = true;
@@ -487,9 +500,9 @@ Features of H2
         throttle = 0;
         cipher = null;
         mvcc = false;
-        cache2Q = true;        
+        cache2Q = true;
         testAll();
-        
+
         big = true;
         smallLog = false;
         networked = true;
@@ -504,19 +517,19 @@ Features of H2
         throttle = 0;
         cipher = "AES";
         mvcc = false;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
-        
+
         smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
         mvcc = true;
-        cache2Q = false;        
+        cache2Q = false;
         testAll();
-        
+
     }
-    
+
     void testAll() throws Exception {
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         testDatabase();
@@ -553,7 +566,7 @@ Features of H2
     void testDatabase() throws Exception {
         System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
-        
+
 //         int testMvcc;
 //         mvcc = true;
 

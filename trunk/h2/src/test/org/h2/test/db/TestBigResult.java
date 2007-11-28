@@ -23,7 +23,7 @@ public class TestBigResult extends TestBase {
         testOrderGroup();
         testLimitBufferedResult();
     }
-    
+
     private void testLargeUpdateDelete() throws Exception {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");

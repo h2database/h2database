@@ -27,7 +27,9 @@ import org.h2.tools.Server;
 import org.h2.util.Resources;
 
 public class TestTools extends TestBase {
-    
+
+    private Server server;
+
     public void test() throws Exception {
         deleteDb("utils");
         testServerMain();
@@ -41,20 +43,20 @@ public class TestTools extends TestBase {
         testBackupRestore();
         testRecover();
     }
-    
+
     private void testServerMain() throws Exception {
         String result;
         Connection conn;
         org.h2.Driver.load();
-        
+
         result = runServer(new String[]{"-?"}, 1);
         check(result.indexOf("[options]") >= 0);
         check(result.indexOf("Unknown option") < 0);
-        
+
         result = runServer(new String[]{"-xy"}, 1);
         check(result.indexOf("[options]") >= 0);
         check(result.indexOf("Unknown option") >= 0);
-        
+
         result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "false", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
         check(result.indexOf("tcp://") >= 0);
         check(result.indexOf(":9001") >= 0);
@@ -64,29 +66,50 @@ public class TestTools extends TestBase {
         conn.close();
         result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
         check(result.indexOf("Shutting down") >= 0);
-        
-        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9001", "-tcpPassword", "def", "-tcpSSL", "true"}, 0);
+
+        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL", "true"}, 0);
         check(result.indexOf("ssl://") >= 0);
         check(result.indexOf(":9001") >= 0);
         check(result.indexOf("others can") >= 0);
         check(result.indexOf("[options]") < 0);
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
-        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "def", "-tcpShutdownForce", "false"}, 0);
+        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef", "-tcpShutdownForce", "false"}, 0);
         check(result.indexOf("Shutting down") >= 0);
 
+        result = runServer(new String[]{
+                "-web", "-webPort", "9002", "-webAllowOthers", "true", "-webSSL", "true",
+                "-pg", "-pgAllowOthers", "true", "-pgPort", "9003",
+                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", "true",
+                "-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9005", "-tcpPassword", "abc"}, 0);
+        Server stop = server;
+        check(result.indexOf("https://") >= 0);
+        check(result.indexOf(":9002") >= 0);
+        check(result.indexOf("pg://") >= 0);
+        check(result.indexOf(":9003") >= 0);
+        check(result.indexOf("others can") >= 0);
+        check(result.indexOf("only local") < 0);
+        check(result.indexOf("ftp://") >= 0);
+        check(result.indexOf(":9004") >= 0);
+        check(result.indexOf("tcp://") >= 0);
+        check(result.indexOf(":9005") >= 0);
+
+        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
+        check(result.indexOf("Shutting down") >= 0);
+        stop.shutdown();
     }
-    
+
     private String runServer(String[] args, int exitCode) throws Exception {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
-        int gotCode = new Server().run(args, ps);
+        server = new Server();
+        int gotCode = server.run(args, ps);
         check(exitCode, gotCode);
         ps.flush();
         String s = new String(buff.toByteArray());
         return s;
     }
-    
+
     private void testConvertTraceFile() throws Exception {
         deleteDb("toolsConvertTraceFile");
         Class.forName("org.h2.Driver");
@@ -96,7 +119,7 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
-        
+
         ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});
         new File(baseDir + "/Test.java").delete();
 
@@ -108,13 +131,13 @@ public class TestTools extends TestBase {
         deleteDb("toolsConvertTraceFile");
         Player.main(new String[]{baseDir + "/test.trace.db"});
         testTraceFile(url);
-        
+
         deleteDb("toolsConvertTraceFile");
         RunScript.main(new String[]{"-url", url, "-user", "sa", "-script", baseDir + "/test.sql"});
         testTraceFile(url);
-        
+
     }
-    
+
     private void testTraceFile(String url) throws Exception {
         Connection conn;
         Recover.main(new String[]{"-removePassword", "-log", "false", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
@@ -147,7 +170,7 @@ public class TestTools extends TestBase {
         check("Hello", rs.getString(2));
         conn.close();
     }
-    
+
     private void testRecover() throws Exception {
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + baseDir + "/toolsRecover";
@@ -160,7 +183,7 @@ public class TestTools extends TestBase {
         rs.next();
         byte[] b1 = rs.getBytes(3);
         String s1 = rs.getString(4);
-        
+
         conn.close();
         Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRecover"});
         deleteDb("toolsRecover");
@@ -257,6 +280,7 @@ public class TestTools extends TestBase {
 
     private void testServer() throws Exception {
         Connection conn;
+        deleteDb("test");
         Server server = Server.createTcpServer(new String[] { "-ifExists", "false", "-baseDir", baseDir }).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
         conn.close();

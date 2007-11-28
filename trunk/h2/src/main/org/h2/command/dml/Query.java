@@ -31,21 +31,21 @@ import org.h2.value.ValueNull;
  * Represents a SELECT statement (simple, or union).
  */
 public abstract class Query extends Prepared {
-    
+
     protected Expression limit, offset;
     protected int sampleSize;
-    
+
     private int lastLimit;
     private long lastEvaluated;
     private LocalResult lastResult;
     private Value[] lastParameters;
-    
+
     abstract LocalResult queryWithoutCache(int limit) throws SQLException;
-    
+
     public Query(Session session) {
         super(session);
     }
-    
+
     public boolean isQuery() {
         return true;
     }
@@ -53,7 +53,7 @@ public abstract class Query extends Prepared {
     public boolean isTransactional() {
         return true;
     }
-    
+
     public final boolean sameResultAsLast(Session session, Value[] params, Value[] lastParams, long lastEvaluated)
             throws SQLException {
         Database db = session.getDatabase();
@@ -70,7 +70,7 @@ public abstract class Query extends Prepared {
         }
         return true;
     }
-    
+
     public final Value[] getParameterValues() throws SQLException {
         ObjectArray list = getParameters();
         if (list == null) {
@@ -83,7 +83,7 @@ public abstract class Query extends Prepared {
         }
         return params;
     }
-    
+
     public final LocalResult query(int limit) throws SQLException {
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit);
@@ -105,7 +105,7 @@ public abstract class Query extends Prepared {
         lastLimit = limit;
         return lastResult;
     }
-    
+
     protected void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,
             boolean mustBeInResult) throws SQLException {
         for (int i = 0; i < orderList.size(); i++) {
@@ -185,7 +185,7 @@ public abstract class Query extends Prepared {
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
         }
     }
-    
+
     public SortOrder prepareOrder(ObjectArray expressions, ObjectArray orderList) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
@@ -228,11 +228,11 @@ public abstract class Query extends Prepared {
         }
         return new SortOrder(session.getDatabase(), index, sortType);
     }
-    
+
     public void setOffset(Expression offset) {
         this.offset = offset;
     }
-    
+
     public void setLimit(Expression limit) {
         this.limit = limit;
     }
@@ -248,6 +248,7 @@ public abstract class Query extends Prepared {
     public abstract void setEvaluatable(TableFilter tableFilter, boolean b);
     public abstract void addGlobalCondition(Expression expr, int columnId, int comparisonType) throws SQLException;
     public abstract void setDistinct(boolean b);
+    public abstract String getFirstColumnAlias(Session session);
 
     public void setSampleSize(int sampleSize) {
         this.sampleSize = sampleSize;
@@ -260,7 +261,7 @@ public abstract class Query extends Prepared {
     }
 
     public abstract boolean isEverything(ExpressionVisitor visitor);
-    
+
     public final boolean isEverything(int expressionVisitorType) {
         ExpressionVisitor visitor = ExpressionVisitor.get(expressionVisitorType);
         return isEverything(visitor);

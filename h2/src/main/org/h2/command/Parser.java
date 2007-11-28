@@ -551,7 +551,7 @@ public class Parser {
         command.setSavepointName(readUniqueIdentifier());
         return command;
     }
-    
+
     private Prepared parseReleaseSavepoint() throws SQLException {
         Prepared command = new NoOperation(session);
         readIf("SAVEPOINT");
@@ -673,7 +673,7 @@ public class Parser {
         setSQL(command, "DELETE", start);
         return command;
     }
-    
+
     private IndexColumn[] parseIndexColumnList() throws SQLException {
         ObjectArray columns = new ObjectArray();
         do {
@@ -693,7 +693,7 @@ public class Parser {
                     column.sortType |= SortOrder.NULLS_LAST;
                 }
             } else {
-                
+
             }
         } while (readIf(","));
         read(")");
@@ -833,19 +833,13 @@ public class Parser {
         if (readIf("(")) {
             if (isToken("SELECT") || isToken("FROM")) {
                 Query query = parseSelect();
-                String querySQL = query.getSQL();
                 Session s;
                 if (prepared != null && prepared instanceof CreateView) {
                     s = database.getSystemSession();
                 } else {
                     s = session;
                 }
-                String tempViewName = s.getNextTempViewName();
-                TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s,
-                        false);
-                v.setOwner(session.getUser());
-                v.setTemporary(true);
-                table = v;
+                table = TableView.createTempView(s, session.getUser(), query);
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -1076,7 +1070,7 @@ public class Parser {
         command.setIfExists(ifExists);
         return command;
     }
-    
+
     DropAggregate parseDropAggregate() throws SQLException {
         boolean ifExists = readIfExists(false);
         DropAggregate command = new DropAggregate(session);
@@ -1148,9 +1142,9 @@ public class Parser {
                     for (int j = 0; j < joinCols.length; j++) {
                         String joinColumnName = joinCols[j].getName();
                         if (tableColumnName.equals(joinColumnName)) {
-                            Expression tableExpr = new ExpressionColumn(database, currentSelect, tableSchema, last
+                            Expression tableExpr = new ExpressionColumn(database, tableSchema, last
                                     .getTableAlias(), tableColumnName);
-                            Expression joinExpr = new ExpressionColumn(database, currentSelect, joinSchema, join
+                            Expression joinExpr = new ExpressionColumn(database, joinSchema, join
                                     .getTableAlias(), joinColumnName);
                             Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
                             if (on == null) {
@@ -1759,7 +1753,7 @@ public class Parser {
         JavaFunction func = new JavaFunction(functionAlias, args);
         return func;
     }
-    
+
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) throws SQLException {
         ObjectArray params = new ObjectArray();
         do {
@@ -1955,11 +1949,11 @@ public class Parser {
                     return expr;
                 }
                 name = readColumnIdentifier();
-                return new ExpressionColumn(database, currentSelect, schemaName, objectName, name);
+                return new ExpressionColumn(database, schemaName, objectName, name);
             }
-            return new ExpressionColumn(database, currentSelect, schemaName, objectName, name);
+            return new ExpressionColumn(database, schemaName, objectName, name);
         }
-        return new ExpressionColumn(database, currentSelect, null, objectName, name);
+        return new ExpressionColumn(database, null, objectName, name);
     }
 
     private Expression readTerm() throws SQLException {
@@ -2014,7 +2008,7 @@ public class Parser {
                 } else if (readIf(".")) {
                     r = readTermObjectDot(name);
                 } else {
-                    r = new ExpressionColumn(database, currentSelect, null, null, name);
+                    r = new ExpressionColumn(database, null, null, name);
                 }
             } else {
                 read();
@@ -2046,7 +2040,7 @@ public class Parser {
                     } else if (readIf("DATE")) {
                         r = readFunctionWithoutParameters("CURRENT_DATE");
                     } else {
-                        r = new ExpressionColumn(database, currentSelect, null, null, name);
+                        r = new ExpressionColumn(database, null, null, name);
                     }
                 } else if ("NEXT".equals(name) && readIf("VALUE")) {
                     read("FOR");
@@ -2070,7 +2064,7 @@ public class Parser {
                     read();
                     r = ValueExpression.get(ValueString.get(text));
                 } else {
-                    r = new ExpressionColumn(database, currentSelect, null, null, name);
+                    r = new ExpressionColumn(database, null, null, name);
                 }
             }
             break;
@@ -3352,7 +3346,7 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         return command;
     }
-    
+
     private CreateAggregate parseCreateAggregate(boolean force) throws SQLException {
         boolean ifNotExists = readIfNoExists();
         CreateAggregate command = new CreateAggregate(session);
@@ -3365,7 +3359,7 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         read("FOR");
         command.setJavaClassMethod(readUniqueIdentifier());
-        return command;        
+        return command;
     }
 
     private CreateUserDataType parseCreateUserDataType() throws SQLException {

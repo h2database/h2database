@@ -307,4 +307,15 @@ public class TableView extends Table {
         return owner;
     }
 
+    public static TableView createTempView(Session s, User owner, Query query) throws SQLException {
+        String tempViewName = s.getNextTempViewName();
+        Schema mainSchema = s.getDatabase().getSchema(Constants.SCHEMA_MAIN);
+        String querySQL = query.getPlanSQL();
+        TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s,
+                false);
+        v.setOwner(owner);
+        v.setTemporary(true);
+        return v;
+    }
+
 }

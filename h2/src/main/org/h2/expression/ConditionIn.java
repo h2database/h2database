@@ -6,12 +6,16 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.FunctionTable;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
 import org.h2.value.CompareMode;
@@ -198,6 +202,38 @@ public class ConditionIn extends Condition {
             cost += e.getCost();
         }
         return cost;
+    }
+
+    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        if (!areAllValues(ExpressionVisitor.get(ExpressionVisitor.EVALUATABLE))) {
+            return this;
+        }
+        Database db = session.getDatabase();
+        Schema mainSchema = db.getSchema(Constants.SCHEMA_MAIN);
+        Function function = Function.getFunction(database, "TABLE_DISTINCT");
+        Expression[] array = new Expression[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            Expression e = (Expression) values.get(i);
+            array[i] = e;
+        }
+        ExpressionList list = new ExpressionList(array);
+        function.setParameter(0, list);
+        function.doneWithParameters();
+        ObjectArray columns = new ObjectArray();
+        int dataType = left.getType();
+        String columnName = session.getNextTempViewName() + "_X";
+        Column col = new Column(columnName, dataType);
+        columns.add(col);
+        function.setColumns(columns);
+        FunctionTable table = new FunctionTable(mainSchema, session, function);
+        String viewName = session.getNextTempViewName();
+        TableFilter filter = new TableFilter(session, table, viewName, false, select);
+        select.addTableFilter(filter, true);
+        ExpressionColumn column = new ExpressionColumn(db, null, viewName, columnName);
+        Comparison on = new Comparison(session, Comparison.EQUAL, left, column);
+        on.mapColumns(filter, 0);
+        filter.addFilterCondition(on, true);
+        return ValueExpression.get(ValueBoolean.get(true));
     }
 
 }

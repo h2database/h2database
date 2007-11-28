@@ -46,7 +46,7 @@ public class Call extends Prepared {
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
                 Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
-                expr.add(new ExpressionColumn(session.getDatabase(), null, col));
+                expr.add(new ExpressionColumn(session.getDatabase(), col));
             }
             LocalResult result = new LocalResult(session, expr, list.length);
             result.addRow(list);

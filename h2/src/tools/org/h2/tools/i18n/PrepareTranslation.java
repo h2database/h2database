@@ -13,10 +13,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Stack;
+import java.util.Map.Entry;
+
 import org.h2.server.web.PageParser;
 import org.h2.tools.doc.XMLParser;
 import org.h2.util.FileUtils;
@@ -24,13 +33,10 @@ import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
-//import com.google.api.translate.Language;
-//import com.google.api.translate.Translate;
-
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
     private static final String DELETED_PREFIX = "~";
-    private static final boolean AUTO_TRANSLATE = false;
+    private static final boolean AUTO_TRANSLATE = true;
 
     public static void main(String[] args) throws Exception {
         new PrepareTranslation().run(args);
@@ -55,7 +61,7 @@ public class PrepareTranslation {
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
-        // buildHtml("src/docsrc/text", "docs/html", "de");
+        buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
 
         // convert the properties files back to utf8 text files, including the
@@ -414,6 +420,7 @@ public class PrepareTranslation {
                 oldTranslations.setProperty(m, t);
             }
         }
+        HashSet toTranslate = new HashSet();
         // add missing keys, using # and the value from the main file
         Iterator it = main.keySet().iterator();
         while (it.hasNext()) {
@@ -422,11 +429,10 @@ public class PrepareTranslation {
             if (!p.containsKey(key)) {
                 String t = oldTranslations.getProperty(now);
                 if (t == null) {
-                    System.out.println(trans.getName() + ": key " + key
-                            + " not found in translation file; added dummy # 'translation'");
-                    t = "#" + autoTranslate(now, language);
+                    toTranslate.add(key);
+                } else {
+                    p.put(key, t);
                 }
-                p.put(key, t);
             } else {
                 String t = p.getProperty(key);
                 String last = base.getProperty(key);
@@ -440,19 +446,42 @@ public class PrepareTranslation {
                 } else if (last != null && !last.equals(now)) {
                     t = oldTranslations.getProperty(now);
                     if (t == null) {
-                        // main data changed since the last run: review
-                        // translation
+                        // main data changed since the last run: review translation
                         System.out.println(trans.getName() + ": key " + key + " changed, please review; last=" + last
                                 + " now=" + now);
-                        String old = p.getProperty(key);
-                        t = "#" + autoTranslate(now, language) + " #" + old;
+                        // String old = p.getProperty(key);
+                        toTranslate.add(key);
+                    } else {
+                        p.put(key, t);
                     }
-                    p.put(key, t);
                 }
             }
         }
-        // remove keys that don't exist in the main file (deleted or typo in the
-        // key)
+        Map autoTranslated = new HashMap();
+        if (AUTO_TRANSLATE) {
+            HashSet set = new HashSet();
+            for (it = toTranslate.iterator(); it.hasNext();) {
+                String key = (String) it.next();
+                String now = main.getProperty(key);
+                set.add(now);
+            }
+            if ("de".equals(language)) {
+                autoTranslated = autoTranslate(set, "en", language);
+            }
+        }
+        for (it = toTranslate.iterator(); it.hasNext();) {
+            String key = (String) it.next();
+            String now = main.getProperty(key);
+            String t;
+            if (AUTO_TRANSLATE) {
+                t = "#" + autoTranslated.get(now);
+            } else {
+                System.out.println(trans.getName() + ": key " + key + " not found in translation file; added dummy # 'translation'");
+                t = "#" + now;
+            }
+            p.put(key, t);        
+        }
+        // remove keys that don't exist in the main file (deleted or typo in the key)
         it = new ArrayList(p.keySet()).iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
@@ -471,26 +500,87 @@ public class PrepareTranslation {
         }
         PropertiesToUTF8.storeProperties(p, trans.getAbsolutePath());
     }
-    
-    private String autoTranslate(String original, String language) {
-        if (original == null || original.trim().length() == 0) {
-            return original;
+
+    private Map autoTranslate(Set toTranslate, String  sourceLanguage, String targetLanguage) {
+        HashMap results = new HashMap();
+        if (toTranslate.size() == 0) {
+            return results;
         }
-        String translation = original;
-        if (!AUTO_TRANSLATE) {
-            return "#" + translation;
+        int maxLength = 1500;
+        int minSeparator = 100000;
+        HashMap keyMap = new HashMap(toTranslate.size());
+        StringBuffer buff = new StringBuffer(maxLength);
+        // TODO make sure these numbers don't occur in the original text
+        int separator = minSeparator;
+        for (Iterator it = toTranslate.iterator(); it.hasNext();) {
+            String original = (String) it.next();
+            if (original != null) {
+                original = original.trim();
+                if (buff.length() + original.length() > maxLength) {
+                    System.out.println("remaining: " + (toTranslate.size() - separator + minSeparator));
+                    translateChunk(buff, separator, sourceLanguage, targetLanguage, keyMap, results);
+                }
+                keyMap.put(new Integer(separator), original);
+                buff.append(separator);
+                buff.append(' ');
+                buff.append(original);
+                buff.append(' ');
+                separator++;
+            }
         }
-//        if ("de".equals(language)) {
-//            try {
-//                Thread.sleep(5000);
-//                translation = Translate.translate(original, Language.ENGLISH, Language.GERMAN);
-//                System.out.println("original: " + original);
-//                System.out.println("translation: " + translation);
-//            } catch (Throwable e) {
-//                System.out.println("Exception translating [" + original + "]: " + e);
-//                // e.printStackTrace();
-//            }
-//        }
-        return "#" + translation;
+        translateChunk(buff, separator, sourceLanguage, targetLanguage, keyMap, results);
+        return results;
     }
+    
+    private void translateChunk(StringBuffer buff, int separator, String source, String target, HashMap keyMap, HashMap results) {
+        buff.append(separator);
+        String original = buff.toString();
+        String translation = "";
+        try {
+            translation = translate(original, source, target);
+            System.out.println("original: " + original);
+            System.out.println("translation: " + translation);
+        } catch (Throwable e) {
+            System.out.println("Exception translating [" + original + "]: " + e);
+            e.printStackTrace();
+        }
+        for (Iterator it = keyMap.entrySet().iterator(); it.hasNext();) {
+            Entry entry = (Entry) it.next();
+            separator = ((Integer) entry.getKey()).intValue();
+            String o = (String) entry.getValue();
+            String startSeparator = String.valueOf(separator);
+            int start = translation.indexOf(startSeparator);
+            int end = translation.indexOf(String.valueOf(separator + 1));
+            if (start < 0 || end < 0) {
+                System.out.println("No translation for " + o);
+                results.put(o, "#" + o);
+            } else {
+                String t = translation.substring(start + startSeparator.length(), end);
+                t = t.trim();
+                results.put(o, t);
+            }
+        }
+        keyMap.clear();
+        buff.setLength(0);
+    }
+    
+    /**
+     * Translate the text using Google
+     */
+    String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
+        Thread.sleep(4000);
+        String url = "http://translate.google.com/translate_t?langpair=" + sourceLanguage + "|" + targetLanguage + "&text="
+                + URLEncoder.encode(text, "UTF-8");
+        HttpURLConnection conn = (HttpURLConnection) (new URL(url)).openConnection();
+        // conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)");
+        int todoTest;
+        // conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.10) Gecko/20071115 Firefox/2.0.0.10");
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; Java)");
+        String result = IOUtils.readStringAndClose(IOUtils.getReader(conn.getInputStream()), -1);
+        int start = result.indexOf("<div id=result_box");
+        start = result.indexOf('>', start) + 1;
+        int end = result.indexOf("</div>", start);
+        return result.substring(start, end);
+    }
+
 }

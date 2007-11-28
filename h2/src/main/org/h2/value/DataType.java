@@ -56,13 +56,13 @@ public class DataType {
     public int defaultDisplaySize;
     public boolean hidden;
     public int memory;
-    
+
     // for operations that include different types, convert both to the higher order
     public int order;
-    
+
     // JDK 1.3 compatibility: Types.BOOLEAN
     public static final int TYPE_BOOLEAN = 16;
-    
+
     // JDK 1.3 compatibility: Types.DATALINK
     public static final int TYPE_DATALINK = 70;
 
@@ -74,7 +74,7 @@ public class DataType {
         if (TYPE_DATALINK != Types.DATALINK) {
             new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
         }
-        
+
 //#endif
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
@@ -558,6 +558,8 @@ public class DataType {
             return Value.CLOB;
         case Types.NULL:
             return Value.NULL;
+        case Types.ARRAY:
+            return Value.ARRAY;
         default:
             throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, ""+sqlType);
         }

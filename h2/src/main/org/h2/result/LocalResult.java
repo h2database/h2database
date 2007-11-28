@@ -55,7 +55,7 @@ public class LocalResult implements ResultInterface {
             int scale = meta.getScale(i + 1);
             int displaySize = meta.getColumnDisplaySize(i + 1);
             Column col = new Column(name, type, precision, scale, displaySize);
-            Expression expr = new ExpressionColumn(db, null, col);
+            Expression expr = new ExpressionColumn(db, col);
             cols.add(expr);
         }
         LocalResult result = new LocalResult(session, cols, columnCount);
@@ -108,7 +108,17 @@ public class LocalResult implements ResultInterface {
         return updateCount;
     }
 
-    public LocalResult(Session session, ObjectArray cols, int visibleColumnCount) {
+    public LocalResult(Session session, ObjectArray expressionList, int visibleColumnCount) {
+        this(session, getList(expressionList), visibleColumnCount);
+    }
+
+    private static Expression[] getList(ObjectArray expressionList) {
+        Expression[] expressions = new Expression[expressionList.size()];
+        expressionList.toArray(expressions);
+        return expressions;
+    }
+
+    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
         this.session = session;
         if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
@@ -118,9 +128,8 @@ public class LocalResult implements ResultInterface {
         rows = new ObjectArray();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
-        this.expressions = new Expression[cols.size()];
-        cols.toArray(expressions);
-        this.displaySizes = new int[cols.size()];
+        this.expressions = expressions;
+        this.displaySizes = new int[expressions.length];
     }
 
     public void setSortOrder(SortOrder sort) {
@@ -128,9 +137,8 @@ public class LocalResult implements ResultInterface {
     }
 
     public void setDistinct() {
-        // TODO big result sets: how to buffer distinct result sets? maybe do
-        // the
-        // distinct when sorting each block, and final merging
+        // TODO big result sets: how to buffer distinct result sets?
+        // maybe remove duplicates when sorting each block, and when merging
         distinctRows = new ValueHashMap(session.getDatabase());
     }
 
@@ -340,7 +348,7 @@ public class LocalResult implements ResultInterface {
             }
         }
     }
-    
+
     public String toString() {
         return "columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
     }

@@ -32,12 +32,12 @@ public class ExpressionColumn extends Expression {
     private Column column;
     private boolean evaluatable;
 
-    public ExpressionColumn(Database database, Select select, Column column) {
+    public ExpressionColumn(Database database, Column column) {
         this.database = database;
         this.column = column;
     }
 
-    public ExpressionColumn(Database database, Select select, String schemaName, String tableAlias, String columnName) {
+    public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
@@ -184,7 +184,7 @@ public class ExpressionColumn extends Expression {
     public long getPrecision() {
         return column.getPrecision();
     }
-    
+
     public int getDisplaySize() {
         return column.getDisplaySize();
     }

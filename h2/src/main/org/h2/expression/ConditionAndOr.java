@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -19,9 +20,6 @@ import org.h2.value.ValueNull;
  * @author Thomas
  */
 public class ConditionAndOr extends Condition {
-
-    // TODO optimization: we could extend (ID=1 AND ID=B) to (ID=1 AND ID=B AND
-    // B=1)
 
     public static final int AND = 0, OR = 1;
 
@@ -220,6 +218,21 @@ public class ConditionAndOr extends Condition {
 
     public int getCost() {
         return left.getCost() + right.getCost();
+    }
+    
+    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        if (andOrType == AND) {
+            Expression l = left.optimizeInJoin(session, select);
+            Expression r = right.optimizeInJoin(session, select);
+            if (l != left || r != right) {
+                left = l;
+                right = r;
+                // only optimize again if there was some change
+                // otherwise some expressions are 'over-optimized'
+                return optimize(session);
+            }
+        }
+        return this;
     }
 
 }

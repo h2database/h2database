@@ -55,6 +55,7 @@ public class WebServer implements Service {
         { "pt_BR", "Portugu\u00eas (Brasil)"},
         { "pt_PT", "Portugu\u00eas (Europeu)"},
         { "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"},
+        { "uk", "\u0423\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u0430"},
         { "zh_CN", "\u4E2D\u6587"},
     };
     
@@ -76,6 +77,8 @@ public class WebServer implements Service {
     };
 
 /*
+    String[] list = Locale.getISOLanguages();
+    for(int i=0; i<list.length; i++) System.out.print(list[i] + " ");
     String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
         java.util.Locale.CHINESE.getDisplayLanguage(
         java.util.Locale.CHINESE);

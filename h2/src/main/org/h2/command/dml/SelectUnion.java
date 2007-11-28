@@ -35,28 +35,28 @@ public class SelectUnion extends Query {
     private Query left, right;
     private ObjectArray expressions;
     private ObjectArray orderList;
-    private SortOrder sort;    
+    private SortOrder sort;
     private boolean distinct;
     private boolean isPrepared, checkInit;
     private boolean isForUpdate;
-    
+
     public SelectUnion(Session session, Query query) {
         super(session);
         this.left = query;
     }
-    
+
     public void setUnionType(int type) {
         this.unionType = type;
     }
-    
+
     public void setRight(Query select) throws JdbcSQLException {
         right = select;
     }
-    
+
     public void setSQL(String sql) {
         this.sql = sql;
-    }    
-    
+    }
+
     public void setOrder(ObjectArray order) {
         orderList = order;
     }
@@ -207,7 +207,7 @@ public class SelectUnion extends Query {
             int scale = Math.max(l.getScale(), r.getScale());
             int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
             Column col = new Column(l.getAlias(), type, prec, scale, displaySize);
-            Expression e = new ExpressionColumn(session.getDatabase(), null, col);
+            Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }
         if (orderList != null) {
@@ -331,5 +331,9 @@ public class SelectUnion extends Query {
         left.updateAggregate(session);
         right.updateAggregate(session);
     }
-    
+
+    public String getFirstColumnAlias(Session session) {
+        return null;
+    }
+
 }

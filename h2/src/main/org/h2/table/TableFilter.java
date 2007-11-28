@@ -392,7 +392,7 @@ public class TableFilter implements ColumnResolver {
             }
         }
         buff.append(table.getSQL());
-        if (alias != null && !table.getName().equals(alias)) {
+        if (alias != null) {
             buff.append(' ');
             buff.append(Parser.quoteIdentifier(alias));
         }
@@ -422,7 +422,7 @@ public class TableFilter implements ColumnResolver {
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = StringUtils.quoteRemarkSQL(condition);
             buff.append(condition);
-            buff.append("*/");
+            buff.append(" */");
         }
         return buff.toString();
     }

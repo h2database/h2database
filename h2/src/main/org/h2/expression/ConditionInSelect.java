@@ -7,6 +7,7 @@ package org.h2.expression;
 import java.sql.SQLException;
 
 import org.h2.command.dml.Query;
+import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -14,6 +15,7 @@ import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.table.TableView;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -120,6 +122,28 @@ public class ConditionInSelect extends Condition {
 
     public int getCost() {
         return left.getCost() + 10 + (int) (10 * query.getCost());
+    }
+
+    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        if (all || compareType != Comparison.EQUAL) {
+            return this;
+        }
+        if (!query.isEverything(ExpressionVisitor.EVALUATABLE)) {
+            return this;
+        }
+        String alias = query.getFirstColumnAlias(session);
+        query.setDistinct(true);
+        if (alias == null) {
+            return this;
+        }
+        TableView view = TableView.createTempView(session, session.getUser(), query);
+        TableFilter filter = new TableFilter(session, view, view.getName(), false, select);
+        select.addTableFilter(filter, true);
+        ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);
+        Comparison on = new Comparison(session, Comparison.EQUAL, left, column);
+        on.mapColumns(filter, 0);
+        filter.addFilterCondition(on, true);
+        return ValueExpression.get(ValueBoolean.get(true));
     }
 
 }

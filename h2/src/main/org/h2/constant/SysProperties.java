@@ -27,6 +27,10 @@ public class SysProperties {
 
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
+
+    private int testing;
+    public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", true);
+
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
@@ -62,7 +66,7 @@ public class SysProperties {
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
     public static final boolean NEW_DISPLAY_SIZE = getBooleanSetting("h2.newDisplaySize", true);
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
-    
+
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = System.getProperty(name);
         if (s != null) {
@@ -73,12 +77,12 @@ public class SysProperties {
         }
         return defaultValue;
     }
-    
+
     private static String getStringSetting(String name, String defaultValue) {
         String s = System.getProperty(name);
         return s == null ? defaultValue : s;
     }
-    
+
     private static int getIntSetting(String name, int defaultValue) {
         String s = System.getProperty(name);
         if (s != null) {
@@ -89,7 +93,7 @@ public class SysProperties {
         }
         return defaultValue;
     }
-    
+
     /**
      * INTERNAL
      */
@@ -99,7 +103,7 @@ public class SysProperties {
         }
         baseDir = dir;
     }
-    
+
     /**
      * INTERNAL
      */

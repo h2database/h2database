@@ -58,7 +58,7 @@
 			<arg line="+JDK13 -JDK14 -JDK16 -AWT ../src/main/org/h2"/>
 		</java>
 	</target>
-    
+
 	<target name="codeswitchJdk13" depends="codeswitchPrepare">
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
@@ -97,26 +97,26 @@
 			<fileset dir="bin" includes="org/h2/util/ResourceData.java"/>
 		</delete>
 	</target>
-    
+
 	<target name="compileFullTextLucene" depends="compileFullTextLuceneTest, compile" if="lucene.jar.present">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
 			<classpath location="${path.lucene.jar}" />
 		    <include name="org/h2/fulltext/FullTextLucene.java"/>
 		</javac>
 	</target>
-    
+
 	<target name="compileFullTextLuceneTest" depends="init" unless="lucene.jar.present">
 		<echo message="Lucene jar not found, LuceneFullText not compiled."/>
 		<echo message="Please set ant-build.properties / path.lucene.jar"/>
-	</target>    
-	
+	</target>
+
 	<target name="compileServlet" depends="compileServletTest, compile" if="servlet.jar.present">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true">
 			<classpath location="${path.servlet.jar}" />
 			<include name="org/h2/server/web/*.*"/>
 		</javac>
 	</target>
-	
+
 	<target name="compileServletTest" depends="init" unless="servlet.jar.present">
 		<echo message="Servlet API jar not found, console servlet not compiled."/>
 		<echo message="Please set ant-build.properties / path.servlet.jar"/>
@@ -139,7 +139,7 @@
 			<fileset dir="src/test" includes="**/*.properties"/>
 		</copy>
 	</target>
-    
+
     <target name="compileCoverage" depends="compile">
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main"/>
@@ -149,17 +149,10 @@
 		</java>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
     </target>
-	
+
 	<target name="compileTest" unless="java.version.ok">
 		<echo message="Java version is ${java.specification.version} but source code is switched to ${jdk}."/>
 		<echo message="Run ant codeswitchJdk... first."/>
-	</target>
-
-	<target name="createPatch" depends="clean">
-		<delete file="../h2-patch.*"/>
-		<tar destfile="../h2-patch.tar" basedir="." includes="src/**/*.java,build.xml"/>
-		<bzip2 destfile="../h2-patch.tar.bz2" src="../h2-patch.tar"/>
-		<delete file="../h2-patch.tar"/>
 	</target>
 
 	<target name="docs" depends="clean,javadoc,compile">
@@ -204,7 +197,7 @@
 		</condition>
 		<echo message="build-jdk:${java.specification.version} ant-build.properties/jdk:${jdk}"></echo>
 	</target>
-	
+
 	<target name="jar" depends="compile, compileServlet, compileFullTextLucene, manifest">
 		<manifest file="bin/META-INF/MANIFEST.MF" mode="update">
 			<attribute name="Main-Class" value="org.h2.tools.Console"/>
@@ -225,7 +218,7 @@
 	<target name="jarClient" depends="compileResources, manifest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
 			<include name="org/h2/*" />
-			<include name="org/h2/jdbc/**" /> 
+			<include name="org/h2/jdbc/**" />
 			<include name="org/h2/jdbcx/**" />
 		</javac>
 		<jar jarfile="bin/h2client.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
@@ -233,19 +226,19 @@
 			<exclude name="**/*.bat"/>
 		</jar>
 	</target>
-	
+
 	<target name="jarDb" depends="compileResources, manifest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
 			<include name="org/h2/*" />
-			<include name="org/h2/engine/**" /> 
-			<include name="org/h2/jdbc/**" /> 
+			<include name="org/h2/engine/**" />
+			<include name="org/h2/jdbc/**" />
 			<include name="org/h2/jdbcx/**" />
 		</javac>
 		<jar jarfile="bin/h2db.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>
 			<exclude name="**/*.bat"/>
 		</jar>
-	</target>	
+	</target>
 
 	<target name="javadoc">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true" includes="org/h2/test/bnf/*.java"/>
@@ -261,7 +254,7 @@
 			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
 		</copy>
 	</target>
-    
+
 	<target name="javadocImpl">
 		<mkdir dir="docs/javadocImpl"/>
 		<javadoc
@@ -272,8 +265,8 @@
 		<copy todir="docs/javadoc">
 			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
 		</copy>
-	</target>    
-    
+	</target>
+
     <target name="manifest">
 		<mkdir dir="bin/META-INF"/>
 		<manifest file="bin/META-INF/MANIFEST.MF">
@@ -286,7 +279,7 @@
 			<attribute name="Build-Jdk" value="${jdk}"/>
 		</manifest>
 	</target>
-    
+
 	<target name="mavenBuildCentral">
 		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
 		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
@@ -347,7 +340,7 @@
 			<!-- <jvmarg value="-agentlib:hprof=help"/> -->
 		</java>
 	</target>
-	
+
 	<target name="warConsole" depends="compileServlet, jar">
 		<fail unless="servlet.jar.present" message="Servlet API jar not found"/>
 		<war destfile="bin/h2console.war" webxml="src/tools/WEB-INF/web.xml" basedir="src/tools/WEB-INF" includes="console.html">

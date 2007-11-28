@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.command.dml.Select;
 import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -102,5 +103,13 @@ public abstract class Expression {
             filter.addFilterCondition(this, false);
             addedToFilter = true;
         }
+    }
+    
+    public String toString() {
+        return getSQL();
+    }
+    
+    public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        return this;
     }
 }

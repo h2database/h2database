@@ -21,11 +21,20 @@ public class FtpData extends Thread {
     private InetAddress address;
     private ServerSocket serverSocket;
     private volatile Socket socket;
+    private boolean active;
+    private int port;
 
     public FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) throws IOException {
         this.server = server;
         this.address = address;
         this.serverSocket = serverSocket;
+    }
+
+    public FtpData(FtpServer server, InetAddress address, int port) throws IOException {
+        this.server = server;
+        this.address = address;
+        this.port = port;
+        active = true;
     }
 
     public void run() {
@@ -46,6 +55,14 @@ public class FtpData extends Thread {
         }
     }
 
+    private void connect() throws IOException {
+        if (active) {
+            socket = new Socket(address, port);
+        } else {
+            waitUntilConnected();
+        }
+    }
+
     private void waitUntilConnected() {
         while (serverSocket != null && socket == null) {
             try {
@@ -63,7 +80,7 @@ public class FtpData extends Thread {
     }
 
     public synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
-        waitUntilConnected();
+        connect();
         try {
             InputStream in = socket.getInputStream();
             OutputStream out = fs.openFileOutputStream(fileName, false);
@@ -76,7 +93,7 @@ public class FtpData extends Thread {
     }
 
     public synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
-        waitUntilConnected();
+        connect();
         try {
             OutputStream out = socket.getOutputStream();
             InputStream in = fs.openFileInputStream(fileName);
@@ -90,7 +107,7 @@ public class FtpData extends Thread {
     }
 
     public synchronized void send(byte[] data) throws IOException {
-        waitUntilConnected();
+        connect();
         try {
             OutputStream out = socket.getOutputStream();
             out.write(data);

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -171,20 +172,7 @@ public class FtpControl extends Thread {
             break;
         case 'M':
             if ("MKD".equals(command)) {
-                String fileName = getFileName(param);
-                boolean ok = false;
-                if (!readonly) {
-                    try {
-                        fs.mkdirs(fileName);
-                        reply(257, StringUtils.quoteIdentifier(param) + " directory");
-                        ok = true;
-                    } catch (SQLException e) {
-                        server.logError(e);
-                    }
-                }
-                if (!ok) {
-                    reply(500, "Failed");
-                }
+                processMakeDir(param);
             } else if ("MODE".equals(command)) {
                 if ("S".equals(StringUtils.toUpperEnglish(param))) {
                     reply(200, "Ok");
@@ -216,6 +204,18 @@ public class FtpControl extends Thread {
                 data.start();
                 int port = dataSocket.getLocalPort();
                 reply(227, "Passive Mode (" + serverIpAddress + "," + (port >> 8) + "," + (port & 255) + ")");
+            } else if ("PORT".equals(command)) {
+                String[] list = StringUtils.arraySplit(param, ',', true);
+                String host = list[0] + "." + list[1] + "." + list[2] + "." + list[3];
+                int port = (Integer.parseInt(list[4]) << 8) | Integer.parseInt(list[5]);
+                InetAddress address = InetAddress.getByName(host);
+                if (address.equals(control.getInetAddress())) {
+                    data = new FtpData(server, address, port);
+                    reply(200, "Ok");
+                } else {
+                    server.log("Port REJECTED:" + address + " expected:" + control.getInetAddress());
+                    reply(550, "Failed");
+                }
             }
             break;
         case 'R':
@@ -260,16 +260,12 @@ public class FtpControl extends Thread {
                     }
                     restart = 0;
                 } else {
-                    processList(param, true); // Firefox compatibility (still not good)
+                    processList(param, true); // Firefox compatibility (still
+                                                // not good)
                     // reply(426, "Not a file");
                 }
             } else if ("RMD".equals(command)) {
-                String fileName = getFileName(param);
-                if (!readonly && fs.exists(fileName) && fs.isDirectory(fileName) && fs.tryDelete(fileName)) {
-                    reply(250, "Ok");
-                } else {
-                    reply(500, "Failed");
-                }
+                processRemoveDir(param);
             } else if ("REST".equals(command)) {
                 try {
                     restart = Integer.parseInt(param);
@@ -328,8 +324,40 @@ public class FtpControl extends Thread {
                 }
             }
             break;
+        case 'X':
+            if ("XMKD".equals(command)) {
+                processMakeDir(param);
+            } else if ("XRMD".equals(command)) {
+                processRemoveDir(param);
+            }
         default:
             break;
+        }
+    }
+
+    void processMakeDir(String param) throws IOException {
+        String fileName = getFileName(param);
+        boolean ok = false;
+        if (!readonly) {
+            try {
+                fs.mkdirs(fileName);
+                reply(257, StringUtils.quoteIdentifier(param) + " directory");
+                ok = true;
+            } catch (SQLException e) {
+                server.logError(e);
+            }
+        }
+        if (!ok) {
+            reply(500, "Failed");
+        }
+    }
+
+    void processRemoveDir(String param) throws IOException {
+        String fileName = getFileName(param);
+        if (!readonly && fs.exists(fileName) && fs.isDirectory(fileName) && fs.tryDelete(fileName)) {
+            reply(250, "Ok");
+        } else {
+            reply(500, "Failed");
         }
     }
 
@@ -353,7 +381,8 @@ public class FtpControl extends Thread {
         String list = server.getDirectoryListing(directory, directories);
         reply(150, "Starting transfer");
         server.log(list);
-        // need to use the current locale (UTF-8 would be wrong for the Windows Explorer)
+        // need to use the current locale (UTF-8 would be wrong for the Windows
+        // Explorer)
         data.send(list.getBytes());
         reply(226, "Done");
     }

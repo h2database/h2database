@@ -200,19 +200,24 @@ public class SessionRemote implements SessionInterface, DataHandler {
         transferList = new ObjectArray();
         // TODO cluster: support at most 2 connections
         boolean switchOffCluster = false;
-        for (int i = 0; i < len; i++) {
-            try {
-                Transfer trans = initTransfer(ci, databaseName, servers[i]);
-                transferList.add(trans);
-            } catch (IOException e) {
-                switchOffCluster = true;
+        try {
+            for (int i = 0; i < len; i++) {
+                try {
+                    Transfer trans = initTransfer(ci, databaseName, servers[i]);
+                    transferList.add(trans);
+                } catch (IOException e) {
+                    switchOffCluster = true;
+                }
             }
+            checkClosed();
+            if (switchOffCluster) {
+                switchOffCluster();
+            }
+            switchOffAutoCommitIfCluster();
+        } catch (SQLException e) {
+            traceSystem.close();
+            throw e;
         }
-        checkClosed();
-        if (switchOffCluster) {
-            switchOffCluster();
-        }
-        switchOffAutoCommitIfCluster();
     }
 
     private void switchOffCluster() throws SQLException {

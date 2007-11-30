@@ -5,7 +5,7 @@
 package org.h2.fulltext;
 
 public class IndexInfo {
-    long id;
+    int id;
     String schemaName;
     String tableName;
     int[] keys;

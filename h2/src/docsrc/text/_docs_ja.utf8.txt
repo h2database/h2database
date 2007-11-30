@@ -637,7 +637,7 @@ SQLインジェクションとは
 このデータベースは、ユーザー入力をデータベースに通す時、パラメータの使用を強制する方法を提供しています。 SQLステートメントの組み込まれたリテラルを無効にすることでこれを実行します。 次のステートメントを実行します:
 
 @advanced_1212_p
-その後、文字列リテラルや数値リテラルのSQLステートメントはもう認められません。これは、 WHERE NAME='abc' や WHERE CustomerId=10 といった形のSQLステートメントは失敗するという意味です。 PreparedStatementや上に記載されたパラメータは使用することができます。また、 リテラルの含まれないSQLステートメントと同様に、SQLステートメントを動的に生成したり、 APIステートメントを使用することも可能です。数値リテラルが許可されている二つ目のモードもあります: SET ALLOW_LITERALS NUMBERS 全てのリテラルを許可するには、 SET ALLOW_LITERALS ALL を実行します (これはデフォルトの設定です)。リテラルはadministratorのみによって使用可能、または使用不可になります。
+#Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
 
 @advanced_1213_h3
 定数を使用する
@@ -4846,7 +4846,7 @@ H2DRIVERSかCLASSPATHの環境変数に、ドライバのJarファイルの位�
 JDBCを使用してデータベースに接続
 
 @tutorial_1065_p
-データベースに接続するためにJavaアプリケーションに最初に必要なことは、 データベースドライバをロードし、接続することです。簡単な方法は、次のコードを使用します:
+#To connect to a database, a Java application first needs to load the database driver, and then get a connection. A simple way to do that is using the following code:
 
 @tutorial_1066_p
 このコードは最初にドライバをロードして (Class.forName())、 接続を開始します (DriverManager.getConnection())。 このドライバの名前は全てのケースにおいて "org.h2.Driver" です。 データベースに認識されるため、データベースのURLは常に jdbc:h2: から始まります。 getConnection() 内の2番目のパラメーターはユーザ名を指しています ('sa' はこの場合、システム管理者を表しています)。3番目のパラメーターはパスワードです。このデータベースでは、ユーザ名は大文字と小文字を区別していませんが、パスワードは大文字と小文字を区別しています。

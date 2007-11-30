@@ -39,16 +39,16 @@ import org.h2.util.StringUtils;
 /**
  * This class implements the full text search based on Apache Lucene.
  */
-public class FullTextLucene 
+public class FullTextLucene
 //#ifdef JDK14
-implements Trigger 
+implements Trigger
 //#endif
 {
-    
+
 //#ifdef JDK14
     private static HashMap indexers = new HashMap();
-    private static final String FIELD_DATA = "data";
-    private static final String FIELD_QUERY = "query";
+    private static final String FIELD_DATA = "DATA";
+    private static final String FIELD_QUERY = "QUERY";
     private static final String FIELD_COLUMN_PREFIX = "_";
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
@@ -60,7 +60,7 @@ implements Trigger
     private int[] dataTypes;
     private IndexModifier indexer;
 //#endif
-    
+
     /**
      * Create a new full text index for a table and column list. Each table may only have one index at any time.
      *
@@ -81,7 +81,7 @@ implements Trigger
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
-//#endif    
+//#endif
 
     /**
      * Re-creates the full text index for this database
@@ -102,7 +102,7 @@ implements Trigger
             indexExistingRows(conn, schema, table);
         }
     }
-//#endif    
+//#endif
 
     /**
      * Drops all full text indexes from the database.
@@ -116,7 +116,7 @@ implements Trigger
         removeAllTriggers(conn);
         removeIndexFiles(conn);
     }
-//#endif    
+//#endif
 
     /**
      * Initializes full text search functionality for this database. This adds the following Java functions to the
@@ -147,7 +147,7 @@ implements Trigger
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
     }
-//#endif    
+//#endif
 
     /**
      * INTERNAL
@@ -203,7 +203,7 @@ implements Trigger
         indexColumns = new int[indexList.size()];
         setColumns(indexColumns, indexList, columnList);
     }
-//#endif    
+//#endif
 
     /**
      * INTERNAL
@@ -217,7 +217,7 @@ implements Trigger
             insert(newRow);
         }
     }
-//#endif    
+//#endif
 
     /**
      * Searches from the full text index for this database.
@@ -262,7 +262,7 @@ implements Trigger
         }
         return rs;
     }
-    
+
     private static void removeAllTriggers(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
@@ -291,7 +291,7 @@ implements Trigger
         }
         FileSystem.getInstance(path).deleteRecursive(path);
     }
-    
+
     private String getQuery(Object[] row) throws SQLException {
         StringBuffer buff = new StringBuffer();
         if (schemaName != null) {
@@ -462,8 +462,8 @@ implements Trigger
         SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
         e2.initCause(e);
         return e2;
-    }    
-    
+    }
+
     private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
@@ -494,7 +494,6 @@ implements Trigger
         }
     }
 
-
     private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         try {
             String path = getIndexPath(conn);
@@ -524,7 +523,7 @@ implements Trigger
         rs.close();
         return path;
     }
-    
+
     private void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
         for (int i = 0; i < keys.size(); i++) {
             String key = (String) keys.get(i);
@@ -541,6 +540,6 @@ implements Trigger
             index[i] = found;
         }
     }
-//#endif    
+//#endif
 
 }

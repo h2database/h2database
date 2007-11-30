@@ -120,7 +120,7 @@ public class FtpServer implements Service {
     String getFileName(String path) {
         return root + getPath(path);
     }
-    
+
     String getPath(String path) {
         if (path.indexOf("..") > 0) {
             path = "/";

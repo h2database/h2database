@@ -150,36 +150,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-create table test(id int, name varchar);
-insert into test select x, '' from system_range(1, 10000);
--- fast
-update test set name = 'y' where cast(id as varchar) like '1%';
--- slow
-update test set name = 'x' where id in (select x from system_range(1, 10000) where cast(x as varchar) like '1%');
-drop table test;
+toString: > the parameters for the prepared statements.
 
-Optimize IN(...), IN(select), ID=? OR ID=?: create temp table and use join
-
-Bug:
-H2 1.0.62 (2007-11-25) has regressed on this query. Parser syntax error is returned (query is OK for derby, oracle, and earlier H2 versions).
-SELECT COUNT(*) FROM (
-SELECT TT.id,TT.table_name FROM (
-SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8 UNION  SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8) AS TT
-) AS AWR  WHERE AWR.id=-8
-Remove the final predicate and the query parses & runs fine:
-SELECT COUNT(*) FROM (
-SELECT TT.id,TT.table_name FROM (
-SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8 UNION  SELECT DISTINCT id, table_name FROM information_schema.tables WHERE id=-8) AS TT
-) AS AWR
-
-
-
-
+autocomplete only just after meaningful key (ctrl+space, space, bs, interpunctation, ...)
 
 write more tests for the command line tools
-
-
-avoid creating thousands of trace.db files
 
 Known Problems:
 link to history page, bug page

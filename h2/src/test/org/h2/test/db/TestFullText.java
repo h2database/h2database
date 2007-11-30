@@ -16,86 +16,106 @@ public class TestFullText extends TestBase {
         if (config.memory) {
             return;
         }
-        
+        test(false);
+        String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
+        try {
+            Class.forName(luceneFullTextClassName);
+            test(true);
+        } catch (ClassNotFoundException e) {
+            this.println("Class not found, not tested: " + luceneFullTextClassName);
+            // ok
+        }
+
+    }
+
+    private void test(boolean lucene) throws Exception {
         deleteDb("fullText");
         Connection conn = getConnection("fullText");
+        String prefix = lucene ? "FTL_" : "FT_";
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
-        stat.execute("CALL FT_INIT()");
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "INIT()");
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
-        stat.execute("CALL FT_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        stat.execute("CALL " + prefix + "CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         ResultSet rs;
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         checkFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
         checkFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(2, 'Hallo Welt')");
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         checkFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
         checkFalse(rs.next());
-        
-        stat.execute("CALL FT_REINDEX()");
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hello', 0, 0)");
+
+        stat.execute("CALL " + prefix + "REINDEX()");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         checkFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
         checkFalse(rs.next());
-        
+
         stat.execute("INSERT INTO TEST VALUES(3, 'Hello World')");
         stat.execute("INSERT INTO TEST VALUES(4, 'Hello World')");
         stat.execute("INSERT INTO TEST VALUES(5, 'Hello World')");
-        
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 0, 0)");
-        rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=4");
+
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0) ORDER BY QUERY");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=5");
-        rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=3");
-        checkFalse(rs.next());
-        
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 1, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=4");
-        checkFalse(rs.next());
-        
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 0, 2)");
-        rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=5");
-        rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=3");
-        checkFalse(rs.next());
-        
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 2, 1)");
-        rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=5");
         checkFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('1', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 1, 0)");
+        rs.next();
+        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        checkFalse(rs.next());
+
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 2) ORDER BY QUERY");
+        rs.next();
+        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        rs.next();
+        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        checkFalse(rs.next());
+
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1) ORDER BY QUERY");
+        rs.next();
+        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        rs.next();
+        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        checkFalse(rs.next());
+
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('1', 0, 0)");
         rs.next();
         check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         checkFalse(rs.next());
-        
-        stat.execute("CALL FT_DROP_ALL()");
-        rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 2, 1)");
-        stat.execute("CALL FT_DROP_ALL()");
-        
         conn.close();
+
+        conn = getConnection("fullText");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
+
+        stat.execute("CALL " + prefix + "DROP_ALL()");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1)");
+        stat.execute("CALL " + prefix + "DROP_ALL()");
+
+        conn.close();
+
     }
 }

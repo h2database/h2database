@@ -41,7 +41,7 @@ public class PrepareTranslation {
     public static void main(String[] args) throws Exception {
         new PrepareTranslation().run(args);
     }
-    
+
     private void run(String[] args) throws Exception {
         String baseDir = "src/docsrc/textbase";
         prepare(baseDir, "src/main/org/h2/res");
@@ -479,7 +479,7 @@ public class PrepareTranslation {
                 System.out.println(trans.getName() + ": key " + key + " not found in translation file; added dummy # 'translation'");
                 t = "#" + now;
             }
-            p.put(key, t);        
+            p.put(key, t);
         }
         // remove keys that don't exist in the main file (deleted or typo in the key)
         it = new ArrayList(p.keySet()).iterator();
@@ -531,7 +531,7 @@ public class PrepareTranslation {
         translateChunk(buff, separator, sourceLanguage, targetLanguage, keyMap, results);
         return results;
     }
-    
+
     private void translateChunk(StringBuffer buff, int separator, String source, String target, HashMap keyMap, HashMap results) {
         buff.append(separator);
         String original = buff.toString();
@@ -563,18 +563,15 @@ public class PrepareTranslation {
         keyMap.clear();
         buff.setLength(0);
     }
-    
+
     /**
-     * Translate the text using Google
+     * Translate the text using Google Translate
      */
     String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
         Thread.sleep(4000);
         String url = "http://translate.google.com/translate_t?langpair=" + sourceLanguage + "|" + targetLanguage + "&text="
                 + URLEncoder.encode(text, "UTF-8");
         HttpURLConnection conn = (HttpURLConnection) (new URL(url)).openConnection();
-        // conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)");
-        int todoTest;
-        // conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.10) Gecko/20071115 Firefox/2.0.0.10");
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; Java)");
         String result = IOUtils.readStringAndClose(IOUtils.getReader(conn.getInputStream()), -1);
         int start = result.indexOf("<div id=result_box");

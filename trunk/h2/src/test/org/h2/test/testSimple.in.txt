@@ -1,3 +1,8 @@
+select count(*) from (select * from dual union select * from dual) where x = 0;
+> 0;
+select count(*) from (select * from (select * from dual union select * from dual)) where x = 0;
+> 0;
+
 select instr('abcisj','s', -1) from dual;
 > 5;
 CREATE TABLE TEST(ID INT);
@@ -30,7 +35,7 @@ SELECT X FROM (SELECT X, X AS "XY" FROM DUAL) WHERE X=1;
 > 1;
 SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL) WHERE X=1;
 > 1;
-SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL AS "D Z") WHERE X=1; 
+SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL AS "D Z") WHERE X=1;
 > 1;
 
 select * from (select x from dual union select convert(x, int) from dual) where x=0;
@@ -109,7 +114,7 @@ drop table table2;
 select case when 1=null then 1 else 2 end;
 > 2;
 
-select case (1) when 1 then 1 else 2 end; 
+select case (1) when 1 then 1 else 2 end;
 > 1;
 
 create table test(id int);
@@ -146,7 +151,7 @@ select count(*) from A left outer join B on B.AID=A.ID inner join C on C.BID=B.I
 select count(*) from (A left outer join B on B.AID=A.ID) inner join C on C.BID=B.ID where A.id=1;
 > 0;
 drop table a, b, c;
-      
+
 create schema a;
 create table a.test(id int);
 insert into a.test values(1);
@@ -177,7 +182,7 @@ select TEST_SCHEMA.TEST_SEQ.CURRVAL;
 select TEST_SCHEMA.TEST_SEQ.nextval;
 > 1;
 drop schema TEST_SCHEMA;
-        
+
 create table test(id int);
 create trigger TEST_TRIGGER before insert on test call "org.h2.test.db.TestTriggersConstraints";
 comment on trigger TEST_TRIGGER is 'just testing';
@@ -238,7 +243,7 @@ select remarks from information_schema.sequences where sequence_name = 'WALK';
 > Walker;
 drop schema tests;
 @reconnect;
-        
+
 create constant abc value 1;
 comment on constant abc is 'One';
 select remarks from information_schema.constants where constant_name = 'ABC';
@@ -249,7 +254,7 @@ select remarks from information_schema.constants where constant_name = 'ABC';
 drop constant abc;
 drop table test;
 @reconnect;
-        
+
 create table test(id int);
 alter table test add constraint const1 unique(id);
 create index IDX_ID on test(id);

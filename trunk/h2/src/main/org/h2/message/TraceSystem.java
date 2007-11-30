@@ -19,9 +19,9 @@ import org.h2.util.FileUtils;
 import org.h2.util.SmallLRUCache;
 
 /**
- * It is possible to write after close was called, but that means for each write the 
+ * It is possible to write after close was called, but that means for each write the
  * log file will be opened and closed again (which is slower).
- * 
+ *
  * @author Thomas
  */
 public class TraceSystem {
@@ -29,7 +29,7 @@ public class TraceSystem {
 
     // TODO log total and free memory from time to time
 
-    // max file size is currently 64 MB, 
+    // max file size is currently 64 MB,
     // and then there could be a .old file of the same size
     private static final int DEFAULT_MAX_FILE_SIZE = 64 * 1024 * 1024;
     public static final int DEFAULT_TRACE_LEVEL_SYSTEM_OUT = OFF;
@@ -49,14 +49,14 @@ public class TraceSystem {
     private boolean closed;
     private boolean manualEnabling = true;
     private boolean writingErrorLogged;
-    
+
     public static void traceThrowable(Throwable e) {
         PrintWriter writer = DriverManager.getLogWriter();
         if (writer != null) {
             e.printStackTrace(writer);
         }
     }
-    
+
     public void setManualEnabling(boolean value) {
         this.manualEnabling = value;
     }
@@ -230,9 +230,16 @@ public class TraceSystem {
             try {
                 fileWriter.close();
             } catch (IOException e) {
-                // ignore exception
+                // ignore
             }
             fileWriter = null;
+        }
+        try {
+            if (fileName != null && FileUtils.length(fileName) == 0) {
+                FileUtils.delete(fileName);
+            }
+        } catch (SQLException e) {
+            // ignore
         }
     }
 
@@ -244,7 +251,7 @@ public class TraceSystem {
     protected void finalize() {
         if (!SysProperties.runFinalize) {
             return;
-        }        
+        }
         close();
     }
 

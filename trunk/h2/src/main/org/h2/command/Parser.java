@@ -829,9 +829,10 @@ public class Parser {
 
     private TableFilter readTableFilter(boolean fromOuter) throws SQLException {
         Table table;
+        String alias = null;
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         if (readIf("(")) {
-            if (isToken("SELECT") || isToken("FROM")) {
+            if (isToken("SELECT") || isToken("FROM") || isToken("(")) {
                 Query query = parseSelect();
                 Session s;
                 if (prepared != null && prepared instanceof CreateView) {
@@ -840,6 +841,7 @@ public class Parser {
                     s = session;
                 }
                 table = TableView.createTempView(s, session.getUser(), query);
+                alias = table.getName();
                 read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
@@ -869,7 +871,6 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
-        String alias = null;
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
@@ -1196,9 +1197,7 @@ public class Parser {
         ExplainPlan command = new ExplainPlan(session);
         readIf("PLAN");
         readIf("FOR");
-        if (isToken("SELECT") || isToken("FROM")) {
-            command.setCommand(parseSelect());
-        } else if (isToken("(")) {
+        if (isToken("SELECT") || isToken("FROM") || isToken("(")) {
             command.setCommand(parseSelect());
         } else if (readIf("DELETE")) {
             command.setCommand(parseDelete());

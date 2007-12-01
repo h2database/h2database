@@ -10,9 +10,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.MathUtils;
 
 public class ValueResultSet extends Value {
 
@@ -24,28 +22,6 @@ public class ValueResultSet extends Value {
 
     public static ValueResultSet get(ResultSet rs) throws SQLException {
         ValueResultSet val = new ValueResultSet(rs);
-        return val;
-    }
-
-    public static ValueResultSet getCopy(LocalResult rs,  int maxrows) throws SQLException {
-        int columnCount = rs.getVisibleColumnCount();
-        SimpleResultSet simple = new SimpleResultSet();
-        ValueResultSet val = new ValueResultSet(simple);
-        for (int i = 0; i < columnCount; i++) {
-            String name = rs.getColumnName(i);
-            int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
-            int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
-            int scale = rs.getColumnScale(i);
-            simple.addColumn(name, sqlType, precision, scale);
-        }
-        rs.reset();
-        for (int i = 0; i < maxrows && rs.next(); i++) {
-            Object[] list = new Object[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                list[j] = rs.currentRow()[j].getObject();
-            }
-            simple.addRow(list);
-        }
         return val;
     }
 

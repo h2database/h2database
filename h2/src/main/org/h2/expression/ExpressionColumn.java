@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;

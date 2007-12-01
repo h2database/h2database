@@ -72,8 +72,8 @@ import org.h2.constant.SysProperties;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 62;
-    private static final String BUILD = "2007-11-25";
+    public static final int BUILD_ID = 63;
+    private static final String BUILD = "2007-12-02";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

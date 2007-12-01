@@ -79,6 +79,7 @@ import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestDataPage;
+import org.h2.test.unit.TestDate;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
@@ -516,6 +517,7 @@ Features of H2
         new TestBitField().runTest(this);
         new TestCompress().runTest(this);
         new TestDataPage().runTest(this);
+        new TestDate().runTest(this);
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);

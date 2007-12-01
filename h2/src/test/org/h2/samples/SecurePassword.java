@@ -6,43 +6,60 @@ package org.h2.samples;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Properties;
 
 /**
- * @author Thomas
+ * This example shows how to secure passwords
+ * (both database passwords, and account passwords).
  */
-
 public class SecurePassword {
     public static void main(String[] argv) throws Exception {
-        
+
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:data/simple";
         String user = "sam";
         char[] password = {'t', 'i', 'a', 'E', 'T', 'r', 'p'};
-        
-        // 'unsafe' way to connect
-        // the password may reside in the main memory for an undefined time
-        // or even written to disk (swap file)
+
+        // This is the normal, but 'unsafe' way to connect:
+        // the password may reside in the main memory for an undefined time,
+        // or even written to disk (swap file):
         // Connection conn = DriverManager.getConnection(url, user, new String(password));
-        
-        // 'safe' way to connect
-        // the password is overwritten after use
+
+        // This is the most safe way to connect: the password is overwritten after use
         Properties prop = new Properties();
         prop.setProperty("user", user);
         prop.put("password", password);
         Connection conn = DriverManager.getConnection(url, prop);
-        
+
+        // For security reasons, account passwords should not be stored directly in a database.
+        // Instead, only the hash should be stored. Also, PreparedStatements must be used
+        // to avoid SQL injection:
         Statement stat = conn.createStatement();
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        stat.executeUpdate("INSERT INTO TEST VALUES(1, 'Hello')");
-        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        stat.execute(
+                "drop table account if exists");
+        stat.execute(
+                "create table account(name varchar primary key, salt binary default secure_rand(16), hash binary)");
+        PreparedStatement prep;
+        prep = conn.prepareStatement("insert into account(name) values(?)");
+        prep.setString(1, "Joe");
+        prep.execute();
+        prep = conn.prepareStatement(
+                "update account set hash=hash('SHA256', stringtoutf8(salt||?), 10) where name=?");
+        prep.setString(1, "secret");
+        prep.setString(2, "Joe");
+        prep.execute();
+        prep = conn.prepareStatement(
+                "select * from account where name=? and hash=hash('SHA256', stringtoutf8(salt||?), 10)");
+        prep.setString(1, "Joe");
+        prep.setString(2, "secret");
+        ResultSet rs = prep.executeQuery();
         while (rs.next()) {
-            System.out.println(rs.getString("NAME"));
+            System.out.println(rs.getString("name"));
         }
         conn.close();
     }
-        
+
 }

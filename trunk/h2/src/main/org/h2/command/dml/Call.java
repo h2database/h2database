@@ -4,6 +4,7 @@
  */
 package org.h2.command.dml;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
@@ -39,7 +40,8 @@ public class Call extends Prepared {
         setCurrentRowNumber(1);
         Value v = value.getValue(session);
         if (v.getType() == Value.RESULT_SET) {
-            return LocalResult.read(session, ((ValueResultSet) v).getResultSet(), maxrows);
+            ResultSet rs = ((ValueResultSet) v).getResultSet();
+            return LocalResult.read(session, rs, maxrows);
         } else if (v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray) v).getList();
             ObjectArray expr = new ObjectArray();

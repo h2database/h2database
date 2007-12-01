@@ -463,9 +463,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         if ((flags & XAResource.TMSUSPEND) != 0) {
             buff.append("|XAResource.TMSUSPEND");
         }
-        if ((flags & XAResource.XA_OK) != 0) {
-            buff.append("|XAResource.XA_OK");
-        }
         if ((flags & XAResource.XA_RDONLY) != 0) {
             buff.append("|XAResource.XA_RDONLY");
         }        

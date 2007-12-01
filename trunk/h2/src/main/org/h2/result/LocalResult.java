@@ -40,17 +40,31 @@ public class LocalResult implements ResultInterface {
     private int diskOffset;
     private boolean isUpdateCount;
     private int updateCount;
-
+    
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
-        ResultSetMetaData meta = rs.getMetaData();
+        ObjectArray cols = getExpressionColumns(session, rs);
+        int columnCount = cols.size();
+        LocalResult result = new LocalResult(session, cols, columnCount);
+        for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
+            Value[] list = new Value[columnCount];
+            for (int j = 0; j < columnCount; j++) {
+                int type = result.getColumnType(j);
+                list[j] = DataType.readValue(session, rs, j + 1, type);
+            }
+            result.addRow(list);
+        }
+        result.done();
+        return result;
+    }
+    
+    private static ObjectArray getExpressionColumns(Session session, ResultSet rs) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();        
         int columnCount = meta.getColumnCount();
-        ObjectArray cols = new ObjectArray();
-        int[] types = new int[columnCount];
+        ObjectArray cols = new ObjectArray(columnCount);
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = meta.getColumnLabel(i + 1);
             int type = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
-            types[i] = type;
             int precision = meta.getPrecision(i + 1);
             int scale = meta.getScale(i + 1);
             int displaySize = meta.getColumnDisplaySize(i + 1);
@@ -58,16 +72,7 @@ public class LocalResult implements ResultInterface {
             Expression expr = new ExpressionColumn(db, col);
             cols.add(expr);
         }
-        LocalResult result = new LocalResult(session, cols, columnCount);
-        for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
-            Value[] list = new Value[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                list[j] = DataType.readValue(session, rs, j + 1, types[j]);
-            }
-            result.addRow(list);
-        }
-        result.done();
-        return result;
+        return cols;
     }
 
     public LocalResult(int updateCount) {

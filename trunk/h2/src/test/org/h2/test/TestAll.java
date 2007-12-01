@@ -153,7 +153,7 @@ java org.h2.test.TestAll timer
 
 toString: > the parameters for the prepared statements.
 
-autocomplete only just after meaningful key (ctrl+space, space, bs, interpunctation, ...)
+autocomplete only just after meaningful key (ctrl+space, space, bs, ...)
 
 write more tests for the command line tools
 

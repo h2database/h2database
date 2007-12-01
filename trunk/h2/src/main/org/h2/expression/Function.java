@@ -32,12 +32,14 @@ import org.h2.table.LinkSchema;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -1702,8 +1704,29 @@ public class Function extends Expression implements FunctionCall {
             }
         }
         result.done();
-        ValueResultSet vr = ValueResultSet.getCopy(result, Integer.MAX_VALUE);
+        ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result, Integer.MAX_VALUE));
         return vr;
+    }
+    
+    SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
+        int columnCount = rs.getVisibleColumnCount();
+        SimpleResultSet simple = new SimpleResultSet();
+        for (int i = 0; i < columnCount; i++) {
+            String name = rs.getColumnName(i);
+            int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
+            int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
+            int scale = rs.getColumnScale(i);
+            simple.addColumn(name, sqlType, precision, scale);
+        }
+        rs.reset();
+        for (int i = 0; i < maxrows && rs.next(); i++) {
+            Object[] list = new Object[columnCount];
+            for (int j = 0; j < columnCount; j++) {
+                list[j] = rs.currentRow()[j].getObject();
+            }
+            simple.addRow(list);
+        }
+        return simple;
     }
 
     public void setColumns(ObjectArray columns) {

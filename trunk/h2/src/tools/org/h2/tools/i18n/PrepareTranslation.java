@@ -61,7 +61,7 @@ public class PrepareTranslation {
 
         // create the translated documentation
         buildHtml("src/docsrc/text", "docs/html", "en");
-        buildHtml("src/docsrc/text", "docs/html", "de");
+        // buildHtml("src/docsrc/text", "docs/html", "de");
         buildHtml("src/docsrc/text", "docs/html", "ja");
 
         // convert the properties files back to utf8 text files, including the
@@ -97,7 +97,9 @@ public class PrepareTranslation {
             String key = (String) it.next();
             String t = transProp.getProperty(key);
             // overload with translations, but not the ones starting with #
-            if (!t.startsWith("#")) {
+            if (t.startsWith("##")) {
+                prop.put(key, t.substring(2));
+            } else if (!t.startsWith("#")) {
                 prop.put(key, t);
             }
         }
@@ -436,7 +438,7 @@ public class PrepareTranslation {
             } else {
                 String t = p.getProperty(key);
                 String last = base.getProperty(key);
-                if (t.startsWith("#")) {
+                if (t.startsWith("#") && !t.startsWith("##")) {
                     // not translated before
                     t = oldTranslations.getProperty(now);
                     if (t == null) {
@@ -474,7 +476,7 @@ public class PrepareTranslation {
             String now = main.getProperty(key);
             String t;
             if (AUTO_TRANSLATE) {
-                t = "#" + autoTranslated.get(now);
+                t = "##" + autoTranslated.get(now);
             } else {
                 System.out.println(trans.getName() + ": key " + key + " not found in translation file; added dummy # 'translation'");
                 t = "#" + now;

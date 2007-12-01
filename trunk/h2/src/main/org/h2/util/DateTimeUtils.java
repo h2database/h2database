@@ -19,7 +19,7 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 public class DateTimeUtils {
-    
+
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
         if (x != null) {
             Timestamp y = new Timestamp(getLocalTime(x, calendar));
@@ -29,14 +29,14 @@ public class DateTimeUtils {
         }
         return x;
     }
-    
+
     public static Time cloneAndNormalizeTime(Time value) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(value);
         cal.set(1970, 0, 1);
-        return new Time(cal.getTime().getTime());        
+        return new Time(cal.getTime().getTime());
     }
-    
+
     public static Date cloneAndNormalizeDate(Date value) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(value);
@@ -45,7 +45,7 @@ public class DateTimeUtils {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         return new Date(cal.getTime().getTime());
-    }    
+    }
 
     public static Value convertDateToUniversal(Date x, Calendar source) throws SQLException {
         return ValueDate.get(new Date(getUniversalTime(source, x)));
@@ -174,29 +174,20 @@ public class DateTimeUtils {
                     nano = Integer.parseInt(n);
                 }
             }
-            Calendar c;
-            if (tz == null) {
-                c = Calendar.getInstance();
-            } else {
-                c = Calendar.getInstance(tz);
+            if (hour < 0 || hour > 23) {
+                throw new IllegalArgumentException("hour: " + hour);
             }
-            c.setLenient(false);
             long time;
-            if (year <= 0) {
-                c.set(Calendar.ERA, GregorianCalendar.BC);
-                c.set(Calendar.YEAR, 1 - year);
-            } else {
-                c.set(Calendar.YEAR, year);
+            try {
+                time = getTime(false, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
+            } catch (IllegalArgumentException e) {
+                // special case: if the time simply doesn't exist, use the lenient version
+                if (e.toString().indexOf("HOUR_OF_DAY") > 0) {
+                    time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
+                } else {
+                    throw e;
+                }
             }
-            c.set(Calendar.MONTH, month - 1); // january is 0
-            c.set(Calendar.DAY_OF_MONTH, day);
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, second);
-            if (type != Value.TIMESTAMP) {
-                c.set(Calendar.MILLISECOND, nano / 1000000);
-            }
-            time = c.getTime().getTime();
             switch (type) {
             case Value.DATE:
                 return new java.sql.Date(time);
@@ -213,6 +204,31 @@ public class DateTimeUtils {
         } catch (IllegalArgumentException e) {
             throw Message.getSQLException(errorCode, new String[]{original, e.toString()}, e);
         }
+    }
+
+    private static long getTime(boolean lenient, TimeZone tz, int year, int month, int day, int hour, int minute, int second, boolean setMillis, int nano) {
+        Calendar c;
+        if (tz == null) {
+            c = Calendar.getInstance();
+        } else {
+            c = Calendar.getInstance(tz);
+        }
+        c.setLenient(lenient);
+        if (year <= 0) {
+            c.set(Calendar.ERA, GregorianCalendar.BC);
+            c.set(Calendar.YEAR, 1 - year);
+        } else {
+            c.set(Calendar.YEAR, year);
+        }
+        c.set(Calendar.MONTH, month - 1); // january is 0
+        c.set(Calendar.DAY_OF_MONTH, day);
+        c.set(Calendar.HOUR_OF_DAY, hour);
+        c.set(Calendar.MINUTE, minute);
+        c.set(Calendar.SECOND, second);
+        if (setMillis) {
+            c.set(Calendar.MILLISECOND, nano / 1000000);
+        }
+        return c.getTime().getTime();
     }
 
 }

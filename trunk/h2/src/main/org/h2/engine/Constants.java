@@ -47,6 +47,7 @@ import org.h2.constant.SysProperties;
  *      - footer
  *      - front page
  *      - orphan control
+ *      - check images
  *      - table of contents
  * - Switch off auto-build
  * - ant all

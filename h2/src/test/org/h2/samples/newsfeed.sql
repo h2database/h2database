@@ -10,6 +10,32 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(33,
+'New version available: 1.0.63 (2007-12-02)', '2007-12-02 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Performance optimization for IN(...) and IN(SELECT...), 
+	currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
+</li><li>The H2 Console has been translated to Ukrainian by Igor Dobrovolskyi. Thanks a lot! 
+</li><li>The SecurePassword example has been improved.
+</li><li>Improved FTP server: now the PORT command is supported.
+</li><li>New function TABLE_DISTINCT. 
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Certain setting in the Server didn''t work.
+</li><li>In timezones where the summer time saving limit is at midnight, 
+  some dates did not work in some virtual machines, 
+    for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05.
+</li><li>The native fulltext search was not working properly after re-connecting. 
+</li><li>Temporary views (FROM(...)) with UNION didn''t work if nested. 
+</li><li>Using LIMIT with values close to Integer.MAX_VALUE didn''t work. 
+</li></ul>
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(32,
 'New version available: 1.0.62 (2007-11-25)', '2007-11-25 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -362,69 +388,6 @@ a result of type REAL. Fixed.
 and writing, the tool wrote the column names twice. Fixed.
 </li><li>There was a small memory leak in the trace module. 
 One object per opened connection was kept in a hash map.
-</li>
-</ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(23,
-'New version available: 1.0 / 2007-04-29', '2007-04-29 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>New function TABLE to define ad-hoc (temporary) tables in a query. 
-    This also solves problems with variable-size IN(...) queries: 
-    instead of SELECT * FROM TEST WHERE ID IN(?, ?, ...) you can now write:
-    SELECT * FROM TABLE(ID INT=?) X, TEST WHERE X.ID=TEST.ID
-    In this case, the index is used.
-</li><li>New data type ARRAY. Actually it was there before, but is now documented 
-    and better tested (however it must still be considered experimental).
-    The java.sql.Array implementation is incomplete, but setObject(1, new Object[]{...})
-    and getObject(..) can be used. New functions ARRAY_GET and ARRAY_LENGTH.
-</li><li>Autocomplete in the Console application: now the result frame scrolls to the top when the list is updated.
-</li><li>SimpleResultSet now has some basic data type conversion features.
-</li><li>The BACKUP command is better tested and documented.
-    This means hot backup (online backup) is now possible.
-</li><li>The old ''Backup'' tool is now called ''Script'' (as the SQL statement).
-</li><li>There are new ''Backup'' and ''Restore'' tools that work with database files directly.
-</li><li>The new function LINK_SCHEMA simplifies linking all tables of a schema.
-</li><li>SCRIPT DROP now also drops aliases (Java functions) if they exist.
-</li><li>For encrypted databases, the trace option can no longer be enabled manually by creating a file.
-</li><li>For linked tables, NULL in the unique key is now supported.
-</li><li>For read-only databases, temp files are now created in the default temp directory instead
-    of the database directory.
-</li><li>CSVWRITE now returns the number of rows written.
-</li><li>The Portuguese (Europe) translation is available. Thanks a lot to Antonio Casqueiro!
-</li><li>The error message for invalid views has been improved (the root cause is included in the message now).
-</li><li>SQLException.getCause of the now works for JDK 1.4 and higher.
-</li>
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>Unnamed private in-memory database (jdbc:h2:mem:) were not ''private'' as documented. Fixed.
-</li><li>GROUP BY expressions did not work correctly in subqueries. Fixed.
-</li><li>When using JDK 1.5 or later, and switching on h2.lobFilesInDirectories, 
-    the performance for creating LOBs was bad. This has been fixed, however
-    creating lots of LOBs it is still faster when the setting is switched off.
-</li><li>A problem with multiple unnamed dynamic tables (FROM (SELECT...)) has been fixed.
-</li><li>Appending ''Z'' to a timestamp did not have an effect. Now it is interpreted as +00:00 (GMT).
-</li><li>The complete syntax for referential and check constraints is now supported 
-    when written as part of the column definition, behind PRIMARY KEY.
-</li><li>CASE WHEN ... returned the wrong result when the condition evaluated to NULL.
-</li><li>Sending CLOB data was slow in some systems when using the server version. Fixed.
-</li><li>The data type of NULLIF was NULL if the first expression was a column. Now the data type is set correctly.
-</li><li>Indexes (and other related objects) for local temporary tables where not dropped 
-    when the session was closed. Fixed.
-</li><li>ALTER TABLE did not work for tables with computed columns.
-</li><li>If the index file was deleted, an error was logged in the .trace.db file. This is no longer done.
-</li><li>IN(SELECT ...) was not working correctly if the subquery returned a NULL value. Fixed.
-</li><li>DROP ALL OBJECTS did not drop constants.
-</li><li>DROP ALL OBJECTS dropped the role PUBLIC, which was wrong. Fixed.
-</li><li>CASE was parsed as a function if the expression was in (). Fixed.
-</li><li>When ORDER BY was used together with DISTINCT, it was required to type the column
-    name exactly in the select list and the order list exactly in the same way. 
-    This is not required any longer.
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.

@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- 
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Frequently Asked Questions
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>Frequently Asked Questions</h1>
+
+<a href="#known_bugs">
+    Are there any known bugs? When is the next release?</a><br />
+<a href="#open_source">
+    Is this Database Engine Open Source?</a><br />
+<a href="#query_slow">
+    My query is slow</a><br />
+<a href="#create_database">
+    How to Create a New Database?</a><br />
+<a href="#connect">
+    How to Connect to a Database?</a><br />
+<a href="#database_files">
+    Where are the Database Files Stored?</a><br />
+<a href="#size_limit">
+    What is the Size Limit (maximum size) of a Database?</a><br />
+<a href="#reliable">
+    Is it Reliable?</a><br />
+<a href="#gcj">
+    Is the GCJ version stable? Faster?</a><br />
+<a href="#translate">
+    How to Translate this Project?</a><br />
+
+<br /><a name="known_bugs"></a>
+<h3>Are there any known bugs? When is the next release?</h3>
+<p>
+Usually, bugs get fixes as they are found. There is a release every few weeks.
+Here is the list of known and confirmed issues:
+</p>
+<ul>
+<li>Some problems have been found with right outer join. Internally, it is converted to left outer join, which
+    does not always produce the same results as other databases when used in combination with other joins.
+</li></ul>
+
+<br /><a name="open_source"></a>
+<h3>Is this Database Engine Open Source?</h3>
+<p>
+Yes. It is free to use and distribute, and the source code is included.
+See also under license.
+</p>
+
+<br /><a name="query_slow"></a>
+<h3>My query is slow</h3>
+<p>
+Slow SELECT (or DELETE, UPDATE, MERGE) statement can have multiple reasons.
+Follow this checklist:
+</p>
+<ul>
+<li>Run ANALYSE (see documentation for details).
+</li><li>Run the query with EXPLAIN and check if indexes are used (see documentation for details).
+</li><li>If required, create additional indexes and try again using ANALYZE and EXPLAIN.
+</li><li>If it doesn't help please report the problem. 
+</li>
+</ul>
+
+<br /><a name="create_database"></a>
+<h3>How to Create a New Database?</h3>
+<p>
+By default, a new database is automatically created if it does not yet exist.
+</p>
+
+<br /><a name="connect"></a>
+<h3>How to Connect to a Database?</h3>
+<p>
+The database driver is <code>org.h2.Driver</code>,
+and the database URL starts with <code>jdbc:h2:</code>.
+To connect to a database using JDBC, use the following code:
+</p>
+<pre>
+Class.forName("org.h2.Driver");
+Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
+</pre>
+
+<br /><a name="database_files"></a>
+<h3>Where are the Database Files Stored?</h3>
+<p>
+When using database URLs like jdbc:h2:~/test, the database is stored in the user directory.
+For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;.
+If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started
+(the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin.
+The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
+jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory).
+The directory must exist. It is also possible to use the fully qualified directory (and for Windows, drive) name.
+Example: jdbc:h2:file:C:/data/test
+</p>
+
+<br /><a name="size_limit"></a>
+<h3>What is the Size Limit (maximum size) of a Database?</h3>
+<p>
+The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data:
+Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
+</p>
+<p>
+The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT or FAT32, the 
+limit is 4 GB for the data. 
+</p>
+
+<br /><a name="reliable"></a>
+<h3>Is it Reliable?</h3>
+<p>
+That is not easy to say. It is still a quite new product. A lot of tests have been written,
+and the code coverage of these tests is very high. Randomized stress tests
+are run regularly. But as this is a relatively new product, there are probably
+some problems that have not yet been found.
+Areas that are not 100% tested:
+</p>
+<ul>
+<li>Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
+</li><li>Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
+</li><li>Cluster mode, 2-Phase Commit, Savepoints
+</li><li>Server mode (well tested, but not as well as Embedded mode)
+</li><li>Multi-Threading and using multiple connections
+</li><li>Updatable result sets
+</li><li>Referential integrity and check constraints, Triggers
+</li><li>ALTER TABLE statements, Views, Linked Tables, Schema, UNION
+</li><li>Not all built-in functions are completely tested
+</li><li>The Optimizer may not always select the best plan
+</li><li>24/7 operation and large databases (500 MB and up)
+</li><li>Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
+</li></ul>
+
+<p>
+Areas considered Experimental:
+</p>
+<ul>
+<li>ODBC driver and the GCJ native version on Windows
+</li><li>Linear Hash Index
+</li><li>Compatibility modes for other databases (only some features are implemented)
+</li><li>The ARRAY data type and related functionality.
+</li></ul>
+
+<br /><a name="gcj"></a>
+<h3>Is the GCJ version stable? Faster?</h3>
+<p>
+The GCJ version is not as stable as the Java version.
+When running the regression test with the GCJ version, sometimes the application just stops
+at what seems to be a random point without error message.
+Currently, the GCJ version is also slower than when using the Sun VM.
+However, the startup of the GCJ version is faster than when using a VM.
+</p>
+
+<br /><a name="translate"></a>
+<h3>How to Translate this Project?</h3>
+<p>
+For more information, see 
+<a href="build.html#translating">Build/Translating</a>.
+</p>
+
+</div></td></tr></table></body></html>

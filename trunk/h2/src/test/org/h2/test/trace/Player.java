@@ -27,11 +27,20 @@ import java.util.HashMap;
 
 /**
  * The command line tool to re-run the log file. This is done using reflection.
- *
- * @author Thomas Mueller
- *
  */
 public class Player {
+    
+    // TODO support Calendar
+    // TODO support Object[]
+    // TODO support Object
+    // TODO support URL
+    // TODO support Array
+    // TODO support Ref
+    // TODO support SQLInput, SQLOutput
+    // TODO support Properties
+    // TODO support Map
+    // TODO support SQLXML
+
 
     private boolean log;
 
@@ -39,14 +48,12 @@ public class Player {
 
     private HashMap objects = new HashMap();
     private String lastReturn;
-    private boolean checkResults;
 
     /**
      * Execute a trace file using the command line. The log file name to execute (replayed) must be specified
      * as the last parameter. The following optional command line parameters are supported:
      * <ul>
      * <li><code>-log</code> to enable logging the executed statement to System.out
-     * <li><code>-checkResults</code> if this is set, the values returned at runtime are compared with the values in the log file
      * </ul>
      *
      * @param args the arguments of the application
@@ -73,8 +80,6 @@ public class Player {
             for (int i = 0; i < args.length - 1; i++) {
                 if ("-log".equals(args[i])) {
                     log = true;
-                } else if ("-checkResults".equals(args[i])) {
-                    checkResults = true;
                 } else {
                     throw new Error("Unknown setting: " + args[i]);
                 }
@@ -82,7 +87,7 @@ public class Player {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Usage: java " + getClass().getName()
-                    + " [-log] [-checkResult] <fileName>");
+                    + " [-log] <fileName>");
             return;
         }
         runFile(fileName, log);
@@ -112,18 +117,6 @@ public class Player {
     }
 
     private void runLine(String line) {
-        if (line.startsWith("//return")) {
-            if (checkResults && lastReturn != null) {
-                int start = line.indexOf(' ');
-                int end = line.lastIndexOf(';');
-                if (start >= 0 && end > start) {
-                    String expected = line.substring(start, end).trim();
-                    if (lastReturn.equals(expected)) {
-                        logError("expected: " + expected + " got: " + lastReturn);
-                    }
-                }
-            }
-        }
         if (!line.startsWith("/**/")) {
             return;
         }

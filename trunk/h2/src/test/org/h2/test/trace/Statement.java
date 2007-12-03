@@ -21,14 +21,10 @@ package org.h2.test.trace;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 /**
  * Represents a statement (a single line in the log file).
- *
- * @author Thomas Mueller
- *
  */
 class Statement {
     private Player player;
@@ -66,21 +62,6 @@ class Statement {
     }
 
     private Method findMethod(Class clazz) throws Exception {
-        if ((clazz.getModifiers() & Modifier.PUBLIC) == 0) {
-            // http://forum.java.sun.com/thread.jspa?threadID=704100&messageID=4084720
-            // bug 4071957
-            Class[] interfaces = clazz.getInterfaces();
-            for (int i = 0; i < interfaces.length; i++) {
-                Class c = interfaces[i];
-                if (c.getName().startsWith("javax.")) {
-                    try {
-                        return c.getMethod(methodName, parameterTypes);
-                    } catch (Exception e) {
-                        // TODO this is slow, but a workaround for a JVM bug
-                    }
-                }
-            }
-        }
         try {
             return clazz.getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {

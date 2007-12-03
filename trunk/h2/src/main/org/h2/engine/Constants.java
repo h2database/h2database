@@ -65,6 +65,7 @@ import org.h2.constant.SysProperties;
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
+ * - svn copy: .../svn/trunk .../svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * 
  * @author Thomas
  */

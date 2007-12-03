@@ -21,9 +21,6 @@ package org.h2.test.trace;
 
 /**
  * A function call argument used by the statement.
- *
- * @author Thomas Mueller
- *
  */
 class Arg {
     private Class clazz;

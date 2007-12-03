@@ -22,20 +22,15 @@ package org.h2.test.trace;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.h2.util.StringUtils;
 
 /**
  * Some String manipulations / formatting functions used by this tool.
- *
- * @author Thomas Mueller
- *
  */
 public class StringTools {
-
-//    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
-//            "yyyy-MM-dd HH:mm:ss.SSS Z");
 
     static String[] arraySplit(String s, char separatorChar) {
         if (s == null) {
@@ -193,6 +188,8 @@ public class StringTools {
             return null;
         } else if (clazz == String.class) {
             return StringUtils.quoteJavaString(value.toString());
+        } else if (clazz == BigDecimal.class) {
+            return "new BigDecimal(\"" + value.toString() + "\")";
         } else if (clazz.isArray()) {
             if (clazz == String[].class) {
                 return StringUtils.quoteJavaStringArray((String[]) value);

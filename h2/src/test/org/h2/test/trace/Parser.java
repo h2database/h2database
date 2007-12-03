@@ -19,13 +19,11 @@
  */
 package org.h2.test.trace;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 /**
  * The parser to parse a statement (a single line in the log file).
- *
- * @author Thomas Mueller
- *
  */
 class Parser {
     private static final int STRING = 0, NAME = 1, NUMBER = 2, SPECIAL = 3;
@@ -181,17 +179,7 @@ class Parser {
             return new Arg(player, String.class, s);
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();
-            if (number.startsWith("0x")) {
-                if (number.endsWith("l")) {
-                    Long v = new Long(Long.parseLong(number.substring(2, number
-                            .length() - 1), 16));
-                    return new Arg(player, long.class, v);
-                } else {
-                    Integer v = new Integer(Integer.parseInt(number.substring(
-                            2, number.length() - 1), 16));
-                    return new Arg(player, int.class, v);
-                }
-            } else if (number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
+            if (number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
                 Double v = new Double(Double.parseDouble(number));
                 return new Arg(player, double.class, v);
             } else if (number.endsWith("l")) {
@@ -223,6 +211,12 @@ class Parser {
                     String[] list = new String[values.size()];
                     values.toArray(list);
                     return new Arg(player, String[].class, list);
+                } else if (readIf("BigDecimal")) {
+                    read("(");
+                    ArrayList values = new ArrayList();
+                    values.add(parseValue().getValue());
+                    read(")");
+                    return new Arg(player, BigDecimal.class, values);
                 } else {
                     throw new Error("Unsupported constructor: " + readToken());
                 }

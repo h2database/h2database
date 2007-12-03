@@ -7,8 +7,10 @@ package org.h2.test.unit;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -32,16 +34,16 @@ public class TestTools extends TestBase {
 
     public void test() throws Exception {
         deleteDb("utils");
-        testServerMain();
-        testRemove();
+//        testServerMain();
+//        testRemove();
         testConvertTraceFile();
-        testManagementDb();
-        testResourceGenerator();
-        testChangePassword();
-        testServer();
-        testScriptRunscript();
-        testBackupRestore();
-        testRecover();
+//        testManagementDb();
+//        testResourceGenerator();
+//        testChangePassword();
+//        testServer();
+//        testScriptRunscript();
+//        testBackupRestore();
+//        testRecover();
     }
 
     private void testServerMain() throws Exception {
@@ -116,8 +118,21 @@ public class TestTools extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/toolsConvertTraceFile";
         Connection conn = DriverManager.getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar)");
-        stat.execute("insert into test values(1, 'Hello')");
+        
+        int todoFloatDoubleLongShortByteBoolean;
+        int todoByteArray;
+        int todoInputStream;
+        int todoReader;
+        int todoDateTimeTimestamp;
+        int todoIntArray;
+        int todoBlobClob;
+        
+        stat.execute("create table test(id int primary key, name varchar, amount decimal)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?, ?)");
+        prep.setInt(1, 1);
+        prep.setString(2, "Hello");
+        prep.setBigDecimal(3, new BigDecimal("10.20"));
+        prep.executeUpdate();
         conn.close();
 
         ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});

@@ -1,1 +1,0 @@
-command=cmd /c "del /s /q /f *.* 2> nul | rmdir /s /q data dataCrash dataIndex dataJoin dataScript dataSynth trace.db org 2> nul | rmdir /s /q data 2> nul"

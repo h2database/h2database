@@ -13,11 +13,15 @@ import org.h2.message.Message;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
 
+/**
+ * This class represents the statement
+ * DROP CONSTANT
+ */
 public class DropConstant extends SchemaCommand {
 
     private String constantName;
     private boolean ifExists;
-    
+
     public DropConstant(Session session, Schema schema) {
         super(session, schema);
     }

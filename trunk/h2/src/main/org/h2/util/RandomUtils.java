@@ -14,7 +14,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 public class RandomUtils {
-    
+
     private static SecureRandom secureRandom;
     private static Random random  = new Random();
     private static volatile boolean seeded;
@@ -68,15 +68,15 @@ public class RandomUtils {
         }
         return secureRandom;
     }
-    
+
     private static byte[] generateAlternativeSeed() {
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bout);
-            
+
             // milliseconds
             out.writeLong(System.currentTimeMillis());
-            
+
             // nanoseconds if available
             try {
                 Method m = System.class.getMethod("nanoTime", new Class[0]);
@@ -87,17 +87,21 @@ public class RandomUtils {
             } catch (Exception e) {
                 // nanoTime not found, this is ok (only exists for JDK 1.5 and higher)
             }
-            
+
             // memory
             out.writeInt(new Object().hashCode());
             Runtime runtime = Runtime.getRuntime();
             out.writeLong(runtime.freeMemory());
             out.writeLong(runtime.maxMemory());
             out.writeLong(runtime.totalMemory());
-            
+
             // environment
-            out.writeUTF(System.getProperties().toString());
-            
+            try {
+                out.writeUTF(System.getProperties().toString());
+            } catch (Exception e) {
+                warn("generateAlternativeSeed", e);
+            }
+
             // host name and ip addresses (if any)
             try {
                 String hostName = InetAddress.getLocalHost().getHostName();
@@ -107,9 +111,10 @@ public class RandomUtils {
                     out.write(list[i].getAddress());
                 }
             } catch (Exception e) {
-                warn("InetAddress", e);
+                // on some system, InetAddress.getLocalHost() doesn't work
+                // for some reason (incorrect configuration)
             }
-            
+
             // timing (a second thread is already running)
             for (int j = 0; j < 16; j++) {
                 int i = 0;
@@ -119,7 +124,7 @@ public class RandomUtils {
                 }
                 out.writeInt(i);
             }
-            
+
             out.close();
             return bout.toByteArray();
         } catch (IOException e) {
@@ -127,14 +132,14 @@ public class RandomUtils {
             return new byte[1];
         }
     }
-    
+
     public static long getSecureLong() {
         SecureRandom sr = getSecureRandom();
         synchronized (sr) {
             return sr.nextLong();
         }
     }
-    
+
     public static byte[] getSecureBytes(int len) {
         if (len <= 0) {
             len = 1;
@@ -150,7 +155,7 @@ public class RandomUtils {
     public static int nextInt(int max) {
         return random.nextInt(max);
     }
-    
+
     private static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
         System.out.println("RandomUtils warning: " + s);

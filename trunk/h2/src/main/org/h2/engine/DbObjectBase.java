@@ -13,11 +13,10 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * The base class for all database objects.
  */
-
 public abstract class DbObjectBase implements DbObject {
-    
+
     private int id;
     protected Database database;
     protected Trace trace;
@@ -71,7 +70,7 @@ public abstract class DbObjectBase implements DbObject {
     public abstract String getCreateSQL();
 
     public abstract String getDropSQL();
-    
+
     public abstract int getType();
 
     public abstract void removeChildrenAndResources(Session session) throws SQLException;

@@ -22,7 +22,8 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * Represents an INSERT statement.
+ * This class represents the statement
+ * INSERT
  */
 public class Insert extends Prepared {
 
@@ -195,5 +196,5 @@ public class Insert extends Prepared {
     public LocalResult queryMeta() {
         return null;
     }
-    
+
 }

@@ -25,7 +25,8 @@ import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * CREATE TABLE
  */
 public class CreateTable extends SchemaCommand {
 

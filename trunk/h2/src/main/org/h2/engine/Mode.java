@@ -8,10 +8,14 @@ import java.util.HashMap;
 
 import org.h2.util.StringUtils;
 
+/**
+ * The compatibility modes. There is a fixed set of modes (for example PostgreSQL, MySQL).
+ * Each mode has different settings.
+ */
 public class Mode {
-    
+
     public static final String REGULAR = "REGULAR";
-    
+
     public boolean nullConcatIsNull;
     public boolean convertInsertNullToZero;
     public boolean convertOnlyToSmallerScale;
@@ -22,11 +26,11 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     private static final HashMap MODES = new HashMap();
-    
+
     private String name;
-    
+
     static {
-        Mode mode = new Mode(REGULAR); 
+        Mode mode = new Mode(REGULAR);
         add(mode);
 
         mode = new Mode("PostgreSQL");
@@ -34,39 +38,39 @@ public class Mode {
         mode.roundWhenConvertToLong = true;
         mode.systemColumns = true;
         add(mode);
-        
+
         mode = new Mode("MySQL");
         mode.convertInsertNullToZero = true;
         mode.roundWhenConvertToLong = true;
         mode.lowerCaseIdentifiers = true;
         mode.indexDefinitionInCreateTable = true;
         add(mode);
-        
+
         mode = new Mode("HSQLDB");
         mode.nullConcatIsNull = true;
         mode.convertOnlyToSmallerScale = true;
         add(mode);
-        
+
         mode = new Mode("MSSQLServer");
         mode.squareBracketQuotedNames = true;
         add(mode);
-        
+
     }
-    
+
     private static void add(Mode mode) {
         MODES.put(StringUtils.toUpperEnglish(mode.name), mode);
     }
-    
+
     private Mode(String name) {
         this.name = name;
     }
-    
+
     public static Mode getInstance(String name) {
         return (Mode) MODES.get(StringUtils.toUpperEnglish(name));
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
 }

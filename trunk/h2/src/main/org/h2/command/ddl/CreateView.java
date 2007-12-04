@@ -14,6 +14,10 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.TableView;
 
+/**
+ * This class represents the statement
+ * CREATE VIEW
+ */
 public class CreateView extends SchemaCommand {
 
     private Query select;

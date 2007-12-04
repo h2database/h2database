@@ -12,7 +12,8 @@ import org.h2.engine.Session;
 import org.h2.schema.Schema;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * ALTER TABLE DROP CONSTRAINT
  */
 public class AlterTableDropConstraint extends SchemaCommand {
 

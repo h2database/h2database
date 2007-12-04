@@ -13,6 +13,10 @@ import org.h2.engine.User;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 
+/**
+ * This class represents the statement
+ * CREATE SCHEMA
+ */
 public class CreateSchema extends DefineCommand {
 
     private String schemaName;

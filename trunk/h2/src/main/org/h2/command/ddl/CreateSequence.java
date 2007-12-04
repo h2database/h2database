@@ -13,6 +13,10 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 
+/**
+ * This class represents the statement
+ * CREATE SEQUENCE
+ */
 public class CreateSequence extends SchemaCommand {
 
     private String sequenceName;
@@ -63,7 +67,7 @@ public class CreateSequence extends SchemaCommand {
     public void setBelongsToTable(boolean belongsToTable) {
         this.belongsToTable = belongsToTable;
     }
-    
+
     public void setCacheSize(long cacheSize) {
         this.cacheSize = cacheSize;
     }

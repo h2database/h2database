@@ -21,6 +21,11 @@ import org.h2.message.TraceSystem;
  */
 public class SysProperties {
 
+    public static final String LINE_SEPARATOR = getStringSetting("line.separator", "\n");
+    public static final String FILE_SEPARATOR = getStringSetting("file.separator", "/");
+    public static final String USER_HOME = getStringSetting("user.home", "");
+    public static final String FILE_ENCODING = getStringSetting("file.encoding", "Cp1252");
+
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
@@ -68,7 +73,7 @@ public class SysProperties {
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
 
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
-        String s = System.getProperty(name);
+        String s = getProperty(name);
         if (s != null) {
             try {
                 return Boolean.valueOf(s).booleanValue();
@@ -78,13 +83,22 @@ public class SysProperties {
         return defaultValue;
     }
 
-    private static String getStringSetting(String name, String defaultValue) {
-        String s = System.getProperty(name);
+    private static String getProperty(String name) {
+        try {
+            return System.getProperty(name);
+        } catch (SecurityException e) {
+            // applets may not do that - ignore
+            return null;
+        }
+    }
+
+    public static String getStringSetting(String name, String defaultValue) {
+        String s = getProperty(name);
         return s == null ? defaultValue : s;
     }
 
     private static int getIntSetting(String name, int defaultValue) {
-        String s = System.getProperty(name);
+        String s = getProperty(name);
         if (s != null) {
             try {
                 return Integer.decode(s).intValue();

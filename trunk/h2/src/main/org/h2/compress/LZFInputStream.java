@@ -7,26 +7,30 @@ package org.h2.compress;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * An input stream to read from an LZF stream.
+ * The data is automatically expanded.
+ */
 public class LZFInputStream extends InputStream {
-    
+
     private final InputStream in;
     private CompressLZF decompress = new CompressLZF();
     private int pos;
     private int bufferLength;
     private byte[] inBuffer;
     private byte[] buffer;
-    
+
     public LZFInputStream(InputStream in) throws IOException {
         this.in = in;
         if (readInt() != LZFOutputStream.MAGIC) {
             throw new IOException("Not an LZFInputStream");
         }
     }
-    
+
     private byte[] ensureSize(byte[] buff, int len) {
         return buff == null || buff.length < len ? new byte[len] : buff;
     }
-    
+
     private void fillBuffer() throws IOException {
         if (buffer != null && pos < bufferLength) {
             return;
@@ -50,7 +54,7 @@ public class LZFInputStream extends InputStream {
         }
         pos = 0;
     }
-    
+
     private void readFully(byte[] buff, int len) throws IOException {
         int off = 0;
         while (len > 0) {
@@ -59,7 +63,7 @@ public class LZFInputStream extends InputStream {
             off += l;
         }
     }
-    
+
     private int readInt() throws IOException {
         int x = in.read();
         if (x < 0) {
@@ -99,7 +103,7 @@ public class LZFInputStream extends InputStream {
         }
         return read == 0 ? -1 : read;
     }
-    
+
     public int readBlock(byte[] b, int off, int len) throws IOException {
         fillBuffer();
         if (pos >= bufferLength) {
@@ -111,7 +115,7 @@ public class LZFInputStream extends InputStream {
         pos += max;
         return max;
     }
-    
+
     public void close() throws IOException {
         in.close();
     }

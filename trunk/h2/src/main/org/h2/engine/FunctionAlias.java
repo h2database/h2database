@@ -19,6 +19,9 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * Represents a user defined function, or alias.
+ */
 public class FunctionAlias extends DbObjectBase {
 
     private boolean hasConnectionParam;

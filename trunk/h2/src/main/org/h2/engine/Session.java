@@ -36,10 +36,11 @@ import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
 /**
- * @author Thomas
+ * A session represents a database connection. When using the server mode,
+ * this object resides on the server side and communicates with a RemoteSession on the client side.
  */
 public class Session implements SessionInterface {
-    
+
     private User user;
     private int id;
     private Database database;
@@ -337,7 +338,7 @@ public class Session implements SessionInterface {
             }
         }
     }
-    
+
     private void unlockAll() throws SQLException {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
@@ -597,9 +598,9 @@ public class Session implements SessionInterface {
         autoCommitAtTransactionEnd = true;
         autoCommit = false;
     }
-    
+
     public boolean getRollbackMode() {
         return rollbackMode;
     }
-    
+
 }

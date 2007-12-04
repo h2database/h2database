@@ -8,22 +8,25 @@ import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.result.LocalResult;
 
+/**
+ * This class represents a non-transaction statement, for example a CREATE or DROP.
+ */
 public abstract class DefineCommand extends Prepared {
-    
+
     public DefineCommand(Session session) {
         super(session);
     }
-    
+
     public boolean isTransactional() {
         return false;
-    }      
-    
+    }
+
     public boolean isReadOnly() {
         return false;
     }
-    
+
     public LocalResult queryMeta() {
         return null;
     }
-    
+
 }

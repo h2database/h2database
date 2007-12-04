@@ -28,6 +28,10 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 
+/**
+ * This class represents the statement
+ * BACKUP
+ */
 public class BackupCommand extends Prepared {
 
     private String fileName;
@@ -129,7 +133,7 @@ public class BackupCommand extends Prepared {
     public boolean isTransactional() {
         return true;
     }
-    
+
     public static String correctFileName(String f) {
         f = f.replace('\\', '/');
         if (f.startsWith("/")) {

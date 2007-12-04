@@ -51,7 +51,7 @@ public class FileUtils {
             }
         }
     }
-    
+
     public static synchronized Properties loadProperties(String fileName) throws IOException {
         Properties prop = new SortedProperties();
         if (exists(fileName)) {
@@ -86,7 +86,7 @@ public class FileUtils {
     }
 
     public static String getFileInUserHome(String fileName) {
-        String userDir = System.getProperty("user.home");
+        String userDir = SysProperties.USER_HOME;
         if (userDir == null) {
             return fileName;
         }
@@ -99,7 +99,7 @@ public class FileUtils {
             System.out.println("FileUtils." + method + " " + fileName + " " + o);
         }
     }
-    
+
     public static Reader openFileReader(String fileName) throws IOException {
         Reader reader = new InputStreamReader(openFileInputStream(fileName));
         return new BufferedReader(reader);

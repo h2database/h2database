@@ -15,11 +15,10 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Table;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * CREATE TRIGGER
  */
-
 public class CreateTrigger extends SchemaCommand {
-    // TODO implement drop trigger
 
     private String triggerName;
     private boolean ifNotExists;

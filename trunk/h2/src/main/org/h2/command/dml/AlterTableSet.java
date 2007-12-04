@@ -14,14 +14,15 @@ import org.h2.schema.Schema;
 import org.h2.table.Table;
 
 /**
- * Represents a ALTER TABLE statement.
+ * This class represents the statement
+ * ALTER TABLE SET
  */
 public class AlterTableSet  extends SchemaCommand {
-    
+
     private String tableName;
     private final int type;
     private boolean checkExisting;
-    
+
     public static final int REFERENTIAL_INTEGRITY_TRUE = 4;
     public static final int REFERENTIAL_INTEGRITY_FALSE = 5;
 
@@ -29,21 +30,21 @@ public class AlterTableSet  extends SchemaCommand {
         super(session, schema);
         this.type = type;
     }
-    
+
     public void setCheckExisting(boolean b) {
         this.checkExisting = b;
     }
-    
+
     public boolean isTransactional() {
         return true;
     }
-    
+
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
 
     public int update() throws SQLException {
-        Table table = getSchema().getTableOrView(session, tableName);   
+        Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
         switch(type) {

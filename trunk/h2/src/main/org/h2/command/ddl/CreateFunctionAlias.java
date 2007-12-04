@@ -12,6 +12,10 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * CREATE ALIAS
+ */
 public class CreateFunctionAlias extends DefineCommand {
 
     private String aliasName;

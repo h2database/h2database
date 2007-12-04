@@ -28,9 +28,9 @@ import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * ALTER TABLE ADD CONSTRAINT
  */
-
 public class AlterTableAddConstraint extends SchemaCommand {
 
     public static final int CHECK = 0, UNIQUE = 1, REFERENTIAL = 2, PRIMARY_KEY = 3;

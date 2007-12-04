@@ -12,13 +12,16 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.table.Table;
 
+/**
+ * A right owner (sometimes called principal).
+ */
 public abstract class RightOwner extends DbObjectBase {
 
     // key: role; value: right
     private HashMap grantedRoles;
     // key: table; value: right
     private HashMap grantedRights;
-    
+
     protected RightOwner(Database database, int id, String name, String traceModule) {
         super(database, id, name, traceModule);
     }
@@ -38,7 +41,7 @@ public abstract class RightOwner extends DbObjectBase {
         }
         return false;
     }
-    
+
     protected boolean isRightGrantedRecursive(Table table, int rightMask) {
         Right right;
         if (grantedRights != null) {
@@ -111,6 +114,6 @@ public abstract class RightOwner extends DbObjectBase {
             return null;
         }
         return (Right) grantedRoles.get(role);
-    }    
-    
+    }
+
 }

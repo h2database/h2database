@@ -20,7 +20,8 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueResultSet;
 
 /**
- * Represents a CALL statement.
+ * This class represents the statement
+ * CALL
  */
 public class Call extends Prepared {
     private Expression value;

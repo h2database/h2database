@@ -15,6 +15,10 @@ import org.h2.schema.Constant;
 import org.h2.schema.Schema;
 import org.h2.value.Value;
 
+/**
+ * This class represents the statement
+ * CREATE CONSTANT
+ */
 public class CreateConstant extends SchemaCommand {
 
     private String constantName;

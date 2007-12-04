@@ -12,6 +12,10 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * CREATE AGGREGATE
+ */
 public class CreateAggregate extends DefineCommand {
 
     private String name;

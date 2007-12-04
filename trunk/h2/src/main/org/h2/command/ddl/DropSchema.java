@@ -12,6 +12,10 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 
+/**
+ * This class represents the statement
+ * DROP SCHEMA
+ */
 public class DropSchema extends DefineCommand {
 
     private String schemaName;

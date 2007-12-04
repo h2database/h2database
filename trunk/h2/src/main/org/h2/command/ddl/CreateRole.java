@@ -12,6 +12,10 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * CREATE ROLE
+ */
 public class CreateRole extends DefineCommand {
 
     private String roleName;

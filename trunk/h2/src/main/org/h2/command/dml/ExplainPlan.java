@@ -16,7 +16,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueString;
 
 /**
- * Represents an EXPLAIN statement.
+ * This class represents the statement
+ * EXPLAIN
  */
 public class ExplainPlan extends Prepared {
 

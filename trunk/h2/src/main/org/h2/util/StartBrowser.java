@@ -6,10 +6,12 @@ package org.h2.util;
 
 import java.io.IOException;
 
+import org.h2.constant.SysProperties;
+
 public class StartBrowser {
-    
+
     public static void openURL(String url) {
-        String osName = System.getProperty("os.name");
+        String osName = SysProperties.getStringSetting("os.name", "Linux");
         try {
             if (osName.startsWith("Windows")) {
                 Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);

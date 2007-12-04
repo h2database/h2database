@@ -15,25 +15,26 @@ import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 
 /**
- * Represents an EXECUTE statement.
+ * This class represents the statement
+ * EXECUTE
  */
 public class ExecuteProcedure extends Prepared {
-    
+
     private ObjectArray expressions = new ObjectArray();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {
         super(session);
     }
-    
+
     public void setProcedure(Procedure procedure) {
         this.procedure = procedure;
     }
-    
+
     public void setExpression(int index, Expression expr) throws SQLException {
         expressions.add(index, expr);
     }
-    
+
     private void setParameters() throws SQLException {
         Prepared prepared = procedure.getPrepared();
         ObjectArray params = prepared.getParameters();
@@ -43,21 +44,21 @@ public class ExecuteProcedure extends Prepared {
             p.setValue(expr.getValue(session));
         }
     }
-    
+
     public boolean isQuery() {
-        Prepared prepared = procedure.getPrepared();        
+        Prepared prepared = procedure.getPrepared();
         return prepared.isQuery();
     }
-    
+
     public int update() throws SQLException {
         setParameters();
-        Prepared prepared = procedure.getPrepared();        
+        Prepared prepared = procedure.getPrepared();
         return prepared.update();
     }
 
     public final LocalResult query(int limit) throws SQLException {
         setParameters();
-        Prepared prepared = procedure.getPrepared();        
+        Prepared prepared = procedure.getPrepared();
         return prepared.query(limit);
     }
 
@@ -66,7 +67,7 @@ public class ExecuteProcedure extends Prepared {
     }
 
     public LocalResult queryMeta() throws SQLException {
-        Prepared prepared = procedure.getPrepared();        
+        Prepared prepared = procedure.getPrepared();
         return prepared.queryMeta();
     }
 

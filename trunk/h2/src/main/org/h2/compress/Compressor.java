@@ -6,6 +6,9 @@ package org.h2.compress;
 
 import java.sql.SQLException;
 
+/**
+ * Each data compression algorithm must implement this interface.
+ */
 public interface Compressor {
 
     int NO = 0, LZF = 1, DEFLATE = 2;

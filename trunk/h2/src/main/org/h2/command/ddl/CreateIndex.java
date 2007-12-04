@@ -17,7 +17,8 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * CREATE INDEX
  */
 public class CreateIndex extends SchemaCommand {
 

@@ -9,24 +9,29 @@ import java.util.HashSet;
 
 import org.h2.server.web.DbTableOrView;
 
+/**
+ * A query context object. It contains the list of table and alias objects.
+ * Used for autocomplete.
+ */
 public class Sentence {
-    public static final int CONTEXT = 0, KEYWORD = 1;
-    public static final int FUNCTION = 2;
+    public static final int CONTEXT = 0;
+    static final int KEYWORD = 1;
+    static final int FUNCTION = 2;
     public String text;
     HashMap next;
     long max;
-    DbTableOrView lastTable;
+    private DbTableOrView lastTable;
     private HashSet tables;
     private HashMap aliases;
-    
-    public boolean stop() {
+
+    boolean stop() {
         return System.currentTimeMillis() > max;
     }
 
     public void add(String n, String string, int type) {
         next.put(type+"#"+n, string);
     }
-    
+
     public void addAlias(String alias, DbTableOrView table) {
         if (aliases == null) {
             aliases = new HashMap();
@@ -41,11 +46,11 @@ public class Sentence {
         }
         tables.add(table);
     }
-    
+
     public HashSet getTables() {
         return tables;
     }
-    
+
     public HashMap getAliases() {
         return aliases;
     }

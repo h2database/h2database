@@ -17,19 +17,19 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * @author Thomas
+ * The base calss for constraint checking.
  */
 public abstract class Constraint extends SchemaObjectBase {
-    
+
     public static final String CHECK = "CHECK", REFERENTIAL = "REFERENTIAL", UNIQUE = "UNIQUE";
     protected Table table;
-    
+
     public Constraint(Schema schema, int id, String name, Table table) {
         super(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.getTemporary());
     }
-    
+
     public void checkRename() throws SQLException {
         // ok
     }
@@ -37,24 +37,24 @@ public abstract class Constraint extends SchemaObjectBase {
     public int getType() {
         return DbObject.CONSTRAINT;
     }
-    
+
     public abstract String getConstraintType();
     public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException;
-    public abstract boolean usesIndex(Index index);    
+    public abstract boolean usesIndex(Index index);
     public abstract boolean containsColumn(Column col);
     public abstract String  getCreateSQLWithoutIndexes();
     public abstract boolean isBefore();
     public abstract String getShortDescription();
     public abstract void checkExistingData(Session session) throws SQLException;
-    
+
     public Table getTable() {
         return table;
     }
-    
+
     public Table getRefTable() {
         return table;
     }
-    
+
     public String getDropSQL() {
         return null;
     }

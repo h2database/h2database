@@ -14,6 +14,10 @@ import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.table.Table;
 
+/**
+ * This class represents the statement
+ * COMMENT
+ */
 public class SetComment extends DefineCommand {
 
     private String schemaName;

@@ -12,6 +12,10 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.table.Table;
 
+/**
+ * This class represents the statement
+ * TRUNCATE TABLE
+ */
 public class TruncateTable extends DefineCommand {
 
     private Table table;

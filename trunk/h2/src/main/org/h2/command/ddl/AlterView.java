@@ -10,6 +10,10 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.table.TableView;
 
+/**
+ * This class represents the statement
+ * ALTER VIEW
+ */
 public class AlterView extends DefineCommand {
 
     private TableView view;

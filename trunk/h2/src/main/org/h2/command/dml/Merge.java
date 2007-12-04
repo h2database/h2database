@@ -24,7 +24,8 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * Represents a MERGE statement.
+ * This class represents the statement
+ * MERGE
  */
 public class Merge extends Prepared {
 
@@ -261,5 +262,5 @@ public class Merge extends Prepared {
     public LocalResult queryMeta() {
         return null;
     }
-    
+
 }

@@ -494,7 +494,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setShort(int parameterIndex, short x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setShort("+parameterIndex+", "+x+");");
+                debugCode("setShort("+parameterIndex+", (short) "+x+");");
             }
             setParameter(parameterIndex, ValueShort.get(x));
         } catch (Throwable e) {
@@ -512,7 +512,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setLong(int parameterIndex, long x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setLong("+parameterIndex+", "+x+");");
+                debugCode("setLong("+parameterIndex+", "+x+"L);");
             }
             setParameter(parameterIndex, ValueLong.get(x));
         } catch (Throwable e) {
@@ -548,7 +548,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setDouble(int parameterIndex, double x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setDouble("+parameterIndex+", "+x+");");
+                debugCode("setDouble("+parameterIndex+", "+x+"d);");
             }
             setParameter(parameterIndex, ValueDouble.get(x));
         } catch (Throwable e) {
@@ -685,7 +685,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (debug()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
-            checkClosed();            
+            checkClosed();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -704,13 +704,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @throws SQLException if this object is closed
-     */    
+     */
     public void setBlob(int parameterIndex, InputStream x) throws SQLException {
         try {
             if (debug()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createBlob(x, -1);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -742,7 +742,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * Sets the value of a parameter as a Clob.
      *
@@ -766,7 +766,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }    
+    }
 
     /**
      * [Not supported] Sets the value of a parameter as a Array.
@@ -801,7 +801,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * Sets the value of a parameter as an input stream.
      *
@@ -813,15 +813,15 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setBinaryStream(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setBinaryStream("+parameterIndex+", x, "+length+");");
+                debugCode("setBinaryStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }    
+    }
 
     /**
      * Sets the value of a parameter as an input stream.
@@ -834,7 +834,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setBinaryStream(int parameterIndex, InputStream x, int length) throws SQLException {
         setBinaryStream(parameterIndex, x, (long) length);
     }
-    
+
     /**
      * Sets the value of a parameter as an input stream.
      *
@@ -843,7 +843,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setBinaryStream(int parameterIndex, InputStream x) throws SQLException {
         setBinaryStream(parameterIndex, x, -1);
-    }    
+    }
 
     /**
      * Sets the value of a parameter as an ASCII stream.
@@ -856,7 +856,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setAsciiStream(int parameterIndex, InputStream x, int length) throws SQLException {
         setAsciiStream(parameterIndex, x, (long) length);
     }
-    
+
     /**
      * Sets the value of a parameter as an ASCII stream.
      *
@@ -868,16 +868,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setAsciiStream(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setAsciiStream("+parameterIndex+", x, "+length+");");
+                debugCode("setAsciiStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }    
-    
+    }
+
     /**
      * Sets the value of a parameter as an ASCII stream.
      *
@@ -887,7 +887,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setAsciiStream(int parameterIndex, InputStream x) throws SQLException {
         setAsciiStream(parameterIndex, x, -1);
-    }        
+    }
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -900,7 +900,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setCharacterStream(int parameterIndex, Reader x, int length) throws SQLException {
         setCharacterStream(parameterIndex, x, (long) length);
     }
-    
+
     /**
      * Sets the value of a parameter as a character stream.
      *
@@ -910,8 +910,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
     public void setCharacterStream(int parameterIndex, Reader x) throws SQLException {
         setCharacterStream(parameterIndex, x, -1);
-    }    
-    
+    }
+
     /**
      * Sets the value of a parameter as a character stream.
      *
@@ -923,15 +923,15 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setCharacterStream("+parameterIndex+", x, "+length+");");
+                debugCode("setCharacterStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }    
+    }
 
     /**
      * [Not supported]
@@ -1257,9 +1257,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setNCharacterStream(int parameterIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setNCharacterStream("+parameterIndex+", x, "+length+");");
+                debugCode("setNCharacterStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -1306,7 +1306,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 */
 //#endif
-    
+
     /**
      * Sets the value of a parameter as a Clob.
      *
@@ -1337,9 +1337,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setClob(int parameterIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setClob("+parameterIndex+", x, "+length+");");
+                debugCode("setClob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -1357,9 +1357,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setBlob(int parameterIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setBlob("+parameterIndex+", x, "+length+");");
+                debugCode("setBlob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -1377,9 +1377,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void setNClob(int parameterIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("setNClob("+parameterIndex+", x, "+length+");");
+                debugCode("setNClob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -1404,5 +1404,5 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public String toString() {
         return getTraceObjectName() + ": " + command.toString();
     }
-    
+
 }

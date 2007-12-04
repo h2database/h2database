@@ -23,7 +23,8 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
- * Represents a union UPDATE statement.
+ * This class represents the statement
+ * UPDATE
  */
 public class Update extends Prepared {
 
@@ -94,10 +95,10 @@ public class Update extends Prepared {
                     count++;
                 }
             }
-            // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition! 
+            // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition!
             // probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
             // TODO update in-place (but if the position changes, we need to update all indexes) before row triggers
-            
+
             // the cached row is already updated - we need the old values
             table.updateRows(this, session, rows);
             if (table.fireRow()) {
@@ -115,7 +116,7 @@ public class Update extends Prepared {
             rows.close();
         }
     }
-    
+
     public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("UPDATE ");

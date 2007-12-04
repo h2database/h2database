@@ -8,14 +8,18 @@ import java.sql.SQLException;
 
 import org.h2.engine.Session;
 
+/**
+ * This class represents the statement
+ * DEALLOCATE
+ */
 public class DeallocateProcedure extends DefineCommand {
 
     private String procedureName;
-    
+
     public DeallocateProcedure(Session session) {
         super(session);
     }
-    
+
     public int update() throws SQLException {
         session.removeProcedure(procedureName);
         return 0;

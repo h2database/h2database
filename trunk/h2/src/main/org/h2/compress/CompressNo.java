@@ -4,6 +4,11 @@
  */
 package org.h2.compress;
 
+/**
+ * This class implements a data compression algorithm that does in fact not compress.
+ * This is useful if the data can not be compressed because it is encrypted,
+ * already compressed, or random.
+ */
 public class CompressNo implements Compressor {
 
     public int getAlgorithm() {
@@ -12,7 +17,7 @@ public class CompressNo implements Compressor {
 
     public void setOptions(String options) {
     }
-    
+
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         System.arraycopy(in, 0, out, outPos, inLen);
         return outPos + inLen;

@@ -12,6 +12,10 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * DROP USER
+ */
 public class DropUser extends DefineCommand {
 
     private boolean ifExists;

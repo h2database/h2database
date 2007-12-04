@@ -13,6 +13,10 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
+/**
+ * This class represents the statement
+ * DROP VIEW
+ */
 public class DropView extends SchemaCommand {
 
     private String viewName;

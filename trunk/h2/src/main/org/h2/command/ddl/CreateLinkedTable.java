@@ -13,11 +13,10 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.TableLink;
 
-
 /**
- * @author Thomas
+ * This class represents the statement
+ * CREATE LINKED TABLE
  */
-
 public class CreateLinkedTable extends SchemaCommand {
 
     private String tableName;
@@ -76,7 +75,7 @@ public class CreateLinkedTable extends SchemaCommand {
         db.addSchemaObject(session, table);
         return 0;
     }
-    
+
     public void setEmitUpdates(boolean emitUpdates) {
         this.emitUpdates = emitUpdates;
     }

@@ -357,7 +357,7 @@ CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt""
 "Commands (DDL)","CREATE CONSTANT","
 CREATE CONSTANT [IF NOT EXISTS] newConstantName VALUE expression
 ","
- Creates a new constant.
+Creates a new constant.
 ","
 CREATE CONSTANT ONE VALUE 1
 "
@@ -367,9 +367,9 @@ CREATE DOMAIN [IF NOT EXISTS] newDomainName AS dataType
 [DEFAULT expression] [[NOT] NULL] [SELECTIVITY selectivity]
 [CHECK condition]
 ","
- Creates a new data type (domain).
- The check condition must evaluate to true or to NULL (to prevent NULL, use NOT NULL).
- In the condition, the term VALUE refers to the value being tested.
+Creates a new data type (domain).
+The check condition must evaluate to true or to NULL (to prevent NULL, use NOT NULL).
+In the condition, the term VALUE refers to the value being tested.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
@@ -522,6 +522,22 @@ Admin rights are required to execute this command.
 DROP ALL OBJECTS
 "
 
+"Commands (DDL)","DROP CONSTANT","
+DROP CONSTANT [IF EXISTS] constantName
+","
+Drops a constant.
+","
+DROP CONSTANT ONE
+"
+
+"Commands (DDL)","DROP DOMAIN","
+DROP DOMAIN [IF EXISTS] domainName
+","
+Drops a data type (domain).
+","
+DROP DOMAIN EMAIL
+"
+
 "Commands (DDL)","DROP INDEX","
 DROP INDEX [IF EXISTS] indexName
 ","
@@ -529,6 +545,7 @@ Drops an index.
 ","
 DROP INDEX IF EXISTS IDXNAME
 "
+
 "Commands (DDL)","DROP ROLE","
 DROP ROLE [IF EXISTS] roleName
 ","
@@ -536,13 +553,7 @@ Drops a role.
 ","
 DROP ROLE READONLY
 "
-"Commands (DDL)","DROP SEQUENCE","
-DROP SEQUENCE [IF EXISTS] sequenceName
-","
-Drops a sequence.
-","
-DROP SEQUENCE SEQ_ID
-"
+
 "Commands (DDL)","DROP SCHEMA","
 DROP SCHEMA [IF EXISTS] schemaName
 ","
@@ -550,6 +561,15 @@ Drops a schema.
 ","
 DROP SCHEMA TEST_SCHEMA
 "
+
+"Commands (DDL)","DROP SEQUENCE","
+DROP SEQUENCE [IF EXISTS] sequenceName
+","
+Drops a sequence.
+","
+DROP SEQUENCE SEQ_ID
+"
+
 "Commands (DDL)","DROP TABLE","
 DROP TABLE [IF EXISTS] tableName [,...]
 ","

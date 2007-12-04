@@ -12,6 +12,10 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * DROP ALIAS
+ */
 public class DropFunctionAlias extends DefineCommand {
 
     private String aliasName;

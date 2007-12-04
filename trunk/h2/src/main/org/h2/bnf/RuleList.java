@@ -7,17 +7,15 @@ package org.h2.bnf;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Represents a sequence of BNF rules, or a list of alternative rules.
+ */
 public class RuleList implements Rule {
 
     private boolean or;
     private ArrayList list;
     private boolean mapSet;
-    
-    RuleList(ArrayList list, boolean or) {
-        this.or = or;
-        this.list = list;
-    }
-    
+
     RuleList(Rule first, Rule next, boolean or) {
         list = new ArrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
@@ -50,7 +48,7 @@ public class RuleList implements Rule {
         }
         this.or = or;
     }
-    
+
     public String random(Bnf config, int level) {
         if (or) {
             if (level > 10) {
@@ -70,7 +68,7 @@ public class RuleList implements Rule {
             return buff.toString();
         }
     }
-    
+
     private Rule get(int idx) {
         return ((Rule) list.get(idx));
     }
@@ -91,7 +89,7 @@ public class RuleList implements Rule {
             mapSet = true;
         }
     }
-    
+
     public String matchRemove(String query, Sentence sentence) {
         if (query.length() == 0) {
             return null;
@@ -118,7 +116,7 @@ public class RuleList implements Rule {
 
     public void addNextTokenList(String query, Sentence sentence) {
         if (sentence.stop()) {
-            // 
+            //
         }
         if (or) {
             for (int i = 0; i < list.size(); i++) {
@@ -135,5 +133,5 @@ public class RuleList implements Rule {
             }
         }
     }
-    
+
 }

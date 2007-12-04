@@ -31,7 +31,7 @@ public class FileSystemDisk extends FileSystem {
     public static FileSystemDisk getInstance() {
         return INSTANCE;
     }
-    
+
     private FileSystemDisk() {
     }
 
@@ -39,10 +39,10 @@ public class FileSystemDisk extends FileSystem {
         fileName = translateFileName(fileName);
         return new File(fileName).length();
     }
-    
+
     private String translateFileName(String fileName) {
         if (fileName != null && fileName.startsWith("~")) {
-            String userDir = System.getProperty("user.home");
+            String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
         }
         return fileName;
@@ -72,13 +72,13 @@ public class FileSystemDisk extends FileSystem {
         }
         throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
-    
+
     void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileSystem." + method + " " + fileName + " " + o);
         }
     }
-    
+
     private static void wait(int i) {
         if (i > 8) {
             System.gc();
@@ -132,7 +132,7 @@ public class FileSystemDisk extends FileSystem {
         trace("tryDelete", fileName, null);
         return new File(fileName).delete();
     }
-    
+
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         name = translateFileName(name);
@@ -151,7 +151,7 @@ public class FileSystemDisk extends FileSystem {
         }
         return f.getCanonicalPath();
     }
-    
+
     public String[] listFiles(String path) throws SQLException {
         path = translateFileName(path);
         File f = new File(path);
@@ -172,9 +172,9 @@ public class FileSystemDisk extends FileSystem {
             throw Message.convertIOException(e, path);
         }
     }
-    
+
     public void deleteRecursive(String fileName) throws SQLException {
-        fileName = translateFileName(fileName);        
+        fileName = translateFileName(fileName);
         if (FileUtils.isDirectory(fileName)) {
             String[] list = listFiles(fileName);
             for (int i = 0; list != null && i < list.length; i++) {
@@ -183,7 +183,7 @@ public class FileSystemDisk extends FileSystem {
         }
         delete(fileName);
     }
-    
+
     public boolean isReadOnly(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
@@ -199,36 +199,36 @@ public class FileSystemDisk extends FileSystem {
             throw Message.convertIOException(e, fileName);
         }
     }
-    
+
     public String getParent(String fileName) {
         fileName = translateFileName(fileName);
         return new File(fileName).getParent();
     }
-    
+
     public boolean isDirectory(String fileName) {
         fileName = translateFileName(fileName);
         return new File(fileName).isDirectory();
     }
-    
+
     public boolean isAbsolute(String fileName) {
-        fileName = translateFileName(fileName);        
+        fileName = translateFileName(fileName);
         File file = new File(fileName);
         return file.isAbsolute();
     }
-    
+
     public String getAbsolutePath(String fileName) {
-        fileName = translateFileName(fileName);        
+        fileName = translateFileName(fileName);
         File parent = new File(fileName).getAbsoluteFile();
-        return parent.getAbsolutePath();    
+        return parent.getAbsolutePath();
     }
 
     public long getLastModified(String fileName) {
-        fileName = translateFileName(fileName);     
+        fileName = translateFileName(fileName);
         return new File(fileName).lastModified();
     }
-    
+
     public boolean canWrite(String fileName) {
-        fileName = translateFileName(fileName);     
+        fileName = translateFileName(fileName);
         return new File(fileName).canWrite();
     }
 
@@ -274,10 +274,10 @@ public class FileSystemDisk extends FileSystem {
             throw Message.getSQLException(ErrorCode.FILE_CREATION_FAILED_1, parent);
         }
     }
-    
+
     public String getFileName(String name) throws SQLException {
         name = translateFileName(name);
-        String separator = System.getProperty("file.separator");
+        String separator = SysProperties.FILE_SEPARATOR;
         String path = getParent(name);
         if (!path.endsWith(separator)) {
             path += separator;
@@ -289,7 +289,7 @@ public class FileSystemDisk extends FileSystem {
         String fileName = fullFileName.substring(path.length());
         return fileName;
     }
-    
+
     public boolean fileStartsWith(String fileName, String prefix) {
         fileName = translateFileName(fileName);
         if (IS_FILE_SYSTEM_CASE_INSENSITIVE) {
@@ -298,7 +298,7 @@ public class FileSystemDisk extends FileSystem {
         }
         return fileName.startsWith(prefix);
     }
-    
+
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         fileName = translateFileName(fileName);
         try {
@@ -306,7 +306,7 @@ public class FileSystemDisk extends FileSystem {
             createDirs(file.getAbsolutePath());
             FileOutputStream out = new FileOutputStream(fileName, append);
             trace("openFileOutputStream", fileName, out);
-            return out;            
+            return out;
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
@@ -316,7 +316,7 @@ public class FileSystemDisk extends FileSystem {
             }
         }
     }
-    
+
     public InputStream openFileInputStream(String fileName) throws IOException {
         if (fileName.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
@@ -330,7 +330,7 @@ public class FileSystemDisk extends FileSystem {
         trace("openFileInputStream", fileName, in);
         return in;
     }
-    
+
     private void freeMemoryAndFinalize() {
         trace("freeMemoryAndFinalize", null, null);
         Runtime rt = Runtime.getRuntime();

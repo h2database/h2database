@@ -11,6 +11,9 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
+/**
+ * Represents a database object comment.
+ */
 public class Comment extends DbObjectBase {
 
     private final int objectType;
@@ -56,7 +59,7 @@ public class Comment extends DbObjectBase {
             return "type" + type;
         }
     }
-    
+
     public String getDropSQL() {
         return null;
     }

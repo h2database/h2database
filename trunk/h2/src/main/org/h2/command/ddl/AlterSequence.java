@@ -12,6 +12,10 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.schema.Sequence;
 
+/**
+ * This class represents the statement
+ * ALTER SEQUENCE
+ */
 public class AlterSequence extends DefineCommand {
 
     private Sequence sequence;

@@ -12,12 +12,13 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.message.TraceObject;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * Represents a SQL statement. This object is only used on the server side.
  */
 public abstract class Command implements CommandInterface {
     private final String sql;
@@ -54,7 +55,7 @@ public abstract class Command implements CommandInterface {
     public final ResultInterface getMetaData() throws SQLException {
         return queryMeta();
     }
-    
+
     public ResultInterface executeQuery(int maxrows, boolean scrollable) throws SQLException {
         return executeQueryLocal(maxrows);
     }
@@ -138,8 +139,8 @@ public abstract class Command implements CommandInterface {
     public void cancel() {
         this.cancel = true;
     }
-    
+
     public String toString() {
-        return sql;
+        return TraceObject.toString(sql, getParameters());
     }
 }

@@ -10,6 +10,9 @@ import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 
+/**
+ * A local or remote session. A session represents a database connection.
+ */
 public interface SessionInterface {
     CommandInterface prepareCommand(String sql) throws SQLException;
     void close() throws SQLException;

@@ -27,9 +27,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * A referential contraint.
  */
-
 public class ConstraintReferential extends Constraint {
     public static final int RESTRICT = 0, CASCADE = 1, SET_DEFAULT = 2, SET_NULL = 3;
 
@@ -591,5 +590,5 @@ public class ConstraintReferential extends Constraint {
                     getShortDescription());
         }
     }
-    
+
 }

@@ -4,12 +4,14 @@
  */
 package org.h2.bnf;
 
-
+/**
+ * Represents the head of a BNF rule.
+ */
 public class RuleHead {
     int id;
     String section;
-    String topic;
     Rule rule;
+    private String topic;
 
     RuleHead(int id, String section, String topic, Rule rule) {
         this.id = id;
@@ -17,7 +19,7 @@ public class RuleHead {
         this.topic = topic;
         this.rule = rule;
     }
-    
+
     public String getTopic() {
         return topic;
     }

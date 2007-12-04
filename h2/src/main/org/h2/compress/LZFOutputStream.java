@@ -9,16 +9,20 @@ import java.io.OutputStream;
 
 import org.h2.engine.Constants;
 
+/**
+ * An output stream to write an LZF stream.
+ * The data is automatically compressed.
+ */
 public class LZFOutputStream extends OutputStream {
-    
+
     static final int MAGIC = ('H' << 24) | ('2' << 16) | ('I' << 8) | 'S';
-    
+
     private final OutputStream out;
     private final CompressLZF compress = new CompressLZF();
     private final byte[] buffer;
     private int pos;
     private byte[] outBuffer;
-    
+
     public LZFOutputStream(OutputStream out) throws IOException {
         this.out = out;
         int len = Constants.IO_BUFFER_SIZE_COMPRESS;
@@ -26,7 +30,7 @@ public class LZFOutputStream extends OutputStream {
         ensureOutput(len);
         writeInt(MAGIC);
     }
-    
+
     private void ensureOutput(int len) {
         // TODO calculate the maximum overhead (worst case) for the output
         // buffer
@@ -42,7 +46,7 @@ public class LZFOutputStream extends OutputStream {
         }
         buffer[pos++] = (byte) b;
     }
-    
+
     private void compressAndWrite(byte[] buff, int len) throws IOException {
         if (len > 0) {
             ensureOutput(len);
@@ -57,14 +61,14 @@ public class LZFOutputStream extends OutputStream {
             }
         }
     }
-    
+
     private void writeInt(int x) throws IOException {
         out.write((byte) (x >> 24));
         out.write((byte) (x >> 16));
         out.write((byte) (x >> 8));
         out.write((byte) x);
     }
-    
+
     public void write(byte[] buff, int off, int len) throws IOException {
         while (len > 0) {
             int copy = Math.min(buffer.length - pos, len);
@@ -77,12 +81,12 @@ public class LZFOutputStream extends OutputStream {
             len -= copy;
         }
     }
-    
+
     public void flush() throws IOException {
         compressAndWrite(buffer, pos);
         pos = 0;
     }
-    
+
     public void close() throws IOException {
         flush();
         out.close();

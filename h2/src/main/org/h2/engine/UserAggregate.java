@@ -12,6 +12,9 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
+/**
+ * Represents a user defined aggregate function.
+ */
 public class UserAggregate extends DbObjectBase {
 
     private String className;

@@ -11,8 +11,11 @@ import org.h2.message.Trace;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
+/**
+ * Represents a domain (user defined data type).
+ */
 public class UserDataType extends DbObjectBase {
-    
+
     private Column column;
 
     public UserDataType(Database database, int id, String name) {
@@ -22,7 +25,7 @@ public class UserDataType extends DbObjectBase {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
-    
+
     public String getDropSQL() {
         return "DROP DOMAIN IF EXISTS " + getSQL();
     }
@@ -35,7 +38,7 @@ public class UserDataType extends DbObjectBase {
         buff.append(column.getCreateSQL());
         return buff.toString();
     }
-    
+
     public Column getColumn() {
         return column;
     }
@@ -53,5 +56,5 @@ public class UserDataType extends DbObjectBase {
     public void setColumn(Column column) {
         this.column = column;
     }
-    
+
 }

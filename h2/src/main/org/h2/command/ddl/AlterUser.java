@@ -15,9 +15,11 @@ import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
 
 /**
- * @author Thomas
+ * This class represents the statements
+ * ALTER USER ADMIN,
+ * ALTER USER RENAME,
+ * ALTER USER SET PASSWORD
  */
-
 public class AlterUser extends DefineCommand {
 
     public static final int SET_PASSWORD = 0, RENAME = 1, ADMIN = 2;

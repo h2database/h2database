@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 
+/**
+ * Represents a SQL statement.
+ */
 public interface CommandInterface {
     boolean isQuery();
     ObjectArray getParameters();

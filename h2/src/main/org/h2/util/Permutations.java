@@ -6,14 +6,13 @@ package org.h2.util;
 
 import org.h2.message.Message;
 
-
 /**
  * A class to iterate over all permutations of an array.
- * The algorithm is from Applied Combinatorics, by Alan Tucker as implemented in 
+ * The algorithm is from Applied Combinatorics, by Alan Tucker as implemented in
  * http://www.koders.com/java/fidD3445CD11B1DC687F6B8911075E7F01E23171553.aspx
  */
 public class Permutations {
-    
+
     private Object[] in;
     private Object[] out;
     private int n, m;
@@ -78,7 +77,7 @@ public class Permutations {
         if (m - 1 > i) {
             // reverse the elements to the right of the dip
             reverseAfter(i);
-            
+
             // reverse the elements to the right of m - 1
             reverseAfter(m - 1);
         }
@@ -111,10 +110,10 @@ public class Permutations {
             end--;
         }
     }
-    
+
     /**
      * Go to the next lineup, and if available, fill the target array.
-     * 
+     *
      * @return if a new lineup is available
      */
     public boolean next() {
@@ -127,5 +126,5 @@ public class Permutations {
         moveIndex();
         return true;
     }
-    
+
 }

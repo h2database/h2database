@@ -16,8 +16,11 @@ import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 
+/**
+ * A prepared statement.
+ */
 public abstract class Prepared {
-    
+
     protected Session session;
     protected String sql;
     protected int headPos = -1;
@@ -32,7 +35,7 @@ public abstract class Prepared {
         this.session = session;
         modificationId = session.getDatabase().getModificationMetaId();
     }
-    
+
     public boolean needRecompile() throws SQLException {
         Database db = session.getDatabase();
         if (db == null) {
@@ -42,9 +45,9 @@ public abstract class Prepared {
         // because needRecompile return true even for the first execution
         return SysProperties.RECOMPILE_ALWAYS || prepareAlways || modificationId < db.getModificationMetaId();
     }
-    
+
     public abstract boolean isTransactional();
-    
+
     public boolean isReadOnly() {
         return false;
     }
@@ -52,11 +55,11 @@ public abstract class Prepared {
     long getModificationId() {
         return modificationId;
     }
-    
+
     void setModificationId(long id) {
         this.modificationId = id;
     }
-    
+
     public void setParameterList(ObjectArray parameters) {
         this.parameters = parameters;
     }
@@ -70,19 +73,19 @@ public abstract class Prepared {
             Parameter param = (Parameter) parameters.get(i);
             param.checkSet();
         }
-    }    
-    
+    }
+
     public void setCommand(Command command) {
         this.command = command;
     }
-    
+
     public boolean isQuery() {
         return false;
     }
-    
+
     public void prepare() throws SQLException {
         // nothing to do
-    }    
+    }
 
     public int update() throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
@@ -90,14 +93,14 @@ public abstract class Prepared {
 
     public LocalResult query(int maxrows) throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
-    }    
+    }
 
     public abstract LocalResult queryMeta() throws SQLException;
 
     public void setSQL(String sql) {
         this.sql = sql;
     }
-    
+
     public String getSQL() {
         return sql;
     }
@@ -115,7 +118,7 @@ public abstract class Prepared {
     public String getPlanSQL() {
         return null;
     }
-    
+
     public void checkCancelled() throws SQLException {
         // TODO strange code: probably checkCancelled should always be called on the session. fix & test after release 1.0
         if (command != null) {
@@ -124,7 +127,7 @@ public abstract class Prepared {
             session.checkCancelled();
         }
     }
-    
+
     public void setObjectId(int i) {
         this.objectId = i;
     }
@@ -136,7 +139,7 @@ public abstract class Prepared {
     public void setSession(Session currentSession) {
         this.session = currentSession;
     }
-    
+
     void trace() throws SQLException {
         if (session.getTrace().info()) {
             StringBuffer buff = new StringBuffer();
@@ -163,7 +166,7 @@ public abstract class Prepared {
     public void setPrepareAlways(boolean prepareAlways) {
         this.prepareAlways = prepareAlways;
     }
-    
+
     protected void setCurrentRowNumber(int rowNumber) {
         this.currentRowNumber = rowNumber;
     }
@@ -171,7 +174,7 @@ public abstract class Prepared {
     public int getCurrentRowNumber() {
         return currentRowNumber;
     }
-    
+
     public String toString() {
         return sql;
     }

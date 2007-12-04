@@ -17,6 +17,13 @@ import org.h2.message.Message;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
+/**
+ * This class represents the statements
+ * GRANT RIGHT,
+ * GRANT ROLE,
+ * REVOKE RIGHT,
+ * REVOKE ROLE
+ */
 public class GrantRevoke extends DefineCommand {
 
     public static final int GRANT = 0, REVOKE = 1;

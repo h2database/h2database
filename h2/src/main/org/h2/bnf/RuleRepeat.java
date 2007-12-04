@@ -6,10 +6,13 @@ package org.h2.bnf;
 
 import java.util.HashMap;
 
+/**
+ * Represents a loop in a BNF object.
+ */
 public class RuleRepeat implements Rule {
-    
-    Rule rule;
-    
+
+    private Rule rule;
+
     RuleRepeat(Rule rule) {
         this.rule = rule;
     }
@@ -23,13 +26,13 @@ public class RuleRepeat implements Rule {
     }
 
     public void setLinks(HashMap ruleMap) {
-//        rule.setLinks(ruleMap);
+        // rule.setLinks(ruleMap);
     }
 
     public String random(Bnf config, int level) {
         return rule.random(config, level);
     }
-    
+
     public String matchRemove(String query, Sentence sentence) {
         if (sentence.stop()) {
             return null;

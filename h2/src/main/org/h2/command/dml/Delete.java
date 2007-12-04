@@ -20,7 +20,8 @@ import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 
 /**
- * Represents a DELETE statement.
+ * This class represents the statement
+ * DELETE
  */
 public class Delete extends Prepared {
 

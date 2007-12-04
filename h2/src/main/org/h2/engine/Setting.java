@@ -10,8 +10,11 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
+/**
+ * A persistent database setting.
+ */
 public class Setting extends DbObjectBase {
-    
+
     private int intValue;
     private String stringValue;
 
@@ -25,24 +28,24 @@ public class Setting extends DbObjectBase {
 
     public int getIntValue() {
         return intValue;
-    } 
-    
+    }
+
     public void setStringValue(String value) {
         stringValue = value;
     }
-    
+
     public String getStringValue() {
         return stringValue;
-    }    
+    }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
-    
+
     public String getDropSQL() {
         return null;
     }
-    
+
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append("SET ");

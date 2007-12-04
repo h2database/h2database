@@ -41,7 +41,7 @@ public class StringUtils {
     }
 
     public static String getDefaultCharset() {
-        return System.getProperty("file.encoding");
+        return SysProperties.FILE_ENCODING;
     }
 
     public static String quoteStringSQL(String s) {
@@ -284,7 +284,7 @@ public class StringUtils {
     }
 
     public static String urlEncode(String s) {
-//#ifdef JDK14       
+//#ifdef JDK14
         try {
             return URLEncoder.encode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -292,7 +292,7 @@ public class StringUtils {
             return s;
         }
 //#endif
-//#ifdef JDK13       
+//#ifdef JDK13
 /*
         return URLEncoder.encode(s);
 */

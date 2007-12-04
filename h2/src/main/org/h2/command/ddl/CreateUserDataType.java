@@ -13,6 +13,10 @@ import org.h2.engine.UserDataType;
 import org.h2.message.Message;
 import org.h2.table.Column;
 
+/**
+ * This class represents the statement
+ * CREATE DOMAIN
+ */
 public class CreateUserDataType extends DefineCommand {
 
     private String typeName;

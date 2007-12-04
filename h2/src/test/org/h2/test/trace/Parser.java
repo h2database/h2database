@@ -20,24 +20,21 @@
 package org.h2.test.trace;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.h2.util.StringUtils;
+
 /**
- * The parser to parse a statement (a single line in the log file).
+ * Parses an entry in a Java-style log file.
  */
 class Parser {
     private static final int STRING = 0, NAME = 1, NUMBER = 2, SPECIAL = 3;
-
     private Player player;
-
     private Statement stat;
-
     private String line;
-
     private String token;
-
     private int tokenType;
-
     private int pos;
 
     static Statement parseStatement(Player player, String line) {
@@ -56,33 +53,30 @@ class Parser {
         stat = new Statement(player);
         String name = readToken();
         Object o = player.getObject(name);
-        if (o != null) {
-            // n0.getPath()
-            read(".");
-            String methodName = readToken();
-            parseCall(name, o, methodName);
-        } else {
+        if (o == null) {
             if (readIf(".")) {
-                // java.lang.System.exit(0);
+                // example: java.lang.System.exit(0);
                 parseStaticCall(name);
             } else {
-                // Node n0 = ...
-                if (readIf("[")) {
-                    read("]");
-                }
+                // example: Statement s1 = ...
                 stat.setAssign(name, readToken());
                 read("=");
                 name = readToken();
                 o = player.getObject(name);
                 if (o != null) {
-                    // ... = s0.getRootNode();
+                    // example: ... = s1.executeQuery();
                     read(".");
                     parseCall(name, o, readToken());
                 } else if (readIf(".")) {
-                    // ... = x.y.open("...");
+                    // ... = x.y.z("...");
                     parseStaticCall(name);
                 }
             }
+        } else {
+            // example: s1.execute()
+            read(".");
+            String methodName = readToken();
+            parseCall(name, o, methodName);
         }
         return stat;
     }
@@ -167,7 +161,7 @@ class Parser {
 
     private void read(String s) {
         if (!readIf(s)) {
-            throw new Error("expected: " + s + " read: " + token + " in "
+            throw new Error("Expected: " + s + " got: " + token + " in "
                     + line);
         }
     }
@@ -175,16 +169,22 @@ class Parser {
     private Arg parseValue() {
         if (tokenType == STRING) {
             String s = readToken();
-            s = StringTools.javaDecode(s.substring(1, s.length() - 1));
+            try {
+                s = StringUtils.javaDecode(s.substring(1, s.length() - 1));
+            } catch (SQLException e) {
+                throw new Error(e);
+            }
             return new Arg(player, String.class, s);
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();
-            if (number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
+            if (number.endsWith("f")) {
+                Float v = new Float(Float.parseFloat(number));
+                return new Arg(player, float.class, v);
+            } else if (number.endsWith("d") || number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
                 Double v = new Double(Double.parseDouble(number));
                 return new Arg(player, double.class, v);
-            } else if (number.endsWith("l")) {
-                Long v = new Long(Long.parseLong(number.substring(0, number
-                        .length() - 1)));
+            } else if (number.endsWith("L") || number.endsWith("l")) {
+                Long v = new Long(Long.parseLong(number.substring(0, number.length() - 1)));
                 return new Arg(player, long.class, v);
             } else {
                 Integer v = new Integer(Integer.parseInt(number));
@@ -213,10 +213,9 @@ class Parser {
                     return new Arg(player, String[].class, list);
                 } else if (readIf("BigDecimal")) {
                     read("(");
-                    ArrayList values = new ArrayList();
-                    values.add(parseValue().getValue());
+                    BigDecimal value = new BigDecimal((String) parseValue().getValue());
                     read(")");
-                    return new Arg(player, BigDecimal.class, values);
+                    return new Arg(player, BigDecimal.class, value);
                 } else {
                     throw new Error("Unsupported constructor: " + readToken());
                 }
@@ -234,27 +233,14 @@ class Parser {
             stat = outer;
             return s;
         } else if (readIf("(")) {
-            String className = readToken();
-            className = parseClassName(className);
-            if (readIf("[")) {
-                read("]");
-            }
-            className = "[L" + className + ";";
+            read("short");
             read(")");
-            read("null");
-            Class c = Player.getClass(className);
-            return new Arg(player, c, null);
+            String number = readToken();
+            return new Arg(player, short.class, new Short(Short.parseShort(number)));
         } else {
-            throw new Error("Expected value, got: " + readToken() + " in "
+            throw new Error("Value expected, got: " + readToken() + " in "
                     + line);
         }
-    }
-
-    private String parseClassName(String clazz) {
-        while (readIf(".")) {
-            clazz += "." + readToken();
-        }
-        return clazz;
     }
 
     private void parseCall(String objectName, Object o, String methodName) {
@@ -277,7 +263,6 @@ class Parser {
 
     private void parseStaticCall(String clazz) {
         String last = readToken();
-        // clazz += "." + readToken();
         while (readIf(".")) {
             clazz += last == null ? "" : "." + last;
             last = readToken();

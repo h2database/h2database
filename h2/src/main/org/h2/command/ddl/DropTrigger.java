@@ -15,6 +15,10 @@ import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Table;
 
+/**
+ * This class represents the statement
+ * DROP TRIGGER
+ */
 public class DropTrigger extends SchemaCommand {
 
     private String triggerName;

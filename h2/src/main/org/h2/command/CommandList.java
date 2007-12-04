@@ -9,23 +9,26 @@ import java.sql.SQLException;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 
+/**
+ * Represents a list of SQL statements.
+ */
 public class CommandList extends Command {
 
     private final Command command;
     private final String remaining;
-    
+
     // TODO lock if possible!
-    
+
     public CommandList(Parser parser, String sql, Command c, String remaining) {
         super(parser, sql);
         this.command = c;
         this.remaining = remaining;
     }
-    
+
     public ObjectArray getParameters() {
         return command.getParameters();
     }
-    
+
     private void executeRemaining() throws SQLException {
         Command command = session.prepareLocal(remaining);
         if (command.isQuery()) {
@@ -34,23 +37,23 @@ public class CommandList extends Command {
             command.update();
         }
     }
-    
+
     public int update() throws SQLException {
         int updateCount = command.executeUpdate();
         executeRemaining();
         return updateCount;
     }
-    
+
     public LocalResult query(int maxrows) throws SQLException {
         LocalResult result = command.query(maxrows);
         executeRemaining();
         return result;
-    }    
-    
+    }
+
     public boolean isQuery() {
         return command.isQuery();
     }
-    
+
     public boolean isTransactional() {
         return true;
     }
@@ -58,7 +61,7 @@ public class CommandList extends Command {
     public boolean isReadOnly() {
         return false;
     }
-    
+
     public LocalResult queryMeta() throws SQLException {
         return command.queryMeta();
     }

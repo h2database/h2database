@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.util.Comparator;
 
 import org.h2.command.Parser;
+import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Comment;
 import org.h2.engine.Constants;
@@ -54,7 +55,8 @@ import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 
 /**
- * Represents a SCRIPT statement.
+ * This class represents the statement
+ * SCRIPT
  */
 public class ScriptCommand extends ScriptBase {
 
@@ -407,7 +409,7 @@ public class ScriptCommand extends ScriptBase {
     private void reset() throws SQLException {
         result = null;
         buffer = null;
-        lineSeparator = StringUtils.utf8Encode(System.getProperty("line.separator"));
+        lineSeparator = StringUtils.utf8Encode(SysProperties.LINE_SEPARATOR);
     }
 
     private void add(String s, boolean insert) throws SQLException, IOException {

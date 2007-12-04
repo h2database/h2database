@@ -27,6 +27,10 @@ import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
+/**
+ * The client side part of a session when using the server mode.
+ * This object communicates with a Session on the server side.
+ */
 public class SessionRemote implements SessionInterface, DataHandler {
 
     public static final int SESSION_PREPARE = 0;

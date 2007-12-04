@@ -15,15 +15,19 @@ import org.h2.schema.SchemaObject;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
+/**
+ * This class represents the statement
+ * DROP ALL OBJECTS
+ */
 public class DropDatabase extends DefineCommand {
-    
+
     private boolean dropAllObjects;
     private boolean deleteFiles;
 
     public DropDatabase(Session session) {
         super(session);
     }
-    
+
     public int update() throws SQLException {
         if (dropAllObjects) {
             dropAllObjects();
@@ -33,7 +37,7 @@ public class DropDatabase extends DefineCommand {
         }
         return 0;
     }
-        
+
     private void dropAllObjects() throws SQLException {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -108,9 +112,9 @@ public class DropDatabase extends DefineCommand {
     public void setDropAllObjects(boolean b) {
         this.dropAllObjects = b;
     }
-    
+
     public void setDeleteFiles(boolean b) {
         this.deleteFiles = b;
-    }    
-    
+    }
+
 }

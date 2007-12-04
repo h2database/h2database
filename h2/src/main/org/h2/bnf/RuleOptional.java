@@ -6,10 +6,13 @@ package org.h2.bnf;
 
 import java.util.HashMap;
 
+/**
+ * Represents an optional BNF rule.
+ */
 public class RuleOptional implements Rule {
     private Rule rule;
     private boolean mapSet;
-    
+
     RuleOptional(Rule rule, boolean repeat) {
         this.rule = rule;
     }
@@ -56,6 +59,6 @@ public class RuleOptional implements Rule {
             return;
         }
         rule.addNextTokenList(query, sentence);
-    }    
-    
+    }
+
 }

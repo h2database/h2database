@@ -12,7 +12,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.h2.constant.SysProperties;
+import org.h2.expression.ParameterInterface;
+import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
 public class TraceObject {
@@ -21,8 +24,8 @@ public class TraceObject {
         SAVEPOINT = 6, SQL_EXCEPTION = 7, STATEMENT = 8, BLOB = 9, CLOB = 10,
         PARAMETER_META_DATA = 11;
     public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
-    
-    private static final int LAST = ARRAY + 1;  
+
+    private static final int LAST = ARRAY + 1;
     private Trace trace;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {
@@ -30,17 +33,17 @@ public class TraceObject {
         "ds", "xads", "xid", "ar"
     };
     private int type, id;
-    
+
     protected void setTrace(Trace trace, int type, int id) {
         this.trace = trace;
         this.type = type;
         this.id = id;
     }
-    
+
     protected int getTraceId() {
         return id;
     }
-    
+
     /**
      * INTERNAL
      */
@@ -130,7 +133,7 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "new byte[" + x.length + "]";
+        return "org.h2.util.ByteUtils.convertStringToBytes(\"" + ByteUtils.convertBytesToString(x) + "\")";
     }
 
     protected String quoteArray(String[] s) {
@@ -193,5 +196,36 @@ public class TraceObject {
         }
         return Message.convert(e);
     }
-    
+
+    /**
+     * INTERNAL
+     */
+    public static String toString(String sql, ObjectArray params) {
+        StringBuffer buff = new StringBuffer(sql);
+        if (params != null && params.size() > 0) {
+            buff.append(" {");
+            for (int i = 0; i < params.size(); i++) {
+                try {
+                    ParameterInterface p = (ParameterInterface) params.get(i);
+                    String s = p.getParamValue().getSQL();
+                    if (i > 0) {
+                        buff.append(", ");
+                    }
+                    buff.append(i + 1);
+                    buff.append(": ");
+                    buff.append(s);
+                } catch (SQLException e) {
+                    buff.append("/* ");
+                    buff.append(i + 1);
+                    buff.append(": ");
+                    buff.append(e.toString());
+                    buff.append("*/ ");
+                }
+            }
+            buff.append("};");
+        }
+        return buff.toString();
+
+    }
+
 }

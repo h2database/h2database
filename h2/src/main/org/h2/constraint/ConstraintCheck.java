@@ -20,30 +20,29 @@ import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * A check contraint.
  */
-
 public class ConstraintCheck extends Constraint {
 
     private TableFilter filter;
     private Expression expr;
-    
+
     public ConstraintCheck(Schema schema, int id, String name, Table table) {
         super(schema, id, name, table);
     }
-    
+
     public String getConstraintType() {
         return Constraint.CHECK;
     }
-    
+
     public void setTableFilter(TableFilter filter) {
         this.filter = filter;
     }
-    
+
     public void setExpression(Expression expr) {
         this.expr = expr;
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");
@@ -58,8 +57,8 @@ public class ConstraintCheck extends Constraint {
         buff.append(StringUtils.enclose(expr.getSQL()));
         buff.append(" NOCHECK");
         return buff.toString();
-    }    
-    
+    }
+
     public String getShortDescription() {
         StringBuffer buff = new StringBuffer();
         buff.append(getName());
@@ -67,23 +66,23 @@ public class ConstraintCheck extends Constraint {
         buff.append(expr.getSQL());
         return buff.toString();
     }
-    
+
     public String  getCreateSQLWithoutIndexes() {
         return getCreateSQL();
-    }    
+    }
 
     public String getCreateSQL() {
         return getCreateSQLForCopy(table, getSQL());
     }
-    
+
     public void removeChildrenAndResources(Session session) {
-        table.removeConstraint(this);        
+        table.removeConstraint(this);
         filter = null;
         expr = null;
         table = null;
         invalidate();
     }
-    
+
     public void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException {
         if (newRow == null) {
             return;

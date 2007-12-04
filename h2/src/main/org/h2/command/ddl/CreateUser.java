@@ -14,6 +14,10 @@ import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
 
+/**
+ * This class represents the statement
+ * CREATE USER
+ */
 public class CreateUser extends DefineCommand {
 
     private String userName;

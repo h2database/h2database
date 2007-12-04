@@ -12,6 +12,10 @@ import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * DROP DOMAIN
+ */
 public class DropUserDataType extends DefineCommand {
 
     private String typeName;

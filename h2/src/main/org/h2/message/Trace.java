@@ -4,20 +4,22 @@
  */
 package org.h2.message;
 
+import org.h2.constant.SysProperties;
+
 
 /**
  * @author Thomas
  */
 
 public class Trace {
-    
+
     // currently called trace because log mean something else
     // TODO trace: java code generation does not always work
-    
+
     private TraceSystem traceSystem;
     private String module;
     private String lineSeparator;
-    
+
     public static final String LOCK = "lock";
     public static final String SETTING = "setting";
     public static final String COMMAND = "command";
@@ -35,21 +37,21 @@ public class Trace {
     public static final String DATABASE = "database";
     public static final String SESSION = "session";
     public static final String AGGREGATE = "aggregate";
-    
+
     public Trace(TraceSystem traceSystem, String module) {
         this.traceSystem = traceSystem;
         this.module = module;
-        this.lineSeparator = System.getProperty("line.separator");
+        this.lineSeparator = SysProperties.LINE_SEPARATOR;
     }
-    
+
     public boolean info() {
         return traceSystem.isEnabled(TraceSystem.INFO);
     }
-    
+
     public boolean debug() {
         return traceSystem.isEnabled(TraceSystem.DEBUG);
-    }    
-    
+    }
+
     public void error(String s) {
         traceSystem.write(TraceSystem.ERROR, module, s, null);
     }
@@ -57,7 +59,7 @@ public class Trace {
     public void error(String s, Throwable t) {
         traceSystem.write(TraceSystem.ERROR, module, s, t);
     }
-    
+
     public void info(String s) {
         traceSystem.write(TraceSystem.INFO, module, s, null);
     }
@@ -65,10 +67,10 @@ public class Trace {
     public void debugCode(String java) {
         traceSystem.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
     }
-    
+
     public void infoCode(String java) {
         traceSystem.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
-    }    
+    }
 
     public void infoSQL(String sql) {
         sql = replaceNewline(sql);
@@ -100,5 +102,5 @@ public class Trace {
     public void debug(String s, Throwable t) {
         traceSystem.write(TraceSystem.DEBUG, module, s, t);
     }
-    
+
 }

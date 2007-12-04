@@ -12,11 +12,16 @@ import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.message.Trace;
+import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
 import org.h2.util.ObjectArray;
 import org.h2.value.Transfer;
 
+/**
+ * Represents the client-side part of a SQL statement.
+ * This class is not used in embedded mode.
+ */
 public class CommandRemote implements CommandInterface {
 
     private final ObjectArray transferList;
@@ -28,7 +33,7 @@ public class CommandRemote implements CommandInterface {
     private boolean isQuery;
     private boolean readonly;
     private int paramCount;
-    
+
     public CommandRemote(SessionRemote session, ObjectArray transferList, String sql) throws SQLException {
         this.transferList = transferList;
         trace = session.getTrace();
@@ -60,7 +65,7 @@ public class CommandRemote implements CommandInterface {
             }
         }
     }
-    
+
     public boolean isQuery() {
         return isQuery;
     }
@@ -68,7 +73,7 @@ public class CommandRemote implements CommandInterface {
     public ObjectArray getParameters() {
         return parameters;
     }
-    
+
     public ResultInterface getMetaData() throws SQLException {
         synchronized (session) {
             session.checkClosed();
@@ -173,7 +178,7 @@ public class CommandRemote implements CommandInterface {
             return updateCount;
         }
     }
-    
+
     private void checkParameters() throws SQLException {
         int len = parameters.size();
         for (int i = 0; i < len; i++) {
@@ -213,6 +218,10 @@ public class CommandRemote implements CommandInterface {
 
     public void cancel() {
         // TODO server: support cancel
+    }
+
+    public String toString() {
+        return TraceObject.toString(sql, getParameters());
     }
 
 }

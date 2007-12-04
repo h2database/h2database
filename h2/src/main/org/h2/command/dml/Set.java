@@ -28,7 +28,8 @@ import org.h2.value.CompareMode;
 import org.h2.value.ValueInt;
 
 /**
- * Represents a SET statement.
+ * This class represents the statement
+ * SET
  */
 public class Set extends Prepared {
 

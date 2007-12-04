@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
+/**
+ * A database object such as a table, an index, or a user.
+ */
 public interface DbObject {
     int INDEX = 1;
     int SEQUENCE = 3;

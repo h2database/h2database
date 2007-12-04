@@ -54,11 +54,11 @@ class WebThread extends Thread implements DatabaseEventListener {
     private WebSession session;
     private Properties attributes;
     private Socket socket;
-    
+
     private InputStream input;
     private String ifModifiedSince;
     private String mimeType;
-    private boolean cache;    
+    private boolean cache;
     private int listenerLastState;
     private long listenerLastEvent;
     private boolean stop;
@@ -75,11 +75,11 @@ class WebThread extends Thread implements DatabaseEventListener {
         this.session = session;
         this.attributes = attributes;
     }
-    
+
     public void stopNow() {
         this.stop = true;
     }
-    
+
     private String getAllowedFile(String requestedFile) {
         if (!allow()) {
             return "notAllowed.jsp";
@@ -204,13 +204,13 @@ class WebThread extends Thread implements DatabaseEventListener {
             TraceSystem.traceThrowable(e);
         }
     }
-    
+
     private DataOutputStream openOutput(String message) throws IOException {
         DataOutputStream output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         output.write(message.getBytes());
         return output;
     }
-    
+
     private void closeOutput(DataOutputStream output) {
         try {
             output.flush();
@@ -863,10 +863,10 @@ class WebThread extends Thread implements DatabaseEventListener {
         session.put("autoComplete", "1");
         session.put("maxrows", "1000");
         boolean thread = false;
-        if (socket != null 
-                && url.startsWith("jdbc:h2:") 
-                && !url.startsWith("jdbc:h2:tcp:") 
-                && !url.startsWith("jdbc:h2:ssl:") 
+        if (socket != null
+                && url.startsWith("jdbc:h2:")
+                && !url.startsWith("jdbc:h2:tcp:")
+                && !url.startsWith("jdbc:h2:ssl:")
                 && !url.startsWith("jdbc:h2:mem:")) {
             thread = true;
         }
@@ -888,7 +888,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             private DataOutputStream output;
             private PrintWriter writer;
             SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-            
+
             LoginTask() throws IOException {
                 String message = "HTTP/1.1 200 OK\n";
                 message += "Content-Type: " + mimeType + "\n\n";
@@ -901,7 +901,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 writer.flush();
                 log("Start...");
             }
-            
+
             public void closingDatabase() {
                 log("Closing database");
             }
@@ -958,7 +958,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     writer.flush();
                 }
             }
-            
+
             public void run() {
                 String sessionId = (String) session.get("sessionId");
                 try {
@@ -990,7 +990,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         return "";
     }
-    
+
     private String logout() {
         try {
             Connection conn = session.getConnection();
@@ -1249,7 +1249,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[]{"meta.getSQLStateType", ""+meta.getSQLStateType()});
             rs.addRow(new String[]{"meta.supportsGetGeneratedKeys", ""+meta.supportsGetGeneratedKeys()});
             rs.addRow(new String[]{"meta.locatorsUpdateCopy", ""+meta.locatorsUpdateCopy()});
-//#endif            
+//#endif
             return rs;
         } else if (sql.startsWith("@CATALOGS")) {
             return meta.getCatalogs();
@@ -1349,6 +1349,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             boolean metadata = false;
             boolean generatedKeys = false;
             boolean edit = false;
+            boolean list = false;
             if ("@CANCEL".equals(sql)) {
                 stat = session.executingStatement;
                 if (stat != null) {
@@ -1361,6 +1362,9 @@ class WebThread extends Thread implements DatabaseEventListener {
             } else if (sql.startsWith("@META")) {
                 metadata = true;
                 sql = sql.substring("@META".length()).trim();
+            } else if (sql.startsWith("@LIST")) {
+                list = true;
+                sql = sql.substring("@LIST".length()).trim();
             } else if (sql.startsWith("@GENERATED")) {
                 generatedKeys = true;
                 sql = sql.substring("@GENERATED".length()).trim();
@@ -1410,7 +1414,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
             }
             time = System.currentTimeMillis() - time;
-            buff.append(getResultSet(sql, rs, metadata, edit, time, allowEdit));
+            buff.append(getResultSet(sql, rs, metadata, list, edit, time, allowEdit));
 //            SQLWarning warning = stat.getWarnings();
 //            if(warning != null) {
 //                buff.append("<br />Warning:<br />");
@@ -1539,7 +1543,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return buff.toString();
     }
 
-    private String getResultSet(String sql, ResultSet rs, boolean metadata, boolean edit, long time, boolean allowEdit) throws SQLException {
+    private String getResultSet(String sql, ResultSet rs, boolean metadata, boolean list, boolean edit, long time, boolean allowEdit) throws SQLException {
         int maxrows = getMaxrows();
         time = System.currentTimeMillis() - time;
         StringBuffer buff = new StringBuffer();
@@ -1585,6 +1589,25 @@ class WebThread extends Thread implements DatabaseEventListener {
                 buff.append("<td>").append(meta.isWritable(i)).append("</td>");
                 buff.append("<td>").append(meta.isDefinitelyWritable(i)).append("</td>");
                 buff.append("</tr>");
+            }
+        } else if (list) {
+            buff.append("<tr><th>Column</th><th>Data</th></tr><tr>");
+            while (rs.next()) {
+                if (maxrows > 0 && rows >= maxrows) {
+                    break;
+                }
+                rows++;
+                buff.append("<tr><td>Row #</td><td>");
+                buff.append(rows);
+                buff.append("</tr>");
+                for (int i = 0; i < columns; i++) {
+                    buff.append("<tr><td>");
+                    buff.append(PageParser.escapeHtml(meta.getColumnLabel(i + 1)));
+                    buff.append("</td>");
+                    buff.append("<td>");
+                    buff.append(PageParser.escapeHtml(rs.getString(i + 1)));
+                    buff.append("</td></tr>");
+                }
             }
         } else {
             buff.append("<tr>");
@@ -1713,7 +1736,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     public WebSession getSession() {
         return session;
     }
-    
+
     public void closingDatabase() {
         log("Closing database");
     }

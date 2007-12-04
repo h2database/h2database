@@ -13,6 +13,10 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * DROP ROLE
+ */
 public class DropRole extends DefineCommand {
 
     private String roleName;

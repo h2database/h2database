@@ -15,7 +15,8 @@ import org.h2.schema.Schema;
 import org.h2.table.Table;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * ALTER TABLE RENAME
  */
 public class AlterTableRename extends SchemaCommand {
 

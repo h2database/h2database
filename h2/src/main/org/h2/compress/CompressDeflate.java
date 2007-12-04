@@ -13,6 +13,9 @@ import java.util.zip.Inflater;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
+/**
+ * This is a wrapper class for the Deflater class.
+ */
 public class CompressDeflate implements Compressor {
 
     private int level = Deflater.BEST_SPEED;

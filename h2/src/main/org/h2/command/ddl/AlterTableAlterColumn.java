@@ -26,6 +26,17 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 
+/**
+ * This class represents the statements
+ * ALTER TABLE ADD,
+ * ALTER TABLE ALTER COLUMN,
+ * ALTER TABLE ALTER COLUMN RESTART,
+ * ALTER TABLE ALTER COLUMN SELECTIVITY,
+ * ALTER TABLE ALTER COLUMN SET DEFAULT,
+ * ALTER TABLE ALTER COLUMN SET NOT NULL,
+ * ALTER TABLE ALTER COLUMN SET NULL,
+ * ALTER TABLE DROP COLUMN
+ */
 public class AlterTableAlterColumn extends SchemaCommand {
 
     public static final int NOT_NULL = 0, NULL = 1, DEFAULT = 2, RESTART = 3, CHANGE_TYPE = 4;
@@ -246,7 +257,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         // TODO loop instead of use insert (saves memory)
         /*
-         * 
+         *
          * Index scan = table.getBestPlanItem(null).getIndex(); Cursor cursor =
          * scan.find(null, null); while (cursor.next()) { Row row =
          * cursor.get(); Row newRow = newTable.getTemplateRow(); for (int i=0,

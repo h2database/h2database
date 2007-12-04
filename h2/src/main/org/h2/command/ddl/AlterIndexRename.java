@@ -13,6 +13,10 @@ import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 
+/**
+ * This class represents the statement
+ * ALTER INDEX RENAME
+ */
 public class AlterIndexRename extends DefineCommand {
 
     private Index oldIndex;

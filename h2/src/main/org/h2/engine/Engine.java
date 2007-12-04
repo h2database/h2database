@@ -16,7 +16,9 @@ import org.h2.message.Trace;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * The engine contains a map of all open databases.
+ * It is also responsible for opening and creating new databases.
+ * This is a singleton class.
  */
 public class Engine {
     // TODO use a 'engine'/'master' database to allow shut down the server, view & kill sessions and so on
@@ -68,7 +70,7 @@ public class Engine {
             if (user == null) {
                 try {
                     database.checkFilePasswordHash(cipher, ci.getFilePasswordHash());
-                    //create the exception here so it is not possible from the stack trace 
+                    //create the exception here so it is not possible from the stack trace
                     // to see if the user name was wrong or the password
                     SQLException wrongUserOrPassword = Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
                     user = database.getUser(ci.getUserName(), wrongUserOrPassword);

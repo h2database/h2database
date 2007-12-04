@@ -21,13 +21,17 @@ import org.h2.util.Resources;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
+/**
+ * This class can read a file that is similar to BNF (Backus–Naur form).
+ * It is made specially to support SQL grammar.
+ */
 public class Bnf {
-    
+
     static final boolean COMBINE_KEYWORDS = false;
-    
+
     private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'";
     private static final long MAX_PARSE_TIME = 100;
-    
+
     private final Random random = new Random();
     private final HashMap ruleMap = new HashMap();
     private String syntax;
@@ -38,10 +42,10 @@ public class Bnf {
     private Rule lastRepeat;
     private ArrayList statements;
     private String currentTopic;
-    
+
     /**
      * Create an instance using the grammar specified in the CSV file.
-     * 
+     *
      * @param csv if not specified, the help.csv is used
      * @return a new instance
      */
@@ -54,16 +58,16 @@ public class Bnf {
         bnf.parse(csv);
         return bnf;
     }
-    
+
     Bnf() {
         random.setSeed(1);
     }
-    
+
     void addFixedRule(String name, int fixedType) {
         Rule rule = new RuleFixed(fixedType);
         addRule(name, 0, "Fixed", rule);
     }
-    
+
     RuleHead addRule(String topic, int id, String section, Rule rule) {
         RuleHead head = new RuleHead(id, section, topic, rule);
         if (ruleMap.get(StringUtils.toLowerEnglish(topic)) != null) {
@@ -72,16 +76,12 @@ public class Bnf {
         ruleMap.put(StringUtils.toLowerEnglish(topic), head);
         return head;
     }
-    
+
     public Random getRandom() {
         return random;
     }
 
-    public HashMap getRuleMap() {
-        return ruleMap;
-    }
-    
-    public void parse(Reader csv) throws Exception {
+    private void parse(Reader csv) throws Exception {
         csv = new BufferedReader(csv);
         Rule functions = null;
         statements = new ArrayList();
@@ -132,7 +132,7 @@ public class Bnf {
         addFixedRule("@af@", RuleFixed.AF);
         addFixedRule("@digit@", RuleFixed.DIGIT);
     }
-        
+
     public String getSyntax(String rule, String syntax) {
         StringTokenizer tokenizer = new StringTokenizer(syntax, SEPARATORS, true);
         StringBuffer buff = new StringBuffer();
@@ -169,12 +169,12 @@ public class Bnf {
         }
         return buff.toString();
     }
-    
+
     private Rule parseRule() {
         read();
         return parseOr();
     }
-    
+
     private Rule parseOr() {
         Rule r = parseList();
         if (firstChar == '|') {
@@ -193,7 +193,7 @@ public class Bnf {
         lastRepeat = r;
         return r;
     }
-    
+
     private Rule parseToken() {
         Rule r;
         if ((firstChar >= 'A' && firstChar <= 'Z') || (firstChar >= 'a' && firstChar <= 'z')) {
@@ -238,7 +238,7 @@ public class Bnf {
             firstChar = 0;
         }
     }
-    
+
     private String[] tokenize() {
         ArrayList list = new ArrayList();
         syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@");
@@ -286,7 +286,6 @@ public class Bnf {
     }
 
     public void linkStatements() {
-        HashMap ruleMap = getRuleMap();
         for (Iterator it = ruleMap.values().iterator(); it.hasNext();) {
             RuleHead r = (RuleHead) it.next();
             r.getRule().setLinks(ruleMap);
@@ -299,24 +298,7 @@ public class Bnf {
         if (head == null) {
             head = new RuleHead(0, "db", topic, rule);
             ruleMap.put(topic, head);
-            statements.add(head);            
-        } else {
-            head.rule = rule;
-        }
-    }
-    
-    public void updateTopic(String topic, String[] array) {
-        topic = StringUtils.toLowerEnglish(topic);
-        ArrayList list = new ArrayList();
-        for (int i = 0; i < array.length; i++) {
-            list.add(new RuleElement(array[i], true, topic));
-        }
-        RuleList rule = new RuleList(list, true);
-        RuleHead head = (RuleHead) ruleMap.get(topic);
-        if (head == null) {
-            head = new RuleHead(0, "db", topic, rule);
-            ruleMap.put(topic, head);
-            statements.add(head);            
+            statements.add(head);
         } else {
             head.rule = rule;
         }

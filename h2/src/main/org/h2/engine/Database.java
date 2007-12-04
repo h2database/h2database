@@ -61,8 +61,7 @@ import org.h2.value.ValueInt;
 
 /**
  * There is one database object per open database.
- * 
- * @author Thomas
+
  * @since 2004-04-15 22:49
  */
 /*
@@ -197,6 +196,8 @@ public class Database implements DataHandler {
                     // shutdown in progress - just don't register the handler
                     // (maybe an application wants to write something into a
                     // database at shutdown time)
+                } catch (SecurityException  e) {
+                    // applets may not do that - ignore
                 }
             }
         } catch (Throwable e) {
@@ -542,7 +543,7 @@ public class Database implements DataHandler {
             emergencyReserve.autoDelete();
             emergencyReserve.setLength(SysProperties.EMERGENCY_SPACE_INITIAL);
         }
-        traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);     
+        traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }
 
     private void recompileInvalidViews(Session session) {
@@ -748,7 +749,7 @@ public class Database implements DataHandler {
     public FunctionAlias findFunctionAlias(String name) {
         return (FunctionAlias) functionAliases.get(name);
     }
-    
+
     public UserAggregate findAggregate(String name) {
         return (UserAggregate) aggregates.get(name);
     }
@@ -764,7 +765,7 @@ public class Database implements DataHandler {
         }
         return user;
     }
-    
+
     public User getUser(String name) throws SQLException {
         return getUser(name, Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name));
     }
@@ -870,6 +871,8 @@ public class Database implements DataHandler {
                 Runtime.getRuntime().removeShutdownHook(closeOnExit);
             } catch (IllegalStateException e) {
                 // ignore
+            } catch (SecurityException  e) {
+                // applets may not do that - ignore
             }
             closeOnExit = null;
         }
@@ -997,7 +1000,7 @@ public class Database implements DataHandler {
     public ObjectArray getAllFunctionAliases() {
         return new ObjectArray(functionAliases.values());
     }
-    
+
     public ObjectArray getAllAggregates() {
         return new ObjectArray(aggregates.values());
     }
@@ -1297,7 +1300,7 @@ public class Database implements DataHandler {
             return ClassUtils.loadClass(className);
         } catch (ClassNotFoundException e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
-        }            
+        }
     }
 
     public void setEventListener(String className) throws SQLException {
@@ -1598,7 +1601,7 @@ public class Database implements DataHandler {
     public void setMode(Mode mode) {
         this.mode = mode;
     }
-    
+
     public Mode getMode() {
         return mode;
     }
@@ -1610,7 +1613,7 @@ public class Database implements DataHandler {
     public void setMultiThreaded(boolean multiThreaded) {
         this.multiThreaded = multiThreaded;
     }
-    
+
     public void setMaxOperationMemory(int maxOperationMemory) {
         this.maxOperationMemory  = maxOperationMemory;
     }

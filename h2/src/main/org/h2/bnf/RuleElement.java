@@ -8,6 +8,9 @@ import java.util.HashMap;
 
 import org.h2.util.StringUtils;
 
+/**
+ * A single terminal rule in a BNF object.
+ */
 public class RuleElement implements Rule {
 
     private boolean keyword;
@@ -15,15 +18,8 @@ public class RuleElement implements Rule {
     private Rule link;
     private int type;
     private String topic;
-    
-    public RuleElement(String name, boolean keyword, String topic) {
-        this.name = name;
-        this.topic = topic;
-        this.keyword = keyword;
-        this.type = Sentence.CONTEXT;
-    }
 
-    public RuleElement(String name, String topic) {
+    RuleElement(String name, String topic) {
         this.name = name;
         this.topic = topic;
         if (name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name))) {
@@ -32,11 +28,11 @@ public class RuleElement implements Rule {
         topic = StringUtils.toLowerEnglish(topic);
         this.type = topic.startsWith("function") ? Sentence.FUNCTION : Sentence.KEYWORD;
     }
-    
-    public RuleElement merge(RuleElement rule) {
+
+    RuleElement merge(RuleElement rule) {
         return new RuleElement(name + " " + rule.name, topic);
     }
-    
+
     public String random(Bnf config, int level) {
         if (keyword) {
             return name.length() > 1 ? " " + name + " " : name;
@@ -66,7 +62,7 @@ public class RuleElement implements Rule {
             String test = StringUtils.toLowerEnglish(name.substring(i));
             RuleHead r = (RuleHead) ruleMap.get(test);
             if (r != null) {
-                link = r.rule;
+                link = r.getRule();
                 return;
             }
         }
@@ -101,7 +97,7 @@ public class RuleElement implements Rule {
             }
             return query;
         }
-    }    
+    }
 
     public void addNextTokenList(String query, Sentence sentence) {
         if (sentence.stop()) {
@@ -120,7 +116,7 @@ public class RuleElement implements Rule {
         link.addNextTokenList(query, sentence);
     }
 
-    public boolean isKeyword() {
+    boolean isKeyword() {
         return keyword;
     }
 

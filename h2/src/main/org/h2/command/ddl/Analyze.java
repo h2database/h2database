@@ -17,6 +17,10 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 
+/**
+ * This class represents the statement
+ * ANALYZE
+ */
 public class Analyze extends DefineCommand {
 
     private int sampleRows = Constants.SELECTIVITY_ANALYZE_SAMPLE_ROWS;

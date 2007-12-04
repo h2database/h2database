@@ -12,6 +12,10 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 
+/**
+ * This class represents the statement
+ * DROP AGGREGATE
+ */
 public class DropAggregate extends DefineCommand {
 
     private String name;

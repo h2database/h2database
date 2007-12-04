@@ -21,6 +21,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.h2.util.StringUtils;
 
+/**
+ * This servlet lets the H2 Console be used in a standard servlet container
+ * such as Tomcat or Jetty.
+ */
 public class WebServlet extends HttpServlet {
 
     private static final long serialVersionUID = 9171446624885086692L;

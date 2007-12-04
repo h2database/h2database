@@ -13,6 +13,10 @@ import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 
+/**
+ * This class represents the statement
+ * DROP SEQUENCE
+ */
 public class DropSequence extends SchemaCommand {
 
     private String sequenceName;

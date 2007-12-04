@@ -26,13 +26,17 @@ import java.io.LineNumberReader;
 import java.util.HashMap;
 
 /**
- * The command line tool to re-run the log file. This is done using reflection.
+ * This tool can re-run Java style log files. There is no size limit.
  */
 public class Player {
-    
+
+    // TODO support InputStream;
+    // TODO support Reader;
+    // TODO support int[];
+    // TODO support Blob and Clob;
     // TODO support Calendar
-    // TODO support Object[]
     // TODO support Object
+    // TODO support Object[]
     // TODO support URL
     // TODO support Array
     // TODO support Ref
@@ -41,13 +45,9 @@ public class Player {
     // TODO support Map
     // TODO support SQLXML
 
-
     private boolean log;
-
     private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
-
     private HashMap objects = new HashMap();
-    private String lastReturn;
 
     /**
      * Execute a trace file using the command line. The log file name to execute (replayed) must be specified
@@ -112,10 +112,6 @@ public class Player {
         }
     }
 
-    void logError(String s) {
-        System.out.println("ERROR: " + s);
-    }
-
     private void runLine(String line) {
         if (!line.startsWith("/**/")) {
             return;
@@ -125,19 +121,6 @@ public class Player {
         log("> " + s.toString());
         try {
             s.execute();
-            Object result = s.getReturnObject();
-            lastReturn = null;
-            if (result == null) {
-                lastReturn = "null";
-            } else if (result instanceof String) {
-                String r = (String) result;
-                lastReturn = r;
-            } else {
-                lastReturn = quoteSimple(result);
-            }
-            if (lastReturn != null) {
-                log(">     return " + lastReturn + ";");
-            }
         } catch (Exception e) {
             e.printStackTrace();
             log("error: " + e.toString());
@@ -160,11 +143,6 @@ public class Player {
 
     Object getObject(String name) {
         return objects.get(name);
-    }
-    
-    private String quoteSimple(Object result) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }

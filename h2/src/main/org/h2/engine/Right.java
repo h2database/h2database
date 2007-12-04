@@ -10,10 +10,13 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
+/**
+ * An access right. Rights are regular database objects, but have generated names.
+ */
 public class Right extends DbObjectBase {
-    
+
     public static final int SELECT = 1, DELETE = 2, INSERT = 4, UPDATE = 8, ALL = 15;
-    
+
     private Role grantedRole;
     private int grantedRight;
     private Table grantedTable;
@@ -24,14 +27,14 @@ public class Right extends DbObjectBase {
         this.grantee = grantee;
         this.grantedRole = grantedRole;
     }
-    
+
     public Right(Database db, int id, RightOwner grantee, int grantedRight, Table grantedRightOnTable) {
         super(db, id, ""+id, Trace.USER);
         this.grantee = grantee;
         this.grantedRight = grantedRight;
         this.grantedTable = grantedRightOnTable;
     }
-    
+
     private boolean appendRight(StringBuffer buff, int right, int mask, String name, boolean comma) {
         if ((right & mask) != 0) {
             if (comma) {
@@ -120,5 +123,5 @@ public class Right extends DbObjectBase {
     public int getRightMask() {
         return grantedRight;
     }
-    
+
 }

@@ -34,16 +34,16 @@ public class TestTools extends TestBase {
 
     public void test() throws Exception {
         deleteDb("utils");
-//        testServerMain();
-//        testRemove();
+        testServerMain();
+        testRemove();
         testConvertTraceFile();
-//        testManagementDb();
-//        testResourceGenerator();
-//        testChangePassword();
-//        testServer();
-//        testScriptRunscript();
-//        testBackupRestore();
-//        testRecover();
+        testManagementDb();
+        testResourceGenerator();
+        testChangePassword();
+        testServer();
+        testScriptRunscript();
+        testBackupRestore();
+        testRecover();
     }
 
     private void testServerMain() throws Exception {
@@ -118,21 +118,25 @@ public class TestTools extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/toolsConvertTraceFile";
         Connection conn = DriverManager.getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
         Statement stat = conn.createStatement();
-        
-        int todoFloatDoubleLongShortByteBoolean;
-        int todoByteArray;
-        int todoInputStream;
-        int todoReader;
-        int todoDateTimeTimestamp;
-        int todoIntArray;
-        int todoBlobClob;
-        
         stat.execute("create table test(id int primary key, name varchar, amount decimal)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?, ?)");
         prep.setInt(1, 1);
         prep.setString(2, "Hello");
         prep.setBigDecimal(3, new BigDecimal("10.20"));
         prep.executeUpdate();
+        stat.execute("create table test2(id int primary key, a real, b double, c bigint, " +
+                "d smallint, e boolean, f binary, g date, h time, i timestamp)");
+        prep = conn.prepareStatement("insert into test2 values(1, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        prep.setFloat(1, Float.MIN_VALUE);
+        prep.setDouble(2, Double.MIN_VALUE);
+        prep.setLong(3, Long.MIN_VALUE);
+        prep.setShort(4, Short.MIN_VALUE);
+        prep.setBoolean(5, false);
+        prep.setBytes(6, new byte[] { (byte) 10, (byte) 20 });
+        prep.setDate(7, java.sql.Date.valueOf("2007-12-31"));
+        prep.setTime(8, java.sql.Time.valueOf("23:59:59"));
+        prep.setTimestamp(9, java.sql.Timestamp.valueOf("2007-12-31 23:59:59"));
+        prep.execute();
         conn.close();
 
         ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});
@@ -163,6 +167,19 @@ public class TestTools extends TestBase {
         rs.next();
         check(1, rs.getInt(1));
         check("Hello", rs.getString(2));
+        check("10.20", rs.getBigDecimal(3).toString());
+        checkFalse(rs.next());
+        rs = stat.executeQuery("select * from test2");
+        rs.next();
+        check(Float.MIN_VALUE, rs.getFloat("a"));
+        check(Double.MIN_VALUE, rs.getDouble("b"));
+        check(Long.MIN_VALUE, rs.getLong("c"));
+        check(Short.MIN_VALUE, rs.getShort("d"));
+        check(!rs.getBoolean("e"));
+        check(new byte[] { (byte) 10, (byte) 20 }, rs.getBytes("f"));
+        check("2007-12-31", rs.getString("g"));
+        check("23:59:59", rs.getString("h"));
+        check("2007-12-31 23:59:59.0", rs.getString("i"));
         checkFalse(rs.next());
         conn.close();
     }

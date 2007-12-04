@@ -16,13 +16,17 @@ import org.h2.util.ObjectArray;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
+/**
+ * A record in the system table of the database.
+ * It contains the SQL statement to create the database object.
+ */
 public class MetaRecord {
-    
+
     private int id;
     private int objectType;
     private int headPos;
     private String sql;
-    
+
     public MetaRecord(SearchRow r) throws SQLException {
         id = r.getValue(0).getInt();
         headPos = r.getValue(1).getInt();

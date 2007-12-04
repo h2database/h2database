@@ -9,21 +9,24 @@ import java.util.Random;
 
 import org.h2.util.StringUtils;
 
+/**
+ * Represents a hard coded terminal rule in a BNF object.
+ */
 public class RuleFixed implements Rule {
-    public static final int YMD = 0, HMS = 1, NANOS = 2;
-    public static final int ANY_EXCEPT_SINGLE_QUOTE = 3;
-    public static final int ANY_EXCEPT_DOUBLE_QUOTE = 4;
-    public static final int ANY_UNTIL_EOL = 5;
-    public static final int ANY_UNTIL_END = 6;
-    public static final int ANY_WORD = 7;
-    public static final int HEX_START = 10, CONCAT = 11, AZ_UNDERLINE = 12, AF = 13, DIGIT = 14;
-    
+    static final int YMD = 0, HMS = 1, NANOS = 2;
+    static final int ANY_EXCEPT_SINGLE_QUOTE = 3;
+    static final int ANY_EXCEPT_DOUBLE_QUOTE = 4;
+    static final int ANY_UNTIL_EOL = 5;
+    static final int ANY_UNTIL_END = 6;
+    static final int ANY_WORD = 7;
+    static final int HEX_START = 10, CONCAT = 11, AZ_UNDERLINE = 12, AF = 13, DIGIT = 14;
+
     private final int type;
-    
-    public RuleFixed(int type) {
+
+    RuleFixed(int type) {
         this.type = type;
     }
-    
+
     public String random(Bnf config, int level) {
         Random r = config.getRandom();
         switch(type) {
@@ -45,7 +48,7 @@ public class RuleFixed implements Rule {
             }
             return buff.toString();
         }
-        case HEX_START: 
+        case HEX_START:
             return "0x";
         case CONCAT:
             return "||";
@@ -70,7 +73,7 @@ public class RuleFixed implements Rule {
 
     public void setLinks(HashMap ruleMap) {
     }
-    
+
     public String matchRemove(String query, Sentence sentence) {
         if (sentence.stop()) {
             return null;
@@ -83,12 +86,12 @@ public class RuleFixed implements Rule {
         case YMD:
             while (s.length() > 0 && "0123456789- ".indexOf(s.charAt(0)) >= 0) {
                 s = s.substring(1);
-            }            
+            }
             break;
         case HMS:
             while (s.length() > 0 && "0123456789:. ".indexOf(s.charAt(0)) >= 0) {
                 s = s.substring(1);
-            }            
+            }
             break;
         case NANOS:
             while (s.length() > 0 && Character.isDigit(s.charAt(0))) {
@@ -172,9 +175,9 @@ public class RuleFixed implements Rule {
         if (s == query) {
             return null;
         }
-        return s; 
+        return s;
     }
-    
+
     public void addNextTokenList(String query, Sentence sentence) {
         if (sentence.stop()) {
             return;
@@ -241,6 +244,6 @@ public class RuleFixed implements Rule {
         default:
             throw new Error("type="+type);
         }
-    }    
-    
+    }
+
 }

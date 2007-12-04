@@ -18,16 +18,17 @@ import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
 /**
- * Represents a RUNSCRIPT statement.
+ * This class represents the statement
+ * RUNSCRIPT
  */
 public class RunScriptCommand extends ScriptBase {
-    
+
     private String charset = StringUtils.getDefaultCharset();
 
     public RunScriptCommand(Session session) {
         super(session);
     }
-    
+
     public int update() throws SQLException {
         session.getUser().checkAdmin();
         int count = 0;
@@ -51,7 +52,7 @@ public class RunScriptCommand extends ScriptBase {
         }
         return count;
     }
-    
+
     private void execute(String sql) throws SQLException {
         try {
             Prepared command = session.prepare(sql);
@@ -67,11 +68,11 @@ public class RunScriptCommand extends ScriptBase {
             throw Message.addSQL(e, sql);
         }
     }
-    
+
     public void setCharset(String charset) {
         this.charset = charset;
     }
-    
+
     public LocalResult queryMeta() {
         return null;
     }

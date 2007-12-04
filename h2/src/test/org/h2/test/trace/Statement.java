@@ -24,100 +24,56 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
- * Represents a statement (a single line in the log file).
+ * A statement in a Java-style log file.
  */
 class Statement {
     private Player player;
-
     private boolean assignment;
-
-    private String assignClass;
-
-    private String assignVariable;
-
     private boolean staticCall;
-
+    private String assignClass;
+    private String assignVariable;
     private String staticCallClass;
-
     private String objectName;
-
     private Object object;
-
     private String methodName;
-
     private Arg[] args;
-
-    private Class[] parameterTypes;
-
-    private Object[] parameters;
-
-    private Method method;
-
     private Class returnClass;
-
-    private Object returnObject;
 
     Statement(Player player) {
         this.player = player;
     }
 
-    private Method findMethod(Class clazz) throws Exception {
-        try {
-            return clazz.getMethod(methodName, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            Method[] methods = clazz.getMethods();
-            methods:
-            for (int i = 0; i < methods.length; i++) {
-                Method m = methods[i];
-                if (methodName.equals(m.getName())) {
-                    Class[] argClasses = m.getParameterTypes();
-                    for (int j = 0; j < args.length; j++) {
-                        if (!argClasses[j].isAssignableFrom(args[j].getValueClass())) {
-                            continue methods;
-                        }
-                    }
-                    return m;
-                }
-            }
-        }
-        throw new Error("Method with args not found: " + clazz.getName() + "."
-                + methodName + " args: " + args.length);
-    }
-
-    void execute() throws Exception {
+    Object execute() throws Exception {
         if (object == player) {
             // there was an exception previously
             player.log("> " + assignVariable + " not set");
             if (assignment) {
                 player.assign(assignVariable, player);
             }
-            return;
+            return null;
         }
         Class clazz;
         if (staticCall) {
-            if (staticCallClass == null || staticCallClass.length() == 0) {
-                player.log("?class? " + staticCallClass);
-            }
             clazz = Player.getClass(staticCallClass);
         } else {
             clazz = object.getClass();
         }
-        parameterTypes = new Class[args.length];
-        parameters = new Object[args.length];
+        Class[] parameterTypes = new Class[args.length];
+        Object[] parameters = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             Arg arg = args[i];
             arg.execute();
             parameterTypes[i] = arg.getValueClass();
             parameters[i] = arg.getValue();
         }
-        method = findMethod(clazz);
+        Method method = clazz.getMethod(methodName, parameterTypes);
         returnClass = method.getReturnType();
         try {
             Object obj = method.invoke(object, parameters);
             if (assignment) {
                 player.assign(assignVariable, obj);
             }
-            returnObject = obj;
+            return obj;
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -129,6 +85,7 @@ class Statement {
                 player.assign(assignVariable, player);
             }
         }
+        return null;
     }
 
     public String toString() {
@@ -159,10 +116,6 @@ class Statement {
 
     Class getReturnClass() {
         return returnClass;
-    }
-
-    Object getReturnObject() {
-        return returnObject;
     }
 
     void setAssign(String className, String variableName) {

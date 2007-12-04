@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.Collator;
 import java.util.Locale;
-import java.util.Properties;
 
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -549,7 +548,7 @@ public class MetaTable extends Table {
                 } else {
                     storageType = table.isPersistent() ? "CACHED" : "MEMORY";
                 }
-                add(rows, new String[] { 
+                add(rows, new String[] {
                         catalog, // TABLE_CATALOG
                         identifier(table.getSchema().getName()), // TABLE_SCHEMA
                         tableName, // TABLE_NAME
@@ -673,18 +672,17 @@ public class MetaTable extends Table {
             add(rows, new String[]{"info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR});
             add(rows, new String[]{"info.VERSION_MINOR", "" + Constants.VERSION_MINOR});
             add(rows, new String[]{"info.VERSION", "" + Constants.getVersion()});
-            if (session.getUser().getAdmin()) {            
-                Properties prop = System.getProperties();
+            if (session.getUser().getAdmin()) {
                 String[] settings = new String[]{
-                        "java.runtime.version", 
+                        "java.runtime.version",
                         "java.vm.name", "java.vendor",
-                        "os.name", "os.arch", "os.version", "sun.os.patch.level", 
-                        "file.separator", "path.separator", "line.separator", 
+                        "os.name", "os.arch", "os.version", "sun.os.patch.level",
+                        "file.separator", "path.separator", "line.separator",
                         "user.country", "user.language", "user.variant", "file.encoding"
                 };
                 for (int i = 0; i < settings.length; i++) {
                     String s = settings[i];
-                    add(rows, new String[] { "property." + s, prop.getProperty(s, "") });
+                    add(rows, new String[] { "property." + s, SysProperties.getStringSetting(s, "") });
                 }
             }
             add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });

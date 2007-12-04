@@ -60,7 +60,7 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 /**
- * Represents a result set. Column names are case-insensitive, quotes are not supported. 
+ * Represents a result set. Column names are case-insensitive, quotes are not supported.
  * The first column has the column index 1.
  * Result sets are updatable when the result only contains columns from one table,
  * and if it contains all columns of a unique index (primary key or other) of this table.
@@ -1321,7 +1321,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateShort(int columnIndex, short x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateShort("+columnIndex+", "+x+");");
+                debugCode("updateShort("+columnIndex+", (short) "+x+");");
             }
             update(columnIndex, ValueShort.get(x));
         } catch (Throwable e) {
@@ -1339,7 +1339,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateShort(String columnName, short x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateShort("+quote(columnName)+", "+x+");");
+                debugCode("updateShort("+quote(columnName)+", (short) "+x+");");
             }
             update(columnName, ValueShort.get(x));
         } catch (Throwable e) {
@@ -1393,7 +1393,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateLong(int columnIndex, long x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateLong("+columnIndex+", "+x+");");
+                debugCode("updateLong("+columnIndex+", "+x+"L);");
             }
             update(columnIndex, ValueLong.get(x));
         } catch (Throwable e) {
@@ -1411,7 +1411,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateLong(String columnName, long x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateLong("+quote(columnName)+", "+x+");");
+                debugCode("updateLong("+quote(columnName)+", "+x+"L);");
             }
             update(columnName, ValueLong.get(x));
         } catch (Throwable e) {
@@ -1465,7 +1465,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateDouble(int columnIndex, double x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateDouble("+columnIndex+", "+x+");");
+                debugCode("updateDouble("+columnIndex+", "+x+"d);");
             }
             update(columnIndex, ValueDouble.get(x));
         } catch (Throwable e) {
@@ -1483,7 +1483,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateDouble(String columnName, double x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateDouble("+quote(columnName)+", "+x+");");
+                debugCode("updateDouble("+quote(columnName)+", "+x+"d);");
             }
             update(columnName, ValueDouble.get(x));
         } catch (Throwable e) {
@@ -1501,7 +1501,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBigDecimal("+columnIndex+", x);");
+                debugCode("updateBigDecimal("+columnIndex+", " + quoteBigDecimal(x) + ");");
             }
             update(columnIndex, x == null ? (Value) ValueNull.INSTANCE : ValueDecimal.get(x));
         } catch (Throwable e) {
@@ -1519,7 +1519,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBigDecimal(String columnName, BigDecimal x) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBigDecimal("+quote(columnName)+", x);");
+                debugCode("updateBigDecimal("+quote(columnName)+", " + quoteBigDecimal(x) + ");");
             }
             update(columnName, x == null ? (Value) ValueNull.INSTANCE : ValueDecimal.get(x));
         } catch (Throwable e) {
@@ -1682,7 +1682,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
         updateAsciiStream(columnIndex, x, (long) length);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -1705,9 +1705,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateAsciiStream("+columnIndex+", x, "+length+");");
+                debugCode("updateAsciiStream("+columnIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             update(columnIndex, v);
         } catch (Throwable e) {
@@ -1749,9 +1749,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateAsciiStream(String columnName, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateAsciiStream("+quote(columnName)+", x, "+length+");");
+                debugCode("updateAsciiStream("+quote(columnName)+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             update(columnName, v);
         } catch (Throwable e) {
@@ -1793,9 +1793,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBinaryStream("+columnIndex+", x, "+length+");");
+                debugCode("updateBinaryStream("+columnIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createBlob(x, length);
             update(columnIndex, v);
         } catch (Throwable e) {
@@ -1825,7 +1825,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBinaryStream(String columnName, InputStream x, int length) throws SQLException {
         updateBinaryStream(columnName, x, (long) length);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -1837,9 +1837,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBinaryStream(String columnName, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBinaryStream("+quote(columnName)+", x, "+length+");");
+                debugCode("updateBinaryStream("+quote(columnName)+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createBlob(x, length);
             update(columnName, v);
         } catch (Throwable e) {
@@ -1858,9 +1858,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateCharacterStream("+columnIndex+", x, "+length+");");
+                debugCode("updateCharacterStream("+columnIndex+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnIndex, v);
         } catch (Throwable e) {
@@ -1902,7 +1902,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateCharacterStream(String columnName, Reader x, int length) throws SQLException {
         updateCharacterStream(columnName, x, (long) length);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -1913,7 +1913,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateCharacterStream(String columnName, Reader x) throws SQLException {
         updateCharacterStream(columnName, x, -1);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -1925,9 +1925,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateCharacterStream(String columnName, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateCharacterStream("+quote(columnName)+", x, "+length+");");
+                debugCode("updateCharacterStream("+quote(columnName)+", x, "+length+"L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnName, v);
         } catch (Throwable e) {
@@ -2010,7 +2010,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] 
+     * [Not supported]
      */
     public void updateRef(int columnIndex, Ref x) throws SQLException {
         try {
@@ -2024,7 +2024,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] 
+     * [Not supported]
      */
     public void updateRef(String columnName, Ref x) throws SQLException {
         try {
@@ -2059,7 +2059,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBlob(int columnIndex, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBlob("+columnIndex+", x, " + length + ");");
+                debugCode("updateBlob("+columnIndex+", x, " + length + "L);");
             }
             Value v = conn.createBlob(x, length);
             update(columnIndex, v);
@@ -2126,7 +2126,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBlob(String columnName, InputStream x) throws SQLException {
         updateBlob(columnName, x, -1);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -2138,7 +2138,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateBlob(String columnName, InputStream x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateBlob("+quote(columnName)+", x, " + length + ");");
+                debugCode("updateBlob("+quote(columnName)+", x, " + length + "L);");
             }
             Value v = conn.createBlob(x, -1);
             update(columnName, v);
@@ -2159,7 +2159,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateClob("+columnIndex+", x);");
             }
-            checkClosed();            
+            checkClosed();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -2182,7 +2182,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateClob(int columnIndex, Reader x) throws SQLException {
         updateClob(columnIndex, x, -1);
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -2194,16 +2194,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateClob(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateClob("+columnIndex+", x, " + length + ");");
+                debugCode("updateClob("+columnIndex+", x, " + length + "L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnIndex, v);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -2216,7 +2216,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateClob("+quote(columnName)+", x);");
             }
-            checkClosed();            
+            checkClosed();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -2228,7 +2228,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * Updates a column in the current or insert row.
      *
@@ -2238,7 +2238,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     public void updateClob(String columnName, Reader x) throws SQLException {
         updateClob(columnName, x, -1);
-    }    
+    }
 
     /**
      * Updates a column in the current or insert row.
@@ -2251,18 +2251,18 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateClob(String columnName, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateClob("+quote(columnName)+", x);");
+                debugCode("updateClob("+quote(columnName)+", x, " + length + "L);");
             }
-            checkClosed();            
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnName, v);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }    
+    }
 
     /**
-     * [Not supported] 
+     * [Not supported]
      */
     public void updateArray(int columnIndex, Array x) throws SQLException {
         try {
@@ -2276,7 +2276,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] 
+     * [Not supported]
      */
     public void updateArray(String columnName, Array x) throws SQLException {
         try {
@@ -2291,7 +2291,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Gets the cursor name if it was defined. This feature is superseded by
-     * updateX methods. This method throws a SQLException because cursor names are not supported. 
+     * updateX methods. This method throws a SQLException because cursor names are not supported.
      */
     public String getCursorName() throws SQLException {
         try {
@@ -2910,7 +2910,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     JdbcConnection getConnection() {
         return conn;
     }
-    
+
     private boolean nextRow() throws SQLException {
         boolean next = result.next();
         if (!next && !scrollable) {
@@ -3070,7 +3070,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 */
 //#endif
-    
+
     /**
      * [Not supported]
      */
@@ -3079,7 +3079,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateNClob("+columnIndex+", x, " + length + ");");
+                debugCode("updateNClob("+columnIndex+", x, " + length + "L);");
             }
             throw Message.getUnsupportedException();
         } catch (Throwable e) {
@@ -3088,7 +3088,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 */
 //#endif
-    
+
     /**
      * [Not supported]
      */
@@ -3106,7 +3106,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 */
 //#endif
-    
+
     /**
      * [Not supported]
      */
@@ -3115,7 +3115,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNClob(String columnName, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateNClob("+quote(columnName)+", x, " + length+");");
+                debugCode("updateNClob("+quote(columnName)+", x, " + length+"L);");
             }
             throw Message.getUnsupportedException();
         } catch (Throwable e) {
@@ -3123,7 +3123,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 */
-//#endif    
+//#endif
 
     /**
      * [Not supported]
@@ -3330,7 +3330,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateNCharacterStream("+columnIndex+", x, "+length+");");
+                debugCode("updateNCharacterStream("+columnIndex+", x, "+length+"L);");
             }
             Value v = conn.createClob(x, length);
             update(columnIndex, v);
@@ -3373,7 +3373,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNCharacterStream(String columnName, Reader x, long length) throws SQLException {
         try {
             if (debug()) {
-                debugCode("updateNCharacterStream("+quote(columnName)+", x, "+length+");");
+                debugCode("updateNCharacterStream("+quote(columnName)+", x, "+length+"L);");
             }
             Value v = conn.createClob(x, length);
             update(columnName, v);
@@ -3405,7 +3405,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 */
 //#endif
-    
+
     /**
      * INTERNAL
      */

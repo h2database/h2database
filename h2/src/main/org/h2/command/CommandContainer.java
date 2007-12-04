@@ -12,24 +12,28 @@ import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
+/**
+ * Represents a single SQL statements.
+ * It wraps a prepared statement.
+ */
 public class CommandContainer extends Command {
-    
+
     private Prepared prepared;
-    
+
     CommandContainer(Parser parser, String sql, Prepared prepared) {
         super(parser, sql);
         prepared.setCommand(this);
         this.prepared = prepared;
     }
-    
+
     public ObjectArray getParameters() {
         return prepared.getParameters();
     }
-    
+
     public boolean isTransactional() {
         return prepared.isTransactional();
     }
-    
+
     public boolean isQuery() {
         return prepared.isQuery();
     }
@@ -49,24 +53,24 @@ public class CommandContainer extends Command {
                 Value v = ((Expression) oldValues.get(i)).getValue(session);
                 Parameter p = (Parameter) newParams.get(i);
                 p.setValue(v);
-            }            
+            }
             prepared.prepare();
             prepared.setModificationId(mod);
         }
     }
-    
+
     public int update() throws SQLException {
         recompileIfRequired();
-        // TODO query time: should keep lock time separate from running time 
+        // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
         prepared.trace();
         return prepared.update();
     }
-    
+
     public LocalResult query(int maxrows) throws SQLException {
         recompileIfRequired();
-        // TODO query time: should keep lock time separate from running time 
+        // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
         prepared.trace();
@@ -80,5 +84,5 @@ public class CommandContainer extends Command {
     public LocalResult queryMeta() throws SQLException {
         return prepared.queryMeta();
     }
-    
+
 }

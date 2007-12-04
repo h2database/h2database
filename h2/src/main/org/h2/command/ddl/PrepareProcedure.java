@@ -10,19 +10,23 @@ import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
 import org.h2.engine.Session;
 
+/**
+ * This class represents the statement
+ * PREPARE
+ */
 public class PrepareProcedure extends DefineCommand {
 
     private String procedureName;
     private Prepared prepared;
-    
+
     public PrepareProcedure(Session session) {
         super(session);
     }
-    
+
     public void checkParameters() {
         // no not check parameters
     }
-    
+
     public int update() throws SQLException {
         Procedure proc = new Procedure(procedureName, prepared);
         prepared.setParameterList(parameters);
@@ -35,7 +39,7 @@ public class PrepareProcedure extends DefineCommand {
     public void setProcedureName(String name) {
         this.procedureName = name;
     }
-    
+
     public void setPrepared(Prepared prep) {
         this.prepared = prep;
     }

@@ -17,7 +17,8 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * This class represents the statement
+ * DROP INDEX
  */
 public class DropIndex extends SchemaCommand {
 

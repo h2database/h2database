@@ -19,8 +19,12 @@
  */
 package org.h2.test.trace;
 
+import java.math.BigDecimal;
+
+import org.h2.util.StringUtils;
+
 /**
- * A function call argument used by the statement.
+ * An argument of a statement.
  */
 class Arg {
     private Class clazz;
@@ -40,15 +44,14 @@ class Arg {
         if (stat != null) {
             return stat.toString();
         } else {
-            return StringTools.quote(clazz, getValue());
+            return quote(clazz, getValue());
         }
     }
 
     void execute() throws Exception {
         if (stat != null) {
-            stat.execute();
+            obj = stat.execute();
             clazz = stat.getReturnClass();
-            obj = stat.getReturnObject();
             stat = null;
         }
     }
@@ -60,4 +63,22 @@ class Arg {
     Object getValue() {
         return obj;
     }
+
+    String quote(Class clazz, Object value) {
+        if (value == null) {
+            return null;
+        } else if (clazz == String.class) {
+            return StringUtils.quoteJavaString(value.toString());
+        } else if (clazz == BigDecimal.class) {
+            return "new BigDecimal(\"" + value.toString() + "\")";
+        } else if (clazz.isArray()) {
+            if (clazz == String[].class) {
+                return StringUtils.quoteJavaStringArray((String[]) value);
+            } else if (clazz == int[].class) {
+                return StringUtils.quoteJavaIntArray((int[]) value);
+            }
+        }
+        return value.toString();
+    }
+
 }

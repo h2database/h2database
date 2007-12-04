@@ -20,6 +20,9 @@ import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
+/**
+ * Encapsulates the connection settings, including user name and password.
+ */
 public class ConnectionInfo {
     private static final HashSet KNOWN_SETTINGS = new HashSet();
     private final Properties prop = new Properties();
@@ -110,7 +113,7 @@ public class ConnectionInfo {
 
     public void setBaseDir(String dir) {
         if (persistent) {
-            name = dir + System.getProperty("file.separator") + name;
+            name = dir + SysProperties.FILE_SEPARATOR + name;
         }
     }
 
@@ -166,7 +169,7 @@ public class ConnectionInfo {
             }
         }
     }
-    
+
     DatabaseEventListener removeDatabaseEventListenerObject() throws SQLException {
         Object p = prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
         if (p == null) {

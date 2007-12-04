@@ -31,6 +31,10 @@
 
 package org.h2.compress;
 
+/**
+ * This class implements the LZF lossless data compression algorithm.
+ * LZF is optimized for speed.
+ */
 public class CompressLZF implements Compressor {
 
     public void setOptions(String options) {

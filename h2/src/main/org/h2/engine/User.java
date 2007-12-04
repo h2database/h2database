@@ -20,6 +20,9 @@ import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * Represents a user object.
+ */
 public class User extends RightOwner {
 
     private final boolean systemUser;

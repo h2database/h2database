@@ -11,8 +11,11 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 
+/**
+ * Represents a role. Roles can be granted to users, and to other roles.
+ */
 public class Role extends RightOwner {
-    
+
     private final boolean system;
 
     public Role(Database database, int id, String roleName, boolean system) {

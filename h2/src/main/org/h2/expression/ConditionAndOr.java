@@ -17,7 +17,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * An 'and' or 'or' condition as in WHERE ID=1 AND NAME=?
  */
 public class ConditionAndOr extends Condition {
 
@@ -126,7 +126,7 @@ public class ConditionAndOr extends Condition {
         }
         // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1 AND (B=2 OR B=3))
         // this optimization does not work in the following case, but NOT is optimized before:
-        // CREATE TABLE TEST(A INT, B INT); 
+        // CREATE TABLE TEST(A INT, B INT);
         // INSERT INTO TEST VALUES(1, NULL);
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1, NULL
@@ -219,7 +219,7 @@ public class ConditionAndOr extends Condition {
     public int getCost() {
         return left.getCost() + right.getCost();
     }
-    
+
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
         if (andOrType == AND) {
             Expression l = left.optimizeInJoin(session, select);

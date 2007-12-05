@@ -10,15 +10,18 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.value.Value;
 
+/**
+ * A client side (remote) parameter.
+ */
 public class ParameterRemote implements ParameterInterface {
 
     private Value value;
     private int index;
-    
+
     public ParameterRemote(int index) {
         this.index = index;
     }
-    
+
     public void setValue(Value value) {
         this.value = value;
     }
@@ -26,7 +29,7 @@ public class ParameterRemote implements ParameterInterface {
     public Value getParamValue() {
         return value;
     }
-    
+
     public void checkSet() throws SQLException {
         if (value == null) {
             throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));

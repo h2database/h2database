@@ -14,10 +14,13 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
+/**
+ * Represents the ROWNUM function.
+ */
 public class Rownum extends Expression {
-    
+
     private Prepared prepared;
-    
+
     public Rownum(Prepared prepared) {
         this.prepared = prepared;
     }
@@ -47,7 +50,7 @@ public class Rownum extends Expression {
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
-    
+
     public int getDisplaySize() {
         return ValueInt.DISPLAY_SIZE;
     }
@@ -80,7 +83,7 @@ public class Rownum extends Expression {
             throw Message.getInternalError("type="+visitor.type);
         }
     }
-    
+
     public int getCost() {
         return 0;
     }

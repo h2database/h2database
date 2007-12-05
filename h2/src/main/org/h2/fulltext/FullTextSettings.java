@@ -14,6 +14,9 @@ import java.util.HashSet;
 
 import org.h2.util.ObjectUtils;
 
+/**
+ * The global settings of a full text search.
+ */
 public class FullTextSettings {
 
     private static HashMap settings = new HashMap();

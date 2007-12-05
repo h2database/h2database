@@ -8,6 +8,9 @@ import java.sql.SQLException;
 
 import org.h2.value.Value;
 
+/**
+ * The interface for client side (remote) and server side parameters.
+ */
 public interface ParameterInterface {
     void setValue(Value value);
     Value getParamValue() throws SQLException;

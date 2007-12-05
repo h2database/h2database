@@ -36,9 +36,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
 /**
- * @author Thomas
+ * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
-
 public class Aggregate extends Expression {
     // TODO incompatibility to hsqldb: aggregates: hsqldb uses automatic data
     // type for sum if value is too big,
@@ -344,7 +343,7 @@ public class Aggregate extends Expression {
     public long getPrecision() {
         return precision;
     }
-    
+
     public int getDisplaySize() {
         return displaySize;
     }

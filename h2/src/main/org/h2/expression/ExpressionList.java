@@ -12,6 +12,10 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
+/**
+ * A list of expressions, as in (ID, NAME).
+ * The result of this expression is an array.
+ */
 public class ExpressionList extends Expression {
 
     private Expression[] list;
@@ -66,7 +70,7 @@ public class ExpressionList extends Expression {
     public long getPrecision() {
         return Integer.MAX_VALUE;
     }
-    
+
     public int getDisplaySize() {
         return Integer.MAX_VALUE;
     }

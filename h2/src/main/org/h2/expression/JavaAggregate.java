@@ -21,8 +21,11 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * This class wrapps a user defined aggregate.
+ */
 public class JavaAggregate extends Expression {
-    
+
     private final UserAggregate userAggregate;
     private final Select select;
     private AggregateFunction aggregate;
@@ -48,11 +51,11 @@ public class JavaAggregate extends Expression {
     public long getPrecision() {
         return Integer.MAX_VALUE;
     }
-    
+
     public int getDisplaySize() {
         return Integer.MAX_VALUE;
     }
-    
+
     public int getScale() {
         return 0;
     }
@@ -115,7 +118,7 @@ public class JavaAggregate extends Expression {
             args[i].setEvaluatable(tableFilter, b);
         }
     }
-    
+
     private AggregateFunction getInstance() throws SQLException {
         AggregateFunction agg = userAggregate.getInstance();
         agg.init(userConnection);
@@ -164,5 +167,5 @@ public class JavaAggregate extends Expression {
             agg.add(argValues);
         }
     }
-    
+
 }

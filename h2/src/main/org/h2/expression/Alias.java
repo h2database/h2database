@@ -12,11 +12,9 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 
-
 /**
- * @author Thomas
+ * A column alias as in SELECT 'Hello' AS NAME ...
  */
-
 public class Alias extends Expression {
 
     private final String alias;
@@ -26,7 +24,7 @@ public class Alias extends Expression {
         this.expr = expression;
         this.alias = alias;
     }
-    
+
     public Expression getNonAliasExpression() {
         return expr;
     }
@@ -59,23 +57,23 @@ public class Alias extends Expression {
     public long getPrecision() {
         return expr.getPrecision();
     }
-    
+
     public int getDisplaySize() {
         return expr.getDisplaySize();
     }
-    
+
     public boolean isAutoIncrement() {
         return expr.isAutoIncrement();
-    }    
+    }
 
     public String getSQL() {
         return expr.getSQL() + " AS " + Parser.quoteIdentifier(alias);
     }
-    
+
     public void updateAggregate(Session session) throws SQLException {
         expr.updateAggregate(session);
     }
-    
+
     public String getAlias() {
         return alias;
     }
@@ -87,7 +85,7 @@ public class Alias extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         return expr.isEverything(visitor);
     }
-    
+
     public int getCost() {
         return expr.getCost();
     }

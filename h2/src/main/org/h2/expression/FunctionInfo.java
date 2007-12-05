@@ -4,6 +4,9 @@
  */
 package org.h2.expression;
 
+/**
+ * This class contains information about a built-in function.
+ */
 class FunctionInfo {
     String name;
     int type;

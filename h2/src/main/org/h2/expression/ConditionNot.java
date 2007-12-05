@@ -13,6 +13,9 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * A NOT condition.
+ */
 public class ConditionNot extends Condition {
 
     private Expression condition;

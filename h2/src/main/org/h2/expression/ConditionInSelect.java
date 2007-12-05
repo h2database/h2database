@@ -21,7 +21,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
  */
 public class ConditionInSelect extends Condition {
     private Database database;

@@ -8,7 +8,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
 /**
- * @author Thomas
+ * Represents a condition returning a boolean value, or NULL.
  */
 public abstract class Condition extends Expression {
 
@@ -23,7 +23,7 @@ public abstract class Condition extends Expression {
     public long getPrecision() {
         return ValueBoolean.PRECISION;
     }
-    
+
     public int getDisplaySize() {
         return ValueBoolean.DISPLAY_SIZE;
     }

@@ -1172,7 +1172,7 @@ public class MetaTable extends Table {
                         "" + trigger.getQueueSize(), // QUEUE_SIZE INT
                         "" + trigger.getNoWait(), // NO_WAIT BIT
                         replaceNullWithEmpty(trigger.getComment()), // REMARKS
-                        trigger.getSQL(), // SQL
+                        trigger.getCreateSQL(), // SQL
                         "" + trigger.getId() // ID
                 });
             }

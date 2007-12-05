@@ -156,22 +156,6 @@ C:\temp\test\db
 No more
 @author
 
-SQL column in INFORMATION_SCHEMA.TRIGGERS
-
-build.xml
-org/h2/server/web/*.*
-They are currently in the tools folder, I will move them to the main folder.
-Add unit tests.
-
-History:
-The classes DbStarter and WebServlet have been moved to src/main.
-Improved debugging support: toString methods of most object now return a meaningful text.
-This database could not be used in applets. Fixed
-A stack trace was thrown if the system did not provide a quick secure
-random source and if there is no network or the network settings are not configured. Fixed.
-
-toString: > the parameters for the prepared statements.
-
 autocomplete only just after meaningful key (ctrl+space, space, bs, ...)
 
 write more tests for the command line tools

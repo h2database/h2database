@@ -17,7 +17,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * The base calss for constraint checking.
+ * The base class for constraint checking.
  */
 public abstract class Constraint extends SchemaObjectBase {
 

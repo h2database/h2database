@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
-Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -35,13 +35,15 @@ Advanced Topics
 <a href="#acid">
     ACID</a><br />
 <a href="#durability_problems">
-    Durability Problems</a><br />  
+    Durability Problems</a><br />
 <a href="#using_recover_tool">
     Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
     File Locking Protocols</a><br />
 <a href="#sql_injection">
     Protection against SQL Injection</a><br />
+<a href="#restricting_classes">
+    Restricting Class Loading and Usage</a><br />
 <a href="#security_protocols">
     Security Protocols</a><br />
 <a href="#uuid">
@@ -96,7 +98,7 @@ are just links to another database. To create such a link, use the CREATE LINKED
 CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 'sa', 'TEST');
 </pre>
 <p>
-It is then possible to access the table in the usual way. 
+It is then possible to access the table in the usual way.
 There is a restriction when inserting data to this table: When inserting or updating rows into the table,
 NULL and values that are not set in the insert statement are both inserted as NULL.
 This may not have the desired effect if a default value in the target table is other than NULL.
@@ -148,7 +150,7 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
     re-reads using the same condition and gets the new row.<br />
-    Possible with: read uncommitted, read committed 
+    Possible with: read uncommitted, read committed
 </li>
 </ul>
 
@@ -181,15 +183,15 @@ for each connection.
 <br /><a name="mvcc"></a>
 <h2>Multi-Version Concurrency Control (MVCC)</h2>
 <p>
-The MVCC feature allows higher concurrency than using (table level or row level) locks. 
-When using MVCC in this database, delete, insert and update operations will only issue a 
-shared lock on the table. Table are still locked exclusively when adding or removing columns, 
+The MVCC feature allows higher concurrency than using (table level or row level) locks.
+When using MVCC in this database, delete, insert and update operations will only issue a
+shared lock on the table. Table are still locked exclusively when adding or removing columns,
 when dropping the table, and when using SELECT ... FOR UPDATE. Connections
 only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
 Only when the change is committed, the new value is visible by other connections
 (read committed). If multiple connections concurrently try to update the same row, this
-database fails fast: a concurrent update exception is thrown. 
+database fails fast: a concurrent update exception is thrown.
 </p>
 <p>
 To use the MVCC feature, append MVCC=TRUE to the database URL:
@@ -330,7 +332,7 @@ for example CURRENT_TIMESTAMP.
 <br /><a name="windows_service"></a>
 <h2>Run as Windows Service</h2>
 <p>
-Using a native wrapper / adapter, Java applications can be run as a Windows Service. 
+Using a native wrapper / adapter, Java applications can be run as a Windows Service.
 There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc.
 (<a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a>)
 is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service.
@@ -341,14 +343,14 @@ The batch files are located in the directory H2/service.
 <h3>Install the Service</h3>
 <p>
 The service needs to be registered as a Windows Service first.
-To do that, double click on 1_install_service.bat. 
+To do that, double click on 1_install_service.bat.
 If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
 </p>
 
 <h3>Start the Service</h3>
 <p>
 You can start the H2 Database Engine Service using the service manager of Windows,
-or by double clicking on 2_start_service.bat. 
+or by double clicking on 2_start_service.bat.
 Please note that the batch file does not print an error message if the service is not installed.
 </p>
 
@@ -374,7 +376,7 @@ If successful, a command prompt window will pop up and disappear immediately. If
 <br /><a name="odbc_driver"></a>
 <h2>ODBC Driver</h2>
 <p>
-This database does not come with its own ODBC driver at this time, 
+This database does not come with its own ODBC driver at this time,
 but it supports the PostgreSQL network protocol.
 Therefore, the PostgreSQL ODBC driver can be used.
 Support for the PostgreSQL network protocol is quite new and should be viewed
@@ -411,7 +413,7 @@ The PG server can be started and stopped from within a Java application as follo
 Server server = Server.createPgServer(new String[]{"-baseDir", "~"});
 server.start();
 ...
-server.stop();    
+server.stop();
 </pre>
 By default, only connections from localhost are allowed. To allow remote connections, use
 <code>-pgAllowOthers true</code> when starting the server.
@@ -419,7 +421,7 @@ By default, only connections from localhost are allowed. To allow remote connect
 
 <h3>ODBC Configuration</h3>
 <p>
-After installing the driver, a new Data Source must be added. In Windows, 
+After installing the driver, a new Data Source must be added. In Windows,
 run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...'
 and select the PostgreSQL Unicode driver. Then click 'Finish'.
 You will be able to change the connection properties:
@@ -447,7 +449,7 @@ Afterwards, you may use this data source.
 
 <h3>PG Protocol Support Limitations</h3>
 <p>
-At this time, only a subset of the PostgreSQL network protocol is implemented. 
+At this time, only a subset of the PostgreSQL network protocol is implemented.
 Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding.
 Problems are fixed as they are found.
 Currently, statements can not be cancelled when using the PG protocol.
@@ -496,8 +498,8 @@ H2 supports the transaction isolation levels 'serializable', 'read committed', a
 <p>
 This database does not guarantee that all committed transactions survive a power failure.
 Tests show that all databases sometimes lose transactions on power failure (for details, see below).
-Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. 
-If durability is required for all possible cases of hardware failure, clustering should be used, 
+Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used.
+If durability is required for all possible cases of hardware failure, clustering should be used,
 such as the H2 clustering mode.
 </p>
 
@@ -508,19 +510,19 @@ Complete durability means all committed transaction survive a power failure.
 Some databases claim they can guarantee durability, but such claims are wrong.
 A durability test was run against H2, HSQLDB, PostgreSQL, and Derby.
 All of those databases sometimes lose committed transactions.
-The test is included in the H2 download, see org.h2.test.poweroff.Test. 
+The test is included in the H2 download, see org.h2.test.poweroff.Test.
 </p>
 
 <h3>Ways to (Not) Achieve Durability</h3>
 <p>
 Making sure that committed transaction are not lost is more complicated than it seems first.
 To guarantee complete durability, a database must ensure that the log record is on the hard drive
-before the commit call returns. To do that, databases use different methods. One 
+before the commit call returns. To do that, databases use different methods. One
 is to use the 'synchronous write' file access mode. In Java, RandomAccessFile
 supports the modes "rws" and "rwd":
 </p>
 <ul>
-<li>rwd: Every update to the file's content is written synchronously to the underlying storage device. 
+<li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
 </li><li>rws: In addition to rwd, every update to the metadata is written synchronously.</li>
 </ul>
 <p>
@@ -528,9 +530,9 @@ This feature is used by Derby.
 A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second.
 Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second.
 This feature does not force changes to disk because it does not flush all buffers.
-The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, 
+The test updates the same byte in the file again and again. If the hard drive was able to write at this rate,
 then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM
-(revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, 
+(revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM,
 or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
 </p>
 <p>
@@ -544,9 +546,9 @@ have been written to the physical medium.
 to be written to the storage device that contains it.
 </li></ul>
 <p>
-By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations 
+By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
-Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), 
+Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(),
 data is not always persisted to the hard drive, because most hard drives do not obey
 fsync(): see 'Your Hard Drive Lies to You' at http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252.
 In Mac OS X fsync does not flush hard drive buffers:
@@ -563,7 +565,7 @@ Because of those reasons, the default behavior of H2 is to delay writing committ
 <p>
 In H2, after a power failure, a bit more than one second of committed transactions may be lost.
 To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC.
-Most other databases support commit delay as well. 
+Most other databases support commit delay as well.
 In the performance comparison, commit delay was used for all databases that support it.
 </p>
 
@@ -576,9 +578,9 @@ The computer with the listener application opens a TCP/IP port and listens for a
 The second computer first connects to the listener, and then created the databases and starts inserting
 records. The connection is set to 'autocommit', which means after each inserted record a commit is performed
 automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully.
-The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power 
-manually, then restart the computer, and run the application again. You will find out that in most cases, 
-none of the databases contains all the records that the listener computer knows about. For details, please 
+The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power
+manually, then restart the computer, and run the application again. You will find out that in most cases,
+none of the databases contains all the records that the listener computer knows about. For details, please
 consult the source code of the listener and test application.
 </p>
 
@@ -692,14 +694,14 @@ ResultSet rs = conn.createStatement().executeQuery(sql);
 </pre>
 <p>
 If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded,
-it is possible for a user to inject SQL functionality or statements by using specially built input 
+it is possible for a user to inject SQL functionality or statements by using specially built input
 such as (in this example) this password: ' OR ''='. In this case the statement becomes:
 </p>
 <pre>
 SELECT * FROM USERS WHERE PASSWORD='' OR ''='';
 </pre>
 <p>
-Which is always true no matter what the password stored in the database is. 
+Which is always true no matter what the password stored in the database is.
 For more information about SQL Injection, see Glossary and Links.
 </p>
 
@@ -736,7 +738,7 @@ Literals can only be enabled or disabled by an administrator.
 <h3>Using Constants</h3>
 <p>
 Disabling literals also means disabling hard-coded 'constant' literals. This database supports
-defining constants using the CREATE CONSTANT command. Constants can be defined only 
+defining constants using the CREATE CONSTANT command. Constants can be defined only
 when literals are enabled, but used even when literals are disabled. To avoid name clashes
 with column names, constants can be defined in other schemas:
 </p>
@@ -759,6 +761,29 @@ It is not required to create a constant for the number 0 as there is already a b
 <pre>
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
+
+<br /><a name="restricting_classes"></a>
+<h2>Restricting Class Loading and Usage</h2>
+<p>
+By default there is no restriction on loading classes and executing Java code for admins.
+That means an admin may call system functions such as System.setProperty by executing:
+<pre>
+CREATE ALIAS SET_PROPERTY FOR "java.lang.System.setProperty";
+CALL SET_PROPERTY('abc', '1');
+CREATE ALIAS GET_PROPERTY FOR "java.lang.System.getProperty";
+CALL GET_PROPERTY('abc');
+</pre>
+To restrict users (including admins) from loading classes and executing code,
+the list of allowed classes can be set in the system property h2.allowedClasses
+in the form of a comma separated list of classes or patterns (items ending with '*').
+By default all classes are allowed. Example:
+<pre>
+java -Dh2.allowedClasses=java.lang.Math,com.acme.*
+</pre>
+This mechanism is used for all user classes, including database event listeners,
+trigger classes, user defined functions, user defined aggregate functions, and JDBC
+driver classes (with the exception of the H2 driver) when using the H2 Console.
+</p>
 
 <br /><a name="security_protocols"></a>
 <h2>Security Protocols</h2>
@@ -837,11 +862,11 @@ in the data are not revealed, and the advantage over multi block CBC is that fli
 are not propagated to flipped plaintext bits in the next block.
 </p><p>
 Database encryption is meant for securing the database while it is not in use (stolen laptop and so on).
-It is not meant for cases where the attacker has access to files while the database is in use. 
-When he has write access, he can for example replace pieces of files with pieces of older versions 
+It is not meant for cases where the attacker has access to files while the database is in use.
+When he has write access, he can for example replace pieces of files with pieces of older versions
 and manipulate data like this.
 </p><p>
-File encryption slows down the performance of the database engine. Compared to unencrypted mode, 
+File encryption slows down the performance of the database engine. Compared to unencrypted mode,
 database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
 </p>
 
@@ -862,7 +887,7 @@ custom certificates are supported as well.
 <br /><a name="uuid"></a>
 <h2>Universally Unique Identifiers (UUID)</h2>
 <p>
-This database supports the UUIDs. Also supported is a function to create new UUIDs using 
+This database supports the UUIDs. Also supported is a function to create new UUIDs using
 a cryptographically strong pseudo random number generator.
 With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.
@@ -876,9 +901,9 @@ double x = Math.pow(2, 122);
 for(int i=35; i&lt;62; i++) {
     double n = Math.pow(2, i);
     double p = 1 - Math.exp(-(n*n)/(2*x));
-    String ps = String.valueOf(1+p).substring(1); 
+    String ps = String.valueOf(1+p).substring(1);
     System.out.println("2^"+i+"="+(1L&lt;&lt;i)+" probability: 0"+ps);
-}         
+}
 </pre>
 Some values are:
 <pre>
@@ -886,8 +911,8 @@ Some values are:
 2^41=2'199'023'255'552 probability: 0.000'000'000'000'4
 2^46=70'368'744'177'664 probability: 0.000'000'000'4
 </pre>
-To help non-mathematicians understand what those numbers mean, here a comparison: 
-One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, 
+To help non-mathematicians understand what those numbers mean, here a comparison:
+One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
 that means the probability is about 0.000'000'000'06.
 </p>
 
@@ -896,7 +921,7 @@ that means the probability is about 0.000'000'000'06.
 <p>
 Some settings of the database can be set on the command line using
 -DpropertyName=value. It is usually not required to change those settings manually.
-The settings are case sensitive. 
+The settings are case sensitive.
 Example:
 <pre>
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
@@ -908,6 +933,7 @@ INFORMATION_SCHEMA.SETTINGS
 <th>Setting</th>
 <th>Default</th>
 <th>Description</th></tr>
+<tr><td>h2.allowedClasses</td><td>*</td><td>Comma separated list of class names or prefixes</td></tr>
 <tr><td>h2.check</td><td>true</td><td>Assertions in the database engine</td></tr>
 <tr><td>h2.check2</td><td>false</td><td>Additional assertions</td></tr>
 <tr><td>h2.clientTraceDirectory</td><td>trace.db/</td><td>Directory where the trace files of the JDBC client are stored (only for client / server)</td></tr>
@@ -964,7 +990,7 @@ INFORMATION_SCHEMA.SETTINGS
   <td>GCJ</td>
   <td>
     GNU Compiler for Java.
-    <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and 
+    <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and
     <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
   </td>
 </tr>

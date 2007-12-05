@@ -20,7 +20,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 
 /**
- * A check contraint.
+ * A check constraint.
  */
 public class ConstraintCheck extends Constraint {
 

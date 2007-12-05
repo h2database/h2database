@@ -52,7 +52,7 @@ public class TriggerObject extends SchemaObjectBase {
         this.triggerClassName = triggerClassName;
         try {
             Connection c2 = session.createConnection(false);
-            Object obj = session.getDatabase().loadClass(triggerClassName).newInstance();
+            Object obj = session.getDatabase().loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName());
         } catch (Throwable e) {

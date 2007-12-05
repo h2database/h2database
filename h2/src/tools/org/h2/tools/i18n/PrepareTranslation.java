@@ -36,7 +36,7 @@ import org.h2.util.StringUtils;
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
     private static final String DELETED_PREFIX = "~";
-    private static final boolean AUTO_TRANSLATE = true;
+    private static final boolean AUTO_TRANSLATE = false;
 
     public static void main(String[] args) throws Exception {
         new PrepareTranslation().run(args);
@@ -431,7 +431,13 @@ public class PrepareTranslation {
             if (!p.containsKey(key)) {
                 String t = oldTranslations.getProperty(now);
                 if (t == null) {
-                    toTranslate.add(key);
+                    if (AUTO_TRANSLATE) {
+                        toTranslate.add(key);
+                    } else {
+                        System.out.println(trans.getName() + ": key " + key + " not found in translation file; added dummy # 'translation'");
+                        t = "#" + now;
+                        p.put(key, t);
+                    }
                 } else {
                     p.put(key, t);
                 }
@@ -451,8 +457,13 @@ public class PrepareTranslation {
                         // main data changed since the last run: review translation
                         System.out.println(trans.getName() + ": key " + key + " changed, please review; last=" + last
                                 + " now=" + now);
-                        // String old = p.getProperty(key);
-                        toTranslate.add(key);
+                        if (AUTO_TRANSLATE) {
+                            toTranslate.add(key);
+                        } else {
+                            String old = p.getProperty(key);
+                            t = "#" + now + " #" + old;
+                            p.put(key, t);
+                        }
                     } else {
                         p.put(key, t);
                     }

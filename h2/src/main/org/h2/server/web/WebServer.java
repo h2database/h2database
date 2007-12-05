@@ -39,9 +39,9 @@ import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
 public class WebServer implements Service {
-    
+
     private static final String DEFAULT_LANGUAGE = "en";
-    
+
     private static final String[][] LANGUAGES = {
         { "de", "Deutsch" },
         { "en", "English" },
@@ -55,10 +55,11 @@ public class WebServer implements Service {
         { "pt_BR", "Portugu\u00eas (Brasil)"},
         { "pt_PT", "Portugu\u00eas (Europeu)"},
         { "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"},
+        { "tr", "T\u00fcrk\u00e7e"},
         { "uk", "\u0423\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u0430"},
         { "zh_CN", "\u4E2D\u6587"},
     };
-    
+
     private static final String[] GENERIC = new String[] {
         "Generic JNDI Data Source|javax.naming.InitialContext|java:comp/env/jdbc/Test|sa",
         "Generic Firebird Server|org.firebirdsql.jdbc.FBDriver|jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
@@ -83,13 +84,13 @@ public class WebServer implements Service {
         java.util.Locale.CHINESE.getDisplayLanguage(
         java.util.Locale.CHINESE);
        for(int i=0; i<lang.length(); i++)
-         System.out.println(Integer.toHexString(lang.charAt(i))+" ");    
-*/         
+         System.out.println(Integer.toHexString(lang.charAt(i))+" ");
+*/
     /**
      * Hungarian spec chars: &eacute;&#369;&aacute;&#337;&uacute;&ouml;&uuml;&oacute;&iacute;&Eacute;&Aacute;&#368;&#336;&Uacute;&Ouml;&Uuml;&Oacute;&Iacute;
      * Or use PropertiesToUTF8
      */
-    
+
     // private URLClassLoader urlClassLoader;
     private String driverList;
     private static int ticker;
@@ -98,7 +99,7 @@ public class WebServer implements Service {
     private Set running = Collections.synchronizedSet(new HashSet());
     private boolean ssl;
     private HashMap connInfoMap = new HashMap();
-    
+
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // timeout is 30 min
     private long lastTimeoutCheck;
     private HashMap sessions = new HashMap();
@@ -125,10 +126,10 @@ public class WebServer implements Service {
         byte[] bytes = getFile(file);
         return new String(bytes);
     }
-    
+
     synchronized void remove(WebThread t) {
         running.remove(t);
-    }    
+    }
 
     private String generateSessionId() {
         byte[] buff = RandomUtils.getSecureBytes(16);
@@ -278,7 +279,7 @@ public class WebServer implements Service {
             Statement stat = session.executingStatement;
             if (stat != null) {
                 try {
-                    stat.cancel();                
+                    stat.cancel();
                 } catch (Exception e) {
                     // ignore
                 }
@@ -300,11 +301,11 @@ public class WebServer implements Service {
     void trace(String s) {
         // System.out.println(s);
     }
-    
+
     public void traceError(Exception e) {
         e.printStackTrace();
     }
-    
+
     public boolean supportsLanguage(String language) {
         return languages.contains(language);
     }
@@ -479,7 +480,7 @@ public class WebServer implements Service {
                 url += ";IFEXISTS=TRUE";
             }
             p.put("DATABASE_EVENT_LISTENER_OBJECT", listener);
-            // PostgreSQL would throw a NullPointerException 
+            // PostgreSQL would throw a NullPointerException
             // if it is loaded before the H2 driver
             // because it can't deal with non-String objects in the connection Properties
             return org.h2.Driver.load().connect(url, p);

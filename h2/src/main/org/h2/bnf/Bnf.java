@@ -22,7 +22,7 @@ import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
 /**
- * This class can read a file that is similar to BNF (Backus–Naur form).
+ * This class can read a file that is similar to BNF (Backus-Naur form).
  * It is made specially to support SQL grammar.
  */
 public class Bnf {

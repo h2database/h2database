@@ -15,6 +15,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 
+/**
+ * Wraps a sequence when used in a statement.
+ */
 public class SequenceValue extends Expression {
 
     private Sequence sequence;
@@ -56,10 +59,10 @@ public class SequenceValue extends Expression {
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
-    
+
     public int getDisplaySize() {
         return ValueInt.DISPLAY_SIZE;
-    }    
+    }
 
     public String getSQL() {
         return "(NEXT VALUE FOR " + sequence.getSQL() +")";
@@ -89,9 +92,9 @@ public class SequenceValue extends Expression {
             throw Message.getInternalError("type="+visitor.type);
         }
     }
-    
+
     public int getCost() {
         return 1;
     }
-    
+
 }

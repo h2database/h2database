@@ -4,6 +4,9 @@
  */
 package org.h2.fulltext;
 
+/**
+ * The settings of one full text search index.
+ */
 public class IndexInfo {
     int id;
     String schemaName;

@@ -18,9 +18,9 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * A query returning a single value.
+ * Subqueries are used inside other statements.
  */
-
 public class Subquery extends Expression {
 
     private Query query;
@@ -79,10 +79,10 @@ public class Subquery extends Expression {
     public long getPrecision() {
         return getExpression().getPrecision();
     }
-    
+
     public int getDisplaySize() {
         return getExpression().getDisplaySize();
-    }    
+    }
 
     public String getSQL() {
         return "(" + query.getPlanSQL() + ")";

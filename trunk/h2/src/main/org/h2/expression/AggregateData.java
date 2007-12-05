@@ -18,6 +18,9 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
+/**
+ * Data stored while calculating an aggregate.
+ */
 public class AggregateData {
     private final int aggregateType;
     private long count;

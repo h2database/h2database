@@ -56,9 +56,8 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
- * @author Thomas
+ * This class implements most built-in functions of this database.
  */
-
 public class Function extends Expression implements FunctionCall {
     // TODO functions: add function hashcode(value)
 
@@ -1707,7 +1706,7 @@ public class Function extends Expression implements FunctionCall {
         ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result, Integer.MAX_VALUE));
         return vr;
     }
-    
+
     SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();

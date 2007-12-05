@@ -16,6 +16,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
+/**
+ * A mathematical expression, or string concatenation.
+ */
 public class Operation extends Expression {
     public static final int CONCAT = 0, PLUS = 1, MINUS = 2, MULTIPLY = 3, DIVIDE = 4, NEGATE = 5;
     private int opType;
@@ -202,7 +205,7 @@ public class Operation extends Expression {
         }
         return left.getPrecision();
     }
-    
+
     public int getDisplaySize() {
         if (right != null) {
             switch (opType) {

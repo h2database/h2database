@@ -15,6 +15,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
+/**
+ * An expression representing a constant value.
+ */
 public class ValueExpression extends Expression {
     private Value value;
 
@@ -62,10 +65,10 @@ public class ValueExpression extends Expression {
     public boolean isConstant() {
         return true;
     }
-    
+
     public boolean isValueSet() {
         return true;
-    }    
+    }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
     }
@@ -77,7 +80,7 @@ public class ValueExpression extends Expression {
     public long getPrecision() {
         return value.getPrecision();
     }
-    
+
     public int getDisplaySize() {
         return value.getDisplaySize();
     }

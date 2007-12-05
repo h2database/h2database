@@ -15,9 +15,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
 /**
- * @author Thomas
+ * An 'exists' condition as in WHERE EXISTS(SELECT ...)
  */
-
 public class ConditionExists extends Condition {
 
     private final Query query;

@@ -22,9 +22,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
 /**
- * @author Thomas
+ * Pattern matching comparison expression: WHERE NAME LIKE ?
  */
-
 public class CompareLike extends Condition {
 
     private final CompareMode compareMode;
@@ -129,7 +128,7 @@ public class CompareLike extends Condition {
         // (at prepare time)
         // otherwise we would need to prepare at execute time,
         // which is maybe slower (but maybe not in this case!)
-        // TODO optimizer: like: check what other databases do!
+        // TODO optimizer: like: check what other databases do
         if (!right.isValueSet()) {
             return;
         }

@@ -15,6 +15,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
+/**
+ * This class wrapps a user defined function.
+ */
 public class JavaFunction extends Expression implements FunctionCall {
 
     private FunctionAlias functionAlias;

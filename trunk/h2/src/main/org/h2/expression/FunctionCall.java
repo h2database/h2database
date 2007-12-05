@@ -10,6 +10,10 @@ import org.h2.engine.Session;
 import org.h2.value.Value;
 import org.h2.value.ValueResultSet;
 
+/**
+ * This interface is used by the built-in functions,
+ * as well as the user defined functions.
+ */
 public interface FunctionCall {
 
     String getName();

@@ -15,7 +15,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * A parameter of a prepared statement.
  */
 public class Parameter extends Expression implements ParameterInterface {
 
@@ -72,7 +72,7 @@ public class Parameter extends Expression implements ParameterInterface {
     public boolean isConstant() {
         return false;
     }
-    
+
     public boolean isValueSet() {
         return value != null;
     }
@@ -88,10 +88,10 @@ public class Parameter extends Expression implements ParameterInterface {
     public long getPrecision() {
         return value == null ? 0 : value.getPrecision();
     }
-    
+
     public int getDisplaySize() {
         return value == null ? 0 : value.getDisplaySize();
-    }    
+    }
 
     public void updateAggregate(Session session) {
         // nothing to do
@@ -118,11 +118,11 @@ public class Parameter extends Expression implements ParameterInterface {
             throw Message.getInternalError("type="+visitor.type);
         }
     }
-    
+
     public int getCost() {
         return 0;
     }
-    
+
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }

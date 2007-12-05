@@ -24,9 +24,8 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * An 'in' condition with a list of values, as in WHERE NAME IN(...)
  */
-
 public class ConditionIn extends Condition {
 
     private final Database database;

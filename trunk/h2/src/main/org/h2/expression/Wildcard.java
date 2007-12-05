@@ -13,11 +13,11 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 
-
 /**
- * @author Thomas
+ * A wildcard expression as in SELECT * FROM TEST.
+ * This object is only used temporarily during the parsing phase, and later
+ * replaced by column expressions.
  */
-
 public class Wildcard extends Expression {
     private String schema;
     private String table;
@@ -80,13 +80,13 @@ public class Wildcard extends Expression {
     }
 
     public void updateAggregate(Session session) {
-        throw Message.getInternalError();        
+        throw Message.getInternalError();
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
         throw Message.getInternalError();
     }
-    
+
     public int getCost() {
         throw Message.getInternalError();
     }

@@ -55,7 +55,7 @@ public class FunctionAlias extends DbObjectBase {
         if (javaMethod != null) {
             return;
         }
-        Class javaClass = database.loadClass(className);
+        Class javaClass = database.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];

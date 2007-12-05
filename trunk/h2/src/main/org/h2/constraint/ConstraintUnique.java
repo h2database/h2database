@@ -15,7 +15,7 @@ import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
 /**
- * A unique contraint. This object always backed by a unique index.
+ * A unique constraint. This object always backed by a unique index.
  */
 public class ConstraintUnique extends Constraint {
 

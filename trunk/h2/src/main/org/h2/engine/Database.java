@@ -1295,9 +1295,9 @@ public class Database implements DataHandler {
         }
     }
 
-    public Class loadClass(String className) throws SQLException {
+    public Class loadUserClass(String className) throws SQLException {
         try {
-            return ClassUtils.loadClass(className);
+            return ClassUtils.loadUserClass(className);
         } catch (ClassNotFoundException e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
         }
@@ -1308,7 +1308,7 @@ public class Database implements DataHandler {
             eventListener = null;
         } else {
             try {
-                eventListener = (DatabaseEventListener) loadClass(className).newInstance();
+                eventListener = (DatabaseEventListener) loadUserClass(className).newInstance();
                 String url = databaseURL;
                 if (cipher != null) {
                     url += ";CIPHER=" + cipher;

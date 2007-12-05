@@ -28,9 +28,9 @@ import org.h2.util.StringUtils;
 
 /**
  * Executes the contents of a SQL script file against a database.
- * 
+ *
  * @author Tom
- * 
+ *
  */
 public class RunScript {
 
@@ -39,7 +39,7 @@ public class RunScript {
     }
 
     /**
-     * The command line interface for this tool. The options must be split into strings like this: "-user", "sa",... 
+     * The command line interface for this tool. The options must be split into strings like this: "-user", "sa",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -54,9 +54,9 @@ public class RunScript {
      * <pre>
      * &#64;INCLUDE fileName
      * </pre>
-     * This syntax is only supported by this tool. 
+     * This syntax is only supported by this tool.
      * Embedded RUNSCRIPT SQL statements will be executed by the database.
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -88,7 +88,7 @@ public class RunScript {
             } else if (args[i].equals("-driver")) {
                 String driver = args[++i];
                 try {
-                    ClassUtils.loadClass(driver);
+                    ClassUtils.loadUserClass(driver);
                 } catch (ClassNotFoundException e) {
                     throw Message.convert(e);
                 }
@@ -126,7 +126,7 @@ public class RunScript {
 
     /**
      * Executes the SQL commands in a script file against a database.
-     * 
+     *
      * @param conn the connection to a database
      * @param reader the reader
      * @return the last result set
@@ -213,7 +213,7 @@ public class RunScript {
 
     /**
      * Executes the SQL commands in a script file against a database.
-     * 
+     *
      * @param url the database URL
      * @param user the user name
      * @param password the password

@@ -30,7 +30,7 @@ public class UserAggregate extends DbObjectBase {
 
     public AggregateFunction getInstance() throws SQLException {
         if (javaClass == null) {
-            javaClass = database.loadClass(className);
+            javaClass = database.loadUserClass(className);
         }
         Object obj;
         try {

@@ -13,6 +13,10 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.util.RandomUtils;
 
+/**
+ * A file store that encrypts all data before writing,
+ * and decrypts all data after reading.
+ */
 public class SecureFileStore extends FileStore {
 
     private byte[] key;
@@ -86,7 +90,7 @@ public class SecureFileStore extends FileStore {
         this.pos = x;
         super.seek(x);
     }
-    
+
     public void setLength(long newLength) throws SQLException {
         long oldPos = pos;
         byte[] buff = new byte[Constants.FILE_BLOCK_SIZE];
@@ -101,7 +105,7 @@ public class SecureFileStore extends FileStore {
             super.setLength(newLength);
         }
     }
-    
+
     private void xorInitVector(byte[] b, int off, int len, long pos) {
         byte[] iv = bufferForInitVector;
         while (len > 0) {
@@ -125,9 +129,9 @@ public class SecureFileStore extends FileStore {
             len -= Constants.FILE_BLOCK_SIZE;
         }
     }
-    
+
     public boolean isEncrypted() {
         return true;
     }
-    
+
 }

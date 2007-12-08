@@ -49,6 +49,11 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
+/**
+ * For each request, an object of this class is created.
+ * Keep-alive is not supported at this time.
+ * This class is used by the H2 Console.
+ */
 class WebThread extends Thread implements DatabaseEventListener {
     private WebServer server;
     private WebSession session;

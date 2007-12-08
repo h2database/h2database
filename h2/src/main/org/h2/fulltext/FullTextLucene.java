@@ -65,7 +65,6 @@ implements Trigger
      * Create a new full text index for a table and column list. Each table may only have one index at any time.
      *
      * @param conn the connection
-     * @param name the name of the index (must be unique)
      * @param schema the schema name of the table
      * @param table the table name
      * @param columnList the column list (null for all columns)
@@ -153,7 +152,7 @@ implements Trigger
      * INTERNAL
      */
 //#ifdef JDK14
-    public void init(Connection conn, String schemaName, String triggerName, String tableName) throws SQLException {
+    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
         init(conn);
         this.schemaName = schemaName;
         this.tableName = tableName;
@@ -480,7 +479,7 @@ implements Trigger
 
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullTextLucene existing = new FullTextLucene();
-        existing.init(conn, schema, null, table);
+        existing.init(conn, schema, null, table, false, INSERT);
         StringBuffer buff = new StringBuffer("SELECT * FROM ");
         buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
         ResultSet rs = conn.createStatement().executeQuery(buff.toString());

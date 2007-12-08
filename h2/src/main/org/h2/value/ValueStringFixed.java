@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.util.StringCache;
 
+/**
+ * Implementation of the CHAR data type.
+ */
 public class ValueStringFixed extends ValueStringBase {
 
     private static final ValueStringFixed EMPTY = new ValueStringFixed("");
@@ -19,10 +22,10 @@ public class ValueStringFixed extends ValueStringBase {
 
     protected int compareSecure(Value o, CompareMode mode) throws SQLException {
         // compatibility: the other object could be ValueString
-        ValueStringBase v = (ValueStringBase) o;        
+        ValueStringBase v = (ValueStringBase) o;
         return mode.compareString(value, v.value, false);
     }
-    
+
     private static String trimRight(String s) {
         int endIndex = s.length() - 1;
         int i = endIndex;
@@ -32,10 +35,10 @@ public class ValueStringFixed extends ValueStringBase {
         s = i == endIndex ? s : s.substring(0, i + 1);
         return s;
     }
-    
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
-    }    
+    }
 
     public int hashCode() {
         // TODO hash performance: could build a quicker hash by hashing the size and a few characters
@@ -45,7 +48,7 @@ public class ValueStringFixed extends ValueStringBase {
     public int getType() {
         return Value.STRING_FIXED;
     }
-    
+
     public static ValueStringFixed get(String s) {
         if (s.length() == 0) {
             return EMPTY;

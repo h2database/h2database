@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.text.Collator;
 import java.util.HashSet;
 
+import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;
@@ -112,7 +113,6 @@ import org.h2.message.Message;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
-import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
@@ -3391,11 +3391,11 @@ public class Parser {
         int typeMask = 0;
         do {
             if (readIf("INSERT")) {
-                typeMask |= TriggerObject.INSERT;
+                typeMask |= Trigger.INSERT;
             } else if (readIf("UPDATE")) {
-                typeMask |= TriggerObject.UPDATE;
+                typeMask |= Trigger.UPDATE;
             } else if (readIf("DELETE")) {
-                typeMask |= TriggerObject.DELETE;
+                typeMask |= Trigger.DELETE;
             } else {
                 throw getSyntaxError();
             }

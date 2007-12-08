@@ -12,7 +12,7 @@ import org.h2.store.Record;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * Represents a row in a table.
  */
 public class Row extends Record implements SearchRow {
     private final Value[] data;
@@ -61,11 +61,11 @@ public class Row extends Record implements SearchRow {
     public int getColumnCount() {
         return data.length;
     }
-    
+
     public int getMemorySize() {
         return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
     }
-    
+
     public String toString() {
         StringBuffer buff = new StringBuffer(data.length * 5);
         buff.append("( /* pos:");

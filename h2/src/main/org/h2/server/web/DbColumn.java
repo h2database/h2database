@@ -8,10 +8,14 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Keeps the meta data information of a column.
+ * This class is used by the H2 Console.
+ */
 public class DbColumn {
     String name;
     String dataType;
-    
+
     DbColumn(ResultSet rs) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         String type = rs.getString("TYPE_NAME");

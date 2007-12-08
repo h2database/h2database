@@ -26,8 +26,9 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
 /**
- * Small FTP Server. Intended for ad-hoc networks in a secure environment. See
- * also http://cr.yp.to/ftp.html http://www.ftpguide.com/
+ * Small FTP Server. Intended for ad-hoc networks in a secure environment.
+ * Remote connections are possible.
+ * See also http://cr.yp.to/ftp.html http://www.ftpguide.com/
  */
 public class FtpServer implements Service {
 

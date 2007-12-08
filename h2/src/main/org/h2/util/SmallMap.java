@@ -11,13 +11,16 @@ import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
+/**
+ * A simple hash table with an optimization for the last recently used object.
+ */
 public class SmallMap {
     private HashMap map = new HashMap();
     private Object cache;
     private int cacheId;
     private int lastId;
     private int maxElements;
-    
+
     public SmallMap(int maxElements) {
         this.maxElements = maxElements;
     }
@@ -59,5 +62,5 @@ public class SmallMap {
         }
         return obj;
     }
-    
+
 }

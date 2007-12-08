@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
- * Initial Developer: H2 Group 
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.util;
 
@@ -11,19 +11,18 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
- * @author Thomas
+ * This is a utility class with mathematical helper functions.
  */
-
 public class MathUtils {
     // with blockSizePowerOf2 8: 0 > 0; 1..8 > 8, 9..16 > 16, ...
     public static int roundUp(int x, int blockSizePowerOf2) {
-        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);   
+        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
     }
-    
+
     public static long roundUpLong(long x, long blockSizePowerOf2) {
-        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);   
+        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
     }
-    
+
     public static void checkPowerOf2(int len) {
         if ((len & (len - 1)) != 0 && len > 0) {
             throw Message.getInternalError("not a power of 2: " + len);
@@ -37,7 +36,7 @@ public class MathUtils {
         }
         return (int) i;
     }
-    
+
     public static long scaleUp50Percent(long start, long min, long blockSize, long maxIncrease) {
         long len;
         if (min > maxIncrease * 2) {
@@ -60,7 +59,7 @@ public class MathUtils {
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }
-    
+
     public static byte decodeByte(String s) {
         return Byte.decode(s).byteValue();
     }
@@ -72,11 +71,11 @@ public class MathUtils {
     public static int decodeInt(String s) {
         return Integer.decode(s).intValue();
     }
-    
+
     public static long decodeLong(String s) {
         return Long.decode(s).longValue();
     }
-    
+
     public static int convertLongToInt(long l) {
         if (l <= Integer.MIN_VALUE) {
             return Integer.MIN_VALUE;

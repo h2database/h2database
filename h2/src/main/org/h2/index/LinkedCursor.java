@@ -17,9 +17,8 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * The cursor implementation for the linked index.
  */
-
 public class LinkedCursor implements Cursor {
 
     private Session session;
@@ -36,15 +35,15 @@ public class LinkedCursor implements Cursor {
     public Row get() {
         return current;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return current;
     }
-    
+
     public int getPos() {
         throw Message.getInternalError();
     }
-    
+
 
     public boolean next() throws SQLException {
         boolean result = rs.next();

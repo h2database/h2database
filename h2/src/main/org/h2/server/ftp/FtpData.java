@@ -15,6 +15,9 @@ import java.sql.SQLException;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 
+/**
+ * The implementation of the data channel of the FTP server.
+ */
 public class FtpData extends Thread {
 
     private FtpServer server;

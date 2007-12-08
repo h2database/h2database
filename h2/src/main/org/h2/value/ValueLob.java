@@ -29,9 +29,8 @@ import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * Implementation of the BLOB and CLOB data types.
  */
-
 public class ValueLob extends Value {
     // TODO lob: concatenate function for blob and clob (to create a large blob from pieces)
     // and a getpart function (to get it in pieces) and make sure a file is created!
@@ -334,7 +333,7 @@ public class ValueLob extends Value {
     public boolean isLinked() {
         return linked;
     }
-    
+
     public String getFileName() {
         return fileName;
     }
@@ -532,7 +531,7 @@ public class ValueLob extends Value {
             throw Message.convertToInternal(e);
         }
     }
-    
+
     public String toString() {
         if (small == null) {
             return getClass().getName() + " file: " + fileName + " type: " + type + " precision: " + precision;

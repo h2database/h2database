@@ -10,25 +10,30 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 
+/**
+ * This class can split SQL scripts to single SQL statements.
+ * Each SQL statement ends with the character ';', however it is ignored
+ * in comments and quotes.
+ */
 public class ScriptReader {
     private Reader reader;
     private boolean end;
     private boolean insideRemark;
     private boolean blockRemark;
     private boolean skipRemarks;
-    
+
     public ScriptReader(Reader reader) {
         this.reader = reader;
     }
-    
+
     public void close() throws SQLException {
-        try {        
+        try {
             reader.close();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
     }
-    
+
     private int read() throws SQLException {
         try {
             return reader.read();
@@ -36,7 +41,7 @@ public class ScriptReader {
             throw Message.convertIOException(e, null);
         }
     }
-    
+
     public String readStatement() throws SQLException {
         if (end) {
             return null;

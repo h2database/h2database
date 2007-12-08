@@ -14,25 +14,28 @@ import org.h2.table.Table;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * The cursor implementation of a view index.
+ */
 public class ViewCursor implements Cursor {
-    
+
     private Table table;
     private LocalResult result;
     private Row current;
-    
+
     ViewCursor(Table table, LocalResult result) {
         this.table = table;
         this.result = result;
     }
-    
+
     public Row get() {
         return current;
     }
-    
+
     public SearchRow getSearchRow() {
         return current;
     }
-    
+
     public int getPos() {
         throw Message.getInternalError();
     }
@@ -52,5 +55,5 @@ public class ViewCursor implements Cursor {
         }
         return true;
     }
-    
+
 }

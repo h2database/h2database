@@ -24,6 +24,14 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
+/**
+ * The TCP server implements the native H2 database server protocol.
+ * It supports multiple client connections to multiple databases
+ * (many to many). The same database may be opened by multiple clients.
+ * Also supported is the mixed mode: opening databases in embedded mode,
+ * and at the same time start a TCP server to allow clients to connect to
+ * the same database over the network.
+ */
 public class TcpServer implements Service {
 
     // TODO new feature: implement automatic client / server mode if 'socket'
@@ -251,7 +259,7 @@ public class TcpServer implements Service {
     public String getName() {
         return "H2 TCP Server";
     }
-    
+
     public void logInternalError(String string) {
         if (TcpServer.logInternalErrors) {
             System.out.println(string);

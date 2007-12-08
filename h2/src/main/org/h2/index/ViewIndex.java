@@ -23,8 +23,7 @@ import org.h2.value.Value;
 
 /**
  * This object represents a virtual index for a query.
- * Actually it only represents a prepared statement that is
- * a SELECT statement.
+ * Actually it only represents a prepared SELECT statement.
  */
 public class ViewIndex extends BaseIndex {
 
@@ -36,7 +35,7 @@ public class ViewIndex extends BaseIndex {
     private String planSQL;
     private Query query;
     private Session session;
-    
+
     public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
         super(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = querySQL;
@@ -44,7 +43,7 @@ public class ViewIndex extends BaseIndex {
         this.recursive = recursive;
         columns = new Column[0];
     }
-    
+
     public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
         super(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = index.querySQL;
@@ -56,7 +55,7 @@ public class ViewIndex extends BaseIndex {
         query = getQuery(session, masks);
         planSQL =  query.getPlanSQL();
     }
-    
+
     public Session getSession() {
         return session;
     }
@@ -75,12 +74,12 @@ public class ViewIndex extends BaseIndex {
     public void remove(Session session, Row row) throws SQLException {
         throw Message.getUnsupportedException();
     }
-    
+
     private static class CostElement {
         long evaluatedAt;
         double cost;
     }
-    
+
     public double getCost(Session session, int[] masks) throws SQLException {
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
         CostElement cachedCost = (CostElement) costCache.get(masksArray);

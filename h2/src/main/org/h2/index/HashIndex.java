@@ -20,7 +20,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
 /**
- * @author Thomas
+ * An index based on an in-memory hash map.
  */
 public class HashIndex extends BaseIndex {
 

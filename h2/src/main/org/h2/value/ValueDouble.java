@@ -12,9 +12,8 @@ import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
 /**
- * @author Thomas
+ * Implementation of the DOUBLE data type.
  */
-
 public class ValueDouble extends Value {
     public static final int PRECISION = 17;
     public static final int DISPLAY_SIZE = 24; // -3.3333333333333334E-100
@@ -117,10 +116,10 @@ public class ValueDouble extends Value {
 
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueDouble && value == ((ValueDouble) v).value;
-    } 
+    }
 
 }

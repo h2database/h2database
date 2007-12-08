@@ -24,15 +24,15 @@ import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 
 /**
- * Each log file contains a number of log records.
- * 
+ * Each transaction log file contains a number of log records.
+ *
  * Header format:
  * <pre>
  * int logId (<0 means ignore: rolled back already)
  * int firstUncommittedLogRecordId (-1 if none)
  * int firstUnwrittenLogRecordId (-1 if none)
  * </pre>
- * 
+ *
  * Record format:
  * <pre>
  * int block size
@@ -141,14 +141,14 @@ public class LogFile {
         if (buff.length() >= buffer.length) {
             // special case really long write request: write it without buffering
             file.write(buff.getBytes(), 0, buff.length());
-            pos = getBlock();                
+            pos = getBlock();
             return;
         }
         System.arraycopy(buff.getBytes(), 0, buffer, bufferPos, buff.length());
         bufferPos += buff.length();
         pos = getBlock() + (bufferPos / BLOCK_SIZE);
     }
-    
+
     void commit(Session session) throws SQLException {
         DataPage buff = rowBuff;
         buff.reset();
@@ -346,7 +346,7 @@ public class LogFile {
         }
         go(pos);
     }
-    
+
     void go(int pos) throws SQLException {
         file.seek((long) pos * BLOCK_SIZE);
     }
@@ -376,7 +376,7 @@ public class LogFile {
             }
         }
     }
-    
+
     void close(boolean delete) throws SQLException {
         SQLException closeException = null;
         try {
@@ -404,7 +404,7 @@ public class LogFile {
             throw closeException;
         }
     }
-    
+
     void addSummary(boolean dataFile, byte[] summary) throws SQLException {
         DataPage buff = DataPage.create(database, 256);
         buff.writeInt(0);
@@ -455,24 +455,24 @@ public class LogFile {
         record.write(buff);
         writeBuffer(buff, record);
     }
-    
+
     void setFirstUncommittedPos(int firstUncommittedPos) throws SQLException {
         this.firstUncommittedPos = firstUncommittedPos;
         int pos = getBlock();
         writeHeader();
         go(pos);
     }
-    
+
     int getFirstUncommittedPos() {
         return firstUncommittedPos;
     }
-    
+
     private void writeHeader() throws SQLException {
         file.seek(FileStore.HEADER_LENGTH);
         DataPage buff = getHeader();
         file.write(buff.getBytes(), 0, buff.length());
     }
-    
+
     private DataPage getHeader() {
         DataPage buff = rowBuff;
         buff.reset();
@@ -483,7 +483,7 @@ public class LogFile {
         buff.fill(3 * BLOCK_SIZE);
         return buff;
     }
-    
+
     private void readHeader() throws SQLException {
         DataPage buff = getHeader();
         int len = buff.length();

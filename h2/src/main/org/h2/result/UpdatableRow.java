@@ -19,6 +19,10 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * An updatable row is a link from a ResultSet to a row in the database.
+ * This class is used for updatable result sets.
+ */
 public class UpdatableRow {
 
     private SessionInterface session;

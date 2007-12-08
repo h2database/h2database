@@ -11,29 +11,28 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.ObjectArray;
 
-
 /**
- * @author Thomas
+ * An index for a meta data table.
+ * This index can only scan through all rows, search is not supported.
  */
-
 public class MetaCursor implements Cursor {
 
     private Row current;
     private ObjectArray rows;
     private int index;
-    
+
     MetaCursor(ObjectArray rows) {
         this.rows = rows;
     }
-    
+
     public Row get() {
         return current;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return current;
     }
-    
+
     public int getPos() {
         throw Message.getInternalError();
     }

@@ -8,6 +8,9 @@ import java.io.IOException;
 
 import org.h2.constant.SysProperties;
 
+/**
+ * This tool starts the browser with a specific URL.
+ */
 public class StartBrowser {
 
     public static void openURL(String url) {

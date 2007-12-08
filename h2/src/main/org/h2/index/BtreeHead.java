@@ -9,6 +9,11 @@ import java.sql.SQLException;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
 
+/**
+ * The head page of a b-tree index. There is exactly one head page for each
+ * such index, and it contains meta data such as the location of the root page.
+ * Unlike the root page of a b-tree index, the head page always stays at the same place.
+ */
 public class BtreeHead extends Record {
 
     private int rootPosition;
@@ -22,11 +27,11 @@ public class BtreeHead extends Record {
         rootPosition = s.readInt();
         consistent = s.readInt() == 1;
     }
-    
+
     public boolean getConsistent() {
         return consistent;
     }
-    
+
     public void setConsistent(boolean b) {
         this.consistent = b;
     }
@@ -48,7 +53,7 @@ public class BtreeHead extends Record {
     int getRootPosition() {
         return rootPosition;
     }
-    
+
     public boolean isPinned() {
         return true;
     }

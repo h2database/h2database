@@ -28,6 +28,9 @@ import org.h2.util.SmallMap;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
+/**
+ * One server thread is opened per client connection.
+ */
 public class TcpServerThread implements Runnable {
     private TcpServer server;
     private Session session;
@@ -42,7 +45,7 @@ public class TcpServerThread implements Runnable {
         transfer = new Transfer(null);
         transfer.setSocket(socket);
     }
-    
+
     private void log(String s) {
         server.log(this + " " + s);
     }

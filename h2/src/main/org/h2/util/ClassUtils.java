@@ -12,6 +12,10 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
+/**
+ * This utility class contains functions related to class loading.
+ * There is a mechanism to restrict class loading.
+ */
 public class ClassUtils {
 
     private static final boolean ALLOW_ALL;

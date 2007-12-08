@@ -6,8 +6,11 @@ package org.h2.result;
 
 import org.h2.value.Value;
 
+/**
+ * Represents a simple row that is not cached separately.
+ */
 public class SimpleRow implements SearchRow {
-    
+
     private int pos;
     private Value[] data;
 
@@ -22,11 +25,11 @@ public class SimpleRow implements SearchRow {
     public int getPos() {
         return pos;
     }
-    
+
     public void setPos(int pos) {
         this.pos = pos;
     }
-    
+
     public void setValue(int i, Value v) {
         data[i] = v;
     }

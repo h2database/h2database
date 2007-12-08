@@ -4,12 +4,15 @@
  */
 package org.h2.util;
 
+/**
+ * This is a utility class with functions to measure the free and used memory.
+ */
 public class MemoryUtils {
-    
+
     private static long lastGC;
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
-    
+
     public static int getMemoryUsed() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();
@@ -23,7 +26,7 @@ public class MemoryUtils {
         long mem = rt.freeMemory();
         return (int) (mem >> 10);
     }
-    
+
     private static synchronized void collectGarbage() {
         Runtime runtime = Runtime.getRuntime();
         long total = runtime.totalMemory();

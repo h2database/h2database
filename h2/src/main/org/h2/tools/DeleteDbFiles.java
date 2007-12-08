@@ -13,19 +13,16 @@ import org.h2.util.FileUtils;
 
 /**
  * Delete the database files. The database must be closed before calling this tool.
- * 
- * @author Thomas
  */
-
 public class DeleteDbFiles {
-    
+
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-quiet]");
     }
-    
+
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",... 
+     * The options must be split into strings like this: "-db", "test",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -33,10 +30,10 @@ public class DeleteDbFiles {
      * </li><li>-db database name (all databases if no name is specified)
      * </li><li>-quiet does not print progress information
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new DeleteDbFiles().run(args);
     }
@@ -59,10 +56,10 @@ public class DeleteDbFiles {
         }
         execute(dir, db, quiet);
     }
-    
+
     /**
      * Deletes the database files.
-     * 
+     *
      * @param dir the directory
      * @param db the database name (null for all databases)
      * @param quiet don't print progress information
@@ -89,6 +86,6 @@ public class DeleteDbFiles {
         } else {
             FileUtils.delete(fileName);
         }
-    }  
+    }
 
 }

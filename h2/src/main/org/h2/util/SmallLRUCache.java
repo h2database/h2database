@@ -14,7 +14,10 @@ import java.util.HashMap;
 //#endif
 import java.util.Map;
 
-public class SmallLRUCache 
+/**
+ * This class implements a small LRU object cache.
+ */
+public class SmallLRUCache
 //#ifdef JDK14
 extends LinkedHashMap
 //#endif
@@ -24,14 +27,14 @@ extends HashMap
 */
 //#endif
 {
-    
+
     private static final long serialVersionUID = 3643268440910181829L;
     private int size;
-    
+
     public SmallLRUCache(int size) {
         this.size = size;
     }
-    
+
 //#ifdef JDK14
     protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > size;

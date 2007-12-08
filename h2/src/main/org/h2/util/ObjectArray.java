@@ -11,9 +11,9 @@ import java.util.Iterator;
 import org.h2.constant.SysProperties;
 
 /**
- * @author Thomas
+ * The object array is basically the same as ArrayList.
+ * It is a bit faster than ArrayList in some java versions.
  */
-
 public class ObjectArray {
     private static final int SIZE_INIT = 4, SIZE_SHRINK = 256;
 
@@ -23,7 +23,7 @@ public class ObjectArray {
     public ObjectArray() {
         this(SIZE_INIT);
     }
-    
+
     public ObjectArray(int size) {
         data = new Object[size > 1 ? size : 1];
     }
@@ -68,7 +68,7 @@ public class ObjectArray {
         // TODO optimization / lib: could shrink ObjectArray on element remove
         return value;
     }
-    
+
     public void removeRange(int from, int to) {
         if (SysProperties.CHECK && (to > size || from > to)) {
             throw new ArrayIndexOutOfBoundsException("to=" + to + " from="+from+" size=" + size);
@@ -79,7 +79,7 @@ public class ObjectArray {
             data[i] = null;
         }
     }
-    
+
     public void setSize(int i) {
         ensureCapacity(i);
         this.size = i;

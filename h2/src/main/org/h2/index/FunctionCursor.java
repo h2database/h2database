@@ -11,11 +11,14 @@ import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
+/**
+ * A cursor for a function that returns a result set.
+ */
 public class FunctionCursor implements Cursor {
-    
+
     private LocalResult result;
-    private Row row;    
-    
+    private Row row;
+
     FunctionCursor(LocalResult result) {
         this.result = result;
     }
@@ -23,7 +26,7 @@ public class FunctionCursor implements Cursor {
     public Row get() {
         return row;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return row;
     }

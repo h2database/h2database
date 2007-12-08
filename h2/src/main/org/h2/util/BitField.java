@@ -4,18 +4,16 @@
  */
 package org.h2.util;
 
-
 /**
- * @author Thomas
+ * A list of bits.
  */
-
 public class BitField {
-    
+
     private long[] data = new long[10];
     private static final int ADDRESS_BITS = 6;
     private static final int BITS = 64;
     private static final int ADDRESS_MASK = BITS - 1;
-    
+
     public int getLastSetBit() {
         int i = (data.length << ADDRESS_BITS) - 1;
         while (i >= 0) {
@@ -107,22 +105,6 @@ public class BitField {
         }
     }
 
-    /*
-    private BitSet data = new BitSet();
-    
-    public boolean get(int i) {
-        return data.get(i);
-    }
-    
-    public void set(int i) {
-        data.set(i);
-    }
-    
-    public void clear(int i) {
-        data.clear(i);
-    }
-    */
-    
     public void setRange(int start, int len, boolean value) {
         for (int end = start + len; start < end; start++) {
             set(start, value);

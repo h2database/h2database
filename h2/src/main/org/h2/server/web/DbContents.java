@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.util.StringUtils;
 
+/**
+ * Keeps meta data information about a database.
+ * This class is used by the H2 Console.
+ */
 public class DbContents {
     DbSchema[] schemas;
     DbSchema defaultSchema;

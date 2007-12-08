@@ -9,21 +9,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/**
+ * Contains meta data information about a database schema.
+ * This class is used by the H2 Console.
+ */
 public class DbSchema {
     DbContents contents;
     String name;
     String quotedName;
-    
+
     DbTableOrView[] tables;
     public boolean isDefault;
-    
+
     DbSchema(DbContents contents, String name, boolean isDefault) throws SQLException {
         this.contents = contents;
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);
         this.isDefault = isDefault;
     }
-    
+
     public void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
         ArrayList list = new ArrayList();

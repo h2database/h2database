@@ -6,17 +6,20 @@ package org.h2.result;
 
 import org.h2.value.Value;
 
+/**
+ * A simple row that contains data for only one column.
+ */
 public class SimpleRowValue implements SearchRow {
-    
+
     private int pos;
     private int index;
     private int virtualColumnCount;
     private Value data;
-    
+
     public SimpleRowValue(int columnCount) {
         this.virtualColumnCount = columnCount;
     }
-    
+
     public int getColumnCount() {
         return virtualColumnCount;
     }
@@ -29,10 +32,10 @@ public class SimpleRowValue implements SearchRow {
     public void setPos(int pos) {
         this.pos = pos;
     }
-    
+
     public void setValue(int idx, Value v) {
         index = idx;
         data = v;
     }
-    
+
 }

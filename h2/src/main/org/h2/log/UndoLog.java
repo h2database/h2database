@@ -15,6 +15,9 @@ import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
 
+/**
+ * Each session keeps a undo log if rollback is required.
+ */
 public class UndoLog {
     private Session session;
     private Database database;
@@ -23,7 +26,7 @@ public class UndoLog {
     private FileStore file;
     private DataPage rowBuff;
     private int memoryUndo;
-    
+
     public UndoLog(Session session) {
         this.session = session;
         this.database = session.getDatabase();
@@ -45,7 +48,7 @@ public class UndoLog {
             rowBuff = null;
         }
     }
-    
+
     public UndoLogRecord getAndRemoveLast() throws SQLException {
         int i = records.size() - 1;
         UndoLogRecord entry = (UndoLogRecord) records.get(i);
@@ -89,12 +92,12 @@ public class UndoLog {
             }
         }
     }
-    
+
     private void saveIfPossible(UndoLogRecord r, DataPage buff) throws SQLException {
         if (!r.isStored() && r.canStore()) {
             r.save(buff, file);
             memoryUndo--;
         }
     }
-    
+
 }

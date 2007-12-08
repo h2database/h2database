@@ -34,6 +34,10 @@ import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
 import org.h2.util.StringCache;
 
+/**
+ * The transfer class is used to send and receive Value objects.
+ * It is used on both the client side, and on the server side.
+ */
 public class Transfer {
 
     private static final int BUFFER_SIZE = 16 * 1024;
@@ -43,7 +47,7 @@ public class Transfer {
     protected Socket socket;
     protected DataInputStream in;
     protected DataOutputStream out;
-    
+
     public Transfer(SessionInterface session) {
         this.session = session;
     }

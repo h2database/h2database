@@ -10,9 +10,8 @@ import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
-
 /**
- * @author Thomas
+ * The cursor implementation for the scan index.
  */
 public class ScanCursor implements Cursor {
     private ScanIndex scan;

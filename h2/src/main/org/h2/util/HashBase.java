@@ -6,6 +6,9 @@ package org.h2.util;
 
 import java.sql.SQLException;
 
+/**
+ * The base for other hash classes.
+ */
 public abstract class HashBase {
     protected int mask, len, size, deletedCount, level;
     protected boolean zeroKey;

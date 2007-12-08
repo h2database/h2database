@@ -38,6 +38,10 @@ import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
+/**
+ * The web server is a simple standalone HTTP server that implements the H2 Console application.
+ * It is not optimized for performance.
+ */
 public class WebServer implements Service {
 
     private static final String DEFAULT_LANGUAGE = "en";

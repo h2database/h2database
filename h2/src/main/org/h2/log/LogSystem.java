@@ -22,7 +22,7 @@ import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
 
 /**
- * The log system is responsible for the write ahead log mechanism used in this database.
+ * The transaction log system is responsible for the write ahead log mechanism used in this database.
  * A number of {@link LogFile} objects are used (one for each file).
  */
 public class LogSystem {
@@ -134,7 +134,7 @@ public class LogSystem {
                     LogFile l = (LogFile) activeLogs.get(i);
                     l.close(false);
                 }
-                closed = true;                
+                closed = true;
                 return;
             }
             // TODO refactor flushing and closing files when we know what to do exactly
@@ -220,7 +220,7 @@ public class LogSystem {
             return fileChanged;
         }
     }
-    
+
     private void closeOldFile(LogFile l) throws SQLException {
         l.close(deleteOldLogFilesAutomatically && keepFiles == 0);
     }
@@ -292,7 +292,7 @@ public class LogSystem {
         state.lastCommitPos = pos;
         state.inDoubtTransaction = null;
     }
-    
+
     SessionState getOrAddSessionState(int sessionId) {
         Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);

@@ -7,7 +7,9 @@ package org.h2.store.fs;
 import java.io.EOFException;
 import java.io.IOException;
 
-
+/**
+ * In this file system, files are kept fully in memory until stored.
+ */
 public class FileObjectDatabase implements FileObject {
 
     private FileSystemDatabase db;
@@ -15,7 +17,7 @@ public class FileObjectDatabase implements FileObject {
     private byte[] data;
     private int pos, length;
     private boolean changed;
-    
+
     FileObjectDatabase(FileSystemDatabase db, String fileName, byte[] data, boolean changed) {
         this.db = db;
         this.fileName = fileName;

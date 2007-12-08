@@ -13,10 +13,13 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
+/**
+ * Implementation of the BIGINT data type.
+ */
 public class ValueLong extends Value {
 
     private final long value;
-    
+
     public static final int PRECISION = 19;
     public static final int DISPLAY_SIZE = 20; // -9223372036854775808
     private static final int STATIC_SIZE = 10;
@@ -65,7 +68,7 @@ public class ValueLong extends Value {
         }
         return ValueLong.get(-value);
     }
-    
+
     private SQLException getOverflow() {
         return Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.LONG).name);
     }
@@ -78,15 +81,15 @@ public class ValueLong extends Value {
             // if the operands have the same sign, then overflow can not occur
             // if the second operand is 0, then overflow can not occur
             if (sv == so || so == 0) {
-                return ValueLong.get(value - other.value);            
+                return ValueLong.get(value - other.value);
             }
-            // now, if the other value is Long.MIN_VALUE, it must be an overflow 
+            // now, if the other value is Long.MIN_VALUE, it must be an overflow
             // x - Long.MIN_VALUE overflows for x>=0
             return add(other.negate());
-        }        
+        }
         return ValueLong.get(value - other.value);
     }
-    
+
     private boolean isInteger(long a) {
         return a >= Integer.MIN_VALUE && a <= Integer.MAX_VALUE;
     }
@@ -171,11 +174,11 @@ public class ValueLong extends Value {
         }
         return (ValueLong) Value.cache(new ValueLong(i));
     }
-    
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueLong && value == ((ValueLong) v).value;
     }

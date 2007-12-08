@@ -19,23 +19,26 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 import org.h2.util.TempFileDeleter;
 
+/**
+ * The writer thread is responsible to flush the transaction log file from time to time.
+ */
 public class WriterThread extends Thread {
-    // Thread objects are not garbage collected 
-    // until they returned from the run() method 
+    // Thread objects are not garbage collected
+    // until they returned from the run() method
     // (even if they where never started)
-    // so if the connection was not closed, 
+    // so if the connection was not closed,
     // the database object cannot get reclaimed
     // by the garbage collector if we use a hard reference
     private volatile WeakReference databaseRef;
     private int writeDelay;
     private long lastIndexFlush;
     private volatile boolean stop;
-    
+
     private WriterThread(Database database, int writeDelay) {
         this.databaseRef = new WeakReference(database);
         this.writeDelay = writeDelay;
     }
-    
+
     public void setWriteDelay(int writeDelay) {
         LogSystem log = getLog();
         this.writeDelay = writeDelay;

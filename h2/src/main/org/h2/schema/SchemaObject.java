@@ -6,8 +6,15 @@ package org.h2.schema;
 
 import org.h2.engine.DbObject;
 
+/**
+ * Any database object that is stored in a schema.
+ */
 public interface SchemaObject extends DbObject {
-    Schema getSchema();
 
-    String getSQL();
+    /**
+     * Get the schema in which this object is defined
+     *
+     * @return the schema
+     */
+    Schema getSchema();
 }

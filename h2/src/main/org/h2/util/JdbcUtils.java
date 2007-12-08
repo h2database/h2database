@@ -21,6 +21,9 @@ import javax.sql.XAConnection;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
+/**
+ * This is a utility class with JDBC helper functions.
+ */
 public class JdbcUtils {
 
     public static void closeSilently(Statement stat) {

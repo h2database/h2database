@@ -17,14 +17,19 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 
+/**
+ * A multi-version index is a combination of a regular index,
+ * and a in-memory tree index that contains uncommitted changes.
+ * Uncommitted changes can include new rows, and deleted rows.
+ */
 public class MultiVersionIndex implements Index {
-    
+
     private final Index base;
     private final TreeIndex delta;
     private final TableData table;
     private final Object sync;
-    
-    public MultiVersionIndex(Index base, TableData table) throws SQLException { 
+
+    public MultiVersionIndex(Index base, TableData table) throws SQLException {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
@@ -62,7 +67,7 @@ public class MultiVersionIndex implements Index {
         // TODO in many cases possible, but more complicated
         return false;
     }
-    
+
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -74,7 +79,7 @@ public class MultiVersionIndex implements Index {
     public boolean needRebuild() {
         return base.needRebuild();
     }
-    
+
     private boolean removeIfExists(Session session, Row row) throws SQLException {
         // maybe it was inserted by the same session just before
         Cursor c = delta.find(session, row, row);
@@ -111,7 +116,7 @@ public class MultiVersionIndex implements Index {
             base.truncate(session);
         }
     }
-    
+
     public void commit(int operation, Row row) throws SQLException {
         synchronized (sync) {
             removeIfExists(null, row);
@@ -137,10 +142,10 @@ public class MultiVersionIndex implements Index {
     public Column[] getColumns() {
         return base.getColumns();
     }
-    
+
     public IndexColumn[] getIndexColumns() {
         return base.getIndexColumns();
-    }    
+    }
 
     public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
         return base.getCostRangeIndex(masks, rowCount);
@@ -256,7 +261,7 @@ public class MultiVersionIndex implements Index {
     public void setTemporary(boolean temporary) {
         base.setTemporary(temporary);
     }
-    
+
     void debug(String s, Session session, SearchRow row) throws SQLException {
         // System.out.println(this + " " + s + " session:" + (session == null ? -1: session.getId()) + " " + (row == null ? "" : row.getValue(0).getString()));
     }

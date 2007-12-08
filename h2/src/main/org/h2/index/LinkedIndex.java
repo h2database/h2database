@@ -20,27 +20,27 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * @author Thomas
+ * A linked index is a index for a linked (remote) table.
+ * It is backed by an index on the remote table which is accessed over JDBC.
  */
-
 public class LinkedIndex extends BaseIndex {
 
     private TableLink link;
     private String targetTableName;
-    
+
     public LinkedIndex(TableLink table, int id, IndexColumn[] columns, IndexType indexType) {
         super(table, id, null, columns, indexType);
         link = table;
         targetTableName = link.getQualifiedTable();
     }
-    
+
     public String getCreateSQL() {
         return null;
     }
 
     public void close(Session session) throws SQLException {
     }
-    
+
     private boolean isNull(Value v) {
         return v == null || v == ValueNull.INSTANCE;
       }

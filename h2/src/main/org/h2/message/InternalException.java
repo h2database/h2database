@@ -4,6 +4,11 @@
  */
 package org.h2.message;
 
+/**
+ * This exception wraps a checked exception.
+ * It is used in methods where checked exceptions are not supported,
+ * for example in a Comparator.
+ */
 public class InternalException extends RuntimeException {
 
     private static final long serialVersionUID = -5369631382082604330L;
@@ -12,7 +17,7 @@ public class InternalException extends RuntimeException {
     public InternalException(Exception e) {
         cause = e;
     }
-    
+
     public Exception getOriginalCause() {
         return cause;
     }

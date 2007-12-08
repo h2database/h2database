@@ -9,10 +9,10 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 
 /**
- * An empty record has key=0 and value=0
+ * A hash map with int key and int values. There is a restriction: the
+ * value -1 (NOT_FOUND) cannot be stored in the map. 0 can be stored.
+ * An empty record has key=0 and value=0.
  * A deleted record has key=0 and value=DELETED
- * value NOT_FOUND: -1; this value cannot be stored in the map (however 0 can be stored)
- * @author Thomas
  */
 public class IntIntHashMap extends HashBase {
     public static final int NOT_FOUND = -1;

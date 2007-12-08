@@ -17,7 +17,7 @@ INSERT INTO ITEM VALUES(33,
 <br />
 <b>Changes and new functionality:</b>
 <ul><li>Performance optimization for IN(...) and IN(SELECT...), 
-	currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
+    currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
 </li><li>The H2 Console has been translated to Ukrainian by Igor Dobrovolskyi. Thanks a lot! 
 </li><li>The SecurePassword example has been improved.
 </li><li>Improved FTP server: now the PORT command is supported.

@@ -31,9 +31,9 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 
 /**
- * @author Thomas
+ * A linked table contains connection information for a table accessible by JDBC.
+ * The table may be stored in a different database.
  */
-
 public class TableLink extends Table {
 
     private String driver, url, user, password, originalTable, qualifiedTableName;

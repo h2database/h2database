@@ -10,6 +10,9 @@ import java.sql.Time;
 import org.h2.constant.ErrorCode;
 import org.h2.util.DateTimeUtils;
 
+/**
+ * Implementation of the TIME data type.
+ */
 public class ValueTime extends Value {
     public static final int PRECISION = 6;
     public static final int DISPLAY_SIZE = 8; // 10:00:00
@@ -28,7 +31,7 @@ public class ValueTime extends Value {
         // this class is mutable - must copy the object
         return (Time) value.clone();
     }
-    
+
     public Time getTimeNoCopy() {
         return value;
     }
@@ -71,17 +74,17 @@ public class ValueTime extends Value {
         time = DateTimeUtils.cloneAndNormalizeTime(time);
         return getNoCopy(time);
     }
-    
+
     public static ValueTime getNoCopy(Time time) {
         return (ValueTime) Value.cache(new ValueTime(time));
-    }    
-    
+    }
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueTime && value.equals(((ValueTime) v).value);
     }
-    
+
 }

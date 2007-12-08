@@ -37,7 +37,9 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * Most tables are an instance of this class.
+ * For this table, the data is stored in the database. The actual data is not kept here,
+ * instead it is kept in the indexes. There is at least one index, the scan index.
  */
 public class TableData extends Table implements RecordReader {
     private ScanIndex scanIndex;
@@ -225,7 +227,7 @@ public class TableData extends Table implements RecordReader {
     public boolean canGetRowCount() {
         return true;
     }
-    
+
     private void addRowsToIndex(Session session, ObjectArray list, Index index) throws SQLException {
         final Index idx = index;
         try {

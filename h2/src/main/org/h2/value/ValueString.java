@@ -8,7 +8,7 @@ import org.h2.constant.SysProperties;
 import org.h2.util.StringCache;
 
 /**
- * @author Thomas
+ * Implementation of the VARCHAR data type.
  */
 public class ValueString extends ValueStringBase {
 
@@ -31,7 +31,7 @@ public class ValueString extends ValueStringBase {
     public int hashCode() {
         // TODO hash performance: could build a quicker hash by hashing the size and a few characters
         return value.hashCode();
-        
+
         // proposed code:
 //        private int hash = 0;
 //
@@ -52,8 +52,8 @@ public class ValueString extends ValueStringBase {
 //                }
 //            }
 //            return h;
-//        }        
-        
+//        }
+
     }
 
     public static ValueString get(String s) {

@@ -15,11 +15,15 @@ import org.h2.result.SearchRow;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 
+/**
+ * An index for a function that returns a result set.
+ * This index can only scan through all rows, search is not supported.
+ */
 public class FunctionIndex extends BaseIndex {
-    
+
     private FunctionTable functionTable;
     private LocalResult result;
-    
+
     public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns, FunctionCall function) {
         super(functionTable, 0, null, columns, IndexType.createNonUnique(true));
         this.functionTable = functionTable;

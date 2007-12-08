@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A page parser can parse an HTML page and replace the tags there.
+ * This class is used by the H2 Console.
+ */
 public class PageParser {
     private WebServer server;
     private String page;

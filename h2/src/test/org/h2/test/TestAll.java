@@ -151,6 +151,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+History:
+The method Trigger.init has been changed: the parameters 'before' and 'type', have been added to the init method.
+
 C:\temp\test\db
 
 No more

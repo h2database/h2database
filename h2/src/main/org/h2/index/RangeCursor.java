@@ -12,23 +12,26 @@ import org.h2.result.SearchRow;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
+/**
+ * The cursor implementation for the range index.
+ */
 public class RangeCursor implements Cursor {
 
     private boolean beforeFirst;
     private long current;
     private Row currentRow;
     private long min, max;
-    
+
     RangeCursor(long min, long max) {
         this.min = min;
         this.max = max;
         beforeFirst = true;
     }
-    
+
     public Row get() {
         return currentRow;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return currentRow;
     }

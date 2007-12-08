@@ -14,7 +14,7 @@ import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
 /**
- * @author Thomas
+ * Implementation of the DECIMAL data type.
  */
 public class ValueDecimal extends Value {
     // TODO doc: document differences for BigDecimal 1.5 <> 1.4
@@ -26,7 +26,7 @@ public class ValueDecimal extends Value {
     private static final BigDecimal DEC_ONE = new BigDecimal("1");
     private static final ValueDecimal ZERO = new ValueDecimal(DEC_ZERO);
     private static final ValueDecimal ONE = new ValueDecimal(DEC_ONE);
-    
+
     public static final int DEFAULT_PRECISION = 65535;
     public static final int DEFAULT_SCALE = 32767;
     public static final int DEFAULT_DISPLAY_SIZE = 65535;
@@ -176,11 +176,11 @@ public class ValueDecimal extends Value {
         // check max cache size
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }
-    
+
     public int getDisplaySize() {
         return MathUtils.convertLongToInt(getPrecision() + 2); // - .
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueDecimal && value.equals(((ValueDecimal) v).value);
     }

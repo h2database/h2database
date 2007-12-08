@@ -20,6 +20,8 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
+ * An outer page of a btree index.
+ *
  * Page format:
  * L { P(pointers) | D(data) } data.len { data[0].pos [data[0]], ...  }
  *

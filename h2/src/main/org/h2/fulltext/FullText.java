@@ -45,7 +45,6 @@ public class FullText implements Trigger {
      * only have one index at any time.
      *
      * @param conn the connection
-     * @param name the name of the index (must be unique)
      * @param schema the schema name of the table
      * @param table the table name
      * @param columnList the column list (null for all columns)
@@ -79,7 +78,7 @@ public class FullText implements Trigger {
 
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullText existing = new FullText();
-        existing.init(conn, schema, null, table);
+        existing.init(conn, schema, null, table, false, INSERT);
         StringBuffer buff = new StringBuffer("SELECT * FROM ");
         buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
         ResultSet rs = conn.createStatement().executeQuery(buff.toString());
@@ -232,7 +231,7 @@ public class FullText implements Trigger {
     /**
      * INTERNAL
      */
-    public void init(Connection conn, String schemaName, String triggerName, String tableName) throws SQLException {
+    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
         init(conn);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         ArrayList keyList = new ArrayList();

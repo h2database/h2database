@@ -11,6 +11,9 @@ import org.h2.util.ByteUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * Implementation of the UUID data type.
+ */
 public class ValueUuid extends Value {
     public static final int PRECISION = 16; // number of bytes
     public static final int DISPLAY_SIZE = 36; // cd38d882-7ada-4589-b5fb-7da0ca559d9a
@@ -137,7 +140,7 @@ public class ValueUuid extends Value {
     public long getLow() {
         return low;
     }
-    
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }

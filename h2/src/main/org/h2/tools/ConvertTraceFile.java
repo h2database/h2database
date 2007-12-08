@@ -14,18 +14,17 @@ import org.h2.util.FileUtils;
 /**
  * Convert a trace file to a java class.
  * This is required because the find command truncates lines.
- * 
  */
 public class ConvertTraceFile {
-    
+
     private void showUsage() {
         System.out.println("java "+getClass().getName()
                 + " [-traceFile <trace file name>] [-javaClass <java class name>] [-script <sql script file>]");
     }
-    
+
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-traceFile", "test.trace.db",... 
+     * The options must be split into strings like this: "-traceFile", "test.trace.db",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -33,14 +32,14 @@ public class ConvertTraceFile {
      * </li><li>-script filename (the default is test.sql)
      * </li><li>-javaClass className (the default is Test)
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws Exception
-     */    
+     */
     public static void main(String[] args) throws SQLException {
-        new ConvertTraceFile().run(args);        
+        new ConvertTraceFile().run(args);
     }
-    
+
     private void run(String[] args) throws SQLException {
         String traceFile = "test.trace.db";
         String javaClass = "Test";
@@ -63,10 +62,10 @@ public class ConvertTraceFile {
             throw Message.convertIOException(e, traceFile);
         }
     }
-    
+
     /**
      * Converts a trace file to a Java class file and a script file.
-     * 
+     *
      * @param traceFileName
      * @param javaClassName
      * @throws IOException

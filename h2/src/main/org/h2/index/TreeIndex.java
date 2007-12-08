@@ -16,7 +16,9 @@ import org.h2.table.TableData;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
-
+/**
+ * The tree index is an in-memory index based on a binary AVL trees.
+ */
 public class TreeIndex extends BaseIndex {
 
     private TreeNode root;

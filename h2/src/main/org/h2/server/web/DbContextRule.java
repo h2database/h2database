@@ -17,14 +17,18 @@ import org.h2.command.Parser;
 import org.h2.message.Message;
 import org.h2.util.StringUtils;
 
+/**
+ * A BNF terminal rule that is linked to the database context information.
+ * This class is used by the H2 Console, to support auto-complete.
+ */
 public class DbContextRule implements Rule {
     DbContents contents;
     int type;
     static final int COLUMN = 0, TABLE = 1, TABLE_ALIAS = 2;
-    public static final int NEW_TABLE_ALIAS = 3; 
-    public static final int COLUMN_ALIAS = 4; 
+    public static final int NEW_TABLE_ALIAS = 3;
+    public static final int COLUMN_ALIAS = 4;
     private static final boolean SUGGEST_TABLE_ALIAS = false;
-    
+
     DbContextRule(DbContents contents, int type) {
         this.contents = contents;
         this.type = type;
@@ -65,7 +69,7 @@ public class DbContextRule implements Rule {
         default:
         }
     }
-    
+
     private void addTableAlias(String query, Sentence sentence) {
         String q = StringUtils.toUpperEnglish(query.trim());
         HashMap map = sentence.getAliases();
@@ -133,7 +137,7 @@ public class DbContextRule implements Rule {
             }
         }
     }
-    
+
 //    private boolean startWithIgnoreCase(String a, String b) {
 //        if(a.length() < b.length()) {
 //            return false;

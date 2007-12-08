@@ -10,7 +10,8 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * @author Thomas
+ * The cursor for a hash index.
+ * At most one row can be accessed.
  */
 public class HashCursor implements Cursor {
     private Row row;
@@ -23,11 +24,11 @@ public class HashCursor implements Cursor {
     public Row get() {
         return row;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return row;
     }
-    
+
     public int getPos() {
         return row.getPos();
     }

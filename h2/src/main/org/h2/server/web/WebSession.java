@@ -17,15 +17,19 @@ import java.util.Locale;
 import org.h2.bnf.Bnf;
 import org.h2.message.TraceSystem;
 
+/**
+ * The web session keeps all data of a user session.
+ * This class is used by the H2 Console.
+ */
 public class WebSession {
     long lastAccess;
     HashMap map = new HashMap();
     Locale locale;
     WebServer server;
-    
+
     private static final int MAX_HISTORY = 1000;
     private ArrayList commandHistory = new ArrayList();
-    
+
     private Connection conn;
     private DatabaseMetaData meta;
     private DbContents contents = new DbContents();
@@ -37,15 +41,15 @@ public class WebSession {
     private Bnf bnf;
     Statement executingStatement;
     ResultSet result;
-    
+
     WebSession(WebServer server) {
         this.server = server;
     }
-    
+
     public void put(String key, Object value) {
         map.put(key, value);
     }
-    
+
     public Object get(String key) {
         if ("sessions".equals(key)) {
             return server.getSessions();
@@ -60,7 +64,7 @@ public class WebSession {
     public Bnf getBnf() {
         return bnf;
     }
-    
+
     void loadBnf() {
         try {
             Bnf newBnf = Bnf.getInstance(null);
@@ -91,13 +95,13 @@ public class WebSession {
         } catch (Exception e) {
             // ok we don't have the bnf
             e.printStackTrace();
-        }        
+        }
     }
-    
+
     String getCommand(int id) {
         return (String) commandHistory.get(id);
     }
-    
+
     void addCommand(String sql) {
         if (sql == null) {
             return;
@@ -144,7 +148,7 @@ public class WebSession {
         }
         contents = new DbContents();
     }
-    
+
     DatabaseMetaData getMetaData() {
         return meta;
     }

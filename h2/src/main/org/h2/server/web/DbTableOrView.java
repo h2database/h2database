@@ -9,13 +9,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/**
+ * Contains meta data information about a table or a view.
+ * This class is used by the H2 Console.
+ */
 public class DbTableOrView {
     DbSchema schema;
     String name;
     String quotedName;
     boolean isView;
     DbColumn[] columns;
-    
+
     DbTableOrView(DbSchema schema, ResultSet rs) throws SQLException {
         this.schema = schema;
         name = rs.getString("TABLE_NAME");
@@ -23,7 +27,7 @@ public class DbTableOrView {
         isView = "VIEW".equals(type);
         quotedName = schema.contents.quoteIdentifier(name);
     }
-    
+
     public void readColumns(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
         ArrayList list = new ArrayList();

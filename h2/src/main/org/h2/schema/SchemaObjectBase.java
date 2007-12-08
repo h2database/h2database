@@ -6,21 +6,24 @@ package org.h2.schema;
 
 import org.h2.engine.DbObjectBase;
 
+/**
+ * The base class for classes implementing SchemaObject.
+ */
 public abstract class SchemaObjectBase extends DbObjectBase implements SchemaObject {
 
     private Schema schema;
-    
+
     protected SchemaObjectBase(Schema schema, int id, String name, String traceModule) {
         super(schema.getDatabase(), id, name, traceModule);
         this.schema = schema;
     }
-    
+
     public Schema getSchema() {
         return schema;
     }
-    
+
     public String getSQL() {
         return schema.getSQL() + "." + super.getSQL();
     }
-    
+
 }

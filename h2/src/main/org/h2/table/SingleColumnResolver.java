@@ -7,6 +7,10 @@ package org.h2.table;
 import org.h2.command.dml.Select;
 import org.h2.value.Value;
 
+/**
+ * The single column resolver is like a table with exactly one row.
+ * It is used to parse a simple one-column check constraint.
+ */
 public class SingleColumnResolver implements ColumnResolver {
 
     private final Column column;

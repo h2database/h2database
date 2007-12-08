@@ -8,12 +8,15 @@ import java.sql.SQLException;
 
 import org.h2.store.DataPage;
 
+/**
+ * The head element of the linked list.
+ */
 public class CacheHead extends CacheObject {
 
     public int getByteCount(DataPage dummy) throws SQLException {
         return 0;
     }
-    
+
     public void write(DataPage buff) throws SQLException {
     }
 

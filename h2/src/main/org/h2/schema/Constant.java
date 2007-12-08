@@ -14,11 +14,15 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.value.Value;
 
+/**
+ * A user defined constant as created by the SQL statement
+ * CREATE CONSTANT
+ */
 public class Constant extends SchemaObjectBase {
-    
+
     private Value value;
     private ValueExpression expression;
-    
+
     public Constant(Schema schema, int id, String name) {
         super(schema, id, name, Trace.SCHEMA);
     }
@@ -26,7 +30,7 @@ public class Constant extends SchemaObjectBase {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
-    
+
     public String getDropSQL() {
         return null;
     }

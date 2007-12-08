@@ -15,10 +15,14 @@ import org.h2.table.RangeTable;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
+/**
+ * An index for the SYSTEM_RANGE table.
+ * This index can only scan through all rows, search is not supported.
+ */
 public class RangeIndex extends BaseIndex {
-    
-    private long min, max; 
-    
+
+    private long min, max;
+
     public RangeIndex(RangeTable table, IndexColumn[] columns, long min, long max) {
         super(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
         this.min = min;

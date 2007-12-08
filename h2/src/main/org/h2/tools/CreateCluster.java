@@ -15,11 +15,9 @@ import org.h2.util.JdbcUtils;
 /**
  * Tool to create a database cluster.
  * This will copy a database to another location if required, and modify the cluster setting.
- * 
- * @author Thomas
  */
 public class CreateCluster {
-    
+
     private void showUsage() {
         System.out.println("java "+getClass().getName()
                 + " -urlSource <url> -urlTarget <url> -user <user> [-password <pwd>] -serverlist <serverlist>");
@@ -27,17 +25,17 @@ public class CreateCluster {
 
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-urlSource", "jdbc:h2:test",... 
+     * The options must be split into strings like this: "-urlSource", "jdbc:h2:test",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
      * </li><li>-urlSource jdbc:h2:... (the database URL of the source database)
      * </li><li>-urlTarget jdbc:h2:... (the database URL of the target database)
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new CreateCluster().run(args);
     }
@@ -68,18 +66,18 @@ public class CreateCluster {
             showUsage();
             return;
         }
-        
+
         execute(urlSource, urlTarget, user, password, serverlist);
     }
-    
+
     /**
      * Creates a cluster.
-     * 
+     *
      * @param urlSource the database URL of the original database
      * @param urlTarget the database URL of the copy
      * @param user the user name
      * @param password the password
-     * @param serverlist the server list 
+     * @param serverlist the server list
      * @throws SQLException
      */
     public static void execute(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
@@ -102,15 +100,15 @@ public class CreateCluster {
             if (exists) {
                 throw new SQLException("Target database must not yet exist. Please delete it first");
             }
-            
+
             // TODO cluster: need to open the database in exclusive mode, so that other applications
             // cannot change the data while it is restoring the second database. But there is currently no exclusive mode.
-            
+
             String scriptFile = "backup.sql";
             Script.execute(urlSource, user, password, scriptFile);
             RunScript.execute(urlTarget, user, password, scriptFile, null, false);
             FileUtils.delete(scriptFile);
-            
+
             // set the cluster to the serverlist on both databases
             conn = DriverManager.getConnection(urlSource, user, password);
             stat = conn.createStatement();
@@ -124,5 +122,5 @@ public class CreateCluster {
             JdbcUtils.closeSilently(stat);
         }
     }
-    
+
 }

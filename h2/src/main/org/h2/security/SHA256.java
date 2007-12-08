@@ -6,6 +6,9 @@ package org.h2.security;
 
 import java.util.Arrays;
 
+/**
+ * This class implements the cryptographic hash function SHA-256.
+ */
 public class SHA256 {
 
     // TODO maybe implement WHIRLPOOL

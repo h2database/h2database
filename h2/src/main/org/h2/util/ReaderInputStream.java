@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
- * Initial Developer: H2 Group 
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.util;
 
@@ -18,11 +18,10 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
- * @author Thomas
+ * The reader input stream wraps a reader and convert the character to the UTF-8 format.
  */
-
 public class ReaderInputStream extends InputStream {
-    
+
     private final Reader reader;
     private final char[] chars;
     private final ByteArrayOutputStream out;
@@ -30,7 +29,7 @@ public class ReaderInputStream extends InputStream {
     private int pos;
     private int remaining;
     private byte[] buffer;
-    
+
     public ReaderInputStream(Reader reader) throws SQLException {
         chars = new char[Constants.IO_BUFFER_SIZE];
         this.reader = reader;
@@ -41,14 +40,14 @@ public class ReaderInputStream extends InputStream {
             throw Message.convert(e);
         }
     }
-    
+
     private void fillBuffer() throws IOException {
         if (remaining == 0) {
             pos = 0;
             remaining = reader.read(chars, 0, Constants.IO_BUFFER_SIZE);
             if (remaining < 0) {
                 return;
-            }          
+            }
             writer.write(chars, 0, remaining);
             writer.flush();
             buffer = out.toByteArray();

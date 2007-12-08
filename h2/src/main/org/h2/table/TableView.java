@@ -24,6 +24,9 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
+/**
+ * A view is a virtual table that is defined by a query.
+ */
 public class TableView extends Table {
 
     private String querySQL;
@@ -47,13 +50,13 @@ public class TableView extends Table {
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
-    
+
     public Query recompileQuery(Session session) throws SQLException {
         Prepared p = session.prepare(querySQL);
         if (!(p instanceof Query)) {
             throw Message.getSyntaxError(querySQL, 0);
         }
-        Query query = (Query) p;        
+        Query query = (Query) p;
         querySQL = query.getPlanSQL();
         return query;
     }
@@ -222,7 +225,7 @@ public class TableView extends Table {
         index = null;
         invalidate();
     }
-    
+
     public String getSQL() {
         if (getTemporary()) {
             StringBuffer buff = new StringBuffer(querySQL.length());

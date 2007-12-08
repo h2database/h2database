@@ -7,17 +7,17 @@ package org.h2.index;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * An index entry of a linear hash index.
  */
 public class LinearHashEntry {
-    
+
 //    private LinearHashEntry(int home, int hash, Value key, int value) {
 //        this.home = home;
 //        this.hash = hash;
 //        this.key = key;
 //        this.value = value;
 //    }
-    
+
     public int home;
     public int hash;
     public Value key;

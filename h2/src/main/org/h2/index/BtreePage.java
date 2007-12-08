@@ -17,11 +17,11 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * An abstract b-tree page.
  */
 public abstract class BtreePage extends Record {
     // TODO btree: make sure the indexed data is at most half this size! (and find a solution to work around this problem!)
-    // TODO memory: the btree page needs a lot of memory (in the cache) - probably better not use ObjectArray but array; 
+    // TODO memory: the btree page needs a lot of memory (in the cache) - probably better not use ObjectArray but array;
     // not Row but ValueList / Value (for single key index), int array for row pos
 
     protected static final int BLOCKS_PER_PAGE = 1024 / DiskFile.BLOCK_SIZE;

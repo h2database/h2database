@@ -13,7 +13,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * @author Thomas
+ * The cursor implementation for the b tree index.
  */
 public class BtreeCursor implements Cursor {
     private BtreeIndex index;

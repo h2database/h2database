@@ -18,6 +18,9 @@ import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
+/**
+ * The base class for objects that can print trace information about themselves.
+ */
 public class TraceObject {
     public static final int CALLABLE_STATEMENT = 0, CONNECTION = 1, DATABASE_META_DATA = 2,
         PREPARED_STATEMENT = 3, RESULT_SET = 4, RESULT_SET_META_DATA = 5,

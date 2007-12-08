@@ -15,6 +15,9 @@ import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
+/**
+ * This class implements the disk buffer for the LocalResult class.
+ */
 class ResultDiskBuffer {
 
     private static final int READ_AHEAD = 128;
@@ -25,6 +28,15 @@ class ResultDiskBuffer {
     private ResultDiskTape mainTape;
     private SortOrder sort;
     private int columnCount;
+
+    /**
+     * Represents a virtual disk tape for the merge sort algorithm.
+     * Each virtual disk tape is a region of the temp file.
+     */
+    private static class ResultDiskTape {
+        long start, end, pos;
+        ObjectArray buffer = new ObjectArray();
+    }
 
     public ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
         this.sort = sort;

@@ -24,14 +24,17 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * This file system stores everything in a database.
+ */
 public class FileSystemDatabase extends FileSystem {
-    
+
     private Connection conn;
     private String url;
     private static final HashMap INSTANCES = new HashMap();
     private HashMap preparedMap = new HashMap();
     private boolean log;
-    
+
     public static synchronized FileSystem getInstance(String url) {
         int idx = url.indexOf('/');
         if (idx > 0) {
@@ -57,7 +60,7 @@ public class FileSystemDatabase extends FileSystem {
             throw Message.getInternalError("Can not connect to " + url, e);
         }
     }
-    
+
     public void close() {
         JdbcUtils.closeSilently(conn);
     }
@@ -69,11 +72,11 @@ public class FileSystemDatabase extends FileSystem {
         Statement stat = conn.createStatement();
         conn.setAutoCommit(false);
         stat.execute("SET ALLOW_LITERALS NONE");
-        stat.execute("CREATE TABLE IF NOT EXISTS FILES(" 
+        stat.execute("CREATE TABLE IF NOT EXISTS FILES("
                 + "ID IDENTITY, PARENTID BIGINT, NAME VARCHAR, "
-                + "LASTMODIFIED BIGINT, LENGTH BIGINT, " 
+                + "LASTMODIFIED BIGINT, LENGTH BIGINT, "
                 + "UNIQUE(PARENTID, NAME))");
-        stat.execute("CREATE TABLE IF NOT EXISTS FILEDATA(" 
+        stat.execute("CREATE TABLE IF NOT EXISTS FILEDATA("
                 + "ID BIGINT PRIMARY KEY, DATA BLOB)");
         PreparedStatement prep = conn.prepareStatement("SET MAX_LENGTH_INPLACE_LOB ?");
         prep.setLong(1, 4096);
@@ -93,7 +96,7 @@ public class FileSystemDatabase extends FileSystem {
             }
         }
     }
-    
+
     private void commit() {
         try {
             conn.commit();
@@ -113,13 +116,13 @@ public class FileSystemDatabase extends FileSystem {
             }
         }
     }
-    
+
     private void log(String s) {
         if (log) {
             System.out.println(s);
         }
     }
-    
+
     private long getId(String fileName, boolean parent) {
         fileName = translateFileName(fileName);
         log(fileName);
@@ -145,7 +148,7 @@ public class FileSystemDatabase extends FileSystem {
             throw convert(e);
         }
     }
-    
+
     private String translateFileName(String fileName) {
         if (fileName.startsWith(url)) {
             fileName = fileName.substring(url.length());
@@ -161,7 +164,7 @@ public class FileSystemDatabase extends FileSystem {
         }
         return prep;
     }
-    
+
     private RuntimeException convert(SQLException e) {
         if (log) {
             e.printStackTrace();
@@ -423,7 +426,7 @@ public class FileSystemDatabase extends FileSystem {
         }
         return true;
     }
-    
+
     synchronized void write(String fileName, byte[] b, int len) throws IOException {
         try {
             long id = getId(fileName, false);

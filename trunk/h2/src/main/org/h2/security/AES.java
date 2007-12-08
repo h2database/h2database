@@ -8,9 +8,8 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
- * AES-128
- * @author Tom
- *
+ * An implementation of the AES block cipher algorithm,
+ * also known as Rijndael. Only AES-128 is supported by this class.
  */
 public class AES implements BlockCipher {
 

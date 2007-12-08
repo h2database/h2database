@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
+/**
+ * This class is responsible to read resources and generate the ResourceData.java file from the resources.
+ */
 public class Resources {
 
     private static final HashMap FILES = new HashMap();

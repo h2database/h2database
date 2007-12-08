@@ -80,7 +80,13 @@ public class TestRunscript extends TestBase implements Trigger {
         conn2.close();
     }
 
-    public void init(Connection conn, String schemaName, String triggerName, String tableName) {
+    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
+        if (!before) {
+            throw new InternalError("before:" + before);
+        }
+        if (type != INSERT) {
+            throw new InternalError("type:" + type);
+        }
     }
 
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {

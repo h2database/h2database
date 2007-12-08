@@ -8,10 +8,24 @@ import java.sql.SQLException;
 
 import org.h2.jdbc.JdbcConnection;
 
+/**
+ * The JDBC connection listener is used internally by the H2 XA connection.
+ */
 public interface JdbcConnectionListener {
-    
+
     // TODO pooled connection: make sure fatalErrorOccurred is called in the right situations
+    /**
+     * A fatal error occured.
+     *
+     * @param conn the connection
+     * @param e the exception
+     */
     void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException;
-    
+
+    /**
+     * A connection was closed
+     *
+     * @param conn the connection
+     */
     void closed(JdbcConnection conn);
 }

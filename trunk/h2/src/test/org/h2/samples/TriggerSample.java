@@ -41,7 +41,7 @@ public class TriggerSample {
 
     public static class MyTrigger implements Trigger {
 
-        public void init(Connection conn, String schemaName, String triggerName, String tableName) {
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
             // System.out.println("Initializing trigger " + triggerName + " for table " + tableName);
         }
 

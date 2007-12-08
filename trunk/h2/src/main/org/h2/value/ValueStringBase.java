@@ -10,6 +10,9 @@ import java.sql.SQLException;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * The base class for all ValueString* classes.
+ */
 abstract class ValueStringBase extends Value {
     protected final String value;
 
@@ -47,10 +50,10 @@ abstract class ValueStringBase extends Value {
 
     public int getDisplaySize() {
         return value.length();
-    }   
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueString && value.equals(((ValueString) v).value);
-    }    
+    }
 
 }

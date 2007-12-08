@@ -23,7 +23,10 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
 /**
- * @author Thomas
+ * This class implements a subset of the PostgreSQL protocol as described here:
+ * http://developer.postgresql.org/pgdocs/postgres/protocol.html
+ * The PostgreSQL catalog is described here:
+ * http://www.postgresql.org/docs/7.4/static/catalogs.html
  */
 public class PgServer implements Service {
 
@@ -38,7 +41,7 @@ public class PgServer implements Service {
     private String url;
     private boolean allowOthers;
     private boolean ifExists;
-    
+
     public void init(String[] args) throws Exception {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
@@ -57,7 +60,7 @@ public class PgServer implements Service {
         }
         org.h2.Driver.load();
         url = "pg://localhost:" + port;
-        
+
 //        int testing;
 //        log = true;
     }
@@ -177,7 +180,7 @@ public class PgServer implements Service {
     public String getType() {
         return "PG";
     }
-    
+
     public String getName() {
         return "H2 PG Server";
     }
@@ -185,7 +188,7 @@ public class PgServer implements Service {
     public boolean getIfExists() {
         return ifExists;
     }
-    
+
     public static String getIndexColumn(Connection conn, int indexId, Integer ordinalPosition, Boolean pretty)
             throws SQLException {
         if (ordinalPosition == null || ordinalPosition.intValue() == 0) {
@@ -207,13 +210,13 @@ public class PgServer implements Service {
             return null;
         }
     }
-    
+
     public static String getCurrentSchema(Connection conn) throws SQLException {
         ResultSet rs = conn.createStatement().executeQuery("call schema()");
         rs.next();
         return rs.getString(1);
     }
-    
+
     public static String getEncodingName(int code) throws SQLException {
         switch (code) {
         case 0:
@@ -226,15 +229,15 @@ public class PgServer implements Service {
             return code < 40 ? "UTF8" : "";
         }
     }
-    
+
     public static String getVersion() {
         return "PostgreSQL 8.1.4  server protocol using H2 " + Constants.getVersion();
     }
-    
+
     public static Timestamp getStartTime() {
         return new Timestamp(System.currentTimeMillis());
     }
-    
+
     public static String getUserById(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT NAME FROM INFORMATION_SCHEMA.USERS WHERE ID=?");
         prep.setInt(1, id);
@@ -244,15 +247,15 @@ public class PgServer implements Service {
         }
         return null;
     }
-    
+
     public static boolean hasDatabasePrivilege(int id, String privilege) {
         return true;
     }
-    
+
     public static boolean hasTablePrivilege(String table, String privilege) {
         return true;
     }
-    
+
     public static int getCurrentTid(String table, String id) {
         return 1;
     }

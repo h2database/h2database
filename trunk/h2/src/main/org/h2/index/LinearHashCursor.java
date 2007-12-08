@@ -10,7 +10,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * @author Thomas
+ * The cursor implementation for the linear hash index.
  */
 public class LinearHashCursor implements Cursor {
     private Row row;
@@ -23,11 +23,11 @@ public class LinearHashCursor implements Cursor {
     public Row get() {
         return row;
     }
-    
+
     public SearchRow getSearchRow() throws SQLException {
         return row;
     }
-    
+
     public int getPos() {
         return row.getPos();
     }
@@ -40,5 +40,5 @@ public class LinearHashCursor implements Cursor {
         end = true;
         return true;
     }
-    
+
 }

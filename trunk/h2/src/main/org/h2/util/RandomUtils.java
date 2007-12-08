@@ -13,6 +13,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+/**
+ * Utility class that supports random and secure random functions.
+ * In some systems SecureRandom initialization is very slow, a workaround is implemented here.
+ */
 public class RandomUtils {
 
     private static SecureRandom secureRandom;

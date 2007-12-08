@@ -11,13 +11,10 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
- * Special behavior of the cache: You are not allowed to add the same record
- * twice.
- *
- * @author Thomas
+ * A cache implementation based on the last recently used (LRU) algorithm.
  */
 public class CacheLRU implements Cache {
-    
+
     public static final String TYPE_NAME = "LRU";
 
     private final CacheWriter writer;
@@ -105,8 +102,8 @@ public class CacheLRU implements Cache {
             CacheObject last = head.next;
             if (SysProperties.CHECK && last == head) {
                 throw Message.getInternalError("try to remove head");
-            }            
-            // we are not allowed to remove it if the log is not yet written 
+            }
+            // we are not allowed to remove it if the log is not yet written
             // (because we need to log before writing the data)
             // also, can't write it if the record is pinned
             if (!last.canRemove()) {
@@ -196,7 +193,7 @@ public class CacheLRU implements Cache {
         }
         return rec;
     }
-    
+
 //    private void testConsistency() {
 //        int s = size;
 //        HashSet set = new HashSet();
@@ -231,7 +228,7 @@ public class CacheLRU implements Cache {
 //            testConsistency();
 //        }
         // TODO cache: should probably use the LRU list
-        ObjectArray list = new ObjectArray();         
+        ObjectArray list = new ObjectArray();
         for (int i = 0; i < len; i++) {
             CacheObject rec = values[i];
             while (rec != null) {
@@ -252,15 +249,15 @@ public class CacheLRU implements Cache {
         }
         return list;
     }
-    
+
     public void setMaxSize(int maxKb) throws SQLException {
-        int newSize = maxKb * 1024 / 4;        
+        int newSize = maxKb * 1024 / 4;
         maxSize = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost
         // resize(maxSize);
         removeOldIfRequired();
     }
-    
+
     public String getTypeName() {
         return TYPE_NAME;
     }

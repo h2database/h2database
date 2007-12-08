@@ -16,17 +16,21 @@ import java.util.zip.ZipFile;
 
 import org.h2.message.Message;
 
+/**
+ * This is a read-only file system that allows
+ * to access databases stored in a .zip or .jar file.
+ */
 public class FileSystemZip extends FileSystem {
-    
+
     private static final FileSystemZip INSTANCE = new FileSystemZip();
-    
+
     private FileSystemZip() {
     }
-    
+
     public static FileSystemZip getInstance() {
         return INSTANCE;
     }
-    
+
     public boolean canWrite(String fileName) {
         return false;
     }
@@ -183,7 +187,7 @@ public class FileSystemZip extends FileSystem {
     public String normalize(String fileName) throws SQLException {
         return fileName;
     }
-    
+
     public InputStream openFileInputStream(String fileName) throws IOException {
         FileObject file = openFileObject(fileName, "r");
         return new FileObjectInputStream(file);
@@ -220,7 +224,7 @@ public class FileSystemZip extends FileSystem {
         }
         return fileName;
     }
-    
+
     private String getEntryName(String fileName) {
         int idx = fileName.indexOf('!');
         if (idx <= 0) {
@@ -233,7 +237,7 @@ public class FileSystemZip extends FileSystem {
         }
         return fileName;
     }
-    
+
     private ZipFile openZipFile(String fileName) throws IOException {
         fileName = translateFileName(fileName);
         return new ZipFile(fileName);

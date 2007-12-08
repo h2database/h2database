@@ -24,6 +24,10 @@ import org.h2.table.TableData;
 import org.h2.table.TableLink;
 import org.h2.util.ObjectArray;
 
+/**
+ * A schema as created by the SQL statement
+ * CREATE SCHEMA
+ */
 public class Schema extends DbObjectBase {
 
     private User owner;

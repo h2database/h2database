@@ -4,7 +4,10 @@
  */
 package org.h2.log;
 
-
+/**
+ * The session state contains information about when was the last commit of a session.
+ * It is only used during recovery.
+ */
 public class SessionState {
     int sessionId;
     int lastCommitLog;

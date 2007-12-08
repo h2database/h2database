@@ -9,7 +9,9 @@ import java.sql.SQLException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
-
+/**
+ * The cursor implementation for a tree index.
+ */
 public class TreeCursor implements Cursor {
     private TreeIndex tree;
     private TreeNode node;

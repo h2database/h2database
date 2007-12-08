@@ -11,8 +11,11 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
+/**
+ * The cursor implementation for the multi-version index.
+ */
 public class MultiVersionCursor implements Cursor {
-    
+
     private final MultiVersionIndex index;
     private final Session session;
     private final Cursor baseCursor, deltaCursor;
@@ -22,7 +25,7 @@ public class MultiVersionCursor implements Cursor {
     private boolean onBase;
     private boolean end;
     private boolean needNewDelta, needNewBase;
-    
+
     MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) throws SQLException {
         this.session = session;
         this.index = index;
@@ -31,7 +34,7 @@ public class MultiVersionCursor implements Cursor {
         this.sync = sync;
         needNewDelta = needNewBase = true;
     }
-    
+
     private void loadNext(boolean base) throws SQLException {
         synchronized (sync) {
             if (base) {

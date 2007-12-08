@@ -8,6 +8,11 @@ import java.lang.ref.SoftReference;
 
 import org.h2.constant.SysProperties;
 
+/**
+ * The string cache helps re-use string objects and therefore save memory.
+ * It uses a soft reference cache to keep frequently used strings in memory.
+ * The effect is similar to calling String.intern(), but faster.
+ */
 public class StringCache {
     private static final boolean ENABLED = true;
     private static SoftReference softCache = new SoftReference(null);
@@ -38,7 +43,7 @@ public class StringCache {
 //        replace(index, s);
 //        return s;
 //    }
-    
+
     // 3500
 //    public static String get(String s) {
 //        return s;
@@ -71,7 +76,7 @@ public class StringCache {
         cache[index] = s;
         return s;
     }
-    
+
     public static String getNew(String s) {
         if (!SysProperties.OBJECT_CACHE || !ENABLED) {
             return s;
@@ -100,7 +105,7 @@ public class StringCache {
         cache[index] = s;
         return s;
     }
-    
+
     public static void clearCache() {
         softCache = new SoftReference(null);
     }

@@ -11,22 +11,25 @@ import org.h2.store.DataHandler;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
+/**
+ * This hash map supports keys of type Value and values of type Object.
+ */
 public class ValueHashMap extends HashBase {
 
     private Value[] keys;
     private Object[] values;
     private DataHandler database;
-    
+
     public ValueHashMap(DataHandler database) {
         this.database = database;
     }
-    
+
     protected void reset(int newLevel) {
         super.reset(newLevel);
         keys = new Value[len];
         values = new Object[len];
-    }    
-    
+    }
+
     protected void rehash(int newLevel) throws SQLException {
         Value[] oldKeys = keys;
         Object[] oldValues = values;
@@ -36,13 +39,13 @@ public class ValueHashMap extends HashBase {
             if (k != null && k != ValueNull.DELETED) {
                 put(k, oldValues[i]);
             }
-        }        
+        }
     }
-    
+
     private int getIndex(Value key) {
         return key.hashCode() & mask;
     }
-    
+
     public void put(Value key, Object value) throws SQLException {
         checkSizePut();
         int index = getIndex(key);
@@ -100,7 +103,7 @@ public class ValueHashMap extends HashBase {
         } while(plus <= len);
         // not found
     }
-    
+
     public Object get(Value key) throws SQLException {
         int index = getIndex(key);
         int plus = 1;

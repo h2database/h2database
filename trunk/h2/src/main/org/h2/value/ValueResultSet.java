@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.tools.SimpleResultSet;
 
+/**
+ * Implementation of the RESULT_SET data type.
+ */
 public class ValueResultSet extends Value {
 
     private final ResultSet result;

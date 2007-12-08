@@ -15,13 +15,6 @@ import java.sql.Date;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-//#ifdef JDK16
-/*
-import java.sql.NClob;
-import java.sql.RowId;
-import java.sql.SQLXML;
-*/
-//#endif
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
@@ -37,10 +30,10 @@ import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.UpdatableRow;
-import org.h2.util.ByteUtils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -437,7 +430,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             Value v = get(columnIndex);
             if (Constants.SERIALIZE_JAVA_OBJECTS) {
                 if (v.getType() == Value.JAVA_OBJECT) {
-                    return ByteUtils.deserialize(v.getBytesNoCopy());
+                    return ObjectUtils.deserialize(v.getBytesNoCopy());
                 }
             }
             return v.getObject();
@@ -459,7 +452,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             Value v = get(columnName);
             if (Constants.SERIALIZE_JAVA_OBJECTS) {
                 if (v.getType() == Value.JAVA_OBJECT) {
-                    return ByteUtils.deserialize(v.getBytesNoCopy());
+                    return ObjectUtils.deserialize(v.getBytesNoCopy());
                 }
             }
             return v.getObject();

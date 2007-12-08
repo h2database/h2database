@@ -4,6 +4,11 @@
  */
 package org.h2.util;
 
+/**
+ * This class contains resource data.
+ * The dummy implementation is usually not used: the build process creates the source code
+ * from the resources.
+ */
 class ResourceData {
     public static void load() {
         // dummy implementation

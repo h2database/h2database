@@ -20,6 +20,8 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
+ * An inner page of a b-tree index.
+ *
  * Page format:
  * N children.len children[0..len] data.len { data[0].pos [data[0]], ...  }
  *

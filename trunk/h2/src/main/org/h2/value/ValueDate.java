@@ -12,7 +12,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.util.DateTimeUtils;
 
 /**
- * @author Thomas
+ * Implementation of the DATE data type.
  */
 public class ValueDate extends Value {
     public static final int PRECISION = 8;
@@ -32,10 +32,10 @@ public class ValueDate extends Value {
         // this class is mutable - must copy the object
         return (Date) value.clone();
     }
-    
+
     public Date getDateNoCopy() {
         return value;
-    }    
+    }
 
     public String getSQL() {
         return "DATE '" + getString() + "'";
@@ -76,11 +76,11 @@ public class ValueDate extends Value {
         date = DateTimeUtils.cloneAndNormalizeDate(date);
         return getNoCopy(date);
     }
-    
+
     public static ValueDate getNoCopy(Date date) {
         return (ValueDate) Value.cache(new ValueDate(date));
-    }    
-    
+    }
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }

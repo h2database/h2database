@@ -6,13 +6,17 @@ package org.h2.log;
 
 import org.h2.store.Storage;
 
+/**
+ * Represents a redo-log record.
+ * Such records are only used when recovering.
+ */
 public class RedoLogRecord {
     public Storage storage;
     public int sequenceId;
     public int recordId;
     public int offset;
     public byte[] data;
-    
+
     public int getSize() {
         // estimated memory size in bytes ((5 variables+myself) * 4 bytes each)
         if (data == null) {

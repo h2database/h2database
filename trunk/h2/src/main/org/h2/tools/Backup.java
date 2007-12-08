@@ -19,10 +19,8 @@ import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 
-/*
+/**
  * Backs up a H2 database by creating a .zip file from the database files.
- * 
- * @author Thomas
  */
 public class Backup {
 
@@ -30,10 +28,10 @@ public class Backup {
         System.out.println("java "+getClass().getName()
                 + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
     }
-    
+
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",... 
+     * The options must be split into strings like this: "-db", "test",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -42,14 +40,14 @@ public class Backup {
      * </li><li>-db database name (not required if there is only one database)
      * </li><li>-quiet does not print progress information
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new Backup().run(args);
     }
-    
+
     private void run(String[] args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
@@ -74,13 +72,13 @@ public class Backup {
 
     /**
      * Backs up database files.
-     * 
+     *
      * @param zipFileName the name of the backup file
      * @param directory the directory name
      * @param db the database name (null if there is only one database)
      * @param quiet don't print progress information
      * @throws SQLException
-     */    
+     */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {

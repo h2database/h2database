@@ -51,16 +51,13 @@ import org.h2.value.ValueLob;
  * Dumps the contents of a database file to a human readable text file.
  * This text file can be used to recover most of the data.
  * This tool does not open the database and can be used even if the database files are corrupted.
- * A database can get corrupted if there is a bug in the database engine or file system software, 
- * or if an application writes into the database file that doesn't understand the the file format, 
+ * A database can get corrupted if there is a bug in the database engine or file system software,
+ * or if an application writes into the database file that doesn't understand the the file format,
  * or if there is a hardware problem.
- * 
- * @author Thomas
- *
  */
 public class Recover implements DataHandler {
-    
-    private String databaseName;    
+
+    private String databaseName;
     private boolean textStorage;
     private int block;
     private int blockCount;
@@ -72,10 +69,10 @@ public class Recover implements DataHandler {
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
     }
-    
+
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",... 
+     * The options must be split into strings like this: "-db", "test",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -83,14 +80,14 @@ public class Recover implements DataHandler {
      * </li><li>-db database name (all databases if no name is specified)
      * </li><li>-log {true|false} (log additional messages)
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new Recover().run(args);
     }
-    
+
     private void run(String[] args) throws SQLException {
         String dir = ".";
         String db = null;
@@ -116,21 +113,21 @@ public class Recover implements DataHandler {
             process(dir, db);
         }
     }
-    
+
     /**
      * INTERNAL
      */
     public static Reader readClob(String fileName) throws IOException {
         return new BufferedReader(new InputStreamReader(readBlob(fileName)));
     }
-    
+
     /**
      * INTERNAL
      */
     public static InputStream readBlob(String fileName) throws IOException {
         return new BufferedInputStream(new FileInputStream(fileName));
     }
-    
+
     private void removePassword(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
         for (int i = 0; i < list.size(); i++) {
@@ -264,7 +261,7 @@ public class Recover implements DataHandler {
 
     /**
      * Dumps the database.
-     * 
+     *
      * @param dir the directory
      * @param db the database name (null for all databases)
      * @throws SQLException
@@ -272,7 +269,7 @@ public class Recover implements DataHandler {
     public static void execute(String dir, String db) throws SQLException {
         new Recover().process(dir, db);
     }
-    
+
     private void process(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
         for (int i = 0; i < list.size(); i++) {

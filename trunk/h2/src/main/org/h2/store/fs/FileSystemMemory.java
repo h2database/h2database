@@ -13,6 +13,10 @@ import java.util.HashMap;
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
 
+/**
+ * This file system keeps files fully in memory.
+ * There is an option to compress file blocks to safe memory.
+ */
 public class FileSystemMemory extends FileSystem {
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
@@ -21,14 +25,14 @@ public class FileSystemMemory extends FileSystem {
     public static FileSystemMemory getInstance() {
         return INSTANCE;
     }
-    
+
     private FileSystemMemory() {
     }
 
     public long length(String fileName) {
         return getMemoryFile(fileName).length();
     }
-    
+
     public void rename(String oldName, String newName) throws SQLException {
         FileObjectMemory f = getMemoryFile(oldName);
         f.setName(newName);
@@ -37,7 +41,7 @@ public class FileSystemMemory extends FileSystem {
             MEMORY_FILES.put(newName, f);
         }
     }
-    
+
     public boolean createNewFile(String fileName) throws SQLException {
         if (exists(fileName)) {
             return false;
@@ -58,7 +62,7 @@ public class FileSystemMemory extends FileSystem {
             MEMORY_FILES.remove(fileName);
         }
     }
-    
+
     public boolean tryDelete(String fileName) {
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
@@ -77,7 +81,7 @@ public class FileSystemMemory extends FileSystem {
             }
         }
     }
-    
+
     public String[] listFiles(String path) throws SQLException {
         synchronized (MEMORY_FILES) {
             String[] list = new String[MEMORY_FILES.size()];
@@ -93,43 +97,43 @@ public class FileSystemMemory extends FileSystem {
     public void deleteRecursive(String fileName) throws SQLException {
         throw Message.getUnsupportedException();
     }
-    
+
     public boolean isReadOnly(String fileName) {
         return false;
     }
-    
+
     public String normalize(String fileName) throws SQLException {
         return fileName;
     }
-    
+
     public String getParent(String fileName) {
         int idx = Math.max(fileName.indexOf(':'), fileName.lastIndexOf('/'));
         return fileName.substring(0, idx);
     }
-    
+
     public boolean isDirectory(String fileName) {
         // TODO in memory file system currently doesn't support directories
         return false;
     }
-    
+
     public boolean isAbsolute(String fileName) {
         // TODO relative files are not supported
         return true;
     }
-    
+
     public String getAbsolutePath(String fileName) {
         // TODO relative files are not supported
         return fileName;
     }
-    
+
     public long getLastModified(String fileName) {
         return getMemoryFile(fileName).getLastModified();
     }
-    
+
     public boolean canWrite(String fileName) {
         return true;
     }
-    
+
     public void copy(String original, String copy) throws SQLException {
         try {
             OutputStream out = openFileOutputStream(copy, false);
@@ -148,7 +152,7 @@ public class FileSystemMemory extends FileSystem {
         // TODO directories are not supported
         return name;
     }
-    
+
     public boolean fileStartsWith(String fileName, String prefix) {
         return fileName.startsWith(prefix);
     }
@@ -160,7 +164,7 @@ public class FileSystemMemory extends FileSystem {
             throw Message.convertIOException(e, fileName);
         }
     }
-    
+
     public InputStream openFileInputStream(String fileName) throws IOException {
         return new FileObjectInputStream(getMemoryFile(fileName));
     }
@@ -168,7 +172,7 @@ public class FileSystemMemory extends FileSystem {
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         return getMemoryFile(fileName);
     }
-    
+
     private FileObjectMemory getMemoryFile(String fileName) {
         synchronized (MEMORY_FILES) {
             FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);

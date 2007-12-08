@@ -35,12 +35,13 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
+ * This is the base class for most tables.
  * A table contains a list of columns and a list of rows.
  */
 public abstract class Table extends SchemaObjectBase {
-    
+
     public static final int TYPE_CACHED = 0, TYPE_MEMORY = 1;
-    
+
     public static final String TABLE_LINK = "TABLE LINK";
     public static final String SYSTEM_TABLE = "SYSTEM TABLE";
     public static final String TABLE = "TABLE";
@@ -61,11 +62,11 @@ public abstract class Table extends SchemaObjectBase {
         super(schema, id, name, Trace.TABLE);
         this.persistent = persistent;
     }
-    
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
-    }    
-    
+    }
+
     public ObjectArray getChildren() {
         ObjectArray children = new ObjectArray();
         ObjectArray indexes = getIndexes();
@@ -276,7 +277,7 @@ public abstract class Table extends SchemaObjectBase {
         }
         return column;
     }
-    
+
     /**
      * @param masks - null means 'always false'
      */
@@ -284,7 +285,7 @@ public abstract class Table extends SchemaObjectBase {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null);
-        ObjectArray indexes = getIndexes();               
+        ObjectArray indexes = getIndexes();
         for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
             double cost = index.getCost(session, masks);
@@ -295,7 +296,7 @@ public abstract class Table extends SchemaObjectBase {
         }
         return item;
     }
-    
+
     public Index findPrimaryKey() throws SQLException {
         ObjectArray indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {

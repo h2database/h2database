@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
 
+/**
+ * The head page of a linear hash index.
+ */
 public class LinearHashHead extends Record {
 
     private LinearHashIndex index;
@@ -19,7 +22,7 @@ public class LinearHashHead extends Record {
     LinearHashHead(LinearHashIndex index) {
         this.index = index;
     }
-    
+
     LinearHashHead(LinearHashIndex index, DataPage s) {
         this.index = index;
         baseSize = s.readInt();
@@ -39,7 +42,7 @@ public class LinearHashHead extends Record {
         buff.writeInt(recordCount);
         buff.writeInt(bucketCount);
     }
-    
+
     public boolean isPinned() {
         return true;
     }

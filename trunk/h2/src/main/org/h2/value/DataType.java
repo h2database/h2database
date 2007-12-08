@@ -26,11 +26,14 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
-import org.h2.util.ByteUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * This class contains meta data information about data types,
+ * and can convert between Java objects and Values.
+ */
 public class DataType {
     private static ObjectArray types = new ObjectArray();
     private static HashMap typesByName = new HashMap();
@@ -626,7 +629,7 @@ public class DataType {
         if (type == Value.JAVA_OBJECT) {
             // serialize JAVA_OBJECT, even if the type is known
             if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
+                return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
             }
         }
         if (x instanceof String) {
@@ -681,7 +684,7 @@ public class DataType {
             return ValueArray.get(v);
         } else {
             if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.getNoCopy(ByteUtils.serialize(x));
+                return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
             } else {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
             }

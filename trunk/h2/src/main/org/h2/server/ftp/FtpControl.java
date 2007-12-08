@@ -18,6 +18,9 @@ import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.StringUtils;
 
+/**
+ * The implementation of the control channel of the FTP server.
+ */
 public class FtpControl extends Thread {
 
     private static final String SERVER_NAME = "Small FTP Server";

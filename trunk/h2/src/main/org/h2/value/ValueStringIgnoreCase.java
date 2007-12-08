@@ -8,6 +8,9 @@ import org.h2.constant.SysProperties;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
+/**
+ * Implementation of the VARCHAR_IGNORECASE data type.
+ */
 public class ValueStringIgnoreCase extends ValueStringBase {
 
     private static final ValueStringIgnoreCase EMPTY = new ValueStringIgnoreCase("");
@@ -25,10 +28,10 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         ValueStringIgnoreCase v = (ValueStringIgnoreCase) o;
         return mode.compareString(value, v.value, true);
     }
-    
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
-    }    
+    }
 
     public int hashCode() {
         if (hash == 0) {
@@ -37,7 +40,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         }
         return hash;
     }
-    
+
     public String getSQL() {
         return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
     }

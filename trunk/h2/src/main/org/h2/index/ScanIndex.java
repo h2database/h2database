@@ -26,7 +26,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
- * @author Thomas
+ * The scan index is not really an 'index' in the strict sense, because it can not be used for direct lookup.
+ * It can only be used to iterate over all rows of a table.
+ * Each regular table has one such object, even if no primary key or indexes are defined.
  */
 public class ScanIndex extends BaseIndex {
     private int firstFree = -1;

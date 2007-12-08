@@ -13,17 +13,17 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * A index page of a linear hash index.
  */
 public class LinearHashBucket extends Record {
     private LinearHashIndex index;
     private int nextBucket;
     private ObjectArray records;
     private boolean writePos;
-    
+
     public LinearHashBucket(LinearHashIndex index, DataPage s) throws SQLException {
         this.index = index;
-        writePos = s.readByte() == 'P';        
+        writePos = s.readByte() == 'P';
         nextBucket = s.readInt();
         int len = s.readInt();
         records = new ObjectArray();
@@ -38,8 +38,8 @@ public class LinearHashBucket extends Record {
             entry.home = index.getPos(entry.hash);
             records.add(entry);
         }
-    }    
-    
+    }
+
     public LinearHashBucket(LinearHashIndex index) {
         this.index = index;
         this.records = new ObjectArray();
@@ -49,8 +49,8 @@ public class LinearHashBucket extends Record {
     private void update(Session session) throws SQLException {
         index.updateBucket(session, this);
     }
-    
-    void setNext(Session session, int nextBucket) throws SQLException {   
+
+    void setNext(Session session, int nextBucket) throws SQLException {
         this.nextBucket = nextBucket;
         update(session);
     }
@@ -118,10 +118,10 @@ public class LinearHashBucket extends Record {
             writePos = false;
             return size + dataSize;
         }
-    }    
+    }
 
     public boolean isEmpty() {
         return false;
     }
-    
+
 }

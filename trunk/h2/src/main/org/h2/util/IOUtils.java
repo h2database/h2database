@@ -22,10 +22,13 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
+/**
+ * This utility class contains input/output functions.
+ */
 public class IOUtils {
-    
+
     private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
-    
+
     public static void closeSilently(OutputStream out) {
         if (out != null) {
             try {
@@ -48,7 +51,7 @@ public class IOUtils {
             skip -= reader.skip(skip);
         }
     }
-    
+
     public static long copyAndClose(InputStream in, OutputStream out) throws IOException {
         try {
             return copyAndCloseInput(in, out);
@@ -151,7 +154,7 @@ public class IOUtils {
             in.close();
         }
     }
-    
+
     public static String readStringAndClose(Reader in, int length) throws IOException {
         try {
             if (length <= 0) {

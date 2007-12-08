@@ -28,7 +28,8 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
- * @author Thomas
+ * This is the base class for all value classes.
+ * It provides conversion and comparison methods.
  */
 public abstract class Value {
 
@@ -54,17 +55,17 @@ public abstract class Value {
 
     public static int getOrder(int type) {
         switch(type) {
-        case UNKNOWN: 
+        case UNKNOWN:
             return 1;
-        case NULL: 
+        case NULL:
             return 2;
-        case STRING: 
+        case STRING:
             return 10;
-        case CLOB: 
+        case CLOB:
             return 11;
         case STRING_FIXED:
             return 12;
-        case STRING_IGNORECASE: 
+        case STRING_IGNORECASE:
             return 13;
         case BOOLEAN:
             return 20;
@@ -103,8 +104,8 @@ public abstract class Value {
         default:
             throw Message.getInternalError("type:"+type);
         }
-    }    
-    
+    }
+
     public static int getHigherOrder(int t1, int t2) throws SQLException {
         if (t1 == t2) {
             if (t1 == Value.UNKNOWN) {
@@ -116,7 +117,7 @@ public abstract class Value {
         int o2 = getOrder(t2);
         return o1 > o2 ? t1 : t2;
     }
-    
+
     static Value cache(Value v) {
         if (SysProperties.OBJECT_CACHE) {
             Value[] cache = (Value[]) weakCache.get();
@@ -145,7 +146,7 @@ public abstract class Value {
     public abstract int getType();
     public abstract long getPrecision();
     public abstract int getDisplaySize();
-    
+
     public abstract String getString() throws SQLException;
     protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
     protected abstract boolean isEqual(Value v);
@@ -159,10 +160,10 @@ public abstract class Value {
     public Date getDate() throws SQLException {
         return ((ValueDate) convertTo(Value.DATE)).getDate();
     }
-    
+
     public Date getDateNoCopy() throws SQLException {
         return ((ValueDate) convertTo(Value.DATE)).getDateNoCopy();
-    }    
+    }
 
     public Time getTime() throws SQLException {
         return ((ValueTime) convertTo(Value.TIME)).getTime();
@@ -183,10 +184,10 @@ public abstract class Value {
     public byte[] getBytes() throws SQLException {
         return ((ValueBytes) convertTo(Value.BYTES)).getBytes();
     }
-    
+
     public byte[] getBytesNoCopy() throws SQLException {
         return ((ValueBytes) convertTo(Value.BYTES)).getBytesNoCopy();
-    }    
+    }
 
     public byte getByte() throws SQLException {
         return ((ValueByte) convertTo(Value.BYTE)).getByte();
@@ -223,7 +224,7 @@ public abstract class Value {
     public Reader getReader() throws SQLException {
         return IOUtils.getReader(getString());
     }
-    
+
     public Value add(Value v) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -470,13 +471,13 @@ public abstract class Value {
             switch(getType()) {
             case BYTES:
                 return ValueLob.createSmallLob(Value.BLOB, getBytesNoCopy());
-            }           
+            }
             break;
         }
         case UUID: {
             switch(getType()) {
             case BYTES:
-                return ValueUuid.get(getBytesNoCopy());    
+                return ValueUuid.get(getBytesNoCopy());
             }
         }
         }
@@ -569,7 +570,7 @@ public abstract class Value {
         int t2 = Value.getHigherOrder(getType(), v.getType());
         return convertTo(t2).isEqual(v.convertTo(t2));
     }
-    
+
     public final int compareTo(Value v, CompareMode mode) throws SQLException {
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE ? 0 : -1;
@@ -642,27 +643,27 @@ public abstract class Value {
     public Value link(DataHandler handler, int tableId) throws SQLException {
         return this;
     }
-    
+
     public boolean isLinked() {
         return false;
     }
-    
+
     public void unlink() throws SQLException {
     }
-    
+
     public boolean isFileBased() {
         return false;
     }
-    
+
     public void close() throws SQLException {
     }
 
     public boolean checkPrecision(long precision) {
         return getPrecision() <= precision;
     }
-    
+
     public String toString() {
         return getSQL();
     }
-    
+
 }

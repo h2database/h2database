@@ -19,8 +19,6 @@ import org.h2.util.StringUtils;
 
 /**
  * Creates a SQL script file by extracting the schema and data of a database.
- * 
- * @author Thomas
  */
 public class Script {
 
@@ -31,7 +29,7 @@ public class Script {
 
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-user", "sa",... 
+     * The options must be split into strings like this: "-user", "sa",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -41,10 +39,10 @@ public class Script {
      * </li><li>-script filename (default file name is backup.sql)
      * </li><li>-options to specify a list of options (only for H2)
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new Script().run(args);
     }
@@ -96,7 +94,7 @@ public class Script {
             execute(url, user, password, file);
         }
     }
-    
+
     /**
      * INTERNAL
      */
@@ -114,10 +112,10 @@ public class Script {
             JdbcUtils.closeSilently(conn);
         }
     }
-    
+
     /**
      * Backs up a database to a file.
-     * 
+     *
      * @param url the database URL
      * @param user the user name
      * @param password the password
@@ -126,7 +124,7 @@ public class Script {
      */
     public static void execute(String url, String user, String password, String fileName) throws SQLException {
         Connection conn = null;
-        Statement stat = null;        
+        Statement stat = null;
         Writer fileWriter = null;
         try {
             org.h2.Driver.load();
@@ -146,5 +144,5 @@ public class Script {
             IOUtils.closeSilently(fileWriter);
         }
     }
-    
+
 }

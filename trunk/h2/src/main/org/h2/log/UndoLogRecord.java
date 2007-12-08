@@ -21,7 +21,7 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ * An entry in a undo log.
  */
 public class UndoLogRecord {
     public static final short INSERT = 0, DELETE = 1;
@@ -153,7 +153,7 @@ public class UndoLogRecord {
             index.commit(operation, row);
         }
     }
-    
+
     public Row getRow() {
         return row;
     }

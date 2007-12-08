@@ -22,6 +22,10 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * This file system stores files on disk.
+ * This is the most common file system.
+ */
 public class FileSystemDisk extends FileSystem {
 
     private static final FileSystemDisk INSTANCE = new FileSystemDisk();

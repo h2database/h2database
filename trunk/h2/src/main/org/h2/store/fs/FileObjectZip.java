@@ -12,6 +12,11 @@ import java.util.zip.ZipFile;
 
 import org.h2.util.IOUtils;
 
+/**
+ * The file is read from a stream.
+ * When reading from start to end, the same input stream is re-used,
+ * however when reading from end to start, a new input stream is opened for each request.
+ */
 public class FileObjectZip implements FileObject {
 
     private ZipFile file;
@@ -20,7 +25,7 @@ public class FileObjectZip implements FileObject {
     private InputStream in;
     private long inPos;
     private long length;
-    
+
     public FileObjectZip(ZipFile file, ZipEntry entry) {
         this.file = file;
         this.entry = entry;
@@ -29,15 +34,15 @@ public class FileObjectZip implements FileObject {
 
     public void close() throws IOException {
     }
-    
+
     public long getFilePointer() throws IOException {
         return pos;
     }
-    
+
     public long length() throws IOException {
         return length;
     }
-    
+
     public void readFully(byte[] b, int off, int len) throws IOException {
         if (inPos > pos) {
             if (in != null) {
@@ -60,18 +65,18 @@ public class FileObjectZip implements FileObject {
         pos += len;
         inPos += len;
     }
-    
+
     public void seek(long pos) throws IOException {
         this.pos = pos;
     }
-    
+
     public void setLength(long newLength) throws IOException {
         throw new IOException("File is read-only");
     }
-    
+
     public void sync() throws IOException {
     }
-    
+
     public void write(byte[] b, int off, int len) throws IOException {
         throw new IOException("File is read-only");
     }

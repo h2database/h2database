@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 import org.h2.message.Message;
 
 /**
- * @author Thomas
+ * Implementation of NULL. NULL is not a regular data type.
  */
 public class ValueNull extends Value {
 

@@ -12,6 +12,9 @@ import java.util.HashMap;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
+/**
+ * This class deletes temporary files when they are not used any longer.
+ */
 public class TempFileDeleter {
 
     private static final ReferenceQueue QUEUE = new ReferenceQueue();
@@ -42,7 +45,7 @@ public class TempFileDeleter {
         }
         deleteUnused();
     }
-    
+
     public static void deleteUnused() {
         // Mystery: I don't know how QUEUE could get null, but two independent
         // people reported NullPointerException here - if somebody understands

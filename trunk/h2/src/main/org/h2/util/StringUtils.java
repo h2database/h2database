@@ -20,9 +20,8 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
- * @author Thomas
+ * A few String utility functions.
  */
-
 public class StringUtils {
 
     public static boolean equals(String a, String b) {

@@ -12,9 +12,12 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
+/**
+ * Implementation of the SMALLINT data type.
+ */
 public class ValueShort extends Value {
     public static final int PRECISION = 5;
-    public static final int DISPLAY_SIZE = 6; // -32768    
+    public static final int DISPLAY_SIZE = 6; // -32768
 
     private final short value;
 
@@ -36,7 +39,7 @@ public class ValueShort extends Value {
         } else {
             return ValueShort.get((short) value);
         }
-    }       
+    }
 
     public int getSignum() {
         return value == 0 ? 0 : (value < 0 ? -1 : 1);
@@ -61,7 +64,7 @@ public class ValueShort extends Value {
         ValueShort other = (ValueShort) v;
         if (SysProperties.OVERFLOW_EXCEPTIONS) {
             return checkRange(value * other.value);
-        }                 
+        }
         return ValueShort.get((short) (value * other.value));
     }
 
@@ -116,11 +119,11 @@ public class ValueShort extends Value {
     public static ValueShort get(short i) {
         return (ValueShort) Value.cache(new ValueShort(i));
     }
-    
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueShort && value == ((ValueShort) v).value;
     }

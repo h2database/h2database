@@ -10,11 +10,14 @@ import java.sql.SQLException;
 import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
 
+/**
+ * This is the base class for ValueBytes and ValueJavaObject.
+ */
 abstract class ValueBytesBase extends Value {
 
     private final byte[] value;
     private int hash;
-    
+
     protected ValueBytesBase(byte[] v) {
         this.value = v;
     }
@@ -61,10 +64,10 @@ abstract class ValueBytesBase extends Value {
 
     public int getDisplaySize() {
         return MathUtils.convertLongToInt(value.length * 2L);
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) v).value) == 0;
-    }    
+    }
 
 }

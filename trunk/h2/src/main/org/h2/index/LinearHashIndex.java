@@ -26,7 +26,9 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
 /**
- * @author Thomas
+ * A linear hash index implementation.
+ * Theoretically, this index type should scale better than a b-tree index.
+ * At this time, this index is not fully tested.
  */
 public class LinearHashIndex extends BaseIndex implements RecordReader {
 

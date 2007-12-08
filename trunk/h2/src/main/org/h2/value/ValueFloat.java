@@ -12,9 +12,8 @@ import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
 /**
- * @author Thomas
+ * Implementation of the REAL data type.
  */
-
 public class ValueFloat extends Value {
     public static final int PRECISION = 7;
     public static final int DISPLAY_SIZE = 15; // -1.12345676E-20
@@ -117,8 +116,8 @@ public class ValueFloat extends Value {
 
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueFloat && value == ((ValueFloat) v).value;
     }

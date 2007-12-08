@@ -14,6 +14,9 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * A utility class to create table links for a whole schema.
+ */
 public class LinkSchema {
     public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user,
             String password, String sourceSchema) throws SQLException {

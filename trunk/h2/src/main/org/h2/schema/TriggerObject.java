@@ -20,12 +20,11 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
- * @author Thomas
+ *A trigger is created using the statement
+ * CREATE TRIGGER
  */
-
 public class TriggerObject extends SchemaObjectBase {
 
-    public static final int INSERT = 1, UPDATE = 2, DELETE = 4;
     public static final int DEFAULT_QUEUE_SIZE = 1024;
 
     private boolean before;
@@ -54,7 +53,7 @@ public class TriggerObject extends SchemaObjectBase {
             Connection c2 = session.createConnection(false);
             Object obj = session.getDatabase().loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
-            triggerCallback.init(c2, getSchema().getName(), getName(), table.getName());
+            triggerCallback.init(c2, getSchema().getName(), getName(), table.getName(), before, typeMask);
         } catch (Throwable e) {
             throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, new String[] { getName(),
                     triggerClassName, e.toString() }, e);
@@ -93,17 +92,17 @@ public class TriggerObject extends SchemaObjectBase {
         Object[] oldList;
         Object[] newList;
         boolean fire = false;
-        if ((typeMask & INSERT) != 0) {
+        if ((typeMask & Trigger.INSERT) != 0) {
             if (oldRow == null && newRow != null) {
                 fire = true;
             }
         }
-        if ((typeMask & UPDATE) != 0) {
+        if ((typeMask & Trigger.UPDATE) != 0) {
             if (oldRow != null && newRow != null) {
                 fire = true;
             }
         }
-        if ((typeMask & DELETE) != 0) {
+        if ((typeMask & Trigger.DELETE) != 0) {
             if (oldRow != null && newRow == null) {
                 fire = true;
             }
@@ -197,16 +196,16 @@ public class TriggerObject extends SchemaObjectBase {
 
     public String getTypeNameList() {
         StringBuffer buff = new StringBuffer();
-        if ((typeMask & INSERT) != 0) {
+        if ((typeMask & Trigger.INSERT) != 0) {
             buff.append("INSERT");
         }
-        if ((typeMask & UPDATE) != 0) {
+        if ((typeMask & Trigger.UPDATE) != 0) {
             if (buff.length() > 0) {
                 buff.append(", ");
             }
             buff.append("UPDATE");
         }
-        if ((typeMask & DELETE) != 0) {
+        if ((typeMask & Trigger.DELETE) != 0) {
             if (buff.length() > 0) {
                 buff.append(", ");
             }

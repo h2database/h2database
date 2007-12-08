@@ -5,7 +5,7 @@
 package org.h2.index;
 
 /**
- * @author Thomas
+ * Represents a position of a b-tree index.
  */
 class BtreePosition {
     int position;

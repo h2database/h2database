@@ -6,14 +6,17 @@ package org.h2.value;
 
 import org.h2.constant.SysProperties;
 
+/**
+ * Implementation of the OBJECT data type.
+ */
 public class ValueJavaObject extends ValueBytesBase {
-    
+
     private static final ValueJavaObject EMPTY = new ValueJavaObject(new byte[0]);
 
     protected ValueJavaObject(byte[] v) {
         super(v);
     }
-    
+
     public static ValueJavaObject getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
@@ -24,7 +27,7 @@ public class ValueJavaObject extends ValueBytesBase {
         }
         return (ValueJavaObject) Value.cache(obj);
     }
-    
+
     public int getType() {
         return Value.JAVA_OBJECT;
     }

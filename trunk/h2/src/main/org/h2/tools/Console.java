@@ -37,11 +37,10 @@ import org.h2.util.StartBrowser;
  * This tool starts the H2 Console (web-) server, as well as the TCP and PG server.
  * For JDK 1.6, a system tray icon is created, for platforms that support it.
  * Otherwise, a small window opens.
- * 
  */
-public class Console implements 
+public class Console implements
 //#ifdef AWT
-ActionListener, MouseListener, 
+ActionListener, MouseListener,
 //#endif
 ShutdownHandler {
 
@@ -50,15 +49,15 @@ ShutdownHandler {
     private Image icon;
     private Frame frame;
 //#endif
-    private static final int EXIT_ERROR = 1;    
+    private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg;
 
     /**
      * The command line interface for this tool.
-     * The command line options are the same as in the Server tool, 
+     * The command line options are the same as in the Server tool,
      * but this tool will always start the TCP, TCP and PG server.
-     * Options are case sensitive. 
-     * 
+     * Options are case sensitive.
+     *
      * @param args the command line arguments
      * @throws Exception
      */
@@ -66,14 +65,14 @@ ShutdownHandler {
         int exitCode = new Console().run(args);
         if (exitCode != 0) {
             System.exit(exitCode);
-        }        
+        }
     }
 
     private int run(String[] args) {
-        int exitCode = 0;        
+        int exitCode = 0;
         try {
             web = Server.createWebServer(args);
-            web.setShutdownHandler(this);            
+            web.setShutdownHandler(this);
             web.start();
         } catch (SQLException e) {
             if (web == null) {
@@ -129,14 +128,14 @@ ShutdownHandler {
         }
         return exitCode;
     }
-    
+
     /**
      * INTERNAL
-     */    
+     */
     public void shutdown() {
         stopAll();
     }
-    
+
     private void stopAll() {
         if (web != null && web.isRunning()) {
             web.stop();
@@ -166,11 +165,11 @@ ShutdownHandler {
             Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
                 getMethod("isSupported", new Class[0]).
                 invoke(null, new Object[0]);
-            
+
             if (!supported.booleanValue()) {
                 return false;
             }
-            
+
             PopupMenu menuConsole = new PopupMenu();
             MenuItem itemConsole = new MenuItem("H2 Console");
             itemConsole.setActionCommand("console");
@@ -202,12 +201,12 @@ ShutdownHandler {
             trayIcon.getClass().
                  getMethod("addMouseListener", new Class[]{MouseListener.class}).
                  invoke(trayIcon, new Object[]{this});
-             
+
              // tray.add(icon);
              tray.getClass().
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
                 invoke(tray, new Object[] { trayIcon });
-             
+
              return true;
         } catch (Exception e) {
             return false;
@@ -230,7 +229,7 @@ ShutdownHandler {
         }
         frame.setResizable(false);
         frame.setBackground(SystemColor.control);
-        
+
         GridBagLayout layout = new GridBagLayout();
         frame.setLayout(layout);
 
@@ -255,12 +254,12 @@ ShutdownHandler {
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
         frame.add(text, c);
-        
+
         Label label2 = new Label();
         c.anchor = GridBagConstraints.WEST;
         c.gridwidth = GridBagConstraints.EAST;
         frame.add(label2, c);
-        
+
         Button startBrowser = new Button("Start Browser");
         startBrowser.setFocusable(false);
         startBrowser.setActionCommand("console");
@@ -269,14 +268,14 @@ ShutdownHandler {
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
         frame.add(startBrowser, c);
-        
+
         int width = 250, height = 120;
         frame.setSize(width, height);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation((screenSize.width - width) / 2, (screenSize.height - height) / 2);
         frame.setVisible(true);
     }
-    
+
     private void startBrowser() {
         if (web != null) {
             StartBrowser.openURL(web.getURL());

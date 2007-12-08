@@ -8,12 +8,15 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 
+/**
+ * Represents an in-doubt transaction (a transaction in the prepare phase).
+ */
 public class InDoubtTransaction {
-    
+
     public static final int IN_DOUBT = 0, COMMIT = 1, ROLLBACK = 2;
-    
+
     // TODO 2-phase-commit: document sql statements and metadata table
-    
+
     private LogFile log;
     private int sessionId;
     private int pos;
@@ -29,7 +32,7 @@ public class InDoubtTransaction {
         this.blocks = blocks;
         this.state = IN_DOUBT;
     }
-    
+
     public void setState(int state) throws SQLException {
         switch(state) {
         case COMMIT:
@@ -43,7 +46,7 @@ public class InDoubtTransaction {
         }
         this.state = state;
     }
-    
+
     public String getState() {
         switch(state) {
         case IN_DOUBT:

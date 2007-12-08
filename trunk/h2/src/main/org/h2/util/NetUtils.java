@@ -15,12 +15,15 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.security.SecureSocketFactory;
 
+/**
+ * This utility class contains socket helper functions.
+ */
 public class NetUtils {
-    
+
     public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
         return createSocket("127.0.0.1", port, ssl);
     }
-    
+
     public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
         int port = defaultPort;
         // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
@@ -36,7 +39,7 @@ public class NetUtils {
         InetAddress address = InetAddress.getByName(server);
         return createSocket(address, port, ssl);
     }
-    
+
     public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
         if (ssl) {
             SecureSocketFactory f = SecureSocketFactory.getInstance();
@@ -54,7 +57,7 @@ public class NetUtils {
             return createServerSocketTry(port, ssl);
         }
     }
-    
+
     private static ServerSocket createServerSocketTry(int port, boolean ssl) throws SQLException {
         // TODO server sockets: maybe automatically open the next port if this is in use?
         // TODO server sockets: maybe a parameter to allow anonymous ssl?
@@ -80,7 +83,7 @@ public class NetUtils {
 //#endif
         return result;
     }
-    
+
     public static ServerSocket closeSilently(ServerSocket socket) {
         if (socket != null) {
             try {

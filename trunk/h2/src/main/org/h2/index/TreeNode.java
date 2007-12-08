@@ -6,6 +6,9 @@ package org.h2.index;
 
 import org.h2.result.Row;
 
+/**
+ * Represents a index node of a tree index.
+ */
 public class TreeNode {
     int balance;
     TreeNode left, right, parent;

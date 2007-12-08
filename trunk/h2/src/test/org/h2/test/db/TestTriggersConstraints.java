@@ -140,10 +140,16 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
 
-    public void init(Connection conn, String schemaName, String triggerName, String tableName) throws SQLException {
+    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
         this.triggerName = triggerName;
         if (!"TEST".equals(tableName)) {
             throw new Error("supposed to be TEST");
+        }
+        if (!before) {
+            throw new Error("before:" + before);
+        }
+        if (type != INSERT) {
+            throw new Error("type:" + type);
         }
     }
 

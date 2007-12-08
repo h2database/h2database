@@ -14,7 +14,6 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
-
 /**
  * A sort order represents an ORDER BY clause in a query.
  */
@@ -59,7 +58,7 @@ public class SortOrder {
         }
         return buff.toString();
     }
-    
+
     public static int compareNull(boolean aNull, boolean bNull, int type) {
         if ((type & NULLS_FIRST) != 0) {
             return aNull ? -1 : 1;

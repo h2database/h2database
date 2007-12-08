@@ -16,9 +16,13 @@ import org.h2.schema.Schema;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
+/**
+ * The table SYSTEM_RANGE is a virtual table that generates incrementing numbers
+ * with a given start end end point.
+ */
 public class RangeTable extends Table {
-    
-    public static final String NAME = "SYSTEM_RANGE";  
+
+    public static final String NAME = "SYSTEM_RANGE";
     private final long min, max;
 
     public RangeTable(Schema schema, long min, long max) throws SQLException {
@@ -30,18 +34,18 @@ public class RangeTable extends Table {
         this.max = max;
         setColumns(cols);
     }
-    
+
     public String getDropSQL() {
         return null;
     }
-    
+
     public String getCreateSQL() {
         return null;
-    } 
-    
+    }
+
     public String getSQL() {
         return NAME + "(" + min + ", " + max + ")";
-    }    
+    }
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
     }
@@ -51,7 +55,7 @@ public class RangeTable extends Table {
 
     public void unlock(Session s) {
     }
-    
+
     public boolean isLockedExclusively() {
         return false;
     }
@@ -79,7 +83,7 @@ public class RangeTable extends Table {
     public boolean canGetRowCount() {
         return true;
     }
-    
+
     public boolean canDrop() {
         return false;
     }

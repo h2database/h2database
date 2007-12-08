@@ -14,22 +14,20 @@ import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.util.ObjectArray;
 
-
 /**
- * @author Thomas
+ * The index implementation for meta data tables.
  */
-
 public class MetaIndex extends BaseIndex {
 
     private MetaTable meta;
     private boolean scan;
-    
+
     public MetaIndex(MetaTable meta, IndexColumn[] columns, boolean scan) {
         super(meta, 0, null, columns, IndexType.createNonUnique(true));
         this.meta = meta;
         this.scan = scan;
     }
-    
+
     public void close(Session session) throws SQLException {
         // nothing to do
     }
@@ -77,7 +75,7 @@ public class MetaIndex extends BaseIndex {
     public boolean needRebuild() {
         return false;
     }
-    
+
     public String getCreateSQL() {
         return null;
     }
@@ -88,6 +86,6 @@ public class MetaIndex extends BaseIndex {
 
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
-    } 
-    
+    }
+
 }

@@ -7,13 +7,13 @@ package org.h2.table;
 import org.h2.index.Index;
 
 /**
- * @author Thomas
+ * The plan item describes the index to be used, and the estimated cost when using it.
  */
 public class PlanItem {
     public double cost;
     private Index index;
     private PlanItem joinPlan;
-    
+
     public void setIndex(Index index) {
         this.index = index;
     }
@@ -21,11 +21,11 @@ public class PlanItem {
     public Index getIndex() {
         return index;
     }
-    
+
     public PlanItem getJoinPlan() {
         return joinPlan;
     }
-    
+
     public void setJoinPlan(PlanItem joinPlan) {
         this.joinPlan = joinPlan;
     }

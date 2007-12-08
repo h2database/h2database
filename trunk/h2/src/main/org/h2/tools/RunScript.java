@@ -28,9 +28,6 @@ import org.h2.util.StringUtils;
 
 /**
  * Executes the contents of a SQL script file against a database.
- *
- * @author Tom
- *
  */
 public class RunScript {
 

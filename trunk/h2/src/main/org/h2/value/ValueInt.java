@@ -13,7 +13,7 @@ import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
 /**
- * @author Thomas
+ * Implementation of the INT data type.
  */
 public class ValueInt extends Value {
     public static final int PRECISION = 10;
@@ -143,8 +143,8 @@ public class ValueInt extends Value {
 
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueInt && value == ((ValueInt) v).value;
     }

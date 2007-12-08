@@ -12,6 +12,9 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ObjectUtils;
 
+/**
+ * Implementation of the BYTE data type.
+ */
 public class ValueByte extends Value {
     public static final int PRECISION = 3;
     public static final int DISPLAY_SIZE = 4;
@@ -36,7 +39,7 @@ public class ValueByte extends Value {
         } else {
             return ValueByte.get((byte) value);
         }
-    }    
+    }
 
     public int getSignum() {
         return value == 0 ? 0 : (value < 0 ? -1 : 1);

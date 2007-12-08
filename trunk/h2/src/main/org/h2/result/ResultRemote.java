@@ -14,6 +14,11 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
+/**
+ * The client side part of a result set that is kept on the server.
+ * In many cases, the complete data is kept on the client side,
+ * but for large results only a subset is in-memory.
+ */
 public class ResultRemote implements ResultInterface {
 
     private SessionRemote session;
@@ -228,7 +233,7 @@ public class ResultRemote implements ResultInterface {
             }
         }
     }
-    
+
     public String toString() {
         return "columns: " + columns.length + " rows: " + rowCount + " pos: " + rowId;
     }

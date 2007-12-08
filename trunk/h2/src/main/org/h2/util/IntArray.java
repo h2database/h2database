@@ -8,7 +8,7 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
- * @author Thomas
+ * An array with integer element.
  */
 public class IntArray {
 

@@ -9,8 +9,11 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
+/**
+ * A factory to create new block cipher objects.
+ */
 public class CipherFactory {
-    
+
     public static BlockCipher getBlockCipher(String algorithm) throws SQLException {
         if ("XTEA".equalsIgnoreCase(algorithm)) {
             return new XTEA();
@@ -28,5 +31,5 @@ public class CipherFactory {
             throw Message.getInvalidValueException(algorithm, "algorithm");
         }
     }
-    
+
 }

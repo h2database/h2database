@@ -14,6 +14,9 @@ import org.h2.message.Message;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 
+/**
+ * Implementation of the TIMESTAMP data type.
+ */
 public class ValueTimestamp extends Value {
     public static final int PRECISION = 23;
     public static final int DISPLAY_SIZE = 23; // 2001-01-01 23:59:59.000
@@ -27,10 +30,10 @@ public class ValueTimestamp extends Value {
     public Timestamp getTimestamp() {
         return (Timestamp) value.clone();
     }
-    
+
     public Timestamp getTimestampNoCopy() {
         return value;
-    }    
+    }
 
     public String getSQL() {
         return "TIMESTAMP '" + getString() + "'";
@@ -107,13 +110,13 @@ public class ValueTimestamp extends Value {
         t2.setNanos(n2);
         return ValueTimestamp.getNoCopy(t2);
     }
-    
+
     public int getDisplaySize() {
         return DISPLAY_SIZE;
-    }    
-    
+    }
+
     protected boolean isEqual(Value v) {
         return v instanceof ValueTimestamp && value.equals(((ValueTimestamp) v).value);
-    }    
+    }
 
 }

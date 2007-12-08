@@ -10,6 +10,9 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
+/**
+ * Implementation of the ARRAY data type.
+ */
 public class ValueArray extends Value {
     private final Value[] values;
     private int hash;
@@ -37,7 +40,7 @@ public class ValueArray extends Value {
     public Value[] getList() {
         return values;
     }
-    
+
     public int getType() {
         return Value.ARRAY;
     }
@@ -102,7 +105,7 @@ public class ValueArray extends Value {
         buff.append(')');
         return buff.toString();
     }
-    
+
     public int getDisplaySize() {
         long size = 0;
         for (int i = 0; i < values.length; i++) {

@@ -6,14 +6,11 @@ package org.h2.message;
 
 import org.h2.constant.SysProperties;
 
-
 /**
- * @author Thomas
+ * This class represents a trace module.
  */
-
 public class Trace {
 
-    // currently called trace because log mean something else
     // TODO trace: java code generation does not always work
 
     private TraceSystem traceSystem;

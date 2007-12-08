@@ -16,8 +16,8 @@ import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 
 /**
- * The database driver. An application should not use this class directly. 
- * The only thing the application needs to do is load the driver. This can be done 
+ * The database driver. An application should not use this class directly.
+ * The only thing the application needs to do is load the driver. This can be done
  * using Class.forName:
  * <pre>
  * Class.forName("org.h2.Driver");
@@ -37,7 +37,7 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return the new connection
      */
     public Connection connect(String url, Properties info) throws SQLException {
@@ -58,7 +58,7 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return if the driver understands the URL
      */
     public boolean acceptsURL(String url) {
@@ -67,7 +67,7 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return the major version number
      */
     public int getMajorVersion() {
@@ -76,7 +76,7 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return the minor version number
      */
     public int getMinorVersion() {
@@ -85,7 +85,7 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return a zero length array
      */
     public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
@@ -94,13 +94,13 @@ public class Driver implements java.sql.Driver {
 
     /**
      * This method should not be called by an application.
-     * 
+     *
      * @return true
      */
     public boolean jdbcCompliant() {
         return true;
     }
-    
+
     /**
      * INTERNAL
      */

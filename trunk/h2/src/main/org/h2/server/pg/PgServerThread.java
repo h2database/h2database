@@ -35,11 +35,7 @@ import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
 
 /**
- * This class implements a subset of the PostgreSQL protocol as described here:
- * http://developer.postgresql.org/pgdocs/postgres/protocol.html
- * The PostgreSQL catalog is described here:
- * http://www.postgresql.org/docs/7.4/static/catalogs.html
- * @author Thomas
+ * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
     private static final int TYPE_STRING = Types.VARCHAR;
@@ -87,7 +83,7 @@ public class PgServerThread implements Runnable {
             close();
         }
     }
-    
+
     private String readString() throws IOException {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         while (true) {
@@ -99,23 +95,23 @@ public class PgServerThread implements Runnable {
         }
         return new String(buff.toByteArray(), getEncoding());
     }
-    
+
     private int readInt() throws IOException {
         return dataIn.readInt();
     }
-    
+
     private int readShort() throws IOException {
         return dataIn.readShort();
     }
-    
+
     private byte readByte() throws IOException {
         return dataIn.readByte();
     }
-    
+
     private void readFully(byte[] buff) throws IOException {
         dataIn.readFully(buff);
     }
-    
+
     private void error(String message, Exception e) {
         if (e != null) {
             server.logError(e);
@@ -507,10 +503,10 @@ public class PgServerThread implements Runnable {
             sendErrorResponse(e);
         }
     }
-    
+
     private void sendNoData() throws IOException {
         startMessage('n');
-        sendMessage();        
+        sendMessage();
     }
 
     private void sendRowDescription(ResultSetMetaData meta) throws IOException {
@@ -555,10 +551,10 @@ public class PgServerThread implements Runnable {
             return precision + 4;
         }
     }
-    
+
     private int getModifier(int type) {
         return -1;
-    }    
+    }
 
     private void sendErrorResponse(String message) throws IOException {
         error("Exception: " + message, null);
@@ -570,17 +566,17 @@ public class PgServerThread implements Runnable {
         write('M');
         writeString(message);
         sendMessage();
-    }    
+    }
 
     private void sendParseComplete() throws IOException {
         startMessage('1');
         sendMessage();
     }
-    
+
     private void sendBindComplete() throws IOException {
         startMessage('2');
         sendMessage();
-    }    
+    }
 
     private void initDb() throws SQLException {
         Statement stat = null;
@@ -637,13 +633,13 @@ public class PgServerThread implements Runnable {
         socket = null;
         server.remove(this);
     }
-    
+
     private void sendAuthenticationCleartextPassword() throws IOException {
         startMessage('R');
         writeInt(3);
         sendMessage();
     }
-    
+
     private void sendAuthenticationOk() throws IOException {
         startMessage('R');
         writeInt(0);
@@ -660,7 +656,7 @@ public class PgServerThread implements Runnable {
         sendBackendKeyData();
         sendReadyForQuery();
     }
-    
+
     private void sendReadyForQuery() throws IOException {
         startMessage('Z');
         char c;
@@ -688,31 +684,31 @@ public class PgServerThread implements Runnable {
         write(s.getBytes(getEncoding()));
         write(0);
     }
-    
+
     private void writeInt(int i) throws IOException {
         dataOut.writeInt(i);
     }
-    
+
     private void writeShort(int i) throws IOException {
         dataOut.writeShort(i);
-    }    
-    
+    }
+
     private void write(byte[] data) throws IOException {
         dataOut.write(data);
     }
-    
+
     private void write(int b) throws IOException {
         dataOut.write(b);
     }
-    
+
     private void startMessage(int messageType) {
         this.messageType = messageType;
         outBuffer = new ByteArrayOutputStream();
         dataOut = new DataOutputStream(outBuffer);
     }
-    
+
     private void sendMessage() throws IOException {
-        dataOut.flush();        
+        dataOut.flush();
         byte[] buff = outBuffer.toByteArray();
         int len = buff.length;
         dataOut = new DataOutputStream(out);
@@ -721,7 +717,7 @@ public class PgServerThread implements Runnable {
         dataOut.write(buff);
         dataOut.flush();
     }
-    
+
     private void sendParameterStatus(String param, String value) throws IOException {
         startMessage('S');
         writeString(param);
@@ -740,14 +736,14 @@ public class PgServerThread implements Runnable {
     public void setProcessId(int id) {
         this.processId = id;
     }
-    
+
     private static class Prepared {
         String name;
         String sql;
         PreparedStatement prep;
         int[] paramType;
     }
-    
+
     private static class Portal {
         String name;
         String sql;

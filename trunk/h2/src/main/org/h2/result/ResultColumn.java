@@ -9,7 +9,7 @@ import java.io.IOException;
 import org.h2.value.Transfer;
 
 /**
- * @author Thomas
+ * A result set column of a remote result.
  */
 public class ResultColumn {
     String alias;

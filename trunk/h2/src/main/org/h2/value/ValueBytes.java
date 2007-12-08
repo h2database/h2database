@@ -8,21 +8,21 @@ import org.h2.constant.SysProperties;
 import org.h2.util.ByteUtils;
 
 /**
- * @author Thomas
+ * Implementation of the BINARY data type.
  */
 public class ValueBytes extends ValueBytesBase {
 
     private static final ValueBytes EMPTY = new ValueBytes(new byte[0]);
-    
+
     protected ValueBytes(byte[] v) {
         super(v);
     }
-    
+
     public static ValueBytes get(byte[] b) {
         b = ByteUtils.cloneByteArray(b);
         return getNoCopy(b);
     }
-    
+
     public static ValueBytes getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;

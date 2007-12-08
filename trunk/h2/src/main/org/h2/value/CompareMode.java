@@ -9,16 +9,21 @@ import java.util.Locale;
 
 import org.h2.util.StringUtils;
 
+/**
+ * Instances of this class can compare strings.
+ * Case sensitive and case insensitive comparison is supported,
+ * and comparison using a collator.
+ */
 public class CompareMode {
     public static final String OFF = "OFF";
     private final Collator collator;
     private final String name;
-    
+
     public CompareMode(Collator collator, String name) {
         this.collator = collator;
         this.name = name == null ? OFF : name;
     }
-    
+
     public int compareString(String a, String b, boolean ignoreCase) {
         if (collator == null) {
             if (ignoreCase) {
@@ -34,14 +39,14 @@ public class CompareMode {
         int comp = collator.compare(a, b);
         return comp;
     }
-    
+
     public static String getName(Locale l) {
         Locale english = Locale.ENGLISH;
         String name = l.getDisplayLanguage(english) + ' ' + l.getDisplayCountry(english) + ' ' + l.getVariant();
         name = StringUtils.toUpperEnglish(name.trim().replace(' ', '_'));
         return name;
     }
-    
+
     private static boolean compareLocaleNames(Locale locale, String name) {
         return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale));
     }
@@ -80,5 +85,5 @@ public class CompareMode {
     public String getName() {
         return name;
     }
-    
+
 }

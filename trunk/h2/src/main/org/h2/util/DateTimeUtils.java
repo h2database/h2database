@@ -18,6 +18,9 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
+/**
+ * This utility class contains time conversion functions.
+ */
 public class DateTimeUtils {
 
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {

@@ -32,7 +32,6 @@ public abstract class Expression {
     /**
      * Return the data type. The data type may not be known before the optimization phase.
      *
-     * @param session the session
      * @return the type
      */
     public abstract int getType();

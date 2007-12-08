@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * @author Thomas
+ * Implementation of the BOOLEAN data type.
  */
 public class ValueBoolean extends Value {
     public static final int PRECISION = 1;

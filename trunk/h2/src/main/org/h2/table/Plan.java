@@ -13,7 +13,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.util.ObjectArray;
 
 /**
- * @author Thomas
+ * A possible query execution plan. The time required to execute a query depends on the order the tables are accessed.
  */
 public class Plan {
     private final TableFilter[] filters;

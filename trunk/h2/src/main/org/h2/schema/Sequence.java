@@ -14,6 +14,10 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 
+/**
+ *A sequence is created using the statement
+ * CREATE SEQUENCE
+ */
 public class Sequence extends SchemaObjectBase {
     public static final int DEFAULT_CACHE_SIZE = 32;
     private long value = 1;

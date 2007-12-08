@@ -63,8 +63,8 @@ public class Message {
      * Gets the SQL Exception object for a specific SQLState. Supported
      * SQL states are:
      *
-     * @param sqlState - the SQL State
-     * @param param - the parameter of the message
+     * @param sqlState the SQL state
+     * @param p1 the first parameter of the message
      * @return the SQLException object
      */
     public static JdbcSQLException getSQLException(int sqlState, String p1) {
@@ -149,8 +149,8 @@ public class Message {
             }
             return j;
         } else {
-            return new JdbcSQLException(e.getMessage(), sql, 
-                    e.getSQLState(), 
+            return new JdbcSQLException(e.getMessage(), sql,
+                    e.getSQLState(),
                     e.getErrorCode(), e, null);
         }
     }
@@ -173,7 +173,7 @@ public class Message {
         }
         return getSQLException(ErrorCode.GENERAL_ERROR_1, new String[]{e.toString()}, e);
     }
-    
+
     public static SQLException convertIOException(IOException e, String message) {
         if (message == null) {
             return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[]{e.toString()}, e);

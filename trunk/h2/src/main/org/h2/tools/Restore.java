@@ -17,10 +17,8 @@ import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 
-/*
+/**
  * Restores a H2 database by extracting the database files from a .zip file.
- * 
- * @author Thomas
  */
 public class Restore {
 
@@ -28,10 +26,10 @@ public class Restore {
         System.out.println("java "+getClass().getName()
                 + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
     }
-    
+
     /**
      * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",... 
+     * The options must be split into strings like this: "-db", "test",...
      * Options are case sensitive. The following options are supported:
      * <ul>
      * <li>-help or -? (print the list of options)
@@ -40,14 +38,14 @@ public class Restore {
      * </li><li>-db database name (as stored in the backup if no name is specified)
      * </li><li>-quiet does not print progress information
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
-     */    
+     */
     public static void main(String[] args) throws SQLException {
         new Restore().run(args);
     }
-    
+
     private void run(String[] args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
@@ -109,16 +107,16 @@ public class Restore {
             IOUtils.closeSilently(in);
         }
     }
-    
+
     /**
      * Restores database files.
-     * 
+     *
      * @param zipFileName the name of the backup file
      * @param directory the directory name
      * @param db the database name (null for all databases)
      * @param quiet don't print progress information
      * @throws SQLException
-     */    
+     */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         InputStream in = null;
         try {

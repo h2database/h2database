@@ -4,16 +4,14 @@
  */
 package org.h2.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
-
+/**
+ * This utility class contains functions related to byte arrays.
+ */
 public class ByteUtils {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
@@ -160,28 +158,6 @@ public class ByteUtils {
         byte[] copy = new byte[len];
         System.arraycopy(b, 0, copy, 0, len);
         return copy;
-    }
-
-    public static byte[] serialize(Object obj) throws SQLException {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream(out);
-            os.writeObject(obj);
-            return out.toByteArray();
-        } catch (Throwable e) {
-            throw Message.getSQLException(ErrorCode.SERIALIZATION_FAILED_1, new String[] { e.toString() }, e);
-        }
-    }
-
-    public static Object deserialize(byte[] data) throws SQLException {
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(data);
-            ObjectInputStream is = new ObjectInputStream(in);
-            Object obj = is.readObject();
-            return obj;
-        } catch (Throwable e) {
-            throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, new String[] { e.toString() }, e);
-        }
     }
 
 }

@@ -12,7 +12,7 @@ import java.sql.SQLException;
  * The class must be public and must have a public non-argument constructor.
  */
 public interface AggregateFunction {
-    
+
     /**
      * This method is called when the aggregate function is used.
      * A new object is created for each invocation.
@@ -20,28 +20,30 @@ public interface AggregateFunction {
      * @param conn a connection to the database
      */
     void init(Connection conn) throws SQLException;
-    
+
     /**
      * This method must return the SQL type of the method,
      * given the SQL type of the input data.
      * The method should check here if the number of parameters passed is correct,
-     * and if not it should throw an exception. 
-     * 
+     * and if not it should throw an exception.
+     *
      * @param inputType the SQL type of the parameters
      * @return the SQL type of the result
      */
     int getType(int[] inputType) throws SQLException;
-    
+
     /**
      * This method is called once for each row.
      * If the aggregate function is called with multiple parameters, those are passed as array.
-     * 
+     *
      * @param value the value(s) for this row
      */
     void add(Object value) throws SQLException;
-    
+
     /**
      * This method returns the computed aggregate value.
+     *
+     * @return the aggregated value
      */
     Object getResult() throws SQLException;
 }

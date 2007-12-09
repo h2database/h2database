@@ -35,6 +35,8 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testFindColumn();
+
         testColumnLength();
         testArray();
         testLimitMaxRows();
@@ -58,11 +60,49 @@ public class TestResultSet extends TestBase {
 
     }
 
+    private void testFindColumn() throws Exception {
+        trace("testFindColumn");
+        ResultSet rs;
+        stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
+        rs = stat.executeQuery("SELECT * FROM TEST");
+        check(rs.findColumn("ID"), 1);
+        check(rs.findColumn("NAME"), 2);
+        check(rs.findColumn("id"), 1);
+        check(rs.findColumn("name"), 2);
+        check(rs.findColumn("Id"), 1);
+        check(rs.findColumn("Name"), 2);
+        check(rs.findColumn("TEST.ID"), 1);
+        check(rs.findColumn("TEST.NAME"), 2);
+        check(rs.findColumn("Test.Id"), 1);
+        check(rs.findColumn("Test.Name"), 2);
+        stat.execute("DROP TABLE TEST");
+
+        stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, DATA VARCHAR)");
+        rs = stat.executeQuery("SELECT * FROM TEST");
+        check(rs.findColumn("ID"), 1);
+        check(rs.findColumn("NAME"), 2);
+        check(rs.findColumn("DATA"), 3);
+        check(rs.findColumn("id"), 1);
+        check(rs.findColumn("name"), 2);
+        check(rs.findColumn("data"), 3);
+        check(rs.findColumn("Id"), 1);
+        check(rs.findColumn("Name"), 2);
+        check(rs.findColumn("Data"), 3);
+        check(rs.findColumn("TEST.ID"), 1);
+        check(rs.findColumn("TEST.NAME"), 2);
+        check(rs.findColumn("TEST.DATA"), 3);
+        check(rs.findColumn("Test.Id"), 1);
+        check(rs.findColumn("Test.Name"), 2);
+        check(rs.findColumn("Test.Data"), 3);
+        stat.execute("DROP TABLE TEST");
+
+    }
+
     private void testColumnLength() throws Exception {
         trace("testColumnDisplayLength");
         ResultSet rs;
         ResultSetMetaData meta;
-        
+
         stat.execute("CREATE TABLE one (ID INT, NAME VARCHAR(255))");
         rs = stat.executeQuery("select * from one");
         meta = rs.getMetaData();
@@ -71,22 +111,22 @@ public class TestResultSet extends TestBase {
         check("NAME", meta.getColumnLabel(2));
         check(255, meta.getColumnDisplaySize(2));
         stat.execute("DROP TABLE one");
-        
+
         rs = stat.executeQuery("select 1, 'Hello' union select 2, 'Hello World!'");
         meta = rs.getMetaData();
         check(11, meta.getColumnDisplaySize(1));
         check(12, meta.getColumnDisplaySize(2));
-        
+
         rs = stat.executeQuery("explain select * from dual");
         meta = rs.getMetaData();
         check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
         check(Integer.MAX_VALUE, meta.getPrecision(1));
-        
+
         rs = stat.executeQuery("script");
         meta = rs.getMetaData();
         check(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
         check(Integer.MAX_VALUE, meta.getPrecision(1));
-        
+
         rs = stat.executeQuery("select group_concat(table_name) from information_schema.tables");
         rs.next();
         meta = rs.getMetaData();

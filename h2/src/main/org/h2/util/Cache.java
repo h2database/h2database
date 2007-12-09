@@ -62,7 +62,7 @@ public interface Cache {
      * This will not move the item to the front of the list.
      *
      * @param pos the unique key of the element
-     * @return
+     * @return the element or null
      */
     CacheObject find(int pos);
 

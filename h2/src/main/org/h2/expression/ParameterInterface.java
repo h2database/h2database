@@ -12,7 +12,25 @@ import org.h2.value.Value;
  * The interface for client side (remote) and server side parameters.
  */
 public interface ParameterInterface {
+
+    /**
+     * Set the value of the parameter.
+     *
+     * @param value the new value
+     */
     void setValue(Value value);
+
+    /**
+     * Get the value of the parameter if set.
+     *
+     * @return the value or null
+     */
     Value getParamValue() throws SQLException;
+
+    /**
+     * Check if the value is set.
+     *
+     * @throws SQLException if not set.
+     */
     void checkSet() throws SQLException;
 }

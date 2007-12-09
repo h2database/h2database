@@ -145,11 +145,11 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         if (!"TEST".equals(tableName)) {
             throw new Error("supposed to be TEST");
         }
-        if (!before) {
-            throw new Error("before:" + before);
+        if ((triggerName.endsWith("AFTER") && before) || (triggerName.endsWith("BEFORE") && !before)) {
+            throw new Error("triggerName: " + triggerName + " before:" + before);
         }
-        if (type != INSERT) {
-            throw new Error("type:" + type);
+        if ((triggerName.startsWith("UPD") && type != UPDATE) || (triggerName.startsWith("INS") && type != INSERT) || (triggerName.startsWith("DEL") && type != DELETE)) {
+            throw new Error("triggerName: " + triggerName + " type:" + type);
         }
     }
 

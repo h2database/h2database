@@ -72,6 +72,7 @@ public class SysProperties {
     public static final boolean NEW_DISPLAY_SIZE = getBooleanSetting("h2.newDisplaySize", true);
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
     public static final String ALLOWED_CLASSES = getStringSetting("h2.allowedClasses", "*");
+    public static final int MIN_COLUMN_NAME_MAP = getIntSetting("h2.minColumnNameMap", 3);
 
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = getProperty(name);

@@ -23,9 +23,9 @@ import org.h2.value.Value;
  * An outer page of a btree index.
  *
  * Page format:
+ * <pre>
  * L { P(pointers) | D(data) } data.len { data[0].pos [data[0]], ...  }
- *
- * @author Thomas
+ * </pre>
  */
 public class BtreeLeaf extends BtreePage {
 

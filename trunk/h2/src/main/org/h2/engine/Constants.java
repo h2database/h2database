@@ -11,7 +11,7 @@ import org.h2.constant.SysProperties;
  * - Test with Hibernate
  * - Run FindBugs
  * - ant jarClient, check jar file size
- * 
+ *
  * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
@@ -23,8 +23,8 @@ import org.h2.constant.SysProperties;
  *   ant javadocImpl (to find missing javadocs)
  *   ant codeswitchJdk14
  *   ant javadocImpl
- *   
- * - Change version and build number in 
+ *
+ * - Change version and build number in
  *     Constants.java
  *     ant-build.properties
  *     build.html
@@ -35,7 +35,7 @@ import org.h2.constant.SysProperties;
  * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
- * 
+ *
  * - Change version(s) in performance.html; use latest versions of other databases
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
@@ -66,8 +66,6 @@ import org.h2.constant.SysProperties;
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
  * - svn copy: .../svn/trunk .../svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
- * 
- * @author Thomas
  */
 /**
  * Constants are fixed values that are used in the whole database code.
@@ -172,7 +170,7 @@ public class Constants {
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
-    
+
     // to slow down dictionary attacks
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
     public static final String SCRIPT_SQL = "script.sql";

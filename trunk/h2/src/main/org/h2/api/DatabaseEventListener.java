@@ -14,7 +14,25 @@ import java.util.EventListener;
  */
 public interface DatabaseEventListener extends EventListener {
 
-    int STATE_SCAN_FILE = 0, STATE_CREATE_INDEX = 1, STATE_RECOVER = 2, STATE_BACKUP_FILE = 3;
+    /**
+     * This state is used when scanning the data or index file.
+     */
+    int STATE_SCAN_FILE = 0;
+
+    /**
+     * This state is used when re-creating an index.
+     */
+    int STATE_CREATE_INDEX = 1;
+
+    /**
+     * This state is used when re-applying the transaction log or rolling back uncommitted transactions.
+     */
+    int STATE_RECOVER = 2;
+
+    /**
+     * This state is used during the BACKUP command.
+     */
+    int STATE_BACKUP_FILE = 3;
 
     /**
      * This method is called just after creating the object.
@@ -24,7 +42,7 @@ public interface DatabaseEventListener extends EventListener {
      * @param url - the database URL
      */
     void init(String url);
-    
+
     /**
      * This method is called after the database has been opened.
      * It is save to connect to the database and execute statements at this point.
@@ -32,7 +50,7 @@ public interface DatabaseEventListener extends EventListener {
     void opened();
 
     /**
-     * This method is called if the disk space is very low. 
+     * This method is called if the disk space is very low.
      * One strategy is to inform the user and wait for it to clean up disk space.
      * Another strategy is to send an email to the administrator in this method and
      * then throw a SQLException. The database should not be accessed from

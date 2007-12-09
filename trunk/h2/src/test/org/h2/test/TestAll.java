@@ -152,6 +152,7 @@ java org.h2.test.TestAll timer
 /*
 
 History:
+The performance has been improved for ResultSet methods with column name.
 The method Trigger.init has been changed: the parameters 'before' and 'type', have been added to the init method.
 
 C:\temp\test\db

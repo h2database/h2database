@@ -21,9 +21,11 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
@@ -69,6 +71,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private boolean wasNull;
     private Value[] insertRow;
     private Value[] updateRow;
+    private HashMap columnNameMap;
 
     JdbcResultSet(SessionInterface session, JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id, boolean closeStatement, boolean scrollable) {
         setTrace(session.getTrace(), TraceObject.RESULT_SET, id);
@@ -2819,6 +2822,31 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         if (columnName == null) {
             throw Message.getInvalidValueException("columnName", null);
         }
+        if (columnCount >= SysProperties.MIN_COLUMN_NAME_MAP) {
+            if (columnNameMap == null) {
+                HashMap map = new HashMap(columnCount);
+                for (int i = 0; i < columnCount; i++) {
+                    String c = result.getAlias(i).toUpperCase();
+                    map.put(c, ObjectUtils.getInteger(i));
+                    String tabName = result.getTableName(i);
+                    if (tabName != null) {
+                        String colName = result.getColumnName(i);
+                        if (colName != null) {
+                            c =  tabName + "." + colName;
+                            if (!map.containsKey(c)) {
+                                map.put(c, ObjectUtils.getInteger(i));
+                            }
+                        }
+                    }
+                }
+                columnNameMap = map;
+            }
+            Integer index = (Integer) columnNameMap.get(columnName.toUpperCase());
+            if (index == null) {
+                throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+            }
+            return index.intValue() + 1;
+        }
         for (int i = 0; i < columnCount; i++) {
             if (columnName.equalsIgnoreCase(result.getAlias(i))) {
                 return i + 1;
@@ -2829,7 +2857,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             String table = columnName.substring(0, idx);
             String col = columnName.substring(idx+1);
             for (int i = 0; i < columnCount; i++) {
-                if (table.equals(result.getTableName(i)) && col.equalsIgnoreCase(result.getColumnName(i))) {
+                if (table.equalsIgnoreCase(result.getTableName(i)) && col.equalsIgnoreCase(result.getColumnName(i))) {
                     return i + 1;
                 }
             }

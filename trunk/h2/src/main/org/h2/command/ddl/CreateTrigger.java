@@ -89,8 +89,8 @@ public class CreateTrigger extends SchemaCommand {
         trigger.setNoWait(noWait);
         trigger.setQueueSize(queueSize);
         trigger.setRowBased(rowBased);
-        trigger.setTriggerClassName(session, triggerClassName);
         trigger.setTypeMask(typeMask);
+        trigger.setTriggerClassName(session, triggerClassName);
         db.addSchemaObject(session, trigger);
         table.addTrigger(trigger);
         return 0;

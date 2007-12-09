@@ -16,13 +16,64 @@ import org.h2.value.ValueResultSet;
  */
 public interface FunctionCall {
 
+    /**
+     * Get the name of the function.
+     *
+     * @return the name
+     */
     String getName();
+
+    /**
+     * Get the number of parameters.
+     *
+     * @return the number of parameters
+     */
     int getParameterCount() throws SQLException;
+
+    /**
+     * Get an empty result set with the column names set.
+     *
+     * @param session the session
+     * @param nullArgs the argument list (some arguments may be null)
+     * @return the empty result set
+     */
     ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException;
+
+    /**
+     * Get the data type.
+     *
+     * @return the data type
+     */
     int getType();
+
+    /**
+     * Optimize the function if possible.
+     *
+     * @param session the session
+     * @return the optimized expression
+     */
     Expression optimize(Session session) throws SQLException;
+
+    /**
+     * Calculate the result.
+     *
+     * @param session the session
+     * @return the result
+     */
     Value getValue(Session session) throws SQLException;
+
+    /**
+     * Get the function arguments.
+     *
+     * @return argument list
+     */
     Expression[] getArgs();
+
+    /**
+     * Get the SQL snippet of the function (including arguments).
+     *
+     * @return the SQL snippet.
+     */
     String getSQL();
 
 }

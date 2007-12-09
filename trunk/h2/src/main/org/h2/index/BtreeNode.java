@@ -23,9 +23,9 @@ import org.h2.value.Value;
  * An inner page of a b-tree index.
  *
  * Page format:
+ * <pre>
  * N children.len children[0..len] data.len { data[0].pos [data[0]], ...  }
- *
- * @author Thomas
+ *</pre>
  */
 public class BtreeNode extends BtreePage {
 

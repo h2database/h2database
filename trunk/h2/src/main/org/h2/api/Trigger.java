@@ -9,13 +9,24 @@ import java.sql.SQLException;
 
 /**
  * A class that implements this interface can be used as a trigger.
- *
- * @author Thomas
  */
 
 public interface Trigger {
 
-    int INSERT = 1, UPDATE = 2, DELETE = 4;
+    /**
+     * The trigger is called for INSERT statements.
+     */
+    int INSERT = 1;
+
+    /**
+     * The trigger is called for UPDATE statements.
+     */
+    int UPDATE = 2;
+
+    /**
+     * The trigger is called for DELETE statements.
+     */
+    int DELETE = 4;
 
     /**
      * This method is called by the database engine once when initializing the trigger.

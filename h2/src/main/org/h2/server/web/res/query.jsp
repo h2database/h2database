@@ -1,6 +1,6 @@
 <!-- can not use doctype -->
-<!-- 
-Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html>
@@ -13,13 +13,14 @@ Initial Developer: H2 Group
 
 var agent=navigator.userAgent.toLowerCase();
 var is_opera = agent.indexOf("opera") >= 0;
-var autoComplete = 1;
+var autoComplete = 1; // 0: off, 1: normal, 2: full
 var selectedRow = -1;
 var lastList = '';
 var lastQuery = null;
 var columnsByTable = new Object();
 var tableAliases = new Object();
 var showAutoCompleteWait = 0;
+var autoCompleteManual = false;
 var req;
 
 function refreshTables() {
@@ -71,7 +72,7 @@ function splitSQL(s) {
 function help() {
     var input = document.h2query.sql;
     setSelection(input);
-    var pos = input.selectionStart;  
+    var pos = input.selectionStart;
     if(pos > 0) {
         var s = input.value.substring(0, pos).toUpperCase();
         var e = pos-1;
@@ -108,7 +109,7 @@ function setSelection(element) {
         } catch (e) {
                element.selectionEnd = element.selectionStart = 0;
         }
-    }    
+    }
 }
 
 function set(field, combo) {
@@ -172,13 +173,6 @@ function insertText(s, isTable) {
     field.focus();
 }
 
-function keyUp() {
-    if(autoComplete != 0) {
-        showAutoComplete();
-    }
-    return true;
-}
-
 function showAutoComplete() {
     if(showAutoCompleteWait==0) {
         showAutoCompleteWait=5;
@@ -206,24 +200,32 @@ function keyDown(event) {
         return false;
     }
     if (key == 13 && event.ctrlKey) {
+    	// ctrl + return
         document.h2query.submit();
         return false;
     } else if(key == 32 && event.ctrlKey) {
-        showAutoComplete();
+    	// ctrl + space
+	    autoCompleteManual = true;
+	    lastQuery = null;
+	    lastList = '';
+        showAutoCompleteNow();
         return false;
     } else if(key == 190 && autoComplete==0) {
+    	// dot
         help();
         return true;
     }
     var table = getAutoCompleteTable();
     if(table.rows.length > 0) {
         if(key == 27) {
+        	// escape
             while(table.rows.length > 0) {
                 table.deleteRow(0);
             }
             showOutput('');
             return false;
         } else if((key == 13 && !event.shiftKey) || (key==9 && !event.shiftKey)) {
+        	// enter or tab
             if(table.rows.length > selectedRow) {
                 var row = table.rows[selectedRow];
                 if(row.cells.length>1) {
@@ -231,29 +233,42 @@ function keyDown(event) {
                 }
                 if(autoComplete == 0) {
                     setAutoComplete(0);
-                }    
+                }
                 return false;
             }
         } else if(key == 38 && !event.shiftKey) {
-            if(table.rows.length > selectedRow) {        
+        	// up
+            if(table.rows.length > selectedRow) {
                 selectedRow = selectedRow <= 0 ? table.rows.length-1 : selectedRow-1;
                 highlightRow(selectedRow);
             }
-            return false;            
+            return false;
         } else if(key == 40 && !event.shiftKey) {
-            if(table.rows.length > selectedRow) {        
+        	// down
+            if(table.rows.length > selectedRow) {
                 selectedRow = selectedRow >= table.rows.length-1 ? 0 : selectedRow+1;
                 highlightRow(selectedRow);
             }
-            return false;            
+            return false;
         }
     }
     return true;
      // alert('key:' + key);
     // bs:8 ret:13 lt:37 up:38 rt:39 dn:40 tab:9
-    // pgup:33 pgdn:34 home:36 end:35 del:46 shift:16 
-    // ctrl,alt gr:17 alt:18 caps:20 5(num):12 ins:45
+    // pgup:33 pgdn:34 home:36 end:35 del:46 shift:16
+    // ctrl, alt gr:17 alt:18 caps:20 5(num):12 ins:45
     // pause:19 f1..13:112..123 win-start:91 win-ctx:93 esc:27
+}
+
+function keyUp(event) {
+    if(autoComplete != 0) {
+	    var key=event == null ? 0 : (event.keyCode? event.keyCode : event.charCode);
+    	if(key != 37 && key != 38 && key != 39 && key != 40) {
+    		// left, right, up, down: don't show autocomplete
+	        showAutoComplete();
+	    }
+    }
+    return true;
 }
 
 function setAutoComplete(value) {
@@ -325,7 +340,7 @@ function showList(s) {
     for(var i=0; list != null && i<list.length; i++) {
         var kv = list[i].split('#');
         var type = kv[0];
-        if(type > 0 && autoComplete != 2) {
+        if(type > 0 && autoComplete != 2 && !autoCompleteManual) {
             continue;
         }
         var row = doc.createElement("tr");
@@ -354,7 +369,7 @@ function showList(s) {
         cell = doc.createElement("td");
         cell.style.display='none';
         text = doc.createTextNode(value);
-        cell.appendChild(text);            
+        cell.appendChild(text);
         row.appendChild(cell);
     }
     if(count > 0) {
@@ -365,6 +380,7 @@ function showList(s) {
     }
     // scroll to the top left
     top.h2result.scrollTo(0, 0);
+    autoCompleteManual = false;
 }
 
 function retrieveList(s) {
@@ -436,7 +452,7 @@ function processAsyncResponse() {
             <div style="display:none">
                 <iframe id="h2iframeTransport" src="" onload="showList(this.contentWindow.document.body.innerHTML);"></iframe>
             </div>
-            <textarea id="sql" name="sql" cols="80" rows="5" onkeydown="return keyDown(event)" onkeyup="return keyUp()" 
+            <textarea id="sql" name="sql" cols="80" rows="5" onkeydown="return keyDown(event)" onkeyup="return keyUp(event)"
                 onfocus="keyUp()" onchange="return keyUp()">${query}</textarea>
         </form>
     </body>

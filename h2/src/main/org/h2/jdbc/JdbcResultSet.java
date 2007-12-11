@@ -24,6 +24,14 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+//#ifdef JDK16
+/*
+import java.sql.NClob;
+import java.sql.RowId;
+import java.sql.SQLXML;
+*/
+//#endif
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -2668,7 +2676,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Detects if the row was updated (by somebody else or the caller).
      *
-     * @return false because this driver does detect this
+     * @return false because this driver does not detect this
      */
     public boolean rowUpdated() throws SQLException {
         try {
@@ -2682,7 +2690,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Detects if the row was inserted.
      *
-     * @return false because this driver does detect this
+     * @return false because this driver does not detect this
      */
     public boolean rowInserted() throws SQLException {
         try {
@@ -2696,7 +2704,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Detects if the row was deleted (by somebody else or the caller).
      *
-     * @return false because this driver does detect this
+     * @return false because this driver does not detect this
      */
     public boolean rowDeleted() throws SQLException {
         try {
@@ -2926,10 +2934,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     public int getTraceId() {
         return super.getTraceId();
-    }
-
-    JdbcConnection getConnection() {
-        return conn;
     }
 
     private boolean nextRow() throws SQLException {

@@ -152,23 +152,16 @@ java org.h2.test.TestAll timer
 /*
 
 History:
-The performance has been improved for ResultSet methods with column name.
-The method Trigger.init has been changed: the parameters 'before' and 'type', have been added to the init method.
+The Ukrainian translation was not working in the last release. Fixed.
+Creating many tables (many hundreds) was slow. Fixed.
+Opening a database with many indexes (thousands) was slow. Fixed.
+
 
 C:\temp\test\db
 
-No more
-@author
-
-autocomplete only just after meaningful key (ctrl+space, space, bs, ...)
-
-write more tests for the command line tools
-
-Known Problems:
+Web site:
 link to history page, bug page
 Add a link to the google code bug page
-
-implement & test: checkpoint commits running transactions
 
 test DbStarter
 
@@ -202,8 +195,6 @@ out of memory?
 shrink newsletter list (migrate to google groups)
 
 don't create @~ of not translated
-
-test performance and document fulltext search
 
 clustered tables: test, document
 
@@ -297,6 +288,7 @@ Features of H2
 
         if (args.length > 0) {
             if ("crash".equals(args[0])) {
+                test.endless = true;
                 new TestCrashAPI().runTest(test);
             } else if ("synth".equals(args[0])) {
                 new TestSynth().runTest(test);
@@ -620,6 +612,7 @@ Features of H2
         new TestMVCC().runTest(this);
 
         // synthetic
+        new TestCrashAPI().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
 

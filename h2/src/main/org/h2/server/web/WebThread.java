@@ -1429,7 +1429,8 @@ class WebThread extends Thread implements DatabaseEventListener {
                 stat.close();
             }
             return buff.toString();
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            // throwable: including OutOfMemoryError and so on
             return getStackTrace(id, e);
         } finally {
             session.executingStatement = null;

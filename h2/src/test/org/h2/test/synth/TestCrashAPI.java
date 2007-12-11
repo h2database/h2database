@@ -6,11 +6,16 @@ package org.h2.test.synth;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.BatchUpdateException;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -33,7 +38,8 @@ import org.h2.util.RandomUtils;
  */
 public class TestCrashAPI extends TestBase {
     public static final Class[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
-            ResultSet.class, ResultSetMetaData.class, Savepoint.class };
+            ResultSet.class, ResultSetMetaData.class, Savepoint.class,
+            ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
     private ArrayList objects = new ArrayList();
     private HashMap classMethods = new HashMap();
     private RandomGen random = new RandomGen(null);
@@ -376,7 +382,8 @@ public class TestCrashAPI extends TestBase {
     }
 
     public void test() throws Exception {
-        while (true) {
+        int len = getSize(2, 6);
+        for (int i = 0; i < len; i++) {
             int seed = RandomUtils.nextInt(Integer.MAX_VALUE);
             testCase(seed);
             deleteDb();

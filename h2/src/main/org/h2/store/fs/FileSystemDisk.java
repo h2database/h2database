@@ -36,7 +36,7 @@ public class FileSystemDisk extends FileSystem {
         return INSTANCE;
     }
 
-    private FileSystemDisk() {
+    protected FileSystemDisk() {
     }
 
     public long length(String fileName) {

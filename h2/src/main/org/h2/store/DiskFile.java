@@ -35,8 +35,8 @@ import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 
 /**
- * This class represents a file that is usually written to disk. 
- * The two main files are .data.db and .index.db. 
+ * This class represents a file that is usually written to disk.
+ * The two main files are .data.db and .index.db.
  * For each such file, a number of {@link Storage} objects exists.
  * The disk file is responsible for caching; each object contains a {@link Cache} object.
  * Changes in the file are logged in a {@link LogSystem} object.
@@ -277,7 +277,7 @@ public class DiskFile implements CacheWriter {
             }
         }
     }
-        
+
 
     public void init() throws SQLException {
         synchronized (database) {
@@ -346,6 +346,33 @@ public class DiskFile implements CacheWriter {
                 if (deleted.get(i)) {
                     writeDirectDeleted(i, 1);
                     deleted.clear(i);
+                }
+            }
+        }
+    }
+
+    public void flushNew() throws SQLException {
+        int todoTest;
+        synchronized (database) {
+            database.checkPowerOff();
+            ObjectArray list = cache.getAllChanged();
+            CacheObject.sort(list);
+            int deletePos = deleted.nextSetBit(0);
+            int writeIndex = 0;
+            Record writeRecord = null;
+            while (true) {
+                if (writeRecord == null && writeIndex < list.size()) {
+                    writeRecord = (Record) list.get(writeIndex++);
+                }
+                if (writeRecord != null && (deletePos < 0 || writeRecord.getPos() < deletePos)) {
+                    writeBack(writeRecord);
+                    writeRecord = null;
+                } else if (deletePos < fileBlockCount && deletePos >= 0) {
+                    writeDirectDeleted(deletePos, 1);
+                    deleted.clear(deletePos);
+                    deletePos = deleted.nextSetBit(deletePos);
+                } else {
+                    break;
                 }
             }
         }
@@ -888,8 +915,6 @@ public class DiskFile implements CacheWriter {
             if (last != null && last.data != null) {
                 writeRedoLog(last);
             }
-
-
             redoBuffer.clear();
             redoBufferSize = 0;
         }
@@ -915,6 +940,10 @@ public class DiskFile implements CacheWriter {
         if (log != null) {
             log.flush();
         }
+    }
+
+    public String toString() {
+        return getClass().getName() + ":" + fileName;
     }
 
 }

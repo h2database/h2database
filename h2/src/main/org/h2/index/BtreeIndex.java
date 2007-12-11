@@ -33,7 +33,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     // final static int MAX_PAGE_SIZE = 256;
 
     private Storage storage;
-    private BtreePage root;
+    private BtreePage rootPage;
     private TableData tableData;
     private BtreeHead head;
     private boolean needRebuild;
@@ -57,7 +57,8 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                 head = (BtreeHead) rec;
             }
             if (head != null && head.getConsistent()) {
-                setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
+int testing;
+// setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
                 needRebuild = false;
                 rowCount = table.getRowCount(session);
             } else {
@@ -67,12 +68,20 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
-    private void setRoot(BtreePage newRoot) {
-        if (root != null) {
-            root.setRoot(false);
+    private BtreePage getRoot(Session session) throws SQLException {
+        if (rootPage == null) {
+            setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
+        }
+        return rootPage;
+    }
+
+    private BtreePage setRoot(BtreePage newRoot) {
+        if (rootPage != null) {
+            rootPage.setRoot(false);
         }
         newRoot.setRoot(true);
-        root = newRoot;
+        rootPage = newRoot;
+        return rootPage;
     }
 
     public int getHeadPos() {
@@ -151,12 +160,13 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             Value v = r.getValue(idx);
             row.setValue(idx, v);
         }
+        BtreePage root = getRoot(session);
         int splitPoint = root.add(row, session);
         if (splitPoint != 0) {
             SearchRow pivot = root.getData(splitPoint);
             BtreePage page1 = root;
             BtreePage page2 = root.split(session, splitPoint);
-            setRoot(new BtreeNode(this, page1, pivot, page2));
+            root = setRoot(new BtreeNode(this, page1, pivot, page2));
             addPage(session, root);
             deletePage(session, head);
             head.setRootPosition(root.getPos());
@@ -171,6 +181,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             // TODO performance: maybe improve truncate performance in this case
             truncate(session);
         } else {
+            BtreePage root = getRoot(session);
             root.remove(session, row, 0);
             rowCount--;
         }
@@ -180,6 +191,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         if (SysProperties.CHECK && storage == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
+        BtreePage root = getRoot(session);
         if (first == null) {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
             root.first(cursor);
@@ -257,7 +269,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         storage.truncate(session);
         head = new BtreeHead();
         addPage(session, head);
-        setRoot(new BtreeLeaf(this, new ObjectArray()));
+        BtreePage root = setRoot(new BtreeLeaf(this, new ObjectArray()));
         addPage(session, root);
         deletePage(session, head);
         head.setRootPosition(root.getPos());
@@ -301,7 +313,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             }
             return null;
         } else {
-            return root.getLast(session);
+            return getRoot(session).getLast(session);
         }
     }
 

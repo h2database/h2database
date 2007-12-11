@@ -839,7 +839,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * Sets the value of a parameter as an input stream.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
-     * @param x the value     * @throws SQLException if this object is closed
+     * @param x the value
+     * @throws SQLException if this object is closed
      */
     public void setBinaryStream(int parameterIndex, InputStream x) throws SQLException {
         setBinaryStream(parameterIndex, x, -1);

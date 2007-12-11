@@ -96,6 +96,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         check("IN_DOUBT", rs.getString("TABLE_NAME"));
         rs.next();
+        check("LOCKS", rs.getString("TABLE_NAME"));
+        rs.next();
         check("RIGHTS", rs.getString("TABLE_NAME"));
         rs.next();
         check("ROLES", rs.getString("TABLE_NAME"));
@@ -103,6 +105,8 @@ public class TestMetaData extends TestBase {
         check("SCHEMATA", rs.getString("TABLE_NAME"));
         rs.next();
         check("SEQUENCES", rs.getString("TABLE_NAME"));
+        rs.next();
+        check("SESSIONS", rs.getString("TABLE_NAME"));
         rs.next();
         check("SETTINGS", rs.getString("TABLE_NAME"));
         rs.next();

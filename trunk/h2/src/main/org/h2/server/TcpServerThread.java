@@ -39,9 +39,11 @@ public class TcpServerThread implements Runnable {
     private Transfer transfer;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
+    private int id;
 
-    public TcpServerThread(Socket socket, TcpServer server) {
+    public TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
+        this.id = id;
         transfer = new Transfer(null);
         transfer.setSocket(socket);
     }
@@ -90,6 +92,7 @@ public class TcpServerThread implements Runnable {
                 session = engine.getSession(ci);
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK).flush();
+                server.addConnection(id, originalURL, ci.getUserName());
                 log("Connected");
             } catch (Throwable e) {
                 sendError(e);
@@ -116,6 +119,7 @@ public class TcpServerThread implements Runnable {
                 Command rollback = session.prepareLocal("ROLLBACK");
                 rollback.executeUpdate();
                 session.close();
+                server.removeConnection(id);
             } catch (Exception e) {
                 server.logError(e);
             } finally {

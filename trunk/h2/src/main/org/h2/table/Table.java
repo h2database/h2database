@@ -135,6 +135,10 @@ public abstract class Table extends SchemaObjectBase {
 
     public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
 
+    public boolean isLockExclusive(Session s) {
+        return false;
+    }
+
     public abstract void close(Session session) throws SQLException;
 
     public abstract void unlock(Session s);

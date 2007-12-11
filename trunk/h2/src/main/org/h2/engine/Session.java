@@ -30,8 +30,8 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.table.Table;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -73,6 +73,7 @@ public class Session implements SessionInterface {
     private String currentTransactionName;
     private boolean isClosed;
     private boolean rollbackMode;
+    private long loginTime = System.currentTimeMillis();
 
     public Session() {
     }
@@ -507,6 +508,11 @@ public class Session implements SessionInterface {
         }
     }
 
+    public String getCurrentCommand() {
+        Command c = currentCommand;
+        return c == null ? null : c.toString();
+    }
+
     public boolean getAllowLiterals() {
         return allowLiterals;
     }
@@ -601,6 +607,18 @@ public class Session implements SessionInterface {
 
     public boolean getRollbackMode() {
         return rollbackMode;
+    }
+
+    public long getLoginTime() {
+        return loginTime;
+    }
+
+    public Table[] getLocks() {
+        synchronized (database) {
+            Table[] list = new Table[locks.size()];
+            locks.toArray(list);
+            return list;
+        }
     }
 
 }

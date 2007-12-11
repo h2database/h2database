@@ -2080,6 +2080,7 @@ Each character needs 16 bits.
 ","
 BIT_LENGTH(NAME)
 "
+
 "Functions (String)","LENGTH","
 {LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): int
 ","
@@ -2088,6 +2089,7 @@ For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used.
 ","
 LENGTH(NAME)
 "
+
 "Functions (String)","OCTET_LENGTH","
 OCTET_LENGTH(string): int
 ","
@@ -2097,6 +2099,7 @@ Each character needs 2 bytes.
 ","
 OCTET_LENGTH(NAME)
 "
+
 "Functions (String)","CHAR","
 {CHAR | CHR}(int): string
 ","
@@ -2104,6 +2107,7 @@ Returns the character that represents the ASCII value.
 ","
 CHAR(65)
 "
+
 "Functions (String)","CONCAT","
 CONCAT(string, string [,...]): string
 ","
@@ -2111,6 +2115,7 @@ Combines strings.
 ","
 CONCAT(NAME, '!')
 "
+
 "Functions (String)","DIFFERENCE","
 DIFFERENCE(string, string): int
 ","
@@ -2118,6 +2123,7 @@ Returns the difference between the sounds of two strings.
 ","
 DIFFERENCE(T1.NAME, T2.NAME)
 "
+
 "Functions (String)","HEXTORAW","
 HEXTORAW(string): string
 ","
@@ -2126,6 +2132,7 @@ Converts a hex representation of a string to a string.
 ","
 HEXTORAW(DATA)
 "
+
 "Functions (String)","RAWTOHEX","
 RAWTOHEX(string): string
 ","
@@ -2134,6 +2141,7 @@ Converts a string to the hex representation.
 ","
 RAWTOHEX(DATA)
 "
+
 "Functions (String)","INSTR","
 INSTR(string, searchString, [, startInt]): int
 ","
@@ -2153,6 +2161,7 @@ in the original string.
 ","
 INSERT(NAME, 1, 1, ' ')
 "
+
 "Functions (String)","LOWER","
 {LOWER | LCASE}(string): string
 ","
@@ -2160,6 +2169,7 @@ Converts a string to lowercase.
 ","
 LOWER(NAME)
 "
+
 "Functions (String)","UPPER","
 {UPPER | UCASE}(string): string
 ","
@@ -2167,6 +2177,7 @@ Converts a string to uppercase.
 ","
 UPPER(NAME)
 "
+
 "Functions (String)","LEFT","
 LEFT(string, int): string
 ","
@@ -2174,6 +2185,7 @@ Returns the leftmost number of characters.
 ","
 LEFT(NAME, 3)
 "
+
 "Functions (String)","RIGHT","
 RIGHT(string, int): string
 ","
@@ -2181,6 +2193,7 @@ Returns the rightmost number of characters.
 ","
 RIGHT(NAME, 3)
 "
+
 "Functions (String)","LOCATE","
 LOCATE(searchString, string [, startInt]): int
 ","
@@ -2191,6 +2204,7 @@ If position is negative, the rightmost location is returned.
 ","
 LOCATE('.', NAME)
 "
+
 "Functions (String)","POSITION","
 POSITION(searchString, string): int
 ","
@@ -2199,6 +2213,27 @@ See also LOCATE.
 ","
 POSITION('.', NAME)
 "
+
+"Functions (String)","LPAD","
+LPAD(string, int[, paddingString]): string
+","
+Left pad the string to the specified length.
+If the length is shorter than the string, it will be truncated at the end.
+If the padding string is not set, spaces will be used.
+","
+LPAD(AMOUNT, 10, '*')
+"
+
+"Functions (String)","RPAD","
+RPAD(string, int[, paddingString]): string
+","
+Right pad the string to the specified length.
+If the length is shorter than the string, it will be truncated.
+If the padding string is not set, spaces will be used.
+","
+RPAD(TEXT, 10, '-')
+"
+
 "Functions (String)","LTRIM","
 LTRIM(string): string
 ","
@@ -2206,6 +2241,7 @@ Removes all leading spaces from a string.
 ","
 LTRIM(NAME)
 "
+
 "Functions (String)","RTRIM","
 RTRIM(string): string
 ","
@@ -2213,6 +2249,7 @@ Removes all trailing spaces from a string.
 ","
 RTRIM(NAME)
 "
+
 "Functions (String)","TRIM","
 TRIM([{LEADING | TRAILING | BOTH} [string] FROM]
 string): string
@@ -2775,9 +2812,11 @@ INFORMATION_SCHEMA.FUNCTION_COLUMNS contains the function columns.
 INFORMATION_SCHEMA.HELP contains the reference help.
 INFORMATION_SCHEMA.INDEXES contains the indexes.
 INFORMATION_SCHEMA.IN_DOUBT contains all in-doubt transactions.
+INFORMATION_SCHEMA.LOCKS contains all locks.
 INFORMATION_SCHEMA.RIGHTS contains the rights.
 INFORMATION_SCHEMA.ROLES contains the roles.
 INFORMATION_SCHEMA.SCHEMATA contains the schemas.
+INFORMATION_SCHEMA.SESSIONS contains the open sessions.
 INFORMATION_SCHEMA.SEQUENCES contains the sequences.
 INFORMATION_SCHEMA.SETTINGS contains the settings.
 INFORMATION_SCHEMA.TABLES contains the tables.

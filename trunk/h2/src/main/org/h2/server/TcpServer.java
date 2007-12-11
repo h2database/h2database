@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -55,10 +57,20 @@ public class TcpServer implements Service {
     private boolean allowOthers;
     private boolean ifExists;
     private Connection managementDb;
+    private PreparedStatement managementDbAdd;
+    private PreparedStatement managementDbRemove;
     private String managementPassword = "";
-    private static HashMap servers = new HashMap();
+    private static final Map SERVERS = Collections.synchronizedMap(new HashMap());
     private Thread listenerThread;
+    private int nextThreadId;
 
+    /**
+     * Get the database name of the management database.
+     * The management database contains a table with active sessions (SESSIONS).
+     *
+     * @param port the TCP server port
+     * @return the database name (usually starting with mem:)
+     */
     public static String getManagementDbName(int port) {
         return "mem:" + Constants.MANAGEMENT_DB_PREFIX + port;
     }
@@ -74,10 +86,47 @@ public class TcpServer implements Service {
         try {
             stat = conn.createStatement();
             stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() + ".stopServer\"");
+            stat.execute("CREATE TABLE IF NOT EXISTS SESSIONS(ID INT PRIMARY KEY, URL VARCHAR, USER VARCHAR, CONNECTED TIMESTAMP)");
+            managementDbAdd = conn.prepareStatement("INSERT INTO SESSIONS VALUES(?, ?, ?, NOW())");
+            managementDbRemove = conn.prepareStatement("DELETE FROM SESSIONS WHERE ID=?");
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        servers.put("" + port, this);
+        SERVERS.put("" + port, this);
+    }
+
+    /**
+     * Get the list of ports of all running TCP server.
+     *
+     * @return the list of ports
+     */
+    public static int[] getAllServerPorts() {
+        Object[] servers = SERVERS.keySet().toArray();
+        int[] ports = new int[servers.length];
+        for (int i = 0; i < servers.length; i++) {
+            ports[i] = Integer.parseInt(servers[i].toString());
+        }
+        return ports;
+    }
+
+    synchronized void addConnection(int id, String url, String user) {
+        try {
+            managementDbAdd.setInt(1, id);
+            managementDbAdd.setString(2, url);
+            managementDbAdd.setString(3, user);
+            managementDbAdd.execute();
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
+        }
+    }
+
+    synchronized void removeConnection(int id) {
+        try {
+            managementDbRemove.setInt(1, id);
+            managementDbRemove.execute();
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
+        }
     }
 
     private void stopManagementDb() {
@@ -141,7 +190,7 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                TcpServerThread c = new TcpServerThread(s, this);
+                TcpServerThread c = new TcpServerThread(s, this, nextThreadId++);
                 running.add(c);
                 Thread thread = new Thread(c);
                 thread.setName(threadName + " thread");
@@ -202,11 +251,11 @@ public class TcpServer implements Service {
                 TraceSystem.traceThrowable(e);
             }
         }
-        servers.remove("" + port);
+        SERVERS.remove("" + port);
     }
 
     public static synchronized void stopServer(int port, String password, int shutdownMode) {
-        TcpServer server = (TcpServer) servers.get("" + port);
+        TcpServer server = (TcpServer) SERVERS.get("" + port);
         if (server == null) {
             return;
         }

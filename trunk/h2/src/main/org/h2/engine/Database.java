@@ -509,6 +509,8 @@ public class Database implements DataHandler {
         addMetaData(MetaTable.CONSTANTS);
         addMetaData(MetaTable.DOMAINS);
         addMetaData(MetaTable.TRIGGERS);
+        addMetaData(MetaTable.SESSIONS);
+        addMetaData(MetaTable.LOCKS);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because

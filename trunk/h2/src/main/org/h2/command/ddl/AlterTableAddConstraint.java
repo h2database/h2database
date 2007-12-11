@@ -14,6 +14,7 @@ import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -52,9 +53,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         super(session, schema);
     }
 
-    private String generateConstraintName(int id) throws SQLException {
+    private String generateConstraintName(DbObject obj, int id) throws SQLException {
         if (constraintName == null) {
-            constraintName = getSchema().getUniqueConstraintName();
+            constraintName = getSchema().getUniqueConstraintName(obj);
         }
         return constraintName;
     }
@@ -72,7 +73,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         switch (type) {
         case CHECK: {
             int id = getObjectId(true, true);
-            String name = generateConstraintName(id);
+            String name = generateConstraintName(table, id);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
             TableFilter filter = new TableFilter(session, table, null, false, null);
             checkExpression.mapColumns(filter, 0);
@@ -99,7 +100,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             int id = getObjectId(true, true);
-            String name = generateConstraintName(id);
+            String name = generateConstraintName(table, id);
             ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table);
             unique.setColumns(columns);
             unique.setIndex(index, isOwner);
@@ -146,7 +147,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             int id = getObjectId(true, true);
-            String name = generateConstraintName(id);
+            String name = generateConstraintName(table, id);
             ConstraintReferential ref = new ConstraintReferential(getSchema(), id, name, table);
             ref.setColumns(columns);
             ref.setIndex(index, isOwner);
@@ -186,7 +187,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
-        String indexName = getSchema().getUniqueIndexName(prefix + "_INDEX_");
+        String indexName = getSchema().getUniqueIndexName(t, prefix + "_INDEX_");
         IndexColumn[] idxCols = IndexColumn.wrap(cols);
         return t.addIndex(session, indexName, indexId, idxCols, indexType, Index.EMPTY_HEAD, null);
     }

@@ -578,7 +578,7 @@ public class TestMetaData extends TestBase {
         testResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "IDX_DATE",
                         "" + DatabaseMetaData.tableIndexOther, "1", "DATE_V", "A", "0", "0", "" },
-                { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "PRIMARY_KEY_1",
+                { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "PRIMARY_KEY_2",
                         "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" },
                 { catalog, Constants.SCHEMA_MAIN, "TEST", "TRUE", catalog, "IDX_TEXT_DEC",
                         "" + DatabaseMetaData.tableIndexOther, "1", "TEXT_V", "A", "0", "0", "" },
@@ -593,14 +593,14 @@ public class TestMetaData extends TestBase {
                 DataType.TYPE_BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER }, null, null);
         testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog,
-                "PRIMARY_KEY_1", "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" } });
+                "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" } });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "TEST");
         testResultSetMeta(rs, 6, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "COLUMN_NAME", "KEY_SEQ",
                 "PK_NAME" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT,
                 Types.VARCHAR }, null, null);
         testResultSetOrdered(rs,
-                new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "PRIMARY_KEY_1" }, });
+                new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "PRIMARY_KEY_2" }, });
         trace("getTables - using a wildcard");
         stat.executeUpdate("CREATE TABLE T_2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
         stat.executeUpdate("CREATE TABLE TX2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
@@ -719,21 +719,21 @@ public class TestMetaData extends TestBase {
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_3",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
                         "" + DatabaseMetaData.tableIndexOther, "1", "C", "A" /*
                                                                                  * ,
                                                                                  * null,
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_3",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
                         "" + DatabaseMetaData.tableIndexOther, "2", "A", "A" /*
                                                                                  * ,
                                                                                  * null,
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_3",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
                         "" + DatabaseMetaData.tableIndexOther, "3", "B", "A"/*
                                                                              * ,
                                                                              * null,
@@ -763,9 +763,9 @@ public class TestMetaData extends TestBase {
                                                                                  */}, });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
-        testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "PRIMARY_KEY_2" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "PRIMARY_KEY_2" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "PRIMARY_KEY_2" }, });
+        testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "PRIMARY_KEY_14" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "PRIMARY_KEY_14" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "PRIMARY_KEY_14" }, });
         stat.executeUpdate("DROP TABLE TX2");
         stat.executeUpdate("DROP TABLE T_2");
         stat.executeUpdate("CREATE TABLE PARENT(ID INT PRIMARY KEY)");

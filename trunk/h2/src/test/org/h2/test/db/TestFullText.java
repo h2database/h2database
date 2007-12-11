@@ -5,8 +5,10 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.StringTokenizer;
 
 import org.h2.test.TestBase;
 
@@ -17,15 +19,57 @@ public class TestFullText extends TestBase {
             return;
         }
         test(false);
+        testPerformance(false);
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
             test(true);
+            testPerformance(true);
         } catch (ClassNotFoundException e) {
-            this.println("Class not found, not tested: " + luceneFullTextClassName);
+            println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
         }
 
+    }
+
+    private void testPerformance(boolean lucene) throws Exception {
+        deleteDb("fullText");
+        Connection conn = getConnection("fullText");
+        String prefix = lucene ? "FTL" : "FT";
+        Statement stat = conn.createStatement();
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "_INIT()");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
+        stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
+        stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
+        long time = System.currentTimeMillis();
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        println("Create index " + prefix + ": " + (System.currentTimeMillis() - time) + " ms");
+        PreparedStatement prep = conn.prepareStatement("SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
+        time = System.currentTimeMillis();
+        ResultSet rs = stat.executeQuery("SELECT TEXT FROM TEST");
+        int count = 0;
+        while (rs.next()) {
+            String text = rs.getString(1);
+            StringTokenizer tokenizer = new StringTokenizer(text, " ()[].,;:-+*/!?=<>{}#@'\"~$_%&|");
+            while (tokenizer.hasMoreTokens()) {
+                String word = tokenizer.nextToken();
+                if (word.length() < 10) {
+                    continue;
+                }
+                prep.setString(1, word);
+                ResultSet rs2 = prep.executeQuery();
+                while (rs2.next()) {
+                    rs2.getString(1);
+                    count++;
+                }
+            }
+        }
+        println("Search " + prefix + ": " + (System.currentTimeMillis() - time) + " ms, count: " + count);
+        stat.execute("CALL " + prefix + "_DROP_ALL()");
+        conn.close();
     }
 
     private void test(boolean lucene) throws Exception {

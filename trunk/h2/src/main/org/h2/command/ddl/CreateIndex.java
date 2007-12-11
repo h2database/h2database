@@ -70,7 +70,7 @@ public class CreateIndex extends SchemaCommand {
         }
         int id = getObjectId(true, false);
         if (indexName == null) {
-            indexName = getSchema().getUniqueIndexName("INDEX_");
+            indexName = getSchema().getUniqueIndexName(table, "INDEX_");
         }
         if (getSchema().findIndex(indexName) != null) {
             if (ifNotExists) {

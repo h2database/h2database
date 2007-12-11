@@ -56,7 +56,8 @@ import org.h2.constant.SysProperties;
  * - Make sure the build files are removed
  * - ant zip
  * - Windows installer (nsis)
- * - Test
+ * - Test Console
+ * - Test all languages
  * - Test the windows service
  * - Scan for viruses
  * - ant mavenDeployCentral

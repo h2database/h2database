@@ -143,7 +143,7 @@ public class TableData extends Table implements RecordReader {
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String indexComment) throws SQLException {
         if (indexType.isPrimaryKey()) {
-            indexName = getSchema().getUniqueIndexName(Constants.PRIMARY_KEY_PREFIX);
+            indexName = getSchema().getUniqueIndexName(this, Constants.PRIMARY_KEY_PREFIX);
             for (int i = 0; i < cols.length; i++) {
                 Column column = cols[i].column;
                 if (column.getNullable()) {

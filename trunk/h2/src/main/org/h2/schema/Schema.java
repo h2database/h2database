@@ -6,6 +6,7 @@ package org.h2.schema;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -185,7 +186,15 @@ public class Schema extends DbObjectBase {
         return (Constant) constants.get(constantName);
     }
 
-    private String getUniqueName(HashMap map, String prefix) {
+    private String getUniqueName(DbObject obj, HashMap map, String prefix) {
+        String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
+        for (int i = 1; i < hash.length(); i++) {
+            String name = prefix + hash.substring(0, i);
+            if (map.get(name) == null) {
+                return name;
+            }
+        }
+        prefix = prefix + hash + "_";
         for (int i = 0;; i++) {
             String name = prefix + i;
             if (map.get(name) == null) {
@@ -194,12 +203,12 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    public String getUniqueConstraintName() {
-        return getUniqueName(constraints, "CONSTRAINT_");
+    public String getUniqueConstraintName(DbObject obj) {
+        return getUniqueName(obj, constraints, "CONSTRAINT_");
     }
 
-    public String getUniqueIndexName(String prefix) {
-        return getUniqueName(indexes, prefix);
+    public String getUniqueIndexName(DbObject obj, String prefix) {
+        return getUniqueName(obj, indexes, prefix);
     }
 
     public Table getTableOrView(Session session, String name) throws SQLException {

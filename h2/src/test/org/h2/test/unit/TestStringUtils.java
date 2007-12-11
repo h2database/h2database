@@ -19,6 +19,14 @@ public class TestStringUtils extends TestBase {
         testSplit();
         testJavaString();
         testURL();
+        testPad();
+    }
+
+    private void testPad() throws Exception {
+        check("large", StringUtils.pad("larger text", 5, null, true));
+        check("large", StringUtils.pad("larger text", 5, null, false));
+        check("short+++++", StringUtils.pad("short", 10, "+", true));
+        check("+++++short", StringUtils.pad("short", 10, "+", false));
     }
 
     private void testXML() throws Exception {

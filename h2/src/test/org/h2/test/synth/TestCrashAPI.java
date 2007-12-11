@@ -362,6 +362,9 @@ public class TestCrashAPI extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
+        if (config.mvcc) {
+            return this;
+        }
         if (config.logMode == 0) {
             error("Log mode 0 may corrupt the db, can't test");
         }
@@ -382,6 +385,9 @@ public class TestCrashAPI extends TestBase {
     }
 
     public void test() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
         int len = getSize(2, 6);
         for (int i = 0; i < len; i++) {
             int seed = RandomUtils.nextInt(Integer.MAX_VALUE);

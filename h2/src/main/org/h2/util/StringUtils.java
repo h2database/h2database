@@ -630,4 +630,33 @@ public class StringUtils {
         return sql;
     }
 
+    public static String pad(String string, int n, String padding, boolean right) {
+        if (n < 0) {
+            n = 0;
+        }
+        if (n < string.length()) {
+            return string.substring(0, n);
+        } else if (n == string.length()) {
+            return string;
+        }
+        char paddingChar;
+        if (padding == null || padding.length() == 0) {
+            paddingChar = ' ';
+        } else {
+            paddingChar = padding.charAt(0);
+        }
+        StringBuffer buff = new StringBuffer(n);
+        n -= string.length();
+        if (right) {
+            buff.append(string);
+        }
+        for (int i = 0; i < n; i++) {
+            buff.append(paddingChar);
+        }
+        if (!right) {
+            buff.append(string);
+        }
+        return buff.toString();
+    }
+
 }

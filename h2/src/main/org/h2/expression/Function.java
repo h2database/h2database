@@ -72,7 +72,7 @@ public class Function extends Expression implements FunctionCall {
             OCTET_LENGTH = 64, RAWTOHEX = 65, REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
             SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75, UPPER = 76, POSITION = 77, TRIM = 78,
             STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82, XMLATTR = 83, XMLNODE = 84,
-            XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89;
+            XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91;
 
     public static final int CURDATE = 100, CURTIME = 101, DATEADD = 102, DATEDIFF = 103, DAYNAME = 104,
             DAYOFMONTH = 105, DAYOFWEEK = 106, DAYOFYEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTHNAME = 111,
@@ -159,13 +159,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("PI", PI, 0, Value.DOUBLE);
         addFunction("POWER", POWER, 2, Value.DOUBLE);
         addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
-        addFunctionNotConst("RAND", RAND, VAR_ARGS, Value.DOUBLE); // no args:
-                                                                    // regular
-                                                                    // rand;
-                                                                    // with one
-                                                                    // arg: seed
-                                                                    // random
-                                                                    // generator
+        // RAND without argument: get the next value
+        // RAND with one argument: seed the random generator
+        addFunctionNotConst("RAND", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, 2, Value.DOUBLE);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("SIGN", SIGN, 1, Value.INT);
@@ -228,6 +224,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
         addFunction("XMLTEXT", XMLTEXT, 1, Value.STRING);
         addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
+        addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
+        addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
 
         // date
         addFunctionNotConst("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
@@ -682,6 +680,10 @@ public class Function extends Expression implements FunctionCall {
             return ValueString.get(StringUtils.xmlText(v0.getString()));
         case REGEXP_REPLACE:
             return ValueString.get(v0.getString().replaceAll(v1.getString(), v2.getString()));
+        case RPAD:
+            return ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true));
+        case LPAD:
+            return ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false));
             // date
         case DATEADD:
             return ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));
@@ -1290,6 +1292,8 @@ public class Function extends Expression implements FunctionCall {
             case INSTR:
             case SUBSTR:
             case SUBSTRING:
+            case LPAD:
+            case RPAD:
                 min = 2;
                 max = 3;
                 break;

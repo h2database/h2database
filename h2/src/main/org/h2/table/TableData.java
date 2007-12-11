@@ -307,6 +307,10 @@ public class TableData extends Table implements RecordReader {
         rowCount = 0;
     }
 
+    public boolean isLockExclusive(Session s) {
+        return lockExclusive == s;
+    }
+
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {

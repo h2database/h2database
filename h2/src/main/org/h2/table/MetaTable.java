@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.Locale;
 
@@ -66,7 +67,7 @@ public class MetaTable extends Table {
             SETTINGS = 6, HELP = 7, SEQUENCES = 8, USERS = 9, ROLES = 10, RIGHTS = 11, FUNCTION_ALIASES = 12,
             SCHEMATA = 13, TABLE_PRIVILEGES = 14, COLUMN_PRIVILEGES = 15, COLLATIONS = 16, VIEWS = 17, IN_DOUBT = 18,
             CROSS_REFERENCES = 19, CONSTRAINTS = 20, FUNCTION_COLUMNS = 21, CONSTANTS = 22, DOMAINS = 23,
-            TRIGGERS = 24;
+            TRIGGERS = 24, SESSIONS = 25, LOCKS = 26;
 
     private final int type;
     private final int indexColumn;
@@ -428,6 +429,26 @@ public class MetaTable extends Table {
                     "ID INT"
             });
             break;
+        case SESSIONS: {
+            setObjectName("SESSIONS");
+            cols = createColumns(new String[]{
+                    "ID INT",
+                    "USER_NAME",
+                    "CURRENT_STATEMENT",
+                    "LOGIN_TIME",
+            });
+            break;
+        }
+        case LOCKS: {
+            setObjectName("LOCKS");
+            cols = createColumns(new String[]{
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "SESSION_ID INT",
+                    "LOCK_TYPE",
+            });
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }
@@ -1175,6 +1196,42 @@ public class MetaTable extends Table {
                         trigger.getCreateSQL(), // SQL
                         "" + trigger.getId() // ID
                 });
+            }
+            break;
+        }
+        case SESSIONS: {
+            Session[] sessions = database.getSessions();
+            boolean admin = session.getUser().getAdmin();
+            for (int i = 0; i < sessions.length; i++) {
+                Session s = sessions[i];
+                if (admin || s == session) {
+                    add(rows, new String[] {
+                            "" + s.getId(), // ID
+                            s.getUser().getName(), // USER_NAME
+                            s.getCurrentCommand(), // CURRENT_COMMAND
+                            new Timestamp(s.getLoginTime()).toString(), // LOGIN_TIME
+                    });
+                }
+            }
+            break;
+        }
+        case LOCKS: {
+            Session[] sessions = database.getSessions();
+            boolean admin = session.getUser().getAdmin();
+            for (int i = 0; i < sessions.length; i++) {
+                Session s = sessions[i];
+                if (admin || s == session) {
+                    Table[] locks = s.getLocks();
+                    for (int j = 0; j < locks.length; j++) {
+                        Table table = locks[j];
+                        add(rows, new String[] {
+                                table.getSchema().getName(), // TABLE_SCHEMA
+                                table.getName(), // TABLE_NAME
+                                "" + s.getId(), // SESSION_ID
+                                table.isLockExclusive(s) ? "WRITE" : "READ", // LOCK_TYPE
+                        });
+                    }
+                }
             }
             break;
         }

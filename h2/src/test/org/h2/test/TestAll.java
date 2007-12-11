@@ -151,10 +151,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-History:
-The Ukrainian translation was not working in the last release. Fixed.
-Creating many tables (many hundreds) was slow. Fixed.
-Opening a database with many indexes (thousands) was slow. Fixed.
+write simple test for
+NFORMATION_SCHEMA.SESSIONS and LOCKS
 
 
 C:\temp\test\db

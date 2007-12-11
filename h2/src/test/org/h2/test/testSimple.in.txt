@@ -1,3 +1,10 @@
+select lpad('string', 10, '+');
+> ++++string;
+select rpad('string', 10, '+');
+> string++++;
+select lpad('string', 10);
+>     string;
+
 select count(*) from (select * from dual union select * from dual) where x = 0;
 > 0;
 select count(*) from (select * from (select * from dual union select * from dual)) where x = 0;

@@ -19,6 +19,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCsv;
+import org.h2.test.db.TestExclusive;
 import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestIndex;
@@ -151,17 +152,6 @@ java org.h2.test.TestAll timer
         test.printSystem();
 
 /*
-
-test & document exclusive mode
-test exclusive mode (inform_schema.settings table, disallow new connections, delay operations by other,
-disable when close session, disable
-
-translate error code 90135
-
-
-
-
-
 
 C:\temp\test\db
 
@@ -566,6 +556,7 @@ Features of H2
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);
+        new TestExclusive().runTest(this);
         new TestFullText().runTest(this);
         new TestFunctions().runTest(this);
         new TestIndex().runTest(this);

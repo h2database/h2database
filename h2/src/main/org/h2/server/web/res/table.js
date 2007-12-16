@@ -1,7 +1,7 @@
 /*
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  */
- 
+
 addEvent(window, "load", initSort);
 
 function addEvent(elm, evType, fn, useCapture) {
@@ -26,7 +26,7 @@ function initSort() {
        }
     var tables = document.getElementsByTagName("table");
     for (var i=0; i<tables.length; i++) {
-        table = tables[i];      
+        table = tables[i];
         if (table.rows && table.rows.length > 0) {
             var header = table.rows[0];
             for(var j=0;j<header.cells.length;j++) {
@@ -45,8 +45,8 @@ function editRow(row, session, write, undo) {
     for(i=1; i<table.rows.length; i++) {
         var cell = table.rows[i].cells[0];
         if(i == y) {
-            var edit = '<img width=16 height=16 src="ico_ok.gif" onclick="javascript:editing.op.value=\'1\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+write+'" title="'+write+'" border="1"/>';
-            var undo = '<img width=16 height=16 src="ico_undo.gif" onclick="javascript:editing.op.value=\'3\';editing.row.value=\''+row+'\';editing.submit()" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+undo+'" title="'+undo+'" border="1"/>';
+            var edit = '<img width=16 height=16 src="ico_ok.gif" onclick="editOk('+row+')" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+write+'" title="'+write+'" border="1"/>';
+            var undo = '<img width=16 height=16 src="ico_undo.gif" onclick="editCancel('+row+')" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+undo+'" title="'+undo+'" border="1"/>';
             cell.innerHTML = edit + undo;
         } else {
             cell.innerHTML = '';
@@ -56,8 +56,37 @@ function editRow(row, session, write, undo) {
     for(i=1; i<cells.length; i++) {
         var cell = cells[i];
         var text = getInnerText(cell);
-        cell.innerHTML = '<input type="text" name="r'+row+'c' + i + '" value="'+text+'" size="' + (text.length+5) + '"/>';
+        cell.innerHTML = '<input type="text" name="r'+row+'c' + i + '" value="'+text+'" size="' + (text.length+5) + '" onkeydown="return editKeyDown(' + row + ', this, event)" />';
     }
+}
+
+function editCancel(row) {
+	var editing = document.getElementById('editing');
+	editing.row.value = row;
+	editing.op.value='3';
+	editing.submit();
+}
+
+function editOk(row) {
+	var editing = document.getElementById('editing');
+	editing.row.value = row;
+	editing.op.value='1';
+	editing.submit();
+}
+
+function editKeyDown(row, object, event) {
+    var key=event.keyCode? event.keyCode : event.charCode;
+    if(key == 46 && event.ctrlKey) {
+    	// ctrl + delete
+    	object.value = 'null';
+		return false;
+	} else if(key == 13) {
+		editOk(row);
+		return false;
+	} else if(key == 27) {
+		editCancel(row);
+		return false;
+	}
 }
 
 function getInnerText(el) {

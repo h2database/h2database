@@ -94,20 +94,17 @@ public class SelectUnion extends Query {
         }
         switch (unionType) {
         case UNION:
+        case EXCEPT:
             left.setDistinct(true);
             right.setDistinct(true);
             result.setDistinct();
             break;
         case UNION_ALL:
             break;
-        case EXCEPT:
-            result.setDistinct();
-            // fall through
-        case INTERSECT: {
+        case INTERSECT:
             left.setDistinct(true);
             right.setDistinct(true);
             break;
-        }
         default:
             throw Message.getInternalError("type=" + unionType);
         }

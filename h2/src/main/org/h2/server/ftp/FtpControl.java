@@ -333,6 +333,7 @@ public class FtpControl extends Thread {
             } else if ("XRMD".equals(command)) {
                 processRemoveDir(param);
             }
+            break;
         default:
             break;
         }

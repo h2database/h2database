@@ -7,9 +7,11 @@ package org.h2.engine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.h2.api.DatabaseEventListener;
@@ -85,7 +87,8 @@ public class Database implements DataHandler {
     private final HashMap userDataTypes = new HashMap();
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
-    private final HashSet sessions = new HashSet();
+    private final Set sessions = Collections.synchronizedSet(new HashSet());
+    private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
 
@@ -772,7 +775,10 @@ public class Database implements DataHandler {
         return getUser(name, Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name));
     }
 
-    public synchronized Session createSession(User user) {
+    public synchronized Session createSession(User user) throws SQLException {
+        if (exclusiveSession != null) {
+            throw Message.getSQLException(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
+        }
         Session session = new Session(this, user, ++nextSessionId);
         sessions.add(session);
         traceSystem.getTrace(Trace.SESSION).info("connecting #" + session.getId() + " to " + databaseName);
@@ -785,6 +791,9 @@ public class Database implements DataHandler {
 
     public synchronized void removeSession(Session session) throws SQLException {
         if (session != null) {
+            if (exclusiveSession == session) {
+                exclusiveSession = null;
+            }
             sessions.remove(session);
             if (session != systemSession) {
                 traceSystem.getTrace(Trace.SESSION).info("disconnecting #" + session.getId());
@@ -1032,7 +1041,7 @@ public class Database implements DataHandler {
         return log;
     }
 
-    public synchronized Session[] getSessions() {
+    public Session[] getSessions() {
         Session[] list = new Session[sessions.size()];
         sessions.toArray(list);
         return list;
@@ -1622,6 +1631,14 @@ public class Database implements DataHandler {
 
     public int getMaxOperationMemory() {
         return maxOperationMemory;
+    }
+
+    public Session getExclusiveSession() {
+        return exclusiveSession;
+    }
+
+    public void setExclusiveSession(Session session) {
+        this.exclusiveSession = session;
     }
 
 }

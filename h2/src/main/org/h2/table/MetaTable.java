@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.Locale;
 
+import org.h2.command.Command;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -434,8 +435,9 @@ public class MetaTable extends Table {
             cols = createColumns(new String[]{
                     "ID INT",
                     "USER_NAME",
-                    "CURRENT_STATEMENT",
-                    "LOGIN_TIME",
+                    "SESSION_START",
+                    "STATEMENT",
+                    "STATEMENT_START"
             });
             break;
         }
@@ -707,6 +709,7 @@ public class MetaTable extends Table {
                 }
             }
             add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
+            add(rows, new String[] { "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE" });
             add(rows, new String[] { "MODE", database.getMode().getName() });
             add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
             DiskFile dataFile = database.getDataFile();
@@ -1205,11 +1208,13 @@ public class MetaTable extends Table {
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
                 if (admin || s == session) {
+                    Command command = s.getCurrentCommand();
                     add(rows, new String[] {
                             "" + s.getId(), // ID
                             s.getUser().getName(), // USER_NAME
-                            s.getCurrentCommand(), // CURRENT_COMMAND
-                            new Timestamp(s.getLoginTime()).toString(), // LOGIN_TIME
+                            new Timestamp(s.getSessionStart()).toString(), // SESSION_START
+                            command == null ? null : command.toString(), // STATEMENT
+                            new Timestamp(s.getCurrentCommandStart()).toString() // STATEMENT_START
                     });
                 }
             }

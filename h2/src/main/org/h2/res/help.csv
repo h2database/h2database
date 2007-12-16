@@ -856,6 +856,19 @@ Admin rights are required to execute this command.
 SET DEFAULT_TABLE_TYPE MEMORY
 "
 
+"Commands (Other)","SET EXCLUSIVE","
+SET EXCLUSIVE {TRUE | FALSE}
+","
+Switched the database to exclusive mode and back. In exclusive mode, new connections are rejected,
+and operations by other connections are paused until the exclusive mode is disabled.
+Only the connection that set the exclusive mode can disable it. When the connection is closed,
+it is automatically disabled.
+This setting is not persistent.
+Admin rights are required to execute this command.
+","
+SET EXCLUSIVE TRUE
+"
+
 "Commands (Other)","SET IGNORECASE","
 SET IGNORECASE {TRUE|FALSE}
 ","
@@ -2557,6 +2570,18 @@ AUTOCOMMIT(): boolean
 Returns true if auto commit is switched on for this session.
 ","
 AUTOCOMMIT()
+"
+
+"Functions (System)","CANCEL_SESSION","
+CANCEL_SESSION(sessionInt): boolean
+","
+Cancels the currently executing statement of another session.
+The method only works if the multithreaded kernel is enabled (see SET MULTI_THREADED).
+Returns true if the statement was cancelled, false if the session is closed
+or no statement is currently executing.
+Admin rights are required to execute this command.
+","
+CANCEL_STATEMENT(3)
 "
 
 "Functions (System)","CASEWHEN Function","

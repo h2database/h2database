@@ -153,7 +153,7 @@ java org.h2.test.TestAll timer
 /*
 
 test & document exclusive mode
-test exlclusive mode (inform_sch.settings table, disallow new connections, delay operations by other,
+test exclusive mode (inform_schema.settings table, disallow new connections, delay operations by other,
 disable when close session, disable
 
 translate error code 90135

@@ -40,6 +40,7 @@ import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestScript;
 import org.h2.test.db.TestScriptSimple;
 import org.h2.test.db.TestSequence;
+import org.h2.test.db.TestSessionsLocks;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpeed;
 import org.h2.test.db.TestTempTables;
@@ -151,8 +152,15 @@ java org.h2.test.TestAll timer
 
 /*
 
-write simple test for
-NFORMATION_SCHEMA.SESSIONS and LOCKS
+test & document exclusive mode
+test exlclusive mode (inform_sch.settings table, disallow new connections, delay operations by other,
+disable when close session, disable
+
+translate error code 90135
+
+
+
+
 
 
 C:\temp\test\db
@@ -576,6 +584,7 @@ Features of H2
         new TestRights().runTest(this);
         new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);
+        new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
         new TestSpaceReuse().runTest(this);
         new TestSpeed().runTest(this);

@@ -28,12 +28,12 @@ import org.h2.util.StartBrowser;
  * This tool can be used to start various database servers (listeners).
  */
 public class Server implements Runnable, ShutdownHandler {
-    
+
     private Service service;
     private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg, ftp;
     private ShutdownHandler shutdownHandler;
-    
+
     private void showUsage(String a, PrintStream out) {
         if (a != null) {
             out.println("Unknown option: " + a);
@@ -53,30 +53,30 @@ public class Server implements Runnable, ShutdownHandler {
         out.println("-tcp (start the TCP Server)");
         out.println("-tcpAllowOthers {true|false}");
         out.println("-tcpPort <port> (default: " + TcpServer.DEFAULT_PORT+")");
-        out.println("-tcpSSL {true|false}");        
+        out.println("-tcpSSL {true|false}");
         out.println("-tcpPassword {password} (the password for shutting down a TCP Server)");
         out.println("-tcpShutdown {url} (shutdown the TCP Server, URL example: tcp://localhost:9094)");
         out.println("-tcpShutdownForce {true|false} (don't wait for other connections to close)");
         out.println();
         out.println("-pg (start the PG Server)");
-        out.println("-pgAllowOthers {true|false}");        
+        out.println("-pgAllowOthers {true|false}");
         out.println("-pgPort <port> (default: " + PgServer.DEFAULT_PORT+")");
         out.println();
         out.println("-ftp (start the FTP Server)");
         out.println("-ftpPort <port> (default: " + Constants.DEFAULT_FTP_PORT+")");
-        out.println("-ftpDir <directory> (default: " + FtpServer.DEFAULT_ROOT+", use jdbc:... to access a database)");        
+        out.println("-ftpDir <directory> (default: " + FtpServer.DEFAULT_ROOT+", use jdbc:... to access a database)");
         out.println("-ftpRead <readUserName> (default: " + FtpServer.DEFAULT_READ+")");
         out.println("-ftpWrite <writeUserName> (default: " + FtpServer.DEFAULT_WRITE+")");
-        out.println("-ftpWritePassword <password> (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");        
+        out.println("-ftpWritePassword <password> (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");
         out.println();
         out.println("-log {true|false} (enable or disable logging, for all servers)");
         out.println("-baseDir <directory> (sets the base directory for H2 databases, for all servers)");
         out.println("-ifExists {true|false} (only existing databases may be opened, for all servers)");
     }
-    
+
     public Server() {
     }
-    
+
     /**
      * The command line interface for this tool.
      * The options must be split into strings like this: "-baseDir", "/temp/data",...
@@ -114,7 +114,7 @@ public class Server implements Runnable, ShutdownHandler {
      * </li><li>-ftpWrite {writeUserName}
      * </li><li>-ftpWritePassword {password}
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -149,6 +149,8 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-webAllowOthers".equals(a)) {
                     i++;
                 } else if ("-webPort".equals(a)) {
+                    i++;
+                } else if ("-webScript".equals(a)) {
                     i++;
                 } else if ("-webSSL".equals(a)) {
                     i++;
@@ -267,10 +269,10 @@ public class Server implements Runnable, ShutdownHandler {
                 // ignore (status is displayed)
                 e.printStackTrace();
                 exitCode = EXIT_ERROR;
-            }       
+            }
             out.println(web.getStatus());
-            // start browser anyway (even if the server is already running) 
-            // because some people don't look at the output, 
+            // start browser anyway (even if the server is already running)
+            // because some people don't look at the output,
             // but are wondering why nothing happens
             if (browserStart) {
                 StartBrowser.openURL(web.getURL());
@@ -289,22 +291,22 @@ public class Server implements Runnable, ShutdownHandler {
         }
         return exitCode;
     }
-    
+
     /**
      * Shutdown a TCP server. If force is set to false, the server will not allow new connections,
-     * but not kill existing connections, instead it will stop if the last connection is closed. 
+     * but not kill existing connections, instead it will stop if the last connection is closed.
      * If force is set to true, existing connections are killed.
      * After calling the method with force=false, it is not possible to call it again with
      * force=true because new connections are not allowed.
      * Example:
      * <pre>Server.shutdownTcpServer("tcp://localhost:9094", password, true);</pre>
-     * 
+     *
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
      * @throws ClassNotFoundException
-     * @throws SQLException 
-     */    
+     * @throws SQLException
+     */
     public static void shutdownTcpServer(String url, String password, boolean force) throws SQLException {
         int port = Constants.DEFAULT_SERVER_PORT;
         int idx = url.indexOf(':', "jdbc:h2:".length());
@@ -376,7 +378,7 @@ public class Server implements Runnable, ShutdownHandler {
      * Create a new web server, but does not start it yet.
      * Example:
      * <pre>Server server = Server.createWebServer(new String[]{"-log", "true"}).start();</pre>
-     * 
+     *
      * @param args
      * @return the server
      */
@@ -391,7 +393,7 @@ public class Server implements Runnable, ShutdownHandler {
      * Create a new ftp server, but does not start it yet.
      * Example:
      * <pre>Server server = Server.createFtpServer(new String[]{"-log", "true"}).start();</pre>
-     * 
+     *
      * @param args
      * @return the server
      */
@@ -403,26 +405,26 @@ public class Server implements Runnable, ShutdownHandler {
      * Create a new TCP server, but does not start it yet.
      * Example:
      * <pre>Server server = Server.createTcpServer(new String[]{"-tcpAllowOthers", "true"}).start();</pre>
-     * 
+     *
      * @param args
      * @return the server
      */
     public static Server createTcpServer(String[] args) throws SQLException {
         return new Server(new TcpServer(), args);
     }
-    
+
     /**
      * Create a new PG server, but does not start it yet.
      * Example:
      * <pre>Server server = Server.createPgServer(new String[]{"-pgAllowOthers", "true"}).start();</pre>
-     * 
+     *
      * @param args
      * @return the server
      */
     public static Server createPgServer(String[] args) throws SQLException {
         return new Server(new PgServer(), args);
     }
-    
+
     /**
      * Tries to start the server.
      * @return the server if successful
@@ -473,7 +475,7 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Checks if the server is running.
-     * 
+     *
      * @return if the server is running
      */
     public boolean isRunning() {
@@ -486,7 +488,7 @@ public class Server implements Runnable, ShutdownHandler {
     public void stop() {
         service.stop();
     }
-    
+
     /**
      * Gets the URL of this server.
      * @return the url
@@ -514,7 +516,7 @@ public class Server implements Runnable, ShutdownHandler {
             TraceSystem.traceThrowable(e);
         }
     }
-    
+
     /**
      * INTERNAL
      */
@@ -524,7 +526,7 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * INTERNAL
-     */    
+     */
     public void shutdown() {
         if (shutdownHandler != null) {
             shutdownHandler.shutdown();

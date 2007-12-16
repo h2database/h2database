@@ -20,10 +20,10 @@ public class SetTypes {
     public static final int LOG = 19, THROTTLE = 20, MAX_MEMORY_UNDO = 21, MAX_LENGTH_INPLACE_LOB = 22;
     public static final int COMPRESS_LOB = 23, ALLOW_LITERALS = 24, MULTI_THREADED = 25, SCHEMA = 26;
     public static final int OPTIMIZE_REUSE_RESULTS = 27, SCHEMA_SEARCH_PATH = 28, UNDO_LOG = 29;
-    public static final int REFERENTIAL_INTEGRITY = 30, MVCC = 31, MAX_OPERATION_MEMORY = 32;
+    public static final int REFERENTIAL_INTEGRITY = 30, MVCC = 31, MAX_OPERATION_MEMORY = 32, EXCLUSIVE = 33;
 
     private static ObjectArray types = new ObjectArray();
-    
+
     static {
         setType(IGNORECASE, "IGNORECASE");
         setType(MAX_LOG_SIZE, "MAX_LOG_SIZE");
@@ -57,6 +57,7 @@ public class SetTypes {
         setType(REFERENTIAL_INTEGRITY, "REFERENTIAL_INTEGRITY");
         setType(MVCC, "MVCC");
         setType(MAX_OPERATION_MEMORY, "MAX_OPERATION_MEMORY");
+        setType(EXCLUSIVE, "EXCLUSIVE");
     }
 
     private static void setType(int type, String name) {

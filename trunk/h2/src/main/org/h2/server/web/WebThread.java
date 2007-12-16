@@ -5,13 +5,20 @@
 package org.h2.server.web;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.security.SecureClassLoader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -40,12 +47,12 @@ import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
@@ -1018,7 +1025,17 @@ class WebThread extends Thread implements DatabaseEventListener {
         try {
             Connection conn = session.getConnection();
             String result;
-            if ("@AUTOCOMMIT TRUE".equals(sql)) {
+            if (sql.startsWith("@JAVA")) {
+                if (server.getAllowScript()) {
+                    try {
+                        result = executeJava(sql.substring("@JAVA".length()));
+                    } catch (Throwable t) {
+                        result = getStackTrace(0, t);
+                    }
+                } else {
+                    result = "Executing Java code is not allowed, use command line parameters -webScript true";
+                }
+            } else if ("@AUTOCOMMIT TRUE".equals(sql)) {
                 conn.setAutoCommit(true);
                 result = "${text.result.autoCommitOn}";
             } else if ("@AUTOCOMMIT FALSE".equals(sql)) {
@@ -1068,6 +1085,94 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "result.jsp";
     }
 
+    static class DynamicClassLoader extends SecureClassLoader {
+
+        private String name;
+        private byte[] data;
+        private Class clazz;
+
+        DynamicClassLoader(String name, byte[] data) throws MalformedURLException {
+            super(DynamicClassLoader.class.getClassLoader());
+            this.name = name;
+            this.data = data;
+        }
+
+        public Class loadClass(String className) throws ClassNotFoundException {
+            return findClass(className);
+        }
+
+        public Class findClass(String className) throws ClassNotFoundException {
+            if (className.equals(name)) {
+                if (clazz == null) {
+                    clazz = defineClass(className, data, 0, data.length);
+                }
+                return clazz;
+            }
+            try {
+                return findSystemClass(className);
+            } catch (Exception e) {
+            }
+            return super.findClass(className);
+        }
+    }
+
+    private String executeJava(String code) throws Exception {
+        File javaFile = new File("Java.java");
+        File classFile = new File("Java.class");
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter(javaFile));
+            classFile.delete();
+            int endImport = code.indexOf("@CODE");
+            String importCode = "import java.util.*; import java.math.*; import java.sql.*;";
+            if (endImport >= 0) {
+                importCode = code.substring(0, endImport);
+                code = code.substring("@CODE".length() + endImport);
+            }
+            out.println(importCode);
+            out.println("public class Java { public static Object run() throws Throwable {" + code + "}}");
+            out.close();
+            Process p = Runtime.getRuntime().exec("javac Java.java");
+            InputStream processIn = p.getInputStream();
+            InputStream processErrorIn = p.getErrorStream();
+            StringBuffer buff = new StringBuffer();
+            while (true) {
+                int c = processIn.read();
+                if (c == -1) {
+                    break;
+                }
+                buff.append((char) c);
+            }
+            while (true) {
+                int c = processErrorIn.read();
+                if (c == -1) {
+                    break;
+                }
+                buff.append((char) c);
+            }
+            String error = buff.toString().trim();
+            if (error.length() > 0) {
+                throw new Exception("Error compiling: " + error.toString());
+            }
+            byte[] data = new byte[(int) classFile.length()];
+            DataInputStream in = new DataInputStream(new FileInputStream(classFile));
+            in.readFully(data);
+            in.close();
+            DynamicClassLoader cl = new DynamicClassLoader("Java", data);
+            Class clazz = cl.loadClass("Java");
+            Method[] methods = clazz.getMethods();
+            for (int i = 0; i < methods.length; i++) {
+                Method m = methods[i];
+                if (m.getName().equals("run")) {
+                    return "" + m.invoke(null, new Object[0]);
+                }
+            }
+            return null;
+        } finally {
+            javaFile.delete();
+            classFile.delete();
+        }
+    }
+
     private String editResult() {
         ResultSet rs = session.result;
         int row = Integer.parseInt(attributes.getProperty("row"));
@@ -1083,7 +1188,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
                     String x = attributes.getProperty("r" + row + "c" + (i + 1));
-                    rs.updateString(i + 1, x);
+                    rs.updateString(i + 1, unescapeData(x));
                 }
                 if (insert) {
                     rs.insertRow();
@@ -1611,7 +1716,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     buff.append(PageParser.escapeHtml(meta.getColumnLabel(i + 1)));
                     buff.append("</td>");
                     buff.append("<td>");
-                    buff.append(PageParser.escapeHtml(rs.getString(i + 1)));
+                    buff.append(escapeData(rs.getString(i + 1)));
                     buff.append("</td></tr>");
                 }
             }
@@ -1645,7 +1750,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 for (int i = 0; i < columns; i++) {
                     buff.append("<td>");
-                    buff.append(PageParser.escapeHtml(rs.getString(i + 1)));
+                    buff.append(escapeData(rs.getString(i + 1)));
                     buff.append("</td>");
                 }
                 buff.append("</tr>");
@@ -1711,6 +1816,26 @@ class WebThread extends Thread implements DatabaseEventListener {
         attributes.put("setting", info.name);
         server.saveSettings();
         return "index.do";
+    }
+
+    private String escapeData(String d) {
+        if (d == null) {
+            return "<i>null</i>";
+        } else if (d.startsWith("null")) {
+            return "<div style='display: none'>=</div>" + PageParser.escapeHtml(d);
+        }
+        return PageParser.escapeHtml(d);
+    }
+
+    private String unescapeData(String d) {
+        if (d.endsWith("null")) {
+            if (d.equals("null")) {
+                return null;
+            } else if (d.startsWith("=")) {
+                return d.substring(1);
+            }
+        }
+        return d;
     }
 
     private String settingRemove() {

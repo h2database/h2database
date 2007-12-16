@@ -114,6 +114,7 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists;
+    private boolean allowScript;
 
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
@@ -196,6 +197,8 @@ public class WebServer implements Service {
                 ssl = Boolean.valueOf(args[++i]).booleanValue();
             } else if ("-webAllowOthers".equals(a)) {
                 allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+            } else if ("-webScript".equals(a)) {
+                allowScript = Boolean.valueOf(args[++i]).booleanValue();
             } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
@@ -506,6 +509,10 @@ public class WebServer implements Service {
 
     public void setShutdownHandler(ShutdownHandler shutdownHandler) {
         this.shutdownHandler = shutdownHandler;
+    }
+
+    public boolean getAllowScript() {
+        return allowScript;
     }
 
 }

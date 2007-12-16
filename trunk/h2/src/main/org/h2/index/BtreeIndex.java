@@ -57,8 +57,6 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                 head = (BtreeHead) rec;
             }
             if (head != null && head.getConsistent()) {
-int testing;
-// setRoot((BtreePage) storage.getRecord(session, head.getRootPosition()));
                 needRebuild = false;
                 rowCount = table.getRowCount(session);
             } else {

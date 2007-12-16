@@ -274,6 +274,12 @@ public class Set extends Prepared {
             database.setMaxOperationMemory(value);
             break;
         }
+        case SetTypes.EXCLUSIVE: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            database.setExclusiveSession(value == 1 ? session : null);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

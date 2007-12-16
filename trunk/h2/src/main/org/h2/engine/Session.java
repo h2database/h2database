@@ -73,7 +73,8 @@ public class Session implements SessionInterface {
     private String currentTransactionName;
     private boolean isClosed;
     private boolean rollbackMode;
-    private long loginTime = System.currentTimeMillis();
+    private long sessionStart = System.currentTimeMillis();
+    private long currentCommandStart;
 
     public Session() {
     }
@@ -498,8 +499,9 @@ public class Session implements SessionInterface {
         }
     }
 
-    public void setCurrentCommand(Command command) {
+    public void setCurrentCommand(Command command, long startTime) {
         this.currentCommand = command;
+        this.currentCommandStart = startTime;
     }
 
     public void checkCancelled() throws SQLException {
@@ -508,9 +510,12 @@ public class Session implements SessionInterface {
         }
     }
 
-    public String getCurrentCommand() {
-        Command c = currentCommand;
-        return c == null ? null : c.toString();
+    public Command getCurrentCommand() {
+        return currentCommand;
+    }
+
+    public long getCurrentCommandStart() {
+        return currentCommandStart;
     }
 
     public boolean getAllowLiterals() {
@@ -609,8 +614,8 @@ public class Session implements SessionInterface {
         return rollbackMode;
     }
 
-    public long getLoginTime() {
-        return loginTime;
+    public long getSessionStart() {
+        return sessionStart;
     }
 
     public Table[] getLocks() {
@@ -618,6 +623,20 @@ public class Session implements SessionInterface {
             Table[] list = new Table[locks.size()];
             locks.toArray(list);
             return list;
+        }
+    }
+
+    public void waitIfExclusiveModeEnabled() {
+        while (true) {
+            Session exclusive = database.getExclusiveSession();
+            if (exclusive == null || exclusive == this) {
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
     }
 

@@ -64,10 +64,11 @@ public abstract class Command implements CommandInterface {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
+        session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
             try {
                 database.checkPowerOff();
-                session.setCurrentCommand(this);
+                session.setCurrentCommand(this, startTime);
                 return query(maxrows);
             } catch (Throwable e) {
                 SQLException s = Message.convert(e);
@@ -92,7 +93,7 @@ public abstract class Command implements CommandInterface {
     }
 
     private void stop() throws SQLException {
-        session.setCurrentCommand(null);
+        session.setCurrentCommand(null, 0);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -115,9 +116,10 @@ public abstract class Command implements CommandInterface {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
+        session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
             int rollback = session.getLogId();
-            session.setCurrentCommand(this);
+            session.setCurrentCommand(this, startTime);
             try {
                 database.checkPowerOff();
                 return update();

@@ -3656,6 +3656,12 @@ public class Parser {
             Set command = new Set(session, SetTypes.MVCC);
             command.setInt(value ? 1 : 0);
             return command;
+        } else if (readIf("EXCLUSIVE")) {
+            readIfEqualOrTo();
+            boolean value = readBooleanSetting();
+            Set command = new Set(session, SetTypes.EXCLUSIVE);
+            command.setInt(value ? 1 : 0);
+            return command;
         } else if (readIf("IGNORECASE")) {
             readIfEqualOrTo();
             boolean value = readBooleanSetting();

@@ -534,4 +534,13 @@ public class Server implements Runnable, ShutdownHandler {
             stopAll();
         }
     }
+
+    /**
+     * Get the service attached to this server.
+     *
+     * @return the service
+     */
+    public Service getService() {
+        return service;
+    }
 }

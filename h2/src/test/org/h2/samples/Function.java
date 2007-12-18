@@ -14,8 +14,12 @@ import java.sql.Types;
 
 import org.h2.tools.SimpleResultSet;
 
+/**
+ * This sample application shows how to define and use
+ * custom (user defined) functions in this database.
+ */
 public class Function {
-    
+
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
@@ -36,18 +40,18 @@ public class Function {
     public static boolean isPrime(int value) {
         return new BigInteger(String.valueOf(value)).isProbablePrime(100);
     }
-    
+
     public static ResultSet query(Connection conn, String sql) throws SQLException {
         return conn.createStatement().executeQuery(sql);
     }
-    
+
     public static ResultSet simpleResultSet() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addRow(new Object[] { new Integer(0), "Hello" });
         return rs;
-    }    
+    }
 
     public static ResultSet getMatrix(Connection conn, Integer id) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();

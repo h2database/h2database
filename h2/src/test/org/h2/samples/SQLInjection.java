@@ -13,25 +13,31 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * SQL Injection is a common security vulnerability for applications that use database.
+ * It is one of the most common security vulnerabilities for web applications today.
+ * This sample application shows how SQL injection works, and how to protect
+ * the application from it.
+ */
 public class SQLInjection {
-    
-    Connection conn;
-    Statement stat;
-    
+
+    private Connection conn;
+    private Statement stat;
+
     public static void main(String[] args) throws Exception {
-        new SQLInjection().run("org.h2.Driver", 
+        new SQLInjection().run("org.h2.Driver",
                 "jdbc:h2:test", "sa", "sa");
-//        new SQLInjection().run("org.postgresql.Driver", 
+//        new SQLInjection().run("org.postgresql.Driver",
 //                "jdbc:postgresql:jpox2", "sa", "sa");
-//        new SQLInjection().run("com.mysql.jdbc.Driver", 
+//        new SQLInjection().run("com.mysql.jdbc.Driver",
 //                "jdbc:mysql://localhost/test", "sa", "sa");
-//        new SQLInjection().run("org.hsqldb.jdbcDriver", 
+//        new SQLInjection().run("org.hsqldb.jdbcDriver",
 //                "jdbc:hsqldb:test", "sa", "");
 //        new SQLInjection().run(
-//                "org.apache.derby.jdbc.EmbeddedDriver", 
+//                "org.apache.derby.jdbc.EmbeddedDriver",
 //                "jdbc:derby:test3;create=true", "sa", "sa");
     }
-    
+
     void run(String driver, String url, String user, String password) throws Exception {
         Class.forName(driver);
         conn = DriverManager.getConnection(url, user, password);
@@ -41,37 +47,37 @@ public class SQLInjection {
         } catch (SQLException e) {
             // ignore
         }
-        stat.execute("CREATE TABLE USERS(ID INT PRIMARY KEY, " + 
+        stat.execute("CREATE TABLE USERS(ID INT PRIMARY KEY, " +
                 "NAME VARCHAR(255), PASSWORD VARCHAR(255))");
         stat.execute("INSERT INTO USERS VALUES(1, 'admin', 'super')");
         stat.execute("INSERT INTO USERS VALUES(2, 'guest', '123456')");
         stat.execute("INSERT INTO USERS VALUES(3, 'test', 'abc')");
 
-//        loginByNameInsecure();
-        
+        loginByNameInsecure();
+
         if (url.startsWith("jdbc:h2:")) {
-//          loginStoredProcedureInsecure();
+            loginStoredProcedureInsecure();
             limitRowAccess();
         }
-        
-//        loginByNameSecure();
-        
+
+        loginByNameSecure();
+
         if (url.startsWith("jdbc:h2:")) {
             stat.execute("SET ALLOW_LITERALS NONE");
             stat.execute("SET ALLOW_LITERALS NUMBERS");
             stat.execute("SET ALLOW_LITERALS ALL");
         }
 
-//        loginByIdInsecure();
-//        loginByIdSecure();
-        
+        loginByIdInsecure();
+        loginByIdSecure();
+
         try {
             stat.execute("DROP TABLE ITEMS");
         } catch (SQLException e) {
             // ignore
         }
 
-        stat.execute("CREATE TABLE ITEMS(ID INT PRIMARY KEY, " + 
+        stat.execute("CREATE TABLE ITEMS(ID INT PRIMARY KEY, " +
                 "NAME VARCHAR(255), ACTIVE INT)");
         stat.execute("INSERT INTO ITEMS VALUES(0, 'XBox', 0)");
         stat.execute("INSERT INTO ITEMS VALUES(1, 'XBox 360', 1)");
@@ -88,23 +94,23 @@ public class SQLInjection {
             stat.execute("CREATE CONSTANT TYPE_ACTIVE VALUE 1");
             listActiveItemsUsingConstants();
         }
-        
-//        listItemsSortedInsecure();
-//        listItemsSortedSecure();
-        
+
+        listItemsSortedInsecure();
+        listItemsSortedSecure();
+
         if (url.startsWith("jdbc:h2:")) {
             listItemsSortedSecureParam();
-//            storePasswordHashWithSalt();
+            storePasswordHashWithSalt();
         }
-        
+
         conn.close();
     }
-    
+
     void loginByNameInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - login");
         String name = input("Name?");
         String password = input("Password?");
-        ResultSet rs = stat.executeQuery("SELECT * FROM USERS WHERE " + 
+        ResultSet rs = stat.executeQuery("SELECT * FROM USERS WHERE " +
                 "NAME='" + name + "' AND PASSWORD='" + password + "'");
         if (rs.next()) {
             System.out.println("Welcome!");
@@ -112,7 +118,7 @@ public class SQLInjection {
             System.out.println("Access denied!");
         }
     }
-    
+
     public static ResultSet getUser(Connection conn, String userName, String password) throws Exception {
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM USERS WHERE NAME=? AND PASSWORD=?");
@@ -132,9 +138,9 @@ public class SQLInjection {
 
     void loginStoredProcedureInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - login using a stored procedure");
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + 
+        stat.execute("CREATE ALIAS IF NOT EXISTS " +
                 "GET_USER FOR \"org.h2.samples.SQLInjection.getUser\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + 
+        stat.execute("CREATE ALIAS IF NOT EXISTS " +
                 "CHANGE_PASSWORD FOR \"org.h2.samples.SQLInjection.changePassword\"");
         String name = input("Name?");
         String password = input("Password?");
@@ -146,13 +152,13 @@ public class SQLInjection {
             System.out.println("Access denied!");
         }
     }
-    
+
     void loginByNameSecure() throws Exception {
         System.out.println("Secure Systems Inc. - login using placeholders");
         String name = input("Name?");
         String password = input("Password?");
         PreparedStatement prep = conn.prepareStatement(
-                "SELECT * FROM USERS WHERE " + 
+                "SELECT * FROM USERS WHERE " +
                 "NAME=? AND PASSWORD=?");
         prep.setString(1, name);
         prep.setString(2, password);
@@ -169,8 +175,8 @@ public class SQLInjection {
         stat.execute("DROP TABLE IF EXISTS SESSION_USER");
         stat.execute("CREATE TABLE SESSION_USER(ID INT, USER INT)");
         stat.execute("DROP VIEW IF EXISTS MY_USER");
-        stat.execute("CREATE VIEW MY_USER AS " + 
-                "SELECT U.* FROM SESSION_USER S, USERS U " + 
+        stat.execute("CREATE VIEW MY_USER AS " +
+                "SELECT U.* FROM SESSION_USER S, USERS U " +
                 "WHERE S.ID=SESSION_ID() AND S.USER=U.ID");
         stat.execute("INSERT INTO SESSION_USER VALUES(SESSION_ID(), 1)");
         ResultSet rs = stat.executeQuery("SELECT ID, NAME FROM MY_USER");
@@ -185,7 +191,7 @@ public class SQLInjection {
         String password = input("Password?");
         try {
             PreparedStatement prep = conn.prepareStatement(
-                    "SELECT * FROM USERS WHERE " + 
+                    "SELECT * FROM USERS WHERE " +
                     "ID=" + id + " AND PASSWORD=?");
             prep.setString(1, password);
             ResultSet rs = prep.executeQuery();
@@ -205,7 +211,7 @@ public class SQLInjection {
         String password = input("Password?");
         try {
             PreparedStatement prep = conn.prepareStatement(
-                    "SELECT * FROM USERS WHERE " + 
+                    "SELECT * FROM USERS WHERE " +
                     "ID=? AND PASSWORD=?");
             prep.setInt(1, Integer.parseInt(id));
             prep.setString(2, password);
@@ -219,7 +225,7 @@ public class SQLInjection {
             System.out.println(e);
         }
     }
-    
+
     void listActiveItems() throws Exception {
         System.out.println("Half Secure Systems Inc. - list active items");
         ResultSet rs = stat.executeQuery(
@@ -251,7 +257,7 @@ public class SQLInjection {
             System.out.println(e);
         }
     }
-    
+
     void listItemsSortedSecure() throws Exception {
         System.out.println("Secure Systems Inc. - list items");
         String order = input("order (id, name)?");
@@ -288,9 +294,9 @@ public class SQLInjection {
     void storePasswordHashWithSalt() throws Exception {
         System.out.println("Very Secure Systems Inc. - login");
         stat.execute("DROP TABLE IF EXISTS USERS2");
-        stat.execute("CREATE TABLE USERS2(ID INT PRIMARY KEY, " + 
+        stat.execute("CREATE TABLE USERS2(ID INT PRIMARY KEY, " +
             "NAME VARCHAR, SALT BINARY, HASH BINARY)");
-        stat.execute("INSERT INTO USERS2 VALUES" + 
+        stat.execute("INSERT INTO USERS2 VALUES" +
                 "(1, 'admin', SECURE_RAND(16), NULL)");
         stat.execute("DROP CONSTANT IF EXISTS HASH_ITERATIONS");
         stat.execute("DROP CONSTANT IF EXISTS HASH_ALGORITHM");
@@ -303,7 +309,7 @@ public class SQLInjection {
         String password = input("password?");
         stat.execute("SET ALLOW_LITERALS NONE");
         PreparedStatement prep = conn.prepareStatement(
-                "SELECT * FROM USERS2 WHERE NAME=? AND " + 
+                "SELECT * FROM USERS2 WHERE NAME=? AND " +
                 "HASH=HASH(HASH_ALGORITHM, STRINGTOUTF8(? || SALT), HASH_ITERATIONS)");
         prep.setString(1, user);
         prep.setString(2, password);
@@ -321,5 +327,5 @@ public class SQLInjection {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         return reader.readLine();
     }
-    
+
 }

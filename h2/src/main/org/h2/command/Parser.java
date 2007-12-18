@@ -2397,7 +2397,10 @@ public class Parser {
             if (types[i] == CHAR_SPECIAL_2) {
                 i++;
             }
-            // fall through
+            currentToken = sqlCommand.substring(start, i);
+            currentTokenType = getSpecialType(currentToken);
+            parseIndex = i;
+            return;
         case CHAR_SPECIAL_1:
             currentToken = sqlCommand.substring(start, i);
             currentTokenType = getSpecialType(currentToken);
@@ -2600,7 +2603,6 @@ public class Parser {
                     command[i] = ' ';
                     command[i + 1] = ' ';
                     i++;
-                    break;
                 } else if (command[i + 1] == '/') {
                     // single line comment
                     changed = true;
@@ -2613,9 +2615,10 @@ public class Parser {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }
-                    break;
+                } else {
+                    type = CHAR_SPECIAL_1;
                 }
-                // fall through
+                break;
             case '-':
                 if (command[i + 1] == '-') {
                     // single line comment
@@ -2629,9 +2632,10 @@ public class Parser {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }
-                    break;
+                } else {
+                    type = CHAR_SPECIAL_1;
                 }
-                // fall through
+                break;
             case '(':
             case ')':
             case '{':

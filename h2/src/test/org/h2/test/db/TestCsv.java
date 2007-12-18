@@ -8,9 +8,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.RandomAccessFile;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
@@ -20,6 +23,7 @@ import org.h2.util.StringUtils;
 public class TestCsv extends TestBase {
 
     public void test() throws Exception {
+        testRandomData();
         testEmptyFieldDelimiter();
         testFieldDelimiter();
         testAsTable();
@@ -27,7 +31,49 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
     }
-    
+
+    private void testRandomData() throws Exception {
+        deleteDb("csv");
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(a varchar, b varchar)");
+        int len = getSize(1000, 10000);
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
+        ArrayList list = new ArrayList();
+        Random random = new Random(1);
+        for (int i = 0; i < len; i++) {
+            String a = randomData(random), b = randomData(random);
+            prep.setString(1, a);
+            prep.setString(2, b);
+            list.add(new String[]{a, b});
+            prep.execute();
+        }
+        stat.execute("CALL CSVWRITE('test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
+        Csv csv = Csv.getInstance();
+        csv.setFieldSeparatorRead('|');
+        csv.setFieldDelimiter('#');
+        ResultSet rs = csv.read("test.csv", null, "UTF-8");
+        for (int i = 0; i < len; i++) {
+            check(rs.next());
+            String[] pair = (String[]) list.get(i);
+            check(pair[0], rs.getString(1));
+            check(pair[1], rs.getString(2));
+        }
+        checkFalse(rs.next());
+        conn.close();
+    }
+
+    private String randomData(Random random) {
+        int len = random.nextInt(5);
+        StringBuffer buff = new StringBuffer();
+        String chars = "\\\'\",\r\n\t ;.-123456|#";
+        for (int i = 0; i < len; i++) {
+            buff.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return buff.toString();
+    }
+
     private void testEmptyFieldDelimiter() throws Exception {
         File f = new File(baseDir + "/test.csv");
         f.delete();

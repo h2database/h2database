@@ -316,6 +316,7 @@ public class ErrorCode {
     public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
     public static final int ACCESS_DENIED_TO_CLASS_1 = 90134;
     public static final int DATABASE_IS_IN_EXCLUSIVE_MODE = 90135;
+    public static final int UNSUPPORTED_OUTER_JOIN_CONDITION_1 = 90136;
 
     /**
      * INTERNAL

@@ -11,6 +11,11 @@ import java.sql.Types;
 import org.h2.tools.Csv;
 import org.h2.tools.SimpleResultSet;
 
+/**
+ * This sample application shows how to use the CSV tool
+ * to write CSV (comma separated values) files, and
+ * how to use the tool to read such files.
+ */
 public class CsvSample {
     public static void main(String[] args) throws Exception {
         CsvSample.write();

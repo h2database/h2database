@@ -549,6 +549,9 @@ public class Select extends Query {
             Expression on = f.getJoinCondition();
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                    if (f.isJoinOuter()) {
+                        throw Message.getSQLException(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
+                    }
                     f.removeJoinCondition();
                     // need to check that all added are bound to a table
                     on = on.optimize(session);

@@ -15,13 +15,13 @@ import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 
 /**
- * This class represents an persistent container that stores data of a table or an index. 
- * An object contains a list of records, see {@link Record}. 
- * For each storage there is a {@link RecordReader} object that knows how to 
+ * This class represents an persistent container that stores data of a table or an index.
+ * An object contains a list of records, see {@link Record}.
+ * For each storage there is a {@link RecordReader} object that knows how to
  * convert records into a byte array and vice versa.
  * The data is stored in a {@link DiskFile}. A storage occupies a number of pages
  * in a file.
- * 
+ *
  * File format:
  * <pre>
  * int block size
@@ -262,7 +262,7 @@ public class Storage {
     void removePage(int i) {
         pages.removeValue(i);
     }
-    
+
     private void checkOnePage() throws SQLException {
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);

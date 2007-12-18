@@ -11,6 +11,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+/**
+ * This sample application shows how to create a user defined function
+ * to read a file from the file system.
+ */
 public class FileFunctions {
 
     public static void main(String[] args) throws Exception {

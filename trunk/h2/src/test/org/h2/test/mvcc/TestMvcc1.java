@@ -15,8 +15,11 @@ import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 
-public class TestMVCC extends TestBase {
-    
+/**
+ * Basic MVCC (multi version concurrency) test cases.
+ */
+public class TestMvcc1 extends TestBase {
+
     Connection c1, c2;
     Statement s1, s2;
 
@@ -41,10 +44,10 @@ public class TestMVCC extends TestBase {
         }
         rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
-        check("FALSE", rs.getString("VALUE"));        
+        check("FALSE", rs.getString("VALUE"));
         c1.close();
     }
-    
+
     private void testCases() throws Exception {
         if (!config.mvcc) {
             return;
@@ -71,7 +74,7 @@ public class TestMVCC extends TestBase {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
-        
+
         // it should not be possible to drop a table when an uncommitted transaction changed something
         s1.execute("create table test(id int primary key)");
         s1.execute("insert into test values(1)");
@@ -85,11 +88,11 @@ public class TestMVCC extends TestBase {
         c1.rollback();
         s2.execute("drop table test");
         c2.rollback();
-        
+
         // referential integrity problem
         s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
-        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");        
-        s1.execute("insert into a(code) values('one')");        
+        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
+        s1.execute("insert into a(code) values('one')");
         try {
              s2.execute("insert into b values('un B', 1)");
             error("Unexpected success");
@@ -100,7 +103,7 @@ public class TestMVCC extends TestBase {
         c1.rollback();
         s1.execute("drop table a, b");
         c2.commit();
-        
+
         // select for update should do an exclusive lock, even with mvcc
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'y')");
@@ -117,7 +120,7 @@ public class TestMVCC extends TestBase {
         s1.execute("drop table test");
         c1.commit();
         c2.commit();
-        
+
         s1.execute("create table test(id int primary key, name varchar(255))");
         s2.execute("insert into test values(4, 'Hello')");
         c2.rollback();
@@ -126,7 +129,7 @@ public class TestMVCC extends TestBase {
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
-        
+
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Test')");
         c1.commit();
@@ -138,7 +141,7 @@ public class TestMVCC extends TestBase {
         c2.commit();
         s1.execute("DROP TABLE TEST");
 
-        
+
         s1.execute("create table test as select * from table(id int=(1, 2))");
         s1.execute("update test set id=1 where id=1");
         s1.execute("select max(id) from test");
@@ -172,7 +175,7 @@ public class TestMVCC extends TestBase {
         c1.commit();
         test(s1, "SELECT COUNT(*) FROM TEST", "0");
         s1.execute("DROP TABLE TEST");
-        
+
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
         test(s2, "SELECT COUNT(*) FROM TEST", "0");
@@ -205,7 +208,7 @@ public class TestMVCC extends TestBase {
         s1.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         s1.execute("DROP TABLE TEST");
         c1.commit();
-        
+
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         c1.commit();
@@ -213,7 +216,7 @@ public class TestMVCC extends TestBase {
         c1.rollback();
         s1.execute("DROP TABLE TEST");
         c1.commit();
-        
+
         Random random = new Random(1);
         s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");
         Statement s;
@@ -291,7 +294,7 @@ public class TestMVCC extends TestBase {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
+
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         test(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "0");
@@ -302,7 +305,7 @@ public class TestMVCC extends TestBase {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
+
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         test(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "0");
@@ -313,7 +316,7 @@ public class TestMVCC extends TestBase {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
+
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID, NAME))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         c1.commit();
@@ -324,8 +327,8 @@ public class TestMVCC extends TestBase {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
-        
+
+
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'Hello'), (2, 'World')");
         c1.commit();
@@ -343,7 +346,7 @@ public class TestMVCC extends TestBase {
         check(rs.getInt(1), 2);
         check(rs.getString(2), "World");
         checkFalse(rs.next());
-        
+
         rs = s2.executeQuery("select * from test order by id");
         check(rs.next());
         check(rs.getInt(1), 1);
@@ -355,12 +358,10 @@ public class TestMVCC extends TestBase {
         s1.execute("drop table test");
         c1.commit();
         c2.commit();
-        
+
         c1.close();
         c2.close();
-        
-        
-        
+
     }
 
     private void test(Statement stat, String sql, String expected) throws Exception {
@@ -377,7 +378,5 @@ public class TestMVCC extends TestBase {
                 throw new Error("expected: " + expected + ", got: no rows");
             }
         }
-        // TODO Auto-generated method stub
-        
     }
 }

@@ -13,13 +13,16 @@ import java.sql.Statement;
 
 import org.h2.tools.RunScript;
 
+/**
+ * In this example a database is initialized from compressed script in a jar file.
+ */
 public class InitDatabaseFromJar {
-    
+
     public static void main(String[] args) throws Exception {
-        new InitDatabaseFromJar().createScript();        
+        new InitDatabaseFromJar().createScript();
         new InitDatabaseFromJar().initDb();
     }
-    
+
     private void createScript() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");

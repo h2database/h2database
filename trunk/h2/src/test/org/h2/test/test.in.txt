@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual a left join dual b on b.x=(select max(x) from dual);
+> exception
+
 select count(*) from system_range(1, 2) where x in(1, 1, 1);
 > COUNT(*)
 > --------

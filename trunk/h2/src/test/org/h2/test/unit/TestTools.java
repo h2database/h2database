@@ -237,6 +237,9 @@ public class TestTools extends TestBase {
     }
 
     private void testManagementDb() throws Exception {
+        if (config.networked) {
+            return;
+        }
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
             Server server = Server.createTcpServer(new String[] {}).start();
@@ -331,11 +334,13 @@ public class TestTools extends TestBase {
             Server.shutdownTcpServer("tcp://localhost", "", true);
             error("shouldn't work and should throw an exception");
         } catch (SQLException e) {
-            // expected
+            checkNotGeneralException(e);
         }
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
-        conn.close();
+        // conn.close();
         Server.shutdownTcpServer("tcp://localhost", "abc", true);
+        // check that the database is closed
+        deleteDb("test");
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
             error("server must have been closed");

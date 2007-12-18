@@ -16,6 +16,10 @@ import java.sql.ResultSet;
 import org.h2.tools.RunScript;
 import org.h2.util.StringUtils;
 
+/**
+ * The newsfeed application uses XML functions to create an RSS and Atom feed
+ * from a simple SQL script. A textual representation of the data is created as well.
+ */
 public class Newsfeed {
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");

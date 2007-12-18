@@ -61,32 +61,32 @@ function editRow(row, session, write, undo) {
 }
 
 function editCancel(row) {
-	var editing = document.getElementById('editing');
-	editing.row.value = row;
-	editing.op.value='3';
-	editing.submit();
+    var editing = document.getElementById('editing');
+    editing.row.value = row;
+    editing.op.value='3';
+    editing.submit();
 }
 
 function editOk(row) {
-	var editing = document.getElementById('editing');
-	editing.row.value = row;
-	editing.op.value='1';
-	editing.submit();
+    var editing = document.getElementById('editing');
+    editing.row.value = row;
+    editing.op.value='1';
+    editing.submit();
 }
 
 function editKeyDown(row, object, event) {
     var key=event.keyCode? event.keyCode : event.charCode;
     if(key == 46 && event.ctrlKey) {
-    	// ctrl + delete
-    	object.value = 'null';
-		return false;
-	} else if(key == 13) {
-		editOk(row);
-		return false;
-	} else if(key == 27) {
-		editCancel(row);
-		return false;
-	}
+        // ctrl + delete
+        object.value = 'null';
+        return false;
+    } else if(key == 13) {
+        editOk(row);
+        return false;
+    } else if(key == 27) {
+        editCancel(row);
+        return false;
+    }
 }
 
 function getInnerText(el) {

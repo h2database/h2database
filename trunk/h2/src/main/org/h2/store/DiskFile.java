@@ -336,8 +336,6 @@ public class DiskFile implements CacheWriter {
                 Record rec = (Record) list.get(i);
                 writeBack(rec);
             }
-            // TODO flush performance: maybe it would be faster to write records in
-            // the same loop
             for (int i = 0; i < fileBlockCount; i++) {
                 i = deleted.nextSetBit(i);
                 if (i < 0) {
@@ -351,32 +349,33 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    public void flushNew() throws SQLException {
-        int todoTest;
-        synchronized (database) {
-            database.checkPowerOff();
-            ObjectArray list = cache.getAllChanged();
-            CacheObject.sort(list);
-            int deletePos = deleted.nextSetBit(0);
-            int writeIndex = 0;
-            Record writeRecord = null;
-            while (true) {
-                if (writeRecord == null && writeIndex < list.size()) {
-                    writeRecord = (Record) list.get(writeIndex++);
-                }
-                if (writeRecord != null && (deletePos < 0 || writeRecord.getPos() < deletePos)) {
-                    writeBack(writeRecord);
-                    writeRecord = null;
-                } else if (deletePos < fileBlockCount && deletePos >= 0) {
-                    writeDirectDeleted(deletePos, 1);
-                    deleted.clear(deletePos);
-                    deletePos = deleted.nextSetBit(deletePos);
-                } else {
-                    break;
-                }
-            }
-        }
-    }
+    // this implementation accesses the file in a linear way
+//    public void flushNew() throws SQLException {
+//        int todoTest;
+//        synchronized (database) {
+//            database.checkPowerOff();
+//            ObjectArray list = cache.getAllChanged();
+//            CacheObject.sort(list);
+//            int deletePos = deleted.nextSetBit(0);
+//            int writeIndex = 0;
+//            Record writeRecord = null;
+//            while (true) {
+//                if (writeRecord == null && writeIndex < list.size()) {
+//                    writeRecord = (Record) list.get(writeIndex++);
+//                }
+//                if (writeRecord != null && (deletePos < 0 || writeRecord.getPos() < deletePos)) {
+//                    writeBack(writeRecord);
+//                    writeRecord = null;
+//                } else if (deletePos < fileBlockCount && deletePos >= 0) {
+//                    writeDirectDeleted(deletePos, 1);
+//                    deleted.clear(deletePos);
+//                    deletePos = deleted.nextSetBit(deletePos);
+//                } else {
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
     public void close() throws SQLException {
         synchronized (database) {

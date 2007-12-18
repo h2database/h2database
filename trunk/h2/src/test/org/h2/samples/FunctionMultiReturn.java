@@ -14,8 +14,14 @@ import java.sql.Types;
 
 import org.h2.tools.SimpleResultSet;
 
+/**
+ * User defined functions can return a result set,
+ * and can therefore be used like a table.
+ * This sample application uses such a function to convert
+ * polar to cartesian coordinates.
+ */
 public class FunctionMultiReturn {
-    
+
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
@@ -30,7 +36,7 @@ public class FunctionMultiReturn {
             double y = rs.getDouble(2);
             System.out.println("result: (x=" + x + ", y="+y+")");
         }
-        
+
         stat.execute("CREATE TABLE TEST(ID IDENTITY, R DOUBLE, A DOUBLE)");
         stat.execute("INSERT INTO TEST(R, A) VALUES(5.0, 0.5), (10.0, 0.6)");
         stat.execute("CREATE ALIAS P2C_SET FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianSet\" ");
@@ -41,8 +47,8 @@ public class FunctionMultiReturn {
             double x = rs.getDouble("X");
             double y = rs.getDouble("Y");
             System.out.println("(r="+r+" a="+a+") : (x=" + x + ", y="+y+")");
-        }        
-        
+        }
+
         stat.execute("CREATE ALIAS P2C_A FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianArray\" ");
         rs = conn.createStatement().executeQuery("SELECT R, A, P2C_A(R, A) FROM TEST");
         while (rs.next()) {
@@ -54,7 +60,7 @@ public class FunctionMultiReturn {
             double y = ((Double) xy[1]).doubleValue();
             System.out.println("(r=" + r + " a=" + a + ") : (x=" + x + ", y=" + y + ")");
         }
-        
+
         rs = conn.createStatement().executeQuery("SELECT R, A, ARRAY_GET(E, 1), ARRAY_GET(E, 2) FROM (SELECT R, A, P2C_A(R, A) E FROM TEST)");
         while (rs.next()) {
             double r = rs.getDouble(1);
@@ -62,13 +68,13 @@ public class FunctionMultiReturn {
             double x = rs.getDouble(3);
             double y = rs.getDouble(4);
             System.out.println("(r="+r+" a="+a+") : (x=" + x + ", y="+y+")");
-        }        
-        
+        }
+
         conn.close();
     }
-    
+
     /**
-     * The function may be called twice, once to retrieve the result columns (with null parameters), 
+     * The function may be called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
      */
     public static ResultSet polar2Cartesian(Double r, Double alpha) throws SQLException {
@@ -81,17 +87,17 @@ public class FunctionMultiReturn {
             rs.addRow(new Object[] { new Double(x), new Double(y) });
         }
         return rs;
-    }    
-    
+    }
+
     /**
-     * The function may be called twice, once to retrieve the result columns (with null parameters), 
+     * The function may be called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
      */
     public static Object[] polar2CartesianArray(Double r, Double alpha) throws SQLException {
         double x = r.doubleValue() * Math.cos(alpha.doubleValue());
         double y = r.doubleValue() * Math.sin(alpha.doubleValue());
         return new Object[]{new Double(x), new Double(y)};
-    }        
+    }
 
     public static ResultSet polar2CartesianSet(Connection conn, String query) throws SQLException {
         SimpleResultSet result = new SimpleResultSet();
@@ -110,6 +116,6 @@ public class FunctionMultiReturn {
             }
         }
         return result;
-    }    
+    }
 
 }

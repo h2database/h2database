@@ -12,6 +12,11 @@ import org.h2.tools.Script;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.RunScript;
 
+/**
+ * This sample application shows how to compact the database files.
+ * This is done by creating a SQL script, and then re-creating the database
+ * using this script.
+ */
 public class Compact {
     public static void main(String[] args) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
@@ -21,13 +26,13 @@ public class Compact {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');");
         conn.close();
-        
+
         System.out.println("Compacting...");
         compact("data", "test", "sa", "");
         System.out.println("Done.");
-        
+
     }
-    
+
     public static void compact(String dir, String dbName, String user, String password) throws Exception {
         String url = "jdbc:h2:" + dir + "/" + dbName;
         String file = "data/test.sql";

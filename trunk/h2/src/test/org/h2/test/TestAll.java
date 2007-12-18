@@ -63,7 +63,8 @@ import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
 import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbc.xa.TestXA;
-import org.h2.test.mvcc.TestMVCC;
+import org.h2.test.mvcc.TestMvcc1;
+import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
@@ -153,7 +154,19 @@ java org.h2.test.TestAll timer
 
 /*
 
-C:\temp\test\db
+documentation: package.html
+
+write to the db file what version was used to create a database
+
+History:
+CSV tool: the character # could not be used as a separator when reading.
+CSV tool: some escape/separator character combinations did not work. Fixed.
+
+Roadmap:
+remove
+* Stop the server: close all open databases first
+
+
 
 Web site:
 link to history page, bug page
@@ -188,11 +201,7 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 <reconnect>
 out of memory?
 
-shrink newsletter list (migrate to google groups)
-
 don't create @~ of not translated
-
-clustered tables: test, document
 
 extend tests that simulate power off
 
@@ -214,28 +223,22 @@ move Performance Tuning > Advanced Topics
 testHalt
 java org.h2.test.TestAll halt
 
+Automate real power off tests
 timer test
-
-java.lang.Exception: query was too quick; result: 0 time:968
-        at org.h2.test.TestBase.logError(TestBase.java:220)
-        at org.h2.test.db.TestCases$1.run(TestCases.java:170)
-        at java.lang.Thread.run(Thread.java:595)
 
 ftp server: problem with multithreading?
 
 h2\src\docsrc\html\images\SQLInjection.txt
 
+Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide,
 Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
-Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 MySQL, PostgreSQL
 
 READ_TEXT(fileName String) returning a CLOB.
 I am not sure if this will read the CLOB in memory however.
 
 Improve LOB in directories performance
-
-Automate real power off tests
 
 http://fastutil.dsi.unimi.it/
 http://javolution.org/
@@ -250,8 +253,6 @@ javadocs (using generated ${.} ?)
 glossary
 spell check / word list per language
 translated .pdf
-
-write tests using the PostgreSQL JDBC driver
 
 */
 
@@ -280,6 +281,9 @@ write tests using the PostgreSQL JDBC driver
 Features of H2
 - Case insensitive string data type
 - GROUP_CONCAT aggregate, User defined aggregates
+- Fulltext search
+- MVCC
+- User defined types
 */
 
         if (args.length > 0) {
@@ -499,6 +503,8 @@ Features of H2
         cache2Q = false;
         testAll();
 
+        memory = true;
+        testAll();
     }
 
     void testAll() throws Exception {
@@ -538,9 +544,6 @@ Features of H2
     void testDatabase() throws Exception {
         System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
-
-//         int testMvcc;
-//         mvcc = true;
 
         // db
         new TestScriptSimple().runTest(this);
@@ -607,7 +610,8 @@ Features of H2
         new TestZloty().runTest(this);
 
         // mvcc
-        new TestMVCC().runTest(this);
+        new TestMvcc1().runTest(this);
+        new TestMvcc2().runTest(this);
 
         // synthetic
         new TestCrashAPI().runTest(this);

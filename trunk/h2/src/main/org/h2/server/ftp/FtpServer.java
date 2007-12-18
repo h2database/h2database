@@ -56,6 +56,8 @@ public class FtpServer implements Service {
     private boolean allowTask;
     static final String TASK_SUFFIX = ".task";
 
+    private FtpEventListener eventListener;
+
     public void listen() {
         try {
             while (serverSocket != null) {
@@ -311,8 +313,31 @@ public class FtpServer implements Service {
         p.destroy();
     }
 
+    /**
+     * Get the file system used by this FTP server.
+     *
+     * @return the file system
+     */
     public FileSystem getFileSystem() {
         return fs;
+    }
+
+    /**
+     * Set the event listener. Only one listener can be registered.
+     *
+     * @param eventListener the new listener, or null to de-register
+     */
+    public void setEventListener(FtpEventListener eventListener) {
+        this.eventListener = eventListener;
+    }
+
+    /**
+     * Get the registered event listener.
+     *
+     * @return the event listener, or null if non is registered
+     */
+    public FtpEventListener getEventListener() {
+        return eventListener;
     }
 
 }

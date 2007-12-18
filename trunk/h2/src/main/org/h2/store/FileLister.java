@@ -24,14 +24,13 @@ public class FileLister {
 
     /**
      * Get the list of database files.
-     * 
+     *
      * @param dir the directory (null for the current directory)
      * @param db the database name (null for all databases)
      * @param all  if true, files such as the lock, trace, hash index, and lob
      *            files are included. If false, only data, index and log files
      *            are returned
      * @return the list of files
-     * @throws SQLException
      */
     public static ArrayList getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
         if (dir == null || dir.equals("")) {

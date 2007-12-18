@@ -52,9 +52,6 @@ public abstract class TestBase {
     }
 
     public void runTest(TestAll conf) {
-        if (conf.networked) {
-            return;
-        }
         try {
             init(conf);
             start = System.currentTimeMillis();

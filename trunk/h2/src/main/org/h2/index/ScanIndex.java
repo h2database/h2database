@@ -127,6 +127,7 @@ public class ScanIndex extends BaseIndex {
                 row.setPos(key);
                 rows.set(key, row);
             }
+            row.setDeleted(false);
         }
         if (database.isMultiVersion()) {
             if (delta == null) {

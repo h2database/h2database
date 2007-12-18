@@ -53,7 +53,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get a new object of this class.
-     * 
+     *
      * @return the new instance
      */
     public static Csv getInstance() {
@@ -86,7 +86,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Writes the result set to a file in the CSV format.
-     * 
+     *
      * @param writer
      *            the writer
      * @param rs
@@ -102,7 +102,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Writes the result set to a file in the CSV format.
-     * 
+     *
      * @param fileName
      *            the name of the csv file
      * @param rs
@@ -124,7 +124,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Writes the result set of a query to a file in the CSV format.
-     * 
+     *
      * @param conn
      *            the connection
      * @param fileName
@@ -148,7 +148,7 @@ public class Csv implements SimpleRowSource {
      * Reads from the CSV file and returns a result set. The rows in the result
      * set are created on demand, that means the file is kept open until all
      * rows are read or the result set is closed.
-     * 
+     *
      * @param fileName the file name
      * @param colNames or null if the column names should be read from the CSV file
      * @param charset the charset or null to use UTF-8
@@ -168,7 +168,7 @@ public class Csv implements SimpleRowSource {
      * Reads CSV data from a reader and returns a result set. The rows in the
      * result set are created on demand, that means the reader is kept open
      * until all rows are read or the result set is closed.
-     * 
+     *
      * @param reader the reader
      * @param colNames or null if the column names should be read from the CSV file
      * @return the result set
@@ -347,15 +347,6 @@ public class Csv implements SimpleRowSource {
                 continue;
             } else if (ch == fieldSeparatorRead) {
                 break;
-            } else if (ch == commentLineStart) {
-                while (true) {
-                    ch = readChar();
-                    if (ch < 0 || ch == '\r' || ch == '\n') {
-                        break;
-                    }
-                }
-                endOfLine = true;
-                break;
             } else if (ch == fieldDelimiter) {
                 StringBuffer buff = new StringBuffer();
                 boolean containsEscape = false;
@@ -406,6 +397,15 @@ public class Csv implements SimpleRowSource {
                     }
                 }
                 break;
+            } else if (ch == commentLineStart) {
+                while (true) {
+                    ch = readChar();
+                    if (ch < 0 || ch == '\r' || ch == '\n') {
+                        break;
+                    }
+                }
+                endOfLine = true;
+                break;
             } else {
                 StringBuffer buff = new StringBuffer();
                 buff.append((char) ch);
@@ -433,13 +433,22 @@ public class Csv implements SimpleRowSource {
     private String unEscape(String s) {
         StringBuffer buff = new StringBuffer(s.length());
         int start = 0;
+        char[] chars = null;
         while (true) {
             int idx = s.indexOf(escapeCharacter, start);
             if (idx < 0) {
                 break;
             }
-            buff.append(s.toCharArray(), start, idx);
-            start = idx + 1;
+            if (chars == null) {
+                chars = s.toCharArray();
+            }
+            buff.append(chars, start, idx - start);
+            if (idx == s.length() - 1) {
+                start = s.length();
+                break;
+            }
+            buff.append(chars[idx + 1]);
+            start = idx + 2;
         }
         buff.append(s.substring(start));
         return buff.toString();
@@ -496,7 +505,7 @@ public class Csv implements SimpleRowSource {
         IOUtils.closeSilently(writer);
         writer = null;
     }
-    
+
     /**
      * INTERNAL
      */
@@ -506,7 +515,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Override the field separator for writing. The default is ",".
-     * 
+     *
      * @param fieldSeparatorWrite the field separator
      */
     public void setFieldSeparatorWrite(String fieldSeparatorWrite) {
@@ -515,7 +524,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current field separator for writing.
-     * 
+     *
      * @return the field separator
      */
     public String getFieldSeparatorWrite() {
@@ -524,7 +533,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Override the field separator for reading. The default is ','.
-     * 
+     *
      * @param fieldSeparatorRead the field separator
      */
     public void setFieldSeparatorRead(char fieldSeparatorRead) {
@@ -533,7 +542,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current field separator for reading.
-     * 
+     *
      * @return the field separator
      */
     public char getFieldSeparatorRead() {
@@ -542,7 +551,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current row separator for writing.
-     * 
+     *
      * @return the row separator
      */
     public String getRowSeparatorWrite() {
@@ -552,7 +561,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Override the end-of-row marker for writing. The default is null.
      * After writing the end-of-row marker, a line feed is written (\n or \r\n depending on the system settings).
-     * 
+     *
      * @param rowSeparatorWrite the row separator
      */
     public void setRowSeparatorWrite(String rowSeparatorWrite) {
@@ -562,7 +571,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Set the field delimiter. The default is " (a double quote).
      * 0 means no field delimiter is used.
-     * 
+     *
      * @param fieldDelimiter the field delimiter
      */
     public void setFieldDelimiter(char fieldDelimiter) {
@@ -572,7 +581,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Get the current field delimiter.
      * 0 means no field delimiter is used.
-     * 
+     *
      * @return the field delimiter
      */
     public char getFieldDelimiter() {
@@ -582,7 +591,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Set the escape character (used to escape the field delimiter). The default is " (a double quote).
      * 0 means no escape character is used.
-     * 
+     *
      * @param escapeCharacter the escape character
      */
     public void setEscapeCharacter(char escapeCharacter) {
@@ -592,7 +601,7 @@ public class Csv implements SimpleRowSource {
     /**
      * Get the current escape character.
      * 0 means no escape character is used.
-     * 
+     *
      * @return the escape character
      */
     public char getEscapeCharacter() {

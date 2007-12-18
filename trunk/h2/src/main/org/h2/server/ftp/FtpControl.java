@@ -91,6 +91,12 @@ public class FtpControl extends Thread {
             return;
         }
         server.log(">" + command);
+        FtpEventListener listener = server.getEventListener();
+        FtpEvent event = null;
+        if (listener != null) {
+            event = new FtpEvent(this, command, param);
+            listener.beforeCommand(event);
+        }
         replied = false;
         if (connected) {
             processConnected(command, param);
@@ -126,7 +132,11 @@ public class FtpControl extends Thread {
             }
         }
         if (!replied) {
+            listener.onUnsupportedCommand(event);
             reply(506, "Invalid command");
+        }
+        if (listener != null) {
+            listener.afterCommand(event);
         }
     }
 

@@ -200,32 +200,32 @@ function keyDown(event) {
         return false;
     }
     if (key == 13 && event.ctrlKey) {
-    	// ctrl + return
+        // ctrl + return
         document.h2query.submit();
         return false;
     } else if(key == 32 && event.ctrlKey) {
-    	// ctrl + space
-	    autoCompleteManual = true;
-	    lastQuery = null;
-	    lastList = '';
+        // ctrl + space
+        autoCompleteManual = true;
+        lastQuery = null;
+        lastList = '';
         showAutoCompleteNow();
         return false;
     } else if(key == 190 && autoComplete==0) {
-    	// dot
+        // dot
         help();
         return true;
     }
     var table = getAutoCompleteTable();
     if(table.rows.length > 0) {
         if(key == 27) {
-        	// escape
+            // escape
             while(table.rows.length > 0) {
                 table.deleteRow(0);
             }
             showOutput('');
             return false;
         } else if((key == 13 && !event.shiftKey) || (key==9 && !event.shiftKey)) {
-        	// enter or tab
+            // enter or tab
             if(table.rows.length > selectedRow) {
                 var row = table.rows[selectedRow];
                 if(row.cells.length>1) {
@@ -237,14 +237,14 @@ function keyDown(event) {
                 return false;
             }
         } else if(key == 38 && !event.shiftKey) {
-        	// up
+            // up
             if(table.rows.length > selectedRow) {
                 selectedRow = selectedRow <= 0 ? table.rows.length-1 : selectedRow-1;
                 highlightRow(selectedRow);
             }
             return false;
         } else if(key == 40 && !event.shiftKey) {
-        	// down
+            // down
             if(table.rows.length > selectedRow) {
                 selectedRow = selectedRow >= table.rows.length-1 ? 0 : selectedRow+1;
                 highlightRow(selectedRow);
@@ -262,11 +262,11 @@ function keyDown(event) {
 
 function keyUp(event) {
     if(autoComplete != 0) {
-	    var key=event == null ? 0 : (event.keyCode? event.keyCode : event.charCode);
-    	if(key != 37 && key != 38 && key != 39 && key != 40) {
-    		// left, right, up, down: don't show autocomplete
-	        showAutoComplete();
-	    }
+        var key=event == null ? 0 : (event.keyCode? event.keyCode : event.charCode);
+        if(key != 37 && key != 38 && key != 39 && key != 40) {
+            // left, right, up, down: don't show autocomplete
+            showAutoComplete();
+        }
     }
     return true;
 }

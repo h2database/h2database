@@ -14,6 +14,9 @@ import java.sql.Statement;
 
 import org.h2.api.Trigger;
 
+/**
+ * This sample application shows how to use database triggers.
+ */
 public class TriggerSample {
 
     public static void main(String[] args) throws Exception {

@@ -13,10 +13,15 @@ import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.jdbc.JdbcConnection;
 
+/**
+ * This example application implements a database event listener.
+ * This is useful to display progress information while opening a large database,
+ * or to log database exceptions.
+ */
 public class ShowProgress implements DatabaseEventListener {
-    
+
     private long last, start;
-    
+
     public ShowProgress() {
         start = last = System.currentTimeMillis();
     }
@@ -24,7 +29,7 @@ public class ShowProgress implements DatabaseEventListener {
     public static void main(String[] args) throws Exception {
         new ShowProgress().test();
     }
-    
+
     void test() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:test;LOG=2", "sa", "");
@@ -54,14 +59,14 @@ public class ShowProgress implements DatabaseEventListener {
         } else {
             conn.close();
         }
-        
+
         System.out.println("Open connection...");
         time = System.currentTimeMillis();
         conn = DriverManager.getConnection("jdbc:h2:test;LOG=2;DATABASE_EVENT_LISTENER='" + getClass().getName() + "'", "sa", "");
         time = System.currentTimeMillis() - time;
         System.out.println("Done after " + time + " ms");
         conn.close();
-        
+
     }
 
     public void diskSpaceIsLow(long stillAvailable) throws SQLException {
@@ -106,7 +111,7 @@ public class ShowProgress implements DatabaseEventListener {
     public void init(String url) {
         System.out.println("Initializing the event listener for database " + url);
     }
-    
+
     public void opened() {
     }
 

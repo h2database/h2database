@@ -4,6 +4,10 @@
  */
 package org.h2.samples;
 
+/**
+ * This very simple sample application stops a H2 TCP server
+ * if it is running.
+ */
 public class ShutdownServer {
     public static void main(String[] args) throws Exception {
         org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094", "", false);

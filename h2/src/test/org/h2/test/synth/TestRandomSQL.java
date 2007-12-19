@@ -73,13 +73,13 @@ public class TestRandomSQL extends TestBase {
         }
 
     }
-    
+
     private void deleteDb() throws SQLException {
         String name = getDatabaseName();
         if (name.startsWith(FileSystem.MEMORY_PREFIX)) {
-            DeleteDbFiles.execute("memFS:/", name, true);        
+            DeleteDbFiles.execute("memFS:/", name, true);
         } else {
-            DeleteDbFiles.execute(baseDir, name, true);        
+            DeleteDbFiles.execute(baseDir, name, true);
         }
     }
 
@@ -170,6 +170,9 @@ public class TestRandomSQL extends TestBase {
     }
 
     public void test() throws Exception {
+        if (config.networked) {
+            return;
+        }
         int len = getSize(2, 6);
         exitOnError = false;
         showSQL = false;

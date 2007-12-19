@@ -30,8 +30,11 @@ public class TestFileSystem extends TestBase {
         testFileSystem(FileSystem.MEMORY_PREFIX_LZF);
         testUserHome();
     }
-    
+
     private void testDatabaseInJar() throws Exception {
+        if (config.networked) {
+            return;
+        }
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + baseDir + "/fsJar";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
@@ -48,7 +51,7 @@ public class TestFileSystem extends TestBase {
         stat = conn.createStatement();
         stat.execute("backup to '" + baseDir + "/fsJar.zip'");
         conn.close();
-        
+
         deleteDb(baseDir + "/fsJar");
         FileSystem fs = FileSystem.getInstance("zip:" + baseDir + "/fsJar.zip");
         String[] files = fs.listFiles("zip:" + baseDir + "/fsJar.zip");
@@ -88,7 +91,7 @@ public class TestFileSystem extends TestBase {
         testTempFile(fsBase);
         testRandomAccess(fsBase);
     }
-    
+
     private void testSimple(String fsBase) throws Exception {
         FileSystem fs = FileSystem.getInstance(fsBase);
         long time = System.currentTimeMillis();
@@ -131,10 +134,10 @@ public class TestFileSystem extends TestBase {
         in.close();
         check(pos, 10000);
         check(buffer2, buffer);
-        
+
         check(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
-        
+
         if (!fsBase.startsWith(FileSystem.MEMORY_PREFIX) && !fsBase.startsWith(FileSystem.MEMORY_PREFIX_LZF)) {
             fs.createDirs(fsBase + "/testDir/test");
             check(fs.isDirectory(fsBase + "/testDir"));
@@ -144,7 +147,7 @@ public class TestFileSystem extends TestBase {
             }
         }
     }
-    
+
     private void testRandomAccess(String fsBase) throws Exception {
         FileSystem fs = FileSystem.getInstance(fsBase);
         String s = fs.createTempFile(fsBase + "/temp", ".tmp", false, false);
@@ -245,6 +248,6 @@ public class TestFileSystem extends TestBase {
         in.close();
         out.close();
     }
-    
+
 
 }

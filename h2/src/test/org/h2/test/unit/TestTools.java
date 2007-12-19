@@ -33,6 +33,9 @@ public class TestTools extends TestBase {
     private Server server;
 
     public void test() throws Exception {
+        if (config.networked) {
+            return;
+        }
         deleteDb("utils");
         testServerMain();
         testRemove();
@@ -237,9 +240,6 @@ public class TestTools extends TestBase {
     }
 
     private void testManagementDb() throws Exception {
-        if (config.networked) {
-            return;
-        }
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
             Server server = Server.createTcpServer(new String[] {}).start();

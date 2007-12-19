@@ -16,7 +16,7 @@ import org.h2.test.TestBase;
 public class TestExit extends TestBase implements DatabaseEventListener {
 
     public void test() throws Exception {
-        if (config.codeCoverage) {
+        if (config.codeCoverage || config.networked) {
             return;
         }
         String classPath = "bin" + File.pathSeparator + ".";
@@ -110,8 +110,8 @@ public class TestExit extends TestBase implements DatabaseEventListener {
 
     public void init(String url) {
     }
-    
+
     public void opened() {
-    }    
+    }
 
 }

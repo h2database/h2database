@@ -362,7 +362,7 @@ public class TestCrashAPI extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc) {
+        if (config.mvcc || config.networked) {
             return this;
         }
         if (config.logMode == 0) {
@@ -385,7 +385,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     public void test() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.networked) {
             return;
         }
         int len = getSize(2, 6);

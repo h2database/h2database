@@ -17,14 +17,17 @@ import org.h2.test.TestBase;
 public class TestKillRestart extends TestBase {
 
     public void test() throws Exception {
+        if (config.networked) {
+            return;
+        }
         deleteDb("corrupt");
         String url = getURL("corrupt", true);
         // String url = getURL("corrupt;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         String user = getUser(), password = getPassword();
-        
+
         String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
-        
+
         int len = getSize(1, 10);
         for (int i = 0; i < len; i++) {
             Process p = Runtime.getRuntime().exec(procDef);

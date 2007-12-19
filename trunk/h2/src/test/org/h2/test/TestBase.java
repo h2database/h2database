@@ -38,10 +38,6 @@ public abstract class TestBase {
         config.beforeTest();
     }
 
-    protected void stopServerIfRequired() throws SQLException {
-        config.afterTest();
-    }
-
     public TestBase init(TestAll conf) throws Exception {
         this.config = conf;
         return this;

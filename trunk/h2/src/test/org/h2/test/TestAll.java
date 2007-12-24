@@ -154,14 +154,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-add link to:
-www.s-appsys.com
-
 documentation: package.html
 
 write to the db file what version was used to create a database
-
-
 
 Web site:
 link to history page, bug page

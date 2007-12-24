@@ -12,5 +12,14 @@ insert into test values(null);
 -- 2 rows even in ANSI mode (correct is 1 row):
 select * from test where id=id and 1=1;
 
+MS SQL Server 2005
+--------------------------------------------------------------------------------------------------------
+Problems when trying to select large objects (even if ResultSet.getBinaryStream is used).
+The workaround responseBuffering=adaptive doesn't always seem to work
+(jdbc:sqlserver://localhost:4220;DatabaseName=test;responseBuffering=adaptive)
+
 PostgreSQL
 --------------------------------------------------------------------------------------------------------
+
+
+

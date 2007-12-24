@@ -11,6 +11,10 @@ import java.io.PrintWriter;
 
 import org.h2.util.StringUtils;
 
+/**
+ * This application merges the html documentation to one file
+ * (onePage.html), so that the PDF document can be created.
+ */
 public class MergeDocs {
 
     String baseDir = "docs/html";

@@ -10,9 +10,11 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 /**
- * @author Thomas TODO codeswitch: replace with ant 'Replace' task is possible
+ * This application allows to switch source code to different 'modes', so that
+ * it can be compiled for different JDKs.
  */
 public class CodeSwitch {
+    // TODO codeswitch: replace with ant 'Replace' task is possible
     private boolean recurse;
     private ArrayList list = new ArrayList();
     private ArrayList switchOn = new ArrayList();

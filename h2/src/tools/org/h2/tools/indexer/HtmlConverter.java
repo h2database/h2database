@@ -6,6 +6,10 @@ package org.h2.tools.indexer;
 
 import java.util.HashMap;
 
+/**
+ * This class replaces HTML entities in text (for example &uuml;) to the correct
+ * character and vice versa.
+ */
 public class HtmlConverter {
     private static HashMap charMap = new HashMap();
     private static HashMap codeMap = new HashMap();

@@ -9,6 +9,9 @@ import java.sql.PreparedStatement;
 import java.util.Random;
 
 /**
+ * This test is similar to the TPC-A test of the Transaction Processing Council (TPC).
+ * However, only one connection and one thread is used.
+ *<p>
  * See also: http://www.tpc.org/tpca/spec/tpca_current.pdf
  */
 public class BenchA implements Bench {
@@ -19,14 +22,14 @@ public class BenchA implements Bench {
     private int tellers;
     private int accounts;
     private int size;
-    
+
     private static final String FILLER = "abcdefghijklmnopqrstuvwxyz";
     private static final int DELTA = 10000;
 
     public void init(Database db, int size) throws Exception {
         this.db = db;
         this.size = size;
-        
+
         int scale = 1;
         accounts = size * 50;
         tellers = Math.max(accounts / 10, 1);
@@ -49,7 +52,7 @@ public class BenchA implements Bench {
         for (int i = 0; i < create.length; i++) {
             db.update(create[i]);
         }
-        
+
         PreparedStatement prep;
         db.setAutoCommit(false);
         int commitEvery = 1000;
@@ -59,7 +62,7 @@ public class BenchA implements Bench {
             db.update(prep, "insertBranches");
             if (i % commitEvery == 0) {
                 db.commit();
-            }            
+            }
         }
         db.commit();
         prep = db.prepare("INSERT INTO TELLERS(TID,BID,TBALANCE,FILLER) VALUES(?,?,10000.00,'" + FILLER + "')");
@@ -69,7 +72,7 @@ public class BenchA implements Bench {
             db.update(prep, "insertTellers");
             if (i % commitEvery == 0) {
                 db.commit();
-            }                  
+            }
         }
         db.commit();
         int len = accounts * scale;
@@ -80,16 +83,16 @@ public class BenchA implements Bench {
             db.update(prep, "insertAccounts");
             if (i % commitEvery == 0) {
                 db.commit();
-            }      
+            }
         }
         db.commit();
         db.closeConnection();
         db.end();
-        
+
 //        db.start(this, "Open/Close");
 //        db.openConnection();
 //        db.closeConnection();
-//        db.end();        
+//        db.end();
     }
 
     public void runTest() throws Exception {
@@ -99,20 +102,20 @@ public class BenchA implements Bench {
         processTransactions();
         db.closeConnection();
         db.end();
-        
+
         db.openConnection();
         processTransactions();
         db.logMemory(this, "Memory Usage");
         db.closeConnection();
-                
+
     }
-    
+
     private void processTransactions() throws Exception {
         Random random = db.getRandom();
         int branch = random.nextInt(branches);
         int teller = random.nextInt(tellers);
         int transactions = size * 30;
-        
+
         PreparedStatement updateAccount = db.prepare("UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
         PreparedStatement selectBalance = db.prepare("SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
         PreparedStatement updateTeller = db.prepare("UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
@@ -136,18 +139,18 @@ public class BenchA implements Bench {
 
             updateAccount.setBigDecimal(1, delta);
             updateAccount.setInt(2, account);
-            db.update(updateAccount, "updateAccount");            
+            db.update(updateAccount, "updateAccount");
 
             updateTeller.setBigDecimal(1, delta);
             updateTeller.setInt(2, teller);
-            db.update(updateTeller, "updateTeller");            
+            db.update(updateTeller, "updateTeller");
 
             updateBranch.setBigDecimal(1, delta);
             updateBranch.setInt(2, branch);
-            db.update(updateBranch, "updateBranch");            
-            
+            db.update(updateBranch, "updateBranch");
+
             selectBalance.setInt(1, account);
-            db.queryReadResult(selectBalance);            
+            db.queryReadResult(selectBalance);
 
             insertHistory.setInt(1, account);
             insertHistory.setInt(2, teller);

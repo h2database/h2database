@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
@@ -252,17 +253,18 @@ public class SelectUnion extends Query {
         right.setEvaluatable(tableFilter, b);
     }
 
-    public void addGlobalCondition(Expression expr, int columnId, int comparisonType) throws SQLException {
+    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException {
+        addParameter(param);
         switch (unionType) {
         case UNION_ALL:
         case UNION:
         case INTERSECT: {
-            left.addGlobalCondition(expr, columnId, comparisonType);
-            right.addGlobalCondition(expr, columnId, comparisonType);
+            left.addGlobalCondition(param, columnId, comparisonType);
+            right.addGlobalCondition(param, columnId, comparisonType);
             break;
         }
         case EXCEPT: {
-            left.addGlobalCondition(expr, columnId, comparisonType);
+            left.addGlobalCondition(param, columnId, comparisonType);
             break;
         }
         default:
@@ -314,6 +316,11 @@ public class SelectUnion extends Query {
             buff.append(" FOR UPDATE");
         }
         return buff.toString();
+    }
+
+    public LocalResult query(int limit) throws SQLException {
+        // union doesn't always know the parameter list of the left and right queries
+        return queryWithoutCache(limit);
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

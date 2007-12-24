@@ -1,3 +1,13 @@
+create table test(id int);
+select count(*) from (select * from ((select * from test) union (select * from test)) a) b where id = 0;
+> 0;
+select count(*) from (select * from ((select * from test) union select * from test) a) b where id = 0;
+> 0;
+select count(*) from (select * from (select * from test union select * from test) a) b where id = 0;
+> 0;
+select 1 from ((test d1 inner join test d2 on d1.id = d2.id) inner join test d3 on d1.id = d3.id) inner join test d4 on d4.id = d1.id;
+drop table test;
+
 select lpad('string', 10, '+');
 > ++++string;
 select rpad('string', 10, '+');

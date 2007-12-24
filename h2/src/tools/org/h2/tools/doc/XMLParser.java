@@ -4,6 +4,10 @@
  */
 package org.h2.tools.doc;
 
+/**
+ * This class implements a simple XML pull parser.
+ * Only a subset of the XML pull parser API is implemented.
+ */
 public class XMLParser {
 
     public static final int ERROR = 0;

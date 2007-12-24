@@ -33,6 +33,11 @@ import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
+/**
+ * This class updates the translation source code files by parsing
+ * the HTML documentation. It also generates the translated HTML
+ * documentation.
+ */
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
     private static final String DELETED_PREFIX = "~";

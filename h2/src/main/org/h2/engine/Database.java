@@ -448,14 +448,14 @@ public class Database implements DataHandler {
             fileData.init();
             try {
                 fileIndex.init();
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 if (recovery) {
                     traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
                     fileIndex.close();
                     fileIndex.delete();
                     openFileIndex();
                 } else {
-                    throw e;
+                    throw Message.convert(e);
                 }
             }
             reserveLobFileObjectIds();

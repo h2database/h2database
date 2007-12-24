@@ -13,6 +13,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * This test shows the raw file access performance using various file modes.
+ * It also tests databases.
+ */
 public class TestWrite {
     public static void main(String[] args) throws Exception {
         testFile("rw", false);

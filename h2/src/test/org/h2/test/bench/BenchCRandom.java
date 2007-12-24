@@ -8,10 +8,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
 
+/**
+ * The random data generator used for BenchC.
+ */
 public class BenchCRandom {
 
     private Random random = new Random(10);
-    
+
     int getNonUniform(int a, int min, int max) {
         int c = 0;
         return (((getInt(0, a) | getInt(min, max)) + c) % (max - min + 1))

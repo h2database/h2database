@@ -11,6 +11,10 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.util.Stack;
 
+/**
+ * This class checks that the HTML and XML part of the source code
+ * is well-formed XML.
+ */
 public class XMLChecker {
 
     public static void main(String[] args) throws Exception {

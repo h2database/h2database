@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * The listener application for the power off test.
+ * The listener runs on a computer that stays on during the whole test.
+ */
 public class Listener implements Runnable {
 
     public static void main(String[] args) throws Exception {

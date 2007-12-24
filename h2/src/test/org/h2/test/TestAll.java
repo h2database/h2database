@@ -154,17 +154,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+add link to:
+www.s-appsys.com
+
 documentation: package.html
 
 write to the db file what version was used to create a database
-
-History:
-CSV tool: the character # could not be used as a separator when reading.
-CSV tool: some escape/separator character combinations did not work. Fixed.
-
-Roadmap:
-remove
-* Stop the server: close all open databases first
 
 
 

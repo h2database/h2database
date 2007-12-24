@@ -18,20 +18,24 @@ import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
+/**
+ * The main controller class of the benchmark application.
+ * To run the benchmark, call the main method of this class.
+ */
 public class TestPerformance {
-    
+
     boolean collect;
     boolean log;
-    
+
     public static void main(String[] args) throws Exception {
         new TestPerformance().test(args);
     }
-    
+
     private Connection getResultConnection() throws Exception {
         Class.forName("org.h2.Driver");
         return DriverManager.getConnection("jdbc:h2:data/results");
     }
-    
+
     private void openResults(boolean init) throws Exception {
         Connection conn = null;
         Statement stat = null;
@@ -65,7 +69,7 @@ public class TestPerformance {
             }
         }
         openResults(init);
-        
+
         Properties prop = new Properties();
         prop.load(getClass().getResourceAsStream("test.properties"));
         int size = Integer.parseInt(prop.getProperty("size"));
@@ -121,7 +125,7 @@ public class TestPerformance {
                     prep.execute();
                 }
             }
-            
+
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
                     "CALL '<table><tr><th>Test Case</th><th>Unit</th>' "
@@ -143,7 +147,7 @@ public class TestPerformance {
             JdbcUtils.closeSilently(conn);
             IOUtils.closeSilently(writer);
         }
-        
+
 //        ResultSet rsDbs = conn.createStatement().executeQuery("SELECT DB RESULTS GROUP BY DBID, DB ORDER BY DBID");
 //        while(rsDbs.next()) {
 //            writer.println("<th>" + rsDbs.getString(1) + "</th>");
@@ -153,10 +157,10 @@ public class TestPerformance {
 //            writer.println("<tr><td>" + rs.getString(1) + "</td>");
 //            writer.println("<td>" + rs.getString(2) + "</td>");
 //            ResultSet rsRes = conn.createStatement().executeQuery("SELECT RESULT FROM RESULTS WHERE TESTID=? ORDER BY DBID");
-//            
-//            
+//
+//
 //        }
-        
+
 //        PrintWriter writer = new PrintWriter(new FileWriter("benchmark.html"));
 //        writer.println("<table><tr><th>Test Case</th><th>Unit</th>");
 //        for(int j=0; j<dbs.size(); j++) {
@@ -181,7 +185,7 @@ public class TestPerformance {
         System.out.println("Test finished");
         System.exit(0);
     }
-    
+
     private void testAll(ArrayList dbs, ArrayList tests, int size) throws Exception {
         for (int i = 0; i < dbs.size(); i++) {
             if (i > 0) {
@@ -212,7 +216,7 @@ public class TestPerformance {
             runTest(db, bench, size);
         }
     }
-    
+
     private void runTest(Database db, Bench bench, int size) throws Exception {
         bench.init(db, size);
         bench.runTest();

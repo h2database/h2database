@@ -113,7 +113,8 @@ If no file name is specified, the script is returned as a result set.
 This command can be used to create a backup of the database.
 If the DROP option is specified, drop statements are created for tables, views, and sequences.
 If the block size is set, CLOB and BLOB values larger than this size are split into separate blocks.
-If a file name is specified, a result set without insert statements is returned.
+If a file name is specified, then the whole script (including insert statements) is written to this file,
+and a result set without the insert statements is returned.
 When using encryption, only DEFLATE and LZF are supported.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 ","

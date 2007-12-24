@@ -29,6 +29,9 @@ import java.util.zip.ZipOutputStream;
 
 import org.h2.util.IOUtils;
 
+/**
+ * This standalone test checks if recovery of a database works after power failure.
+ */
 public class TestRecover {
 
     private Random random;

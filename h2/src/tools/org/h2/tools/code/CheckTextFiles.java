@@ -10,6 +10,11 @@ import java.io.RandomAccessFile;
 
 import org.h2.util.ByteUtils;
 
+/**
+ * This tool checks that source code files only contain the allowed set of characters,
+ * and that the copyright license is included in each file.
+ * It also removes trailing spaces.
+ */
 public class CheckTextFiles {
     public static void main(String[] args) throws Exception {
         new CheckTextFiles().run();

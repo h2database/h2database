@@ -9,6 +9,13 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+/**
+ * This test is similar to the TPC-C test of the Transaction Processing Council (TPC).
+ * Only one connection and one thread is used.
+ * Referential integrity is not implemented.
+ *<p>
+ * See also http://www.tpc.org
+ */
 public class BenchC implements Bench {
 
     private Database db;

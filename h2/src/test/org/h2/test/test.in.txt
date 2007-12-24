@@ -1,6 +1,31 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from system_range(1, 2) a,
+(select * from system_range(1, 2) union select * from system_range(1, 2)
+union select * from system_range(1, 1)) v where a.x = v.x;
+> X X
+> - -
+> 1 1
+> 2 2
+> rows: 2
+
+create table test(id int);
+> ok
+
+select * from ((select * from test) union (select * from test)) where id = 0;
+> ID
+> --
+> rows: 0
+
+select * from ((test d1 inner join test d2 on d1.id = d2.id) inner join test d3 on d1.id = d3.id) inner join test d4 on d4.id = d1.id;
+> ID ID ID ID
+> -- -- -- --
+> rows: 0
+
 select * from dual a left join dual b on b.x=(select max(x) from dual);
 > exception
+
+drop table test;
+> ok
 
 select count(*) from system_range(1, 2) where x in(1, 1, 1);
 > COUNT(*)

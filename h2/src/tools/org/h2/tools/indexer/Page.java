@@ -4,7 +4,9 @@
  */
 package org.h2.tools.indexer;
 
-
+/**
+ * Represents a page of the indexer.
+ */
 public class Page {
     int id;
     String fileName;
@@ -12,7 +14,7 @@ public class Page {
     // TODO page.totalWeight is currently not used
     int totalWeight;
     int relations;
-    
+
     Page(int id, String fileName) {
         this.id = id;
         this.fileName = fileName;

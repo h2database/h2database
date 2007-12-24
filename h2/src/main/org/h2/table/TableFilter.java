@@ -32,8 +32,8 @@ import org.h2.value.Value;
 public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
     private final Table table;
-    private final String alias;
     private final Select select;
+    private String alias;
     private Session session;
     private Index index;
     private IndexColumn[] indexColumns;
@@ -52,9 +52,9 @@ public class TableFilter implements ColumnResolver {
     private SearchRow currentSearchRow;
     private Row current;
     private int state;
-    
+
     private TableFilter join;
-    
+
     private boolean outerJoin;
     private boolean foundOne;
     private Expression fullCondition;
@@ -290,7 +290,7 @@ public class TableFilter implements ColumnResolver {
         state = AFTER_LAST;
         return false;
     }
-    
+
     private void logScanCount() {
         // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
     }
@@ -565,6 +565,10 @@ public class TableFilter implements ColumnResolver {
 
     public TableFilter getTableFilter() {
         return this;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
 }

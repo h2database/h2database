@@ -7,15 +7,20 @@ package org.h2.test.bench;
 import java.sql.PreparedStatement;
 import java.util.Random;
 
+/**
+ * This is a very simple benchmark application. One table is created
+ * where rows are inserted, updated, selected (in sequential and random order),
+ * and then deleted.
+ */
 public class BenchSimple implements Bench {
 
     Database db;
     int records;
-    
+
     public void init(Database db, int size) throws Exception {
         this.db = db;
         this.records = size * 60;
-        
+
         db.start(this, "Init");
         db.openConnection();
         db.dropTable("TEST");
@@ -35,20 +40,20 @@ public class BenchSimple implements Bench {
         db.commit();
         db.closeConnection();
         db.end();
-        
+
 //        db.start(this, "Open/Close");
 //        db.openConnection();
 //        db.closeConnection();
-//        db.end();        
-        
+//        db.end();
+
     }
 
     public void runTest() throws Exception {
         PreparedStatement prep;
         Random random = db.getRandom();
-        
+
         db.openConnection();
-        
+
         db.start(this, "Query (random)");
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
         for (int i = 0; i < records; i++) {
@@ -56,7 +61,7 @@ public class BenchSimple implements Bench {
             db.queryReadResult(prep);
         }
         db.end();
-        
+
         db.start(this, "Query (sequential)");
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
         for (int i = 0; i < records; i++) {
@@ -90,10 +95,10 @@ public class BenchSimple implements Bench {
         for (int i = 0; i < records; i++) {
             prep.setInt(1, random.nextInt(records));
             db.queryReadResult(prep);
-        }        
+        }
         db.logMemory(this, "Memory Usage");
         db.closeConnection();
-        
+
     }
 
     public String getName() {

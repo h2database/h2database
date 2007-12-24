@@ -832,8 +832,18 @@ public class Parser {
         String alias = null;
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         if (readIf("(")) {
-            if (isToken("SELECT") || isToken("FROM") || isToken("(")) {
-                Query query = parseSelect();
+            if (isToken("SELECT") || isToken("FROM")) {
+                int start = lastParseIndex;
+                int paramIndex = parameters.size();
+                Query query = parseSelectUnion();
+                read(")");
+                query = parseSelectUnionExtension(query, start);
+                ObjectArray params = new ObjectArray();
+                for (int i = paramIndex; i < parameters.size(); i++) {
+                    params.add(parameters.get(i));
+                }
+                query.setParameterList(params);
+                query.init();
                 Session s;
                 if (prepared != null && prepared instanceof CreateView) {
                     s = database.getSystemSession();
@@ -842,11 +852,14 @@ public class Parser {
                 }
                 table = TableView.createTempView(s, session.getUser(), query);
                 alias = table.getName();
-                read(")");
             } else {
                 TableFilter top = readTableFilter(fromOuter);
                 top = readJoin(top, currentSelect, fromOuter);
                 read(")");
+                alias = readFromAlias(null);
+                if (alias != null) {
+                    top.setAlias(alias);
+                }
                 return top;
             }
         } else {
@@ -871,6 +884,11 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
+        alias = readFromAlias(alias);
+        return new TableFilter(session, table, alias, rightsChecked, currentSelect);
+    }
+
+    String readFromAlias(String alias) throws SQLException {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
@@ -880,7 +898,7 @@ public class Parser {
                 alias = readAliasIdentifier();
             }
         }
-        return new TableFilter(session, table, alias, rightsChecked, currentSelect);
+        return alias;
     }
 
     private Prepared parseTruncate() throws SQLException {
@@ -1228,6 +1246,10 @@ public class Parser {
     private Query parseSelectUnion() throws SQLException {
         int start = lastParseIndex;
         Query command = parseSelectSub();
+        return parseSelectUnionExtension(command, start);
+    }
+
+    private Query parseSelectUnionExtension(Query command, int start) throws SQLException {
         while (true) {
             if (readIf("UNION")) {
                 SelectUnion union = new SelectUnion(session, command);

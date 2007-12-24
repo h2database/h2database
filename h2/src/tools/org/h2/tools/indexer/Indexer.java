@@ -18,6 +18,10 @@ import java.util.StringTokenizer;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * The indexer creates the fulltext index of the HTML documentation.
+ * It is used for the built-in HTML javascript search.
+ */
 public class Indexer {
 
     ArrayList pages = new ArrayList();

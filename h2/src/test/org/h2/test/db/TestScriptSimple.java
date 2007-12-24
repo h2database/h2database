@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
@@ -33,19 +34,24 @@ public class TestScriptSimple extends TestBase {
                 break;
             }
             sql = sql.trim();
-            if ("@reconnect".equals(sql.toLowerCase())) {
-                reconnect();
-            } else if (sql.length() == 0) {
-                // ignore
-            } else if (sql.toLowerCase().startsWith("select")) {
-                ResultSet rs = conn.createStatement().executeQuery(sql);
-                while (rs.next()) {
-                    String expected = reader.readStatement().trim();
-                    String got = "> " + rs.getString(1);
-                    check(expected, got);
+            try {
+                if ("@reconnect".equals(sql.toLowerCase())) {
+                    reconnect();
+                } else if (sql.length() == 0) {
+                    // ignore
+                } else if (sql.toLowerCase().startsWith("select")) {
+                    ResultSet rs = conn.createStatement().executeQuery(sql);
+                    while (rs.next()) {
+                        String expected = reader.readStatement().trim();
+                        String got = "> " + rs.getString(1);
+                        check(expected, got);
+                    }
+                } else {
+                    conn.createStatement().execute(sql);
                 }
-            } else {
-                conn.createStatement().execute(sql);
+            } catch (SQLException e) {
+                System.out.println(sql);
+                throw e;
             }
         }
         is.close();

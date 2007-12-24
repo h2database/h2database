@@ -18,6 +18,12 @@ import java.sql.Statement;
 
 import org.h2.util.FileUtils;
 
+/**
+ * This application tests the durability / non-durability of file systems and databases.
+ * Two computers with network connection are required to run this test. Before
+ * starting this application, the Listener application must be started on another
+ * computer.
+ */
 public class Test {
 
     String driver;

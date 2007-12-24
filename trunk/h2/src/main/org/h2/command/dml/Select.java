@@ -16,6 +16,7 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
 import org.h2.message.Message;
@@ -702,10 +703,11 @@ public class Select extends Query {
         return isQuickQuery;
     }
 
-    public void addGlobalCondition(Expression expr, int columnId, int comparisonType) throws SQLException {
+    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException {
+        addParameter(param);
         Expression col = (Expression) expressions.get(columnId);
         col = col.getNonAliasExpression();
-        Expression comp = new Comparison(session, comparisonType, col, expr);
+        Expression comp = new Comparison(session, comparisonType, col, param);
         comp = comp.optimize(session);
         boolean addToCondition = true;
         if (isGroupQuery) {

@@ -17,6 +17,11 @@ import java.util.StringTokenizer;
 
 import org.h2.util.IOUtils;
 
+/**
+ * The spell checker makes sure that each word used in the source code
+ * is spelled correctly, by comparing the words with a word list.
+ * Camel case and uppercase words are checked as well.
+ */
 public class SpellChecker {
 
     private HashSet dictionary = new HashSet();

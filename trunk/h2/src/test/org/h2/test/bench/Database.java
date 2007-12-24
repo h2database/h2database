@@ -23,8 +23,11 @@ import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * Represents a database in the benchmark test application.
+ */
 class Database {
-    
+
     private TestPerformance test;
     private int id;
     private String name, url, user, password;
@@ -39,27 +42,27 @@ class Database {
     private ArrayList results = new ArrayList();
     private int totalTime;
     private int executedStatements;
-    
+
     private Server serverH2;
     private Object serverDerby;
     private boolean serverHSQLDB;
-    
+
     String getName() {
         return name;
     }
-    
+
     int getTotalTime() {
         return totalTime;
     }
-    
+
     ArrayList getResults() {
         return results;
     }
-    
+
     Random getRandom() {
         return random;
     }
-    
+
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {
             serverH2 = Server.createTcpServer(new String[0]).start();
@@ -156,12 +159,12 @@ class Database {
         }
         return conn;
     }
-    
+
     void openConnection() throws Exception {
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
     }
-    
+
     void closeConnection() throws Exception {
 //        if(!serverHSQLDB && url.startsWith("jdbc:hsqldb:")) {
 //            stat.execute("SHUTDOWN");
@@ -185,12 +188,12 @@ class Database {
             }
         }
     }
-    
+
     PreparedStatement prepare(String sql) throws Exception {
         sql = getSQL(sql);
         return conn.prepareStatement(sql);
     }
-    
+
     public String getSQL(String sql) {
         for (int i = 0; i < replace.size(); i++) {
             String[] pair = (String[]) replace.get(i);
@@ -293,7 +296,7 @@ class Database {
             }
         }
     }
-    
+
     int getExecutedStatements() {
         return executedStatements;
     }

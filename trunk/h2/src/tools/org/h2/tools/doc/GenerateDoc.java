@@ -21,6 +21,11 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * This application generates sections of the documentation
+ * by converting the built-in help section (INFORMATION_SCHEMA.HELP)
+ * to cross linked html.
+ */
 public class GenerateDoc {
 
     public static void main(String[] args) throws Exception {

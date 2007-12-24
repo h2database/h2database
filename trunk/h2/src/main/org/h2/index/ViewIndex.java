@@ -108,16 +108,17 @@ public class ViewIndex extends BaseIndex {
                 Column col = table.getColumn(idx);
                 columns[i] = col;
                 int mask = masks[idx];
+                int nextParamIndex = query.getParameters().size();
                 if ((mask & IndexCondition.EQUALITY) != 0) {
-                    Parameter param = new Parameter(0);
+                    Parameter param = new Parameter(nextParamIndex);
                     query.addGlobalCondition(param, idx, Comparison.EQUAL);
                 } else {
                     if ((mask & IndexCondition.START) != 0) {
-                        Parameter param = new Parameter(0);
+                        Parameter param = new Parameter(nextParamIndex);
                         query.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
                     }
                     if ((mask & IndexCondition.END) != 0) {
-                        Parameter param = new Parameter(0);
+                        Parameter param = new Parameter(nextParamIndex);
                         query.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
                     }
                 }

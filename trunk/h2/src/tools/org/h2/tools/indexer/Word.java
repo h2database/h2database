@@ -9,6 +9,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+/**
+ * Represents a word of the full text index.
+ */
 public class Word {
     String name;
     HashMap pages = new HashMap();

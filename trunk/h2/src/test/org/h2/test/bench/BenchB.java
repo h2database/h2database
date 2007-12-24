@@ -11,20 +11,23 @@ import java.sql.SQLException;
 import java.util.Random;
 
 /**
- * See also http://www.tpc.org/tpcb
+ * This test is similar to the TPC-B test of the Transaction Processing Council (TPC).
+ * Multiple threads are used (one thread per connection).
  * Referential integrity is not implemented.
+ *<p>
+ * See also http://www.tpc.org/tpcb
  */
 public class BenchB implements Bench, Runnable {
-    
+
     // master data
     private Database db;
-    private int scale = 1; 
-    private int branches = 1; 
-    private int tellers = 10; 
-    private int accounts = 100000; 
+    private int scale = 1;
+    private int branches = 1;
+    private int tellers = 10;
+    private int accounts = 100000;
     private int clients = 10;
     private int transactionPerClient;
-    
+
     // client data
     private BenchB master;
     private Connection conn;
@@ -34,14 +37,14 @@ public class BenchB implements Bench, Runnable {
     private PreparedStatement updateBranch;
     private PreparedStatement insertHistory;
     private Random random;
-    
+
     public BenchB() {
     }
 
     public void init(Database db, int size) throws Exception {
         this.db = db;
         this.transactionPerClient = size;
-        
+
         db.start(this, "Init");
         db.openConnection();
         db.dropTable("BRANCHES");
@@ -88,7 +91,7 @@ public class BenchB implements Bench, Runnable {
             db.update(prep, "insertAccounts");
             if (i % commitEvery == 0) {
                 db.commit();
-            }      
+            }
         }
         db.commit();
         db.closeConnection();
@@ -96,9 +99,9 @@ public class BenchB implements Bench, Runnable {
 //        db.start(this, "Open/Close");
 //        db.openConnection();
 //        db.closeConnection();
-//        db.end();        
+//        db.end();
     }
-    
+
     private BenchB(BenchB master, int seed) throws Exception {
         this.master = master;
         random = new Random(seed);
@@ -115,7 +118,7 @@ public class BenchB implements Bench, Runnable {
         insertHistory = conn.prepareStatement(
                 "INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)");
     }
-    
+
     public void run() {
         int accountsPerBranch = accounts / branches;
         for (int i = 0; i < master.transactionPerClient; i++) {
@@ -136,21 +139,21 @@ public class BenchB implements Bench, Runnable {
             // ignore
         }
     }
-    
+
     private void doOne(int branch, int teller, int account, int delta) {
         try {
             // UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?
             updateAccount.setInt(1, delta);
             updateAccount.setInt(2, account);
             updateAccount.executeUpdate();
-            
+
             // SELECT ABALANCE FROM ACCOUNTS WHERE AID=?
             selectAccount.setInt(1, account);
             ResultSet rs = selectAccount.executeQuery();
             while (rs.next()) {
                 rs.getInt(1);
             }
-            
+
             // UPDATE TELLERS SET TBALANCE=TABLANCE+? WHERE TID=?
             updateTeller.setInt(1, delta);
             updateTeller.setInt(2, teller);
@@ -160,7 +163,7 @@ public class BenchB implements Bench, Runnable {
             updateBranch.setInt(1, delta);
             updateBranch.setInt(2, branch);
             updateBranch.executeUpdate();
-            
+
             // INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)
             insertHistory.setInt(1, teller);
             insertHistory.setInt(2, branch);
@@ -172,7 +175,7 @@ public class BenchB implements Bench, Runnable {
             e.printStackTrace();
         }
     }
-    
+
 
     public void runTest() throws Exception {
         db.start(this, "Transactions");
@@ -185,7 +188,7 @@ public class BenchB implements Bench, Runnable {
         db.logMemory(this, "Memory Usage");
         db.closeConnection();
     }
-    
+
     private void processTransactions() throws Exception {
         Thread[] threads = new Thread[clients];
         for (int i = 0; i < clients; i++) {
@@ -198,7 +201,7 @@ public class BenchB implements Bench, Runnable {
             threads[i].join();
         }
     }
-    
+
     public String getName() {
         return "BenchB";
     }

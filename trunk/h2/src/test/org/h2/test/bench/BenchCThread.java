@@ -10,6 +10,9 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
+/**
+ * This class implements the functionality of one thread of BenchC.
+ */
 public class BenchCThread {
 
     private Database db;

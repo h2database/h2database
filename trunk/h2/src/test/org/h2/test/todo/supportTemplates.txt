@@ -24,7 +24,7 @@ Please provide any additional information below.
 
 Corrupted database
 
-I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. It has top priority for me. I have a few question:
+I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. Corruption problem have top priority for me. I have a few question:
 
 - What is your database URL?
 - What version H2 are you using?
@@ -32,8 +32,8 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - On what operating system, file system, and virtual machine?
 - How big is the database?
 - Is the database usually closed normally, or is process terminated forcefully or the computer switched off?
-- Is it possible to reproduce this problem using a fresh database?
-- Are there any other exceptions (maybe in the .trace.db file)? Could you post them please?
+- Is it possible to reproduce this problem using a fresh database (sometimes, or always)?
+- Are there any other exceptions (maybe in the .trace.db file)? Could you send them to me please?
 - Was the database originally created with an older version of H2?
 - Do you still have any .trace.db files, and if yes could you send them?
 - Could you send me the .data.db file where this exception occurs?

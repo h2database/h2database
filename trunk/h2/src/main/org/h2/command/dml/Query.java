@@ -84,7 +84,7 @@ public abstract class Query extends Prepared {
         return params;
     }
 
-    public final LocalResult query(int limit) throws SQLException {
+    public LocalResult query(int limit) throws SQLException {
         if (!session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit);
         }
@@ -246,9 +246,16 @@ public abstract class Query extends Prepared {
     public abstract int getColumnCount();
     public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
     public abstract void setEvaluatable(TableFilter tableFilter, boolean b);
-    public abstract void addGlobalCondition(Expression expr, int columnId, int comparisonType) throws SQLException;
+    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException;
     public abstract void setDistinct(boolean b);
     public abstract String getFirstColumnAlias(Session session);
+
+    void addParameter(Parameter param) {
+        if (parameters == null) {
+            parameters = new ObjectArray();
+        }
+        parameters.add(param);
+    }
 
     public void setSampleSize(int sampleSize) {
         this.sampleSize = sampleSize;

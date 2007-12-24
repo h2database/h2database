@@ -22,6 +22,10 @@ import com.sun.javadoc.Tag;
 import com.sun.javadoc.ThrowsTag;
 import com.sun.javadoc.Type;
 
+/**
+ * This class is a custom doclet implementation to generate the
+ * Javadoc for this product.
+ */
 public class Doclet {
     public static boolean start(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();

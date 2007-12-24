@@ -27,6 +27,10 @@ import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
+/**
+ * This class converts a file stored in the UTF-8 encoding format to
+ * a properties file and vice versa.
+ */
 public class PropertiesToUTF8 {
 
     public static void main(String[] args) throws Exception {

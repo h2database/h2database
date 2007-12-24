@@ -15,6 +15,10 @@ import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
 import org.h2.util.StringUtils;
 
+/**
+ * The link checker makes sure that each link in the documentation
+ * points to an existing target.
+ */
 public class LinkChecker {
 
     private static final boolean OPEN_EXTERNAL_LINKS = false;

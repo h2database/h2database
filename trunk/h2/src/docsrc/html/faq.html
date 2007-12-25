@@ -115,20 +115,21 @@ That is not easy to say. It is still a quite new product. A lot of tests have be
 and the code coverage of these tests is very high. Randomized stress tests
 are run regularly. But as this is a relatively new product, there are probably
 some problems that have not yet been found.
-Areas that are not 100% tested:
+Areas that are not fully tested:
 </p>
 <ul>
 <li>Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
-</li><li>Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
+</li><li>The MVCC (multi version concurrency) mode
 </li><li>Cluster mode, 2-Phase Commit, Savepoints
-</li><li>Server mode (well tested, but not as well as Embedded mode)
 </li><li>Multi-Threading and using multiple connections
+</li><li>24/7 operation and large databases (500 MB and up)
 </li><li>Updatable result sets
 </li><li>Referential integrity and check constraints, Triggers
 </li><li>ALTER TABLE statements, Views, Linked Tables, Schema, UNION
 </li><li>Not all built-in functions are completely tested
 </li><li>The Optimizer may not always select the best plan
-</li><li>24/7 operation and large databases (500 MB and up)
+</li><li>Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
+</li><li>Server mode (well tested, but not as well as Embedded mode)
 </li><li>Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
 </li></ul>
 
@@ -136,10 +137,10 @@ Areas that are not 100% tested:
 Areas considered Experimental:
 </p>
 <ul>
-<li>ODBC driver and the GCJ native version on Windows
+<li>The PostgreSQL server
 </li><li>Linear Hash Index
 </li><li>Compatibility modes for other databases (only some features are implemented)
-</li><li>The ARRAY data type and related functionality.
+</li><li>The ARRAY data type and related functionality
 </li></ul>
 
 <br /><a name="gcj"></a>

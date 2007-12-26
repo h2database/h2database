@@ -40,7 +40,7 @@ public abstract class Expression {
      * Map the columns of the resolver to expression columns.
      *
      * @param resolver the column resolver
-     * @return level the subquery nesting level
+     * @param level the subquery nesting level
      */
     public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
 

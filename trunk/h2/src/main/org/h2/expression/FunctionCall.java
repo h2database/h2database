@@ -76,4 +76,20 @@ public interface FunctionCall {
      */
     String getSQL();
 
+    /**
+     * Check if the function can return the row count
+     * (if the function returns a number of rows).
+     *
+     * @return true if the function can return the row count
+     */
+    // boolean canGetRowCount();
+
+    /**
+     * Get the number of rows
+     * (if the function returns a number of rows).
+     *
+     * @return the row count
+     */
+    // int getRowCount(Session session);
+
 }

@@ -32,7 +32,8 @@ public class SysProperties {
 
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
-    public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", true);
+
+    public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);

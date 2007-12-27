@@ -28,6 +28,9 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 
 - What is your database URL?
 - What version H2 are you using?
+- The first workarounds is: append ;RECOVER=1 to the database URL. Does it work when you do this?
+- The second workarounds is: delete the index.db file (it is re-created automatically) and try again. Does it work when you do this?
+- The third workarounds is: use the tool org.h2.tools.Recover to create the SQL script file, and then re-create the database using this script. Does it work when you do this?
 - Do you use any settings or special features (for example, the setting LOG=0, or two phase commit, linked tables, cache settings)?
 - On what operating system, file system, and virtual machine?
 - How big is the database?

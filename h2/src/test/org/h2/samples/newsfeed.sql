@@ -10,6 +10,44 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(34,
+'New version available: 1.0.64 (2007-12-27)', '2007-12-27 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>An exclusive mode is now supported.
+</li><li>The method Trigger.init has been changed. 
+</li><li>New built-in functions RPAD and LPAD.
+</li><li>New meta data table INFORMATION_SCHEMA.SESSIONS and LOCKS.
+</li><li>H2 Console / autocomplete: Ctrl+Space now shows the list in all modes. 
+</li><li>Loading classes and calling methods can be restricted.
+</li><li>Thanks to Fulvio Biondi, the FTP server now supports a event listener.
+</li><li>New system function CANCEL_SESSION.
+</li><li>The H2 Console has been translated to Turkish by Ridvan Agar!
+</li><li>H2 Console: when editing result sets, columns can now be set to null. 
+</li><li>ResultSet methods with column name are now faster.
+</li><li>Improved debugging support: toString now returns a meaningful text.
+</li><li>The classes DbStarter and WebServlet have been moved to src/main. 
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>The PostgreSQL ODBC driver did not work in the last release. 
+</li><li>CSV tool: some escape/separator characters did not work.
+</li><li>CSV tool: the character # could not be used as a separator. 
+</li><li>3-way union queries could return the wrong results. 
+</li><li>The MVCC mode did not work well with in-memory databases. 
+</li><li>The Ukrainian translation was not working in the last release. 
+</li><li>Creating many tables (many hundreds) was slow. 
+</li><li>Opening a database with many indexes (thousands) was slow. 
+</li><li>A stack trace thrown for systems with a slow secure random source.
+</li><li>The column INFORMATION_SCHEMA.TRIGGERS.SQL is now correct.
+</li><li>This database could not be used in applets. 
+</li><li>The index file is now re-created automatically when required.
+</li></ul>
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(33,
 'New version available: 1.0.63 (2007-12-02)', '2007-12-02 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -309,85 +347,6 @@ INSERT INTO ITEM VALUES(25,
 </li><li>For READ_COMMITTED, when the multi-threaded 
     kernel is enabled, read locks are now acquired but released 
     immediately after a query.
-</li>
-</ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(24,
-'New version available: 1.0 / 2007-06-17', '2007-06-17 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>New Console starter application uses the JDK 1.6 system tray 
-functionality if available, or a simple AWT frame for other platforms. 
-To try it out, execute java org.h2.tools.Console. Feedback is welcome. 
-This console starter application is not the default yet, 
-but the plan is to remove the SysTray tool in the future.
-</li><li>If a Reader or InputStream of a LOB is not closed, 
-the LOB can not be deleted (embedded mode only). The exception is 
-typically ''Error while renaming file''). As a workaround, set the 
-system property ''h2.lobCloseBetweenReads'' to true to close the LOB 
-files between read operations. However this slows down reading.
-</li><li>Views support has been partially re-implemented. 
-Views are up to 6 times faster. Compared to regular queries, only 
-20% overhead. Because this is a bigger change, it is not enabled 
-by default. To enable it, set the system property ''h2.indexNew'' 
-to true (java -Dh2.indexNew=true ..., or in source code 
-Constants.INDEX_NEW = true). If no problems are found, this will 
-be enabled by default in the next release.
-</li><li>Support for the data type CHAR. The difference to 
-VARCHAR is: trailing spaces are ignored. This data type is supported 
-for compatibility with other databases and older applications.
-</li><li>Compatibility: Support for the data type notation 
-CHARACTER VARYING.
-</li><li>File names starting with ~ are now in the user directory 
-(Java system property user.home)
-</li><li>Can now ORDER BY -1 (meaning order by first column, 
-descending), and ORDER BY ? (parameterized column number).
-</li><li>Linked tables can now emit UPDATE statements if 
-''EMIT UPDATES'' is specified in the CREATE LINKED TABLE statement. 
-So far, updating a row always deleted the old row and then inserted 
-the new row.
-</li><li>New functions LEAST and GREATEST to get the smallest or 
-largest value from a list.
-</li><li>For most IOExceptions now the file name is included in 
-the error message.
-</li><li>New method Csv.write(Writer writer, ResultSet rs)
-</li><li>The table id (important for LOB files) is now included in 
-INFORMATION_SCHEMA.TABLES.
-</li><li>The aggregate function COUNT(...) now returns a long 
-instead of an int.
-</li>
-</ul>
-<b>Bugfixes:</b>
-<ul>
-<li>In the last release, the H2 Console opened two connection 
-when logging into a database, and only closed one connection 
-when logging out. Fixed.
-</li><li>In many situations, views did not use an index if they 
-could have. Fixed. Also the explain plan for views works now.
-</li><li>Server mode: the server stack trace was included in 
-SQLException messages. Fixed.
-</li><li>Databases with invalid linked tables (for example, because 
-the target database is not accessible) can now be opened. Old 
-table links don''t work however.
-</li><li>In INSERT and MERGE statements, each column may 
-only be specified once now.
-</li><li>A java.util.Date object is now converted to a TIMESTAMP 
-in the JDBC API. Previously it was converted to a DATE.
-</li><li>After calling SHUTDOWN and closing the connection and 
-a superfluous error message appeared in the trace file. Fixed.
-</li><li>When using DISTINCT, ORDER BY a function works now 
-as long as it is in the column list.
-</li><li>The ''ordering'' of data types was not always correct, 
-for example an operation involving REAL and DOUBLE produced 
-a result of type REAL. Fixed.
-</li><li>CSV tool: If the same instance was used for reading 
-and writing, the tool wrote the column names twice. Fixed.
-</li><li>There was a small memory leak in the trace module. 
-One object per opened connection was kept in a hash map.
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.

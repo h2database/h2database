@@ -1108,7 +1108,7 @@ Maven 2 の利用
 Windows XP
 
 @build_1012_li
-Sun JDK Version 1.4 または 1.5
+#Sun JDK Version 1.4
 
 @build_1013_li
 Apache Ant Version 1.6.5
@@ -1180,7 +1180,7 @@ Centralリポジトリの利用
 ダウンロード
 
 @download_1001_h3
-#Version 1.0.63 (2007-12-02, Current)
+#Version 1.0.64 (2007-12-26, Current)
 
 @download_1002_a
 Windows Installer
@@ -1189,18 +1189,27 @@ Windows Installer
 Platform-Independent Zip
 
 @download_1004_h3
-#Download Mirror and Older Versions
+#Version 1.0.63 (2007-12-02, Last Stable)
 
 @download_1005_a
+Windows Installer
+
+@download_1006_a
 Platform-Independent Zip
 
-@download_1006_h3
+@download_1007_h3
+#Download Mirror and Older Versions
+
+@download_1008_a
+Platform-Independent Zip
+
+@download_1009_h3
 サブバージョンのソースリポジトリ
 
-@download_1007_a
+@download_1010_a
 Google Code
 
-@download_1008_p
+@download_1011_p
 変更についての詳細は、<a href="history.html">変更ログ</a> をご覧下さい。
 
 @faq_1000_h1
@@ -1300,22 +1309,22 @@ FAT、FAT32ファイルシステムの最大ファイルサイズは4GBです。
 これは信頼できるデータベースですか？
 
 @faq_1032_p
-これに関しては一概には言えません。これはまだ非常に新しい製品です。多くのテストケースが書かれ、テストへのコードカバー率は非常に高い水準を持っています。ランダムストレステストは通常通り実行可能でした。しかし、比較的新しい製品であるゆえに、まだ発見され尽くしていない問題はあるかと思われます。以下は完全にはテストが終わっていない箇所です:
+#That is not easy to say. It is still a quite new product. A lot of tests have been written, and the code coverage of these tests is very high. Randomized stress tests are run regularly. But as this is a relatively new product, there are probably some problems that have not yet been found. Areas that are not fully tested:
 
 @faq_1033_li
 WindowsXP以外のプラットフォーム、及びSUN JVM1.4、1.5での動作確認
 
 @faq_1034_li
-データ型 BLOB、CLOB、VARCHAR_IGNORECASE、OTHER
+#The MVCC (multi version concurrency) mode
 
 @faq_1035_li
 クラスタモード、2フェーズコミット、セーブポイント
 
 @faq_1036_li
-サーバーモード(十分にテストはしてありますが、組み込みモードほどではありません)
+マルチスレッドと複数接続の利用
 
 @faq_1037_li
-マルチスレッドと複数接続の利用
+24/7オペレーション、大容量データベース (500MB以上)
 
 @faq_1038_li
 Updatable result sets
@@ -1333,36 +1342,39 @@ ALTER TABLE ステートメント、ビュー、リンクテーブル、スキ�
 オプティマイザが必ずしも最良を選択するとは限らない
 
 @faq_1043_li
-24/7オペレーション、大容量データベース (500MB以上)
+データ型 BLOB、CLOB、VARCHAR_IGNORECASE、OTHER
 
 @faq_1044_li
+サーバーモード(十分にテストはしてありますが、組み込みモードほどではありません)
+
+@faq_1045_li
 大きなVARCHAR、VARBINARYカラム、または多数のカラムによる幅の広いインデックス
 
-@faq_1045_p
+@faq_1046_p
 試験的に考慮された箇所は以下の通り:
 
-@faq_1046_li
-WindowsでのODBCドライバとGCJのネイティブバージョン
-
 @faq_1047_li
-ライナーハッシュインデックス
+#The PostgreSQL server
 
 @faq_1048_li
-他のデータベースとの互換モード (一部の特徴のみ提供される)
+ライナーハッシュインデックス
 
 @faq_1049_li
-ARRAYデータ型と関連機能
+他のデータベースとの互換モード (一部の特徴のみ提供される)
 
-@faq_1050_h3
+@faq_1050_li
+#The ARRAY data type and related functionality
+
+@faq_1051_h3
 GCJバージョンでの動作は安定していますか？高速ですか？
 
-@faq_1051_p
+@faq_1052_p
 GCJバージョンは、Javaバージョンほどは安定していません。GCJバージョンでリグレッションテストを実行した時、アプリケーションはランダムポイントと思われるところで、エラーメッセージなしで停止する場合があります。現在、GCJバージョンはSun VMの使用時よりも低速です。しかし、GCJバージョンの起動はVM使用時よりも高速です。
 
-@faq_1052_h3
+@faq_1053_h3
 このプロジェクトの翻訳方法は？
 
-@faq_1053_p
+@faq_1054_p
 #For more information, see <a href="build.html#translating">Build/Translating</a> .
 
 @features_1000_h1
@@ -3208,7 +3220,7 @@ JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
 ダウンロード
 
 @mainWeb_1007_td
-#Version 1.0.63 (2007-12-02):
+#Version 1.0.64 (2007-12-26):
 
 @mainWeb_1008_a
 #Windows Installer (2.8 MB)
@@ -5108,447 +5120,4 @@ PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト 
 
 @tutorial_1144_p
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
-
-@~advanced_1020_h2
-Result Sets
-
-@~advanced_1021_h3
-行数の制限
-
-@~advanced_1022_p
-アプリケーションから結果が返される前に、全ての行はデータベースによって読み取られます。 サーバー側のカーソルは現在サポートされていません。もし最初の数行がアプリケーションに読み取られたら、 result setサイズはパフォーマンスを改善するために制限されます。これは、クエリーの LIMIT を使用することで 実現できます (例: SELECT * FROM TEST LIMIT 100)、または Statement.setMaxRows(max) を使用します。
-
-@~advanced_1023_h3
-大きなResult Set と外部ソート
-
-@~advanced_1024_p
-1000行以上のresult setのために、結果はディスクにバッファーされます。 もし ORDER BY が使用されていたら、ソートは、外部ソートアルゴリズムを使用して 完了しています。このケースでは、それぞれの行のブロックはクイックソートを使用してソートされ、 ディスクに書き込まれています; データを読み込んでいる時、ブロックは一緒にマージされます。
-
-@~advanced_1025_h2
-大きなオブジェクト
-
-@~advanced_1026_h3
-大きなオブジェクトのソートと読み込み
-
-@~advanced_1027_p
-メモリに収まらないオブジェクトは可能であるなら、 データ型は CLOB (テキストデータ) または BLOB (バイナリーデータ) が使用されるべきです。 これらのデータ型に関して、オブジェクトはストリームを使用して、完全にメモリから読み込まれるというわけではありません。 BLOB を保存するためには、PreparedStatement.setBinaryStream を使用します。 CLOB を使用するためには、PreparedStatement.setCharacterStream を使用します。 BLOB を読み込みためには、ResultSet.getBinaryStream を使用し、CLOB を読み込むために ResultSet.getCharacterStream を使用します。もし クライアント / サーバーモードが使用されていたら、 BLOB と CLOB データはアクセス時に完全にメモリから読み込まれます。このケースでは、メモリによって BLOB と CLOB のサイズは制限されています。
-
-@~advanced_1028_h2
-リンクテーブル
-
-@~advanced_1029_p
-このデータベースはリンクテーブルをサポートしています。これは、 現在存在しないテーブルは、ただ他のデータベースへリンクするという意味です。 このようなリンクを作るには、CREATE LINKED TABLE ステートメントを使用します:
-
-@~advanced_1032_h2
-トランザクション分離
-
-@~advanced_1033_p
-このデータベースは次のトランザクション分離レベルをサポートしています:
-
-@~advanced_1034_b
-Read Committed (コミット済み読み取り)
-
-@~advanced_1035_li
-これはデフォルトレベルです。
-read lockは早急に解除されます。 このレベルを使用する時、高い同時並行性が可能です。
-これは多数のデータベースシステムで使用される分離レベルです。
-
-@~advanced_1038_b
-Serializable (直列化)
-
-@~advanced_1039_li
-これを有効にするには、 SQLステートメント 'SET LOCK_MODE 1' を実行します。
-
-@~advanced_1041_b
-Read Uncommitted (非コミット読み取り)
-
-@~advanced_1042_li
-このレベルの意味は、トランザクション分離は無効だということです。
-
-@~advanced_1045_p
-分離レベル "serializable" を使用している時、ダーティリード、反復不可能読み取り、 ファントムリードを防ぐことができます。
-
-@~advanced_1046_b
-Dirty Reads (ダーティリード)
-
-@~advanced_1047_li
-他の接続によるコミットされていない変更を読み取ることができる、という意味です。
-
-@~advanced_1049_b
-Non-Repeatable Reads (反復不可能読み取り)
-
-@~advanced_1050_li
-ひとつの接続が行を読み取り、 他の接続が行を変更し、コミットすると、最初の接続は同じ行を再読し、新しい結果を取得します。
-
-@~advanced_1052_b
-Phantom Reads (ファントムリード)
-
-@~advanced_1053_li
-ひとつの接続が条件を使って行の集まりを読み取り、 他の接続がこの条件を壊して行を挿入し、コミットした時、最初の接続は同じ条件を使って再読し、 新しい行を取得します。
-
-@~advanced_1055_h3
-テーブルレベルロック
-
-@~advanced_1056_p
-#The database allows multiple concurrent connections to the same database. To make sure all connections only see consistent data, table level locking is used by default. This mechanism does not allow high concurrency, but is very fast. Shared locks and exclusive locks are supported. Before reading from a table, the database tries to add a shared lock to the table (this is only possible if there is no exclusive lock on the object by another connection). If the shared lock is added successfully, the table can be read. It is allowed that other connections also have a shared lock on the same object. If a connection wants to write to a table (update or delete a row), an exclusive lock is required. To get the exclusive lock, other connection must not have any locks on the object. After the connection commits, all locks are released. This database keeps all locks in memory.
-
-@~advanced_1057_h3
-ロックタイムアウト
-
-@~advanced_1058_p
-もし接続がオブジェクト上でロックを取得できないのであれば、一定時間待機します (ロックタイムアウト)。この時間の間、うまくいけば接続はロックコミットを保有し、 この時、ロックを取得することが可能です。他の接続がロックを解除しないため、 これが不可能であれば、失敗した接続がロックタイムアウト例外を取得します。 それぞれの接続に個別にロックタイムアウトを設定することができます。
-
-@~advanced_1059_h2
-#Multi-Version Concurrency Control (MVCC)
-
-@~advanced_1060_p
-#The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. Table are still locked exclusively when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
-
-@~advanced_1062_h2
-クラスタリング / 高可用性
-
-@~advanced_1063_p
-このデータベースは簡単なクラスタリング / 高可用性メカニズムをサポートしています。 アーキテクチャ: 二つのデータベースサーバーは二つの異なったコンピューター上で動作し、 両方のコンピューターは同じデータベースのコピーです。もし両方のサーバーが動いたら、 それぞれのデータベース操作は両方のコンピューター上で実行されます。ひとつのサーバーがおちたら (電源、ハードウェア、またはネットワーク障害)、他のサーバーはまだ動作を続行します。 このポイントから、操作は他のサーバーがバックアップされるまで、ひとつのサーバー上で実行されます。
-
-@~advanced_1066_li
-データベースを作成する
-
-@~advanced_1070_h3
-CreateClusterツールを使用する
-
-@~advanced_1071_p
-クラスタリングがどのように機能するか理解するために、 次の例を試してみて下さい。この例では、二つのデータベースは同じコンピューター内に属していますが、 通常は、データベースは異なるサーバー内にあります。
-
-@~advanced_1072_li
-二つのディレクトリを作成します: server1 と server2 です。それぞれのディレクトリは コンピューター上のディレクトリをシミュレートします。
-
-@~advanced_1079_h3
-クラスタリングアルゴリズムと制限
-
-@~advanced_1080_p
-読み取り専用クエリーは、最初のクラスタノードに対してのみ 実行されますが、他の全てのステートメントは全てのノードに対して実行されます。 現在、トランザクションの問題を回避するように作られたロードバランシングは存在しません。 次の関数は、異なったクラスタノード上で異なった結果をもたらすので、実行には注意して下さい: RANDOM_UUID()、SECURE_RAND()、SESSION_ID()、MEMORY_FREE()、 MEMORY_USED()、CSVREAD()、CSVWRITE()、RAND() [seed を使用していない時] 直接ステートメントを変更する際に、これらの関数を使用してはなりません (例: INSERT、 UPDATE、または MERGE)。しかし、読み取り専用ステートメントでは使用でき、 結果はステートメントを変更するために使用することができます。
-
-@~advanced_1081_h2
-2フェーズコミット
-
-@~advanced_1082_p
-2フェーズコミットプロトコルがサポートされています。 2フェーズコミットは次のように機能します:
-
-@~advanced_1083_li
-オートコミットはOFFの状態であることが必要です
-
-@~advanced_1091_h2
-互換性
-
-@~advanced_1092_p
-このデータベースは (ある程度までは)、HSQLDB、MySQL や PostgreSQLのような 他のデータベースと互換性があります。H2が互換性のないある一定の領域があります。
-
-@~advanced_1093_h3
-オートコミットがONの時のトランザクションコミット
-
-@~advanced_1094_p
-この時、このデータベースエンジンは 結果が返ってくる直前にトランザクションをコミットします (オートコミットがONの場合)。 クエリーにとって、アプリケーションがresult setを通してスキャンする前や、result setが閉じられる前でさえも、 トランザクションはコミットされるということを意味しています。このケースでは、他のデータベースエンジンは result setが閉じられる時、トランザクションをコミットします。
-
-@~advanced_1095_h3
-キーワード / 予約語
-
-@~advanced_1096_p
-引用 (二重引用符で囲まれる) されない限り、識別子 (テーブル名、カラム名など) として使用できないキーワードのリストがあります。 現在のリスト:
-
-@~advanced_1099_h2
-Windowsサービスとして実行する
-
-@~advanced_1100_p
-ネイティブラッパー / アダプタを使用して、JavaアプリケーションはWindowsサービスとして実行できます。これを実行するために、様々なツールが有効です。Tanuki Software, Inc. (<a href="http://wrapper.tanukisoftware.org/">http://wrapper.tanukisoftware.org/</a>) のJavaサービスラッパーはインストールが含まれています。H2データベースエンジンサービスのインストール、起動、終了とアンインストールのためのバッチファイルが添付されます。このサービスは、TCPサーバーとH2コンソールWebアプリケーションが含まれます。バッチファイルは、H2/service ディレクトリに配置されています。
-
-@~advanced_1101_h3
-サービスをインストールする
-
-@~advanced_1102_p
-サービスは、最初にWindowsサービスとして登録することが必要です。 これを行うために、1_install_service.bat をダブルクリックします。 成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。失敗したらメッセージが現れます。
-
-@~advanced_1103_h3
-サービスを起動する
-
-@~advanced_1104_p
-Windowsのサービスマネージャを使用するか、2_start_service.bat をダブルクリックして H2データベースエンジンサービスを起動することができます。サービスがインストールされていなければ、 バッチファイルはエラーメッセージを表示しないということに注意して下さい。
-
-@~advanced_1105_h3
-H2コンソールに接続する
-
-@~advanced_1106_p
-サービスのインストールと起動後、ブラウザを使用してH2コンソールアプリケーションに 接続することができます。3_start_browser.bat をダブルクリックして実行します。 デフォルトのポート (8082) はバッチファイルでハードコード化されているものです。
-
-@~advanced_1107_h3
-サービスを終了する
-
-@~advanced_1108_p
-サービスを終了するには、4_stop_service.bat をダブルクリックします。 サービスがインストール、または開始されていなければ、 バッチファイルはエラーメッセージを表示しないということに注意して下さい。
-
-@~advanced_1109_h3
-サービスのアンインストール
-
-@~advanced_1110_p
-サービスをアンインストールするには、5_uninstall_service.bat をダブルクリックします。成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。 失敗したらメッセージが現れます。
-
-@~advanced_1111_h2
-ODBCドライバ
-
-@~advanced_1112_p
-このデータベースは現時点で、自身のODBCドライバと共に動作しませんが、PostgreSQLネットワークプロトコルをサポートしています。そのため、PostgreSQL ODBCドライバが使用可能です。PostgreSQLネットワークプロトコルのサポートは非常に新しく、試験的なものとして見なされます。製品アプリケーションで使用されるべきではありません。
-
-@~advanced_1114_h3
-ODBCインストール
-
-@~advanced_1115_p
-まず、ODBCドライバがインストールされていなければなりません。最近のいずれのPostgreSQL ODBCドライバでも動作しますが、バージョン 8.2.4 以降のものを推奨します。PostgreSQL ODBCドライバのWindowsバージョンは <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a> から利用可能です。
-
-@~advanced_1116_h3
-サーバーの起動
-
-@~advanced_1117_p
-ODBCドライバのインストール後、コマンドラインを使用してH2サーバーを起動します:
-
-@~advanced_1121_h3
-ODBC設定
-
-@~advanced_1122_p
-ドライバのインストール後、新しいデータソースを追加しなければなりません。Windowsでは、データソースAdministratorを開くために、<code>odbcad32.exe</code> を実行します。"Add..." をクリックし、PostgreSQL Unicode driverを選択します。そして、"Finish" をクリックします。接続プロパティを変更することが可能です:
-
-@~advanced_1123_th
-プロパティ
-
-@~advanced_1126_td
-Data Source
-
-@~advanced_1152_p
-この後、このデータソースを使用できます。
-
-@~advanced_1153_h3
-PGプロトコルサポートの制限
-
-@~advanced_1154_p
-現時点では、PostgreSQLネットワークプロトコルのサブセットのみ実装されています。また、カタログ、またはテキストエンコーディングでのSQLレベル上の互換性問題がある可能性があります。問題は発見されたら修正されます。現在、PGプロトコルが使用されている時、ステートメントはキャンセルされません。
-
-@~advanced_1155_h3
-セキュリティ考慮
-
-@~advanced_1156_p
-現在、PGサーバーはchallenge response、またはパスワードの暗号化をサポートしていません。パスワードが読みやすいため、アタッカーがODBCドライバとサーバー間でのデータ転送を傾聴できる場合、これは問題になるでしょう。また、暗号化SSL接続も現在使用不可能です。そのため、ODBCドライバはセキュリティが重視される場面においては使用されるべきではありません。
-
-@~advanced_1157_h2
-ACID
-
-@~advanced_1158_p
-データベースの世界では、ACIDとは以下を表しています:
-
-@~advanced_1159_li
-Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
-
-@~advanced_1163_h3
-Atomicity (原子性)
-
-@~advanced_1164_p
-このデータベースでのトランザクションは常にアトミックです。
-
-@~advanced_1165_h3
-Consistency (一貫性)
-
-@~advanced_1166_p
-このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
-
-@~advanced_1167_h3
-Isolation (独立性 / 分離性)
-
-@~advanced_1168_p
-H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
-
-@~advanced_1169_h3
-Durability (永続性)
-
-@~advanced_1170_p
-このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
-
-@~advanced_1171_h2
-永続性問題
-
-@~advanced_1172_p
-完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
-
-@~advanced_1173_h3
-永続性を実現する (しない) 方法
-
-@~advanced_1174_p
-失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
-
-@~advanced_1175_li
-rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
-
-@~advanced_1177_p
-この特徴はDerbyで使用されています。それらのモードのうちのひとつは、テスト (org.h2.test.poweroff.TestWrite) において、毎秒およそ5万件の書き込み操作を実現します。オペレーティングシステムのライトバッファーが無効の時でさえも、 書き込み速度は毎秒およそ5万件です。この特徴はディスクを交換させるというものではありません。 なぜなら、全てのバッファーをフラッシュするのではないからです。テストはファイル内の同じバイトを何度も更新しました。 もしハードドライブがこの速度での書き込みが可能なら、ディスクは少なくても毎秒5万回転か、 または300万 RPM (revolutions per minute 回転毎分) を行う必要があります。 そのようなハードドライブは存在しません。テストで使用されたハードドライブは、およそ7200 RPM、または 毎秒120回転です。これがオーバーヘッドなので、最大書き込み速度はこれより低くなくてはなりません。
-
-@~advanced_1179_li
-FileDescriptor.sync() ドキュメンテーションには、これは強制的に全てのシステムバッファーに基本となる デバイスとの同期を取らせる、と書かれています。このFileDescriptorに関連するバッファーのインメモリでの 変更コピーが全て物理メディアに書かれた後、Syncは返ることになっています。
-
-@~advanced_1181_p
-デフォルトでは、MySQLはそれぞれのコミットごとに fsync を呼びます。それらのメソッドのうちひとつを使用している時、 毎秒およそ60件だけが実行され、使用されているハードドライブのRPM速度と一貫性があります。 残念ながら、FileDescriptor.sync() または FileChannel.force() を呼んだ時でさえも データは常にハードドライブに存続するとは限りません。なぜなら、多くのハードドライブは fsync() に従わないからです: http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252 内の"Your Hard Drive Lies to You" をご覧下さい。Mac OS X では、fsync はハードドライブバッファーをフラッシュしません: http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html そのため状況は混乱していて、 問題があることをテストは証明しています。
-
-@~advanced_1184_h3
-永続性テストを実行する
-
-@~advanced_1185_p
-このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
-
-@~advanced_1186_h2
-リカバーツールを使用する
-
-@~advanced_1187_p
-リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
-
-@~advanced_1189_h2
-ファイルロックプロトコル
-
-@~advanced_1190_p
-データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
-
-@~advanced_1192_h3
-ファイルロックメソッド "File"
-
-@~advanced_1193_p
-データベースファイルロックのデフォルトメソッドは "Fileメソッド" です。アルゴリズム:
-
-@~advanced_1194_li
-ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
-
-@~advanced_1197_p
-このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
-
-@~advanced_1198_h3
-ファイルロックメソッド "Socket"
-
-@~advanced_1199_p
-実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
-
-@~advanced_1200_li
-ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
-
-@~advanced_1203_p
-このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
-
-@~advanced_1204_h2
-SQLインジェクションに対する防御
-
-@~advanced_1205_h3
-SQLインジェクションとは
-
-@~advanced_1206_p
-このデータベースエンジンは "SQLインジェクション" として知られる セキュリティ脆弱性の解決策を備えています。 これは、SQLインジェクションの意味とは何か、 についての短い説明です。いくつかのアプリケーションは、エンベッドユーザーがこのように入力する SQLステートメントを構築します:
-
-@~advanced_1209_h3
-リテラルを無効にする
-
-@~advanced_1210_p
-ユーザー入力が直接SQLステートメントに組み込まれなければ、 SQLインジェクションは不可能です。上記の問題の簡単な解決方法は、PreparedStatementを使用することです:
-
-@~advanced_1213_h3
-定数を使用する
-
-@~advanced_1214_p
-リテラルを無効にするということは、ハードコード化された "定数" リテラルを無効にする、 ということも意味します。このデータベースは、CREATE CONSTANT コマンドを使用して定数を定義することをサポートしています。 定数はリテラルが有効であるときのみ定義することができますが、リテラルが無効の時でも使用することができます。 カラム名の名前の衝突を避けるために、定数は他のスキーマで定義できます:
-
-@~advanced_1216_h3
-ZERO() 関数を使用する
-
-@~advanced_1217_p
-組み込み関数 ZERO() がすでにあるため、 数値 0 のための定数を作る必要はありません:
-
-@~advanced_1218_h2
-セキュリティプロトコル
-
-@~advanced_1219_p
-次の文章は、このデータベースで使用されている セキュリティプロトコルのドキュメントです。これらの記述は非常に専門的で、 根本的なセキュリティの基本をすでに知っているセキュリティ専門家のみを対象としています。
-
-@~advanced_1220_h3
-ユーザーパスワードの暗号化
-
-@~advanced_1223_p
-ユーザーパスワードのハッシュ値の組み合わせと (上記をご覧下さい) saltは SHA-256を使用してハッシュ化されます。 結果の値はデータベースに保存されます。ユーザーがデータベースに接続しようとする時、 データベースは、保存されたsalt値のユーザーパスワードのハッシュ値と計算されたハッシュ値を結合します。 他の製品は複数の反復 (ハッシュ値を繰り返しハッシュする) を使用していますが、 この製品ではサービス攻撃の拒絶 (アタッカーが偽のパスワードで接続しようとするところや、 サーバーがそれぞれのパスワードのハッシュ値を計算するのに長い時間費やすところ) のリスクを軽減するのに これは使用しません。理由は: もしアタッカーがハッシュ化されたパスワードにアクセスしたら、 プレーンテキストのデータにもアクセスできるため、パスワードはもはや必要ではなくなってしまいます。 もしデータが、保存されている他のコンピューターによって保護されていて、遠隔のみであるなら、 反復回数は全く必要とされません。
-
-@~advanced_1224_h3
-ファイル暗号化
-
-@~advanced_1225_p
-データベースファイルは二つの異なるアルゴリズムを使用して、暗号化されます: AES-128 と XTEA です (32 ラウンドを使用)。 XTEAをサポートする理由はパフォーマンス (XTEAはAESのおよそ二倍の速さです) と、AESが突然壊れた場合、代わりとなるアルゴリズムを 持っているからです。
-
-@~advanced_1229_p
-データのブロックを保存する前に (それぞれのブロックは 8 バイト長)、次のオペレーションを 実行します: 最初に、IVはIVキー (同じblock cipher algorithmを使用して) でブロックナンバーを 暗号化することによって計算されます。このIVはXORを使用してプレーンテキストと併用されます。 結果データはAES-128、またはXTEAアルゴリズムを使用して暗号化されます。
-
-@~advanced_1234_h3
-SSL/TLS 接続
-
-@~advanced_1236_h3
-HTTPS 接続
-
-@~advanced_1238_h2
-汎用一意識別子 (UUID)
-
-@~advanced_1239_p
-このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
-
-@~advanced_1241_p
-人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
-
-@~advanced_1242_h2
-システムプロパティから読み込まれた設定
-
-@~advanced_1243_p
-いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
-
-@~advanced_1245_th
-設定
-
-@~advanced_1246_th
-デフォルト
-
-@~advanced_1247_th
-説明
-
-@~advanced_1248_td
-h2.check
-
-@~advanced_1249_td
-true
-
-@~advanced_1250_td
-データベースエンジンでのアサーション
-
-@~advanced_1251_td
-h2.check2
-
-@~advanced_1252_td
-false
-
-@~advanced_1322_h2
-用語集とリンク
-
-@~advanced_1323_th
-用語
-
-@~advanced_1324_th
-説明
-
-@~advanced_1330_td
-パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
-
-@~advanced_1331_td
-GCJ
-
-@~advanced_1332_td
-JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
-
-@~advanced_1336_a
-Wikipedia: Block cipher modes of operation
-
-@~advanced_1344_td
-復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 

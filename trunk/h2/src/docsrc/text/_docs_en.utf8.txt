@@ -1106,7 +1106,7 @@ To build the database executables, the following software stack was used. Newer 
 Windows XP
 
 @build_1012_li
-Sun JDK Version 1.4 or 1.5
+Sun JDK Version 1.4
 
 @build_1013_li
 Apache Ant Version 1.6.5
@@ -1178,7 +1178,7 @@ The conversion between UTF-8 and Java encoding (using the \u syntax), as well as
 Downloads
 
 @download_1001_h3
-Version 1.0.63 (2007-12-02, Current)
+Version 1.0.64 (2007-12-26, Current)
 
 @download_1002_a
 Windows Installer
@@ -1187,18 +1187,27 @@ Windows Installer
 Platform-Independent Zip
 
 @download_1004_h3
-Download Mirror and Older Versions
+Version 1.0.63 (2007-12-02, Last Stable)
 
 @download_1005_a
+Windows Installer
+
+@download_1006_a
 Platform-Independent Zip
 
-@download_1006_h3
+@download_1007_h3
+Download Mirror and Older Versions
+
+@download_1008_a
+Platform-Independent Zip
+
+@download_1009_h3
 Subversion Source Repository
 
-@download_1007_a
+@download_1010_a
 Google Code
 
-@download_1008_p
+@download_1011_p
 For details about changes, see the <a href="history.html">Change Log</a> .
 
 @faq_1000_h1
@@ -1298,22 +1307,22 @@ The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT o
 Is it Reliable?
 
 @faq_1032_p
-That is not easy to say. It is still a quite new product. A lot of tests have been written, and the code coverage of these tests is very high. Randomized stress tests are run regularly. But as this is a relatively new product, there are probably some problems that have not yet been found. Areas that are not 100% tested:
+That is not easy to say. It is still a quite new product. A lot of tests have been written, and the code coverage of these tests is very high. Randomized stress tests are run regularly. But as this is a relatively new product, there are probably some problems that have not yet been found. Areas that are not fully tested:
 
 @faq_1033_li
 Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
 
 @faq_1034_li
-Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
+The MVCC (multi version concurrency) mode
 
 @faq_1035_li
 Cluster mode, 2-Phase Commit, Savepoints
 
 @faq_1036_li
-Server mode (well tested, but not as well as Embedded mode)
+Multi-Threading and using multiple connections
 
 @faq_1037_li
-Multi-Threading and using multiple connections
+24/7 operation and large databases (500 MB and up)
 
 @faq_1038_li
 Updatable result sets
@@ -1331,36 +1340,39 @@ Not all built-in functions are completely tested
 The Optimizer may not always select the best plan
 
 @faq_1043_li
-24/7 operation and large databases (500 MB and up)
+Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
 
 @faq_1044_li
+Server mode (well tested, but not as well as Embedded mode)
+
+@faq_1045_li
 Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
 
-@faq_1045_p
+@faq_1046_p
 Areas considered Experimental:
 
-@faq_1046_li
-ODBC driver and the GCJ native version on Windows
-
 @faq_1047_li
-Linear Hash Index
+The PostgreSQL server
 
 @faq_1048_li
-Compatibility modes for other databases (only some features are implemented)
+Linear Hash Index
 
 @faq_1049_li
-The ARRAY data type and related functionality.
+Compatibility modes for other databases (only some features are implemented)
 
-@faq_1050_h3
+@faq_1050_li
+The ARRAY data type and related functionality
+
+@faq_1051_h3
 Is the GCJ version stable? Faster?
 
-@faq_1051_p
+@faq_1052_p
 The GCJ version is not as stable as the Java version. When running the regression test with the GCJ version, sometimes the application just stops at what seems to be a random point without error message. Currently, the GCJ version is also slower than when using the Sun VM. However, the startup of the GCJ version is faster than when using a VM.
 
-@faq_1052_h3
+@faq_1053_h3
 How to Translate this Project?
 
-@faq_1053_p
+@faq_1054_p
 For more information, see <a href="build.html#translating">Build/Translating</a> .
 
 @features_1000_h1
@@ -3206,7 +3218,7 @@ JDBC and (partial) ODBC API; Web Client application
 Download
 
 @mainWeb_1007_td
-Version 1.0.63 (2007-12-02):
+Version 1.0.64 (2007-12-26):
 
 @mainWeb_1008_a
 Windows Installer (2.8 MB)

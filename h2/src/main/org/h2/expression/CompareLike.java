@@ -93,6 +93,16 @@ public class CompareLike extends Condition {
             }
             String pattern = r.getString();
             initPattern(pattern, getEscapeChar(e));
+            if ("%".equals(pattern)) {
+                // optimization for X LIKE '%': convert to X IS NOT NULL
+                return new Comparison(session, Comparison.IS_NOT_NULL, left, null).optimize(session);
+            }
+            if (isFullMatch()) {
+                // optimization for X LIKE 'Hello': convert to X = 'Hello'
+                Value value = ValueString.get(patternString);
+                Expression expr = ValueExpression.get(value);
+                return new Comparison(session, Comparison.EQUAL, left, expr).optimize(session);
+            }
             isInit = true;
         }
         return this;
@@ -211,9 +221,8 @@ public class CompareLike extends Condition {
     }
 
     private boolean compare(String s, int pi, int si) {
-        // TODO check if this is correct according to Unicode rules (code
-        // points)
-        return compareMode.compareString(patternString.substring(pi, pi + 1), s.substring(si, si + 1), ignoreCase) == 0;
+        // TODO check if this is correct according to Unicode rules (code points)
+        return compareMode.equalsChars(patternString, pi, s, si, ignoreCase);
     }
 
     private boolean compareAt(String s, int pi, int si, int sLen) {
@@ -307,7 +316,19 @@ public class CompareLike extends Condition {
                 types[i + 1] = ANY;
             }
         }
-        patternString = new String(pattern);
+        patternString = new String(pattern, 0, patternLength);
+    }
+
+    private boolean isFullMatch() {
+        if (types == null) {
+            return false;
+        }
+        for (int i = 0; i < types.length; i++) {
+            if (types[i] != MATCH) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {

@@ -14,7 +14,7 @@ import org.h2.util.FileUtils;
  */
 public class FileObjectDisk implements FileObject {
     private RandomAccessFile file;
-    
+
     FileObjectDisk(RandomAccessFile file) {
         this.file = file;
     }
@@ -42,11 +42,11 @@ public class FileObjectDisk implements FileObject {
     public long getFilePointer() throws IOException {
         return file.getFilePointer();
     }
-    
+
     public void sync() throws IOException {
         file.getFD().sync();
     }
-    
+
     public void setLength(long newLength) throws IOException {
         FileUtils.setLength(file, newLength);
     }

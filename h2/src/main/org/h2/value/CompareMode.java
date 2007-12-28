@@ -24,6 +24,19 @@ public class CompareMode {
         this.name = name == null ? OFF : name;
     }
 
+    public boolean equalsChars(String a, int ai, String b, int bi, boolean ignoreCase) {
+        if (collator != null) {
+            return compareString(a.substring(ai, ai + 1), b.substring(bi, bi + 1), ignoreCase) == 0;
+        }
+        char ca = a.charAt(ai);
+        char cb = b.charAt(bi);
+        if (ignoreCase) {
+            ca = Character.toUpperCase(ca);
+            cb = Character.toUpperCase(cb);
+        }
+        return ca == cb;
+    }
+
     public int compareString(String a, String b, boolean ignoreCase) {
         if (collator == null) {
             if (ignoreCase) {

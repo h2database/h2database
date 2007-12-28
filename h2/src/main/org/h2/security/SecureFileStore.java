@@ -93,12 +93,17 @@ public class SecureFileStore extends FileStore {
 
     public void setLength(long newLength) throws SQLException {
         long oldPos = pos;
-        byte[] buff = new byte[Constants.FILE_BLOCK_SIZE];
         long length = length();
         if (newLength > length) {
             seek(length);
-            for (long i = length; i < newLength; i += Constants.FILE_BLOCK_SIZE) {
-                write(buff, 0, Constants.FILE_BLOCK_SIZE);
+            byte[] empty = EMPTY;
+            while (true) {
+                int p = (int) Math.min(newLength - length, EMPTY.length);
+                if (p <= 0) {
+                    break;
+                }
+                write(empty, 0, p);
+                length += p;
             }
             seek(oldPos);
         } else {

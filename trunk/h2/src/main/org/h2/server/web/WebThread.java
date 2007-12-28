@@ -657,7 +657,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             return treeIndex;
         }
         boolean isOracle = schema.contents.isOracle;
-        boolean showColumnTypes = tables.length < 100;
+        boolean notManyTables = tables.length < 100;
         for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];
             if (table.isView) {
@@ -674,8 +674,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             treeIndex++;
             if (mainSchema) {
                 StringBuffer columnsBuffer = new StringBuffer();
-                treeIndex = addColumns(table, buff, treeIndex, showColumnTypes, columnsBuffer);
-                if (!isOracle) {
+                treeIndex = addColumns(table, buff, treeIndex, notManyTables, columnsBuffer);
+                if (!isOracle && notManyTables) {
                     treeIndex = addIndexes(meta, table.name, schema.name, buff, treeIndex);
                 }
                 buff.append("addTable('" + PageParser.escapeJavaScript(table.name) + "', '"
@@ -699,7 +699,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             treeIndex++;
             if (mainSchema) {
                 StringBuffer columnsBuffer = new StringBuffer();
-                treeIndex = addColumns(view, buff, treeIndex, showColumnTypes, columnsBuffer);
+                treeIndex = addColumns(view, buff, treeIndex, notManyTables, columnsBuffer);
                 if (schema.contents.isH2) {
                     PreparedStatement prep = null;
                     try {
@@ -736,10 +736,6 @@ class WebThread extends Thread implements DatabaseEventListener {
             StringBuffer buff = new StringBuffer();
             buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript((String) session.get("url"))
                     + "', null);\n");
-//            String version = meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion();
-//            buff.append("setNode(1, 0, 0, 'info', '" + PageParser.escapeJavaScript(version)+ "', null);\n");
-//
-//            int treeIndex = 2;
             int treeIndex = 1;
 
             DbSchema defaultSchema = contents.defaultSchema;

@@ -130,7 +130,7 @@ public class LogFile {
         buff.fill(size);
         buff.setInt(0, blockCount);
         buff.updateChecksum();
-//            IOLogger.getInstance().logWrite(this.fileName, file.getFilePointer(), buff.length());
+        // IOLogger.getInstance().logWrite(this.fileName, file.getFilePointer(), buff.length());
         if (rec != null) {
             unwritten.add(rec);
         }

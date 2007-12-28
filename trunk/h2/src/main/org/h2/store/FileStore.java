@@ -26,7 +26,7 @@ import org.h2.util.TempFileDeleter;
 public class FileStore {
 
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;
-    private static final byte[] EMPTY = new byte[16 * 1024];
+    protected static final byte[] EMPTY = new byte[16 * 1024];
 
     protected String name;
     protected DataHandler handler;
@@ -46,7 +46,7 @@ public class FileStore {
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key) throws SQLException {
         return open(handler, name, mode, magic, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
     }
-    
+
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher,
             byte[] key, int keyIterations) throws SQLException {
         FileStore store;
@@ -92,7 +92,7 @@ public class FileStore {
     protected void initKey(byte[] salt) {
         // do nothing
     }
-    
+
     public void setCheckedWriting(boolean value) {
         this.checkedWriting = value;
     }
@@ -240,6 +240,21 @@ public class FileStore {
         return true;
     }
 
+    private void extendByWriting(long newLength) throws IOException {
+        long pos = filePos;
+        file.seek(fileLength);
+        byte[] empty = EMPTY;
+        while (true) {
+            int p = (int) Math.min(newLength - fileLength, EMPTY.length);
+            if (p <= 0) {
+                break;
+            }
+            file.write(empty, 0, p);
+            fileLength += p;
+        }
+        file.seek(pos);
+    }
+
     public void setLength(long newLength) throws SQLException {
         if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned setLength " + name + " pos " + newLength);
@@ -248,18 +263,7 @@ public class FileStore {
         checkWritingAllowed();
         try {
             if (synchronousMode && newLength > fileLength) {
-                long pos = filePos;
-                file.seek(fileLength);
-                byte[] empty = EMPTY;
-                while (true) {
-                    int p = (int) Math.min(newLength - fileLength, EMPTY.length);
-                    if (p <= 0) {
-                        break;
-                    }
-                    file.write(empty, 0, p);
-                    fileLength += p;
-                }
-                file.seek(pos);
+                extendByWriting(newLength);
             } else {
                 file.setLength(newLength);
             }
@@ -343,11 +347,11 @@ public class FileStore {
             file.seek(filePos);
         }
     }
-    
+
     private static void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileStore." + method + " " + fileName + " " + o);
         }
-    }        
+    }
 
 }

@@ -512,9 +512,8 @@ CREATE ALIAS MY_SQRT
 "Commands (DDL)","DROP ALL OBJECTS","
 DROP ALL OBJECTS [DELETE FILES]
 ","
-Drops all existing views, tables, sequences,
-schemas, function aliases, roles
-and users (except the current user).
+Drops all existing views, tables, sequences, schemas, function aliases, roles,
+user defined aggregate functions, domains, and users (except the current user).
 If DELETE FILES is specified, the database files will be
 removed when the last user disconnects from the database.
 Warning: This command can not be rolled back.

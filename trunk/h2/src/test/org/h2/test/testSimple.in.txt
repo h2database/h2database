@@ -1,3 +1,6 @@
+select count(d.*) from dual d group by d.x;
+> 1;
+
 create table test(id int);
 select count(*) from (select * from ((select * from test) union (select * from test)) a) b where id = 0;
 > 0;

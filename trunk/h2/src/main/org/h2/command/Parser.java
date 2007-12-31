@@ -1718,7 +1718,13 @@ public class Parser {
                 r = new Aggregate(database, Aggregate.COUNT_ALL, null, currentSelect, false);
             } else {
                 boolean distinct = readIf("DISTINCT");
-                r = new Aggregate(database, Aggregate.COUNT, readExpression(), currentSelect, distinct);
+                Expression on = readExpression();
+                if (on instanceof Wildcard && !distinct) {
+                    // PostgreSQL compatibility: count(t.*)
+                    r = new Aggregate(database, Aggregate.COUNT_ALL, null, currentSelect, false);
+                } else {
+                    r = new Aggregate(database, Aggregate.COUNT, on, currentSelect, distinct);
+                }
             }
         } else if (aggregateType == Aggregate.GROUP_CONCAT) {
             boolean distinct = readIf("DISTINCT");

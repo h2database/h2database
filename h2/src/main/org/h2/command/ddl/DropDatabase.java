@@ -99,6 +99,8 @@ public class DropDatabase extends DefineCommand {
         }
         list = db.getAllRights();
         list.addAll(db.getAllFunctionAliases());
+        list.addAll(db.getAllAggregates());
+        list.addAll(db.getAllUserDataTypes());
         for (int i = 0; i < list.size(); i++) {
             DbObject obj = (DbObject) list.get(i);
             String sql = obj.getCreateSQL();

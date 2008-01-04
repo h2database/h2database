@@ -128,7 +128,7 @@ public class FileObjectMemory implements FileObject {
         return length;
     }
     
-    public void setLength(long l) {
+    public void setFileLength(long l) {
         touch();
         if (l < length) {
             pos = Math.min(pos, l);

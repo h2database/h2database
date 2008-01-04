@@ -39,7 +39,7 @@ public abstract class BtreePage extends Record {
     // Returns the new first row in the list; null if no change; the deleted row if not empty
     abstract SearchRow remove(Session session, Row row, int level) throws SQLException;
     abstract BtreePage split(Session session, int splitPoint) throws SQLException;
-    abstract boolean findFirst(BtreeCursor cursor, SearchRow row) throws SQLException;
+    abstract boolean findFirst(BtreeCursor cursor, SearchRow row, boolean bigger) throws SQLException;
     abstract SearchRow getFirst(Session session) throws SQLException;
     abstract SearchRow getLast(Session session) throws SQLException;
     abstract void next(BtreeCursor cursor, int i) throws SQLException;

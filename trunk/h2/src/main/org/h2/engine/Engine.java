@@ -116,7 +116,7 @@ public class Engine {
             String value = ci.getProperty(setting);
             try {
                 CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "
-                        + value);
+                        + value, Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (SQLException e) {
                 if (!ignoreUnknownSetting) {

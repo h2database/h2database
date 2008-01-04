@@ -14,6 +14,7 @@ import java.sql.Statement;
 
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
@@ -32,9 +33,8 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected boolean escapeProcessing = true;
     protected int queryTimeout;
     protected boolean queryTimeoutSet;
-    protected int fetchSize;
-    protected boolean fetchSizeSet;
-    protected int updateCount;
+    protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
+;   protected int updateCount;
     private CommandInterface executingCommand;
     private ObjectArray batchCommands;
     protected int resultSetType;
@@ -59,7 +59,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 sql = conn.translateSQL(sql);
             }
             synchronized (session) {
-                CommandInterface command = conn.prepareCommand(sql);
+                CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                 setExecutingStatement(command);
@@ -102,7 +102,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
-            CommandInterface command = conn.prepareCommand(sql);
+            CommandInterface command = conn.prepareCommand(sql, fetchSize);
             synchronized (session) {
                 setExecutingStatement(command);
                 try {
@@ -140,7 +140,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
-            CommandInterface command = conn.prepareCommand(sql);
+            CommandInterface command = conn.prepareCommand(sql, fetchSize);
             boolean returnsResultSet;
             synchronized (session) {
                 setExecutingStatement(command);
@@ -369,7 +369,9 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Sets the number of rows suggested to read in one step.
      * This value cannot be higher than the maximum rows (setMaxRows)
      * set by the statement or prepared statement, otherwise an exception
-     * is throws.
+     * is throws. Setting the value to 0 will set the default value.
+     * The default value can be changed using the system property
+     * h2.serverResultSetFetchSize.
      *
      * @param rows the number of rows
      * @throws SQLException if this object is closed
@@ -381,8 +383,10 @@ public class JdbcStatement extends TraceObject implements Statement {
             if (rows < 0 || (rows > 0 && maxRows > 0 && rows > maxRows)) {
                 throw Message.getInvalidValueException("" + rows, "rows");
             }
+            if (rows == 0) {
+                rows = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
+            }
             fetchSize = rows;
-            fetchSizeSet = true;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -893,13 +897,13 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCode("setPoolable("+poolable+");");
         }
     }
-    
+
     /**
      * INTERNAL
      */
     public String toString() {
         return getTraceObjectName();
     }
-    
+
 }
 

@@ -4,21 +4,20 @@
  */
 package org.h2.util;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
-import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.constant.SysProperties;
+import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
 
@@ -100,11 +99,6 @@ public class FileUtils {
         }
     }
 
-    public static Reader openFileReader(String fileName) throws IOException {
-        Reader reader = new InputStreamReader(openFileInputStream(fileName));
-        return new BufferedReader(reader);
-    }
-
     public static String getFileName(String name) throws SQLException {
         return FileSystem.getInstance(name).getFileName(name);
     }
@@ -156,7 +150,11 @@ public class FileUtils {
 
     public static Writer openFileWriter(String fileName, boolean append) throws SQLException {
         OutputStream out = FileSystem.getInstance(fileName).openFileOutputStream(fileName, append);
-        return new BufferedWriter(new OutputStreamWriter(out));
+        try {
+            return new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw Message.convert(e);
+        }
     }
 
     public static boolean fileStartsWith(String fileName, String prefix) {

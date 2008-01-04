@@ -38,18 +38,18 @@ public class JdbcSQLException extends SQLException {
         buildMessage();
 //#ifdef JDK14
         initCause(cause);
-//#endif        
+//#endif
     }
-    
+
     /**
      * Get the detail error message.
-     * 
+     *
      * @return the message
      */
     public String getMessage() {
         return message;
     }
-    
+
     /**
      * INTERNAL
      */
@@ -62,13 +62,13 @@ public class JdbcSQLException extends SQLException {
      */
     public void printStackTrace() {
         super.printStackTrace();
-//#ifdef JDK13    
+//#ifdef JDK13
 /*
         if (cause != null) {
             cause.printStackTrace();
         }
 */
-//#endif    
+//#endif
         if (getNextException() != null) {
             getNextException().printStackTrace();
         }
@@ -88,7 +88,7 @@ public class JdbcSQLException extends SQLException {
                 cause.printStackTrace(s);
             }
 */
-//#endif    
+//#endif
             if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
@@ -109,7 +109,7 @@ public class JdbcSQLException extends SQLException {
                 cause.printStackTrace(s);
             }
 */
-//#endif    
+//#endif
             if (getNextException() != null) {
                 getNextException().printStackTrace(s);
             }
@@ -122,26 +122,26 @@ public class JdbcSQLException extends SQLException {
     public Throwable getOriginalCause() {
         return cause;
     }
-    
+
     /**
      * Returns the SQL statement.
-     * 
+     *
      * @return the SQL statement
-     */        
+     */
     public String getSQL() {
         return sql;
     }
-    
+
     /**
      * INTERNAL
      */
     public void setSQL(String sql) {
         this.sql = sql;
         buildMessage();
-    }    
-    
+    }
+
     private void buildMessage() {
-        StringBuffer buff = new StringBuffer(originalMessage);
+        StringBuffer buff = new StringBuffer(originalMessage == null ? "- " : originalMessage);
         if (sql != null) {
             buff.append("; SQL statement:\n");
             buff.append(sql);
@@ -156,9 +156,9 @@ public class JdbcSQLException extends SQLException {
 
     /**
      * Returns the class name, the message, and in the server mode, the stack trace of the server
-     * 
+     *
      * @return the string representation
-     */    
+     */
     public String toString() {
         if (trace == null) {
             return super.toString();

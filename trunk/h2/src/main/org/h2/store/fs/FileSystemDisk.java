@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.sql.SQLException;
 
@@ -352,15 +351,15 @@ public class FileSystemDisk extends FileSystem {
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
-        RandomAccessFile f;
+        FileObjectDisk f;
         try {
-            f = new RandomAccessFile(fileName, mode);
+            f = new FileObjectDisk(fileName, mode);
             trace("openRandomAccessFile", fileName, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();
-            f = new RandomAccessFile(fileName, mode);
+            f = new FileObjectDisk(fileName, mode);
         }
-        return new FileObjectDisk(f);
+        return f;
     }
 
 }

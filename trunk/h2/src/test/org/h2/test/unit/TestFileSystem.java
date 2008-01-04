@@ -184,7 +184,7 @@ public class TestFileSystem extends TestBase {
                 break;
             }
             case 2: {
-                f.setLength(pos);
+                f.setFileLength(pos);
                 ra.setLength(pos);
                 if (ra.getFilePointer() > pos) {
                     f.seek(0);

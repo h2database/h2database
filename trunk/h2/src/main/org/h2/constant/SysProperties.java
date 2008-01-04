@@ -35,6 +35,7 @@ public class SysProperties {
 
     public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
+    public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
@@ -45,7 +46,7 @@ public class SysProperties {
     public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
     public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
-    public static final int SERVER_SMALL_RESULT_SET_SIZE = getIntSetting("h2.serverSmallResultSetSize", 100);
+    public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
     public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 256 * 1024);
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 64 * 1024);
     public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);

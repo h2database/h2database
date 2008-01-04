@@ -135,7 +135,7 @@ public class Script {
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {
                 String s = rs.getString(1);
-                writer.println(s + ";");
+                writer.println(s);
             }
             writer.close();
         } finally {

@@ -1203,7 +1203,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     JdbcPreparedStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id, boolean closeWithResultSet) throws SQLException {
         super(session, conn, resultSetType, id, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
-        command = conn.prepareCommand(sql);
+        command = conn.prepareCommand(sql, fetchSize);
     }
 
     private void setParameter(int parameterIndex, Value value) throws SQLException {

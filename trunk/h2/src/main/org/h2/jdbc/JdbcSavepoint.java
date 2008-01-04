@@ -16,10 +16,10 @@ import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
 
 /**
- * A savepoint is a point inside a transaction to where a transaction can be rolled back. 
+ * A savepoint is a point inside a transaction to where a transaction can be rolled back.
  * The tasks that where done before the savepoint are not rolled back in this case.
  */
-public class JdbcSavepoint extends TraceObject 
+public class JdbcSavepoint extends TraceObject
 //#ifdef JDK14
 implements Savepoint
 //#endif
@@ -52,7 +52,7 @@ implements Savepoint
 
     void rollback() throws SQLException {
         checkValid();
-        conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId)).executeUpdate();
+        conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId), Integer.MAX_VALUE).executeUpdate();
     }
 
     private void checkValid() throws SQLException {
@@ -77,11 +77,11 @@ implements Savepoint
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * Get the name of this savepoint.
      * @return the name
-     */    
+     */
     public String getSavepointName() throws SQLException {
         try {
             debugCodeCall("getSavepointName");
@@ -94,13 +94,13 @@ implements Savepoint
             throw logAndConvert(e);
         }
     }
-    
+
     /**
      * INTERNAL
      */
     public String toString() {
         return getTraceObjectName() + ": id=" + savepointId + " name=" + name;
     }
-    
+
 
 }

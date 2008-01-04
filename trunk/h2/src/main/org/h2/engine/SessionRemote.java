@@ -38,7 +38,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int COMMAND_EXECUTE_QUERY = 2;
     public static final int COMMAND_EXECUTE_UPDATE = 3;
     public static final int COMMAND_CLOSE = 4;
-    public static final int RESULT_FETCH_ROW = 5;
+    public static final int RESULT_FETCH_ROWS = 5;
     public static final int RESULT_RESET = 6;
     public static final int RESULT_CLOSE = 7;
     public static final int COMMAND_COMMIT = 8;
@@ -92,7 +92,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private void switchOffAutoCommitIfCluster() throws SQLException {
         if (autoCommit && transferList.size() > 1) {
             if (switchOffAutoCommit == null) {
-                switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE");
+                switchOffAutoCommit = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
             }
             // this will call setAutoCommit(false)
             switchOffAutoCommit.executeUpdate();
@@ -225,7 +225,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     private void switchOffCluster() throws SQLException {
-        CommandInterface ci = prepareCommand("SET CLUSTER ''");
+        CommandInterface ci = prepareCommand("SET CLUSTER ''", Integer.MAX_VALUE);
         ci.executeUpdate();
     }
 
@@ -235,10 +235,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
         switchOffCluster();
     }
 
-    public CommandInterface prepareCommand(String sql) throws SQLException {
+    public CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
         synchronized (this) {
             checkClosed();
-            return new CommandRemote(this, transferList, sql);
+            return new CommandRemote(this, transferList, sql, fetchSize);
         }
     }
 

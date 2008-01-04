@@ -21,7 +21,7 @@ public class FileObjectOutputStream extends OutputStream {
             file.seek(file.length());
         } else {
             file.seek(0);
-            file.setLength(0);
+            file.setFileLength(0);
         }
     }
 

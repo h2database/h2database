@@ -736,7 +736,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS});
             add(rows, new String[]{"h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE});
             add(rows, new String[]{"h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS});
-            add(rows, new String[]{"h2.serverSmallResultSetSize", "" + SysProperties.SERVER_SMALL_RESULT_SET_SIZE});
+            add(rows, new String[]{"h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE});
             add(rows, new String[]{"h2.emergencySpaceInitial", "" + SysProperties.EMERGENCY_SPACE_INITIAL});
             add(rows, new String[]{"h2.emergencySpaceMin", "" + SysProperties.EMERGENCY_SPACE_MIN});
             add(rows, new String[]{"h2.objectCache", "" + SysProperties.OBJECT_CACHE});

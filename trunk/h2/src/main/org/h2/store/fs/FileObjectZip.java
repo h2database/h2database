@@ -70,7 +70,7 @@ public class FileObjectZip implements FileObject {
         this.pos = pos;
     }
 
-    public void setLength(long newLength) throws IOException {
+    public void setFileLength(long newLength) throws IOException {
         throw new IOException("File is read-only");
     }
 

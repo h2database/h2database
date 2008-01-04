@@ -50,7 +50,7 @@ public class FileObjectDatabase implements FileObject {
         this.pos = (int) pos;
     }
 
-    public void setLength(long newLength) throws IOException {
+    public void setFileLength(long newLength) throws IOException {
         this.length = (int) newLength;
         if (length != data.length) {
             byte[] n = new byte[length];

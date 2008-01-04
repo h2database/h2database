@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Comparison;
@@ -18,9 +19,12 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
+import org.h2.index.Cursor;
 import org.h2.index.Index;
+import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -62,7 +66,7 @@ public class Select extends Query {
     private boolean isGroupQuery;
     private boolean isForUpdate;
     private double cost;
-    private boolean isQuickQuery;
+    private boolean isQuickQuery, isDistinctQuery;
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
@@ -272,6 +276,42 @@ public class Select extends Query {
         return null;
     }
 
+    private void queryDistinct(int columnCount, LocalResult result, long limitRows) throws SQLException {
+        if (limitRows != 0 && offset != null) {
+            // limitRows must be long, otherwise we get an int overflow if limitRows is at or near Integer.MAX_VALUE
+            limitRows += offset.getValue(session).getInt();
+        }
+        int rowNumber = 0;
+        setCurrentRowNumber(0);
+        Index index = topTableFilter.getIndex();
+        SearchRow first = null;
+        int columnIndex = index.getColumns()[0].getColumnId();
+        while (true) {
+            checkCancelled();
+            setCurrentRowNumber(rowNumber + 1);
+            Cursor cursor = index.findNext(session, first, null);
+            if (!cursor.next()) {
+                break;
+            }
+            SearchRow found = cursor.getSearchRow();
+            Value value = found.getValue(columnIndex);
+            if (first == null) {
+                first = topTableFilter.getTable().getTemplateSimpleRow(true);
+            }
+            first.setValue(columnIndex, value);
+            Value[] row = new Value[1];
+            row[0] = value;
+            result.addRow(row);
+            rowNumber++;
+            if ((sort == null || sortUsingIndex) && limitRows != 0 && result.getRowCount() >= limitRows) {
+                break;
+            }
+            if (sampleSize > 0 && rowNumber >= sampleSize) {
+                break;
+            }
+        }
+    }
+
     private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
             // limitRows must be long, otherwise we get an int overflow if limitRows is at or near Integer.MAX_VALUE
@@ -330,7 +370,7 @@ public class Select extends Query {
         if (!sortUsingIndex) {
             result.setSortOrder(sort);
         }
-        if (distinct) {
+        if (distinct && !isDistinctQuery) {
             result.setDistinct();
         }
         topTableFilter.startQuery(session);
@@ -340,6 +380,8 @@ public class Select extends Query {
             queryQuick(columnCount, result);
         } else if (isGroupQuery) {
             queryGroup(columnCount, result);
+        } else if (isDistinctQuery) {
+            queryDistinct(columnCount, result, limitRows);
         } else {
             queryFlat(columnCount, result, limitRows);
         }
@@ -513,6 +555,31 @@ public class Select extends Query {
                 sortUsingIndex = true;
             }
         }
+        if (SysProperties.OPTIMIZE_DISTINCT && distinct && !isGroupQuery && filters.size() == 1 && expressions.size() == 1 && condition == null) {
+            Expression expr = (Expression) expressions.get(0);
+            expr = expr.getNonAliasExpression();
+            if (expr instanceof ExpressionColumn) {
+                Column column = ((ExpressionColumn) expr).getColumn();
+                int selectivity = column.getSelectivity();
+                Index columnIndex = topTableFilter.getTable().getIndexForColumn(column, true);
+                if (columnIndex != null && selectivity != Constants.SELECTIVITY_DEFAULT && selectivity < 20) {
+                    // the first column must be ascending
+                    boolean ascending = columnIndex.getIndexColumns()[0].sortType == SortOrder.ASCENDING;
+                    Index current = topTableFilter.getIndex();
+                    // if another index is faster
+                    if (columnIndex.canFindNext() && ascending && (current == null || current.getIndexType().isScan() || columnIndex == current)) {
+                        IndexType type = columnIndex.getIndexType();
+                        // hash indexes don't work, and unique single column indexes don't work
+                        if (!type.isHash() && (!type.isUnique() || columnIndex.getColumns().length > 1)) {
+                            topTableFilter.setIndex(columnIndex);
+                            isDistinctQuery = true;
+int test;
+System.out.println("##distinct: " + this.sql);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public double getCost() {
@@ -647,11 +714,12 @@ public class Select extends Query {
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }
-
         if (isQuickQuery) {
-            buff.append("\n/* direct lookup query */");
+            buff.append("\n/* direct lookup */");
         }
-
+        if (isDistinctQuery) {
+            buff.append("\n/* distinct */");
+        }
         return buff.toString();
     }
 

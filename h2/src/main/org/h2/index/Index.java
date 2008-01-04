@@ -102,6 +102,24 @@ public interface Index extends SchemaObject {
     boolean canGetFirstOrLast();
 
     /**
+     * Check if the index can get the next higher value.
+     *
+     * @return true if it can
+     */
+    boolean canFindNext();
+
+    /**
+     * Find a row or a list of rows that is larger and create a cursor to iterate over the result.
+     *
+     * @param session the session
+     * @param higherThan the lower limit (excluding)
+     * @param last the last row, or null for no limit
+     * @return the cursor
+     */
+
+    Cursor findNext(Session session, SearchRow higherThan, SearchRow last) throws SQLException;
+
+    /**
      * Find the lowest or highest value of a column.
      *
      * @param session the session

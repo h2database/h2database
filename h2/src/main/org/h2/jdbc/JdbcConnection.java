@@ -453,7 +453,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("getCatalog");
             checkClosed();
             if (catalog == null) {
-                CommandInterface cat = prepareCommand("CALL DATABASE()");
+                CommandInterface cat = prepareCommand("CALL DATABASE()", Integer.MAX_VALUE);
                 ResultInterface result = cat.executeQuery(0, false);
                 result.next();
                 catalog = result.currentRow()[0].getString();
@@ -743,7 +743,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Savepoint", TraceObject.SAVEPOINT, id, "setSavepoint()");
             }
             checkClosed();
-            CommandInterface set = prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(null, savepointId));
+            CommandInterface set = prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(null, savepointId), Integer.MAX_VALUE);
             set.executeUpdate();
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null, trace, id);
             savepointId++;
@@ -767,7 +767,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Savepoint", TraceObject.SAVEPOINT, id, "setSavepoint(" + quote(name) + ")");
             }
             checkClosed();
-            CommandInterface set = prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(name, 0));
+            CommandInterface set = prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(name, 0), Integer.MAX_VALUE);
             set.executeUpdate();
             JdbcSavepoint savepoint = new JdbcSavepoint(this, 0, name, trace, id);
             return savepoint;
@@ -957,12 +957,12 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
-    CommandInterface prepareCommand(String sql) throws SQLException {
-        return session.prepareCommand(sql);
+    CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
+        return session.prepareCommand(sql, fetchSize);
     }
 
     CommandInterface prepareCommand(String sql, CommandInterface old) throws SQLException {
-        return old == null ? session.prepareCommand(sql) : old;
+        return old == null ? session.prepareCommand(sql, Integer.MAX_VALUE) : old;
     }
 
     private int translateGetEnd(String sql, int i, char c) throws SQLException {

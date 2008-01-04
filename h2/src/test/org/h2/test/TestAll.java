@@ -154,6 +154,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+add tests with select distinct type (code coverage)
+
 documentation: package.html
 
 write to the db file what version was used to create a database
@@ -532,6 +534,7 @@ Features of H2
     }
 
     void testDatabase() throws Exception {
+
         System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
 

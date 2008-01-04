@@ -64,6 +64,6 @@ public interface FileObject {
      *
      * @param newLength the new length
      */
-    void setLength(long newLength) throws IOException;
+    void setFileLength(long newLength) throws IOException;
 
 }

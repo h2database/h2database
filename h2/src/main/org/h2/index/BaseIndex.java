@@ -85,6 +85,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
 
+    public boolean canFindNext() {
+        return false;
+    }
+
+    public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
+        throw Message.getInternalError();
+    }
+
     public abstract double getCost(Session session, int[] masks) throws SQLException;
 
     public abstract void remove(Session session) throws SQLException;

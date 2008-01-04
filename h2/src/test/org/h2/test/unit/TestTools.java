@@ -14,6 +14,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
@@ -36,6 +38,8 @@ public class TestTools extends TestBase {
         if (config.networked) {
             return;
         }
+        deleteDb("utils");
+        testScriptRunscriptLob();
         deleteDb("utils");
         testServerMain();
         testRemove();
@@ -157,7 +161,6 @@ public class TestTools extends TestBase {
         deleteDb("toolsConvertTraceFile");
         RunScript.main(new String[]{"-url", url, "-user", "sa", "-script", baseDir + "/test.sql"});
         testTraceFile(url);
-
     }
 
     private void testTraceFile(String url) throws Exception {
@@ -247,6 +250,60 @@ public class TestTools extends TestBase {
             server = Server.createTcpServer(new String[] { "-tcpPassword", "abc" }).start();
             server.stop();
         }
+    }
+
+    private void testScriptRunscriptLob() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + baseDir + "/utils";
+        String user = "sa", password = "abc";
+        String fileName = baseDir + "/b2.sql";
+        Connection conn = DriverManager.getConnection(url, user, password);
+        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, BDATA BLOB, CDATA CLOB)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
+
+        prep.setInt(1, 1);
+        prep.setNull(2, Types.BLOB);
+        prep.setNull(3, Types.CLOB);
+        prep.execute();
+
+        prep.setInt(1, 2);
+        prep.setString(2, "face");
+        prep.setString(3, "face");
+        prep.execute();
+
+        Random random = new Random(1);
+        prep.setInt(1, 3);
+        byte[] large = new byte[getSize(10 * 1024, 100 * 1024)];
+        random.nextBytes(large);
+        prep.setBytes(2, large);
+        String largeText = new String(large, "ISO-8859-1");
+        prep.setString(3, largeText);
+        prep.execute();
+
+        for (int i = 0; i < 2; i++) {
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
+            rs.next();
+            check(1, rs.getInt(1));
+            check(rs.getString(2) == null);
+            check(rs.getString(3) == null);
+            rs.next();
+            check(2, rs.getInt(1));
+            check("face", rs.getString(2));
+            check("face", rs.getString(3));
+            rs.next();
+            check(3, rs.getInt(1));
+            check(large, rs.getBytes(2));
+            check(largeText, rs.getString(3));
+            checkFalse(rs.next());
+
+            conn.close();
+            Script.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName});
+            DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
+            RunScript.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName});
+            conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
+        }
+        conn.close();
+
     }
 
     private void testScriptRunscript() throws Exception {

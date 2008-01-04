@@ -154,7 +154,7 @@ public class Session implements SessionInterface {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
-    public CommandInterface prepareCommand(String sql) throws SQLException {
+    public CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
         return prepareLocal(sql);
     }
 

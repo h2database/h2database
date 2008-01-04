@@ -63,6 +63,15 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
+        throw Message.getInternalError();
+    }
+
+    public boolean canFindNext() {
+        // TODO possible, but more complicated
+        return false;
+    }
+
     public boolean canGetFirstOrLast() {
         // TODO in many cases possible, but more complicated
         return false;

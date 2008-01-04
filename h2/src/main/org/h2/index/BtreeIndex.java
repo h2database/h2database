@@ -185,7 +185,19 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
+    public boolean canFindNext() {
+        return true;
+    }
+
+    public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
+        return find(session, first, true, last);
+    }
+
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+        return find(session, first, false, last);
+    }
+
+    public Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) throws SQLException {
         if (SysProperties.CHECK && storage == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
@@ -196,7 +208,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             return cursor;
         } else {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
-            if (getRowCount(session) == 0 || !root.findFirst(cursor, first)) {
+            if (getRowCount(session) == 0 || !root.findFirst(cursor, first, bigger)) {
                 cursor.setCurrentRow(null);
             }
             return cursor;
@@ -301,7 +313,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
         if (first) {
             // TODO optimization: this loops through NULL elements
-            Cursor cursor = find(session, null, null);
+            Cursor cursor = find(session, null, false, null);
             while (cursor.next()) {
                 SearchRow row = cursor.getSearchRow();
                 Value v = row.getValue(columnIds[0]);

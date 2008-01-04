@@ -207,7 +207,7 @@ public class BtreeNode extends BtreePage {
         return pageChildren.get(i);
     }
 
-    public boolean findFirst(BtreeCursor cursor, SearchRow compare) throws SQLException {
+    public boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
@@ -216,7 +216,7 @@ public class BtreeNode extends BtreePage {
             int i = (l + r) >>> 1;
             SearchRow row = getData(i);
             int comp = index.compareRows(row, compare);
-            if (comp >= 0) {
+            if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
             } else {
                 l = i + 1;
@@ -225,7 +225,7 @@ public class BtreeNode extends BtreePage {
         if (l >= pageData.size()) {
             BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(l));
             cursor.push(this, l);
-            boolean result = page.findFirst(cursor, compare);
+            boolean result = page.findFirst(cursor, compare, bigger);
             if (result) {
                 return true;
             }
@@ -234,7 +234,7 @@ public class BtreeNode extends BtreePage {
         }
         BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(l));
         cursor.push(this, l);
-        if (page.findFirst(cursor, compare)) {
+        if (page.findFirst(cursor, compare, bigger)) {
             return true;
         }
         cursor.pop();
@@ -245,7 +245,7 @@ public class BtreeNode extends BtreePage {
             if (comp >= 0) {
                 page = index.getPage(cursor.getSession(), pageChildren.get(i));
                 cursor.push(this, i);
-                if (page.findFirst(cursor, compare)) {
+                if (page.findFirst(cursor, compare, bigger)) {
                     return true;
                 }
                 cursor.pop();
@@ -253,7 +253,7 @@ public class BtreeNode extends BtreePage {
         }
         page = index.getPage(cursor.getSession(), pageChildren.get(i));
         cursor.push(this, i);
-        boolean result = page.findFirst(cursor, compare);
+        boolean result = page.findFirst(cursor, compare, bigger);
         if (result) {
             return true;
         }

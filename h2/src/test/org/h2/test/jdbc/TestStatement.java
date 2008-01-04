@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
 
@@ -100,13 +101,13 @@ public class TestStatement extends TestBase {
     void testStatement() throws Exception {
 
         Statement stat = conn.createStatement();
-        
-//#ifdef JDK14        
+
+//#ifdef JDK14
         check(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         conn.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
         check(ResultSet.CLOSE_CURSORS_AT_COMMIT, conn.getHoldability());
 //#endif
-        
+
         // ignored
         stat.setCursorName("x");
         // fixed return value
@@ -115,10 +116,12 @@ public class TestStatement extends TestBase {
         stat.setFetchDirection(ResultSet.FETCH_REVERSE);
         // ignored
         stat.setMaxFieldSize(100);
-        
-        check(0, stat.getFetchSize());
+
+        check(SysProperties.SERVER_RESULT_SET_FETCH_SIZE, stat.getFetchSize());
         stat.setFetchSize(10);
         check(10, stat.getFetchSize());
+        stat.setFetchSize(0);
+        check(SysProperties.SERVER_RESULT_SET_FETCH_SIZE, stat.getFetchSize());
         check(ResultSet.TYPE_FORWARD_ONLY, stat.getResultSetType());
         Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
         check(ResultSet.TYPE_SCROLL_SENSITIVE, stat2.getResultSetType());
@@ -128,8 +131,8 @@ public class TestStatement extends TestBase {
         check(!((JdbcStatement) stat2).isClosed());
         stat2.close();
         check(((JdbcStatement) stat2).isClosed());
-        
-        
+
+
         ResultSet rs;
         int count;
         boolean result;

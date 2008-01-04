@@ -221,7 +221,7 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             int objectId = transfer.readInt();
             int maxRows = transfer.readInt();
-            int readRows = transfer.readInt();
+            int fetchSize = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
             LocalResult result = command.executeQueryLocal(maxRows);
@@ -233,10 +233,9 @@ public class TcpServerThread implements Runnable {
             for (int i = 0; i < columnCount; i++) {
                 ResultColumn.writeColumn(transfer, result, i);
             }
-            if (rowCount < readRows) {
-                for (int i = 0; i <= rowCount; i++) {
-                    sendRow(result);
-                }
+            int fetch = Math.min(rowCount, fetchSize);
+            for (int i = 0; i < fetch; i++) {
+                sendRow(result);
             }
             transfer.flush();
             break;
@@ -263,11 +262,14 @@ public class TcpServerThread implements Runnable {
             }
             break;
         }
-        case SessionRemote.RESULT_FETCH_ROW: {
+        case SessionRemote.RESULT_FETCH_ROWS: {
             int id = transfer.readInt();
+            int count = transfer.readInt();
             LocalResult result = (LocalResult) cache.getObject(id, false);
             transfer.writeInt(SessionRemote.STATUS_OK);
-            sendRow(result);
+            for (int i = 0; i < count; i++) {
+                sendRow(result);
+            }
             transfer.flush();
             break;
         }
@@ -303,13 +305,14 @@ public class TcpServerThread implements Runnable {
     }
 
     private void sendRow(LocalResult result) throws IOException, SQLException {
-        boolean n = result.next();
-        transfer.writeBoolean(n);
-        if (n) {
+        if (result.next()) {
+            transfer.writeBoolean(true);
             Value[] v = result.currentRow();
             for (int i = 0; i < result.getVisibleColumnCount(); i++) {
                 transfer.writeValue(v[i]);
             }
+        } else {
+            transfer.writeBoolean(false);
         }
     }
 

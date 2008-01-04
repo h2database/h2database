@@ -156,7 +156,7 @@ public class Column {
     public long getPrecision() {
         return precision;
     }
-    
+
     public int getDisplaySize() {
         return displaySize;
     }
@@ -401,10 +401,21 @@ public class Column {
         return sequence;
     }
 
+    /**
+     * Get the selectivity of the column.
+     * Selectivity 100 means values are unique, 10 means every distinct value appears 10 times on average.
+     *
+     * @return the selectivity
+     */
     public int getSelectivity() {
         return selectivity == 0 ? Constants.SELECTIVITY_DEFAULT : selectivity;
     }
 
+    /**
+     * Set the new selectivity of a column.
+     *
+     * @param selectivity the new value
+     */
     public void setSelectivity(int selectivity) {
         selectivity = selectivity < 0 ? 0 : (selectivity > 100 ? 100 : selectivity);
         this.selectivity = selectivity;

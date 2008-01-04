@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Convert a trace file to a java class.
@@ -71,7 +72,7 @@ public class ConvertTraceFile {
      * @throws IOException
      */
     private void convertFile(String traceFileName, String javaClassName, String script) throws IOException, SQLException {
-        LineNumberReader reader = new LineNumberReader(FileUtils.openFileReader(traceFileName));
+        LineNumberReader reader = new LineNumberReader(IOUtils.getReader(FileUtils.openFileInputStream(traceFileName)));
         PrintWriter javaWriter = new PrintWriter(FileUtils.openFileWriter(javaClassName + ".java", false));
         PrintWriter scriptWriter = new PrintWriter(FileUtils.openFileWriter(script, false));
         javaWriter.println("import java.io.*;");

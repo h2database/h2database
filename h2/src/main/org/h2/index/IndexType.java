@@ -8,7 +8,7 @@ package org.h2.index;
  * Represents information about the properties of an index
  */
 public class IndexType {
-    private boolean isPrimaryKey, isPersistent, isUnique, isHash, isScan, isDescending;
+    private boolean isPrimaryKey, isPersistent, isUnique, isHash, isScan;
     private boolean belongsToConstraint;
 
     public static IndexType createPrimaryKey(boolean persistent, boolean hash) {
@@ -39,14 +39,6 @@ public class IndexType {
         type.isPersistent = persistent;
         type.isScan = true;
         return type;
-    }
-
-    public void setDescending(boolean descending) {
-        this.isDescending = descending;
-    }
-
-    public boolean getDescending() {
-        return isDescending;
     }
 
     public void setBelongsToConstraint(boolean belongsToConstraint) {

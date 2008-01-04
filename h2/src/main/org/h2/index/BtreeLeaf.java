@@ -144,7 +144,7 @@ public class BtreeLeaf extends BtreePage {
         return n2;
     }
 
-    public boolean findFirst(BtreeCursor cursor, SearchRow compare) throws SQLException {
+    public boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0 && !Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
             throw Message.getInternalError("Empty btree page");
@@ -153,7 +153,7 @@ public class BtreeLeaf extends BtreePage {
             int i = (l + r) >>> 1;
             SearchRow row = (SearchRow) pageData.get(i);
             int comp = index.compareRows(row, compare);
-            if (comp >= 0) {
+            if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
             } else {
                 l = i + 1;

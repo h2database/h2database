@@ -265,13 +265,13 @@ public class FileStore {
             if (synchronousMode && newLength > fileLength) {
                 extendByWriting(newLength);
             } else {
-                file.setLength(newLength);
+                file.setFileLength(newLength);
             }
             fileLength = newLength;
         } catch (IOException e) {
             if (freeUpDiskSpace()) {
                 try {
-                    file.setLength(newLength);
+                    file.setFileLength(newLength);
                 } catch (IOException e2) {
                     throw Message.convertIOException(e2, name);
                 }
@@ -292,7 +292,7 @@ public class FileStore {
             }
             if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
-                file.setLength(newLength);
+                file.setFileLength(newLength);
                 fileLength = newLength;
                 throw Message.getInternalError("unaligned file length " + name + " len " + len);
             }

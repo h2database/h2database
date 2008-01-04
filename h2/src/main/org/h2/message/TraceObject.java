@@ -174,7 +174,7 @@ public class TraceObject {
 
     protected SQLException logAndConvert(Throwable e) {
         if (SysProperties.LOG_ALL_ERRORS) {
-            synchronized (this.getClass()) {
+            synchronized (TraceObject.class) {
                 // e.printStackTrace();
                 try {
                     Writer writer = FileUtils.openFileWriter(SysProperties.LOG_ALL_ERRORS_FILE, true);

@@ -212,8 +212,8 @@ explain select * from test where id = 1;
 
 EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ /++ direct lookup query ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup query */)
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup */)
 > rows: 1
 
 drop table test;
@@ -994,9 +994,9 @@ script nopasswords nosettings blocksize 10;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB;
 > DROP TABLE IF EXISTS SYSTEM_LOB_STREAM;
 > INSERT INTO PUBLIC.TEST(ID, DATA) VALUES(1, SYSTEM_COMBINE_CLOB(0));
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc       ', NULL);;
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, '          ', NULL);;
-> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, '          ', NULL);;
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc       ', NULL);
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, '          ', NULL);
+> INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, '   ', NULL);
 > rows: 15
 
 drop table test;
@@ -1691,11 +1691,11 @@ select * from test order by id;
 > rows (ordered): 3
 
 select rownum, (select count(*) from test), rownum from test;
-> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup query */ ROWNUM()
-> -------- --------------------------------------------------------------------------------------- --------
-> 1        3                                                                                       1
-> 2        3                                                                                       2
-> 3        3                                                                                       3
+> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ /* direct lookup */ ROWNUM()
+> -------- --------------------------------------------------------------------------------- --------
+> 1        3                                                                                 1
+> 2        3                                                                                 2
+> 3        3                                                                                 3
 > rows: 3
 
 delete from test t0 where rownum<2;

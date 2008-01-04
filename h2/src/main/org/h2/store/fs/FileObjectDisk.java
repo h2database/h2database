@@ -4,51 +4,27 @@
  */
 package org.h2.store.fs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import org.h2.util.FileUtils;
 
 /**
- * This class is wraps a RandomAccessFile.
+ * This class is extends a RandomAccessFile.
  */
-public class FileObjectDisk implements FileObject {
-    private RandomAccessFile file;
+public class FileObjectDisk extends RandomAccessFile implements FileObject {
 
-    FileObjectDisk(RandomAccessFile file) {
-        this.file = file;
-    }
-
-    public long length() throws IOException {
-        return file.length();
-    }
-
-    public void close() throws IOException {
-        file.close();
-    }
-
-    public void readFully(byte[] b, int off, int len) throws IOException {
-        file.readFully(b, off, len);
-    }
-
-    public void seek(long pos) throws IOException {
-        file.seek(pos);
-    }
-
-    public void write(byte[] b, int off, int len) throws IOException {
-        file.write(b, off, len);
-    }
-
-    public long getFilePointer() throws IOException {
-        return file.getFilePointer();
+    public FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
+        super(fileName, mode);
     }
 
     public void sync() throws IOException {
-        file.getFD().sync();
+        getFD().sync();
     }
 
-    public void setLength(long newLength) throws IOException {
-        FileUtils.setLength(file, newLength);
+    public void setFileLength(long newLength) throws IOException {
+        FileUtils.setLength(this, newLength);
     }
 
 }

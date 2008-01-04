@@ -19,9 +19,10 @@ public interface SessionInterface {
      * Parse a command and prepare it for execution.
      *
      * @param sql the SQL statement
+     * @param fetchSize the number of rows to fetch in one step
      * @return the prepared command
      */
-    CommandInterface prepareCommand(String sql) throws SQLException;
+    CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException;
 
     /**
      * Roll back pending transactions and close the session.

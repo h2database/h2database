@@ -535,6 +535,7 @@ CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
 CALL FT_INIT();
 </pre>
 <p>
+You need to initialize it in each database where you want to use it.
 Afterwards, you can create a full text index for a table using:
 </p>
 <pre>
@@ -560,13 +561,16 @@ org.h2.fulltext.FullText.search(conn, text, limit, offset)
 <h3>Using the Lucene Fulltext Search</h3>
 <p>
 To use the Lucene full text search, you need the Lucene library in the classpath.
-To initialize, call:
+How his is done depends on the application; if you use the H2 Console, you can add the Lucene
+jar file to the the environment variables H2DRIVERS or CLASSPATH.
+To initialize the Lucene full text search in a database, call:
 </p>
 <pre>
 CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
 CALL FTL_INIT();
 </pre>
 <p>
+You need to initialize it in each database where you want to use it.
 Afterwards, you can create a full text index for a table using:
 </p>
 <pre>

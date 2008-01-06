@@ -45,21 +45,24 @@ public class ScanCursor implements Cursor {
     public boolean next() throws SQLException {
         if (multiVersion) {
             while (true) {
-                if (delta.hasNext()) {
-                    row = (Row) delta.next();
-                    if (!row.getDeleted() || row.getSessionId() == session.getId()) {
+                if (delta != null) {
+                    if (!delta.hasNext()) {
+                        delta = null;
                         row = null;
                         continue;
+                    } else {
+                        row = (Row) delta.next();
+                        if (!row.getDeleted() || row.getSessionId() == session.getId()) {
+                            continue;
+                        }
                     }
                 } else {
                     row = scan.getNextRow(session, row);
+                    if (row != null && row.getSessionId() != 0 && row.getSessionId() != session.getId()) {
+                        continue;
+                    }
                 }
-                if (row == null) {
-                    break;
-                }
-                if (row.getSessionId() == 0 || row.getSessionId() == session.getId() || row.getDeleted()) {
-                    break;
-                }
+                break;
             }
             return row != null;
         }

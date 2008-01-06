@@ -144,7 +144,7 @@ public class ScanIndex extends BaseIndex {
 
     public void commit(int operation, Row row) throws SQLException {
         if (database.isMultiVersion()) {
-            if (delta != null && operation == UndoLogRecord.DELETE) {
+            if (delta != null) {
                 delta.remove(row);
             }
             incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);

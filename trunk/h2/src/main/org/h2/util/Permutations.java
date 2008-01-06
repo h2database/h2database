@@ -19,10 +19,23 @@ public class Permutations {
     private int[] index;
     private boolean hasNext = true;
 
+    /**
+     * Create a new permutations object.
+     *
+     * @param in the source array
+     * @param out the target array
+     */
     public Permutations(Object[] in, Object[] out) {
         this(in, out, in.length);
     }
 
+    /**
+     * Create a new permutations object.
+     *
+     * @param in the source array
+     * @param out the target array
+     * @param m the number of output elements to generate
+     */
     public Permutations(Object[] in, Object[] out, int m) {
         this.n = in.length;
         this.m = m;
@@ -86,6 +99,8 @@ public class Permutations {
     /**
      * Get the index of the first element from the right that is less
      * than its neighbor on the right.
+     *
+     * @return the index or -1 if non is found
      */
     private int rightmostDip() {
         for (int i = n - 2; i >= 0; i--) {
@@ -98,6 +113,8 @@ public class Permutations {
 
     /**
      * Reverse the elements to the right of the specified index.
+     *
+     * @param i the index
      */
     private void reverseAfter(int i) {
         int start = i + 1;

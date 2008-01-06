@@ -89,6 +89,18 @@ public class TestMvcc1 extends TestBase {
         s2.execute("drop table test");
         c2.rollback();
 
+        // table scan problem
+        s1.execute("create table test(id int, name varchar)");
+        s1.execute("insert into test values(1, 'A'), (2, 'B')");
+        c1.commit();
+        test(s1, "select count(*) from test where name<>'C'", "2");
+        s2.execute("update test set name='B2' where id=2");
+        test(s1, "select count(*) from test where name<>'C'", "2");
+        c2.commit();
+        s2.execute("drop table test");
+        c2.rollback();
+
+
         // referential integrity problem
         s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
         s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");

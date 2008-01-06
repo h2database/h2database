@@ -33,9 +33,9 @@ import org.h2.util.StringUtils;
  */
 public abstract class Value {
 
-    // TODO value: float is missing
-
-    // remember to keep the order
+    /**
+     * The data type is unknown at this time.
+     */
     public static final int UNKNOWN = -1;
     public static final int NULL = 0, BOOLEAN = 1, BYTE = 2, SHORT = 3, INT = 4, LONG = 5, DECIMAL = 6;
     public static final int DOUBLE = 7, FLOAT = 8, TIME = 9, DATE = 10, TIMESTAMP = 11, BYTES = 12;
@@ -45,13 +45,75 @@ public abstract class Value {
     public static final int TYPE_COUNT = STRING_FIXED + 1;
 
     private static WeakReference weakCache = new WeakReference(null);
-    // private static int cacheCleaner = 0;
-    // testing: cacheHit / miss are public!
-    // public static int cacheHit = 0, cacheMiss = 0;
-    // private static Value[] cache = new Value[Constants.OBJECT_CACHE_SIZE];
-
     private static final BigDecimal MAX_LONG_DECIMAL = new BigDecimal("" + Long.MAX_VALUE);
     private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
+
+    /**
+     * Get the SQL expression for this value.
+     *
+     * @return the SQL expression
+     */
+    public abstract String getSQL();
+
+    /**
+     * Get the value type.
+     *
+     * @return the type
+     */
+    public abstract int getType();
+
+    /**
+     * Get the precision.
+     *
+     * @return the precision
+     */
+    public abstract long getPrecision();
+
+    /**
+     * Get the display size in characters.
+     *
+     * @return the display size
+     */
+    public abstract int getDisplaySize();
+
+    /**
+     * Get the value as a string.
+     *
+     * @return the string
+     */
+    public abstract String getString() throws SQLException;
+
+    /**
+     * Get the value as an object.
+     *
+     * @return the object
+     */
+    public abstract Object getObject() throws SQLException;
+
+    /**
+     * Set the value as a parameter in a prepared statement.
+     *
+     * @param prep the prepared statement
+     * @param parameterIndex the parameter index
+     */
+    public abstract void set(PreparedStatement prep, int parameterIndex) throws SQLException;
+
+    /**
+     * Compare the value with another value of the same type.
+     *
+     * @param v the other value
+     * @param mode the compare mode
+     * @return 0 if both values are equal, -1 if the other value is smaller, and 1 otherwise
+     */
+    protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
+
+    /**
+     * Check if the two values are equal.
+     *
+     * @param v the other value
+     * @return true if they are equal
+     */
+    protected abstract boolean isEqual(Value v);
 
     public static int getOrder(int type) {
         switch(type) {
@@ -141,17 +203,6 @@ public abstract class Value {
         }
         return v;
     }
-
-    public abstract String getSQL();
-    public abstract int getType();
-    public abstract long getPrecision();
-    public abstract int getDisplaySize();
-
-    public abstract String getString() throws SQLException;
-    protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
-    protected abstract boolean isEqual(Value v);
-    public abstract Object getObject() throws SQLException;
-    public abstract void set(PreparedStatement prep, int parameterIndex) throws SQLException;
 
     public Boolean getBoolean() throws SQLException {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();

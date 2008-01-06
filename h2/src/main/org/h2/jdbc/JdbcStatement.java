@@ -34,7 +34,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected int queryTimeout;
     protected boolean queryTimeoutSet;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
-;   protected int updateCount;
+    protected int updateCount;
     private CommandInterface executingCommand;
     private ObjectArray batchCommands;
     protected int resultSetType;

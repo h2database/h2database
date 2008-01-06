@@ -32,9 +32,6 @@ import org.h2.value.ValueNull;
 public class ConstraintReferential extends Constraint {
     public static final int RESTRICT = 0, CASCADE = 1, SET_DEFAULT = 2, SET_NULL = 3;
 
-    // TODO referential constraints: maybe use a own class for self referencing
-    // constraints
-
     private int deleteAction;
     private int updateAction;
     private Table refTable;

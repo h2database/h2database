@@ -14,11 +14,23 @@ import org.h2.store.DiskFile;
  * The base object for all cached objects.
  */
 public abstract class CacheObject {
-    private boolean changed;
+
+    /**
+     * The number of blocks occupied by this object.
+     */
+    protected int blockCount;
     public CacheObject previous, next, chained;
     public int cacheQueue;
-    protected int blockCount;
     private int pos;
+    private boolean changed;
+
+    /**
+     * Check if the object can be removed from the cache.
+     * For example pinned objects can not be removed.
+     *
+     * @return true if it can be removed
+     */
+    public abstract boolean canRemove();
 
     public static void sort(ObjectArray recordList) {
         recordList.sort(new Comparator() {
@@ -61,10 +73,9 @@ public abstract class CacheObject {
         return false;
     }
 
-    public abstract boolean canRemove();
-
-    /*
+    /**
      * Get the estimated memory size.
+     *
      * @return number of double words (4 bytes)
      */
     public int getMemorySize() {

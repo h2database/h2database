@@ -32,7 +32,19 @@ import org.h2.value.ValueNull;
  */
 public abstract class Query extends Prepared {
 
-    protected Expression limit, offset;
+    /**
+     * The limit expression as specified in the LIMIT or TOP clause.
+     */
+    protected Expression limit;
+
+    /**
+     * The offset expression as specified in the LIMIT .. OFFSET clause.
+     */
+    protected Expression offset;
+
+    /**
+     * The sample size
+     */
     protected int sampleSize;
 
     private int lastLimit;
@@ -40,7 +52,118 @@ public abstract class Query extends Prepared {
     private LocalResult lastResult;
     private Value[] lastParameters;
 
+    /**
+     * Execute the query without checking the cache.
+     *
+     * @param limit the limit as specified in the JDBC method call
+     * @return the result
+     */
     abstract LocalResult queryWithoutCache(int limit) throws SQLException;
+
+    /**
+     * Initialize the query.
+     */
+    public abstract void init() throws SQLException;
+
+    /**
+     * The the list of select expressions.
+     * This may include invisible expressions such as order by expressions.
+     *
+     * @return the list of expressions
+     */
+    public abstract ObjectArray getExpressions();
+
+    /**
+     * Calculate the cost to execute this query.
+     *
+     * @return the cost
+     */
+    public abstract double getCost();
+
+    /**
+     * Get all tables that are involved in this query.
+     *
+     * @return the set of tables
+     */
+    public abstract HashSet getTables();
+
+    /**
+     * Set the order by list.
+     *
+     * @param order the order by list
+     */
+    public abstract void setOrder(ObjectArray order);
+
+    /**
+     * Set the 'for update' flag.
+     *
+     * @param forUpdate the new setting
+     */
+    public abstract void setForUpdate(boolean forUpdate);
+
+    /**
+     * Get the column count of this query.
+     *
+     * @return the column count
+     */
+    public abstract int getColumnCount();
+
+    /**
+     * Map the columns to the given column resolver.
+     *
+     * @param resolver the resolver
+     * @param level the subquery level (0 is the top level query, 1 is the first subquery level)
+     */
+    public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
+
+    /**
+     * Change the evaluatable flag. This is used when building the execution plan.
+     *
+     * @param tableFilter the table filter
+     * @param b the new value
+     */
+    public abstract void setEvaluatable(TableFilter tableFilter, boolean b);
+
+    /**
+     * Add a condition to the query. This is used for views.
+     *
+     * @param param the parameter
+     * @param columnId the column index (0 meaning the first column)
+     * @param comparisonType the comparison type
+     */
+    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException;
+
+    /**
+     * Set the distinct flag.
+     *
+     * @param b the new value
+     */
+    public abstract void setDistinct(boolean b);
+
+    /**
+     * Get the alias (or column name) of the first column.
+     * This is used to convert IN(SELECT ...) queries to inner joins.
+     *
+     * @param session the session
+     * @return the alias or column name
+     */
+    public abstract String getFirstColumnAlias(Session session);
+
+    /**
+     * Check if this expression and all sub-expressions can fulfill a criteria.
+     * If any part returns false, the result is false.
+     *
+     * @param visitor the visitor
+     * @return if the criteria can be fulfilled
+     */
+    public abstract boolean isEverything(ExpressionVisitor visitor);
+
+    /**
+     * Update all aggregate function values.
+     *
+     * @param session the session
+     */
+    public abstract void updateAggregate(Session session) throws SQLException;
 
     public Query(Session session) {
         super(session);
@@ -237,19 +360,6 @@ public abstract class Query extends Prepared {
         this.limit = limit;
     }
 
-    public abstract void init() throws SQLException;
-    public abstract ObjectArray getExpressions();
-    public abstract double getCost();
-    public abstract HashSet getTables();
-    public abstract void setOrder(ObjectArray order);
-    public abstract void setForUpdate(boolean forUpdate);
-    public abstract int getColumnCount();
-    public abstract void mapColumns(ColumnResolver resolver, int level) throws SQLException;
-    public abstract void setEvaluatable(TableFilter tableFilter, boolean b);
-    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException;
-    public abstract void setDistinct(boolean b);
-    public abstract String getFirstColumnAlias(Session session);
-
     void addParameter(Parameter param) {
         if (parameters == null) {
             parameters = new ObjectArray();
@@ -267,13 +377,9 @@ public abstract class Query extends Prepared {
         return visitor.getMaxDataModificationId();
     }
 
-    public abstract boolean isEverything(ExpressionVisitor visitor);
-
     public final boolean isEverything(int expressionVisitorType) {
         ExpressionVisitor visitor = ExpressionVisitor.get(expressionVisitorType);
         return isEverything(visitor);
     }
-
-    public abstract void updateAggregate(Session session) throws SQLException;
 
 }

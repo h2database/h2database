@@ -22,6 +22,14 @@ PostgreSQL
 --------------------------------------------------------------------------------------------------------
 
 
+HSQLDB
+--------------------------------------------------------------------------------------------------------
+To use the same default settings as H2, use:
+jdbc:hsqldb:data/test;hsqldb.default_table_type=cached;sql.enforce_size=true
+Also, you need to execute the following statement:
+SET WRITE_DELAY 1
+
+
 Derby
 --------------------------------------------------------------------------------------------------------
 To call getFD().sync() (which results in the OS call fsync()),

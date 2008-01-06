@@ -28,10 +28,23 @@ public class Sentence {
         return System.currentTimeMillis() > max;
     }
 
+    /**
+     * Add a word to the set of next tokens.
+     *
+     * @param n the token name
+     * @param string an example text
+     * @param type the type
+     */
     public void add(String n, String string, int type) {
         next.put(type+"#"+n, string);
     }
 
+    /**
+     * Add an alias name and object
+     *
+     * @param alias the alias name
+     * @param table the alias table
+     */
     public void addAlias(String alias, DbTableOrView table) {
         if (aliases == null) {
             aliases = new HashMap();
@@ -39,6 +52,11 @@ public class Sentence {
         aliases.put(alias, table);
     }
 
+    /**
+     * Add a table.
+     *
+     * @param table the table
+     */
     public void addTable(DbTableOrView table) {
         lastTable = table;
         if (tables == null) {
@@ -47,14 +65,29 @@ public class Sentence {
         tables.add(table);
     }
 
+    /**
+     * Get the set of tables.
+     *
+     * @return the set of tables
+     */
     public HashSet getTables() {
         return tables;
     }
 
+    /**
+     * Get the alias map.
+     *
+     * @return the alias map
+     */
     public HashMap getAliases() {
         return aliases;
     }
 
+    /**
+     * Get the last added table.
+     *
+     * @return the last table
+     */
     public DbTableOrView getLastTable() {
         return lastTable;
     }

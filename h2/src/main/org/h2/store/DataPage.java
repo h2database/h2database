@@ -42,9 +42,114 @@ import org.h2.value.ValueUuid;
 public abstract class DataPage {
 
     static final boolean CHECKSUM = true;
+
+    /**
+     * The data handler responsible for lob objects.
+     */
     protected DataHandler handler;
+
+    /**
+     * The data itself.
+     */
     protected byte[] data;
+
+    /**
+     * The current write or read position.
+     */
     protected int pos;
+
+    /**
+     * Calculate the checksum and write.
+     *
+     */
+    public abstract void updateChecksum();
+
+    /**
+     * Test if the checksum is correct.
+     *
+     * @param len the number of bytes
+     * @throws SQLException if the checksum does not match
+     */
+    public abstract void check(int len) throws SQLException;
+
+    /**
+     * The space required for the checksum and additional fillers.
+     *
+     * @return the size
+     */
+    public abstract int getFillerLength();
+
+    /**
+     * Update an integer at the given position.
+     * The current position is not change.
+     *
+     * @param pos the position
+     * @param x the value
+     */
+    public abstract void setInt(int pos, int x);
+
+    /**
+     * Write an integer at the current position.
+     * The current position is incremented.
+     *
+     * @param x the value
+     */
+    public abstract void writeInt(int x);
+
+    /**
+     * Read an integer at the current position.
+     * The current position is incremented.
+     *
+     * @return the value
+     */
+    public abstract int readInt();
+
+    /**
+     * Get the length of an integer value.
+     *
+     * @return the length
+     */
+    public abstract int getIntLen();
+
+    /**
+     * Get the length of a long value.
+     *
+     * @param x the value
+     * @return the length
+     */
+    public abstract int getLongLen(long x);
+
+    /**
+     * Get the length of a String value.
+     *
+     * @param s the value
+     * @return the length
+     */
+    public abstract int getStringLen(String s);
+
+    /**
+     * Read a String value.
+     * The current position is incremented.
+     *
+     * @return the value
+     */
+    public abstract String readString();
+
+    /**
+     * Write a String value.
+     * The current position is incremented.
+     *
+     * @param s the value
+     */
+    public abstract void writeString(String s);
+
+    /**
+     * Increase the size to the given length.
+     * The current position is set to the given value.
+     *
+     * @param len the new length
+     */
+    public abstract void fill(int len);
 
     public static DataPage create(DataHandler handler, int capacity) {
         if (handler.getTextStorage()) {
@@ -76,14 +181,6 @@ public abstract class DataPage {
             data = d;
         }
     }
-
-    public abstract void updateChecksum();
-
-    public abstract void check(int len) throws SQLException;
-
-    public abstract int getFillerLength();
-
-    public abstract void setInt(int pos, int x);
 
     public int length() {
         return pos;
@@ -131,20 +228,6 @@ public abstract class DataPage {
     public int readByte() {
         return data[pos++];
     }
-
-    public abstract void writeInt(int x);
-
-    public abstract int readInt();
-
-    public abstract int getIntLen();
-
-    public abstract int getLongLen(long x);
-
-    public abstract int getStringLen(String s);
-
-    public abstract String readString();
-
-    public abstract void writeString(String s);
 
     public long readLong() {
         return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
@@ -417,8 +500,6 @@ public abstract class DataPage {
             throw Message.getInternalError("type=" + type);
         }
     }
-
-    public abstract void fill(int len);
 
     public void fillAligned() {
         // TODO datapage: fillAligned should not use a fixed constant '2'

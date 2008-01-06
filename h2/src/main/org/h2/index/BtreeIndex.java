@@ -180,7 +180,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             truncate(session);
         } else {
             BtreePage root = getRoot(session);
-            root.remove(session, row, 0);
+            root.remove(session, row);
             rowCount--;
         }
     }

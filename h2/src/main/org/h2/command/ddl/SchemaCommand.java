@@ -16,11 +16,22 @@ public abstract class SchemaCommand extends DefineCommand {
 
     private final Schema schema;
 
+    /**
+     * Create a new command.
+     *
+     * @param session the session
+     * @param schema the schema
+     */
     public SchemaCommand(Session session, Schema schema) {
         super(session);
         this.schema = schema;
     }
 
+    /**
+     * Get the schema
+     *
+     * @return the schema
+     */
     protected Schema getSchema() throws SQLException {
         return schema;
     }

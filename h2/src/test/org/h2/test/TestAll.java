@@ -154,6 +154,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+Javadocs: abstract class (Table)
+
 add tests with select distinct type (code coverage)
 
 documentation: package.html

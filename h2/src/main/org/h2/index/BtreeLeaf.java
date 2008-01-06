@@ -84,7 +84,7 @@ public class BtreeLeaf extends BtreePage {
         return splitPoint;
     }
 
-    public SearchRow remove(Session session, Row oldRow, int level) throws SQLException {
+    public SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {

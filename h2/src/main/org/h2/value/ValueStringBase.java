@@ -14,6 +14,10 @@ import org.h2.util.StringUtils;
  * The base class for all ValueString* classes.
  */
 abstract class ValueStringBase extends Value {
+
+    /**
+     * The string data.
+     */
     protected final String value;
 
     protected ValueStringBase(String value) {

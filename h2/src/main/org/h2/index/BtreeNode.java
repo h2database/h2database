@@ -112,7 +112,7 @@ public class BtreeNode extends BtreePage {
         return 0;
     }
 
-    public SearchRow remove(Session session, Row oldRow, int level) throws SQLException {
+    public SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
             throw Message.getInternalError("Empty btree page");
@@ -134,7 +134,7 @@ public class BtreeNode extends BtreePage {
         int at = l;
         // merge is not implemented to allow concurrent usage of btrees
         BtreePage page = index.getPage(session, pageChildren.get(at));
-        SearchRow first = page.remove(session, oldRow, level + 1);
+        SearchRow first = page.remove(session, oldRow);
         if (first == null) {
             // the first row didn't change - nothing to do here
             return null;

@@ -27,10 +27,13 @@ import com.sun.javadoc.Type;
  * Javadoc for this product.
  */
 public class Doclet {
+
+    private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
+
     public static boolean start(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
-        String destDir = "docs/javadoc";
+        String destDir = System.getProperty("h2.destDir", "docs/javadoc");
         for (int i = 0; i < options.length; i++) {
             if (options[i][0].equals("destdir")) {
                 destDir = options[i][1];
@@ -227,6 +230,10 @@ public class Doclet {
     }
 
     private static boolean skipMethod(MethodDoc method) {
+        ClassDoc clazz = method.containingClass();
+         if (INTERFACES_ONLY && (!clazz.isAbstract() || !method.isAbstract()) && !clazz.isInterface()) {
+             return true;
+         }
         String name = method.name();
         if (!method.isPublic() || name.equals("finalize")) {
             return true;
@@ -236,7 +243,7 @@ public class Doclet {
         }
         String firstSentence = getFirstSentence(method.firstSentenceTags());
         if (firstSentence == null || firstSentence.trim().length() == 0) {
-            throw new Error("undocumented method? " + name + " " + method.containingClass().name() + " "
+            throw new Error("undocumented method? " + clazz.name() + "." + name + " "
                     + method.getRawCommentText());
         }
         if (firstSentence.startsWith("INTERNAL")) {

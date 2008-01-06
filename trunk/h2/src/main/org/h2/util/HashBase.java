@@ -10,10 +10,46 @@ import java.sql.SQLException;
  * The base for other hash classes.
  */
 public abstract class HashBase {
-    protected int mask, len, size, deletedCount, level;
+
+    /**
+     * The bit mask to get the index from the hash code.
+     */
+    protected int mask;
+
+    /**
+     * The number of slots in the table.
+     */
+    protected int len;
+
+    /**
+     * The number of occupied slots, excluding the zero key (if any).
+     */
+    protected int size;
+
+    /**
+     * The number of deleted slots.
+     */
+    protected int deletedCount;
+
+    /**
+     * The level. The number of slots is 2 ^ level.
+     */
+    protected int level;
+
+    /**
+     * Whether the zero key is used.
+     */
     protected boolean zeroKey;
+
     private int maxSize, minSize, maxDeleted;
     private static final int MAX_LOAD = 90;
+
+    /**
+     * Increase the size of the underlying table and re-distribute the elements.
+     *
+     * @param newLevel the new level
+     */
+    protected abstract void rehash(int newLevel) throws SQLException;
 
     public HashBase() {
         reset(2);
@@ -39,8 +75,6 @@ public abstract class HashBase {
             rehash(level);
         }
     }
-
-    protected abstract void rehash(int newLevel) throws SQLException;
 
     protected void reset(int newLevel) {
         minSize = size * 3 / 4;

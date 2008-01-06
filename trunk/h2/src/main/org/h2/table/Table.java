@@ -47,7 +47,16 @@ public abstract class Table extends SchemaObjectBase {
     public static final String TABLE = "TABLE";
     public static final String VIEW = "VIEW";
 
+    /**
+     * The columns of this table.
+     */
     protected Column[] columns;
+
+    /**
+     * The amount of memory required for a row if all values would be very small.
+     */
+    protected int memoryPerRow;
+
     private final HashMap columnMap = new HashMap();
     private final boolean persistent;
     private ObjectArray triggers;
@@ -56,7 +65,142 @@ public abstract class Table extends SchemaObjectBase {
     private ObjectArray views;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
-    protected int memoryPerRow;
+
+    /**
+     * Lock the table for the given session.
+     * This method waits until the lock is granted.
+     *
+     * @param session the session
+     * @param exclusive true for write locks, false for read locks
+     * @param force lock even in the MVCC mode
+     * @throws SQLException if a lock timeout occured
+     */
+    public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
+
+    /**
+     * Close the table object and flush changes.
+     *
+     * @param session the session
+     */
+    public abstract void close(Session session) throws SQLException;
+
+    /**
+     * Release the lock for this session.
+     *
+     * @param s the session
+     */
+    public abstract void unlock(Session s);
+
+    /**
+     * Create an index for this table
+     *
+     * @param session the session
+     * @param indexName the name of the index
+     * @param indexId the id
+     * @param cols the index columns
+     * @param indexType the index type
+     * @param headPos the position of the head (if the index already exists)
+     * @param comment the comment
+     * @return the index
+     */
+    public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
+            int headPos, String comment) throws SQLException;
+
+    /**
+     * Remove a row from the table and all indexes.
+     *
+     * @param session the session
+     * @param row the row
+     */
+    public abstract void removeRow(Session session, Row row) throws SQLException;
+
+    /**
+     * Remove all rows from the table and indexes.
+     *
+     * @param session the session
+     */
+    public abstract void truncate(Session session) throws SQLException;
+
+    /**
+     * Add a row to the table and all indexes.
+     *
+     * @param session the session
+     * @param row the row
+     * @throws SQLException if a constraint was violated
+     */
+    public abstract void addRow(Session session, Row row) throws SQLException;
+
+    /**
+     * Check if this table supports ALTER TABLE.
+     *
+     * @throws SQLException if it is not supported
+     */
+    public abstract void checkSupportAlter() throws SQLException;
+
+    /**
+     * Get the table type name
+     *
+     * @return the table type name
+     */
+    public abstract String getTableType();
+
+    /**
+     * Get the scan index to iterate through all rows.
+     *
+     * @param session the session
+     * @return the index
+     */
+    public abstract Index getScanIndex(Session session) throws SQLException;
+
+    /**
+     * Get any unique index for this table if one exists.
+     *
+     * @return a unique index
+     */
+    public abstract Index getUniqueIndex();
+
+    /**
+     * Get all indexes for this table.
+     *
+     * @return the list of indexes
+     */
+    public abstract ObjectArray getIndexes();
+
+    /**
+     * Check if this table is locked exclusively.
+     *
+     * @return true if it is.
+     */
+    public abstract boolean isLockedExclusively();
+
+    /**
+     * Get the last data modification id.
+     *
+     * @return the modification id
+     */
+    public abstract long getMaxDataModificationId();
+
+    /**
+     * Check if the row count can be retrieved quickly.
+     *
+     * @return true if it can
+     */
+    public abstract boolean canGetRowCount();
+
+    /**
+     * Check if this table can be dropped.
+     *
+     * @return true if it can
+     */
+    public abstract boolean canDrop();
+
+    /**
+     * Get the row count for this table.
+     *
+     * @param session the session
+     * @return the row count
+     */
+    public abstract long getRowCount(Session session) throws SQLException;
 
     public Table(Schema schema, int id, String name, boolean persistent) {
         super(schema, id, name, Trace.TABLE);
@@ -133,38 +277,9 @@ public abstract class Table extends SchemaObjectBase {
         columnMap.put(newName, column);
     }
 
-    public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
-
     public boolean isLockExclusive(Session s) {
         return false;
     }
-
-    public abstract void close(Session session) throws SQLException;
-
-    public abstract void unlock(Session s);
-
-    public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            int headPos, String comment) throws SQLException;
-
-    public abstract void removeRow(Session session, Row row) throws SQLException;
-
-    public abstract void truncate(Session session) throws SQLException;
-
-    public abstract void addRow(Session session, Row row) throws SQLException;
-
-    public abstract void checkSupportAlter() throws SQLException;
-
-    public abstract String getTableType();
-
-    public abstract Index getScanIndex(Session session) throws SQLException;
-
-    public abstract Index getUniqueIndex();
-
-    public abstract ObjectArray getIndexes();
-
-    public abstract boolean isLockedExclusively();
-
-    public abstract long getMaxDataModificationId();
 
     public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
@@ -473,12 +588,6 @@ public abstract class Table extends SchemaObjectBase {
         }
         return cols;
     }
-
-    public abstract boolean canGetRowCount();
-
-    public abstract boolean canDrop();
-
-    public abstract long getRowCount(Session session) throws SQLException;
 
     public boolean getGlobalTemporary() {
         return false;

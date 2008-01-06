@@ -573,8 +573,6 @@ public class Select extends Query {
                         if (!type.isHash() && (!type.isUnique() || columnIndex.getColumns().length > 1)) {
                             topTableFilter.setIndex(columnIndex);
                             isDistinctQuery = true;
-int test;
-System.out.println("##distinct: " + this.sql);
                         }
                     }
                 }

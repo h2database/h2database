@@ -256,14 +256,18 @@
 		</copy>
 	</target>
 
-	<target name="javadocImpl">
+	<target name="javadocImpl" depends="javadoc">
 		<mkdir dir="docs/javadocImpl"/>
 		<javadoc
 			sourcepath="src/main"
 			packagenames="org.h2.*"
-			destDir="docs/javadocImpl"
 		    classpath="${path.lucene.jar};${path.servlet.jar}"
-		/> 		<!--	doclet="org.h2.tools.doclet.Doclet"  docletpath="bin"-->
+			destDir="docs/javadocImpl"
+		/>
+	    <!--
+			doclet="org.h2.tools.doclet.Doclet"  docletpath="bin"
+		    additionalparam="-J-Dh2.interfacesOnly=true -J-Dh2.destDir=docs/javadocImpl"
+		-->
 		<copy todir="docs/javadoc">
 			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
 		</copy>

@@ -33,14 +33,26 @@ import org.h2.value.Value;
  */
 public abstract class ScriptBase extends Prepared implements DataHandler {
 
+    /**
+     * The output stream.
+     */
+    protected OutputStream out;
+
+    /**
+     * The input stream.
+     */
+    protected InputStream in;
+
+    /**
+     * The file name (if set).
+     */
+    protected String fileName;
+
     private String cipher;
     private byte[] key;
     private FileStore store;
     private OutputStream outStream;
     private InputStream inStream;
-    protected OutputStream out;
-    protected InputStream in;
-    protected String fileName;    
     private String compressionAlgorithm;
 
     public ScriptBase(Session session) {
@@ -76,7 +88,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             FileUtils.delete(fileName);
         }
     }
-    
+
     private void initStore() throws SQLException {
         byte[] magic = Database.getMagic(true);
         Database db = session.getDatabase();
@@ -85,7 +97,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         store.setCheckedWriting(false);
         store.init();
     }
-    
+
     protected void openOutput() throws SQLException {
         if (fileName == null) {
             return;
@@ -194,7 +206,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     public String getLobCompressionAlgorithm(int type) {
         return session.getDatabase().getLobCompressionAlgorithm(type);
     }
-    
+
     public void setCompressionAlgorithm(String algorithm) {
         this.compressionAlgorithm = algorithm;
     }

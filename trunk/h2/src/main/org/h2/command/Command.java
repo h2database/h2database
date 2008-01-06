@@ -21,16 +21,64 @@ import org.h2.util.ObjectArray;
  * Represents a SQL statement. This object is only used on the server side.
  */
 public abstract class Command implements CommandInterface {
-    private final String sql;
+
+    /**
+     * The session.
+     */
     protected final Session session;
+
+    /**
+     * The trace module.
+     */
     protected final Trace trace;
+
+    /**
+     * The last start time.
+     */
     protected long startTime;
+
+    /**
+     * If this query was cancelled.
+     */
     private volatile boolean cancel;
 
+    private final String sql;
+
+    /**
+     * Check if this command is transactional.
+     * If it is not, then it forces the current transaction to commit.
+     *
+     * @return true if it is
+     */
     public abstract boolean isTransactional();
+
+    /**
+     * Check if this command is a query.
+     *
+     * @return true if it is
+     */
     public abstract boolean isQuery();
+
+    /**
+     * Get the list of parameters.
+     *
+     * @return the list of parameters
+     */
     public abstract ObjectArray getParameters();
+
+    /**
+     * Check if this command is read only.
+     *
+     * @return true if it is
+     */
     public abstract boolean isReadOnly();
+
+    /**
+     * Get an empty result set containing the meta data.
+     *
+     * @return an empty result set
+     */
+    public abstract LocalResult queryMeta() throws SQLException;
 
     public Command(Parser parser, String sql) {
         this.session = parser.getSession();
@@ -45,8 +93,6 @@ public abstract class Command implements CommandInterface {
     public LocalResult query(int maxrows) throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
-
-    public abstract LocalResult queryMeta() throws SQLException;
 
     public final LocalResult getMetaDataLocal() throws SQLException {
         return queryMeta();

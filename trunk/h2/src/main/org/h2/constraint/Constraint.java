@@ -21,8 +21,89 @@ import org.h2.table.Table;
  */
 public abstract class Constraint extends SchemaObjectBase {
 
-    public static final String CHECK = "CHECK", REFERENTIAL = "REFERENTIAL", UNIQUE = "UNIQUE";
+    /**
+     * The constraint type name for check constraints.
+     */
+    public static final String CHECK = "CHECK";
+
+    /**
+     * The constraint type name for referential constraints.
+     */
+    public static final String REFERENTIAL = "REFERENTIAL";
+
+    /**
+     * The constraint type name for unique constraints.
+     */
+    public static final String UNIQUE = "UNIQUE";
+
+    /**
+     * The table for which this constraint is defined.
+     */
     protected Table table;
+
+    /**
+     * The constraint type name
+     *
+     * @return the name
+     */
+    public abstract String getConstraintType();
+
+    /**
+     * Check if this row fulfils the constraint.
+     * This method throws an exception if not.
+     *
+     * @param session the session
+     * @param t the table
+     * @param oldRow the old row
+     * @param newRow the new row
+     */
+    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException;
+
+    /**
+     * Check if this constraint needs the specified index.
+     *
+     * @param index the index
+     * @return true if the index is used
+     */
+    public abstract boolean usesIndex(Index index);
+
+    /**
+     * Check if this constraint contains the given column.
+     *
+     * @param col the column
+     * @return true if it does
+     */
+    public abstract boolean containsColumn(Column col);
+
+    /**
+     * Get the SQL statement to create this constraint.
+     *
+     * @return the SQL statement
+     */
+    public abstract String  getCreateSQLWithoutIndexes();
+
+    /**
+     * Check if this constraint needs to be checked before updating the data.
+     *
+     * @return true if it must be checked before updating
+     */
+    public abstract boolean isBefore();
+
+    /**
+     * Get a short description of the constraint. This includes the constraint name (if set),
+     * and the constraint expression.
+     *
+     * @return the description
+     */
+    public abstract String getShortDescription();
+
+    /**
+     * Check the existing data. This method is called if the constraint is added after
+     * data has been inserted into the table.
+     *
+     * @param session the session
+     */
+    public abstract void checkExistingData(Session session) throws SQLException;
 
     public Constraint(Schema schema, int id, String name, Table table) {
         super(schema, id, name, Trace.CONSTRAINT);
@@ -37,15 +118,6 @@ public abstract class Constraint extends SchemaObjectBase {
     public int getType() {
         return DbObject.CONSTRAINT;
     }
-
-    public abstract String getConstraintType();
-    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow) throws SQLException;
-    public abstract boolean usesIndex(Index index);
-    public abstract boolean containsColumn(Column col);
-    public abstract String  getCreateSQLWithoutIndexes();
-    public abstract boolean isBefore();
-    public abstract String getShortDescription();
-    public abstract void checkExistingData(Session session) throws SQLException;
 
     public Table getTable() {
         return table;

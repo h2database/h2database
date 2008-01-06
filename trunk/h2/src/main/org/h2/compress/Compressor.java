@@ -46,6 +46,7 @@ public interface Compressor {
 
     /**
      * Expand a number of compressed bytes.
+     *
      * @param in the compressed data
      * @param inPos the offset at the input array
      * @param inLen the number of bytes to read
@@ -54,5 +55,12 @@ public interface Compressor {
      * @param outLen the size of the uncompressed data
      */
     void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) throws SQLException;
+
+    /**
+     * Set the compression options. This may include settings for
+     * higher performance but less compression.
+     *
+     * @param options the options
+     */
     void setOptions(String options) throws SQLException;
 }

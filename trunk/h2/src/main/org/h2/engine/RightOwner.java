@@ -17,9 +17,18 @@ import org.h2.table.Table;
  */
 public abstract class RightOwner extends DbObjectBase {
 
-    // key: role; value: right
+    /**
+     * The map of granted roles.
+     * The key is the role,
+     * and the value is the right.
+     */
     private HashMap grantedRoles;
-    // key: table; value: right
+
+    /**
+     * The map of granted rights.
+     * The key is the table,
+     * and the value is the right.
+     */
     private HashMap grantedRights;
 
     protected RightOwner(Database database, int id, String name, String traceModule) {

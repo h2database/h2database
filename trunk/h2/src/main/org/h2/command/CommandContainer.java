@@ -41,13 +41,13 @@ public class CommandContainer extends Command {
     private void recompileIfRequired() throws SQLException {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
-            prepared.setModificationId(0);
+            prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
             ObjectArray oldValues = prepared.getParameters();
             Parser parser = new Parser(session);
             prepared = parser.parseOnly(sql);
-            long mod = prepared.getModificationId();
-            prepared.setModificationId(0);
+            long mod = prepared.getModificationMetaId();
+            prepared.setModificationMetaId(0);
             ObjectArray newParams = prepared.getParameters();
             for (int i = 0; i < newParams.size(); i++) {
                 Value v = ((Expression) oldValues.get(i)).getValue(session);
@@ -55,7 +55,7 @@ public class CommandContainer extends Command {
                 p.setValue(v);
             }
             prepared.prepare();
-            prepared.setModificationId(mod);
+            prepared.setModificationMetaId(mod);
         }
     }
 

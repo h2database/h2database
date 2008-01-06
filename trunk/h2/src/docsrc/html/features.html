@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
-Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -160,14 +160,14 @@ http://groups.google.com/group/h2-database/web/roadmap
 <th>MySQL</th>
 <th>PostgreSQL</th>
 </tr><tr>
-<td>Embedded Mode (Java)</td>
+<td>Pure Java</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareN">No</td>
 </tr><tr>
-<td>Pure Java</td>
+<td>Embedded Mode (Java)</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -180,6 +180,13 @@ http://groups.google.com/group/h2-database/web/roadmap
 <td class="compareY">Fast</td>
 <td class="compareN">N/A</td>
 <td class="compareN">N/A</td>
+</tr><tr>
+<td>In-Memory Mode</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
 </tr><tr>
 <td>Transaction Isolation</td>
 <td class="compareY">Yes</td>
@@ -209,6 +216,27 @@ http://groups.google.com/group/h2-database/web/roadmap
 <td class="compareN">No</td>
 <td class="compareN">No</td>
 </tr><tr>
+<td>ODBC Driver</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes?</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+</tr><tr>
+<td>Fulltext Search</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+</tr><tr>
+<td>User Defined Datatypes</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+</tr><tr>
 <td>Files per Database</td>
 <td class="compareY">Few</td>
 <td class="compareN">Many</td>
@@ -227,9 +255,9 @@ http://groups.google.com/group/h2-database/web/roadmap
 
 <h3>Derby and HSQLDB</h3>
 <p>
-After an unexpected process termination (for example power failure), H2 can recover safely and 
-automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required 
-('Another instance of Derby may have already booted the database' / 
+After an unexpected process termination (for example power failure), H2 can recover safely and
+automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required
+('Another instance of Derby may have already booted the database' /
 'The database is already in use by another process').
 </p>
 
@@ -258,7 +286,7 @@ http://groups.google.com/group/h2-database/web/h2-in-use
 The following connection modes are supported:
 </p>
 <ul>
-<li>Local connections using JDBC (embedded) 
+<li>Local connections using JDBC (embedded)
 </li><li>Remote connections using JDBC over TCP/IP (client/server)
 </li><li>Remote connections using ODBC over TCP/IP (client/server)
 </li><li>In-Memory databases (private and shared)
@@ -391,8 +419,8 @@ This is achieved using different database URLs. The settings in the URLs are not
 <h3>Connecting to an Embedded (Local) Database</h3>
 <p>
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
-The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working 
-directory is used as a starting point. The case sensitivity of the path and database name depend on the 
+The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working
+directory is used as a starting point. The case sensitivity of the path and database name depend on the
 operating system, however it is suggested to use lowercase letters only.
 The database name must be at least three characters long (a limitation of File.createTempFile).
 To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
@@ -402,7 +430,7 @@ To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 <h2>Memory-Only Databases</h2>
 <p>
 For certain use cases (for example: rapid prototyping, testing, high performance
-operations, read-only databases), it may not be required to persist (changes to) the data at all. 
+operations, read-only databases), it may not be required to persist (changes to) the data at all.
 This database supports the memory-only mode, where the data is not persisted.
 </p><p>
 In some cases, only one connection to a memory-only database is required.
@@ -412,27 +440,27 @@ means opening two different (private) databases.
 </p><p>
 Sometimes multiple connections to the same memory-only database are required.
 In this case, the database URL must include a name. Example: <code>jdbc:h2:mem:db1</code>.
-Accessing the same database in this way only works within the same virtual machine and 
+Accessing the same database in this way only works within the same virtual machine and
 class loader environment.
 </p><p>
-It is also possible to access a memory-only database remotely 
+It is also possible to access a memory-only database remotely
 (or from multiple processes in the same machine) using TCP/IP or SSL/TLS.
 An example database URL is: <code>jdbc:h2:tcp://localhost/mem:db1</code>
 (using private database remotely is also possible).
 </p><p>
-By default, when the last connection to a in-memory database is closed, the contents are lost. 
-This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep 
-the contents of an in-memory database as long as the virtual machine is alive, use 
+By default, when the last connection to a in-memory database is closed, the contents are lost.
+This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep
+the contents of an in-memory database as long as the virtual machine is alive, use
 jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
 </p>
 
 <br /><a name="file_encryption"></a>
 <h2>Connecting to a Database with File Encryption</h2>
 <p>
-To use file encryption, it is required to specify the encryption algorithm (the 'cipher') 
+To use file encryption, it is required to specify the encryption algorithm (the 'cipher')
 and the file password. The algorithm needs to be specified using the connection parameter.
 Two algorithms are supported: XTEA and AES. The file password is specified in the password field,
-before the user password. A single space needs to be added between the file password 
+before the user password. A single space needs to be added between the file password
 and the user password; the file password itself may not contain spaces. File passwords
 (as well as user passwords) are case sensitive. Here is an example to connect to a password
 encrypted database:
@@ -449,20 +477,20 @@ conn = DriverManager.
 <br /><a name="database_file_locking"></a>
 <h2>Database File Locking</h2>
 <p>
-Whenever a database is opened, a lock file is created to signal other processes 
+Whenever a database is opened, a lock file is created to signal other processes
 that the database is in use. If database is closed, or if the process that opened
-the database terminates, this lock file is deleted. 
+the database terminates, this lock file is deleted.
 </p><p>
 The following file locking methods are implemented:
 </p>
 <ul>
 <li>The default method is 'file' and uses a watchdog thread to
-protect the database file. The watchdog reads the lock file each second. 
-</li><li>The second method is 'socket' and opens a server socket. The socket method does 
+protect the database file. The watchdog reads the lock file each second.
+</li><li>The second method is 'socket' and opens a server socket. The socket method does
 not require reading the lock file every second. The socket method should only be used
 if the database files are only accessed by the one (and always the same) computer.
 </li><li>It is also possible to open the database without file locking;
-in this case it is up to the application to protect the database files. 
+in this case it is up to the application to protect the database files.
 </li></ul>
 <p>
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
@@ -471,23 +499,23 @@ The following code opens the database with the 'socket' locking method:
 String url = "jdbc:h2:~/test;FILE_LOCK=SOCKET";
 </pre>
 The following code forces the database to not create a lock file at all. Please note that
-this is unsafe as another process is able to open the same database, possibly leading to 
+this is unsafe as another process is able to open the same database, possibly leading to
 data corruption:
 <pre>
 String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
-For more information about the algorithms please see in Advanced Topics under 
-File Locking Protocol.  
+For more information about the algorithms please see in Advanced Topics under
+File Locking Protocol.
 </p>
 
 <br /><a name="database_only_if_exists"></a>
 <h2>Opening a Database Only if it Already Exists</h2>
 <p>
-By default, when an application calls <code>DriverManager.getConnection(url,...)</code> 
+By default, when an application calls <code>DriverManager.getConnection(url,...)</code>
 and the database specified in the URL does not yet exist, a new (empty) database is created.
 In some situations, it is better to restrict creating new database, and only open
 the database if it already exists. This can be done by adding <code>;ifexists=true</code>
-to the URL. In this case, if the database does not already exist, an exception is thrown when 
+to the URL. In this case, if the database does not already exist, an exception is thrown when
 trying to connect. The connection only succeeds when the database already exists.
 The complete URL may look like this:
 </p>
@@ -502,7 +530,7 @@ String url = "jdbc:h2:/data/sample;IFEXISTS=TRUE";
 <p>
 Usually, the database is closed when the last connection to it is closed. In some situations
 this slows down the application, for example when it is not possible leave the connection open.
-The automatic closing of the database can be delayed or disabled with the SQL statement 
+The automatic closing of the database can be delayed or disabled with the SQL statement
 SET DB_CLOSE_DELAY &lt;seconds&gt;. The seconds specifies the number of seconds to keep
 a database open after the last connection to it was closed. For example the following statement
 will keep the database open for 10 seconds:
@@ -521,8 +549,8 @@ By default, a database is closed when the last connection is closed. However, if
 the database is closed when the virtual machine exits normally. This is done using a shutdown hook.
 In some situations, the database should not be closed in this case, for example because the
 database is still used at virtual machine shutdown (to store the shutdown process in the database for example).
-For those cases, the automatic closing of the database can be disabled in the database URL. 
-The first connection (the one that is opening the database) needs to 
+For those cases, the automatic closing of the database can be disabled in the database URL.
+The first connection (the one that is opening the database) needs to
 set the option in the database URL (it is not possible to change the setting afterwards).
 The database URL to disable database closing on exit is:
 </p>
@@ -538,7 +566,7 @@ If the index file is corrupt or missing when opening a database, it is re-create
 The index file can get corrupt when the database is not shut down correctly,
 because of power failure or abnormal program termination.
 In some situations, for example when using very large databases (over a few hundred MB),
-re-creating the index file takes very long. 
+re-creating the index file takes very long.
 In these situations it may be better to log changes to the index file,
 so that recovery from a corrupted index file is fast.
 To enable log index changes, add LOG=2 to the URL, as in jdbc:h2:~/test;LOG=2
@@ -548,18 +576,18 @@ The update performance of the database will be reduced when using this option.
 
 <h3>Ignore Unknown Settings</h3>
 <p>
-Some applications (for example OpenOffice.org Base) pass some additional parameters 
+Some applications (for example OpenOffice.org Base) pass some additional parameters
 when connecting to the database. Why those parameters are passed is unknown.
 The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples,
 they are simply ignored to improve the compatibility with OpenOffice.org. If an application
 passes other parameters when connecting to the database, usually the database throws an exception
 saying the parameter is not supported. It is possible to ignored such parameters by adding
-;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL. 
+;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL.
 </p>
 
 <h3>Changing Other Settings when Opening a Connection</h3>
 <p>
-In addition to the settings already described (cipher, file_lock, ifexists, user, password), 
+In addition to the settings already described (cipher, file_lock, ifexists, user, password),
 other database settings can be passed in the database URL.
 Adding <code>setting=value</code> at the end of an URL is the
 same as executing the statement <code>SET setting value</code> just after
@@ -599,31 +627,31 @@ you need to use the client / server mode. In this case, one process acts as the 
 other processes (that could reside on other computers as well) connect to the server via TCP/IP
 (or SSL/TLS over TCP/IP for improved security).
 </p>
- 
+
 <h3>Multithreading Support</h3>
 <p>
 This database is multithreading-safe. That means, if an application is multi-threaded, it does not need
-o worry about synchronizing the access to the database. Internally, most requests to the same database 
+o worry about synchronizing the access to the database. Internally, most requests to the same database
 are synchronized. That means an application can use multiple threads all accessing the same database
 at the same time, however if one thread executes a long running query, the other threads
 need to wait.
 </p>
- 
+
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
 <p>
 The database uses table level locks to give each connection a consistent state of the data.
 There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks).
-If a connection wants to reads from a table, and there is no write lock on the table, 
+If a connection wants to reads from a table, and there is no write lock on the table,
 then a read lock is added to the table. If there is a write lock, then this connection waits
 for the other connection to release the lock. If connection cannot get a lock for a specified time,
-then a lock timeout exception is thrown. 
+then a lock timeout exception is thrown.
 </p><p>
-Usually, SELECT statement will generate read locks. This includes subqueries. 
-Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data, 
+Usually, SELECT statement will generate read locks. This includes subqueries.
+Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data,
 using the statement SELECT ... FOR UPDATE.
 The statements COMMIT and ROLLBACK releases all open locks.
 The commands SAVEPOINT and ROLLBACK TO SAVEPOINT don't affect locks.
-The locks are also released when the autocommit mode changes, and for connections with 
+The locks are also released when the autocommit mode changes, and for connections with
 autocommit set to true (this is the default), locks are released after each statement.
 Here is an overview on what statements generate what type of lock:
 </p>
@@ -678,10 +706,10 @@ SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persi
 <br /><a name="database_file_layout"></a>
 <h2>Database File Layout</h2>
 <p>
-There are a number of files created for persistent databases. Other than some databases, 
+There are a number of files created for persistent databases. Other than some databases,
 not every table and/or index is stored in its own file. Instead, usually only the following files are created:
 A data file, an index file, a log file, and a database lock file (exists only while the database is in use).
-In addition to that, a file is created for each large object (CLOB/BLOB), a file for each linear index, 
+In addition to that, a file is created for each large object (CLOB/BLOB), a file for each linear index,
 and temporary files for large result sets. Then the command SCRIPT can create script files.
 If the database trace option is enabled, trace files are created.
 The following files can be created by the database:
@@ -766,7 +794,7 @@ The following files can be created by the database:
 <p>
 Database name and location are not stored inside the database names.
 </p><p>
-While a database is closed, the files can be moved to another directory, and they can be renamed 
+While a database is closed, the files can be moved to another directory, and they can be renamed
 as well (as long as all files start with the same name).
 </p><p>
 As there is no platform specific data in the files, they can be moved to other operating systems
@@ -785,8 +813,8 @@ To backup data while the database is running, the SQL command SCRIPT can be used
 <br /><a name="logging_recovery"></a>
 <h2>Logging and Recovery</h2>
 <p>
-Whenever data is modified in the database and those changes are committed, the changes are logged 
-to disk (except for in-memory objects). The changes to the data file itself are usually written 
+Whenever data is modified in the database and those changes are committed, the changes are logged
+to disk (except for in-memory objects). The changes to the data file itself are usually written
 later on, to optimize disk access. If there is a power failure, the data and index files are not up-to-date.
 But because the changes are in the log file, the next time the database is opened, the changes that are
 in the log file are re-applied automatically.
@@ -794,8 +822,8 @@ in the log file are re-applied automatically.
 Please note that index file updates are not logged by default. If the database is opened and recovery is required,
 the index file is rebuilt from scratch.
 </p><p>
-There is usually only one log file per database. This file grows until the database is closed successfully, 
-and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id). 
+There is usually only one log file per database. This file grows until the database is closed successfully,
+and is then deleted. Or, if the file gets too big, the database switches to another log file (with a higher id).
 It is possible to force the log switching by using the CHECKPOINT command.
 </p><p>
 If the database file is corrupted, because the checksum of a record does not match (for example, if the
@@ -821,11 +849,11 @@ IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
 <h3>Compatibility Modes</h3>
 <p>
 For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those
-databases are implemented. Currently, this feature is mainly used for randomized comparative testing 
+databases are implemented. Currently, this feature is mainly used for randomized comparative testing
 (where random statements are executed against multiple databases and the results are compared).
 The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE.
 To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
-or the SQL statement <code>SET MODE HSQLDB</code>. 
+or the SQL statement <code>SET MODE HSQLDB</code>.
 Here is the list of currently supported modes and the difference to the regular mode:
 </p>
 <table>
@@ -860,7 +888,7 @@ Here is the list of currently supported modes and the difference to the regular 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>
 <p>
-To find problems in an application, it is sometimes good to see what database operations 
+To find problems in an application, it is sometimes good to see what database operations
 where executed. This database offers the following trace features:
 </p>
 <ul>
@@ -874,8 +902,8 @@ where executed. This database offers the following trace features:
 <h3>Trace Options</h3>
 <p>
 The simplest way to enable the trace option is setting it in the database URL.
-There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing, 
-and one for file tracing (TRACE_LEVEL_FILE). 
+There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing,
+and one for file tracing (TRACE_LEVEL_FILE).
 The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG.
 A database URL with both levels set to DEBUG is:
 <pre>
@@ -893,7 +921,7 @@ SET TRACE_LEVEL_SYSTEM_OUT 3
 <h3>Setting the Maximum Size of the Trace File</h3>
 <p>
 When using a high trace level, the trace file can get very big quickly.
-The size of the file can be limited by executing the SQL statement 
+The size of the file can be limited by executing the SQL statement
 <code>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</code>.
 If the log file exceeds the limit, the file is renamed to .old and a new file is created.
 If another .old file exists, it is deleted.
@@ -909,9 +937,9 @@ When setting the trace level to INFO or DEBUG, Java source code is generated as 
 problem can be reproduced more easily. The trace file looks like this:
 <pre>
 ...
-12-20 20:58:09 jdbc[0]: 
+12-20 20:58:09 jdbc[0]:
 /**/dbMeta3.getURL();
-12-20 20:58:09 jdbc[0]: 
+12-20 20:58:09 jdbc[0]:
 /**/dbMeta3.getTables(null, "", null, new String[]{"TABLE", "VIEW"});
 ...
 </pre>
@@ -935,10 +963,10 @@ Also, the user name and password needs to be set, because they are not listed in
 <p>
 Sometimes, you can't or don't want to change the application or database URL.
 There is still a way to enable the trace mode in these cases, even at runtime (while
-the database connection is open). You only need to create a special file in the directory 
+the database connection is open). You only need to create a special file in the directory
 where the database files are stored.
 The database engine checks every 4 seconds if this file exists (only while executing a statement).
-The file name is the database name plus '.trace.db.start'. 
+The file name is the database name plus '.trace.db.start'.
 This feature is disabled if the database is encrypted.
 </p><p>
 Example: if a database is called 'test', then the file to start tracing is 'test.trace.db.start'.
@@ -980,15 +1008,15 @@ jdbc:h2:zip:data.zip!/test
 <p>
 Databases in a zip file are read-only. The performance for some queries will be slower than when using
 a regular database, because random access in zip files is not supported (only streaming). How much this
-affects the performance depends on the queries and the data. The database 
+affects the performance depends on the queries and the data. The database
 is not read in memory, so large databases are supported as well. The same indexes are used than when using
-a regular database. 
+a regular database.
 </p>
 
 <br /><a name="storage_formats"></a>
 <h2>Binary and Text Storage Formats</h2>
 <p>
-This database engine supports both binary and text storage formats. 
+This database engine supports both binary and text storage formats.
 The binary format is faster, but the text storage format can be useful as well,
 for example to debug the database engine.
 If a database already exists, the storage format is recognized automatically.
@@ -1011,17 +1039,17 @@ be freed up.
 </p><p>
 It is possible to install a database event listener to detect low disk space situations early on
 (when only 1 MB if space is available). To do this, use the SQL statement
-SET DATABASE_EVENT_LISTENER. 
+SET DATABASE_EVENT_LISTENER.
 The listener can also be set at connection time, using an URL of the form
 jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
 (the quotes around the class name are required).
-See also the DatabaseEventListener API. 
+See also the DatabaseEventListener API.
 </p>
 
 <h3>Opening a Corrupted Database</h3>
 <p>
 If a database can not be opened because the boot info (the SQL script that is run at startup)
-is corrupted, then the database can be opened by specifying a database event listener. 
+is corrupted, then the database can be opened by specifying a database event listener.
 The exceptions are logged, but opening the database will continue.
 </p>
 
@@ -1034,8 +1062,8 @@ a column is required, just create a computed column with the upper-case version 
 and index this column:
 <pre>
 CREATE TABLE ADDRESS(
-  ID INT PRIMARY KEY, 
-  NAME VARCHAR, 
+  ID INT PRIMARY KEY,
+  NAME VARCHAR,
   UPPER_NAME VARCHAR AS UPPER(NAME)
 );
 CREATE INDEX IDX_U_NAME ON ADDRESS(UPPER_NAME);
@@ -1055,16 +1083,16 @@ SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 A tool is provided to execute efficient multi-dimension (spatial) range queries.
 This database does not support a specialized spatial index (R-Tree or similar).
 Instead, the B-Tree index is used. For each record, the multi-dimensional key
-is converted (mapped) to a single dimensional (scalar) value. 
+is converted (mapped) to a single dimensional (scalar) value.
 This value specifies the location on a space-filling curve.
 </p><p>
-Currently, Z-order (also called N-order or Morton-order) is used; 
-Hilbert curve could also be used, but the implementation is more complex. 
-The algorithm to convert the multi-dimensional value is called bit-interleaving. 
-The scalar value is indexed using a B-Tree index (usually using a computed column).    
+Currently, Z-order (also called N-order or Morton-order) is used;
+Hilbert curve could also be used, but the implementation is more complex.
+The algorithm to convert the multi-dimensional value is called bit-interleaving.
+The scalar value is indexed using a B-Tree index (usually using a computed column).
 </p><p>
-The method can result in a drastic performance improvement 
-over just using an index on the first column. Depending on the 
+The method can result in a drastic performance improvement
+over just using an index on the first column. Depending on the
 data and number of dimensions, the improvement is usually higher than factor 5.
 The tool generates a SQL query from a specified multi-dimensional range.
 The method used is not database dependent, and the tool can easily be ported to other databases.
@@ -1080,7 +1108,7 @@ in TestMultiDimension.java.
 Remember that weak passwords can be broken no matter of the encryption and security protocol.
 Don't use passwords that can be found in a dictionary. Also appending numbers does not make them
 secure. A way to create good passwords that can be remembered is, take the first
-letters of a sentence, use upper and lower case characters, and creatively include special characters. 
+letters of a sentence, use upper and lower case characters, and creatively include special characters.
 Example:
 </p><p>
 i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
@@ -1089,13 +1117,13 @@ i'sE2rtPiUKtT (it's easy to remember this password if you know the trick)
 <h3>Passwords: Using Char Arrays instead of Strings</h3>
 <p>
 Java Strings are immutable objects and cannot be safely 'destroyed' by the application.
-After creating a String, it will remain in the main memory of the computer at least 
+After creating a String, it will remain in the main memory of the computer at least
 until it is garbage collected. The garbage collection cannot be controlled by the application,
 and even if it is garbage collected the data may still remain in memory.
 It might also be possible that the part of memory containing the password
 is swapped to disk (because not enough main memory is available).
 </p><p>
-An attacker might have access to the swap file of the operating system. 
+An attacker might have access to the swap file of the operating system.
 It is therefore a good idea to use char arrays instead of Strings to store passwords.
 Char arrays can be cleared (filled with zeros) after use, and therefore the
 password will not be stored in the swap file.
@@ -1106,7 +1134,7 @@ The following code can be used to do that:
 Class.forName("org.h2.Driver");
 String url = "jdbc:h2:simple";
 String user = "sam";
-char[] password = 
+char[] password =
 {'t','i','a','S','&amp;',E','t','r','p'};
 Properties prop = new Properties();
 prop.setProperty("user", user);
@@ -1119,7 +1147,7 @@ try {
     Arrays.fill(password, 0);
 }
 </pre>
-In this example, the password is hard code in the application, which is not secure of course. 
+In this example, the password is hard code in the application, which is not secure of course.
 However, Java Swing supports a way to get passwords using a char array (JPasswordField).
 </p>
 
@@ -1177,7 +1205,7 @@ to database is provided. This connection does not need to be closed before retur
 
 <h3>Functions throwing an Exception</h3>
 <p>
-If a function throws an Exception, then the current statement is rolled back 
+If a function throws an Exception, then the current statement is rolled back
 and the exception is thrown to the application.
 </p>
 
@@ -1188,7 +1216,7 @@ Functions may returns a result set. Such a function can be called with the CALL 
 public static ResultSet query(Connection conn, String sql) throws SQLException {
     return conn.createStatement().executeQuery(sql);
 }
-    
+
 CREATE ALIAS QUERY FOR "org.h2.samples.Function.query";
 CALL QUERY('SELECT * FROM TEST');
 </pre>
@@ -1207,7 +1235,7 @@ public static ResultSet simpleResultSet() throws SQLException {
     rs.addRow(new Object[] { new Integer(0), "Hello" });
     rs.addRow(new Object[] { new Integer(1), "World" });
     return rs;
-}    
+}
 
 CREATE ALIAS SIMPLE FOR "org.h2.samples.Function.simpleResultSet";
 CALL SIMPLE();
@@ -1218,7 +1246,7 @@ CALL SIMPLE();
 <p>
 A function returning a result set can be like a table.
 However, in this case the function is called at least twice:
-First while parsing the statement to collect the column names 
+First while parsing the statement to collect the column names
 (with parameters set to null where not known at compile time).
 And then, while executing the statement to get the data (may be repeatedly if this is a join).
 If the function is called just to get the column list, the URL of the connection passed to the function is
@@ -1237,7 +1265,7 @@ public static ResultSet getMatrix(Integer id) throws SQLException {
         }
       }
     return rs;
-}    
+}
 
 CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(3) WHERE X>0;
@@ -1258,8 +1286,8 @@ import org.h2.api.Trigger;
 public class TriggerSample implements Trigger {
     public void init(String triggerName, String tableName) {
     }
-    public void fire(Connection conn, 
-            Object[] oldRow, Object[] newRow) 
+    public void fire(Connection conn,
+            Object[] oldRow, Object[] newRow)
             throws SQLException {
     }
 }
@@ -1267,7 +1295,7 @@ public class TriggerSample implements Trigger {
 The connection can be used to query or update data in other tables.
 The trigger then needs to be defined in the database:
 <pre>
-CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE 
+CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
   FOR EACH ROW CALL "org.h2.samples.TriggerSample"
 </pre>
 The trigger can be used to veto a change, by throwing a SQL Exception.
@@ -1276,13 +1304,13 @@ The trigger can be used to veto a change, by throwing a SQL Exception.
 <br /><a name="compacting"></a>
 <h2>Compacting a Database</h2>
 <p>
-Empty space in the database file is re-used automatically. 
+Empty space in the database file is re-used automatically.
 To re-build the indexes, the most simple way is to delete the .index.db file
-while the database is closed. However in some situations (for example after deleting 
-a lot of data in a database), one sometimes wants to shrink the size of the database 
+while the database is closed. However in some situations (for example after deleting
+a lot of data in a database), one sometimes wants to shrink the size of the database
 (compact a database). Here is a sample function to do this:
 <pre>
-public static void compact(String dir, String dbName, 
+public static void compact(String dir, String dbName,
         String user, String password) throws Exception {
     String url = "jdbc:h2:" + dir + "/" + dbName;
     String file = "data/test.sql";
@@ -1300,14 +1328,14 @@ of a database and re-build the database from the script.
 <h2>Cache Settings</h2>
 <p>
 The database keeps most frequently used data and index pages in the main memory.
-The amount of memory used for caching can be changed using the setting 
-CACHE_SIZE. This setting can be set in the database connection URL 
+The amount of memory used for caching can be changed using the setting
+CACHE_SIZE. This setting can be set in the database connection URL
 (jdbc:h2:~/test;CACHE_SIZE=131072), or it can be changed at runtime using
 SET CACHE_SIZE size.
 </p><p>
 This database supports two cache page replacement algorithms: LRU (the default) and
 2Q. For LRU, the pages that were least frequently used are removed from the
-cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two 
+cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two
 queues are used. The 2Q algorithm is more resistant to table scans, however the overhead
 is a bit higher compared to the LRU. To use the cache algorithm 2Q, use a database URL
 of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm can not be changed
@@ -1331,23 +1359,23 @@ A few reasons using a Java database are:
 </li><li>Unicode support
 </li></ul>
 <p>
-Some people think that Java is still too slow for low level operations, 
-but this is not the case (not any more). In general, the code can be written a lot faster 
-than using C or C++. Like that, it is possible to concentrate on improving the algorithms 
-(that make the application faster) rather than porting the code and dealing with low 
-level stuff (such as memory management or dealing with threads). 
+Some people think that Java is still too slow for low level operations,
+but this is not the case (not any more). In general, the code can be written a lot faster
+than using C or C++. Like that, it is possible to concentrate on improving the algorithms
+(that make the application faster) rather than porting the code and dealing with low
+level stuff (such as memory management or dealing with threads).
 Garbage collection is now probably faster than manual memory management.
 </p><p>
-A lot of features are already built in (for example Unicode, network libraries). 
+A lot of features are already built in (for example Unicode, network libraries).
 It is very easy to write secure code because buffer overflows and such
-problems can be detected very easily. Some features such as the reflection 
+problems can be detected very easily. Some features such as the reflection
 mechanism can be used for randomized testing.
 </p><p>
-Java is also future proof: A lot of companies support Java, 
+Java is also future proof: A lot of companies support Java,
 and it is now open source.
 </p><p>
 This software does not rely on many Java libraries or other software, to
-increase the portability and ease of use, and for performance reasons. For example, 
+increase the portability and ease of use, and for performance reasons. For example,
 the encryption algorithms and many library functions are implemented in the database
 instead of using the existing libraries. Libraries that are not available in open source
 Java implementations (such as Swing) are not used or only used for specific features.

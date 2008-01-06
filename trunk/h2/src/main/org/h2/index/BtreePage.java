@@ -30,14 +30,24 @@ public abstract class BtreePage extends Record {
     protected ObjectArray pageData;
     protected boolean root;
 
-    BtreePage(BtreeIndex index) {
-        this.index = index;
-    }
-
+    /**
+     * Add a row to the index.
+     *
+     * @param row the row
+     * @param session the session
+     * @return the split point of this page, or 0 if no split is required
+     */
     abstract int add(Row row, Session session) throws SQLException;
 
-    // Returns the new first row in the list; null if no change; the deleted row if not empty
-    abstract SearchRow remove(Session session, Row row, int level) throws SQLException;
+    /**
+     * Remove a row from the page.
+     *
+     * @param session the session
+     * @param row the row
+     * @return the new first row in the list; null if no change; the deleted row if not empty
+     */
+    abstract SearchRow remove(Session session, Row row) throws SQLException;
+
     abstract BtreePage split(Session session, int splitPoint) throws SQLException;
     abstract boolean findFirst(BtreeCursor cursor, SearchRow row, boolean bigger) throws SQLException;
     abstract SearchRow getFirst(Session session) throws SQLException;
@@ -45,6 +55,10 @@ public abstract class BtreePage extends Record {
     abstract void next(BtreeCursor cursor, int i) throws SQLException;
     abstract void first(BtreeCursor cursor) throws SQLException;
     abstract int getRealByteCount() throws SQLException;
+
+    BtreePage(BtreeIndex index) {
+        this.index = index;
+    }
 
     SearchRow getData(int i) throws SQLException {
         return (SearchRow) pageData.get(i);

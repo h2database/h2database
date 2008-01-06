@@ -17,13 +17,68 @@ import org.h2.util.ObjectArray;
  */
 public abstract class DbObjectBase implements DbObject {
 
-    private int id;
+    /**
+     * The database.
+     */
     protected Database database;
+
+    /**
+     * The trace module.
+     */
     protected Trace trace;
+
+    /**
+     * The comment (if set).
+     */
+    protected String comment;
+
+    private int id;
     private String objectName;
     private long modificationId;
     private boolean temporary;
-    protected String comment;
+
+    /**
+     * Build a SQL statement to re-create the object, or to create a copy of the object
+     * with a different name or referencing a different table
+     *
+     * @param table the new table name
+     * @param quotedName the new quoted name
+     * @return the SQL statement
+     */
+    public abstract String getCreateSQLForCopy(Table table, String quotedName);
+
+    /**
+     * Build a SQL statement to re-create this object.
+     *
+     * @return the SQL statement
+     */
+    public abstract String getCreateSQL();
+
+    /**
+     * Build a SQL statement to drop this object.
+     *
+     * @return the SQL statement
+     */
+    public abstract String getDropSQL();
+
+    /**
+     * Get the object type.
+     *
+     * @return the object type
+     */
+    public abstract int getType();
+
+    /**
+     * Remove all dependent objects and free all resources (files, blocks in files) of this object.
+     *
+     * @param session the session
+     */
+    public abstract void removeChildrenAndResources(Session session) throws SQLException;
+
+    /**
+     * Check if this object can be renamed. System objects may not be renamed.
+     */
+    public abstract void checkRename() throws SQLException;
 
     protected DbObjectBase(Database database, int id, String name, String traceModule) {
         this.database = database;
@@ -64,18 +119,6 @@ public abstract class DbObjectBase implements DbObject {
     public String getName() {
         return objectName;
     }
-
-    public abstract String getCreateSQLForCopy(Table table, String quotedName);
-
-    public abstract String getCreateSQL();
-
-    public abstract String getDropSQL();
-
-    public abstract int getType();
-
-    public abstract void removeChildrenAndResources(Session session) throws SQLException;
-
-    public abstract void checkRename() throws SQLException;
 
     protected void invalidate() {
         setModified();

@@ -36,6 +36,82 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected IndexType indexType;
     protected long rowCount;
 
+    /**
+     * Close this index.
+     *
+     * @param session the session
+     */
+    public abstract void close(Session session) throws SQLException;
+
+    /**
+     * Add a row to this index.
+     *
+     * @param session the session
+     * @param row the row to add
+     */
+    public abstract void add(Session session, Row row) throws SQLException;
+
+    /**
+     * Remove a row from the index.
+     *
+     * @param session the session
+     * @param row the row
+     */
+    public abstract void remove(Session session, Row row) throws SQLException;
+
+    /**
+     * Create a cursor to iterate over a number of rows.
+     *
+     * @param session the session
+     * @param first the first row to return (null if no limit)
+     * @param last the last  row to return (null if no limit)
+     */
+    public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
+
+    /**
+     * Calculate the cost to find rows.
+     *
+     * @param session the session
+     * @param masks the condition mask
+     */
+    public abstract double getCost(Session session, int[] masks) throws SQLException;
+
+    /**
+     * Remove the index.
+     *
+     * @param session the session
+     */
+    public abstract void remove(Session session) throws SQLException;
+
+    /**
+     * Truncate the index.
+     *
+     * @param session the session
+     */
+    public abstract void truncate(Session session) throws SQLException;
+
+    /**
+     * Check if this index can quickly find the first or last value.
+     *
+     * @return true if it can
+     */
+    public abstract boolean canGetFirstOrLast();
+
+    /**
+     * Find the first (or last) value of this index.
+     *
+     * @param session the session
+     * @param first true for the first value, false for the last
+     */
+    public abstract SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
+
+    /**
+     * Check if this index needs to be re-built.
+     *
+     * @return true if it must be re-built.
+     */
+    public abstract boolean needRebuild();
+
     public BaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
         super(table.getSchema(), id, name, Trace.INDEX);
         this.indexType = indexType;
@@ -77,14 +153,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         remove(session);
     }
 
-    public abstract void close(Session session) throws SQLException;
-
-    public abstract void add(Session session, Row row) throws SQLException;
-
-    public abstract void remove(Session session, Row row) throws SQLException;
-
-    public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
-
     public boolean canFindNext() {
         return false;
     }
@@ -92,18 +160,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
         throw Message.getInternalError();
     }
-
-    public abstract double getCost(Session session, int[] masks) throws SQLException;
-
-    public abstract void remove(Session session) throws SQLException;
-
-    public abstract void truncate(Session session) throws SQLException;
-
-    public abstract boolean canGetFirstOrLast();
-
-    public abstract SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
-
-    public abstract boolean needRebuild();
 
     public long getRowCount(Session session) {
         return rowCount;

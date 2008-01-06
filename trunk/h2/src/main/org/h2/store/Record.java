@@ -20,7 +20,20 @@ public abstract class Record extends CacheObject {
     private int lastLog = LogSystem.LOG_WRITTEN;
     private int lastPos = LogSystem.LOG_WRITTEN;
 
+    /**
+     * Get the number of bytes required for the data if the given data page would be used.
+     *
+     * @param dummy the template data page
+     * @return the number of bytes
+     */
     public abstract int getByteCount(DataPage dummy) throws SQLException;
+
+    /**
+     * Write the record to the data page.
+     *
+     * @param buff the data page
+     */
+    public abstract void write(DataPage buff) throws SQLException;
 
     /**
      * This method is called just before the page is written.
@@ -31,8 +44,6 @@ public abstract class Record extends CacheObject {
     public void prepareWrite() throws SQLException {
     }
 
-    public abstract void write(DataPage buff) throws SQLException;
-
     public boolean isEmpty() {
         return false;
     }
@@ -40,18 +51,18 @@ public abstract class Record extends CacheObject {
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
-    
+
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
     }
-    
+
     public int getSessionId() {
         return sessionId;
     }
-    
+
     public void commit() {
         this.sessionId = 0;
-    }    
+    }
 
     public boolean getDeleted() {
         return deleted;

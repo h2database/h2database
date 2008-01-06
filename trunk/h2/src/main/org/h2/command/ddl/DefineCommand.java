@@ -13,18 +13,32 @@ import org.h2.result.LocalResult;
  */
 public abstract class DefineCommand extends Prepared {
 
+    /**
+     * Create a new command for the given session.
+     *
+     * @param session the session
+     */
     public DefineCommand(Session session) {
         super(session);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean isTransactional() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean isReadOnly() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public LocalResult queryMeta() {
         return null;
     }

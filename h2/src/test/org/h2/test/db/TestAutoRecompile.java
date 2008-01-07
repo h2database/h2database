@@ -11,6 +11,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests if prepared statements are re-compiled when required.
+ */
 public class TestAutoRecompile extends TestBase {
 
     public void test() throws Exception {

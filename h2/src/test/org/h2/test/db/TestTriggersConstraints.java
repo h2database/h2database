@@ -15,9 +15,8 @@ import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 
 /**
- * @author Thomas
+ * Tests for trigger and constraints.
  */
-
 public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private static boolean mustNotCallTrigger;

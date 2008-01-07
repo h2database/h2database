@@ -12,6 +12,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the ALLOW_LITERALS feature (protection against SQL injection).
+ */
 public class TestSQLInjection extends TestBase {
 
     Connection conn;

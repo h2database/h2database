@@ -13,6 +13,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.tools.MultiDimension;
 
+/**
+ * Tests the multi-dimension index tool.
+ */
 public class TestMultiDimension extends TestBase {
 
     public void test() throws Exception {

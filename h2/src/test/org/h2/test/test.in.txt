@@ -993,7 +993,7 @@ script nopasswords nosettings blocksize 10;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB;
 > DROP TABLE IF EXISTS SYSTEM_LOB_STREAM;
-> INSERT INTO PUBLIC.TEST(ID, DATA) VALUES(1, SYSTEM_COMBINE_CLOB(0));
+> INSERT INTO PUBLIC.TEST(ID, DATA) VALUES (1, SYSTEM_COMBINE_CLOB(0));
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc       ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, '          ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, '   ', NULL);
@@ -2862,7 +2862,7 @@ script NOPASSWORDS NOSETTINGS drop;
 > CREATE PRIMARY KEY ON PUBLIC.TEST(I);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP TABLE IF EXISTS PUBLIC.TEST;
-> INSERT INTO PUBLIC.TEST(I, NAME, Y) VALUES(1, 'Hello', 2);
+> INSERT INTO PUBLIC.TEST(I, NAME, Y) VALUES (1, 'Hello', 2);
 > rows: 8
 
 INSERT INTO TEST(i, name) VALUES(2, 'World');
@@ -3888,7 +3888,7 @@ insert into test values(1, '', '');
 insert into test values(2, 'Cafe', X'cafe');
 > update count: 1
 
-script nopasswords nosettings;
+script simple nopasswords nosettings;
 > SCRIPT
 > -------------------------------------------------------------------------------
 > -- 3 = SELECT COUNT(*) FROM PUBLIC.TEST;
@@ -4422,7 +4422,7 @@ SELECT * FROM TEST_SEQ ORDER BY ID;
 > 20 20
 > rows (ordered): 4
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST;
@@ -4464,7 +4464,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST(ID, CREATEDATE, MODIFY_DATE) VALUES(1, '2001-01-01', NULL);
+> INSERT INTO PUBLIC.TEST(ID, CREATEDATE, MODIFY_DATE) VALUES (1, '2001-01-01', NULL);
 > rows: 5
 
 ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
@@ -4477,7 +4477,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255),     CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL,     MODIFY_DATE TIMESTAMP );
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES(1, NULL, '2001-01-01', NULL);
+> INSERT INTO PUBLIC.TEST(ID, NAME, CREATEDATE, MODIFY_DATE) VALUES (1, NULL, '2001-01-01', NULL);
 > rows: 5
 
 UPDATE TEST SET NAME = 'Hi';
@@ -6044,7 +6044,7 @@ CAST(XT AS TIMESTAMP) D2TS, CAST(XD AS TIMESTAMP) D2TS FROM TEST;
 > null null       null       null     null     null                  null
 > rows: 4
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------
 > -- 4 = SELECT COUNT(*) FROM PUBLIC.TEST;
@@ -7146,7 +7146,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE PRIMARY KEY ON PUBLIC.A_TEST(A_INT);
 > CREATE PRIMARY KEY ON PUBLIC.B_TEST(B_INT);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.B_TEST(B_INT, B_VARCHAR) VALUES(-1, 'XX');
+> INSERT INTO PUBLIC.B_TEST(B_INT, B_VARCHAR) VALUES (-1, 'XX');
 > rows: 14
 
 DROP TABLE A_TEST;
@@ -7231,7 +7231,7 @@ SELECT * FROM CHILD;
 > 201 null     null      Johann
 > rows: 4
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.FAMILY;
@@ -7256,7 +7256,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
 > ok
 
-SCRIPT NOPASSWORDS NOSETTINGS;
+SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.FAMILY;
@@ -7568,12 +7568,12 @@ INSERT INTO TEST VALUES(2, STRINGDECODE('abcsond\344rzeich\344 ') || char(22222)
 
 script nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 = SELECT COUNT(*) FROM PUBLIC.TEST;
 > CREATE MEMORY TABLE PUBLIC.TEST(     ID INT NOT NULL,     NAME VARCHAR(255) );
 > CREATE PRIMARY KEY ON PUBLIC.TEST(ID);
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES(2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'));
+> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES (2, STRINGDECODE('abcsond\u00e4rzeich\u00e4 \u56ce \u00f6\u00e4\u00fc\u00d6\u00c4\u00dc\u00e9\u00e8\u00e0\u00f1!'));
 > rows: 5
 
 call STRINGENCODE(STRINGDECODE('abcsond\344rzeich\344 \u56ce \366\344\374\326\304\334\351\350\340\361!'));

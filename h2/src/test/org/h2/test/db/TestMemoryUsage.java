@@ -12,6 +12,9 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the memory usage of the cache.
+ */
 public class TestMemoryUsage extends TestBase {
 
     private Connection conn;

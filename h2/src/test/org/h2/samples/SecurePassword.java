@@ -16,6 +16,7 @@ import java.util.Properties;
  * (both database passwords, and account passwords).
  */
 public class SecurePassword {
+
     public static void main(String[] argv) throws Exception {
 
         Class.forName("org.h2.Driver");

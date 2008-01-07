@@ -15,6 +15,9 @@ import java.sql.Timestamp;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the linked table feature (CREATE LINKED TABLE).
+ */
 public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
@@ -26,7 +29,7 @@ public class TestLinkedTable extends TestBase {
         testLinkTable();
         testLinkTwoTables();
     }
-    
+
     // this is not a bug, it is the documented behavior
 //    private void testLinkAutoAdd() throws Exception {
 //        Class.forName("org.h2.Driver");
@@ -42,7 +45,7 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
-    
+
     private void testLinkOtherSchema() throws Exception {
         Class.forName("org.h2.Driver");
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
@@ -59,7 +62,7 @@ public class TestLinkedTable extends TestBase {
         ca.close();
         cb.close();
     }
-    
+
     private void testLinkTwoTables() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
@@ -131,7 +134,7 @@ public class TestLinkedTable extends TestBase {
         stat2.executeUpdate("UPDATE TEST_LINK_DI SET ID=ID+1");
         stat2.executeUpdate("UPDATE TEST_LINK_U SET NAME=NAME || ID");
         ResultSet rs;
-        
+
         rs = stat2.executeQuery("SELECT * FROM TEST_LINK_DI ORDER BY ID");
         rs.next();
         check(rs.getInt(1), 2);
@@ -140,7 +143,7 @@ public class TestLinkedTable extends TestBase {
         check(rs.getInt(1), 3);
         check(rs.getString(2), "World3");
         checkFalse(rs.next());
-        
+
         rs = stat2.executeQuery("SELECT * FROM TEST_LINK_U ORDER BY ID");
         rs.next();
         check(rs.getInt(1), 2);

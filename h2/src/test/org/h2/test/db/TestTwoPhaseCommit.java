@@ -11,6 +11,9 @@ import java.util.ArrayList;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests for the two-phase-commit feature.
+ */
 public class TestTwoPhaseCommit extends TestBase {
     public void test() throws Exception {
         if (config.memory || config.networked || config.logMode == 0) {

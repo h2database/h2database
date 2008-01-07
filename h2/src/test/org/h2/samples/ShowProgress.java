@@ -22,6 +22,9 @@ public class ShowProgress implements DatabaseEventListener {
 
     private long last, start;
 
+    /**
+     * Create a new instance of this class, and start the timer.
+     */
     public ShowProgress() {
         start = last = System.currentTimeMillis();
     }
@@ -30,6 +33,9 @@ public class ShowProgress implements DatabaseEventListener {
         new ShowProgress().test();
     }
 
+    /**
+     * Run the progress test.
+     */
     void test() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:test;LOG=2", "sa", "");
@@ -69,15 +75,34 @@ public class ShowProgress implements DatabaseEventListener {
 
     }
 
+    /**
+     * This method is called by the database if disk space is low.
+     *
+     * @param stillAvailable the number of bytes still available
+     */
     public void diskSpaceIsLow(long stillAvailable) throws SQLException {
         System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
     }
 
+    /**
+     * This method is called if an exception occurs in the database.
+     *
+     * @param e the exception
+     * @param sql the SQL statement
+     */
     public void exceptionThrown(SQLException e, String sql) {
         System.out.println("Error executing " + sql);
         e.printStackTrace();
     }
 
+    /**
+     * This method is called when opening the database to notify about the progress.
+     *
+     * @param state the current state
+     * @param name the object name (depends on the state)
+     * @param current the current progress
+     * @param max the 100% mark
+     */
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
         if (time < last + 5000) {
@@ -104,14 +129,25 @@ public class ShowProgress implements DatabaseEventListener {
                 + (time - start) + " ms");
     }
 
+    /**
+     * This method is called when the database is closed.
+     */
     public void closingDatabase() {
         System.out.println("Closing the database");
     }
 
+    /**
+     * This method is called just after creating the instance.
+     *
+     * @param url the database URL
+     */
     public void init(String url) {
         System.out.println("Initializing the event listener for database " + url);
     }
 
+    /**
+     * This method is called when the database is open.
+     */
     public void opened() {
     }
 

@@ -6,6 +6,7 @@ package org.h2.samples;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Types;
 
 import org.h2.tools.Csv;
@@ -17,12 +18,16 @@ import org.h2.tools.SimpleResultSet;
  * how to use the tool to read such files.
  */
 public class CsvSample {
-    public static void main(String[] args) throws Exception {
+
+    public static void main(String[] args) throws SQLException {
         CsvSample.write();
         CsvSample.read();
     }
 
-    static void write() throws Exception {
+    /**
+     * Write a CSV file.
+     */
+    static void write() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
@@ -32,7 +37,10 @@ public class CsvSample {
         Csv.getInstance().write("data/test.csv", rs, null);
     }
 
-    static void read() throws Exception {
+    /**
+     * Read a CSV file.
+     */
+    static void read() throws SQLException {
         ResultSet rs = Csv.getInstance().read("data/test.csv", null, null);
         ResultSetMetaData meta = rs.getMetaData();
         while (rs.next()) {

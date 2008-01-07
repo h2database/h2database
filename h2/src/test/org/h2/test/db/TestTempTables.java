@@ -11,6 +11,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Temporary table tests.
+ */
 public class TestTempTables extends TestBase {
 
     public void test() throws Exception {

@@ -113,11 +113,6 @@ import org.h2.util.StringUtils;
  */
 public class TestAll {
 
-// Snippets to run test code:
-// java -cp .;%H2DRIVERS% org.h2.test.TestAll
-// java -Xrunhprof:cpu=samples,depth=8 org.h2.test.TestAll
-// java -Xrunhprof:heap=sites,depth=8 org.h2.test.TestAll
-
 /*
 
 Random test:
@@ -154,9 +149,19 @@ java org.h2.test.TestAll timer
 
 /*
 
-add tests with select distinct type (code coverage)
+(code coverage: limit, sample-size)
+add tests with select distinct type
 
-documentation: package.html
+staging.trace.db.gz
+
+allow queries as well in batch updates
+CALL syntax should probably work for regular executeUpdate as well.
+http://java.sun.com/j2se/1.4.2/docs/guide/jdbc/getstart/callablestatement.html#1000220
+
+-Djboss.bind.address=<ip_address>
+-Dh2.bindAddress=...
+
+documentation: package.html: write test (enforce one package.html where there is a .java file)
 
 write to the db file what version was used to create a database
 
@@ -296,7 +301,8 @@ Features of H2
             } else if ("all".equals(args[0])) {
                 test.testEverything();
             } else if ("codeCoverage".equals(args[0])) {
-                test.testCodeCoverage();
+                test.codeCoverage = true;
+                test.runTests();
             } else if ("multiThread".equals(args[0])) {
                 new TestMulti().runTest(test);
             } else if ("halt".equals(args[0])) {
@@ -310,49 +316,10 @@ Features of H2
         System.out.println("done (" + (System.currentTimeMillis() - time) + " ms)");
     }
 
-    void runTests() throws Exception {
-
-//        TODO test set lock_mode=0, 1; max_trace_file_size; modes; collation; assert
-//        TODO test shutdown immediately
-
-//        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
-//        logMode = 1; traceLevelFile = throttle = 0;
-//        deleteIndex = textStorage = true;
-//        cipher = null;
-
-//        codeCoverage = true;
-
-//        memory = true;
-//        new TestSpeed().runTest(this);
-//        new TestSpeed().runTest(this);
-//        new TestSpeed().runTest(this);
-//        new TestSpeed().runTest(this);
-
-//        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = diskUndo = false;
-//        traceLevelFile = throttle = 0;
-//        big = true;
-//        memory = false;
-//
-
-        testQuick();
-        testCombination();
-
-    }
-
-    void testCodeCoverage() throws Exception {
-        this.codeCoverage = true;
-        runTests();
-    }
-
-    void testQuick() throws Exception {
-        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = diskUndo = false;
-        traceLevelFile = throttle = 0;
-        logMode = 1;
-        cipher = null;
-        testAll();
-    }
-
-    void testEverything() throws Exception {
+    /**
+     * Run all tests in all possible combinations.
+     */
+    private void testEverything() throws Exception {
         for (int c = 0; c < 3; c++) {
             if (c == 0) {
                 cipher = null;
@@ -373,20 +340,30 @@ Features of H2
                 for (logMode = 0; logMode < 3; logMode++) {
                     traceLevelFile = logMode;
                     TestBase.printTime("cipher:" + cipher +" a:" +a+" logMode:"+logMode);
-                    testAll();
+                    test();
                 }
             }
         }
     }
 
-    void testCombination() throws Exception {
+    /**
+     * Run the tests with a number of different settings.
+     */
+    private void runTests() throws Exception {
+
+        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = diskUndo = false;
+        traceLevelFile = throttle = 0;
+        logMode = 1;
+        cipher = null;
+        test();
+
         smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         diskUndo = false;
         smallLog = false;
@@ -401,7 +378,7 @@ Features of H2
         cipher = null;
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         big = false;
         smallLog = false;
@@ -418,7 +395,7 @@ Features of H2
         cipher = null;
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         diskUndo = true;
         smallLog = false;
@@ -433,7 +410,7 @@ Features of H2
         cipher = "XTEA";
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         diskUndo = false;
         big = true;
@@ -451,7 +428,7 @@ Features of H2
         cipher = null;
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         big = true;
         smallLog = true;
@@ -468,7 +445,7 @@ Features of H2
         cipher = null;
         mvcc = false;
         cache2Q = true;
-        testAll();
+        test();
 
         big = true;
         smallLog = false;
@@ -485,7 +462,7 @@ Features of H2
         cipher = "AES";
         mvcc = false;
         cache2Q = false;
-        testAll();
+        test();
 
         smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
         traceLevelFile = throttle = 0;
@@ -493,48 +470,16 @@ Features of H2
         cipher = null;
         mvcc = true;
         cache2Q = false;
-        testAll();
+        test();
 
         memory = true;
-        testAll();
+        test();
     }
 
-    void testAll() throws Exception {
-        DeleteDbFiles.execute(TestBase.baseDir, null, true);
-        testDatabase();
-        testUnit();
-        DeleteDbFiles.execute(TestBase.baseDir, null, true);
-    }
-
-    void testUnit() {
-        new TestBitField().runTest(this);
-        new TestCompress().runTest(this);
-        new TestDataPage().runTest(this);
-        new TestDate().runTest(this);
-        new TestExit().runTest(this);
-        new TestFile().runTest(this);
-        new TestFileLock().runTest(this);
-        new TestFtp().runTest(this);
-        new TestFileSystem().runTest(this);
-        new TestIntArray().runTest(this);
-        new TestIntIntHashMap().runTest(this);
-        new TestMultiThreadedKernel().runTest(this);
-        new TestOverflow().runTest(this);
-        new TestPattern().runTest(this);
-        new TestReader().runTest(this);
-        new TestSampleApps().runTest(this);
-        new TestScriptReader().runTest(this);
-        new TestSecurity().runTest(this);
-        new TestStreams().runTest(this);
-        new TestStringCache().runTest(this);
-        new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
-        new TestValue().runTest(this);
-        new TestValueHashMap().runTest(this);
-    }
-
-    void testDatabase() throws Exception {
-
+    /**
+     * Run all tests with the current settings.
+     */
+    private void test() throws Exception {
         System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
 
@@ -611,10 +556,37 @@ Features of H2
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
 
+        // unit
+        new TestBitField().runTest(this);
+        new TestCompress().runTest(this);
+        new TestDataPage().runTest(this);
+        new TestDate().runTest(this);
+        new TestExit().runTest(this);
+        new TestFile().runTest(this);
+        new TestFileLock().runTest(this);
+        new TestFtp().runTest(this);
+        new TestFileSystem().runTest(this);
+        new TestIntArray().runTest(this);
+        new TestIntIntHashMap().runTest(this);
+        new TestMultiThreadedKernel().runTest(this);
+        new TestOverflow().runTest(this);
+        new TestPattern().runTest(this);
+        new TestReader().runTest(this);
+        new TestSampleApps().runTest(this);
+        new TestScriptReader().runTest(this);
+        new TestSecurity().runTest(this);
+        new TestStreams().runTest(this);
+        new TestStringCache().runTest(this);
+        new TestStringUtils().runTest(this);
+        new TestTools().runTest(this);
+        new TestValue().runTest(this);
+        new TestValueHashMap().runTest(this);
+
         afterTest();
     }
 
     public void beforeTest() throws SQLException {
+        DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {
             TcpServer.logInternalErrors = true;
@@ -634,6 +606,7 @@ Features of H2
         if (networked && server != null) {
             server.stop();
         }
+        DeleteDbFiles.execute(TestBase.baseDir, null, true);
     }
 
     private void printSystem() {

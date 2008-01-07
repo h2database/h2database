@@ -3904,7 +3904,10 @@ public class Parser {
 
     private ScriptCommand parseScript() throws SQLException {
         ScriptCommand command = new ScriptCommand(session);
-        boolean data = true, passwords = true, settings = true, dropTables = false;
+        boolean data = true, passwords = true, settings = true, dropTables = false, simple = false;
+        if (readIf("SIMPLE")) {
+            simple = true;
+        }
         if (readIf("NODATA")) {
             data = false;
         }
@@ -3925,6 +3928,7 @@ public class Parser {
         command.setPasswords(passwords);
         command.setSettings(settings);
         command.setDrop(dropTables);
+        command.setSimple(simple);
         if (readIf("TO")) {
             command.setFileName(readString());
             if (readIf("COMPRESSION")) {

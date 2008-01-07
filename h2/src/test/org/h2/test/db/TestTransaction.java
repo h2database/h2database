@@ -15,6 +15,9 @@ import java.util.Vector;
 
 import org.h2.test.TestBase;
 
+/**
+ * Transactional tests, including transaction isolation tests, and tests related to savepoints.
+ */
 public class TestTransaction extends TestBase {
 
     public void test() throws Exception {
@@ -22,9 +25,9 @@ public class TestTransaction extends TestBase {
         testSavepoint();
         testIsolation();
     }
-    
+
     private void testReferential() throws Exception {
-        deleteDb("transaction");        
+        deleteDb("transaction");
         Connection c1 = getConnection("transaction");
         c1.setAutoCommit(false);
         Statement s1 = c1.createStatement();
@@ -43,7 +46,7 @@ public class TestTransaction extends TestBase {
             checkNotGeneralException(e);
         }
         c2.commit();
-        c1.rollback();      
+        c1.rollback();
         c1.close();
         c2.close();
     }

@@ -20,6 +20,9 @@ import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * CSVREAD and CSVWRITE tests.
+ */
 public class TestCsv extends TestBase {
 
     public void test() throws Exception {

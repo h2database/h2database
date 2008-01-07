@@ -10,6 +10,9 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
 
+/**
+ * Test for the BACKUP SQL statement.
+ */
 public class TestBackup extends TestBase {
 
     public void test() throws Exception {

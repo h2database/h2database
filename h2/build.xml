@@ -161,6 +161,7 @@
 			<fileset dir="src/docsrc" includes="index.html"/>
 			<fileset dir="src/docsrc" includes="html/**/*" excludes="**/*.jsp" />
 		</copy>
+		<java classname="org.h2.tools.code.CheckPackageHtml" classpath="bin"/>
 		<java classname="org.h2.tools.code.CheckTextFiles" classpath="bin"/>
 		<java classname="org.h2.tools.doc.GenerateDoc" classpath="bin">
 			<arg line="-in src/docsrc/html -out docs/html"/>
@@ -259,8 +260,9 @@
 	<target name="javadocImpl" depends="javadoc">
 		<mkdir dir="docs/javadocImpl"/>
 		<javadoc
-			sourcepath="src/main"
+			sourcepath="src/main;src/test;src/tools"
 			packagenames="org.h2.*"
+		    excludepackagenames="org.h2.tools.doclet"
 		    classpath="${path.lucene.jar};${path.servlet.jar}"
 			destDir="docs/javadocImpl"
 		/>

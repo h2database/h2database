@@ -9,6 +9,7 @@ package org.h2.samples;
  * if it is running.
  */
 public class ShutdownServer {
+
     public static void main(String[] args) throws Exception {
         org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094", "", false);
      }

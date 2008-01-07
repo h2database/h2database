@@ -23,6 +23,9 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
+/**
+ * This test runs a SQL script file and compares the output with the expected output.
+ */
 public class TestScript extends TestBase {
 
     private boolean failFast;

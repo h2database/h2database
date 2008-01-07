@@ -42,12 +42,33 @@ public class TriggerSample {
         conn.close();
     }
 
+    /**
+     * This class is a simple trigger implementation.
+     */
     public static class MyTrigger implements Trigger {
 
+        /**
+         * Initializes the trigger.
+         *
+         * @param conn a connection to the database
+         * @param schemaName the name of the schema
+         * @param triggerName the name of the trigger used in the CREATE TRIGGER statement
+         * @param tableName the name of the table
+         * @param before whether the fire method is called before or after the operation is performed
+         * @param type the operation type: INSERT, UPDATE, or DELETE
+         */
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
             // System.out.println("Initializing trigger " + triggerName + " for table " + tableName);
         }
 
+        /**
+         * This method is called for each triggered action.
+         *
+         * @param conn a connection to the database
+         * @param oldRow the old row, or null if no old row is available (for INSERT)
+         * @param newRow the new row, or null if no new row is available (for DELETE)
+         * @throws SQLException if the operation must be undone
+         */
         public void fire(Connection conn,
                 Object[] oldRow, Object[] newRow)
                 throws SQLException {

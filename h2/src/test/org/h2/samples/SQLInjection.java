@@ -38,6 +38,14 @@ public class SQLInjection {
 //                "jdbc:derby:test3;create=true", "sa", "sa");
     }
 
+    /**
+     * Run the test against the specified database.
+     *
+     * @param driver the JDBC driver name
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     */
     void run(String driver, String url, String user, String password) throws Exception {
         Class.forName(driver);
         conn = DriverManager.getConnection(url, user, password);
@@ -106,6 +114,9 @@ public class SQLInjection {
         conn.close();
     }
 
+    /**
+     * Simulate a login using an insecure method.
+     */
     void loginByNameInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - login");
         String name = input("Name?");
@@ -119,6 +130,15 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * Utility method to get a user record given the user name and password.
+     * This method is secure.
+     *
+     * @param conn the database connection
+     * @param userName the user name
+     * @param password the password
+     * @return a result set with the user record if the password matches
+     */
     public static ResultSet getUser(Connection conn, String userName, String password) throws Exception {
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM USERS WHERE NAME=? AND PASSWORD=?");
@@ -127,6 +147,15 @@ public class SQLInjection {
         return prep.executeQuery();
     }
 
+    /**
+     * Utility method to change a password of a user.
+     * This method is secure, except that the old password is not checked.
+     *
+     * @param conn the database connection
+     * @param userName the user name
+     * @param password the password
+     * @return the new password
+     */
     public static String changePassword(Connection conn, String userName, String password) throws Exception {
         PreparedStatement prep = conn.prepareStatement(
                 "UPDATE USERS SET PASSWORD=? WHERE NAME=?");
@@ -136,6 +165,10 @@ public class SQLInjection {
         return password;
     }
 
+    /**
+     * Simulate a login using an insecure method.
+     * A stored procedure is used here.
+     */
     void loginStoredProcedureInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - login using a stored procedure");
         stat.execute("CREATE ALIAS IF NOT EXISTS " +
@@ -153,6 +186,9 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * Simulate a login using a secure method.
+     */
     void loginByNameSecure() throws Exception {
         System.out.println("Secure Systems Inc. - login using placeholders");
         String name = input("Name?");
@@ -170,6 +206,9 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * Sample code to limit access only to specific rows.
+     */
     void limitRowAccess() throws Exception {
         System.out.println("Secure Systems Inc. - limit row access");
         stat.execute("DROP TABLE IF EXISTS SESSION_USER");
@@ -185,6 +224,9 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * Simulate a login using an insecure method.
+     */
     void loginByIdInsecure() throws Exception {
         System.out.println("Half Secure Systems Inc. - login by id");
         String id = input("User ID?");
@@ -205,6 +247,9 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * Simulate a login using a secure method.
+     */
     void loginByIdSecure() throws Exception {
         System.out.println("Secure Systems Inc. - login by id");
         String id = input("User ID?");
@@ -226,6 +271,12 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * List active items.
+     * The method uses the hard coded value '1', and therefore the database
+     * can not verify if the SQL statement was constructed with user
+     * input or not.
+     */
     void listActiveItems() throws Exception {
         System.out.println("Half Secure Systems Inc. - list active items");
         ResultSet rs = stat.executeQuery(
@@ -235,6 +286,11 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * List active items.
+     * The method uses a constant, and therefore the database
+     * knows it does not contain user input.
+     */
     void listActiveItemsUsingConstants() throws Exception {
         System.out.println("Secure Systems Inc. - list active items");
         ResultSet rs = stat.executeQuery(
@@ -244,6 +300,11 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * List items using a specified sort order.
+     * The method is not secure as user input is used to construct the
+     * SQL statement.
+     */
     void listItemsSortedInsecure() throws Exception {
         System.out.println("Insecure Systems Inc. - list items");
         String order = input("order (id, name)?");
@@ -258,6 +319,11 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * List items using a specified sort order.
+     * The method is secure as the user input is validated before use.
+     * However the database has no chance to verify this.
+     */
     void listItemsSortedSecure() throws Exception {
         System.out.println("Secure Systems Inc. - list items");
         String order = input("order (id, name)?");
@@ -275,6 +341,10 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * List items using a specified sort order.
+     * The method is secure as a parameterized statement is used.
+     */
     void listItemsSortedSecureParam() throws Exception {
         System.out.println("Secure Systems Inc. - list items");
         String order = input("order (1, 2, -1, -2)?");
@@ -291,6 +361,11 @@ public class SQLInjection {
         }
     }
 
+    /**
+     * This method creates a one way hash from the password
+     * (using a random salt), and stores this information instead of the
+     * password.
+     */
     void storePasswordHashWithSalt() throws Exception {
         System.out.println("Very Secure Systems Inc. - login");
         stat.execute("DROP TABLE IF EXISTS USERS2");
@@ -322,10 +397,15 @@ public class SQLInjection {
         stat.execute("SET ALLOW_LITERALS ALL");
     }
 
+    /**
+     * Utility method to get user input from the command line.
+     *
+     * @param prompt the prompt
+     * @return the user input
+     */
     String input(String prompt) throws Exception {
         System.out.print(prompt);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        return reader.readLine();
+        return new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 
 }

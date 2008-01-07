@@ -35,18 +35,37 @@ public class FileFunctions {
         conn.close();
     }
 
+    /**
+     * Read a String from a file. The default encoding for this platform is used.
+     *
+     * @param fileName the file name
+     * @return the text
+     */
     public static String readTextFile(String fileName) throws IOException {
         byte[] buff = readFile(fileName);
         String s = new String(buff);
         return s;
     }
 
+    /**
+     * Read a String from a file using the specified encoding.
+     *
+     * @param fileName the file name
+     * @param encoding the encoding
+     * @return the text
+     */
     public static String readTextFileWithEncoding(String fileName, String encoding) throws IOException {
         byte[] buff = readFile(fileName);
         String s = new String(buff, encoding);
         return s;
     }
 
+    /**
+     * Read a file into a byte array.
+     *
+     * @param fileName the file name
+     * @return the byte array
+     */
     public static byte[] readFile(String fileName) throws IOException {
         RandomAccessFile file = new RandomAccessFile(fileName, "r");
         try {

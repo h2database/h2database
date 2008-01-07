@@ -10,6 +10,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests if disk space is reused after deleting many rows.
+ */
 public class TestSpaceReuse extends TestBase {
 
     public void test() throws Exception {

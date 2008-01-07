@@ -23,6 +23,9 @@ public class InitDatabaseFromJar {
         new InitDatabaseFromJar().initDb();
     }
 
+    /**
+     * Create a script from a new database.
+     */
     private void createScript() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
@@ -33,6 +36,9 @@ public class InitDatabaseFromJar {
         conn.close();
     }
 
+    /**
+     * Initialize a database from a SQL script file.
+     */
     void initDb() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");

@@ -21,6 +21,9 @@ import org.h2.test.TestBase;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 
+/**
+ * Tests simulated power off conditions.
+ */
 public class TestPowerOff extends TestBase {
 
     private String dbName = "powerOff";

@@ -66,6 +66,7 @@ public class ScriptCommand extends ScriptBase {
     private boolean data;
     private boolean settings;
     private boolean drop;
+    private boolean simple;
     private LocalResult result;
     private byte[] lineSeparator;
     private byte[] buffer;
@@ -242,11 +243,20 @@ public class ScriptCommand extends ScriptBase {
                             }
                             buff.append(Parser.quoteIdentifier(columns[j].getName()));
                         }
-                        buff.append(") VALUES(");
+                        buff.append(") VALUES");
+                        if (!simple) {
+                            buff.append('\n');
+                        }
+                        buff.append('(');
                         String ins = buff.toString();
+                        buff = null;
                         while (cursor.next()) {
                             Row row = cursor.get();
-                            buff = new StringBuffer(ins);
+                            if (buff == null) {
+                                buff = new StringBuffer(ins);
+                            } else {
+                                buff.append(",\n(");
+                            }
                             for (int j = 0; j < row.getColumnCount(); j++) {
                                 if (j > 0) {
                                     buff.append(", ");
@@ -268,6 +278,12 @@ public class ScriptCommand extends ScriptBase {
                                 }
                             }
                             buff.append(")");
+                            if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
+                                add(buff.toString(), true);
+                                buff = null;
+                            }
+                        }
+                        if (buff != null) {
                             add(buff.toString(), true);
                         }
                     }
@@ -477,6 +493,10 @@ public class ScriptCommand extends ScriptBase {
             row[0] = ValueString.get(s);
             result.addRow(row);
         }
+    }
+
+    public void setSimple(boolean simple) {
+        this.simple = simple;
     }
 
 }

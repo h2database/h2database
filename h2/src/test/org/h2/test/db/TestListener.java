@@ -14,6 +14,9 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 
+/**
+ * Tests the DatabaseEventListener.
+ */
 public class TestListener extends TestBase implements DatabaseEventListener {
 
     private long last, start;
@@ -85,7 +88,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         if (url.toUpperCase().indexOf("CIPHER") >= 0) {
             return;
         }
-        Connection conn = null;        
+        Connection conn = null;
         try {
             conn = DriverManager.getConnection(url, getUser(), getPassword());
             conn.createStatement().execute("DROP TABLE TEST2");
@@ -105,7 +108,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         if (url.toUpperCase().indexOf("CIPHER") >= 0) {
             return;
         }
-        Connection conn = null;        
+        Connection conn = null;
         try {
             conn = DriverManager.getConnection(url, getUser(), getPassword());
             conn.createStatement().execute("CREATE TABLE IF NOT EXISTS TEST2(ID INT)");

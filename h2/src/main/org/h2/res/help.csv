@@ -103,12 +103,13 @@ RUNSCRIPT FROM 'backup'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT [NODATA] [NOPASSWORDS] [NOSETTINGS] [DROP] [BLOCKSIZE blockSizeInt]
+SCRIPT [SIMPLE] [NODATA] [NOPASSWORDS] [NOSETTINGS] [DROP] [BLOCKSIZE blockSizeInt]
 [TO fileNameString
 [COMPRESSION {DEFLATE|LZF|ZIP|GZIP}]
 [CIPHER cipher PASSWORD string]]
 ","
 Creates a SQL script with or without the insert statements.
+The simple format does not use multi-row insert statements.
 If no file name is specified, the script is returned as a result set.
 This command can be used to create a backup of the database.
 If the DROP option is specified, drop statements are created for tables, views, and sequences.

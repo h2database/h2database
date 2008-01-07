@@ -18,6 +18,9 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * Various test cases.
+ */
 public class TestCases extends TestBase {
 
     public void test() throws Exception {

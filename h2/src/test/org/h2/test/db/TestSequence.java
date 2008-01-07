@@ -10,13 +10,16 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the sequence feature of this database.
+ */
 public class TestSequence extends TestBase {
 
     public void test() throws Exception {
         testCache();
         testTwo();
     }
-    
+
     private void testCache() throws Exception {
         if (config.memory) {
             return;
@@ -41,7 +44,7 @@ public class TestSequence extends TestBase {
         checkFalse(rs.next());
         conn.close();
     }
-    
+
     private void testTwo() throws Exception {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");

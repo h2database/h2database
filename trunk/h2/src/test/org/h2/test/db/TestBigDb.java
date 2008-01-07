@@ -12,6 +12,9 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.util.MemoryUtils;
 
+/**
+ * Test for big databases.
+ */
 public class TestBigDb extends TestBase {
 
     public void test() throws Exception {

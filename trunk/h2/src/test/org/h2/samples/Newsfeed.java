@@ -21,6 +21,7 @@ import org.h2.util.StringUtils;
  * from a simple SQL script. A textual representation of the data is created as well.
  */
 public class Newsfeed {
+
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
@@ -42,6 +43,12 @@ public class Newsfeed {
         conn.close();
     }
 
+    /**
+     * Convert HTML text to plain text.
+     *
+     * @param html the html text
+     * @return the plain text
+     */
     private static String convertHtml2Text(String html) {
         String s = html;
         s = StringUtils.replaceAll(s, "<b>", "");

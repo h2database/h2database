@@ -15,12 +15,16 @@ import java.util.TreeSet;
 
 import org.h2.test.TestBase;
 
+/**
+ * Test various optimizations (query cache, optimization for MIN(..), and MAX(..)).
+ */
 public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         if (config.networked) {
             return;
         }
+        testDistinctOptimization();
         testQueryCacheTimestamp();
         testQueryCacheSpeed();
         testQueryCache(true);
@@ -28,6 +32,45 @@ public class TestOptimizations extends TestBase {
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+    }
+
+    private void testDistinctOptimization() throws Exception {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR, TYPE INT)");
+        stat.execute("CREATE INDEX IDX_TEST_TYPE ON TEST(TYPE)");
+        Random random = new Random(1);
+        int len = getSize(10000, 100000);
+        int[] groupCount = new int[10];
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
+        for (int i = 0; i < len; i++) {
+            prep.setInt(1, i);
+            prep.setString(2, "Hello World");
+            int type = random.nextInt(10);
+            groupCount[type]++;
+            prep.setInt(3, type);
+            prep.execute();
+        }
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT TYPE, COUNT(*) FROM TEST GROUP BY TYPE ORDER BY TYPE");
+        for (int i = 0; rs.next(); i++) {
+            check(i, rs.getInt(1));
+            check(groupCount[i], rs.getInt(2));
+        }
+        checkFalse(rs.next());
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
+        for (int i = 0; rs.next(); i++) {
+            check(i, rs.getInt(1));
+        }
+        checkFalse(rs.next());
+        stat.execute("ANALYZE");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
+        for (int i = 0; rs.next(); i++) {
+            check(i, rs.getInt(1));
+        }
+        checkFalse(rs.next());
+        conn.close();
     }
 
     private void testQueryCacheTimestamp() throws Exception {

@@ -12,16 +12,19 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Access rights tests.
+ */
 public class TestRights extends TestBase {
 
     private Statement stat;
-    
+
     public void test() throws Exception {
         // testLowerCaseUser();
         testSchemaRenameUser();
         testAccessRights();
     }
-    
+
 //    public void testLowerCaseUser() throws Exception {
     // Documentation: For compatibility, only unquoted or uppercase user names are allowed.
 //        deleteDb("rights");
@@ -68,7 +71,7 @@ public class TestRights extends TestBase {
         stat.execute("drop user test1");
         conn.close();
     }
-    
+
     public void testAccessRights() throws Exception {
         if (config.memory) {
             return;

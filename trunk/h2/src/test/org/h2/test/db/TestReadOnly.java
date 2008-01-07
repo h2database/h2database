@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
+/**
+ * Test for the read-only database feature.
+ */
 public class TestReadOnly extends TestBase {
 
     public void test() throws Exception {

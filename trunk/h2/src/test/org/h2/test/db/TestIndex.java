@@ -13,6 +13,9 @@ import java.util.Random;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 
+/**
+ * Index tests.
+ */
 public class TestIndex extends TestBase {
 
     Connection conn;
@@ -30,7 +33,7 @@ public class TestIndex extends TestBase {
 
     public void test() throws Exception {
         testDescIndex();
-        
+
         if (config.networked && config.big) {
             return;
         }
@@ -70,7 +73,7 @@ public class TestIndex extends TestBase {
 
         conn.close();
     }
-    
+
     void testDescIndex() throws Exception {
         if (config.memory) {
             return;

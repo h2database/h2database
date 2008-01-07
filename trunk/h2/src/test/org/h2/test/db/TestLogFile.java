@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
+/**
+ * Tests the database transaction log file.
+ */
 public class TestLogFile extends TestBase {
 
     private Connection conn;

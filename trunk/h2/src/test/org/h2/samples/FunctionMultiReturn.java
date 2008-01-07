@@ -74,8 +74,13 @@ public class FunctionMultiReturn {
     }
 
     /**
+     * Convert polar coordinates to cartesian coordinates.
      * The function may be called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
+     *
+     * @param r the distance from the point 0/0
+     * @param alpha the angle
+     * @return a result set with two columns: x and y
      */
     public static ResultSet polar2Cartesian(Double r, Double alpha) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
@@ -90,8 +95,13 @@ public class FunctionMultiReturn {
     }
 
     /**
+     * Convert polar coordinates to cartesian coordinates.
      * The function may be called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
+     *
+     * @param r the distance from the point 0/0
+     * @param alpha the angle
+     * @return an array two values: x and y
      */
     public static Object[] polar2CartesianArray(Double r, Double alpha) throws SQLException {
         double x = r.doubleValue() * Math.cos(alpha.doubleValue());
@@ -99,6 +109,15 @@ public class FunctionMultiReturn {
         return new Object[]{new Double(x), new Double(y)};
     }
 
+    /**
+     * Convert a set of polar coordinates to cartesian coordinates.
+     * The function may be called twice, once to retrieve the result columns (with null parameters),
+     * and the second time to return the data.
+     *
+     * @param conn the connection
+     * @param query the query
+     * @return a result set with the coodinates
+     */
     public static ResultSet polar2CartesianSet(Connection conn, String query) throws SQLException {
         SimpleResultSet result = new SimpleResultSet();
         result.addColumn("R", Types.DOUBLE, 0, 0);

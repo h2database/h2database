@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
+/**
+ * This test runs a simple SQL script file and compares the output with the expected output.
+ */
 public class TestScriptSimple extends TestBase {
 
     private Connection conn;

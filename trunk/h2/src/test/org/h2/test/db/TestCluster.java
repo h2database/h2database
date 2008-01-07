@@ -16,6 +16,9 @@ import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 
+/**
+ * Test for the cluster feature.
+ */
 public class TestCluster extends TestBase {
 
     public void test() throws Exception {
@@ -41,7 +44,7 @@ public class TestCluster extends TestBase {
             prep.setString(2, "Data" + i);
             prep.executeUpdate();
         }
-        check(conn, len);        
+        check(conn, len);
         conn.close();
 
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
@@ -77,21 +80,21 @@ public class TestCluster extends TestBase {
         stat = conn.createStatement();
         check(conn, len);
         conn.close();
-        
+
         // disable the cluster
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091/test;CLUSTER=''", "sa", "");
         conn.close();
         n1.stop();
-        
+
         // re-create the cluster
         DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
                 "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
-                "localhost:9091,localhost:9092" });        
+                "localhost:9091,localhost:9092" });
         n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9091", "-baseDir", baseDir + "/node1" }).start();
         n2 = org.h2.tools.Server.createTcpServer(
-                new String[] { "-tcpPort", "9092", "-baseDir", baseDir + "/node2" }).start();        
+                new String[] { "-tcpPort", "9092", "-baseDir", baseDir + "/node2" }).start();
 
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9091,localhost:9092/test", "sa", "");
         stat = conn.createStatement();

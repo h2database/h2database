@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
+/**
+ * Test for big result sets.
+ */
 public class TestBigResult extends TestBase {
     public void test() throws Exception {
         if (config.memory) {

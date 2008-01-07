@@ -13,6 +13,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Test for batch updates.
+ */
 public class TestBatchUpdates extends TestBase {
 
     static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";

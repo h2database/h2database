@@ -37,14 +37,32 @@ public class Function {
         conn.close();
     }
 
+    /**
+     * Check if a value is a prime number.
+     *
+     * @param value the value
+     * @return true if it is a prime number
+     */
     public static boolean isPrime(int value) {
         return new BigInteger(String.valueOf(value)).isProbablePrime(100);
     }
 
+    /**
+     * Execute a query.
+     *
+     * @param conn the connection
+     * @param sql the SQL statement
+     * @return the result set
+     */
     public static ResultSet query(Connection conn, String sql) throws SQLException {
         return conn.createStatement().executeQuery(sql);
     }
 
+    /**
+     * Creates a simple result set with one row.
+     *
+     * @return the result set
+     */
     public static ResultSet simpleResultSet() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);

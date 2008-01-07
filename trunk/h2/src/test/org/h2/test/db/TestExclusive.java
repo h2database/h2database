@@ -10,6 +10,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Test for the exclusive mode.
+ */
 public class TestExclusive extends TestBase {
 
     public void test() throws Exception {

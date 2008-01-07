@@ -16,6 +16,7 @@ import org.h2.tools.Server;
  * the server mode supports remote connections.
  */
 public class MixedMode {
+
     public static void main(String[] args) throws Exception {
 
         // start the server, allows to access the database remotly

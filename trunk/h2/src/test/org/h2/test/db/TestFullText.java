@@ -12,6 +12,9 @@ import java.util.StringTokenizer;
 
 import org.h2.test.TestBase;
 
+/**
+ * Fulltext search tests.
+ */
 public class TestFullText extends TestBase {
 
     public void test() throws Exception {

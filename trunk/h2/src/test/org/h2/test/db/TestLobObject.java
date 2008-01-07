@@ -6,6 +6,9 @@ package org.h2.test.db;
 
 import java.io.Serializable;
 
+/**
+ * A utility class for TestLob.
+ */
 class TestLobObject implements Serializable {
     private static final long serialVersionUID = 904356179316518715L;
     String data;

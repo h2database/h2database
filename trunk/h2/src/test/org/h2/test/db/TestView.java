@@ -10,6 +10,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Test for views.
+ */
 public class TestView extends TestBase {
 
     public void test() throws Exception {

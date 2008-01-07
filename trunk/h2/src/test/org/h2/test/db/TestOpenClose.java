@@ -15,6 +15,9 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
 
+/**
+ * Tests opening and closing a database.
+ */
 public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     int nextId = 10;
@@ -171,8 +174,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     public void init(String url) {
     }
-    
+
     public void opened() {
-    }    
+    }
 
 }

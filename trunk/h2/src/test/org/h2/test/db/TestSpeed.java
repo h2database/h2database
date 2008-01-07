@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
- * Initial Developer: H2 Group 
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
@@ -11,9 +11,8 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 
 /**
- * @author Thomas
+ * Various small performance tests.
  */
-
 public class TestSpeed extends TestBase {
 
     // java -cp .;..\..\hsqldb\lib\hsqldb.jar -Xrunhprof:heap=sites,depth=6
@@ -59,7 +58,7 @@ public class TestSpeed extends TestBase {
         long time = System.currentTimeMillis();
         // for(int i=1; i<8000; i*=2) {
         // stat.execute("INSERT INTO TEST_A SELECT ID+"+i+", NAME FROM TEST_A");
-        //                
+        //
         // // stat.execute("INSERT INTO TEST_A VALUES("+i+", 'Hello')");
         // }
         // for(int i=0; i<4; i++) {
@@ -71,7 +70,7 @@ public class TestSpeed extends TestBase {
         // }
         // System.out.println(System.currentTimeMillis()-time);
 
-        //        
+        //
         // stat.execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY, NAME
         // VARCHAR(255))");
         // for(int i=0; i<80000; i++) {
@@ -82,7 +81,7 @@ public class TestSpeed extends TestBase {
         // System.exit(0);
         // int testParser;
         // java -Xrunhprof:cpu=samples,depth=8 -cp . org.h2.test.TestAll
-        //        
+        //
         // stat.execute("CREATE TABLE TEST(ID INT)");
         // stat.execute("INSERT INTO TEST VALUES(1)");
         // ResultSet rs = stat.executeQuery("SELECT ID OTHER_ID FROM TEST");

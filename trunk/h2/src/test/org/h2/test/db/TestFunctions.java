@@ -20,6 +20,9 @@ import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 
+/**
+ * Tests for user defined functions and aggregates.
+ */
 public class TestFunctions extends TestBase {
 
     private Statement stat;
@@ -28,9 +31,9 @@ public class TestFunctions extends TestBase {
         testAggregate();
         testFunctions();
     }
-    
+
     public static class MedianString implements AggregateFunction {
-        
+
         private ArrayList list = new ArrayList();
 
         public void add(Object value) throws SQLException {
@@ -47,9 +50,9 @@ public class TestFunctions extends TestBase {
 
         public void init(Connection conn) throws SQLException {
         }
-        
+
     }
-    
+
     private void testAggregate() throws Exception {
         deleteDb("functions");
         Connection conn = getConnection("functions");
@@ -60,11 +63,11 @@ public class TestFunctions extends TestBase {
         rs.next();
         check("5", rs.getString(1));
         conn.close();
-        
+
         if (config.memory) {
             return;
         }
-        
+
         conn = getConnection("functions");
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
@@ -85,7 +88,7 @@ public class TestFunctions extends TestBase {
         stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
         conn.close();
     }
-    
+
     private void testFunctions() throws Exception {
         deleteDb("functions");
         Connection conn = getConnection("functions");

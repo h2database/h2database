@@ -10,6 +10,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the compatibility with other databases.
+ */
 public class TestCompatibility extends TestBase {
 
     private Connection conn;

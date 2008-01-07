@@ -11,6 +11,9 @@ import java.sql.Statement;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 
+/**
+ * Tests the RUNSCRIPT SQL statement.
+ */
 public class TestRunscript extends TestBase implements Trigger {
 
     public void test() throws Exception {

@@ -11,6 +11,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the meta data tables information_schema.locks and sessions.
+ */
 public class TestSessionsLocks extends TestBase {
 
     public void test() throws Exception {

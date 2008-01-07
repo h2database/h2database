@@ -13,6 +13,9 @@ import java.util.Random;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
+/**
+ * Multi-threaded tests.
+ */
 public class TestMultiThread extends TestBase implements Runnable {
 
     private boolean stop;

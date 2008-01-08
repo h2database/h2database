@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
- * Initial Developer: H2 Group 
+ * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
 
@@ -21,6 +21,9 @@ import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
 
+/**
+ * A simple standalone FTP client.
+ */
 public class FtpClient {
     private Socket socket;
     private BufferedReader reader;
@@ -30,13 +33,13 @@ public class FtpClient {
     private Socket socketData;
     private InputStream inData;
     private OutputStream outData;
-    
+
     public static FtpClient open(String url) throws SQLException, IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
         return client;
     }
-    
+
     private FtpClient() {
     }
 
@@ -48,7 +51,7 @@ public class FtpClient {
         writer = new PrintWriter(new OutputStreamWriter(out, Constants.UTF8));
         readCode(220);
     }
-    
+
     private void readLine() throws IOException {
         message = reader.readLine();
         int idx = message.indexOf(' ');
@@ -59,26 +62,26 @@ public class FtpClient {
             message = message.substring(idx + 1);
         }
     }
-    
+
     private void readCode(int expected) throws IOException {
         readLine();
         if (code != expected) {
             throw new IOException("Expected: " + expected + " got: " + message);
         }
     }
-    
+
     private void send(String command) throws IOException {
         writer.println(command);
         writer.flush();
     }
-    
+
     public void login(String userName, String password) throws IOException {
         send("USER " + userName);
         readCode(331);
         send("PASS " + password);
         readCode(230);
         send("SYST");
-        readCode(215);        
+        readCode(215);
         send("SITE");
         readCode(500);
         send("STRU F");
@@ -86,7 +89,7 @@ public class FtpClient {
         send("TYPE I");
         readCode(200);
     }
-    
+
     public void close() throws IOException {
         if (socket != null) {
             send("QUIT");
@@ -94,7 +97,7 @@ public class FtpClient {
             socket.close();
         }
     }
-    
+
     public void changeWorkingDirectory(String dir) throws IOException {
         send("CWD " + dir);
         readCode(250);
@@ -122,7 +125,7 @@ public class FtpClient {
 
     public void modificationTime(String fileName) throws IOException {
         send("MDTM " + fileName);
-        
+
         readCode(213);
     }
 
@@ -136,7 +139,7 @@ public class FtpClient {
         readCode(257);
         return removeQuotes();
     }
-    
+
     private String removeQuotes() {
         int first = message.indexOf('"') + 1;
         int last = message.lastIndexOf('"');
@@ -150,7 +153,7 @@ public class FtpClient {
         }
         return buff.toString();
     }
-    
+
     private void passive() throws IOException, SQLException {
         send("PASV");
         readCode(227);
@@ -171,14 +174,14 @@ public class FtpClient {
         inData = socketData.getInputStream();
         outData = socketData.getOutputStream();
     }
-    
+
     public void rename(String fromFileName, String toFileName) throws IOException {
         send("RNFR " + fromFileName);
         readCode(350);
         send("RNTO " + toFileName);
         readCode(250);
     }
-    
+
     public void retrieve(String fileName, OutputStream out, long restartAt) throws IOException, SQLException {
         passive();
         if (restartAt > 0) {
@@ -194,14 +197,14 @@ public class FtpClient {
         send("RMD " + dir);
         readCode(250);
     }
-    
+
     public long size(String fileName) throws IOException {
         send("SIZE " + fileName);
         readCode(250);
         long size = Long.parseLong(message);
         return size;
     }
-    
+
     public void store(String fileName, InputStream in) throws IOException, SQLException {
         passive();
         send("STOR " + fileName);
@@ -209,7 +212,7 @@ public class FtpClient {
         IOUtils.copyAndClose(in, outData);
         readCode(226);
     }
-    
+
     public String nameList(String dir) throws IOException, SQLException {
         passive();
         send("NLST " + dir);

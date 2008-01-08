@@ -12,13 +12,16 @@ import org.h2.test.TestBase;
 import org.h2.util.FileUtils;
 import org.h2.value.Value;
 
+/**
+ * Tests the in-memory file system.
+ */
 public class TestFile extends TestBase implements DataHandler {
 
     public void test() throws Exception {
         doTest(false);
         doTest(true);
     }
-    
+
     private void doTest(boolean compress) throws Exception {
         byte[] magic = new byte[0];
         int len = getSize(1000, 10000);

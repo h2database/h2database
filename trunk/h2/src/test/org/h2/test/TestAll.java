@@ -149,8 +149,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-(code coverage: limit, sample-size)
-add tests with select distinct type
+check no more @author
 
 staging.trace.db.gz
 

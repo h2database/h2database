@@ -19,6 +19,9 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 
+/**
+ * Tests various file system.
+ */
 public class TestFileSystem extends TestBase {
 
     public void test() throws Exception {

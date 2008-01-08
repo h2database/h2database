@@ -30,6 +30,9 @@ import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.util.Resources;
 
+/**
+ * Tests the database tools.
+ */
 public class TestTools extends TestBase {
 
     private Server server;

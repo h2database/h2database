@@ -11,13 +11,16 @@ import java.sql.SQLException;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the multi-threaded kernel feature.
+ */
 public class TestMultiThreadedKernel extends TestBase implements Runnable {
 
     private String url, user, password;
     private int id;
     private TestMultiThreadedKernel master;
     private volatile boolean stop;
-    
+
     public void test() throws Exception {
         if (config.networked) {
             return;
@@ -43,7 +46,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
             list[i].join();
         }
     }
-    
+
     public void run() {
         try {
             org.h2.Driver.load();

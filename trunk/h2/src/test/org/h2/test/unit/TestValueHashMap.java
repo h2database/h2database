@@ -18,6 +18,9 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
+/**
+ * Tests the value hash map.
+ */
 public class TestValueHashMap extends TestBase implements DataHandler {
 
     CompareMode compareMode = new CompareMode(null, null);

@@ -12,6 +12,9 @@ import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.test.TestBase;
 
+/**
+ * Tests the LZF stream.
+ */
 public class TestStreams extends TestBase {
 
     public void test() throws Exception {

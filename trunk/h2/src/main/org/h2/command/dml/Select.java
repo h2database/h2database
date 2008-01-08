@@ -547,14 +547,6 @@ public class Select extends Query {
             }
         }
         cost = preparePlan();
-        if (sort != null && !isQuickQuery && !isGroupQuery && !distinct) {
-            Index index = getSortIndex();
-            Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() || current == index)) {
-                topTableFilter.setIndex(index);
-                sortUsingIndex = true;
-            }
-        }
         if (SysProperties.OPTIMIZE_DISTINCT && distinct && !isGroupQuery && filters.size() == 1 && expressions.size() == 1 && condition == null) {
             Expression expr = (Expression) expressions.get(0);
             expr = expr.getNonAliasExpression();
@@ -576,6 +568,14 @@ public class Select extends Query {
                         }
                     }
                 }
+            }
+        }
+        if (sort != null && !isQuickQuery && !isGroupQuery && (!distinct || isDistinctQuery)) {
+            Index index = getSortIndex();
+            Index current = topTableFilter.getIndex();
+            if (index != null && (current.getIndexType().isScan() || current == index)) {
+                topTableFilter.setIndex(index);
+                sortUsingIndex = true;
             }
         }
     }

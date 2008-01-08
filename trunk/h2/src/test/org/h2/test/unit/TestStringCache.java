@@ -9,6 +9,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.StringCache;
 
+/**
+ * Tests the string cache facility.
+ */
 public class TestStringCache extends TestBase {
 
     public static void main(String[] args) throws Exception {

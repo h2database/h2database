@@ -12,6 +12,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
+/**
+ * Tests string utility methods.
+ */
 public class TestStringUtils extends TestBase {
 
     public void test() throws Exception {

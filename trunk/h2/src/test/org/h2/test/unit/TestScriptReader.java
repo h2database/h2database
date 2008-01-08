@@ -10,6 +10,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
+/**
+ * Tests the script reader tool that breaks up SQL scripts in statements.
+ */
 public class TestScriptReader extends TestBase {
 
     public void test() throws Exception {

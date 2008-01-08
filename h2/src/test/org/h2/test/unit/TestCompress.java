@@ -9,66 +9,10 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 
+/**
+ * Data compression tests.
+ */
 public class TestCompress extends TestBase {
-    
-    public static void main(String[] a) throws Exception {
-        byte[] data = new byte[1000];
-        long total = 0;
-        for (int i = 100; i < 104; i++) {
-            long time = System.currentTimeMillis();
-            for (int j = 0; j < 10000000; j++) {
-//                System.arraycopy(data, 0, data, 100, 11);
-//                for (int k = 0, n = 100; k < 11; k++) {
-//                    data[k] = data[n++];
-//                }
-                
-                int outPos = 0, ctrl = 100, len = i;
-                
-//                do {
-//                    switch((len - outPos) & 7) {
-//                    case 0:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 7:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 6:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 5:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 4:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 3:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 2:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    case 1:
-//                        data[outPos] = data[outPos++ + ctrl];
-//                    }
-//                } while(outPos < len); 
-//                
-                data[outPos] = data[outPos++ + ctrl];
-                data[outPos] = data[outPos++ + ctrl];
-                while (outPos < len - 8) {
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                    data[outPos] = data[outPos++ + ctrl];
-                }
-                while (outPos < len) {
-                    data[outPos] = data[outPos++ + ctrl];
-                }
-                
-            }
-            // now: 8907/11859, switch: 9078/14782
-            long t = (System.currentTimeMillis() - time);
-            total += t;
-            System.out.println("i: " + i + " time: " + t);
-        }
-        System.out.println("total: " + total);
-    }
 
     public void test() throws Exception {
         if (config.big) {

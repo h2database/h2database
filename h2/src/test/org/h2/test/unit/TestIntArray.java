@@ -9,6 +9,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.IntArray;
 
+/**
+ * Tests the IntArray class.
+ */
 public class TestIntArray extends TestBase {
 
     public void test() throws Exception {

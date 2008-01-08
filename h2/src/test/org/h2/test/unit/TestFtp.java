@@ -10,6 +10,9 @@ import org.h2.server.ftp.FtpServer;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
+/**
+ * Tests the FTP server tool.
+ */
 public class TestFtp extends TestBase implements FtpEventListener {
 
     private FtpEvent lastEvent;

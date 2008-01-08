@@ -9,6 +9,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.IntIntHashMap;
 
+/**
+ * Tests the IntHashMap class.
+ */
 public class TestIntIntHashMap extends TestBase {
 
     Random rand = new Random();

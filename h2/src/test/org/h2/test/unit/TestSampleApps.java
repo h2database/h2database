@@ -12,6 +12,9 @@ import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.StringUtils;
 
+/**
+ * Tests the sample apps.
+ */
 public class TestSampleApps extends TestBase {
 
     public void test() throws Exception {

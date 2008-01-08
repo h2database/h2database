@@ -14,6 +14,10 @@ import org.h2.test.TestBase;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
+/**
+ * Tests numeric overflow on various data types.
+ * Other than in Java, overflow is detected and an exception is thrown.
+ */
 public class TestOverflow extends TestBase {
 
     public void test() throws Exception {

@@ -12,6 +12,9 @@ import java.io.StringReader;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
+/**
+ * Tests the stream to UTF-8 reader conversion.
+ */
 public class TestReader extends TestBase {
 
     public void test() throws Exception {

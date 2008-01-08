@@ -11,7 +11,8 @@ import org.h2.store.FileLock;
 import org.h2.test.TestBase;
 
 /**
- * @author Thomas
+ * Tests the database file locking facility.
+ * Both lock files and sockets locking is tested.
  */
 public class TestFileLock extends TestBase implements Runnable {
 

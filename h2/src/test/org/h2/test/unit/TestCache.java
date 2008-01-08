@@ -11,6 +11,9 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests the cache.
+ */
 public class TestCache extends TestBase {
 
     public void test() throws Exception {

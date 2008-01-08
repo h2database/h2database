@@ -7,12 +7,15 @@ package org.h2.test.unit;
 import org.h2.test.TestBase;
 import org.h2.value.ValueUuid;
 
+/**
+ * Tests features of values.
+ */
 public class TestValue extends TestBase {
 
     public void test() throws Exception {
         testUUID();
     }
-    
+
     private void testUUID() throws Exception {
         long maxHigh = 0, maxLow = 0, minHigh = -1L, minLow = -1L;
         for (int i = 0; i < 100; i++) {

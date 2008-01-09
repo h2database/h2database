@@ -9,6 +9,9 @@ import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import javax.transaction.xa.Xid;
 
+/**
+ * A utility class for the basic XA test.
+ */
 public class TestXid implements Xid {
     private static final NumberFormat NF;
 
@@ -30,7 +33,7 @@ public class TestXid implements Xid {
     public static void main(String[] args) {
         new TestXid();
     }
-    
+
     public TestXid() {
         this(1);
     }

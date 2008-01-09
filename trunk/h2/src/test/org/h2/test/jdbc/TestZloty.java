@@ -12,6 +12,10 @@ import java.sql.SQLException;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests a custom BigDecimal implementation, as well
+ * as direct modification of a byte in a byte array.
+ */
 public class TestZloty extends TestBase {
 
     public void test() throws Exception {
@@ -61,7 +65,7 @@ public class TestZloty extends TestBase {
 
     /**
      * H2 destroyer application ;->
-     * 
+     *
      * @author Maciej Wegorkiewicz
      */
     private void testZloty() throws Exception {

@@ -19,6 +19,9 @@ import java.sql.Timestamp;
 
 import org.h2.test.TestBase;
 
+/**
+ * Updatable result set tests.
+ */
 public class TestUpdatableResultSet extends TestBase {
 
     public void test() throws Exception {

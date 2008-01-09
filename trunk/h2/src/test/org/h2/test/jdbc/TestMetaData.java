@@ -15,6 +15,9 @@ import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
 
+/**
+ * Test for the DatabaseMetaData implementation.
+ */
 public class TestMetaData extends TestBase {
 
     Connection conn;

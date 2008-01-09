@@ -2,7 +2,7 @@
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.synth;
+package org.h2.test.synth.sql;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,6 +14,9 @@ import java.util.Collections;
 
 import org.h2.test.TestBase;
 
+/**
+ * Represents an in-memory result.
+ */
 class Result implements Comparable {
     static final int SUCCESS = 0, BOOLEAN = 1, INT = 2, EXCEPTION = 3, RESULT_SET = 4;
     private int type;

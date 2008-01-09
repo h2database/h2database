@@ -18,6 +18,9 @@ import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.RandomUtils;
 
+/**
+ * This test executes random SQL statements generated using the BNF tool.
+ */
 public class TestRandomSQL extends TestBase {
 
     private int dbId;

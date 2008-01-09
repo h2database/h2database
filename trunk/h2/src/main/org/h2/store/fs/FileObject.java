@@ -7,7 +7,7 @@ package org.h2.store.fs;
 import java.io.IOException;
 
 /**
- * This interface represents a RandomAccessFile.
+ * This interface represents a random access file.
  */
 public interface FileObject {
 

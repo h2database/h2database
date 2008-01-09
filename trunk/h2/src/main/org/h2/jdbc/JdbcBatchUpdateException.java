@@ -9,10 +9,13 @@ import java.io.PrintWriter;
 import java.sql.BatchUpdateException;
 import java.sql.SQLException;
 
+/**
+ * Represents a batch update database exception.
+ */
 public class JdbcBatchUpdateException extends BatchUpdateException {
 
     private static final long serialVersionUID = 9006432914018679675L;
-    
+
     /**
      * INTERNAL
      */

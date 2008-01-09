@@ -31,10 +31,12 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.db.TestScript;
+import org.h2.test.synth.sql.RandomGen;
 import org.h2.util.RandomUtils;
 
 /**
- * This is sometimes called 'Fuzz Testing'
+ * A test that calls random methods with random parameters from JDBC objects.
+ * This is sometimes called 'Fuzz Testing'.
  */
 public class TestCrashAPI extends TestBase {
     public static final Class[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,

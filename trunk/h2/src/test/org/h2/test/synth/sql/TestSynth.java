@@ -2,7 +2,7 @@
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.synth;
+package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
 
@@ -10,9 +10,14 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.RandomUtils;
 
-// TODO hsqldb: call 1||null should return 1 but returns null
-// TODO hsqldb: call mod(1) should return invalid parameter count but returns null
+/**
+ * A test that generates random SQL statements against a number of databases
+ * and compares the results.
+ */
 public class TestSynth extends TestBase {
+
+    //  TODO hsqldb: call 1||null should return 1 but returns null
+    //  TODO hsqldb: call mod(1) should return invalid parameter count but returns null
 
     static final int H2 = 0, H2_MEM = 1, HSQLDB = 2, MYSQL = 3, POSTGRESQL = 4;
 

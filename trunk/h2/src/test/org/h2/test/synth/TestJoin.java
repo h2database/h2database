@@ -18,6 +18,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
+/**
+ * A test that runs random join statements against two databases and compares the results.
+ */
 public class TestJoin extends TestBase {
 
     private ArrayList connections = new ArrayList();
@@ -54,18 +57,18 @@ public class TestJoin extends TestBase {
         // connections.add(c2);
 
         /*
-        DROP TABLE ONE; 
-        DROP TABLE TWO; 
-        CREATE TABLE ONE(A INT PRIMARY KEY, B INT); 
-        INSERT INTO ONE VALUES(0, NULL); 
+        DROP TABLE ONE;
+        DROP TABLE TWO;
+        CREATE TABLE ONE(A INT PRIMARY KEY, B INT);
+        INSERT INTO ONE VALUES(0, NULL);
         INSERT INTO ONE VALUES(1, 0);
-        INSERT INTO ONE VALUES(2, 1); 
-        INSERT INTO ONE VALUES(3, 4); 
-        CREATE TABLE TWO(A INT PRIMARY KEY, B INT); 
+        INSERT INTO ONE VALUES(2, 1);
+        INSERT INTO ONE VALUES(3, 4);
+        CREATE TABLE TWO(A INT PRIMARY KEY, B INT);
         INSERT INTO TWO VALUES(0, NULL);
-        INSERT INTO TWO VALUES(1, 0); 
-        INSERT INTO TWO VALUES(2, 2); 
-        INSERT INTO TWO VALUES(3, 3); 
+        INSERT INTO TWO VALUES(1, 0);
+        INSERT INTO TWO VALUES(2, 2);
+        INSERT INTO TWO VALUES(3, 3);
         INSERT INTO TWO VALUES(4, NULL);
         */
 

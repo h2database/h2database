@@ -25,6 +25,9 @@ import java.util.TimeZone;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests for the ResultSet implementation.
+ */
 public class TestResultSet extends TestBase {
     Connection conn;
     Statement stat;

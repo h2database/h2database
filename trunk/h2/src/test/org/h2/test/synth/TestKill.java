@@ -13,6 +13,10 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * A random recovery test. This test starts a process that executes random operations
+ * against a database, then kills this process. Afterwards recovery is tested.
+ */
 public class TestKill extends TestBase {
 
     Connection conn;

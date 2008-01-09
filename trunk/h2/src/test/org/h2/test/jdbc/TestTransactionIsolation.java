@@ -9,6 +9,9 @@ import java.sql.SQLException;
 
 import org.h2.test.TestBase;
 
+/**
+ * Transaction isolation level tests.
+ */
 public class TestTransactionIsolation extends TestBase {
 
     Connection conn1, conn2;

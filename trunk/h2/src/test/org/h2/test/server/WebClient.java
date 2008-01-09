@@ -12,10 +12,13 @@ import java.net.URL;
 
 import org.h2.util.IOUtils;
 
+/**
+ * A simple web browser simulator.
+ */
 public class WebClient {
-    
+
     private String sessionId;
-    
+
     String get(String url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setRequestMethod("GET");
@@ -30,7 +33,7 @@ public class WebClient {
         connection.disconnect();
         return result;
     }
-    
+
     void readSessionId(String result) {
         int idx = result.indexOf("jsessionid=");
         String id = result.substring(idx + "jsessionid=".length());
@@ -59,5 +62,5 @@ public class WebClient {
         url += page;
         return get(url);
     }
-    
+
 }

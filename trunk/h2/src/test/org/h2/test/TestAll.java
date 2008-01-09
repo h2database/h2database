@@ -74,10 +74,10 @@ import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
-import org.h2.test.synth.TestMulti;
 import org.h2.test.synth.TestRandomSQL;
-import org.h2.test.synth.TestSynth;
 import org.h2.test.synth.TestTimer;
+import org.h2.test.synth.sql.TestSynth;
+import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
@@ -149,7 +149,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-check no more @author
 
 staging.trace.db.gz
 
@@ -160,7 +159,8 @@ http://java.sun.com/j2se/1.4.2/docs/guide/jdbc/getstart/callablestatement.html#1
 -Djboss.bind.address=<ip_address>
 -Dh2.bindAddress=...
 
-documentation: package.html: write test (enforce one package.html where there is a .java file)
+    [echo] Java version is 1.6 but source code is switched to 1.4.
+    [echo] Run ant codeswitchJdk... first.
 
 write to the db file what version was used to create a database
 

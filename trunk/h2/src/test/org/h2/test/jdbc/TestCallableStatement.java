@@ -11,6 +11,9 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests for the CallableStatement class.
+ */
 public class TestCallableStatement extends TestBase {
 
     public void test() throws Exception {
@@ -19,7 +22,7 @@ public class TestCallableStatement extends TestBase {
         testPrepare(conn);
         conn.close();
     }
-    
+
     private void testPrepare(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         CallableStatement call;

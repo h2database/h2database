@@ -2,7 +2,7 @@
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.synth;
+package org.h2.test.synth.thread;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,6 +10,9 @@ import java.sql.SQLException;
 
 import org.h2.test.TestBase;
 
+/**
+ * Starts multiple threads and performs random operations on each thread.
+ */
 public class TestMulti extends TestBase {
 
     public volatile boolean stop;

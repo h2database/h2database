@@ -13,8 +13,11 @@ import java.util.Properties;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 
+/**
+ * Tests the DatabaseEventListener interface.
+ */
 public class TestDatabaseEventListener extends TestBase implements DatabaseEventListener {
-    
+
     private boolean calledOpened, calledClosingDatabase, calledScan;
 
     public void test() throws Exception {
@@ -22,7 +25,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         testCloseLog0(false);
         testCloseLog0(true);
     }
-    
+
     private void testCloseLog0(boolean shutdown) throws Exception {
         if (config.memory) {
             return;
@@ -52,7 +55,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
             check(!l.calledScan);
         }
     }
-    
+
     private void testCalled() throws Exception {
         Properties p = new Properties();
         p.setProperty("user", "sa");
@@ -65,7 +68,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         check(l.calledOpened);
         check(l.calledClosingDatabase);
     }
-    
+
     public void closingDatabase() {
         calledClosingDatabase = true;
     }

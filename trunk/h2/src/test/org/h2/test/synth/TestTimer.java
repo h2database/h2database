@@ -15,6 +15,11 @@ import org.h2.test.TestBase;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 
+/**
+ * A recovery test that checks the consistency of a database (if it exists),
+ * then deletes everything and runs in an endless loop executing random operations.
+ * This loop is usually stopped by turning off the computer.
+ */
 public class TestTimer extends TestBase {
 
     public void test() throws Exception {

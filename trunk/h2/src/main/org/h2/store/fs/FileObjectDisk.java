@@ -11,7 +11,7 @@ import java.io.RandomAccessFile;
 import org.h2.util.FileUtils;
 
 /**
- * This class is extends a RandomAccessFile.
+ * This class is extends a java.io.RandomAccessFile.
  */
 public class FileObjectDisk extends RandomAccessFile implements FileObject {
 

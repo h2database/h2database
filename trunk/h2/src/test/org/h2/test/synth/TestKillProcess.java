@@ -13,6 +13,9 @@ import java.util.Random;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
+/**
+ * Test application for {@link TestKill}.
+ */
 public class TestKillProcess {
     public static void main(String[] args) throws Exception {
         try {

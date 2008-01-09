@@ -16,6 +16,9 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 
+/**
+ * Basic XA tests.
+ */
 public class TestXA extends TestBase {
     private static final String DB_NAME1 = "xadb1";
     private static final String DB_NAME2 = "xadb2";
@@ -30,7 +33,7 @@ public class TestXA extends TestBase {
         deleteDb(baseDir, DB_NAME2);
         testXA(false);
     }
-    
+
     public static class MyXid implements Xid {
         private byte[] branchQualifier = new byte[1];
         private byte[] globalTransactionId = new byte[1];
@@ -43,8 +46,8 @@ public class TestXA extends TestBase {
         public byte[] getGlobalTransactionId() {
             return globalTransactionId;
         }
-    }    
-    
+    }
+
     private void testXAAutoCommit() throws Exception {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL("jdbc:h2:mem:test");
@@ -58,7 +61,7 @@ public class TestXA extends TestBase {
         check(!c.getAutoCommit());
         c.close();
     }
-    
+
     private void testXA(boolean useOneDatabase) {
         XAConnection xaConn1 = null;
         XAConnection xaConn2 = null;

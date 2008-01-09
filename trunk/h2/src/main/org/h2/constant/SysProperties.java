@@ -126,4 +126,6 @@ public class SysProperties {
     public static String getBaseDir() {
         return baseDir;
     }
+
+    public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
 }

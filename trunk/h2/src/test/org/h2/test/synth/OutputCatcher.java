@@ -10,6 +10,9 @@ import java.util.LinkedList;
 
 import org.h2.util.IOUtils;
 
+/**
+ * Catches the output of another process.
+ */
 class OutputCatcher extends Thread {
     private InputStream in;
     private LinkedList list = new LinkedList();

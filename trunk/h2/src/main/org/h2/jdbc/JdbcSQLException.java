@@ -61,17 +61,11 @@ public class JdbcSQLException extends SQLException {
      * Prints the stack trace to the standard error stream.
      */
     public void printStackTrace() {
-        super.printStackTrace();
-//#ifdef JDK13
-/*
-        if (cause != null) {
-            cause.printStackTrace();
-        }
-*/
-//#endif
-        if (getNextException() != null) {
-            getNextException().printStackTrace();
-        }
+        // The default implementation already does that,
+        // but we do it again to avoid problems.
+        // If it is not implemented, somebody might implement it
+        // later on which would be a problem if done in the wrong way.
+        printStackTrace(System.err);
     }
 
     /**
@@ -89,8 +83,15 @@ public class JdbcSQLException extends SQLException {
             }
 */
 //#endif
-            if (getNextException() != null) {
-                getNextException().printStackTrace(s);
+            // getNextException().printStackTrace(s) would be very very slow
+            // if many exceptions are joined
+            SQLException next = getNextException();
+            for (int i = 0; i < 100 && next != null; i++) {
+                s.println(next.toString());
+                next = next.getNextException();
+            }
+            if (next != null) {
+                s.println("(truncated)");
             }
         }
     }
@@ -110,8 +111,15 @@ public class JdbcSQLException extends SQLException {
             }
 */
 //#endif
-            if (getNextException() != null) {
-                getNextException().printStackTrace(s);
+            // getNextException().printStackTrace(s) would be very very slow
+            // if many exceptions are joined
+            SQLException next = getNextException();
+            for (int i = 0; i < 100 && next != null; i++) {
+                s.println(next.toString());
+                next = next.getNextException();
+            }
+            if (next != null) {
+                s.println("(truncated)");
             }
         }
     }

@@ -2,8 +2,10 @@
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.jdbc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -36,6 +38,37 @@ public class TestBatchUpdates extends TestBase {
     PreparedStatement prep;
 
     public void test() throws Exception {
+        testException();
+        testCoffee();
+    }
+
+    private void testException() throws Exception {
+        deleteDb("batchUpdates");
+        Connection conn = getConnection("batchUpdates");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?)");
+        for (int i = 0; i < 700; i++) {
+            prep.setString(1, "x");
+            prep.addBatch();
+        }
+        try {
+            prep.executeBatch();
+        } catch (BatchUpdateException e) {
+            PrintStream temp = System.err;
+            try {
+                ByteArrayOutputStream buff = new ByteArrayOutputStream();
+                PrintStream p = new PrintStream(buff);
+                System.setErr(p);
+                e.printStackTrace();
+            } finally {
+                System.setErr(temp);
+            }
+        }
+        conn.close();
+    }
+
+    private void testCoffee() throws Exception {
         deleteDb("batchUpdates");
         this.conn = getConnection("batchUpdates");
         stat = conn.createStatement();

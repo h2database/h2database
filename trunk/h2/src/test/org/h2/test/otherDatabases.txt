@@ -36,4 +36,5 @@ To call getFD().sync() (which results in the OS call fsync()),
 set the system property derby.storage.fileSyncTransactionLog to true true.
 See
 http://db.apache.org/derby/javadoc/engine/org/apache/derby/iapi/reference/Property.html#FILESYNC_TRANSACTION_LOG
-
+Missing features:
+LIMIT OFFSET is not supported.

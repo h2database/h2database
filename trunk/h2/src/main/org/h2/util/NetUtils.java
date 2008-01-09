@@ -9,9 +9,11 @@ import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.security.SecureSocketFactory;
 
@@ -19,6 +21,8 @@ import org.h2.security.SecureSocketFactory;
  * This utility class contains socket helper functions.
  */
 public class NetUtils {
+
+    private static InetAddress bindAddress;
 
     public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
         return createSocket("127.0.0.1", port, ssl);
@@ -58,15 +62,37 @@ public class NetUtils {
         }
     }
 
+    /**
+     * Get the bind address if the system property h2.bindAddress is set, or
+     * null if not.
+     *
+     * @return the bind address
+     */
+    public static InetAddress getBindAddress() throws UnknownHostException {
+        String host = SysProperties.BIND_ADDRESS;
+        if (host == null || host.length() == 0) {
+            return null;
+        }
+        synchronized (NetUtils.class) {
+            if (bindAddress == null) {
+                bindAddress = InetAddress.getByName(host);
+            }
+        }
+        return bindAddress;
+    }
+
     private static ServerSocket createServerSocketTry(int port, boolean ssl) throws SQLException {
-        // TODO server sockets: maybe automatically open the next port if this is in use?
-        // TODO server sockets: maybe a parameter to allow anonymous ssl?
         try {
             if (ssl) {
                 SecureSocketFactory f = SecureSocketFactory.getInstance();
                 return f.createServerSocket(port);
             } else {
-                return new ServerSocket(port);
+                InetAddress bindAddress = getBindAddress();
+                if (bindAddress == null) {
+                    return new ServerSocket(port);
+                } else {
+                    return new ServerSocket(port, 0, bindAddress);
+                }
             }
         } catch (BindException be) {
             throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2,

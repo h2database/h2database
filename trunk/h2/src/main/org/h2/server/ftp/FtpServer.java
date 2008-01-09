@@ -81,8 +81,8 @@ public class FtpServer implements Service {
         }
     }
 
-    public ServerSocket createDataSocket() throws IOException {
-        ServerSocket dataSocket = new ServerSocket(0);
+    public ServerSocket createDataSocket() throws SQLException {
+        ServerSocket dataSocket = NetUtils.createServerSocket(0, false);
         return dataSocket;
     }
 

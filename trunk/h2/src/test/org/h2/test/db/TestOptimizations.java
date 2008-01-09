@@ -66,20 +66,25 @@ public class TestOptimizations extends TestBase {
         checkFalse(rs.next());
         stat.execute("ANALYZE");
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
-        for (int i = 0; rs.next(); i++) {
+        for (int i = 0; i < 10; i++) {
+            check(rs.next());
             check(i, rs.getInt(1));
         }
         checkFalse(rs.next());
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 5 OFFSET 2");
         for (int i = 2; i < 7; i++) {
-            rs.next();
+            check(rs.next());
             check(i, rs.getInt(1));
         }
         checkFalse(rs.next());
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 0 OFFSET 0 SAMPLE_SIZE 3");
+        // must have at least one row
+        check(rs.next());
         for (int i = 0; i < 3; i++) {
-            rs.next();
-            check(i, rs.getInt(1));
+            rs.getInt(1);
+            if (i > 0 && !rs.next()) {
+                break;
+            }
         }
         checkFalse(rs.next());
         conn.close();

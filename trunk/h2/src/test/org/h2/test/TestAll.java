@@ -11,7 +11,6 @@ import org.h2.server.TcpServer;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
-import org.h2.test.db.TestBatchUpdates;
 import org.h2.test.db.TestBigDb;
 import org.h2.test.db.TestBigResult;
 import org.h2.test.db.TestCases;
@@ -49,6 +48,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
+import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDataSource;
@@ -149,16 +149,32 @@ java org.h2.test.TestAll timer
 
 /*
 
-
 staging.trace.db.gz
+
+drop table logs;
+CREATE TABLE Logs(id INT PRIMARY KEY, procid INT);
+CREATE unique INDEX procIdx ON Logs(procid, id);
+@LOOP 1000 INSERT INTO Logs VALUES(?, MOD(?, 100000));
+ANALYZE SAMPLE_SIZE 0;
+script nodata;
+EXPLAIN SELECT id FROM Logs WHERE procid=2 AND id<100;
+
+h2CallableStatementBatchTest.zip
+h2-2007-12-27_test.zip
+
+docs,
+History:
+The bind IP address can now be set when using multi-homed host (if multiple network adapters are available)
+using the system property h2.bindAddress.
+Batch update: Calling BatchUpdateException.printStackTrace() could result in out of memory. Fixed.
+
+Create system property documentation from Javadocs.
 
 allow queries as well in batch updates
 CALL syntax should probably work for regular executeUpdate as well.
 http://java.sun.com/j2se/1.4.2/docs/guide/jdbc/getstart/callablestatement.html#1000220
 
--Djboss.bind.address=<ip_address>
--Dh2.bindAddress=...
-
+Automatically switch source code before compiling
     [echo] Java version is 1.6 but source code is switched to 1.4.
     [echo] Run ant codeswitchJdk... first.
 
@@ -487,7 +503,6 @@ Features of H2
         new TestScript().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBackup().runTest(this);
-        new TestBatchUpdates().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
         new TestCache().runTest(this);
@@ -531,6 +546,7 @@ Features of H2
         new TestPgServer().runTest(this);
 
         // jdbc
+        new TestBatchUpdates().runTest(this);
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);

@@ -570,12 +570,16 @@ public class Select extends Query {
                 }
             }
         }
-        if (sort != null && !isQuickQuery && !isGroupQuery && (!distinct || isDistinctQuery)) {
+        if (sort != null && !isQuickQuery && !isGroupQuery) {
             Index index = getSortIndex();
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
-                sortUsingIndex = true;
+                if (!distinct || isDistinctQuery) {
+                    // sort using index wouldn't work correctly for distinct result sets
+                    // because it would break too early when limit is used
+                    sortUsingIndex = true;
+                }
             }
         }
     }

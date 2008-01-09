@@ -14,6 +14,9 @@ import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
 
+/**
+ * Tests for the Statement implementation.
+ */
 public class TestStatement extends TestBase {
 
     Connection conn;

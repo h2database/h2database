@@ -4,7 +4,6 @@
  */
 package org.h2.engine;
 
-import org.h2.constant.SysProperties;
 
 /*
  * Release checklist
@@ -176,5 +175,4 @@ public class Constants {
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
     public static final String SCRIPT_SQL = "script.sql";
     public static final int CACHE_MIN_RECORDS = 16;
-    public static final int CACHE_SIZE_INDEX_DEFAULT = SysProperties.CACHE_SIZE_DEFAULT >> SysProperties.CACHE_SIZE_INDEX_SHIFT;
 }

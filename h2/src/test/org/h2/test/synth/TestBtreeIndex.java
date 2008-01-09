@@ -15,6 +15,9 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 
+/**
+ * A b-tree index test.
+ */
 public class TestBtreeIndex extends TestBase {
 
     public void test() throws Exception {

@@ -12,10 +12,12 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * This test starts multiple threads and executes random operations in each thread.
+ */
 public class TestThreads extends TestBase implements Runnable {
 
     public TestThreads() {
-
     }
 
     public void test() throws Exception {

@@ -9,6 +9,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * The application code for the {@link TestHalt} application.
+ */
 public class TestHaltApp extends TestHalt {
 
     private int rowCount;

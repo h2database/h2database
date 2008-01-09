@@ -20,6 +20,9 @@ import java.sql.Types;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests for the PreparedStatement implementation.
+ */
 public class TestPreparedStatement extends TestBase {
 
     static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
@@ -33,7 +36,7 @@ public class TestPreparedStatement extends TestBase {
         testPrepareRecompile(conn);
         testMaxRowsChange(conn);
         testUnknownDataType(conn);
-        testCancelReuse(conn);        
+        testCancelReuse(conn);
         testCoalesce(conn);
         testPreparedStatementMetaData(conn);
         testDate(conn);
@@ -54,14 +57,14 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
     }
-    
+
     private void testTempView(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         stat.execute("CREATE TABLE TEST(FIELD INT PRIMARY KEY)");
         stat.execute("INSERT INTO TEST VALUES(1)");
         stat.execute("INSERT INTO TEST VALUES(2)");
-        prep = conn.prepareStatement("select FIELD FROM " 
+        prep = conn.prepareStatement("select FIELD FROM "
                 + "(select FIELD FROM (SELECT FIELD  FROM TEST WHERE FIELD = ?) AS T2 "
                 + "WHERE T2.FIELD = ?) AS T3 WHERE T3.FIELD = ?");
         prep.setInt(1, 1);
@@ -78,12 +81,12 @@ public class TestPreparedStatement extends TestBase {
         check(2, rs.getInt(1));
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private void testInsertFunction(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         ResultSet rs;
-        
+
         stat.execute("CREATE TABLE TEST(ID INT, H BINARY)");
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, HASH('SHA256', STRINGTOUTF8(?), 5))");
         prep.setInt(1, 1);
@@ -95,15 +98,15 @@ public class TestPreparedStatement extends TestBase {
         rs = stat.executeQuery("SELECT COUNT(DISTINCT H) FROM TEST");
         rs.next();
         check(rs.getInt(1), 2);
-        
+
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private void testPrepareRecompile(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         ResultSet rs;
-        
+
         prep = conn.prepareStatement("SELECT COUNT(*) FROM DUAL WHERE ? IS NULL");
         prep.setString(1, null);
         prep.executeQuery();
@@ -131,9 +134,9 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         check(rs.getInt(1), 3);
         stat.execute("DROP TABLE t1, t2");
-        
+
     }
-    
+
     private void testMaxRowsChange(Connection conn) throws Exception {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM SYSTEM_RANGE(1, 100)");
         ResultSet rs;
@@ -146,7 +149,7 @@ public class TestPreparedStatement extends TestBase {
             checkFalse(rs.next());
         }
     }
-    
+
     private void testUnknownDataType(Connection conn) throws Exception {
         try {
             PreparedStatement prep = conn.prepareStatement(
@@ -165,7 +168,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setInt(2, 2);
         prep.execute();
     }
-    
+
     private void testCancelReuse(Connection conn) throws Exception {
         conn.createStatement().execute("CREATE ALIAS YIELD FOR \"java.lang.Thread.yield\"");
         final PreparedStatement prep = conn.prepareStatement("SELECT YIELD() FROM SYSTEM_RANGE(1, 1000000) LIMIT ?");
@@ -192,7 +195,7 @@ public class TestPreparedStatement extends TestBase {
         check(rs.getInt(1), 0);
         checkFalse(rs.next());
     }
-    
+
     private void testCoalesce(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.executeUpdate("create table test(tm timestamp)");

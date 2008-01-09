@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import org.h2.engine.Constants;
 
 /**
- * Represents an exception.
+ * Represents a database exception.
  */
 public class JdbcSQLException extends SQLException {
 

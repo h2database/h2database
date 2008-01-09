@@ -390,7 +390,7 @@ public class Database implements DataHandler {
 
     private void openFileIndex() throws SQLException {
         fileIndex = new DiskFile(this, databaseName + Constants.SUFFIX_INDEX_FILE, accessModeData, false,
-                logIndexChanges, Constants.CACHE_SIZE_INDEX_DEFAULT);
+                logIndexChanges, SysProperties.CACHE_SIZE_INDEX_DEFAULT);
     }
 
     public DataPage getDataPage() {

@@ -2,11 +2,14 @@
  * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.synth;
+package org.h2.test.synth.sql;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/**
+ * Represents a connection to a simulated database.
+ */
 public class DbState implements DbInterface {
 
     private TestSynth config;

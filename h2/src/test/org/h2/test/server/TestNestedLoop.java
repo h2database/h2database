@@ -11,6 +11,10 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests remote JDBC access with nested loops.
+ * This is not allowed in some databases.
+ */
 public class TestNestedLoop extends TestBase {
 
     public void test() throws Exception {

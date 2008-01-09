@@ -10,7 +10,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.test.synth.sql.RandomGen;
 
+/**
+ * A test that runs random operations against a table to test the various index implementations.
+ */
 public class TestSimpleIndex extends TestBase {
 
     Connection conn;

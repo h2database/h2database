@@ -7,6 +7,9 @@ package org.h2.test.server;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
+/**
+ * Tests the H2 Console application.
+ */
 public class TestWeb extends TestBase {
 
     public void test() throws Exception {
@@ -61,14 +64,14 @@ public class TestWeb extends TestBase {
         check(result.indexOf("id") >= 0);
         result = client.get(url, "autoCompleteList.do?query=select id x from test te where t");
         check(result.indexOf("te") >= 0);
-        
+
         result = client.get(url, "query.do?sql=delete from test");
         result = client.get(url, "query.do?sql=@LOOP 10 @STATEMENT insert into test values(?, 'Hello')");
         result = client.get(url, "query.do?sql=select * from test");
         check(result.indexOf("8") >= 0);
         result = client.get(url, "query.do?sql=@EDIT select * from test");
         check(result.indexOf("editRow") >= 0);
-        
+
         result = client.get(url, "query.do?sql=@AUTOCOMMIT TRUE");
         result = client.get(url, "query.do?sql=@AUTOCOMMIT FALSE");
         result = client.get(url, "query.do?sql=@TRANSACTION_ISOLATION");
@@ -86,10 +89,10 @@ public class TestWeb extends TestBase {
         result = client.get(url, "query.do?sql=@MEMORY");
         check(result.indexOf("Used") >= 0);
         result = client.get(url, "query.do?sql=@UDTS");
-        
+
         result = client.get(url, "query.do?sql=@INFO");
         check(result.indexOf("getCatalog") >= 0);
-        
+
         result = client.get(url, "logout.do");
         result = client.get(url, "settingRemove.do?name=_test_");
         server.stop();

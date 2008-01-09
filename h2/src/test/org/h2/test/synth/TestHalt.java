@@ -22,6 +22,9 @@ import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 
+/**
+ * Tests database recovery by destroying a process that writes to the database.
+ */
 public abstract class TestHalt extends TestBase {
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");

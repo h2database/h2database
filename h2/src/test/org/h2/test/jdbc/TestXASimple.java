@@ -8,9 +8,12 @@ import java.sql.Connection;
 
 import org.h2.jdbcx.JdbcDataSource;
 
+/**
+ * A simple XA test.
+ */
 public class TestXASimple {
 
-    int notYetImplemented;
+    private int notYetImplemented;
 
     public static void main(String[] args) throws Exception {
         Class.forName("org.h2.Driver");

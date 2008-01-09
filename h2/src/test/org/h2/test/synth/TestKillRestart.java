@@ -14,6 +14,10 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 
+/**
+ * Standalone recovery test. A new process is started and then killed while it
+ * executes random statements.
+ */
 public class TestKillRestart extends TestBase {
 
     public void test() throws Exception {

@@ -16,6 +16,9 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
+/**
+ * Tests the PostgreSQL server protocol compliant implementation.
+ */
 public class TestPgServer extends TestBase {
 
     public void test() throws Exception {
@@ -43,7 +46,7 @@ public class TestPgServer extends TestBase {
         }
         conn.close();
         conn = DriverManager.getConnection("jdbc:postgresql://localhost:5435/test", "sa", "sa");
-        stat = conn.createStatement();        
+        stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
@@ -92,7 +95,7 @@ public class TestPgServer extends TestBase {
         s = rs.getString(3);
         check(s, "PUBLIC");
         checkFalse(rs.next());
-        
+
         conn.setAutoCommit(false);
         stat.execute("delete from test");
         conn.rollback();
@@ -103,12 +106,12 @@ public class TestPgServer extends TestBase {
         check(1, rs.getInt(1));
         check("Hallo", rs.getString(2));
         checkFalse(rs.next());
-        
+
         rs = stat.executeQuery("select id, name, pg_get_userbyid(id) from information_schema.users order by id");
         rs.next();
         check(rs.getString(2), rs.getString(3));
         checkFalse(rs.next());
-        
+
 
         conn.close();
     }

@@ -31,9 +31,10 @@ import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.NetUtils;
 
 /**
- * A factory to create encrypted sockets. To generate new keystore, use the 
+ * A factory to create encrypted sockets. To generate new keystore, use the
  * SecureKeyStoreBuilder tool.
  */
 public class SecureSocketFactory {
@@ -42,7 +43,7 @@ public class SecureSocketFactory {
     private static final String KEYSTORE_KEY = "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
     public static final String KEYSTORE_PASSWORD = "h2pass";
-    
+
     // TODO security / SSL: need a way to disable anonymous ssl
     private static final boolean ENABLE_ANONYMOUS_SSL = true;
     private static SecureSocketFactory factory;
@@ -58,7 +59,7 @@ public class SecureSocketFactory {
         }
         return factory;
     }
-    
+
     public Socket createSocket(InetAddress address, int port) throws IOException {
         Socket socket = null;
 //#ifdef JDK14
@@ -80,7 +81,13 @@ public class SecureSocketFactory {
 //#ifdef JDK14
         setKeystore();
         ServerSocketFactory f = SSLServerSocketFactory.getDefault();
-        SSLServerSocket secureSocket = (SSLServerSocket) f.createServerSocket(port);
+        SSLServerSocket secureSocket;
+        InetAddress bindAddress = NetUtils.getBindAddress();
+        if (bindAddress == null) {
+            secureSocket = (SSLServerSocket) f.createServerSocket(port);
+        } else {
+            secureSocket = (SSLServerSocket) f.createServerSocket(port, 0, bindAddress);
+        }
         if (ENABLE_ANONYMOUS_SSL) {
             String[] list = secureSocket.getEnabledCipherSuites();
             list = addAnonymous(list);
@@ -95,7 +102,7 @@ public class SecureSocketFactory {
     private static byte[] getBytes(String hex) throws SQLException {
         return ByteUtils.convertStringToBytes(hex);
     }
-    
+
     private static byte[] getKeyStoreBytes(KeyStore store, String password) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
@@ -105,16 +112,16 @@ public class SecureSocketFactory {
         }
         return bout.toByteArray();
     }
-    
+
     public static KeyStore getKeyStore(String password) throws IOException {
         try {
             // The following source code can be re-generated when you have a keystore file.
             // This code is (hopefully) more Java version independent than using keystores directly.
             // See also: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561 (1.4.2 cannot read keystore written with 1.4.1)
             // --- generated code start ---
-            
+
             KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
-            
+
             store.load(null, password.toCharArray());
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             store.load(null, password.toCharArray());
@@ -133,8 +140,8 @@ public class SecureSocketFactory {
             throw Message.convertToIOException(e);
         }
     }
-            
-    private void setKeystore() throws IOException {        
+
+    private void setKeystore() throws IOException {
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
             String fileName = FileUtils.getFileInUserHome(KEYSTORE);

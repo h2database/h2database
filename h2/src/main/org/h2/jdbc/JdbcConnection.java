@@ -55,7 +55,7 @@ import java.sql.SQLClientInfoException;
  */
 public class JdbcConnection extends TraceObject implements Connection {
     // TODO test: check if enough synchronization on jdbc objects
-    // TODO feature auto-reconnect on lost connection!
+    // TODO feature: auto-reconnect on lost connection
 
     private String url;
     private String user;

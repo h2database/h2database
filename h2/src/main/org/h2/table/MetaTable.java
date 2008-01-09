@@ -712,6 +712,34 @@ public class MetaTable extends Table {
             add(rows, new String[] { "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE" });
             add(rows, new String[] { "MODE", database.getMode().getName() });
             add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
+            add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS});
+            add(rows, new String[]{"h2.baseDir", "" + SysProperties.getBaseDir()});
+            add(rows, new String[]{"h2.check", "" + SysProperties.CHECK});
+            add(rows, new String[]{"h2.check2", "" + SysProperties.CHECK2});
+            add(rows, new String[]{"h2.clientTraceDirectory", SysProperties.CLIENT_TRACE_DIRECTORY});
+            add(rows, new String[]{"h2.defaultMaxMemoryUndo", "" + SysProperties.DEFAULT_MAX_MEMORY_UNDO});
+            add(rows, new String[]{"h2.emergencySpaceInitial", "" + SysProperties.EMERGENCY_SPACE_INITIAL});
+            add(rows, new String[]{"h2.emergencySpaceMin", "" + SysProperties.EMERGENCY_SPACE_MIN});
+            add(rows, new String[]{"h2.lobFilesInDirectories", "" + SysProperties.LOB_FILES_IN_DIRECTORIES});
+            add(rows, new String[]{"h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY});
+            add(rows, new String[]{"h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS});
+            add(rows, new String[]{"h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE});
+            add(rows, new String[]{"h2.maxFileRetry", "" + SysProperties.MAX_FILE_RETRY});
+            add(rows, new String[]{"h2.lobCloseBetweenReads", "" + SysProperties.lobCloseBetweenReads});
+            add(rows, new String[]{"h2.objectCache", "" + SysProperties.OBJECT_CACHE});
+            add(rows, new String[]{"h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE});
+            add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
+            add(rows, new String[]{"h2.optimizeIn", "" + SysProperties.OPTIMIZE_IN});
+            add(rows, new String[]{"h2.optimizeInJoin", "" + SysProperties.OPTIMIZE_IN_JOIN});
+            add(rows, new String[]{"h2.optimizeMinMax", "" + SysProperties.OPTIMIZE_MIN_MAX});
+            add(rows, new String[]{"h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE});
+            add(rows, new String[]{"h2.overflowExceptions", "" + SysProperties.OVERFLOW_EXCEPTIONS});
+            add(rows, new String[]{"h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS});
+            add(rows, new String[]{"h2.redoBufferSize", "" + SysProperties.REDO_BUFFER_SIZE});
+            add(rows, new String[]{"h2.runFinalize", "" + SysProperties.runFinalize});
+            add(rows, new String[]{"h2.scriptDirectory", SysProperties.scriptDirectory});
+            add(rows, new String[]{"h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS});
+            add(rows, new String[]{"h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE});
             DiskFile dataFile = database.getDataFile();
             if (dataFile != null) {
                 add(rows, new String[] { "CACHE_TYPE", dataFile.getCache().getTypeName() });
@@ -722,33 +750,6 @@ public class MetaTable extends Table {
                     add(rows, new String[]{"info.FILE_INDEX_READ", "" + database.getIndexFile().getReadCount()});
                 }
             }
-            add(rows, new String[]{"h2.check", "" + SysProperties.CHECK});
-            add(rows, new String[]{"h2.check2", "" + SysProperties.CHECK2});
-            add(rows, new String[]{"h2.lobFilesInDirectories", "" + SysProperties.LOB_FILES_IN_DIRECTORIES});
-            add(rows, new String[]{"h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY});
-            add(rows, new String[]{"h2.runFinalize", "" + SysProperties.runFinalize});
-            add(rows, new String[]{"h2.optimizeMinMax", "" + SysProperties.OPTIMIZE_MIN_MAX});
-            add(rows, new String[]{"h2.optimizeIn", "" + SysProperties.OPTIMIZE_IN});
-            add(rows, new String[]{"h2.redoBufferSize", "" + SysProperties.REDO_BUFFER_SIZE});
-            add(rows, new String[]{"h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS});
-            add(rows, new String[]{"h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE});
-            add(rows, new String[]{"h2.overflowExceptions", "" + SysProperties.OVERFLOW_EXCEPTIONS});
-            add(rows, new String[]{"h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS});
-            add(rows, new String[]{"h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE});
-            add(rows, new String[]{"h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS});
-            add(rows, new String[]{"h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE});
-            add(rows, new String[]{"h2.emergencySpaceInitial", "" + SysProperties.EMERGENCY_SPACE_INITIAL});
-            add(rows, new String[]{"h2.emergencySpaceMin", "" + SysProperties.EMERGENCY_SPACE_MIN});
-            add(rows, new String[]{"h2.objectCache", "" + SysProperties.OBJECT_CACHE});
-            add(rows, new String[]{"h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE});
-            add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
-            add(rows, new String[]{"h2.clientTraceDirectory", SysProperties.CLIENT_TRACE_DIRECTORY});
-            add(rows, new String[]{"h2.scriptDirectory", SysProperties.scriptDirectory});
-            add(rows, new String[]{"h2.maxFileRetry", "" + SysProperties.MAX_FILE_RETRY});
-            add(rows, new String[]{"h2.lobCloseBetweenReads", "" + SysProperties.lobCloseBetweenReads});
-            add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS});
-            add(rows, new String[]{"h2.baseDir", "" + SysProperties.getBaseDir()});
-            add(rows, new String[]{"h2.defaultMaxMemoryUndo", "" + SysProperties.DEFAULT_MAX_MEMORY_UNDO});
             break;
         }
         case TYPE_INFO: {

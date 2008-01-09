@@ -27,10 +27,11 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
      * INTERNAL
      */
     public void printStackTrace() {
-        super.printStackTrace();
-        if (getNextException() != null) {
-            getNextException().printStackTrace();
-        }
+        // The default implementation already does that,
+        // but we do it again to avoid problems.
+        // If it is not implemented, somebody might implement it
+        // later on which would be a problem if done in the wrong way.
+        printStackTrace(System.err);
     }
 
     /**

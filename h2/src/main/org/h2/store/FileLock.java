@@ -24,6 +24,7 @@ import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SortedProperties;
 
@@ -52,7 +53,7 @@ public class FileLock {
     private volatile ServerSocket socket;
     private boolean locked;
     private Trace trace;
-    
+
     // private java.nio.channels.FileLock fileLock;
 
     public FileLock(TraceSystem traceSystem,  int sleep) {
@@ -267,7 +268,7 @@ public class FileLock {
         }
         try {
             // 0 to use any free port
-            socket = new ServerSocket(0);
+            socket = NetUtils.createServerSocket(0, false);
             int port = socket.getLocalPort();
             properties.setProperty("ipAddress", ipAddress);
             properties.setProperty("port", String.valueOf(port));
@@ -323,6 +324,6 @@ public class FileLock {
         } else {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
-    }    
+    }
 
 }

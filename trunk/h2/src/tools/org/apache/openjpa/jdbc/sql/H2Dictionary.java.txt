@@ -45,7 +45,6 @@ public class H2Dictionary extends DBDictionary {
         rangePosition = RANGE_POST_LOCK;
         supportsDeferredConstraints = false;
 
-        useGetObjectForBlobs = true;
         blobTypeName = "BLOB";
         doubleTypeName = "DOUBLE";
 

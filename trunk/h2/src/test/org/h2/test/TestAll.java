@@ -154,13 +154,6 @@ h2CallableStatementBatchTest.zip
 h2-2007-12-27_test.zip
 
 History:
-The H2 Console now calls DataSource.getConnection() instead of DataSource.getConnection(user, password)
-when user name and password are not specified.
-The bind IP address can now be set when using multi-homed host (if multiple network adapters are available)
-using the system property h2.bindAddress.
-Batch update: Calling BatchUpdateException.printStackTrace() could result in out of memory. Fixed.
-Indexes of unique or foreign constraints where not dropped when the constraint was dropped after
-altering the table (for example dropping a column). Fixed.
 
 Roadmap:
 Automatically switch source code before compiling

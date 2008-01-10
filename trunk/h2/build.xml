@@ -24,15 +24,15 @@
 	</target>
 
 	<target name="benchmark" depends="compile">
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-init -db 1"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 2"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 3 -out pe.html"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-init -db 4"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 5"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 6"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 7"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 8"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" dir="." maxmemory="128m"><arg line="-db 9 -out ps.html"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-init -db 1"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 2"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 3 -out pe.html"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-init -db 4"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 5"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 6"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 7"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 8"/></java>
+		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 9 -out ps.html"/></java>
 	</target>
 
 	<target name="clean" depends="init">
@@ -43,7 +43,6 @@
 			<fileset dir="bin" includes="**/*" excludes="**/*.bat,**/*.sh"/>
 			<fileset dir="docs" includes="**/*"/>
 		</delete>
-		<delete file="src/tools/org/h2/tools/code/CodeSwitch.class"/>
 	</target>
 
 	<target name="codeswitchPrepare" depends="clean">
@@ -54,8 +53,8 @@
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
 		</propertyfile>
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="+JDK13 -JDK14 -JDK16 -AWT ../src/main/org/h2"/>
+		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
+			<arg line="+JDK13 -JDK14 -JDK16 -AWT src/main/org/h2"/>
 		</java>
 	</target>
 
@@ -63,8 +62,8 @@
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.3" />
 		</propertyfile>
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="+JDK13 -JDK14 -JDK16 +AWT ../src/main/org/h2"/>
+		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
+			<arg line="+JDK13 -JDK14 -JDK16 +AWT src/main/org/h2"/>
 		</java>
 	</target>
 
@@ -72,8 +71,8 @@
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.4" />
 		</propertyfile>
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="-JDK13 +JDK14 -JDK16 +AWT ../src/main/org/h2"/>
+		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
+			<arg line="-JDK13 +JDK14 -JDK16 +AWT src/main/org/h2"/>
 		</java>
 	</target>
 
@@ -81,14 +80,14 @@
 		<propertyfile file="ant-build.properties">
 			<entry key="jdk" value="1.6" />
 		</propertyfile>
-		<java classname="org.h2.tools.code.CodeSwitch" fork="true" dir="bin">
-			<arg line="-JDK13 +JDK14 +JDK16 +AWT ../src/main/org/h2"/>
+		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
+			<arg line="-JDK13 +JDK14 +JDK16 +AWT src/main/org/h2"/>
 		</java>
 	</target>
 
 	<target name="compileResources" depends="clean, compileTest">
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/Resources.java"/>
-		<java fork="true" classname="org.h2.util.Resources" classpath="bin" dir="."/>
+		<java classname="org.h2.util.Resources" classpath="bin"/>
 		<delete>
 			<fileset dir="bin" includes="org/h2/util/ResourceData.class"/>
 		</delete>
@@ -124,13 +123,14 @@
 	</target>
 
 	<target name="compile" depends="compileResources, compileTest">
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
+		<javac target="${jdk}" source="${jdk}" executable="${javac}" destdir="bin" debug="true">
+		    <src path="src/main"/>
+	       	<src path="src/test"/>
+	       	<src path="src/tools"/>
 		    <exclude name="org/h2/fulltext/FullTextLucene.java"/>
 			<exclude name="org/h2/server/web/WebServlet.java"/>
 			<exclude name="org/h2/server/web/DbStarter.java"/>
 	    </javac>
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true"/>
-		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true"/>
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/**/*"/>
 			<fileset dir="src/main" includes="**/*.png"/>
@@ -145,15 +145,15 @@
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main"/>
 		</copy>
-		<java classname="org.h2.test.coverage.Coverage" classpath="bin" dir="bin" fork="true">
+		<java classname="org.h2.test.coverage.Coverage" classpath="." dir="bin" fork="true">
 			<arg line="-r org/h2"/>
 		</java>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
     </target>
 
 	<target name="compileTest" unless="java.version.ok">
-		<echo message="Java version is ${java.specification.version} but source code is switched to ${jdk}."/>
-		<echo message="Run ant codeswitchJdk... first."/>
+		<echo message="WARNING: Java version is ${java.specification.version}, but source code is switched to ${jdk}."/>
+		<echo message="WARNING: Run ant codeswitchJdk... first."/>
 	</target>
 
 	<target name="docs" depends="clean,javadoc,compile">
@@ -338,15 +338,8 @@
 	</target>
 
 	<target name="testCoverage" depends="compileCoverage">
-		<java classname="org.h2.test.TestAll" fork="true" classpath="bin" dir="bin">
+		<java classname="org.h2.test.TestAll" fork="true" classpath="." dir="bin">
 			<arg line="codeCoverage"/>
-		</java>
-	</target>
-
-	<target name="testProf" depends="compile">
-		<java classname="org.h2.test.TestAll" fork="true" classpath="bin">
-			<jvmarg value="-Xrunhprof:cpu=samples,depth=8"/>
-			<!-- <jvmarg value="-agentlib:hprof=help"/> -->
 		</java>
 	</target>
 

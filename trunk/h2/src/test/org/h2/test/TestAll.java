@@ -51,7 +51,6 @@ import org.h2.test.db.TestView;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
-import org.h2.test.jdbc.TestDataSource;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestManyJdbcObjects;
 import org.h2.test.jdbc.TestMetaData;
@@ -62,7 +61,9 @@ import org.h2.test.jdbc.TestStatement;
 import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
 import org.h2.test.jdbc.TestZloty;
-import org.h2.test.jdbc.xa.TestXA;
+import org.h2.test.jdbcx.TestDataSource;
+import org.h2.test.jdbcx.TestXA;
+import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.server.TestNestedLoop;
@@ -149,6 +150,21 @@ java org.h2.test.TestAll timer
 
 /*
 
+h2CallableStatementBatchTest.zip
+h2-2007-12-27_test.zip
+
+History:
+The H2 Console now calls DataSource.getConnection() instead of DataSource.getConnection(user, password)
+when user name and password are not specified.
+The bind IP address can now be set when using multi-homed host (if multiple network adapters are available)
+using the system property h2.bindAddress.
+Batch update: Calling BatchUpdateException.printStackTrace() could result in out of memory. Fixed.
+Indexes of unique or foreign constraints where not dropped when the constraint was dropped after
+altering the table (for example dropping a column). Fixed.
+
+Roadmap:
+Automatically switch source code before compiling
+
 staging.trace.db.gz
 
 drop table logs;
@@ -159,24 +175,9 @@ ANALYZE SAMPLE_SIZE 0;
 script nodata;
 EXPLAIN SELECT id FROM Logs WHERE procid=2 AND id<100;
 
-h2CallableStatementBatchTest.zip
-h2-2007-12-27_test.zip
-
-docs,
-History:
-The bind IP address can now be set when using multi-homed host (if multiple network adapters are available)
-using the system property h2.bindAddress.
-Batch update: Calling BatchUpdateException.printStackTrace() could result in out of memory. Fixed.
-
-Create system property documentation from Javadocs.
-
 allow queries as well in batch updates
 CALL syntax should probably work for regular executeUpdate as well.
 http://java.sun.com/j2se/1.4.2/docs/guide/jdbc/getstart/callablestatement.html#1000220
-
-Automatically switch source code before compiling
-    [echo] Java version is 1.6 but source code is switched to 1.4.
-    [echo] Run ant codeswitchJdk... first.
 
 write to the db file what version was used to create a database
 
@@ -540,17 +541,11 @@ Features of H2
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
 
-        // server
-        new TestNestedLoop().runTest(this);
-        new TestWeb().runTest(this);
-        new TestPgServer().runTest(this);
-
         // jdbc
         new TestBatchUpdates().runTest(this);
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);
-        new TestDataSource().runTest(this);
         new TestManyJdbcObjects().runTest(this);
         new TestMetaData().runTest(this);
         new TestNativeSQL().runTest(this);
@@ -559,14 +554,23 @@ Features of H2
         new TestStatement().runTest(this);
         new TestTransactionIsolation().runTest(this);
         new TestUpdatableResultSet().runTest(this);
-        new TestXA().runTest(this);
         new TestZloty().runTest(this);
+
+        // jdbcx
+        new TestDataSource().runTest(this);
+        new TestXA().runTest(this);
+        new TestXASimple().runTest(this);
+
+        // server
+        new TestNestedLoop().runTest(this);
+        new TestWeb().runTest(this);
+        new TestPgServer().runTest(this);
 
         // mvcc
         new TestMvcc1().runTest(this);
         new TestMvcc2().runTest(this);
 
-        // synthetic
+        // synth
         new TestCrashAPI().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);

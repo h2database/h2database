@@ -22,37 +22,37 @@ import org.h2.message.TraceSystem;
 public class SysProperties {
 
     /**
-     * The system property <code>file.encoding</code> (default: Cp1252).
+     * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the RunScript and CSV tool.
      */
     public static final String FILE_ENCODING = getStringSetting("file.encoding", "Cp1252");
 
     /**
-     * The system property <code>file.separator</code> (default: /).
+     * System property <code>file.separator</code> (default: /).<br />
      * It is usually set by the system, and used to build absolute file names.
      */
     public static final String FILE_SEPARATOR = getStringSetting("file.separator", "/");
 
     /**
-     * The system property <code>line.separator</code> (default: \n).
+     * System property <code>line.separator</code> (default: \n).<br />
      * It is usually set by the system, and used by the script and trace tools.
      */
     public static final String LINE_SEPARATOR = getStringSetting("line.separator", "\n");
 
     /**
-     * The system property <code>user.home</code> (default: empty string).
+     * System property <code>user.home</code> (default: empty string).<br />
      * It is usually set by the system, and used as a replacement for ~ in file names.
      */
     public static final String USER_HOME = getStringSetting("user.home", "");
 
     /**
-     * The system property <code>h2.allowBigDecimalExtensions</code> (default: false).
+     * System property <code>h2.allowBigDecimalExtensions</code> (default: false).<br />
      * When enabled, classes that extend BigDecimal are supported in PreparedStatement.setBigDecimal.
      */
     public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = getBooleanSetting("h2.allowBigDecimalExtensions", false);
 
     /**
-     * The system property <code>h2.allowedClasses</code> (default: *).
+     * System property <code>h2.allowedClasses</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */
     public static final String ALLOWED_CLASSES = getStringSetting("h2.allowedClasses", "*");
@@ -60,31 +60,32 @@ public class SysProperties {
     public static final String BIND_ADDRESS = getStringSetting("h2.bindAddress", null);
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
+
     /**
      * INTERNAL
      */
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
 
     /**
-     * The system property <code>h2.check</code> (default: true).
+     * System property <code>h2.check</code> (default: true).<br />
      * Assertions in the database engine.
      */
     public static final boolean CHECK = getBooleanSetting("h2.check", true);
 
     /**
-     * The system property <code>h2.check2</code> (default: true).
+     * System property <code>h2.check2</code> (default: true).<br />
      * Additional assertions in the database engine.
      */
     public static final boolean CHECK2 = getBooleanSetting("h2.check2", false);
 
     /**
-     * The system property <code>h2.clientTraceDirectory</code> (default: trace.db/).
+     * System property <code>h2.clientTraceDirectory</code> (default: trace.db/).<br />
      * Directory where the trace files of the JDBC client are stored (only for client / server).
      */
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
-     * The system property <code>h2.check2</code> (default: true).
+     * System property <code>h2.check2</code> (default: true).<br />
      * Additional assertions in the database engine.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
@@ -93,13 +94,13 @@ public class SysProperties {
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
 
     /**
-     * The system property <code>h2.emergencySpaceInitial</code> (default: 262144).
+     * System property <code>h2.emergencySpaceInitial</code> (default: 262144).<br />
      * Size of 'reserve' file to detect disk full problems early.
      */
     public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 256 * 1024);
 
     /**
-     * The system property <code>h2.emergencySpaceMin</code> (default: 65536).
+     * System property <code>h2.emergencySpaceMin</code> (default: 65536).<br />
      * Minimum size of 'reserve' file.
      */
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 64 * 1024);
@@ -107,38 +108,38 @@ public class SysProperties {
     public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
 
     /**
-     * The system property <code>h2.lobCloseBetweenReads</code> (default: false).
+     * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
      * Close LOB files between read operations.
      */
     public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
 
     /**
-     * The system property <code>h2.lobFilesInDirectories</code> (default: false).
+     * System property <code>h2.lobFilesInDirectories</code> (default: false).<br />
      * Store LOB files in subdirectories.
      */
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
 
     /**
-     * The system property <code>h2.lobFilesPerDirectory</code> (default: 256).
+     * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />
      * Maximum number of LOB files per directory.
      */
     public static final int LOB_FILES_PER_DIRECTORY = getIntSetting("h2.lobFilesPerDirectory", 256);
 
     /**
-     * The system property <code>h2.logAllErrors</code> (default: false).
+     * System property <code>h2.logAllErrors</code> (default: false).<br />
      * Write stack traces of any kind of error to a file.
      */
     public static final boolean LOG_ALL_ERRORS = getBooleanSetting("h2.logAllErrors", false);
 
     /**
-     * The system property <code>h2.logAllErrorsFile</code> (default: h2errors.txt).
+     * System property <code>h2.logAllErrorsFile</code> (default: h2errors.txt).<br />
      * File name to log errors.
      */
     public static final String LOG_ALL_ERRORS_FILE = getStringSetting("h2.logAllErrorsFile", "h2errors.txt");
 
     /**
-     * The system property <code>h2.maxFileRetry</code> (default: 16).
+     * System property <code>h2.maxFileRetry</code> (default: 16).<br />
      * Number of times to retry file delete and rename.
      */
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
@@ -147,45 +148,45 @@ public class SysProperties {
     public static final boolean NEW_DISPLAY_SIZE = getBooleanSetting("h2.newDisplaySize", true);
 
     /**
-     * The system property <code>h2.objectCache</code> (default: true).
+     * System property <code>h2.objectCache</code> (default: true).<br />
      * Cache commonly used objects (integers, strings).
      */
     public static final boolean OBJECT_CACHE = getBooleanSetting("h2.objectCache", true);
 
     /**
-     * The system property <code>h2.objectCacheMaxPerElementSize</code> (default: 4096).
+     * System property <code>h2.objectCacheMaxPerElementSize</code> (default: 4096).<br />
      * Maximum size of an object in the cache.
      */
     public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = getIntSetting("h2.objectCacheMaxPerElementSize", 4096);
 
     /**
-     * The system property <code>h2.objectCacheSize</code> (default: 1024).
+     * System property <code>h2.objectCacheSize</code> (default: 1024).<br />
      * Maximum size of an object in the cache.
      */
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
     public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
 
     /**
-     * The system property <code>h2.optimizeEvaluatableSubqueries</code> (default: true).
+     * System property <code>h2.optimizeEvaluatableSubqueries</code> (default: true).<br />
      * Optimize subqueries that are not dependent on the outer query.
      */
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
 
     /**
-     * The system property <code>h2.optimizeIn</code> (default: true).
+     * System property <code>h2.optimizeIn</code> (default: true).<br />
      * Optimize IN(...) comparisons.
      */
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
     public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
     /**
-     * The system property <code>h2.optimizeMinMax</code> (default: true).
+     * System property <code>h2.optimizeMinMax</code> (default: true).<br />
      * Optimize MIN and MAX aggregate functions.
      */
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
 
     /**
-     * The system property <code>h2.optimizeSubqueryCache</code> (default: true).
+     * System property <code>h2.optimizeSubqueryCache</code> (default: true).<br />
      * Cache subquery results.
      */
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
@@ -193,43 +194,43 @@ public class SysProperties {
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
 
     /**
-     * The system property <code>h2.overflowExceptions</code> (default: true).
+     * System property <code>h2.overflowExceptions</code> (default: true).<br />
      * Throw an exception on integer overflows.
      */
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
 
     /**
-     * The system property <code>h2.recompileAlways</code> (default: false).
+     * System property <code>h2.recompileAlways</code> (default: false).<br />
      * Always recompile prepared statements.
      */
     public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
 
     /**
-     * The system property <code>h2.redoBufferSize</code> (default: 262144).
+     * System property <code>h2.redoBufferSize</code> (default: 262144).<br />
      * Size of the redo buffer (used at startup when recovering).
      */
     public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
 
     /**
-     * The system property <code>h2.runFinalize</code> (default: true).
+     * System property <code>h2.runFinalize</code> (default: true).<br />
      * Run finalizers to detect unclosed connections.
      */
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
 
     /**
-     * The system property <code>h2.scriptDirectory</code> (default: empty string).
+     * System property <code>h2.scriptDirectory</code> (default: empty string).<br />
      * Relative or absolute directory where the script files are stored to or read from.
      */
     public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");
 
     /**
-     * The system property <code>h2.serverCachedObjects</code> (default: 64).
+     * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */
     public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
 
     /**
-     * The system property <code>h2.serverResultSetFetchSize</code> (default: 100).
+     * System property <code>h2.serverResultSetFetchSize</code> (default: 100).<br />
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);

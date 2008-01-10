@@ -57,6 +57,10 @@ public class SysProperties {
      */
     public static final String ALLOWED_CLASSES = getStringSetting("h2.allowedClasses", "*");
 
+    /**
+     * System property <code>h2.bindAddress</code> (default: *).<br />
+     * Comma separated list of class names or prefixes.
+     */
     public static final String BIND_ADDRESS = getStringSetting("h2.bindAddress", null);
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);

@@ -12,6 +12,8 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.h2.util.StringUtils;
+
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
@@ -74,7 +76,7 @@ public class Doclet {
                 .println("<table class=\"content\"><tr class=\"content\"><td class=\"content\"><div class=\"contentDiv\">");
 
         writer.println("<h1>" + className + "</h1>");
-        writer.println(clazz.commentText() + "<br /><br />");
+        writer.println(formatText(clazz.commentText()) + "<br /><br />");
 
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator() {
@@ -82,12 +84,16 @@ public class Doclet {
                 return ((MethodDoc) a).name().compareTo(((MethodDoc) b).name());
             }
         });
-        writer.println("<table><tr><th colspan=\"2\">Methods</th></tr>");
+        boolean hasMethods = false;
         for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
             if (skipMethod(method)) {
                 continue;
+            }
+            if (!hasMethods) {
+                writer.println("<table><tr><th colspan=\"2\">Methods</th></tr>");
+                hasMethods = true;
             }
             String type = getTypeName(method.isStatic(), method.returnType());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
@@ -109,11 +115,13 @@ public class Doclet {
             writer.println("<a href=\"#r" + i + "\">" + name + "</a>" + buff.toString());
             String firstSentence = getFirstSentence(method.firstSentenceTags());
             if (firstSentence != null) {
-                writer.println("<div class=\"methodText\">" + firstSentence + "</div>");
+                writer.println("<div class=\"methodText\">" + formatText(firstSentence) + "</div>");
             }
             writer.println("</td></tr>");
         }
-        writer.println("</table>");
+        if (hasMethods) {
+            writer.println("</table>");
+        }
         FieldDoc[] fields = clazz.fields();
         if (clazz.interfaces().length > 0) {
             fields = clazz.interfaces()[0].fields();
@@ -136,10 +144,15 @@ public class Doclet {
             String type = getTypeName(true, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             // writer.println("<a href=\"#f" + fieldId + "\">" + name + "</a>");
-            writer.println(name + " = " + field.constantValueExpression());
+            String constant = field.constantValueExpression();
+            if (constant == null) {
+                writer.println(name);
+            } else {
+                writer.println(name + " = " + constant);
+            }
             String text = field.commentText();
             if (text != null) {
-                writer.println("<div class=\"methodText\">" + text + "</div>");
+                writer.println("<div class=\"methodText\">" + formatText(text) + "</div>");
             }
             writer.println("</td></tr>");
             fieldId++;
@@ -183,7 +196,7 @@ public class Doclet {
             }
             writer.println("<h4>" + type + " <span class=\"methodName\">" + name + "</span>" + buff.toString()
                     + "</h4>");
-            writer.println(method.commentText());
+            writer.println(formatText(method.commentText()));
             ParamTag[] paramTags = method.paramTags();
             boolean space = false;
             for (int j = 0; j < paramTags.length; j++) {
@@ -227,6 +240,14 @@ public class Doclet {
         writer.println("</div></td></tr></table></body></html>");
         writer.close();
         out.close();
+    }
+
+    private static String formatText(String text) {
+        if (text == null) {
+            return text;
+        }
+        text = StringUtils.replaceAll(text, "\n </pre>", "</pre>");
+        return text;
     }
 
     private static boolean skipMethod(MethodDoc method) {

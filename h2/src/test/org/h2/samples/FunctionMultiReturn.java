@@ -116,7 +116,7 @@ public class FunctionMultiReturn {
      *
      * @param conn the connection
      * @param query the query
-     * @return a result set with the coodinates
+     * @return a result set with the coordinates
      */
     public static ResultSet polar2CartesianSet(Connection conn, String query) throws SQLException {
         SimpleResultSet result = new SimpleResultSet();

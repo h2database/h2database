@@ -221,6 +221,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
             DbObject child = (DbObject) children.get(i);
             if (child instanceof Sequence) {
                 continue;
+            } else if (child instanceof Index) {
+                Index idx = (Index) child;
+                if (idx.getIndexType().belongsToConstraint()) {
+                    continue;
+                }
             }
             String createSQL = child.getCreateSQL();
             if (createSQL == null) {

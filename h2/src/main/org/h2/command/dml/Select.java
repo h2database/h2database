@@ -576,7 +576,7 @@ public class Select extends Query {
             if (index != null && (current.getIndexType().isScan() || current == index)) {
                 topTableFilter.setIndex(index);
                 if (!distinct || isDistinctQuery) {
-                    // sort using index wouldn't work correctly for distinct result sets
+                    // sort using index would not work correctly for distinct result sets
                     // because it would break too early when limit is used
                     sortUsingIndex = true;
                 }

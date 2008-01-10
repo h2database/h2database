@@ -50,6 +50,8 @@ Advanced Topics
     Universally Unique Identifiers (UUID)</a><br />
 <a href="#system_properties">
     Settings Read from System Properties</a><br />
+<a href="#server_bind_address">
+    Setting the Server Bind Address</a><br />
 <a href="#glossary_links">
     Glossary and Links</a><br />
 
@@ -927,39 +929,22 @@ Example:
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
 </pre>
 The current value of the settings can be read in the table
-INFORMATION_SCHEMA.SETTINGS
+INFORMATION_SCHEMA.SETTINGS.
 </p>
-<table><tr>
-<th>Setting</th>
-<th>Default</th>
-<th>Description</th></tr>
-<tr><td>h2.allowedClasses</td><td>*</td><td>Comma separated list of class names or prefixes</td></tr>
-<tr><td>h2.check</td><td>true</td><td>Assertions in the database engine</td></tr>
-<tr><td>h2.check2</td><td>false</td><td>Additional assertions</td></tr>
-<tr><td>h2.clientTraceDirectory</td><td>trace.db/</td><td>Directory where the trace files of the JDBC client are stored (only for client / server)</td></tr>
-<tr><td>h2.emergencySpaceInitial</td><td>1048576</td><td>Size of 'reserve' file to detect disk full problems early</td></tr>
-<tr><td>h2.emergencySpaceMin</td><td>131072</td><td>Minimum size of 'reserve' file</td></tr>
-<tr><td>h2.lobCloseBetweenReads</td><td>false</td><td>Close LOB files between read operations</td></tr>
-<tr><td>h2.lobFilesInDirectories</td><td>false</td><td>Store LOB files in subdirectories</td></tr>
-<tr><td>h2.lobFilesPerDirectory</td><td>256</td><td>Maximum number of LOB files per directory</td></tr>
-<tr><td>h2.logAllErrors</td><td>false</td><td>Write stack traces of any kind of error to a file</td></tr>
-<tr><td>h2.logAllErrorsFile</td><td>h2errors.txt</td><td>File name to log errors</td></tr>
-<tr><td>h2.maxFileRetry</td><td>16</td><td>Number of times to retry file delete and rename</td></tr>
-<tr><td>h2.objectCache</td><td>true</td><td>Cache commonly used objects (integers, strings)</td></tr>
-<tr><td>h2.objectCacheMaxPerElementSize</td><td>4096</td><td>Maximum size of an object in the cache</td></tr>
-<tr><td>h2.objectCacheSize</td><td>1024</td><td>Size of object cache</td></tr>
-<tr><td>h2.optimizeEvaluatableSubqueries</td><td>true</td><td>Optimize subqueries that are not dependent on the outer query</td></tr>
-<tr><td>h2.optimizeIn</td><td>true</td><td>Optimize IN(...) comparisons</td></tr>
-<tr><td>h2.optimizeMinMax</td><td>true</td><td>Optimize MIN and MAX aggregate functions</td></tr>
-<tr><td>h2.optimizeSubqueryCache</td><td>true</td><td>Cache subquery results</td></tr>
-<tr><td>h2.overflowExceptions</td><td>true</td><td>Throw an exception on integer overflows</td></tr>
-<tr><td>h2.recompileAlways</td><td>false</td><td>Always recompile prepared statements</td></tr>
-<tr><td>h2.redoBufferSize</td><td>262144</td><td>Size of the redo buffer (used at startup when recovering)</td></tr>
-<tr><td>h2.runFinalize</td><td>true</td><td>Run finalizers to detect unclosed connections</td></tr>
-<tr><td>h2.scriptDirectory</td><td></td><td>Relative or absolute directory where the script files are stored to or read from</td></tr>
-<tr><td>h2.serverCachedObjects</td><td>64</td><td>TCP Server: number of cached objects per session</td></tr>
-<tr><td>h2.serverResultSetFetchSize</td><td>100</td><td>The default result set fetch size when using the server mode</td></tr>
-</table>
+<p>
+For a complete list of settings, see
+<a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a>.
+</p>
+
+<br /><a name="server_bind_address"></a>
+<h2>Setting the Server Bind Address</h2>
+<p>
+Usually server sockets accept connections on any/all local addresses.
+This may be a problem on multi-homed hosts.
+To bind only to one address, use the system property h2.bindAddress.
+This setting is used for both regular server sockets and for SSL server sockets.
+IPv4 and IPv6 address formats are supported.
+</p>
 
 <br /><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>

@@ -15,7 +15,7 @@ import org.h2.value.Value;
  * Tests the data parsing.
  * The problem is that some dates are not allowed because of the summer time change.
  * Most countries change at 2 o'clock in the morning to 3 o'clock, but some
- * (for example Chile) change at midnight. Non-lenient parsing wouldn't work in this case.
+ * (for example Chile) change at midnight. Non-lenient parsing would not work in this case.
  */
 public class TestDate extends TestBase {
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
-Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -14,6 +14,8 @@ History
 <h1>History and Roadmap</h1>
 <a href="#history">
     History of this Database Engine</a><br />
+<a href="#why_java">
+    Why Java</a><br />
 <a href="#changelog">
     Change Log</a><br />
 <a href="#roadmap">
@@ -32,6 +34,40 @@ At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group w
 to continued to work on the Hypersonic SQL codebase.
 The name H2 stands for Hypersonic 2; however H2 does not share any code with
 Hypersonic SQL or HSQLDB. H2 is built from scratch.
+</p>
+
+<br /><a name="why_java"></a>
+<h2>Why Java</h2>
+<p>
+A few reasons using a Java database are:
+</p>
+<ul>
+<li>Very simple to integrate in Java applications
+</li><li>Support for many different platforms
+</li><li>More secure than native applications (no buffer overflows)
+</li><li>User defined functions (or triggers) run very fast
+</li><li>Unicode support
+</li></ul>
+<p>
+Some people think that Java is still too slow for low level operations,
+but this is not the case (not any more). In general, the code can be written a lot faster
+than using C or C++. Like that, it is possible to concentrate on improving the algorithms
+(that make the application faster) rather than porting the code and dealing with low
+level stuff (such as memory management or dealing with threads).
+Garbage collection is now probably faster than manual memory management.
+</p><p>
+A lot of features are already built in (for example Unicode, network libraries).
+It is very easy to write secure code because buffer overflows can not occur.
+Some features such as the reflection mechanism can be used for randomized testing.
+</p><p>
+Java is also future proof: A lot of companies support Java,
+and it is now open source.
+</p><p>
+This software does not rely on many Java libraries or other software, to
+increase the portability and ease of use, and for performance reasons. For example,
+the encryption algorithms and many library functions are implemented in the database
+instead of using the existing libraries. Libraries that are not available in open source
+Java implementations (such as Swing) are not used or only used for specific features.
 </p>
 
 <br /><a name="changelog"></a>

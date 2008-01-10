@@ -71,8 +71,6 @@ Features
     Compacting a Database</a><br />
 <a href="#cache_settings">
     Cache Settings</a><br />
-<a href="#why_java">
-    Why Java</a><br />
 
 <br /><a name="feature_list"></a>
 <h2>Feature List</h2>
@@ -880,10 +878,6 @@ Here is the list of currently supported modes and the difference to the regular 
   Usually, the scale is converted and 0s are added if required.
 </td></tr>
 </table>
-<p>
-
-
-</p>
 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>
@@ -1344,41 +1338,6 @@ once the database is open.
 To get information about page reads and writes, and the current caching algorithm in use,
 call SELECT * FROM INFORMATION_SCHEMA.SETTINGS. The number of pages read / written
 is listed for the data and index file.
-</p>
-
-<br /><a name="why_java"></a>
-<h2>Why Java</h2>
-<p>
-A few reasons using a Java database are:
-</p>
-<ul>
-<li>Very simple to integrate in Java applications
-</li><li>Support for many different platforms
-</li><li>More secure than native applications (no buffer overflows)
-</li><li>User defined functions (or triggers) run very fast
-</li><li>Unicode support
-</li></ul>
-<p>
-Some people think that Java is still too slow for low level operations,
-but this is not the case (not any more). In general, the code can be written a lot faster
-than using C or C++. Like that, it is possible to concentrate on improving the algorithms
-(that make the application faster) rather than porting the code and dealing with low
-level stuff (such as memory management or dealing with threads).
-Garbage collection is now probably faster than manual memory management.
-</p><p>
-A lot of features are already built in (for example Unicode, network libraries).
-It is very easy to write secure code because buffer overflows and such
-problems can be detected very easily. Some features such as the reflection
-mechanism can be used for randomized testing.
-</p><p>
-Java is also future proof: A lot of companies support Java,
-and it is now open source.
-</p><p>
-This software does not rely on many Java libraries or other software, to
-increase the portability and ease of use, and for performance reasons. For example,
-the encryption algorithms and many library functions are implemented in the database
-instead of using the existing libraries. Libraries that are not available in open source
-Java implementations (such as Swing) are not used or only used for specific features.
 </p>
 
 </div></td></tr></table></body></html>

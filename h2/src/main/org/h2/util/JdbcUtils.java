@@ -97,7 +97,11 @@ public class JdbcUtils {
                         DataSource ds = (DataSource) context.lookup(url);
                         String user = prop.getProperty("user");
                         String password = prop.getProperty("password");
-                         return ds.getConnection(user, password);
+                        if (StringUtils.isNullOrEmpty(user) && StringUtils.isNullOrEmpty(password)) {
+                            return ds.getConnection();
+                        } else {
+                            return ds.getConnection(user, password);
+                        }
                      } catch (InstantiationException e) {
                          throw Message.convert(e);
                      } catch (IllegalAccessException e) {

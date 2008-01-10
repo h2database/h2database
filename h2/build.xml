@@ -243,6 +243,7 @@
 	</target>
 
 	<target name="javadoc">
+		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/StringUtils.java"/>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/test" destdir="bin" debug="true" includes="org/h2/test/bnf/*.java"/>
 		<javac target="${jdk}" source="${jdk}" executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/tools/doclet/*.java"/>
 		<mkdir dir="docs/javadoc"/>

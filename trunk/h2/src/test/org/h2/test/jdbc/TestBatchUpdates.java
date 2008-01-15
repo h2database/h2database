@@ -7,6 +7,7 @@ package org.h2.test.jdbc;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.sql.BatchUpdateException;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -38,8 +39,34 @@ public class TestBatchUpdates extends TestBase {
     PreparedStatement prep;
 
     public void test() throws Exception {
+        testExecuteCall();
         testException();
         testCoffee();
+    }
+
+    private void testExecuteCall() throws Exception {
+        deleteDb("batchUpdates");
+        Connection conn = getConnection("batchUpdates");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS updatePrices FOR \"" + getClass().getName() + ".updatePrices\"");
+        CallableStatement call = conn.prepareCall("{call updatePrices(?, ?)}");
+        call.setString(1, "Hello");
+        call.setFloat(2, 1.4f);
+        call.addBatch();
+        call.setString(1, "World");
+        call.setFloat(2, 3.2f);
+        call.addBatch();
+        int[] updateCounts = call.executeBatch();
+        int total = 0;
+        for (int i = 0; i < updateCounts.length; i++) {
+            total += updateCounts[i];
+        }
+        check(4, total);
+        conn.close();
+    }
+
+    public static int updatePrices(String s, double f) {
+        return (int) f;
     }
 
     private void testException() throws Exception {

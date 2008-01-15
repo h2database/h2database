@@ -24,6 +24,7 @@ public class TestOptimizations extends TestBase {
         if (config.networked) {
             return;
         }
+        testMultiColumnRangeQuery();
         testDistinctOptimization();
         testQueryCacheTimestamp();
         testQueryCacheSpeed();
@@ -32,6 +33,22 @@ public class TestOptimizations extends TestBase {
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+    }
+
+    private void testMultiColumnRangeQuery() throws Exception {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE Logs(id INT PRIMARY KEY, type INT)");
+        stat.execute("CREATE unique INDEX type_index ON Logs(type, id)");
+        stat.execute("INSERT INTO Logs SELECT X, MOD(X, 3) FROM SYSTEM_RANGE(1, 1000)");
+        stat.execute("ANALYZE SAMPLE_SIZE 0");
+        ResultSet rs;
+        rs = stat.executeQuery("EXPLAIN SELECT id FROM Logs WHERE id < 100 and type=2 AND id<100");
+        rs.next();
+        String plan = rs.getString(1);
+        check(plan.indexOf("TYPE_INDEX") > 0);
+        conn.close();
     }
 
     private void testDistinctOptimization() throws Exception {

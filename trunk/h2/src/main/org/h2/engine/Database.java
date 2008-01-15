@@ -63,11 +63,11 @@ import org.h2.value.ValueInt;
 
 /**
  * There is one database object per open database.
-
+ *
+ * The format of the meta data table is:
+ *  id int, headPos int (for indexes), objectType int, sql varchar
+ *
  * @since 2004-04-15 22:49
- */
-/*
- * MetaData format: int id int headPos (for indexes) int objectType String sql
  */
 public class Database implements DataHandler {
 
@@ -539,6 +539,7 @@ public class Database implements DataHandler {
         addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
+        addDefaultSetting(systemSession, SetTypes.CREATE_BUILD, null, Constants.BUILD_ID);
         if (!readOnly) {
             removeUnusedStorages(systemSession);
         }

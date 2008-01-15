@@ -172,6 +172,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
+        long rows = rowCount;
         int totalSelectivity = 0;
         for (int i = 0; masks != null && i < columns.length; i++) {
             Column column = columns[i];
@@ -187,19 +188,16 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 if (distinctRows <= 0) {
                     distinctRows = 1;
                 }
-                long rowsSelected = rowCount / distinctRows;
-                if (rowsSelected < 1) {
-                    rowsSelected = 1;
-                }
-                cost = getLookupCost(rowCount) + rowsSelected;
+                rows = Math.max(rowCount / distinctRows, 1);
+                cost = getLookupCost(rowCount) + rows;
             } else if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
-                cost = getLookupCost(rowCount) + rowCount / 4;
+                cost = getLookupCost(rowCount) + rows / 4;
                 break;
             } else if ((mask & IndexCondition.START) == IndexCondition.START) {
-                cost = getLookupCost(rowCount) + rowCount / 3;
+                cost = getLookupCost(rowCount) + rows / 3;
                 break;
             } else if ((mask & IndexCondition.END) == IndexCondition.END) {
-                cost = rowCount / 3;
+                cost = rows / 3;
                 break;
             } else {
                 break;

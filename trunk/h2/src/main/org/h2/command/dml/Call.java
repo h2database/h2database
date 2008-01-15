@@ -21,7 +21,7 @@ import org.h2.value.ValueResultSet;
 
 /**
  * This class represents the statement
- * CALL
+ * CALL.
  */
 public class Call extends Prepared {
     private Expression value;
@@ -35,6 +35,23 @@ public class Call extends Prepared {
         LocalResult result = new LocalResult(session, expressions, 1);
         result.done();
         return result;
+    }
+
+    public int update() throws SQLException {
+        Value v = value.getValue(session);
+        int type = v.getType();
+        switch(type) {
+        case Value.RESULT_SET:
+        case Value.ARRAY:
+            // this will throw an exception
+            // methods returning a result set may not be called like this.
+            return super.update();
+        case Value.UNKNOWN:
+        case Value.NULL:
+            return 0;
+        default:
+            return v.getInt();
+        }
     }
 
     public LocalResult query(int maxrows) throws SQLException {

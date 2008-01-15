@@ -132,6 +132,10 @@ public class ScriptCommand extends ScriptBase {
                 ObjectArray settings = db.getAllSettings();
                 for (int i = 0; i < settings.size(); i++) {
                     Setting setting = (Setting) settings.get(i);
+                    if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
+                        // don't add CREATE_BUILD to the script (it is only set when creating the database)
+                        continue;
+                    }
                     add(setting.getCreateSQL(), false);
                 }
             }

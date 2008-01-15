@@ -75,7 +75,7 @@ public class NetUtils {
         }
         synchronized (NetUtils.class) {
             if (bindAddress == null) {
-                bindAddress = InetAddress.getByName(host);
+                bindAddress = InetAddress.getByAddress(InetAddress.getByName(host).getAddress());
             }
         }
         return bindAddress;

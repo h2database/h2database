@@ -150,29 +150,25 @@ java org.h2.test.TestAll timer
 
 /*
 
-h2CallableStatementBatchTest.zip
-h2-2007-12-27_test.zip
+Roadmap:
 
 History:
 
-Roadmap:
-Automatically switch source code before compiling
 
-staging.trace.db.gz
+There is a problem with the h2.bindAddress build. When it is binding to 127.0.0.1,
+the bind function works perfectly and I could confirm it no longer
+listen to the ports of other IP addresses. However, when it is binding to normal IP
+addresses, it always got the following exception.
+Caused by: org.h2.jdbc.JdbcSQLException: Connection is broken [90067-64]
+       at org.h2.message.Message.getSQLException(Message.java:89)
+Remarks: I build with JDK 1.6
 
-drop table logs;
-CREATE TABLE Logs(id INT PRIMARY KEY, procid INT);
-CREATE unique INDEX procIdx ON Logs(procid, id);
-@LOOP 1000 INSERT INTO Logs VALUES(?, MOD(?, 100000));
-ANALYZE SAMPLE_SIZE 0;
-script nodata;
-EXPLAIN SELECT id FROM Logs WHERE procid=2 AND id<100;
+Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
-allow queries as well in batch updates
-CALL syntax should probably work for regular executeUpdate as well.
-http://java.sun.com/j2se/1.4.2/docs/guide/jdbc/getstart/callablestatement.html#1000220
+Test H2 on OS X (result are here: h2-2007-12-27_test.zip)
 
-write to the db file what version was used to create a database
+Docs:
+H2 can emulate PostgreSQL server.
 
 Web site:
 link to history page, bug page

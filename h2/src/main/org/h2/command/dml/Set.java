@@ -280,6 +280,16 @@ public class Set extends Prepared {
             database.setExclusiveSession(value == 1 ? session : null);
             break;
         }
+        case SetTypes.CREATE_BUILD: {
+            session.getUser().checkAdmin();
+            if (database.isStarting()) {
+                // just ignore the command if not starting
+                // this avoids problems when running recovery scripts
+                int value = getIntValue();
+                addOrUpdateSetting(name, null, value);
+            }
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

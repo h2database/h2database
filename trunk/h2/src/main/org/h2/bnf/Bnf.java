@@ -142,28 +142,27 @@ public class Bnf {
                 buff.append(s);
                 continue;
             }
-            String section = null;
-            int id = -1;
+            RuleHead found = null;
             for (int i = 0; i < s.length(); i++) {
                 String test = StringUtils.toLowerEnglish(s.substring(i));
                 RuleHead r = (RuleHead) ruleMap.get(test);
                 if (r != null) {
-                    id = r.id;
-                    section = r.section;
+                    found = r;
                     break;
                 }
             }
-            if (id == -1) {
+            if (found == null || found.rule instanceof RuleFixed) {
                 buff.append(s);
                 continue;
             }
             String page = "grammar.html";
-            if (section.startsWith("Data Types")) {
+            if (found.section.startsWith("Data Types")) {
                 page = "datatypes.html";
-            } else if (section.startsWith("Functions")) {
+            } else if (found.section.startsWith("Functions")) {
                 page = "functions.html";
             }
-            buff.append("<a href=\""+page+"#sql"+id+"\">");
+            String link = StringUtils.urlEncode(found.getTopic().toLowerCase());
+            buff.append("<a href=\""+page+"#"+link+"\">");
             buff.append(s);
             buff.append("</a>");
         }

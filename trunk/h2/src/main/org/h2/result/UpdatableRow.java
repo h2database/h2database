@@ -94,7 +94,7 @@ public class UpdatableRow {
     private void appendColumnList(StringBuffer buff, boolean set) {
         for (int i = 0; i < columnCount; i++) {
             if (i > 0) {
-                buff.append(", ");
+                buff.append(',');
             }
             String col = result.getColumnName(i);
             buff.append(StringUtils.quoteIdentifier(col));
@@ -120,6 +120,11 @@ public class UpdatableRow {
             String col = (String) key.get(i);
             int idx = getColumnIndex(col);
             Value v = current[idx];
+            if (v == null || v == ValueNull.INSTANCE) {
+                // rows with a unique key containing NULL are not supported,
+                // as multiple such rows could exist
+                throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+            }
             v.set(prep, start + i);
         }
     }
@@ -167,7 +172,6 @@ public class UpdatableRow {
         Value[] newRow = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             int type = result.getColumnType(i);
-            // TODO lob: support updatable rows
             newRow[i] = DataType.readValue(session, rs, i + 1, type);
         }
         return newRow;
@@ -182,6 +186,7 @@ public class UpdatableRow {
         setKey(prep, 1, current);
         int count = prep.executeUpdate();
         if (count != 1) {
+            // the row has already been deleted
             throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
@@ -206,23 +211,27 @@ public class UpdatableRow {
             v.set(prep, j++);
         }
         setKey(prep, j, current);
-        prep.execute();
+        int count = prep.executeUpdate();
+        if (count != 1) {
+            // the row has been deleted
+            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+        }
     }
 
     public void insertRow(Value[] row) throws SQLException {
         StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO ");
         appendTableName(buff);
-        buff.append("(");
+        buff.append('(');
         appendColumnList(buff, false);
         buff.append(")VALUES(");
         for (int i = 0; i < columnCount; i++) {
             if (i > 0) {
-                buff.append(",");
+                buff.append(',');
             }
-            buff.append("?");
+            buff.append('?');
         }
-        buff.append(")");
+        buff.append(')');
         PreparedStatement prep = conn.prepareStatement(buff.toString());
         for (int i = 0; i < columnCount; i++) {
             Value v = row[i];
@@ -231,7 +240,10 @@ public class UpdatableRow {
             }
             v.set(prep, i + 1);
         }
-        prep.executeUpdate();
+        int count = prep.executeUpdate();
+        if (count != 1) {
+            throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
+        }
     }
 
 }

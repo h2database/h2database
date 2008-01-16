@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
-Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -13,12 +13,12 @@ Data Types
 
 <h1>Data Types</h1>
 <c:forEach var="item" items="dataTypes">
-    <a href="#sql${item.id}">${item.topic}</a><br />
+    <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
 
 <c:forEach var="item" items="dataTypes">
 <br />
-<a name="sql${item.id}"></a><h3>${item.topic}</h3>
+<a name="${item.link}"></a><h3>${item.topic}</h3>
 <pre>
 ${item.syntax}
 </pre>

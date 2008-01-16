@@ -722,6 +722,14 @@ Savepoints are only valid until the transaction is committed or rolled back.
 SAVEPOINT HALF_DONE
 "
 
+"Commands (Other)","SET @","
+SET @variableName [=] expression
+","
+Updates a user defined variable.
+","
+SET @TOTAL=0
+"
+
 "Commands (Other)","SET ALLOW_LITERALS","
 SET ALLOW_LITERALS {NONE|ALL|NUMBERS}
 ","
@@ -2804,6 +2812,15 @@ This id stays the same while the connection is open.
 The database engine may re-use a session id after the connection is closed.
 ","
 CALL SESSION_ID()
+"
+
+"Functions (System)","SET","
+SET(@variableName, value): value
+","
+Updates a variable with the given value. The new value is returned.
+When used in a query, the value is updated in the order the rows are read.
+","
+SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","

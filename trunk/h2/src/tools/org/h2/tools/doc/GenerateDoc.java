@@ -104,6 +104,10 @@ public class GenerateDoc {
                 syntax = StringUtils.replaceAll(syntax, "<br />", "");
                 syntax = bnf.getSyntax(topic, syntax);
                 map.put("syntax", syntax);
+                String link = topic.toLowerCase();
+                link = StringUtils.replaceAll(link, " ", "");
+                link = StringUtils.replaceAll(link, "_", "");
+                map.put("link", StringUtils.urlEncode(link));
                 list.add(map);
             }
             session.put(key, list);

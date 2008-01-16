@@ -150,21 +150,18 @@ java org.h2.test.TestAll timer
 
 /*
 
-document SET method, variables
-
-send mail
+find send mail source code?
 
 Roadmap:
 
 History:
-User defined variables are now supported. Examples: SET @VAR=10;CALL @VAR
+User defined variables are now supported. Examples: SET @VAR=10;CALL @VAR.
+This can be used for running totals as in:
+select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 10)
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 Test H2 on OS X (result are here: h2-2007-12-27_test.zip)
-
-Docs:
-H2 can emulate PostgreSQL server.
 
 Web site:
 link to history page, bug page

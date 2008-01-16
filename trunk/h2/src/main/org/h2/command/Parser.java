@@ -107,6 +107,7 @@ import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
 import org.h2.message.Message;
@@ -151,7 +152,7 @@ public class Parser {
     // this are token types
     private static final int KEYWORD = 1, IDENTIFIER = 2, PARAMETER = 3, END = 4, VALUE = 5;
     private static final int EQUAL = 6, BIGGER_EQUAL = 7, BIGGER = 8;
-    private static final int SMALLER = 9, SMALLER_EQUAL = 10, NOT_EQUAL = 11;
+    private static final int SMALLER = 9, SMALLER_EQUAL = 10, NOT_EQUAL = 11, AT = 12;
     private static final int MINUS = 17, PLUS = 18;
     private static final int STRING_CONCAT = 22;
     private static final int OPEN = 31, CLOSE = 32, NULL = 34, TRUE = 40, FALSE = 41;
@@ -1986,6 +1987,10 @@ public class Parser {
     private Expression readTerm() throws SQLException {
         Expression r;
         switch (currentTokenType) {
+        case AT:
+            read();
+            r = new Variable(session, readAliasIdentifier());
+            break;
         case PARAMETER:
             // there must be no space between ? and the number
             boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
@@ -2674,6 +2679,7 @@ public class Parser {
             case '+':
             case '%':
             case '?':
+            case '@':
             case '$':
             case ']':
                 type = CHAR_SPECIAL_1;
@@ -2782,6 +2788,8 @@ public class Parser {
             case '?':
             case '$':
                 return PARAMETER;
+            case '@':
+                return AT;
             case '+':
                 return PLUS;
             case '-':
@@ -3677,7 +3685,13 @@ public class Parser {
     }
 
     private Prepared parseSet() throws SQLException {
-        if (readIf("AUTOCOMMIT")) {
+        if (readIf("@")) {
+            Set command = new Set(session, SetTypes.VARIABLE);
+            command.setString(readAliasIdentifier());
+            readIfEqualOrTo();
+            command.setExpression(readExpression());
+            return command;
+        } else if (readIf("AUTOCOMMIT")) {
             readIfEqualOrTo();
             boolean value = readBooleanSetting();
             int setting = value ? TransactionCommand.AUTOCOMMIT_TRUE : TransactionCommand.AUTOCOMMIT_FALSE;

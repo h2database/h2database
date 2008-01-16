@@ -2953,6 +2953,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Returns the value of the specified column as a row id.
+     *
+     * @param columnIndex (1,2,...)
      */
 //#ifdef JDK16
 /*
@@ -2964,6 +2966,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Returns the value of the specified column as a row id.
+     *
+     * @param columnName the name of the column label
      */
 //#ifdef JDK16
 /*
@@ -2975,6 +2979,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
      */
 //#ifdef JDK16
 /*
@@ -2986,6 +2993,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported] Updates a column in the current or insert row.
+     *
+     * @param columnName the name of the column label
+     * @param x the value
      */
 //#ifdef JDK16
 /*

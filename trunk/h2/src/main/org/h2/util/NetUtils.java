@@ -25,7 +25,11 @@ public class NetUtils {
     private static InetAddress bindAddress;
 
     public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
-        return createSocket("127.0.0.1", port, ssl);
+        InetAddress address = getBindAddress();
+        if (address == null) {
+            address = InetAddress.getLocalHost();
+        }
+        return createSocket(address.getHostAddress(), port, ssl);
     }
 
     public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
@@ -75,7 +79,7 @@ public class NetUtils {
         }
         synchronized (NetUtils.class) {
             if (bindAddress == null) {
-                bindAddress = InetAddress.getByAddress(InetAddress.getByName(host).getAddress());
+                bindAddress = InetAddress.getByName(host);
             }
         }
         return bindAddress;
@@ -119,6 +123,16 @@ public class NetUtils {
             }
         }
         return null;
+    }
+
+    public static String getLocalAddress() {
+        InetAddress bind = null;
+        try {
+            bind = getBindAddress();
+        } catch (UnknownHostException e) {
+            // ignore
+        }
+        return bind == null ? "localhost" : bind.getHostAddress();
     }
 
 }

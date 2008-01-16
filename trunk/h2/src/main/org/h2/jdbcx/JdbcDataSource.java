@@ -278,6 +278,11 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     }
 //#endif
 
+    /**
+     * [Not supported] Return an object of this class if possible.
+     *
+     * @param iface the class
+     */
 //#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -286,6 +291,11 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 */
 //#endif
 
+    /**
+     * [Not supported] Checks if unwrap can return an object of this class.
+     *
+     * @param iface the class
+     */
 //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {

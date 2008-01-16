@@ -1378,49 +1378,49 @@ Webベースのコンソールアプリケーション (英語、ドイツ語、
 データファイルのコンテンツを移動することができるリカバリーツールを含む
 
 @features_1076_li
-prepared statementの自動再編集
+#Support for variables (for example to calculate running totals)
 
 @features_1077_li
-少数のデータベースファイル、バイナリー、テキストストレージ形式を使用、ディスクスペースが少ない状況での正しい取り扱い
+prepared statementの自動再編集
 
 @features_1078_li
-各レコードのためのチェックサムと、データ整合性のためのログエントリーを使用
+少数のデータベースファイル、バイナリー、テキストストレージ形式を使用、ディスクスペースが少ない状況での正しい取り扱い
 
 @features_1079_li
+各レコードのためのチェックサムと、データ整合性のためのログエントリーを使用
+
+@features_1080_li
 十分なテスト済み (高いコードカバー率、ランダムストレステスト)
 
-@features_1080_h2
+@features_1081_h2
 #Limitations
 
-@features_1081_p
+@features_1082_p
 #For the list of limitations, please have a look at the road map page at: <a href="http://groups.google.com/group/h2-database/web/roadmap">http://groups.google.com/group/h2-database/web/roadmap</a>
 
-@features_1082_h2
+@features_1083_h2
 他のデータベースエンジンと比較する
 
-@features_1083_th
+@features_1084_th
 特徴
 
-@features_1084_th
+@features_1085_th
 H2
 
-@features_1085_th
+@features_1086_th
 Derby
 
-@features_1086_th
+@features_1087_th
 HSQLDB
 
-@features_1087_th
+@features_1088_th
 MySQL
 
-@features_1088_th
+@features_1089_th
 PostgreSQL
 
-@features_1089_td
-Pure Java
-
 @features_1090_td
-対応
+Pure Java
 
 @features_1091_td
 対応
@@ -1429,16 +1429,16 @@ Pure Java
 対応
 
 @features_1093_td
-非対応
+対応
 
 @features_1094_td
 非対応
 
 @features_1095_td
-エンベッドモード (Java)
+非対応
 
 @features_1096_td
-対応
+エンベッドモード (Java)
 
 @features_1097_td
 対応
@@ -1447,112 +1447,112 @@ Pure Java
 対応
 
 @features_1099_td
-非対応
+対応
 
 @features_1100_td
 非対応
 
 @features_1101_td
-パフォーマンス (エンベッド)
+非対応
 
 @features_1102_td
-速い
+パフォーマンス (エンベッド)
 
 @features_1103_td
-遅い
-
-@features_1104_td
 速い
 
+@features_1104_td
+遅い
+
 @features_1105_td
-該当なし
+速い
 
 @features_1106_td
 該当なし
 
 @features_1107_td
-#In-Memory Mode
+該当なし
 
 @features_1108_td
-対応
+#In-Memory Mode
 
 @features_1109_td
-非対応
-
-@features_1110_td
 対応
 
-@features_1111_td
+@features_1110_td
 非対応
+
+@features_1111_td
+対応
 
 @features_1112_td
 非対応
 
 @features_1113_td
-トランザクション分離
+非対応
 
 @features_1114_td
-対応
+トランザクション分離
 
 @features_1115_td
 対応
 
 @features_1116_td
-非対応
+対応
 
 @features_1117_td
-対応
+非対応
 
 @features_1118_td
 対応
 
 @features_1119_td
-コストベースオプティマイザ
+対応
 
 @features_1120_td
-対応
+コストベースオプティマイザ
 
 @features_1121_td
 対応
 
 @features_1122_td
-非対応
+対応
 
 @features_1123_td
-対応
+非対応
 
 @features_1124_td
 対応
 
 @features_1125_td
-クラスタリング
-
-@features_1126_td
 対応
 
+@features_1126_td
+クラスタリング
+
 @features_1127_td
-非対応
+対応
 
 @features_1128_td
 非対応
 
 @features_1129_td
-対応
+非対応
 
 @features_1130_td
 対応
 
 @features_1131_td
-暗号化データベース
+対応
 
 @features_1132_td
-対応
+暗号化データベース
 
 @features_1133_td
 対応
 
 @features_1134_td
-非対応
+対応
 
 @features_1135_td
 非対応
@@ -1561,939 +1561,942 @@ Pure Java
 非対応
 
 @features_1137_td
-ODBCドライバ
-
-@features_1138_td
-対応
-
-@features_1139_td
-#Yes?
-
-@features_1140_td
 非対応
 
-@features_1141_td
+@features_1138_td
+ODBCドライバ
+
+@features_1139_td
 対応
+
+@features_1140_td
+#Yes?
+
+@features_1141_td
+非対応
 
 @features_1142_td
 対応
 
 @features_1143_td
-フルテキストサーチ
-
-@features_1144_td
 対応
 
+@features_1144_td
+フルテキストサーチ
+
 @features_1145_td
-非対応
+対応
 
 @features_1146_td
 非対応
 
 @features_1147_td
-対応
+非対応
 
 @features_1148_td
 対応
 
 @features_1149_td
-#User Defined Datatypes
-
-@features_1150_td
 対応
 
+@features_1150_td
+#User Defined Datatypes
+
 @features_1151_td
-非対応
+対応
 
 @features_1152_td
 非対応
 
 @features_1153_td
-対応
+非対応
 
 @features_1154_td
 対応
 
 @features_1155_td
-データベースごとのファイル
+対応
 
 @features_1156_td
-少
+データベースごとのファイル
 
 @features_1157_td
-多
-
-@features_1158_td
 少
 
-@features_1159_td
+@features_1158_td
 多
+
+@features_1159_td
+少
 
 @features_1160_td
 多
 
 @features_1161_td
-フットプリント (jar/dll size)
+多
 
 @features_1162_td
-~ 1 MB
+フットプリント (jar/dll size)
 
 @features_1163_td
-~ 2 MB
+~ 1 MB
 
 @features_1164_td
-~ 600 KB
+~ 2 MB
 
 @features_1165_td
-~ 4 MB
+~ 600 KB
 
 @features_1166_td
+~ 4 MB
+
+@features_1167_td
 ~ 6 MB
 
-@features_1167_h3
+@features_1168_h3
 DerbyとHSQLDB
 
-@features_1168_p
+@features_1169_p
 予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
 
-@features_1169_h3
+@features_1170_h3
 DaffodilDbとOne$Db
 
-@features_1170_p
+@features_1171_p
 このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
 
-@features_1171_h3
+@features_1172_h3
 McKoi
 
-@features_1172_p
+@features_1173_p
 このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
 
-@features_1173_h2
+@features_1174_h2
 #H2 in Use
 
-@features_1174_p
+@features_1175_p
 #For a list of applications that work with or use H2, see: <a href="http://groups.google.com/group/h2-database/web/h2-in-use">http://groups.google.com/group/h2-database/web/h2-in-use</a>
 
-@features_1175_h2
+@features_1176_h2
 接続モード
 
-@features_1176_p
+@features_1177_p
 以下の接続モードがサポートされています:
 
-@features_1177_li
+@features_1178_li
 JDBC (エンベッド) を使用しているローカル接続
 
-@features_1178_li
+@features_1179_li
 TCP/IP上でJDBCを使用しているリモート接続 (クライアント/サーバー)
 
-@features_1179_li
+@features_1180_li
 TCP/IP上でODBCを使用しているリモート接続 (クライアント/サーバー)
 
-@features_1180_li
+@features_1181_li
 インメモリデータベース (プライベートと共有)
 
-@features_1181_h2
+@features_1182_h2
 データベースURL概要
 
-@features_1182_p
+@features_1183_p
 このデータベースは、データベースに接続している時、複数の接続モードと特徴をサポートしています。これは、異なったデータベースのURLを使用することにより可能となります。URLの設定は大文字と小文字を区別していません。
 
-@features_1183_th
+@features_1184_th
 トピック
 
-@features_1184_th
+@features_1185_th
 URLフォーマットと例
 
-@features_1185_td
+@features_1186_td
 エンベッド (ローカル) 接続
 
-@features_1186_td
+@features_1187_td
 jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;
 
-@features_1187_td
+@features_1188_td
 jdbc:h2:~/test
 
-@features_1188_td
+@features_1189_td
 jdbc:h2:file:/data/sample
 
-@features_1189_td
+@features_1190_td
 jdbc:h2:file:C:/data/sample (Windowsのみ)
 
-@features_1190_td
-インメモリ (プライベート)
-
 @features_1191_td
-jdbc:h2:mem:
+インメモリ (プライベート)
 
 @features_1192_td
-インメモリ (名付ける)
-
-@features_1193_td
-jdbc:h2:mem:&lt;databaseName&gt;
-
-@features_1194_td
-jdbc:h2:mem:test_mem
-
-@features_1195_td
-TCP/IPを使用したリモート
-
-@features_1196_td
-jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
-
-@features_1197_td
-jdbc:h2:tcp://localhost/test
-
-@features_1198_td
-jdbc:h2:tcp://dbserv:8084/sample
-
-@features_1199_td
-SSL/TLSを使用したリモート
-
-@features_1200_td
-jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
-
-@features_1201_td
-jdbc:h2:ssl://secureserv:8085/sample;
-
-@features_1202_td
-暗号化ファイルの使用
-
-@features_1203_td
-jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
-
-@features_1204_td
-jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
-
-@features_1205_td
-jdbc:h2:file:~/secure;CIPHER=XTEA
-
-@features_1206_td
-ファイルロックメソッド
-
-@features_1207_td
-jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
-
-@features_1208_td
-jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
-
-@features_1209_td
-jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
-
-@features_1210_td
-すでに存在する場合は起動のみ
-
-@features_1211_td
-jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
-
-@features_1212_td
-jdbc:h2:file:~/sample;IFEXISTS=TRUE
-
-@features_1213_td
-VMが終了した時、データベースを終了しない
-
-@features_1214_td
-jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
-
-@features_1215_td
-ユーザー名、及びパスワード
-
-@features_1216_td
-jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
-
-@features_1217_td
-jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
-
-@features_1218_td
-ログインデックスの修正
-
-@features_1219_td
-jdbc:h2:&lt;url&gt;;LOG=2
-
-@features_1220_td
-jdbc:h2:file:~/sample;LOG=2
-
-@features_1221_td
-デバックトレースの設定
-
-@features_1222_td
-jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
-
-@features_1223_td
-jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
-
-@features_1224_td
-未知の設定を無視
-
-@features_1225_td
-jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
-
-@features_1226_td
-カスタムファイル アクセスモード
-
-@features_1227_td
-jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
-
-@features_1228_td
-インメモリ (プライベート)
-
-@features_1229_td
 jdbc:h2:mem:
 
-@features_1230_td
-#Database in or Zip File
+@features_1193_td
+インメモリ (名付ける)
 
-@features_1231_td
-#jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
+@features_1194_td
+jdbc:h2:mem:&lt;databaseName&gt;
 
-@features_1232_td
-#jdbc:h2:zip:db.zip!/test
+@features_1195_td
+jdbc:h2:mem:test_mem
 
-@features_1233_td
-他の設定の変更
+@features_1196_td
+TCP/IPを使用したリモート
 
-@features_1234_td
-jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+@features_1197_td
+jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
-@features_1235_td
-jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
+@features_1198_td
+jdbc:h2:tcp://localhost/test
 
-@features_1236_h3
-エンベッド (ローカル) データベースに接続
+@features_1199_td
+jdbc:h2:tcp://dbserv:8084/sample
 
-@features_1237_p
-ローカルデータベースに接続するためのデータベースURLは、<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> です。接頭辞 <code>file:</code> はオプションです。相対パスが使われていない、または相対パスのみ使われている場合、現在作業しているディレクトリは、スターティングポイントとして使われます。パスとデータベース名の大文字と小文字の区別はOSに依存されますが、小文字のみの使用が推奨されています。データベース名は少なくとも3文字でなくてはなりません (File.createTempFile の制限)。ユーザーホームディレクトリを示すために、~/ を次のように使用します: jdbc:h2:~/test
+@features_1200_td
+SSL/TLSを使用したリモート
 
-@features_1238_h2
-メモリオンリーデータベース
+@features_1201_td
+jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
-@features_1239_p
-特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+@features_1202_td
+jdbc:h2:ssl://secureserv:8085/sample;
 
-@features_1240_p
-一部ケースでは、メモリオンリーデータベースへの接続はひとつの接続のみ必要とされます。これは、開かれるデータベースがプライベートだということを意味しています。このケースでは、データベースURLは <CODE>jdbc:h2:mem:</CODE> です。同じ仮想マシン内で二つの接続が開いているというのは、二つの異なった (プライベートの) データベースが開いているという意味です。
+@features_1203_td
+暗号化ファイルの使用
 
-@features_1241_p
-時々、複数の接続が同じメモリオンリーデータベースを必要とします。このケースでは、データベースのURLに名前が含まれていなければなりません。例: <code>jdbc:h2:mem:db1</code> この方法での同じデータベースのアクセスは、同じ仮想マシンとClassLoader環境内でのみ動作します。
+@features_1204_td
+jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
 
-@features_1242_p
-TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベースに間接的に (または、同じマシンの複数のプロセスから) 接続することも可能です。データベースURLの例: <code>jdbc:h2:tcp://localhost/mem:db1</code> (プライベートデータベースを間接的に使用することも可能です)
+@features_1205_td
+jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
 
-@features_1243_p
-#By default, when the last connection to a in-memory database is closed, the contents are lost. This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep the contents of an in-memory database as long as the virtual machine is alive, use jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+@features_1206_td
+jdbc:h2:file:~/secure;CIPHER=XTEA
 
-@features_1244_h2
-暗号化ファイルと共にデータベースへ接続する
+@features_1207_td
+ファイルロックメソッド
 
-@features_1245_p
-ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+@features_1208_td
+jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
 
-@features_1246_h2
-データベースファイルロック
+@features_1209_td
+jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
 
-@features_1247_p
-データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+@features_1210_td
+jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
 
-@features_1248_p
-以下のファイルロックメソッドが提供されます:
+@features_1211_td
+すでに存在する場合は起動のみ
 
-@features_1249_li
-デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+@features_1212_td
+jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
 
-@features_1250_li
-二つめのメソッドは "socket" で、サーバーソケットを開きます。ソケットメソッドは、ロックファイルを秒単位で読むことを必要としていません。ソケットメソッドは、データベースファイルがひとつの (いつも同じ) コンピューターのみによってアクセスされる場合にのみ使用されます。
+@features_1213_td
+jdbc:h2:file:~/sample;IFEXISTS=TRUE
 
-@features_1251_li
-ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
-
-@features_1252_p
-異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
-
-@features_1253_p
-以下のコードは、データベースにロックファイルを全く作らないよう強要させます。これは、データ破損を導く可能性のある、同じデータベースを開くことができる他のプロセスのように、安全ではないということに注意して下さい:
-
-@features_1254_p
-アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
-
-@features_1255_h2
-すでに存在する場合のみ、データベースを開く
-
-@features_1256_p
-デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
-
-@features_1257_h2
-データベースを終了する
-
-@features_1258_h3
-データベースの遅延終了
-
-@features_1259_p
-通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
-
-@features_1260_p
-値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
-
-@features_1261_h3
+@features_1214_td
 VMが終了した時、データベースを終了しない
 
-@features_1262_p
-デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+@features_1215_td
+jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
 
-@features_1263_h2
+@features_1216_td
+ユーザー名、及びパスワード
+
+@features_1217_td
+jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
+
+@features_1218_td
+jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
+
+@features_1219_td
 ログインデックスの修正
 
-@features_1264_p
-通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+@features_1220_td
+jdbc:h2:&lt;url&gt;;LOG=2
 
-@features_1265_h3
+@features_1221_td
+jdbc:h2:file:~/sample;LOG=2
+
+@features_1222_td
+デバックトレースの設定
+
+@features_1223_td
+jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
+
+@features_1224_td
+jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
+
+@features_1225_td
 未知の設定を無視
 
-@features_1266_p
-データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+@features_1226_td
+jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
 
-@features_1267_h3
-接続が開始された時に他の設定を変更する
-
-@features_1268_p
-すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
-
-@features_1269_h2
+@features_1227_td
 カスタムファイル アクセスモード
 
-@features_1270_p
-通常、データベースはログ、データとインデックスファイルを、アクセスモード "rw" で開きます。read-write (モード "r" が使われている読み取り専用データベースは除く) という意味です。"rws" と "rwd" もサポートしています。ログファイルに使用されるアクセスモードは、ACCESS_MODE_LOG を通して設定されます; データとインデックスファイルには、ACCESS_MODE_DATA を使用してください。これらの設定は、データベースURLで指定されなくてはいけません:
+@features_1228_td
+jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
+
+@features_1229_td
+インメモリ (プライベート)
+
+@features_1230_td
+jdbc:h2:mem:
+
+@features_1231_td
+#Database in or Zip File
+
+@features_1232_td
+#jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
+
+@features_1233_td
+#jdbc:h2:zip:db.zip!/test
+
+@features_1234_td
+他の設定の変更
+
+@features_1235_td
+jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+
+@features_1236_td
+jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
+
+@features_1237_h3
+エンベッド (ローカル) データベースに接続
+
+@features_1238_p
+ローカルデータベースに接続するためのデータベースURLは、<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> です。接頭辞 <code>file:</code> はオプションです。相対パスが使われていない、または相対パスのみ使われている場合、現在作業しているディレクトリは、スターティングポイントとして使われます。パスとデータベース名の大文字と小文字の区別はOSに依存されますが、小文字のみの使用が推奨されています。データベース名は少なくとも3文字でなくてはなりません (File.createTempFile の制限)。ユーザーホームディレクトリを示すために、~/ を次のように使用します: jdbc:h2:~/test
+
+@features_1239_h2
+メモリオンリーデータベース
+
+@features_1240_p
+特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+
+@features_1241_p
+一部ケースでは、メモリオンリーデータベースへの接続はひとつの接続のみ必要とされます。これは、開かれるデータベースがプライベートだということを意味しています。このケースでは、データベースURLは <CODE>jdbc:h2:mem:</CODE> です。同じ仮想マシン内で二つの接続が開いているというのは、二つの異なった (プライベートの) データベースが開いているという意味です。
+
+@features_1242_p
+時々、複数の接続が同じメモリオンリーデータベースを必要とします。このケースでは、データベースのURLに名前が含まれていなければなりません。例: <code>jdbc:h2:mem:db1</code> この方法での同じデータベースのアクセスは、同じ仮想マシンとClassLoader環境内でのみ動作します。
+
+@features_1243_p
+TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベースに間接的に (または、同じマシンの複数のプロセスから) 接続することも可能です。データベースURLの例: <code>jdbc:h2:tcp://localhost/mem:db1</code> (プライベートデータベースを間接的に使用することも可能です)
+
+@features_1244_p
+#By default, when the last connection to a in-memory database is closed, the contents are lost. This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep the contents of an in-memory database as long as the virtual machine is alive, use jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+
+@features_1245_h2
+暗号化ファイルと共にデータベースへ接続する
+
+@features_1246_p
+ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+
+@features_1247_h2
+データベースファイルロック
+
+@features_1248_p
+データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+
+@features_1249_p
+以下のファイルロックメソッドが提供されます:
+
+@features_1250_li
+デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+
+@features_1251_li
+二つめのメソッドは "socket" で、サーバーソケットを開きます。ソケットメソッドは、ロックファイルを秒単位で読むことを必要としていません。ソケットメソッドは、データベースファイルがひとつの (いつも同じ) コンピューターのみによってアクセスされる場合にのみ使用されます。
+
+@features_1252_li
+ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
+
+@features_1253_p
+異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
+
+@features_1254_p
+以下のコードは、データベースにロックファイルを全く作らないよう強要させます。これは、データ破損を導く可能性のある、同じデータベースを開くことができる他のプロセスのように、安全ではないということに注意して下さい:
+
+@features_1255_p
+アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
+
+@features_1256_h2
+すでに存在する場合のみ、データベースを開く
+
+@features_1257_p
+デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
+
+@features_1258_h2
+データベースを終了する
+
+@features_1259_h3
+データベースの遅延終了
+
+@features_1260_p
+通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
+
+@features_1261_p
+値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
+
+@features_1262_h3
+VMが終了した時、データベースを終了しない
+
+@features_1263_p
+デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+
+@features_1264_h2
+ログインデックスの修正
+
+@features_1265_p
+通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+
+@features_1266_h3
+未知の設定を無視
+
+@features_1267_p
+データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+
+@features_1268_h3
+接続が開始された時に他の設定を変更する
+
+@features_1269_p
+すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
+
+@features_1270_h2
+カスタムファイル アクセスモード
 
 @features_1271_p
+通常、データベースはログ、データとインデックスファイルを、アクセスモード "rw" で開きます。read-write (モード "r" が使われている読み取り専用データベースは除く) という意味です。"rws" と "rwd" もサポートしています。ログファイルに使用されるアクセスモードは、ACCESS_MODE_LOG を通して設定されます; データとインデックスファイルには、ACCESS_MODE_DATA を使用してください。これらの設定は、データベースURLで指定されなくてはいけません:
+
+@features_1272_p
 詳細は <a href="advanced.html#durability_problems">永続性問題</a> をご覧下さい。 多くのオペレーティングシステムでは、アクセスモード "rws" において、データがディスクに書かれていることを保証しません。
 
-@features_1272_h2
+@features_1273_h2
 複数の接続
 
-@features_1273_h3
+@features_1274_h3
 同時に複数のデータベースを開く
 
-@features_1274_p
+@features_1275_p
 アプリケーションは、同じデータベースへの複数の接続を含め、複数のデータベースを同時に開くことができます。開くデータベースの数は、利用可能なメモリによってのみ制限されています。
 
-@features_1275_h3
+@features_1276_h3
 >同じデータベースへの複数の接続: クライアント/サーバー
 
-@features_1276_p
+@features_1277_p
 異なったプロセス、またはコンピューターから同時に同じデータベースにアクセスしたい場合、クライアント/サーバー モードを使用することが必要です。このケースでは、ひとつのプロセスがサーバーとして動作し、他のプロセスは (同様に他のコンピューターに属することができます) TCP/IP (または改善されたセキュリティ用のTCP/IPの上のSSL/TLS) を通してサーバーに接続します。
 
-@features_1277_h3
+@features_1278_h3
 マルチスレッドサポート
 
-@features_1278_p
+@features_1279_p
 このデータベースは安全なマルチスレッドです。これは、アプリケーションがマルチスレッドならば、データベースへの同時アクセスに関して心配する必要がない、ということを意味しています。本質的に、同じデータベースへのほとんどのリクエストは同時に動きます。アプリケーションは、同時に同じデータベースにアクセスするマルチスレッドを使用することができますが、ひとつのスレッドが処理時間の長いクエリーを実行しているなら、他のスレッドは待つ必要があります。
 
-@features_1279_h3
+@features_1280_h3
 ロック、ロックタイムアウト、デッドロック
 
-@features_1280_p
+@features_1281_p
 データの一貫した状態をそれぞれの接続に与えるために、データベースはテーブルレベルでのロックを使用します。二種類のロックがあります: リードロック (共有ロック) とライトロック (排他ロック) です。もし、接続がテーブルから読み込みたい場合で、テーブルにライトロックがない場合に、リードロックをテーブルに追加します。もしライトロックがあれば、この接続はロックを解除するために他の接続を待ちます。接続が指定された時間までにロックを取得できなければ、ロックタイムアウトの例外が投げられます。
 
-@features_1281_p
+@features_1282_p
 通常、SELECTステートメントはリードロックを生成します。これはサブクエリーも含まれます。データを修正するステートメントはライトロックを使用します。SELECT ... FOR UPDATE ステートメントを使用して、データの修正がなくても排他的にテーブルをロックすることも可能です。COMMITとROLLBACKステートメントは全ての周知のロックを解除します。SAVEPOINTとROLLBACK TO SAVEPOINTコマンドはロックに影響を及ぼしません。ロックはオートコミットモードに変更した時、オートコミットの接続がtrueにセットされた時 (この状態がデフォルトです) にも解除され、ロックはそれぞれのステートメントの後に解除されます。これは、どのステートメントでどんな種類のロックが生成されるかの概観です:
 
-@features_1282_th
+@features_1283_th
 ロックの種類
 
-@features_1283_th
+@features_1284_th
 SQLステートメント
 
-@features_1284_td
+@features_1285_td
 Read
 
-@features_1285_td
+@features_1286_td
 SELECT * FROM TEST
 
-@features_1286_td
+@features_1287_td
 CALL SELECT MAX(ID) FROM TEST
 
-@features_1287_td
+@features_1288_td
 SCRIPT
 
-@features_1288_td
-Write
-
 @features_1289_td
-SELECT * FROM TEST WHERE 1=0 FOR UPDATE
+Write
 
 @features_1290_td
-Write
+SELECT * FROM TEST WHERE 1=0 FOR UPDATE
 
 @features_1291_td
-INSERT INTO TEST VALUES(1, 'Hello')
-
-@features_1292_td
-INSERT INTO TEST SELECT * FROM TEST
-
-@features_1293_td
-UPDATE TEST SET NAME='Hi'
-
-@features_1294_td
-DELETE FROM TEST
-
-@features_1295_td
 Write
 
+@features_1292_td
+INSERT INTO TEST VALUES(1, 'Hello')
+
+@features_1293_td
+INSERT INTO TEST SELECT * FROM TEST
+
+@features_1294_td
+UPDATE TEST SET NAME='Hi'
+
+@features_1295_td
+DELETE FROM TEST
+
 @features_1296_td
-ALTER TABLE TEST ...
+Write
 
 @features_1297_td
-CREATE INDEX ... ON TEST ...
+ALTER TABLE TEST ...
 
 @features_1298_td
+CREATE INDEX ... ON TEST ...
+
+@features_1299_td
 DROP INDEX ...
 
-@features_1299_p
+@features_1300_p
 SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロックタイムアウトの例外が投げられるまでの秒数を、それぞれの接続ごとに別々に設定することができます。SQLコマンド SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、初期のロックタイムアウト (新しい接続に使用されるタイムアウト) を設定することができます。デフォルトのロックタイムアウトは永続的です。
 
-@features_1300_h2
+@features_1301_h2
 データベースファイルレイアウト
 
-@features_1301_p
+@features_1302_p
 永続的なデータベースのために作成された多くのファイルがあります。一部のデータベースを除いて、全てのテーブルと (または) インデックスが自身のファイル内に保存されているわけではありません。その代りに、通常次のファイルのみが作成されます: データファイル、インデックスファイル、ログファイル、データベースロックファイル (データベースが使われている間のみ存在します)。それに加えて、ファイルはそれぞれの大きなオブジェクト (CLOB/BLOB) のために作成されます。各ライナーインデックスのためのファイル、大きなresult setのためのテンポラリーファイルです。データベーストレースオプションが有効の場合、トレースファイルが作成されます。次のファイルはデータベースによって作成されます:
 
-@features_1302_th
+@features_1303_th
 ファイル名
 
-@features_1303_th
+@features_1304_th
 説明
 
-@features_1304_th
+@features_1305_th
 ファイル数
 
-@features_1305_td
+@features_1306_td
 test.data.db
 
-@features_1306_td
+@features_1307_td
 データファイル
 
-@features_1307_td
+@features_1308_td
 全てのテーブルのデータを含む
 
-@features_1308_td
+@features_1309_td
 フォーマット: &lt;database&gt;.data.db
 
-@features_1309_td
-データベースごとに1ファイル
-
 @features_1310_td
-test.index.db
+データベースごとに1ファイル
 
 @features_1311_td
-インデックスファイル
+test.index.db
 
 @features_1312_td
-全ての (btree) インデックスのデータを含む
+インデックスファイル
 
 @features_1313_td
-フォーマット: &lt;database&gt;.index.db
+全ての (btree) インデックスのデータを含む
 
 @features_1314_td
-データベースごとに1ファイル
+フォーマット: &lt;database&gt;.index.db
 
 @features_1315_td
-test.0.log.db
+データベースごとに1ファイル
 
 @features_1316_td
-ログファイル
+test.0.log.db
 
 @features_1317_td
-ログファイルはリカバリーのために使われる
+ログファイル
 
 @features_1318_td
-フォーマット: &lt;database&gt;.&lt;id&gt;.log.db
+ログファイルはリカバリーのために使われる
 
 @features_1319_td
-データベースごとに0ファイル以上
+フォーマット: &lt;database&gt;.&lt;id&gt;.log.db
 
 @features_1320_td
-test.lock.db
+データベースごとに0ファイル以上
 
 @features_1321_td
-データベースロックファイル
+test.lock.db
 
 @features_1322_td
-データベースが開かれている時のみ存在
+データベースロックファイル
 
 @features_1323_td
-フォーマット: &lt;database&gt;.lock.db
+データベースが開かれている時のみ存在
 
 @features_1324_td
-データベースごとに1ファイル
+フォーマット: &lt;database&gt;.lock.db
 
 @features_1325_td
-test.trace.db
-
-@features_1326_td
-トレースファイル
-
-@features_1327_td
-トレース情報を含む
-
-@features_1328_td
-フォーマット: &lt;database&gt;.trace.db
-
-@features_1329_td
-ファイルが大きすぎる場合、&lt;database&gt;.trace.db.old に改名される
-
-@features_1330_td
 データベースごとに1ファイル
 
+@features_1326_td
+test.trace.db
+
+@features_1327_td
+トレースファイル
+
+@features_1328_td
+トレース情報を含む
+
+@features_1329_td
+フォーマット: &lt;database&gt;.trace.db
+
+@features_1330_td
+ファイルが大きすぎる場合、&lt;database&gt;.trace.db.old に改名される
+
 @features_1331_td
-test.14.15.lob.db
+データベースごとに1ファイル
 
 @features_1332_td
-大きなオブジェクト
+test.14.15.lob.db
 
 @features_1333_td
-BLOB、またはCLOBのデータを含む
+大きなオブジェクト
 
 @features_1334_td
-フォーマット: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
+BLOB、またはCLOBのデータを含む
 
 @features_1335_td
-オブジェクトごとに1ファイル
+フォーマット: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
 
 @features_1336_td
-test.123.temp.db
-
-@features_1337_td
-テンポラリーファイル
-
-@features_1338_td
-テンポラリーblob、または大きなresult setを含む
-
-@features_1339_td
-フォーマット: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
-
-@features_1340_td
 オブジェクトごとに1ファイル
 
+@features_1337_td
+test.123.temp.db
+
+@features_1338_td
+テンポラリーファイル
+
+@features_1339_td
+テンポラリーblob、または大きなresult setを含む
+
+@features_1340_td
+フォーマット: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
+
 @features_1341_td
-test.7.hash.db
+オブジェクトごとに1ファイル
 
 @features_1342_td
-ハッシュインデックスファイル
+test.7.hash.db
 
 @features_1343_td
-ライナーハッシュインデックスのデータを含む
+ハッシュインデックスファイル
 
 @features_1344_td
-フォーマット: &lt;database&gt;.&lt;object id&gt;.hash.db
+ライナーハッシュインデックスのデータを含む
 
 @features_1345_td
+フォーマット: &lt;database&gt;.&lt;object id&gt;.hash.db
+
+@features_1346_td
 ライナーハッシュインデックスごとに1ファイル
 
-@features_1346_h3
+@features_1347_h3
 データベースファイルの移動と改名
 
-@features_1347_p
+@features_1348_p
 データベースの名前と位置は、データベース名の中には保存されません。
 
-@features_1348_p
+@features_1349_p
 データベースが閉じられている間、ファイルは他のディレクトリに移動することができ、同様にファイル名を変えることもできます (全てのファイルが同じ名前で始まる必要があります)。
 
-@features_1349_p
+@features_1350_p
 ファイルにはプラットホーム固有のデータがないので、問題なく他のオペレーティングシステムに移動することができます。
 
-@features_1350_h3
+@features_1351_h3
 バックアップ
 
-@features_1351_p
+@features_1352_p
 データベースが閉じられている時、データベースファイルのバックアップをとることが可能です。インデックスファイルはバックアップをとる必要はありません。なぜなら、インデックスファイルは冗長なデータを含み、もしファイルが存在しなければ自動的に再作成されるからです。
 
-@features_1352_p
+@features_1353_p
 データベースが動作している間にバックアップデータをとるために、SQLコマンド SCRIPTを使うことができます。
 
-@features_1353_h2
+@features_1354_h2
 ログとリカバリー
 
-@features_1354_p
+@features_1355_p
 データベースでデータが修正され、それらの変更がコミットされた時はいつでも、変更はディスクに記録されます (インメモリオブジェクトを除いて)。データファイル自体への変更は通常、ディスクアクセスを最適化するために後で書かれています。もし電源異常があった場合、データファイルとインデックスファイルはアップデートされません。しかし、変更がログファイルに書かれていれば、次回データベースを開いた時に、ログファイルに書かれた変更は自動的に再び適用されます。
 
-@features_1355_p
+@features_1356_p
 インデックスファイルのアップデートはデフォルトでは記録されないことに注意して下さい。もしデータベースが開かれて、リカバリーが必要だとされたら、インデックスファイルは最初から作り替えられます。
 
-@features_1356_p
+@features_1357_p
 通常、データベースごとにたったひとつのログファイルがあります。このファイルは、データベースが正常に終了されるまで増大し、削除されます。また、ファイルが大きくなりすぎたら、データベースは別のログファイルに交換します (より大きなIDで)。CHECKPOINT コマンドを使用することによって、ログの切り替えを強制することが可能です。
 
-@features_1357_p
+@features_1358_p
 checksumのレコードが合わないために (例えば、別のアプリケーションからファイルが編集された場合) データベースファイルが破損したら、データベースをリカバリーモードで開くことができます。このケースでは、データベースのエラーは記録されますが、投げられません。データベースはスクリプトまでバックアップをとり、可能な限り早く再構築します。データベースをリカバリーモードで開くために、jdbc:h2:~/test;RECOVER=1 のように、RECOVER=1 を含むデータベースURLを使用します。この場合、インデックスは再構築され、サマリー (アロケーションテーブルのオブジェクト)は読まれないため、データベースを開くのに時間がかかります。
 
-@features_1358_h2
+@features_1359_h2
 互換性
 
-@features_1359_p
+@features_1360_p
 #All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
 
-@features_1360_p
+@features_1361_p
 #In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
 
-@features_1361_h3
+@features_1362_h3
 互換モード
 
-@features_1362_p
+@features_1363_p
 #For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
 
-@features_1363_th
+@features_1364_th
 モード
 
-@features_1364_th
+@features_1365_th
 相違
 
-@features_1365_td
+@features_1366_td
 PostgreSQL
 
-@features_1366_td
+@features_1367_td
 別の値にNULLをもたらすNULL連結。通常、オペレータのうちひとつがNULLであるなら空のストリングとしてNULLを扱い、両方の値がNULLである場合にだけNULLを返します。
 
-@features_1367_td
+@features_1368_td
 MySQL
 
-@features_1368_td
+@features_1369_td
 データを挿入する時、もしカラムにNOT NULLが定義されていて、NULLが挿入されたら、0 (または空のストリング、またはtimestampカラムのための現在のtimestamp) の値が使用されます。通常、このオペレーションは許可されていないので、例外が投げられます。
 
-@features_1369_td
+@features_1370_td
 HSQLDB
 
-@features_1370_td
+@features_1371_td
 デシマルデータを変換する時、新しいスケールが現在のスケールより小さい時のみ、数字は変換されます。通常、スケールは変換されて、必要であれば 0 が追加されます。
 
-@features_1371_h2
+@features_1372_h2
 トレースオプションを使用する
 
-@features_1372_p
+@features_1373_p
 アプリケーション内の問題を見つけるために、時々、何のデータベースオペレーションがどこで実行されているかを知るのは良い方法です。このデータベースは次のトレースの特徴を提供します:
 
-@features_1373_li
+@features_1374_li
 System.out と (または) ファイルをトレースする
 
-@features_1374_li
+@features_1375_li
 トレースレベル OFF、ERROR、INFO と DEBUG をサポート
 
-@features_1375_li
+@features_1376_li
 トレースファイルの最大サイズの設定が可能
 
-@features_1376_li
+@features_1377_li
 Javaコード生成が可能
 
-@features_1377_li
+@features_1378_li
 手動でファイルを作成することによって、ランタイムでトレースが可能
 
-@features_1378_h3
+@features_1379_h3
 トレースオプション
 
-@features_1379_p
+@features_1380_p
 トレースオプションを可能にする簡単な方法は、データベースURLにトレースオプションを設定することです。二つの設定があり、ひとつは、System.out (TRACE_LEVEL_SYSTEM_OUT) トレーシングで、もうひとつはファイルトレーシング(TRACE_LEVEL_FILE)です。トレースレベルは、0 が OFF、1 が ERROR (デフォルト)、2 が INFO で 3 が DEBUGです。両方のレベルがDEBUGに設定されたデータベースURLです:
 
-@features_1380_p
+@features_1381_p
 トレースレベルは、SQLコマンド <CODE>SET TRACE_LEVEL_SYSTEM_OUT level</CODE> (System.out トレーシング) または <CODE>SET TRACE_LEVEL_FILE level</CODE> (ファイルトレーシング) を実行することによってランタイムで変更できます。例:
 
-@features_1381_h3
+@features_1382_h3
 トレースファイルの最大サイズを設定
 
-@features_1382_p
+@features_1383_p
 高いトレースレベルを使用する時、トレースファイルは早くサイズが非常に大きくなります。SQLステートメント <CODE>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</CODE> を実行することによりファイルのサイズを制限することができます。ログファイルが制限を超えたら、ファイルは ".old" にファイル名を変えて、新しいファイルが作成されます。もしもうひとつの .oldファイルが存在する場合は、それは削除されます。デフォルトの設定は16 MBです。例:
 
-@features_1383_h3
+@features_1384_h3
 Javaコード生成
 
-@features_1384_p
+@features_1385_p
 トレースレベルをINFOかDEBUGに設定した時、同様にJavaのソースコードが生成されるので、問題はより簡単に再生されます。トレースファイルはこのようなものです:
 
-@features_1385_p
+@features_1386_p
 Javaのソースコードを得るために、 /**/ のない行を取り除く必要があります。 Windowsでの簡単な方法は:
 
-@features_1386_p
+@features_1387_p
 その後、コンパイルされる前にTrace.javaファイルを完全にする必要があります。例:
 
-@features_1387_p
+@features_1388_p
 また、トレースファイルに載せられていないため、ユーザー名とパスワードが設定されている必要があります。
 
-@features_1388_h3
+@features_1389_h3
 手動でファイルを作成し、ランタイムでトレースオプションを可能にする
 
-@features_1389_p
+@features_1390_p
 時々、アプリケーション、またはデータベースのURLを変えられない、変えたくない場合があります。このような場合に、ランタイムであっても (データベースの接続が開かれている間) トレースモードを可能にできる方法がまだあります。必要なことは、データベースファイルが保存されているディレクトリに特別なファイルを作るだけです。データベースエンジンは、このファイルが存在する場合に (ステートメントが実行されている間のみ) 4秒ごとにチェックしています。このファイル名は、データベース名 プラス ".trace.db.start" です。この特徴はデータベースが暗号化されている場合は無効になります。
 
-@features_1390_p
+@features_1391_p
 例: データベース名が "test"の場合、 トレーシングを開始するファイルは "test.trace.db.start"です。データベースエンジンは、このファイルを見つけた時、ファイルを削除しようとします。スタートファイルを使用することでトレースが可能になるなら、トレースレベルはデータベースに対して永続的ではなく、トレースはデータベースに接続する以前のレベルに戻されます。しかし、スタートファイルが読み取り専用なら、データベースエンジンはファイルを削除することができず、接続するときはいつもトレースモードになります。
 
-@features_1391_h2
+@features_1392_h2
 読み取り専用データベース
 
-@features_1392_p
+@features_1393_p
 データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
 
-@features_1393_h2
+@features_1394_h2
 #Read Only Databases in Zip or Jar File
 
-@features_1394_p
+@features_1395_p
 #To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the BACKUP SQL statement:
 
-@features_1395_p
+@features_1396_p
 #Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
 
-@features_1396_p
+@features_1397_p
 #Databases in a zip file are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory, so large databases are supported as well. The same indexes are used than when using a regular database.
 
-@features_1397_h2
+@features_1398_h2
 バイナリーとテキストストレージフォーマット
 
-@features_1398_p
+@features_1399_p
 このデータベースエンジンは、バイナリーとテキストストレージフォーマットの両方をサポートしています。バイナリーはより高速ですが、テキストストレージフォーマットは同様に役立つ場合があります。例えば、データベースエンジンをデバッグする場合です。データベースがすでに存在するなら、ストレージフォーマットは自動的に推奨されます。新しいデータベースはデフォルトでバイナリーストレージフォーマットで作られます。テキストストレージフォーマットで新しいデータベースを作成するには、データベースURLに、パラメータ STORAGE=TEXT が含まれていなければなりません。例: jdbc:h2:~/test;STORAGE=TEXT
 
-@features_1399_h2
+@features_1400_h2
 ディスクスペースが少ない状況での正しい取り扱い
 
-@features_1400_p
+@features_1401_p
 データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
 
-@features_1401_p
+@features_1402_p
 早くからディスクスペースの少ない状況を把握するために、データベースイベントリスナーをインストールすることは可能です (ディスクスペースが 1MB のみ利用可能な時)。SQLステートメント SET DATABASE_EVENT_LISTENER を使用します。フォームのURLを使用して、接続時にリスナーを設定することが可能です jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (クラス名の周りの引用文は必要です)。APIのDatabaseEventListenerもご覧下さい。
 
-@features_1402_h3
+@features_1403_h3
 破損したデータベースを開く
 
-@features_1403_p
+@features_1404_p
 boot info (始動時に実行されるSQLスクリプト) が破損しているため、データベースを開くことができない場合、データベースイベントリスナーを指定することでデータベースを開くことができます。例外は記録されますが、データベースの開始は続行します。
 
-@features_1404_h2
+@features_1405_h2
 computed column / ベースインデックスの機能
 
-@features_1405_p
+@features_1406_p
 インデックスの機能は、このデータベースによって直接サポートはされていませんが、computed columnsを使用することによって、簡単にエミュレートすることができます。例えば、カラムのupper-caseバージョンのインデックスが必要なら、原形のカラムのupper-caseバージョンのcomputed columnを作成し、このカラムにインデックスをつけます:
 
-@features_1406_p
+@features_1407_p
 値は生成されているので、データを挿入する時、カラムのupper-caseバージョンのための値を指定する必要はありません (許可されていません)。 しかし、テーブルを呼ぶ時、このカラムを使用することはできます。:
 
-@features_1407_h2
+@features_1408_h2
 多次元インデックス
 
-@features_1408_p
+@features_1409_p
 効率的な多次元の (空間的) 領域のクエリーを実行するためにツールを提供します。このデータベースは専門的な空間的インデックス (R-Tree またはより小さいもの) をサポートしていません。代わりに、B-Treeインデックスが使われています。それぞれのレコードに対して、多次元のキーは、単数範囲 (スカラー) の値に変換 (位置づけ) されます。この値は、space-filling curve (空間充填曲線) で位置を指定します。
 
-@features_1409_p
+@features_1410_p
 現在、Z-order (N-order または Morton-order とも呼ばれています) が使用されています; Hilbert curveも使用できますが、実装はより複雑です。多次元の値を変換するアルゴリズムは、bit-interleavingと呼ばれています。B-Treeインデックス (通常は computed columnを使用します)を使用することで、スカラーの値はインデックスをつけられます。
 
-@features_1410_p
+@features_1411_p
 最初のカラムにインデックスを使用する上で、メソッドは徹底的なパフォーマンスの改良をもたらすことができます。データと次元の数によりますが、改良は通常、factor 5よりも高いものです。指定された多次元の範囲から、ツールはSQLクエリーを生成します。使用されたメソッドは、データベースに依存しておらず、ツールは簡単に他のデータベースに移植することができます。ツールの使用方法の例は、TestMultiDimension.java で提供されているサンプルコードをご覧下さい。
 
-@features_1411_h2
+@features_1412_h2
 パスワードを使用する
 
-@features_1412_h3
+@features_1413_h3
 安全なパスワードを使用する
 
-@features_1413_p
+@features_1414_p
 弱いパスワードは、暗号化やセキュリティプロトコルに取るに足らず、解読されてしまうことを覚えておいて下さい。辞書で見つけられるようなパスワードは使用しないでください。また、数字を付け足してもそのようなパスワードは安全にはなりません。良いパスワードを作る方法は、覚えやすい、文章の最初の文字を使う、大文字と小文字を使う、特別な文字が含まれているものを作る、です。例:
 
-@features_1414_p
+@features_1415_p
 i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワードは覚えやすいものです)
 
-@features_1415_h3
+@features_1416_h3
 パスワード: Stringの代わりにChar Arraysを使用する
 
-@features_1416_p
+@features_1417_p
 Java Stringは不変のオブジェクトであり、アプリケーションによって安全に壊されることはできません。Stringの作成後、Stringは少なくともガベージコレクションになるまで、コンピューターのメインメモリ内にとどまるでしょう。ガベージコレクションはアプリケーションによって制御されず、ガベージコレクションであっても、データはまだメモリにとどまっているでしょう。パスワードが含まれるメモリの一部をディスクと取り換えることも可能でしょう (十分でないメインメモリも使用可能のため)。
 
-@features_1417_p
+@features_1418_p
 アタッカーはオペレーティングシステムのスワップファイルにアクセスするでしょう。したがって、パスワードを保存するために、Stringの代わりにchar arrayを使用するのは良い方法です。char arrayは使用後クリアにされるので (0で埋められます)、パスワードはスワップファイルに保存されません。
 
-@features_1418_p
+@features_1419_p
 このデータベースは、ユーザーパスワードとファイルパスワードを認証するために、Stringの代わりにchar arrayを使用することをサポートしています。次のコードはこのように使用されます:
 
-@features_1419_p
+@features_1420_p
 このサンプルでは、パスワードはアプリケーションでのハードコードで、もちろん安全ではありません。しかし、Java Swingはchar arrayを使用してパスワードを得る方法をサポートしています (JPasswordField)。
 
-@features_1420_h3
+@features_1421_h3
 ユーザー名 と (または) パスワードをURLで認証する
 
-@features_1421_p
+@features_1422_p
 ユーザー名を <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> のように切り離されたパラメータとして認証する代わりに、URLそのもので <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> ユーザー名 (と (または) パスワード)を提供することができます。URL内の設定は、切り離されたパラメータとして認証させる設定より優先されます。
 
-@features_1422_h2
+@features_1423_h2
 ユーザー定義の関数とストアドプロシージャ
 
-@features_1423_p
+@features_1424_p
 組み込み関数に加えて、このデータベースはユーザー定義のJava関数をサポートしています。同様に、このデータベースではJava関数はストアドプロシージャとして使用されています。関数は、使用される前に宣言 (登録) されていなければなりません。static Javaメソッドのみサポートされています; クラスとメソッドの両方が public である必要があります。Javaメソッドの例:
 
-@features_1424_p
+@features_1425_p
 Java関数は、CREATE ALIAS と呼ばれるデータベースに登録されていなければなりません:
 
-@features_1425_p
+@features_1426_p
 完全なサンプルアプリケーションは src/test/org/h2/samples/Function.java をご覧下さい。
 
-@features_1426_h3
+@features_1427_h3
 データタイプマッピング関数
 
-@features_1427_p
+@features_1428_p
 "int" のような non-nullable (NULL可能ではない) パラメータを受け入れる関数は、パラメータのうちひとつがNULLであるなら呼ばれないでしょう。このケースでは、NULLの値は結果として使用されます。このケースで関数を呼び出したいのなら、"int" の代わりに "java.lang.Integer" を使用する必要があります。
 
-@features_1428_h3
+@features_1429_h3
 接続を必要とする関数
 
-@features_1429_p
+@features_1430_p
 もしJava関数の最初のパラメータが java.sql.Connection なら、データベースへの接続は与えられています。返す前にこの接続を閉じる必要はありません。
 
-@features_1430_h3
+@features_1431_h3
 例外を投げる関数
 
-@features_1431_p
+@features_1432_p
 関数が例外を投げたら、現在のステートメントはロールバックされ、例外はアプリケーションに投げられます。
 
-@features_1432_h3
+@features_1433_h3
 Result Setを返す関数
 
-@features_1433_p
+@features_1434_p
 関数はresult setを返します。このような関数はCALLステートメントと一緒に呼ばれます:
 
-@features_1434_h3
+@features_1435_h3
 SimpleResultSetを使用する
 
-@features_1435_p
+@features_1436_p
 result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
 
-@features_1436_h3
+@features_1437_h3
 関数をテーブルとして使用する
 
-@features_1437_p
+@features_1438_p
 result setを返す関数はテーブルのようになれます。しかし、このケースでは関数は少なくとも二回は呼ばれます: 最初はカラム名を集めるために構文解析している間です (コンパイル時に未知のところでパラメータはNULLに設定)。そして、データを取得するためにステートメントを実行している間です (これが結合なら繰り返されます)。関数がカラム一覧を取得するためだけに呼ばれたのなら、関数を認証する接続URLは jdbc:columnlist:connection です。そうでなければ、接続URLは jdbc:default:connection です。
 
-@features_1438_h2
+@features_1439_h2
 トリガー
 
-@features_1439_p
+@features_1440_p
 このデータベースは、行が更新、挿入、または削除された前後に呼ばれるJavaトリガーをサポートしています。トリガーは複雑な一貫性チェックか、データベース内の関連したデータをアップデートするのに使用されます。マテリアライズドビューをシミュレートするためにトリガーを使用することも可能です。完全なサンプルアプリケーションは src/test/org/h2/samples/TriggerSample.java をご覧下さい。Javaトリガーは、インターフェイス org.h2.api.Trigger を実装しなければなりません:
 
-@features_1440_p
+@features_1441_p
 他のテーブルのクエリーかデータのアップデートに接続を使用することができます。トリガーはその時データベースで定義されている必要があります:
 
-@features_1441_p
+@features_1442_p
 トリガーはSQL Exceptionを投げることによって、変更を禁止させることができます。
 
-@features_1442_h2
+@features_1443_h2
 データベースをコンパクトにする
 
-@features_1443_p
+@features_1444_p
 データベースファイルの空のスペースは自動的に再利用されます。インデックスを再構築するもっとも簡単な方法は、データベースが閉じられている間に .index.db ファイルを削除します。しかし、一部状況では (例えば、データベースの多数のデータを削除した後)、データベースのサイズを縮小したい場合があります (データベースをコンパクトにする)。そのためのサンプルです:
 
-@features_1444_p
+@features_1445_p
 サンプルアプリケーション org.h2.samples.Compact もご覧下さい。データベースのバックアップを作るのと、スクリプトからデータベースを再構築するのにSCRIPT / RUNSCRIPT コマンドを使用することができます。
 
-@features_1445_h2
+@features_1446_h2
 キャッシュの設定
 
-@features_1446_p
+@features_1447_p
 データベースは最も頻繁に使われるデータやインデックスページをメインメモリに保存します。キャッシュに使用されるメモリ量を CACHE_SIZE 設定を使用して変更することができます。この設定は、データベース接続URL (jdbc:h2:~/test;CACHE_SIZE=131072) か、ランタイムにSET CACHE_SIZE を使用してサイズを変更できます。
 
-@features_1447_p
+@features_1448_p
 このデータベースは二つのcache page replacement algorithms (キャッシュページ置換アルゴリズム) をサポートしています: LRU (デフォルト) と2Qです。LRUは、キャッシュがいっぱいになったら、頻繁に使用されていないページをキャッシュから削除します。2Qアルゴリズムは少し複雑で、基本的に二つのクエリーが使用されます。2Qアルゴリズムはテーブルスキャンに、より抵抗がありますが、LRUと比較してオーバーヘッドは少し高めです。キャッシュアルゴリズム 2Qを使用するためには、フォームのデータベースURL  jdbc:h2:~/test;CACHE_TYPE=TQ を使用します。キャッシュアルゴリズムは、一度データベースが開かれたら変更することはできません。
 
-@features_1448_p
+@features_1449_p
 読んだり書いたりしたページや、現在使用されているキャッシュアルゴリズムの情報を得るためには、SELECT * FROM INFORMATION_SCHEMA.SETTINGS を呼びます。データとインデックスファイルに読み書きしたページ数が書かれています。
 
 @frame_1000_p
@@ -5651,17 +5654,32 @@ Stringの代わりにchar arrayを使うことで、パスワードをデータ�
 @~features_1066_h3
 他の特徴とツール
 
+@~features_1080_h2
+#Limitations
+
 @~features_1080_li
 十分なテスト済み (高いコードカバー率、ランダムストレステスト)
 
 @~features_1081_h2
 #Limitations
 
+@~features_1081_p
+#For the list of limitations, please have a look at the road map page at: <a href="http://groups.google.com/group/h2-database/web/roadmap">http://groups.google.com/group/h2-database/web/roadmap</a>
+
+@~features_1082_h2
+他のデータベースエンジンと比較する
+
 @~features_1082_p
 #For the list of limitations, please have a look at the road map page at: <a href="http://groups.google.com/group/h2-database/web/roadmap">http://groups.google.com/group/h2-database/web/roadmap</a>
 
 @~features_1083_h2
 他のデータベースエンジンと比較する
+
+@~features_1083_th
+特徴
+
+@~features_1089_td
+Pure Java
 
 @~features_1089_th
 PostgreSQL
@@ -5720,14 +5738,23 @@ TCP/IP上でODBCを使用しているリモート接続 (クライアント/サ�
 @~features_1161_th
 URLフォーマットと例
 
+@~features_1167_h3
+DerbyとHSQLDB
+
 @~features_1167_td
 ~ 6 MB
 
 @~features_1168_h3
 DerbyとHSQLDB
 
+@~features_1168_p
+予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
+
 @~features_1168_td
 jdbc:h2:mem:
+
+@~features_1169_h3
+DaffodilDbとOne$Db
 
 @~features_1169_p
 予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
@@ -5738,8 +5765,14 @@ jdbc:h2:mem:
 @~features_1170_h3
 DaffodilDbとOne$Db
 
+@~features_1170_p
+このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
+
 @~features_1170_td
 jdbc:h2:mem:&lt;databaseName&gt;
+
+@~features_1171_h3
+McKoi
 
 @~features_1171_p
 このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
@@ -5750,8 +5783,14 @@ jdbc:h2:mem:test_mem
 @~features_1172_h3
 McKoi
 
+@~features_1172_p
+このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
+
 @~features_1172_td
 TCP/IPを使用したリモート
+
+@~features_1173_h2
+#H2 in Use
 
 @~features_1173_p
 このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
@@ -5762,8 +5801,14 @@ jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 @~features_1174_h2
 #H2 in Use
 
+@~features_1174_p
+#For a list of applications that work with or use H2, see: <a href="http://groups.google.com/group/h2-database/web/h2-in-use">http://groups.google.com/group/h2-database/web/h2-in-use</a>
+
 @~features_1174_td
 jdbc:h2:tcp://localhost/test
+
+@~features_1175_h2
+接続モード
 
 @~features_1175_p
 #For a list of applications that work with or use H2, see: <a href="http://groups.google.com/group/h2-database/web/h2-in-use">http://groups.google.com/group/h2-database/web/h2-in-use</a>
@@ -5774,8 +5819,14 @@ jdbc:h2:tcp://dbserv:8084/sample
 @~features_1176_h2
 接続モード
 
+@~features_1176_p
+以下の接続モードがサポートされています:
+
 @~features_1176_td
 SSL/TLSを使用したリモート
+
+@~features_1177_li
+JDBC (エンベッド) を使用しているローカル接続
 
 @~features_1177_p
 以下の接続モードがサポートされています:
@@ -5792,6 +5843,9 @@ jdbc:h2:ssl://secureserv:8085/sample;
 @~features_1180_td
 jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
 
+@~features_1181_h2
+データベースURL概要
+
 @~features_1181_li
 インメモリデータベース (プライベートと共有)
 
@@ -5801,6 +5855,9 @@ jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
 @~features_1182_h2
 データベースURL概要
 
+@~features_1182_p
+このデータベースは、データベースに接続している時、複数の接続モードと特徴をサポートしています。これは、異なったデータベースのURLを使用することにより可能となります。URLの設定は大文字と小文字を区別していません。
+
 @~features_1182_td
 jdbc:h2:file:~/secure;CIPHER=XTEA
 
@@ -5809,6 +5866,9 @@ jdbc:h2:file:~/secure;CIPHER=XTEA
 
 @~features_1183_td
 ファイルロックメソッド
+
+@~features_1183_th
+トピック
 
 @~features_1184_td
 jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
@@ -5888,6 +5948,9 @@ TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベー�
 @~features_1235_h3
 データベースの遅延終了
 
+@~features_1236_h3
+エンベッド (ローカル) データベースに接続
+
 @~features_1236_p
 通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
 
@@ -5899,6 +5962,9 @@ jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
 
 @~features_1237_p
 値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
+
+@~features_1238_h2
+メモリオンリーデータベース
 
 @~features_1238_h3
 VMが終了した時、データベースを終了しない
@@ -5917,6 +5983,9 @@ VMが終了した時、データベースを終了しない
 
 @~features_1242_h3
 未知の設定を無視
+
+@~features_1244_h2
+暗号化ファイルと共にデータベースへ接続する
 
 @~features_1244_h3
 接続が開始された時に他の設定を変更する
@@ -5945,6 +6014,9 @@ VMが終了した時、データベースを終了しない
 @~features_1249_h2
 複数の接続
 
+@~features_1249_li
+デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+
 @~features_1249_p
 以下のファイルロックメソッドが提供されます:
 
@@ -5960,8 +6032,14 @@ VMが終了した時、データベースを終了しない
 @~features_1252_li
 ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
 
+@~features_1252_p
+異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
+
 @~features_1254_h3
 マルチスレッドサポート
+
+@~features_1255_h2
+すでに存在する場合のみ、データベースを開く
 
 @~features_1255_p
 アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
@@ -5972,11 +6050,20 @@ VMが終了した時、データベースを終了しない
 @~features_1256_h3
 ロック、ロックタイムアウト、デッドロック
 
+@~features_1256_p
+デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
+
+@~features_1257_h2
+データベースを終了する
+
 @~features_1257_p
 デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
 
 @~features_1258_h2
 データベースを終了する
+
+@~features_1258_h3
+データベースの遅延終了
 
 @~features_1258_p
 通常、SELECTステートメントはリードロックを生成します。これはサブクエリーも含まれます。データを修正するステートメントはライトロックを使用します。SELECT ... FOR UPDATE ステートメントを使用して、データの修正がなくても排他的にテーブルをロックすることも可能です。COMMITとROLLBACKステートメントは全ての周知のロックを解除します。SAVEPOINTとROLLBACK TO SAVEPOINTコマンドはロックに影響を及ぼしません。ロックはオートコミットモードに変更した時、オートコミットの接続がtrueにセットされた時 (この状態がデフォルトです) にも解除され、ロックはそれぞれのステートメントの後に解除されます。これは、どのステートメントでどんな種類のロックが生成されるかの概観です:
@@ -5984,11 +6071,17 @@ VMが終了した時、データベースを終了しない
 @~features_1259_h3
 データベースの遅延終了
 
+@~features_1259_p
+通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
+
 @~features_1259_th
 ロックの種類
 
 @~features_1260_th
 SQLステートメント
+
+@~features_1261_h3
+VMが終了した時、データベースを終了しない
 
 @~features_1261_p
 値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
@@ -5999,8 +6092,14 @@ Read
 @~features_1262_h3
 VMが終了した時、データベースを終了しない
 
+@~features_1262_p
+デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+
 @~features_1262_td
 SELECT * FROM TEST
+
+@~features_1263_h2
+ログインデックスの修正
 
 @~features_1263_p
 デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
@@ -6011,8 +6110,14 @@ CALL SELECT MAX(ID) FROM TEST
 @~features_1264_h2
 ログインデックスの修正
 
+@~features_1264_p
+通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+
 @~features_1264_td
 SCRIPT
+
+@~features_1265_h3
+未知の設定を無視
 
 @~features_1265_p
 通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
@@ -6023,8 +6128,14 @@ Write
 @~features_1266_h3
 未知の設定を無視
 
+@~features_1266_p
+データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+
 @~features_1266_td
 SELECT * FROM TEST WHERE 1=0 FOR UPDATE
+
+@~features_1267_h3
+接続が開始された時に他の設定を変更する
 
 @~features_1267_p
 データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
@@ -6035,8 +6146,14 @@ Write
 @~features_1268_h3
 接続が開始された時に他の設定を変更する
 
+@~features_1268_p
+すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
+
 @~features_1268_td
 INSERT INTO TEST VALUES(1, 'Hello')
+
+@~features_1269_h2
+カスタムファイル アクセスモード
 
 @~features_1269_p
 すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
@@ -6047,11 +6164,17 @@ INSERT INTO TEST SELECT * FROM TEST
 @~features_1270_h2
 カスタムファイル アクセスモード
 
+@~features_1270_p
+通常、データベースはログ、データとインデックスファイルを、アクセスモード "rw" で開きます。read-write (モード "r" が使われている読み取り専用データベースは除く) という意味です。"rws" と "rwd" もサポートしています。ログファイルに使用されるアクセスモードは、ACCESS_MODE_LOG を通して設定されます; データとインデックスファイルには、ACCESS_MODE_DATA を使用してください。これらの設定は、データベースURLで指定されなくてはいけません:
+
 @~features_1270_td
 UPDATE TEST SET NAME='Hi'
 
 @~features_1271_td
 DELETE FROM TEST
+
+@~features_1272_h2
+複数の接続
 
 @~features_1272_p
 詳細は <a href="advanced.html#durability_problems">永続性問題</a> をご覧下さい。 多くのオペレーティングシステムでは、アクセスモード "rws" において、データがディスクに書かれていることを保証しません。
@@ -6062,14 +6185,23 @@ Write
 @~features_1273_h2
 複数の接続
 
+@~features_1273_h3
+同時に複数のデータベースを開く
+
 @~features_1273_td
 ALTER TABLE TEST ...
 
 @~features_1274_h3
 同時に複数のデータベースを開く
 
+@~features_1274_p
+アプリケーションは、同じデータベースへの複数の接続を含め、複数のデータベースを同時に開くことができます。開くデータベースの数は、利用可能なメモリによってのみ制限されています。
+
 @~features_1274_td
 CREATE INDEX ... ON TEST ...
+
+@~features_1275_h3
+>同じデータベースへの複数の接続: クライアント/サーバー
 
 @~features_1275_p
 アプリケーションは、同じデータベースへの複数の接続を含め、複数のデータベースを同時に開くことができます。開くデータベースの数は、利用可能なメモリによってのみ制限されています。
@@ -6086,6 +6218,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 @~features_1277_h2
 データベースファイルレイアウト
 
+@~features_1277_h3
+マルチスレッドサポート
+
 @~features_1277_p
 異なったプロセス、またはコンピューターから同時に同じデータベースにアクセスしたい場合、クライアント/サーバー モードを使用することが必要です。このケースでは、ひとつのプロセスがサーバーとして動作し、他のプロセスは (同様に他のコンピューターに属することができます) TCP/IP (または改善されたセキュリティ用のTCP/IPの上のSSL/TLS) を通してサーバーに接続します。
 
@@ -6095,6 +6230,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 @~features_1278_p
 永続的なデータベースのために作成された多くのファイルがあります。一部のデータベースを除いて、全てのテーブルと (または) インデックスが自身のファイル内に保存されているわけではありません。その代りに、通常次のファイルのみが作成されます: データファイル、インデックスファイル、ログファイル、データベースロックファイル (データベースが使われている間のみ存在します)。それに加えて、ファイルはそれぞれの大きなオブジェクト (CLOB/BLOB) のために作成されます。各ライナーインデックスのためのファイル、大きなresult setのためのテンポラリーファイルです。データベーストレースオプションが有効の場合、トレースファイルが作成されます。次のファイルはデータベースによって作成されます:
 
+@~features_1279_h3
+ロック、ロックタイムアウト、デッドロック
+
 @~features_1279_p
 このデータベースは安全なマルチスレッドです。これは、アプリケーションがマルチスレッドならば、データベースへの同時アクセスに関して心配する必要がない、ということを意味しています。本質的に、同じデータベースへのほとんどのリクエストは同時に動きます。アプリケーションは、同時に同じデータベースにアクセスするマルチスレッドを使用することができますが、ひとつのスレッドが処理時間の長いクエリーを実行しているなら、他のスレッドは待つ必要があります。
 
@@ -6103,6 +6241,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 
 @~features_1280_h3
 ロック、ロックタイムアウト、デッドロック
+
+@~features_1280_p
+データの一貫した状態をそれぞれの接続に与えるために、データベースはテーブルレベルでのロックを使用します。二種類のロックがあります: リードロック (共有ロック) とライトロック (排他ロック) です。もし、接続がテーブルから読み込みたい場合で、テーブルにライトロックがない場合に、リードロックをテーブルに追加します。もしライトロックがあれば、この接続はロックを解除するために他の接続を待ちます。接続が指定された時間までにロックを取得できなければ、ロックタイムアウトの例外が投げられます。
 
 @~features_1280_th
 説明
@@ -6116,6 +6257,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 @~features_1282_td
 test.data.db
 
+@~features_1282_th
+ロックの種類
+
 @~features_1283_td
 データファイル
 
@@ -6125,8 +6269,14 @@ test.data.db
 @~features_1284_th
 SQLステートメント
 
+@~features_1299_p
+SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロックタイムアウトの例外が投げられるまでの秒数を、それぞれの接続ごとに別々に設定することができます。SQLコマンド SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、初期のロックタイムアウト (新しい接続に使用されるタイムアウト) を設定することができます。デフォルトのロックタイムアウトは永続的です。
+
 @~features_1299_td
 DROP INDEX ...
+
+@~features_1300_h2
+データベースファイルレイアウト
 
 @~features_1300_p
 SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロックタイムアウトの例外が投げられるまでの秒数を、それぞれの接続ごとに別々に設定することができます。SQLコマンド SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、初期のロックタイムアウト (新しい接続に使用されるタイムアウト) を設定することができます。デフォルトのロックタイムアウトは永続的です。
@@ -6137,6 +6287,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 @~features_1301_h2
 データベースファイルレイアウト
 
+@~features_1301_p
+永続的なデータベースのために作成された多くのファイルがあります。一部のデータベースを除いて、全てのテーブルと (または) インデックスが自身のファイル内に保存されているわけではありません。その代りに、通常次のファイルのみが作成されます: データファイル、インデックスファイル、ログファイル、データベースロックファイル (データベースが使われている間のみ存在します)。それに加えて、ファイルはそれぞれの大きなオブジェクト (CLOB/BLOB) のために作成されます。各ライナーインデックスのためのファイル、大きなresult setのためのテンポラリーファイルです。データベーストレースオプションが有効の場合、トレースファイルが作成されます。次のファイルはデータベースによって作成されます:
+
 @~features_1301_td
 データベースごとに1ファイル
 
@@ -6145,6 +6298,9 @@ SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロッ�
 
 @~features_1302_td
 test.trace.db
+
+@~features_1302_th
+ファイル名
 
 @~features_1303_td
 トレースファイル
@@ -6215,17 +6371,26 @@ checksumのレコードが合わないために (例えば、別のアプリケ�
 @~features_1341_th
 相違
 
+@~features_1346_h3
+データベースファイルの移動と改名
+
 @~features_1346_td
 ライナーハッシュインデックスごとに1ファイル
 
 @~features_1347_h3
 データベースファイルの移動と改名
 
+@~features_1347_p
+データベースの名前と位置は、データベース名の中には保存されません。
+
 @~features_1347_td
 デシマルデータを変換する時、新しいスケールが現在のスケールより小さい時のみ、数字は変換されます。通常、スケールは変換されて、必要であれば 0 が追加されます。
 
 @~features_1348_h2
 トレースオプションを使用する
+
+@~features_1350_h3
+バックアップ
 
 @~features_1350_li
 System.out と (または) ファイルをトレースする
@@ -6239,8 +6404,14 @@ System.out と (または) ファイルをトレースする
 @~features_1351_li
 トレースレベル OFF、ERROR、INFO と DEBUG をサポート
 
+@~features_1351_p
+データベースが閉じられている時、データベースファイルのバックアップをとることが可能です。インデックスファイルはバックアップをとる必要はありません。なぜなら、インデックスファイルは冗長なデータを含み、もしファイルが存在しなければ自動的に再作成されるからです。
+
 @~features_1352_li
 トレースファイルの最大サイズの設定が可能
+
+@~features_1353_h2
+ログとリカバリー
 
 @~features_1353_li
 Javaコード生成が可能
@@ -6254,8 +6425,14 @@ Javaコード生成が可能
 @~features_1354_li
 手動でファイルを作成することによって、ランタイムでトレースが可能
 
+@~features_1354_p
+データベースでデータが修正され、それらの変更がコミットされた時はいつでも、変更はディスクに記録されます (インメモリオブジェクトを除いて)。データファイル自体への変更は通常、ディスクアクセスを最適化するために後で書かれています。もし電源異常があった場合、データファイルとインデックスファイルはアップデートされません。しかし、変更がログファイルに書かれていれば、次回データベースを開いた時に、ログファイルに書かれた変更は自動的に再び適用されます。
+
 @~features_1355_h3
 トレースオプション
+
+@~features_1358_h2
+互換性
 
 @~features_1358_h3
 トレースファイルの最大サイズを設定
@@ -6272,6 +6449,9 @@ checksumのレコードが合わないために (例えば、別のアプリケ�
 @~features_1360_h3
 Javaコード生成
 
+@~features_1361_h3
+互換モード
+
 @~features_1361_p
 #In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
 
@@ -6284,11 +6464,17 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 @~features_1363_p
 #For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
 
+@~features_1363_th
+モード
+
 @~features_1364_p
 また、トレースファイルに載せられていないため、ユーザー名とパスワードが設定されている必要があります。
 
 @~features_1365_h3
 手動でファイルを作成し、ランタイムでトレースオプションを可能にする
+
+@~features_1365_td
+PostgreSQL
 
 @~features_1365_th
 相違
@@ -6308,6 +6494,9 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 @~features_1370_h2
 #Read Only Databases in Zip or Jar File
 
+@~features_1371_h2
+トレースオプションを使用する
+
 @~features_1371_p
 #To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the BACKUP SQL statement:
 
@@ -6319,6 +6508,9 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 
 @~features_1372_p
 #Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
+
+@~features_1373_li
+System.out と (または) ファイルをトレースする
 
 @~features_1373_p
 アプリケーション内の問題を見つけるために、時々、何のデータベースオペレーションがどこで実行されているかを知るのは良い方法です。このデータベースは次のトレースの特徴を提供します:
@@ -6335,6 +6527,9 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 @~features_1377_p
 データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
 
+@~features_1378_h3
+トレースオプション
+
 @~features_1378_li
 手動でファイルを作成することによって、ランタイムでトレースが可能
 
@@ -6344,8 +6539,14 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 @~features_1379_h3
 トレースオプション
 
+@~features_1379_p
+トレースオプションを可能にする簡単な方法は、データベースURLにトレースオプションを設定することです。二つの設定があり、ひとつは、System.out (TRACE_LEVEL_SYSTEM_OUT) トレーシングで、もうひとつはファイルトレーシング(TRACE_LEVEL_FILE)です。トレースレベルは、0 が OFF、1 が ERROR (デフォルト)、2 が INFO で 3 が DEBUGです。両方のレベルがDEBUGに設定されたデータベースURLです:
+
 @~features_1381_h2
 computed column / ベースインデックスの機能
+
+@~features_1381_h3
+トレースファイルの最大サイズを設定
 
 @~features_1381_p
 トレースレベルは、SQLコマンド <CODE>SET TRACE_LEVEL_SYSTEM_OUT level</CODE> (System.out トレーシング) または <CODE>SET TRACE_LEVEL_FILE level</CODE> (ファイルトレーシング) を実行することによってランタイムで変更できます。例:
@@ -6356,6 +6557,9 @@ computed column / ベースインデックスの機能
 @~features_1382_p
 インデックスの機能は、このデータベースによって直接サポートはされていませんが、computed columnsを使用することによって、簡単にエミュレートすることができます。例えば、カラムのupper-caseバージョンのインデックスが必要なら、原形のカラムのupper-caseバージョンのcomputed columnを作成し、このカラムにインデックスをつけます:
 
+@~features_1383_h3
+Javaコード生成
+
 @~features_1383_p
 高いトレースレベルを使用する時、トレースファイルは早くサイズが非常に大きくなります。SQLステートメント <CODE>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</CODE> を実行することによりファイルのサイズを制限することができます。ログファイルが制限を超えたら、ファイルは ".old" にファイル名を変えて、新しいファイルが作成されます。もしもうひとつの .oldファイルが存在する場合は、それは削除されます。デフォルトの設定は16 MBです。例:
 
@@ -6365,14 +6569,26 @@ computed column / ベースインデックスの機能
 @~features_1384_h3
 Javaコード生成
 
+@~features_1384_p
+トレースレベルをINFOかDEBUGに設定した時、同様にJavaのソースコードが生成されるので、問題はより簡単に再生されます。トレースファイルはこのようなものです:
+
 @~features_1388_h2
 パスワードを使用する
+
+@~features_1388_h3
+手動でファイルを作成し、ランタイムでトレースオプションを可能にする
 
 @~features_1388_p
 また、トレースファイルに載せられていないため、ユーザー名とパスワードが設定されている必要があります。
 
 @~features_1389_h3
 手動でファイルを作成し、ランタイムでトレースオプションを可能にする
+
+@~features_1389_p
+時々、アプリケーション、またはデータベースのURLを変えられない、変えたくない場合があります。このような場合に、ランタイムであっても (データベースの接続が開かれている間) トレースモードを可能にできる方法がまだあります。必要なことは、データベースファイルが保存されているディレクトリに特別なファイルを作るだけです。データベースエンジンは、このファイルが存在する場合に (ステートメントが実行されている間のみ) 4秒ごとにチェックしています。このファイル名は、データベース名 プラス ".trace.db.start" です。この特徴はデータベースが暗号化されている場合は無効になります。
+
+@~features_1391_h2
+読み取り専用データベース
 
 @~features_1391_p
 例: データベース名が "test"の場合、 トレーシングを開始するファイルは "test.trace.db.start"です。データベースエンジンは、このファイルを見つけた時、ファイルを削除しようとします。スタートファイルを使用することでトレースが可能になるなら、トレースレベルはデータベースに対して永続的ではなく、トレースはデータベースに接続する以前のレベルに戻されます。しかし、スタートファイルが読み取り専用なら、データベースエンジンはファイルを削除することができず、接続するときはいつもトレースモードになります。
@@ -6383,6 +6599,12 @@ Javaコード生成
 @~features_1392_h3
 パスワード: Stringの代わりにChar Arraysを使用する
 
+@~features_1392_p
+データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
+
+@~features_1393_h2
+#Read Only Databases in Zip or Jar File
+
 @~features_1393_p
 データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
 
@@ -6391,6 +6613,9 @@ Javaコード生成
 
 @~features_1394_p
 アタッカーはオペレーティングシステムのスワップファイルにアクセスするでしょう。したがって、パスワードを保存するために、Stringの代わりにchar arrayを使用するのは良い方法です。char arrayは使用後クリアにされるので (0で埋められます)、パスワードはスワップファイルに保存されません。
+
+@~features_1397_h2
+バイナリーとテキストストレージフォーマット
 
 @~features_1397_h3
 ユーザー名 と (または) パスワードをURLで認証する
@@ -6416,11 +6641,20 @@ Javaコード生成
 @~features_1400_p
 組み込み関数に加えて、このデータベースはユーザー定義のJava関数をサポートしています。同様に、このデータベースではJava関数はストアドプロシージャとして使用されています。関数は、使用される前に宣言 (登録) されていなければなりません。static Javaメソッドのみサポートされています; クラスとメソッドの両方が public である必要があります。Javaメソッドの例:
 
+@~features_1402_h3
+破損したデータベースを開く
+
 @~features_1402_p
 早くからディスクスペースの少ない状況を把握するために、データベースイベントリスナーをインストールすることは可能です (ディスクスペースが 1MB のみ利用可能な時)。SQLステートメント SET DATABASE_EVENT_LISTENER を使用します。フォームのURLを使用して、接続時にリスナーを設定することが可能です jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (クラス名の周りの引用文は必要です)。APIのDatabaseEventListenerもご覧下さい。
 
 @~features_1403_h3
 破損したデータベースを開く
+
+@~features_1403_p
+boot info (始動時に実行されるSQLスクリプト) が破損しているため、データベースを開くことができない場合、データベースイベントリスナーを指定することでデータベースを開くことができます。例外は記録されますが、データベースの開始は続行します。
+
+@~features_1404_h2
+computed column / ベースインデックスの機能
 
 @~features_1404_p
 boot info (始動時に実行されるSQLスクリプト) が破損しているため、データベースを開くことができない場合、データベースイベントリスナーを指定することでデータベースを開くことができます。例外は記録されますが、データベースの開始は続行します。
@@ -6430,6 +6664,12 @@ computed column / ベースインデックスの機能
 
 @~features_1405_h3
 接続を必要とする関数
+
+@~features_1405_p
+インデックスの機能は、このデータベースによって直接サポートはされていませんが、computed columnsを使用することによって、簡単にエミュレートすることができます。例えば、カラムのupper-caseバージョンのインデックスが必要なら、原形のカラムのupper-caseバージョンのcomputed columnを作成し、このカラムにインデックスをつけます:
+
+@~features_1407_h2
+多次元インデックス
 
 @~features_1407_h3
 例外を投げる関数
@@ -6446,6 +6686,9 @@ computed column / ベースインデックスの機能
 @~features_1409_h3
 Result Setを返す関数
 
+@~features_1411_h2
+パスワードを使用する
+
 @~features_1411_h3
 SimpleResultSetを使用する
 
@@ -6455,14 +6698,23 @@ SimpleResultSetを使用する
 @~features_1412_h2
 パスワードを使用する
 
+@~features_1412_h3
+安全なパスワードを使用する
+
 @~features_1412_p
 result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
 
 @~features_1413_h3
 安全なパスワードを使用する
 
+@~features_1413_p
+弱いパスワードは、暗号化やセキュリティプロトコルに取るに足らず、解読されてしまうことを覚えておいて下さい。辞書で見つけられるようなパスワードは使用しないでください。また、数字を付け足してもそのようなパスワードは安全にはなりません。良いパスワードを作る方法は、覚えやすい、文章の最初の文字を使う、大文字と小文字を使う、特別な文字が含まれているものを作る、です。例:
+
 @~features_1415_h2
 トリガー
+
+@~features_1415_h3
+パスワード: Stringの代わりにChar Arraysを使用する
 
 @~features_1415_p
 i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワードは覚えやすいものです)
@@ -6475,6 +6727,9 @@ i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワード�
 
 @~features_1419_h2
 データベースをコンパクトにする
+
+@~features_1420_h3
+ユーザー名 と (または) パスワードをURLで認証する
 
 @~features_1420_p
 このサンプルでは、パスワードはアプリケーションでのハードコードで、もちろん安全ではありません。しかし、Java Swingはchar arrayを使用してパスワードを得る方法をサポートしています (JPasswordField)。
@@ -6500,6 +6755,9 @@ i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワード�
 @~features_1426_h2
 なぜJavaなのか
 
+@~features_1426_h3
+データタイプマッピング関数
+
 @~features_1426_p
 完全なサンプルアプリケーションは src/test/org/h2/samples/Function.java をご覧下さい。
 
@@ -6508,6 +6766,9 @@ i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワード�
 
 @~features_1427_p
 Javaデータベースを使用するいくつかの理由:
+
+@~features_1428_h3
+接続を必要とする関数
 
 @~features_1428_li
 Javaアプリケーションの統合は非常に簡単
@@ -6521,6 +6782,12 @@ Javaアプリケーションの統合は非常に簡単
 @~features_1429_li
 多数の異なったプラットフォームのサポート
 
+@~features_1429_p
+もしJava関数の最初のパラメータが java.sql.Connection なら、データベースへの接続は与えられています。返す前にこの接続を閉じる必要はありません。
+
+@~features_1430_h3
+例外を投げる関数
+
 @~features_1430_li
 ネイティブアプリケーションより、より安全 (バッファーのオーバーフローがない)
 
@@ -6532,6 +6799,12 @@ Javaアプリケーションの統合は非常に簡単
 
 @~features_1431_li
 ユーザー定義関数 (またはトリガー) が非常に高速で実行される
+
+@~features_1431_p
+関数が例外を投げたら、現在のステートメントはロールバックされ、例外はアプリケーションに投げられます。
+
+@~features_1432_h3
+Result Setを返す関数
 
 @~features_1432_li
 Unicodeをサポート
@@ -6545,6 +6818,9 @@ Result Setを返す関数
 @~features_1433_p
 低いレベルでのオペレーションでは、Javaはまだ低速すぎると思う方もいますが、そうではありません (それ以上でもありません)。一般的に、C、またはC++を使用するよりもずっと速くコードを書くことができます。このように、コードを移植して、低レベルのもの (スレッドのメモリ管理か取り扱いのような) に対処するよりもむしろ、アルゴリズムの改良(アプリケーションをより速くする) に集中することが可能です。ガーベジコレクションは今や手動でのメモリ管理よりおそらく速いでしょう。
 
+@~features_1434_h3
+SimpleResultSetを使用する
+
 @~features_1434_p
 関数はresult setを返します。このような関数はCALLステートメントと一緒に呼ばれます:
 
@@ -6554,11 +6830,20 @@ SimpleResultSetを使用する
 @~features_1435_p
 Javaは将来への証明でもあります: 多くの会社がJavaをサポートし、今ではオープンソースです。
 
+@~features_1436_h3
+関数をテーブルとして使用する
+
 @~features_1436_p
 result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
 
 @~features_1437_h3
 関数をテーブルとして使用する
+
+@~features_1437_p
+result setを返す関数はテーブルのようになれます。しかし、このケースでは関数は少なくとも二回は呼ばれます: 最初はカラム名を集めるために構文解析している間です (コンパイル時に未知のところでパラメータはNULLに設定)。そして、データを取得するためにステートメントを実行している間です (これが結合なら繰り返されます)。関数がカラム一覧を取得するためだけに呼ばれたのなら、関数を認証する接続URLは jdbc:columnlist:connection です。そうでなければ、接続URLは jdbc:default:connection です。
+
+@~features_1438_h2
+トリガー
 
 @~features_1438_p
 result setを返す関数はテーブルのようになれます。しかし、このケースでは関数は少なくとも二回は呼ばれます: 最初はカラム名を集めるために構文解析している間です (コンパイル時に未知のところでパラメータはNULLに設定)。そして、データを取得するためにステートメントを実行している間です (これが結合なら繰り返されます)。関数がカラム一覧を取得するためだけに呼ばれたのなら、関数を認証する接続URLは jdbc:columnlist:connection です。そうでなければ、接続URLは jdbc:default:connection です。
@@ -6566,17 +6851,32 @@ result setを返す関数はテーブルのようになれます。しかし、�
 @~features_1439_h2
 トリガー
 
+@~features_1439_p
+このデータベースは、行が更新、挿入、または削除された前後に呼ばれるJavaトリガーをサポートしています。トリガーは複雑な一貫性チェックか、データベース内の関連したデータをアップデートするのに使用されます。マテリアライズドビューをシミュレートするためにトリガーを使用することも可能です。完全なサンプルアプリケーションは src/test/org/h2/samples/TriggerSample.java をご覧下さい。Javaトリガーは、インターフェイス org.h2.api.Trigger を実装しなければなりません:
+
+@~features_1442_h2
+データベースをコンパクトにする
+
 @~features_1442_p
 トリガーはSQL Exceptionを投げることによって、変更を禁止させることができます。
 
 @~features_1443_h2
 データベースをコンパクトにする
 
+@~features_1443_p
+データベースファイルの空のスペースは自動的に再利用されます。インデックスを再構築するもっとも簡単な方法は、データベースが閉じられている間に .index.db ファイルを削除します。しかし、一部状況では (例えば、データベースの多数のデータを削除した後)、データベースのサイズを縮小したい場合があります (データベースをコンパクトにする)。そのためのサンプルです:
+
+@~features_1445_h2
+キャッシュの設定
+
 @~features_1445_p
 サンプルアプリケーション org.h2.samples.Compact もご覧下さい。データベースのバックアップを作るのと、スクリプトからデータベースを再構築するのにSCRIPT / RUNSCRIPT コマンドを使用することができます。
 
 @~features_1446_h2
 キャッシュの設定
+
+@~features_1446_p
+データベースは最も頻繁に使われるデータやインデックスページをメインメモリに保存します。キャッシュに使用されるメモリ量を CACHE_SIZE 設定を使用して変更することができます。この設定は、データベース接続URL (jdbc:h2:~/test;CACHE_SIZE=131072) か、ランタイムにSET CACHE_SIZE を使用してサイズを変更できます。
 
 @~features_1449_p
 読んだり書いたりしたページや、現在使用されているキャッシュアルゴリズムの情報を得るためには、SELECT * FROM INFORMATION_SCHEMA.SETTINGS を呼びます。データとインデックスファイルに読み書きしたページ数が書かれています。
@@ -6655,4 +6955,82 @@ H2DBの開発は2004年の5月に開始されましたが、初めて世に出�
 
 @~history_1021_li
 #Oliver Computing LLC, USA
+
+@~~features_1185_td
+エンベッド (ローカル) 接続
+
+@~~features_1237_p
+ローカルデータベースに接続するためのデータベースURLは、<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> です。接頭辞 <code>file:</code> はオプションです。相対パスが使われていない、または相対パスのみ使われている場合、現在作業しているディレクトリは、スターティングポイントとして使われます。パスとデータベース名の大文字と小文字の区別はOSに依存されますが、小文字のみの使用が推奨されています。データベース名は少なくとも3文字でなくてはなりません (File.createTempFile の制限)。ユーザーホームディレクトリを示すために、~/ を次のように使用します: jdbc:h2:~/test
+
+@~~features_1239_p
+特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+
+@~~features_1245_p
+ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+
+@~~features_1246_h2
+データベースファイルロック
+
+@~~features_1247_p
+データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+
+@~~features_1276_p
+異なったプロセス、またはコンピューターから同時に同じデータベースにアクセスしたい場合、クライアント/サーバー モードを使用することが必要です。このケースでは、ひとつのプロセスがサーバーとして動作し、他のプロセスは (同様に他のコンピューターに属することができます) TCP/IP (または改善されたセキュリティ用のTCP/IPの上のSSL/TLS) を通してサーバーに接続します。
+
+@~~features_1278_p
+このデータベースは安全なマルチスレッドです。これは、アプリケーションがマルチスレッドならば、データベースへの同時アクセスに関して心配する必要がない、ということを意味しています。本質的に、同じデータベースへのほとんどのリクエストは同時に動きます。アプリケーションは、同時に同じデータベースにアクセスするマルチスレッドを使用することができますが、ひとつのスレッドが処理時間の長いクエリーを実行しているなら、他のスレッドは待つ必要があります。
+
+@~~features_1284_td
+Read
+
+@~~features_1305_td
+test.data.db
+
+@~~features_1359_p
+#All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
+
+@~~features_1362_p
+#For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
+
+@~~features_1372_p
+アプリケーション内の問題を見つけるために、時々、何のデータベースオペレーションがどこで実行されているかを知るのは良い方法です。このデータベースは次のトレースの特徴を提供します:
+
+@~~features_1382_p
+高いトレースレベルを使用する時、トレースファイルは早くサイズが非常に大きくなります。SQLステートメント <CODE>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</CODE> を実行することによりファイルのサイズを制限することができます。ログファイルが制限を超えたら、ファイルは ".old" にファイル名を変えて、新しいファイルが作成されます。もしもうひとつの .oldファイルが存在する場合は、それは削除されます。デフォルトの設定は16 MBです。例:
+
+@~~features_1394_p
+#To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the BACKUP SQL statement:
+
+@~~features_1398_p
+このデータベースエンジンは、バイナリーとテキストストレージフォーマットの両方をサポートしています。バイナリーはより高速ですが、テキストストレージフォーマットは同様に役立つ場合があります。例えば、データベースエンジンをデバッグする場合です。データベースがすでに存在するなら、ストレージフォーマットは自動的に推奨されます。新しいデータベースはデフォルトでバイナリーストレージフォーマットで作られます。テキストストレージフォーマットで新しいデータベースを作成するには、データベースURLに、パラメータ STORAGE=TEXT が含まれていなければなりません。例: jdbc:h2:~/test;STORAGE=TEXT
+
+@~~features_1399_h2
+ディスクスペースが少ない状況での正しい取り扱い
+
+@~~features_1400_p
+データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
+
+@~~features_1408_p
+効率的な多次元の (空間的) 領域のクエリーを実行するためにツールを提供します。このデータベースは専門的な空間的インデックス (R-Tree またはより小さいもの) をサポートしていません。代わりに、B-Treeインデックスが使われています。それぞれのレコードに対して、多次元のキーは、単数範囲 (スカラー) の値に変換 (位置づけ) されます。この値は、space-filling curve (空間充填曲線) で位置を指定します。
+
+@~~features_1416_p
+Java Stringは不変のオブジェクトであり、アプリケーションによって安全に壊されることはできません。Stringの作成後、Stringは少なくともガベージコレクションになるまで、コンピューターのメインメモリ内にとどまるでしょう。ガベージコレクションはアプリケーションによって制御されず、ガベージコレクションであっても、データはまだメモリにとどまっているでしょう。パスワードが含まれるメモリの一部をディスクと取り換えることも可能でしょう (十分でないメインメモリも使用可能のため)。
+
+@~~features_1421_p
+ユーザー名を <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> のように切り離されたパラメータとして認証する代わりに、URLそのもので <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> ユーザー名 (と (または) パスワード)を提供することができます。URL内の設定は、切り離されたパラメータとして認証させる設定より優先されます。
+
+@~~features_1422_h2
+ユーザー定義の関数とストアドプロシージャ
+
+@~~features_1423_p
+組み込み関数に加えて、このデータベースはユーザー定義のJava関数をサポートしています。同様に、このデータベースではJava関数はストアドプロシージャとして使用されています。関数は、使用される前に宣言 (登録) されていなければなりません。static Javaメソッドのみサポートされています; クラスとメソッドの両方が public である必要があります。Javaメソッドの例:
+
+@~~features_1427_p
+"int" のような non-nullable (NULL可能ではない) パラメータを受け入れる関数は、パラメータのうちひとつがNULLであるなら呼ばれないでしょう。このケースでは、NULLの値は結果として使用されます。このケースで関数を呼び出したいのなら、"int" の代わりに "java.lang.Integer" を使用する必要があります。
+
+@~~features_1433_p
+関数はresult setを返します。このような関数はCALLステートメントと一緒に呼ばれます:
+
+@~~features_1435_p
+result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
 

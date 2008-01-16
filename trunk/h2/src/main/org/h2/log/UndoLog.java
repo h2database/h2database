@@ -67,14 +67,18 @@ public class UndoLog {
             }
             first.seek(file);
         }
-        records.remove(i);
-        memoryUndo--;
+        UndoLogRecord r = (UndoLogRecord) records.remove(i);
+        if (!r.isStored()) {
+            memoryUndo--;
+        }
         return entry;
     }
 
     public void add(UndoLogRecord entry) throws SQLException {
         records.add(entry);
-        memoryUndo++;
+        if (!entry.isStored()) {
+            memoryUndo++;
+        }
         if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent()) {
             if (file == null) {
                 String fileName = database.createTempFile();

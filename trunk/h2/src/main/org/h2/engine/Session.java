@@ -34,6 +34,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * A session represents a database connection. When using the server mode,
@@ -75,8 +76,30 @@ public class Session implements SessionInterface {
     private boolean rollbackMode;
     private long sessionStart = System.currentTimeMillis();
     private long currentCommandStart;
+    private HashMap variables;
 
     public Session() {
+    }
+
+    private void initVariables() {
+        if (variables == null) {
+            variables = new HashMap();
+        }
+    }
+
+    public void setVariable(String name, Value value) {
+        initVariables();
+        if (value == ValueNull.INSTANCE) {
+            variables.remove(name);
+        } else {
+            variables.put(name, value);
+        }
+    }
+
+    public Value getVariable(String name) {
+        initVariables();
+        Value v = (Value) variables.get(name);
+        return v == null ? ValueNull.INSTANCE : v;
     }
 
     public Table findLocalTempTable(String name) {

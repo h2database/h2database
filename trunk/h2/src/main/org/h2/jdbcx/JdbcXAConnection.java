@@ -32,16 +32,16 @@ import javax.sql.StatementEventListener;
 //#endif
 
 /**
- * This class provides support for distributed transactions. 
+ * This class provides support for distributed transactions.
  * An application developer usually does not use this interface.
  * It is used by the transaction manager internally.
  */
-public class JdbcXAConnection extends TraceObject 
+public class JdbcXAConnection extends TraceObject
 //#ifdef JDK14
 implements XAConnection, XAResource, JdbcConnectionListener
 //#endif
 {
-    
+
 //#ifdef JDK14
     private JdbcDataSourceFactory factory;
     private String url, user, password;
@@ -51,11 +51,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private Xid currentTransaction;
     private int currentTransactionId;
     private static int nextTransactionId;
-    
+
     static {
         org.h2.Driver.load();
     }
-    
+
     JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, String password) throws SQLException {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
@@ -63,13 +63,13 @@ implements XAConnection, XAResource, JdbcConnectionListener
         this.user = user;
         this.password = password;
         connSentinel = openConnection();
-        getConnection();        
+        getConnection();
     }
 //#endif
 
     /**
      * Get the XAResource object.
-     * 
+     *
      * @return itself
      */
 //#ifdef JDK14
@@ -95,11 +95,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 //#endif
-    
+
     /**
      * Get a new connection.
      * This method is usually called by the connection pool when there are no more connections in the pool.
-     * 
+     *
      * @return the connection
      */
 //#ifdef JDK14
@@ -114,10 +114,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return conn;
     }
 //#endif
-    
+
     /**
      * Register a new listener for the connection.
-     * 
+     *
      * @param listener the event listener
      */
 //#ifdef JDK14
@@ -129,10 +129,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 //#endif
-    
+
     /**
      * Remove the event listener.
-     * 
+     *
      * @param listener the event listener
      */
 //#ifdef JDK14
@@ -141,7 +141,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         listeners.remove(listener);
     }
 //#endif
-    
+
     /**
      * INTERNAL
      */
@@ -156,7 +156,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         close();
     }
 //#endif
-    
+
     /**
      * INTERNAL
      */
@@ -170,10 +170,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 //#endif
-    
+
     /**
      * Get the transaction timeout.
-     * 
+     *
      * @return 0
      */
 //#ifdef JDK14
@@ -185,7 +185,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
     /**
      * Set the transaction timeout.
-     * 
+     *
      * @param seconds ignored
      * @return false
      */
@@ -195,10 +195,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return false;
     }
 //#endif
-    
+
     /**
      * Checks if this is the same XAResource.
-     * 
+     *
      * @param xares the other object
      * @return true if this is the same object
      */
@@ -208,11 +208,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
         return xares == this;
     }
 //#endif
-    
+
     /**
      * Get the list of prepared transaction branches.
      * This method is called by the transaction manager during recovery.
-     * 
+     *
      * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are set,
      *  TMNOFLAGS must be used.
      *  @return zero or more Xid objects
@@ -244,10 +244,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 //#endif
-    
+
     /**
      * Prepare a transaction.
-     * 
+     *
      * @param xid the transaction id
      */
 //#ifdef JDK14
@@ -268,15 +268,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        getTrace().debug("return XA_OK");     
+        getTrace().debug("return XA_OK");
         return XA_OK;
     }
 //#endif
-    
+
     /**
      * Forget a transaction.
      * This method does not have an effect for this database.
-     * 
+     *
      * @param xid the transaction id
      */
 //#ifdef JDK14
@@ -284,10 +284,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         debugCode("forget("+quoteXid(xid)+")");
     }
 //#endif
-    
+
     /**
      * Roll back a transaction.
-     * 
+     *
      * @param xid the transaction id
      */
 //#ifdef JDK14
@@ -299,13 +299,13 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw convertException(e);
         }
         getTrace().debug("rolled back");
-        currentTransaction = null;        
+        currentTransaction = null;
     }
 //#endif
-    
+
     /**
      * End a transaction.
-     * 
+     *
      * @param xid the transaction id
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
      */
@@ -322,10 +322,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
     }
 //#endif
-    
+
     /**
      * Start or continue to work on a transaction.
-     * 
+     *
      * @param xid the transaction id
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
      */
@@ -348,10 +348,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         currentTransaction = xid;
     }
 //#endif
-    
+
     /**
      * Commit a transaction.
-     * 
+     *
      * @param xid the transaction id
      * @param onePhase use a one-phase protocol if true
      */
@@ -372,10 +372,15 @@ implements XAConnection, XAResource, JdbcConnectionListener
             JdbcUtils.closeSilently(stat);
         }
         getTrace().debug("committed");
-        currentTransaction = null;        
+        currentTransaction = null;
     }
 //#endif
 
+    /**
+     * [Not supported] Add a statement event listener.
+     *
+     * @param listener the new statement event listener
+     */
 //#ifdef JDK16
 /*
     public void addStatementEventListener(StatementEventListener listener) {
@@ -384,6 +389,11 @@ implements XAConnection, XAResource, JdbcConnectionListener
 */
 //#endif
 
+    /**
+     * [Not supported] Remove a statement event listener.
+     *
+     * @param listener the statement event listener
+     */
 //#ifdef JDK16
 /*
     public void removeStatementEventListener(StatementEventListener listener) {
@@ -391,7 +401,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     }
 */
 //#endif
-    
+
     /**
      * INTERNAL
      */
@@ -399,13 +409,13 @@ implements XAConnection, XAResource, JdbcConnectionListener
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
     }
-    
+
     private void closeConnection(JdbcConnection conn) throws SQLException {
         if (conn != null) {
             conn.closeConnection();
         }
     }
-    
+
     private JdbcConnection openConnection() throws SQLException {
         Properties info = new Properties();
         info.setProperty("user", user);
@@ -436,7 +446,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         buff.append("\"");
         return buff.toString();
     }
-    
+
     private String quoteFlags(int flags) {
         StringBuffer buff = new StringBuffer();
         if ((flags & XAResource.TMENDRSCAN) != 0) {
@@ -465,7 +475,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         if ((flags & XAResource.XA_RDONLY) != 0) {
             buff.append("|XAResource.XA_RDONLY");
-        }        
+        }
         if (buff.length() == 0) {
             buff.append("|XAResource.TMNOFLAGS");
         }

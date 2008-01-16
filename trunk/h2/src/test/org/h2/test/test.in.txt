@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
+> rows: 3
+
 select * from system_range(1, 2) a,
 (select * from system_range(1, 2) union select * from system_range(1, 2)
 union select * from system_range(1, 1)) v where a.x = v.x;

@@ -150,18 +150,14 @@ java org.h2.test.TestAll timer
 
 /*
 
+document SET method, variables
+
+send mail
+
 Roadmap:
 
 History:
-
-
-There is a problem with the h2.bindAddress build. When it is binding to 127.0.0.1,
-the bind function works perfectly and I could confirm it no longer
-listen to the ports of other IP addresses. However, when it is binding to normal IP
-addresses, it always got the following exception.
-Caused by: org.h2.jdbc.JdbcSQLException: Connection is broken [90067-64]
-       at org.h2.message.Message.getSQLException(Message.java:89)
-Remarks: I build with JDK 1.6
+User defined variables are now supported. Examples: SET @VAR=10;CALL @VAR
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

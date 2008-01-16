@@ -4,6 +4,7 @@
  */
 package org.h2.tools;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -116,6 +117,9 @@ public class Backup {
                 try {
                     in = FileUtils.openFileInputStream(fileName);
                     IOUtils.copyAndCloseInput(in, zipOut);
+                } catch (FileNotFoundException e) {
+                    // the file could have been deleted in the meantime
+                    // ignore this (in this case an empty file is created)
                 } finally {
                     IOUtils.closeSilently(in);
                 }

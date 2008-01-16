@@ -150,14 +150,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-find send mail source code?
-
 Roadmap:
 
 History:
-User defined variables are now supported. Examples: SET @VAR=10;CALL @VAR.
-This can be used for running totals as in:
-select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 10)
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
@@ -168,6 +163,8 @@ link to history page, bug page
 Add a link to the google code bug page
 
 test DbStarter
+
+find send mail source code?
 
 ----
 A file is sent although the Japanese translation has not been completed yet.

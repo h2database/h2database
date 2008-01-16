@@ -6,6 +6,7 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -265,10 +266,14 @@ public class CompareLike extends Condition {
     private void initPattern(String p, char escape) throws SQLException {
         if (regexp) {
             patternString = p;
-            if (ignoreCase) {
-                patternRegexp = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
-            } else {
-                patternRegexp = Pattern.compile(p);
+            try {
+                if (ignoreCase) {
+                    patternRegexp = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+                } else {
+                    patternRegexp = Pattern.compile(p);
+                }
+            } catch (PatternSyntaxException e) {
+                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, new String[]{p}, e);
             }
             return;
         }

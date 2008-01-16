@@ -91,13 +91,13 @@ public class ErrorCode {
     public static final int SUM_OR_AVG_ON_WRONG_DATATYPE_1 = 90015;
 
     /**
-     * The column must be included in the group by clause. Example:
+     * The column must be included in the GROUP BY clause. Example:
      *
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
      * SELECT ID, MAX(NAME) FROM TEST;
-     * Column ID must be in group by list.
+     * Column ID must be in the GROUP BY list.
      * </pre>
      *
      * Correct:

@@ -1,5 +1,16 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+set @t = 0;
+> ok
+
+call set(1, 2);
+> exception
+
 select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
+> X SET(@T, (IFNULL(@T, 0) + X))
+> - ----------------------------
+> 1 1
+> 2 3
+> 3 6
 > rows: 3
 
 select * from system_range(1, 2) a,

@@ -290,6 +290,11 @@ public class Set extends Prepared {
             }
             break;
         }
+        case SetTypes.VARIABLE: {
+            Expression expr = expression.optimize(session);
+            session.setVariable(stringValue, expr.getValue(session));
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }

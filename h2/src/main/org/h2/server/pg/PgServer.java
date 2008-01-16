@@ -59,7 +59,7 @@ public class PgServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = "pg://localhost:" + port;
+        url = "pg://" + NetUtils.getLocalAddress() + ":" + port;
 
 //        int testing;
 //        log = true;

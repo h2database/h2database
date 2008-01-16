@@ -163,7 +163,7 @@ public class TcpServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = (ssl ? "ssl" : "tcp") + "://localhost:" + port;
+        url = (ssl ? "ssl" : "tcp") + "://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
     public String getURL() {
@@ -266,7 +266,7 @@ public class TcpServer implements Service {
             server.stopManagementDb();
             server.stop = true;
             try {
-                Socket s = new Socket("localhost", port);
+                Socket s = NetUtils.createLoopbackSocket(port, false);
                 s.close();
             } catch (Exception e) {
                 // try to connect - so that accept returns

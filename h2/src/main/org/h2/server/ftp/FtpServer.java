@@ -182,7 +182,7 @@ public class FtpServer implements Service {
     }
 
     public String getURL() {
-        return "ftp://localhost:" + port;
+        return "ftp://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
     public void start() throws SQLException {

@@ -317,6 +317,7 @@ public class DiskFile implements CacheWriter {
                         throw Message.getInternalError();
                     }
                     Storage storage = database.getStorage(id, this);
+                    setUnused(i, blockCount);
                     setBlockOwner(storage, i, blockCount, true);
                     storage.incrementRecordCount();
                     i += blockCount;

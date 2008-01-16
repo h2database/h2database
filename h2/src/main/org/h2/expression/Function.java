@@ -86,7 +86,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221, TABLE_DISTINCT = 222, CANCEL_SESSION = 223;
+            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221, TABLE_DISTINCT = 222, CANCEL_SESSION = 223, SET = 224;
 
     private static final int VAR_ARGS = -1;
 
@@ -289,6 +289,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
+        addFunction("SET", SET, 2, Value.NULL, false, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
@@ -1007,6 +1008,12 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(rows);
             break;
         }
+        case SET: {
+            Variable var = (Variable) args[0];
+            session.setVariable(var.getName(), v1);
+            result = v1;
+            break;
+        }
         default:
             throw Message.getInternalError("type=" + info.type);
         }
@@ -1576,6 +1583,17 @@ public class Function extends Expression implements FunctionCall {
                 scale = 0;
             }
             break;
+        case SET: {
+            Expression p1 = args[1];
+            dataType = p1.getType();
+            precision = p1.getPrecision();
+            scale = p1.getScale();
+            displaySize = p1.getDisplaySize();
+            if (!(p0 instanceof Variable)) {
+                throw Message.getSQLException(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
+            }
+            break;
+        }
         default:
             dataType = info.dataType;
             precision = 0;

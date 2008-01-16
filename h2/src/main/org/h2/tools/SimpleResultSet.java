@@ -199,10 +199,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         close();
         return false;
     }
-    
+
     /**
      * Moves the current position to before the first row, that means resets the result set.
-     * 
+     *
      * @throws SQLException is this method is not supported
      */
     public void beforeFirst() throws SQLException {
@@ -1242,7 +1242,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
             throw new SQLException("Invalid column index " + (columnIndex + 1), "90009");
         }
     }
-    
+
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
             throw new SQLException("No data is available", "02000");
@@ -1259,6 +1259,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return (Column) columns.get(i);
     }
 
+    /** INTERNAL */
 //#ifdef JDK16
 /*
     public RowId getRowId(int columnIndex) throws SQLException {
@@ -1267,6 +1268,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
+    /** INTERNAL */
 //#ifdef JDK16
 /*
     public RowId getRowId(String columnName) throws SQLException {

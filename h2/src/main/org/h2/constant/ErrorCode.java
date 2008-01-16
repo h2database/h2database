@@ -319,6 +319,14 @@ public class ErrorCode {
     public static final int UNSUPPORTED_OUTER_JOIN_CONDITION_1 = 90136;
 
     /**
+     * Can only assign to a variable.
+     * <pre>
+     * SELECT AMOUNT, SET(@V, IFNULL(@V, 0)+AMOUNT) FROM TEST;
+     * </pre>
+     */
+    public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
+
+    /**
      * INTERNAL
      */
     public static String getState(int errorCode) {

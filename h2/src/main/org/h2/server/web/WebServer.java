@@ -227,7 +227,7 @@ public class WebServer implements Service {
         for (int i = 0; i < LANGUAGES.length; i++) {
             languages.add(LANGUAGES[i][0]);
         }
-        url = (ssl ? "https" : "http") + "://localhost:" + port;
+        url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
     public String getURL() {

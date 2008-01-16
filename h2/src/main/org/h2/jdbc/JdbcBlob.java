@@ -72,6 +72,8 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Truncates the object.
+     *
+     * @param len the new length
      */
     public void truncate(long len) throws SQLException {
         debugCodeCall("truncate", len);
@@ -248,7 +250,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
-    
+
     /**
      * INTERNAL
      */

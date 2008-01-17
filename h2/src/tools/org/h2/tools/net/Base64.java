@@ -34,7 +34,7 @@ public class Base64 {
 
     private static void check(String a, String b) {
         if (!a.equals(b)) {
-            throw new Error("missmatch: " + a + " <> " + b);
+            throw new Error("mismatch: " + a + " <> " + b);
         }
     }
 
@@ -180,7 +180,7 @@ public class Base64 {
         byte[] bin = new byte[size];
         int fast = size / 3 * 3, i = 0, j = 0;
         for (; i < fast; i += 3, j += 4) {
-            int a = (rev[enc[j] & 255] << 18) + (rev[enc[j + 1] & 255] << 12) + 
+            int a = (rev[enc[j] & 255] << 18) + (rev[enc[j + 1] & 255] << 12) +
                     (rev[enc[j + 2] & 255] << 6) + rev[enc[j + 3] & 255];
             bin[i] = (byte) (a >> 16);
             bin[i + 1] = (byte) (a >> 8);
@@ -203,7 +203,7 @@ public class Base64 {
         byte[] bin = new byte[size];
         int fast = size / 3 * 3, i = 0, j = 0;
         for (; i < fast; i += 3, j += 4) {
-            int a = (rev[enc[j] & 255] << 18) + (rev[enc[j + 1] & 255] << 12) + 
+            int a = (rev[enc[j] & 255] << 18) + (rev[enc[j + 1] & 255] << 12) +
                     (rev[enc[j + 2] & 255] << 6) + rev[enc[j + 3] & 255];
             bin[i] = (byte) (a >> 16);
             bin[i + 1] = (byte) (a >> 8);

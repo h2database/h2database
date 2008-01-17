@@ -146,7 +146,7 @@ public class ObjectArray {
 
     public void addAll(ObjectArray list) {
         for (int i = 0; i < list.size; i++) {
-            add(list.get(i));
+            add(list.data[i]);
         }
     }
 

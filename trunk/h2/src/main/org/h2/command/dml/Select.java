@@ -822,17 +822,28 @@ public class Select extends Query {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.type == ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID) {
+        switch(visitor.type) {
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
             for (int i = 0; i < filters.size(); i++) {
                 TableFilter f = (TableFilter) filters.get(i);
                 long m = f.getTable().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
+            break;
         }
-        if (visitor.type == ExpressionVisitor.EVALUATABLE) {
+        case ExpressionVisitor.EVALUATABLE: {
             if (!SysProperties.OPTIMIZE_EVALUATABLE_SUBQUERIES) {
                 return false;
             }
+            break;
+        }
+        case ExpressionVisitor.GET_DEPENDENCIES: {
+            for (int i = 0; i < filters.size(); i++) {
+                TableFilter filter = (TableFilter) filters.get(i);
+                filter.getTable().addDependencies(visitor.getDependencies());
+            }
+            break;
+        }
         }
         visitor.queryLevel(1);
         boolean result = true;

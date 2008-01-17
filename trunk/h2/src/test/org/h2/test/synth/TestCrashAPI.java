@@ -89,6 +89,15 @@ public class TestCrashAPI extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("SET LOCK_TIMEOUT 10");
         stat.execute("SET WRITE_DELAY 0");
+        if (random.nextBoolean()) {
+            if (random.nextBoolean()) {
+                double g = random.nextGaussian();
+                int size = (int) Math.abs(10000 * g * g);
+                stat.execute("SET CACHE_SIZE " + size);
+            } else {
+                stat.execute("SET CACHE_SIZE 0");
+            }
+        }
         stat.execute("SCRIPT NOPASSWORDS NOSETTINGS");
         for (int i = start; i < end && i < statements.size(); i++) {
             try {

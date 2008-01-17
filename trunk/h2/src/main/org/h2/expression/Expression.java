@@ -297,4 +297,5 @@ public abstract class Expression {
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
         return this;
     }
+
 }

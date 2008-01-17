@@ -5,6 +5,7 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
+
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -113,6 +114,8 @@ public class Parameter extends Expression implements ParameterInterface {
             // it is checked independently if the value is the same as the last time
             return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
+            return true;
+        case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
             throw Message.getInternalError("type="+visitor.type);

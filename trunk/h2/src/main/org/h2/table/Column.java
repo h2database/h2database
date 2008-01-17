@@ -15,6 +15,7 @@ import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
@@ -488,6 +489,21 @@ public class Column {
 
     public void setPrimaryKey(boolean primaryKey) {
         this.primaryKey = primaryKey;
+    }
+
+    boolean isEverything(ExpressionVisitor visitor) {
+        if (visitor.type == ExpressionVisitor.GET_DEPENDENCIES) {
+            if (sequence != null) {
+                visitor.getDependencies().add(sequence);
+            }
+        }
+        if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
+            return false;
+        }
+        if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {
+            return false;
+        }
+        return true;
     }
 
 }

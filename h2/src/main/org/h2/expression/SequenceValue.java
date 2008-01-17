@@ -88,6 +88,9 @@ public class SequenceValue extends Expression {
             return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
+        case ExpressionVisitor.GET_DEPENDENCIES:
+            visitor.addDependency(sequence);
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }

@@ -117,10 +117,14 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.type == ExpressionVisitor.DETERMINISTIC) {
+        switch(visitor.type) {
+        case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't
             // know (no setting for that)
             return false;
+        case ExpressionVisitor.GET_DEPENDENCIES:
+            visitor.addDependency(functionAlias);
+            break;
         }
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i];

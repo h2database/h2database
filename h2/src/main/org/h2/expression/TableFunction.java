@@ -230,4 +230,5 @@ public class TableFunction extends Expression implements FunctionCall {
     public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException {
         return getTable(session, args, true, false);
     }
+
 }

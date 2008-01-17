@@ -73,6 +73,8 @@ public class Variable extends Expression {
             return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return true;
+        case ExpressionVisitor.GET_DEPENDENCIES:
+            return true;
         default:
             throw Message.getInternalError("type="+visitor.type);
         }

@@ -6,6 +6,7 @@ package org.h2.table;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -14,6 +15,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.log.UndoLogRecord;
@@ -209,6 +211,19 @@ public abstract class Table extends SchemaObjectBase {
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
+    }
+
+    public void addDependencies(HashSet dependencies) {
+        if (sequences != null) {
+            for (int i = 0; i < sequences.size(); i++) {
+                dependencies.add(sequences.get(i));
+            }
+        }
+        ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.GET_DEPENDENCIES);
+        visitor.setDependencies(dependencies);
+        for (int i = 0; i < columns.length; i++) {
+            columns[i].isEverything(visitor);
+        }
     }
 
     public ObjectArray getChildren() {

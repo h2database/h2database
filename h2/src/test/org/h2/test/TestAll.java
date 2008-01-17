@@ -150,6 +150,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+where is base64 code?
+
 Roadmap:
 
 History:

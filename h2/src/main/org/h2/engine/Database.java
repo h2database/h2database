@@ -1188,6 +1188,29 @@ public class Database implements DataHandler {
         removeMeta(session, id);
     }
 
+    private String getDependentObject(SchemaObject obj) {
+        switch (obj.getType()) {
+        case DbObject.COMMENT:
+        case DbObject.CONSTRAINT:
+        case DbObject.INDEX:
+        case DbObject.RIGHT:
+        case DbObject.TRIGGER:
+        case DbObject.USER:
+            return null;
+        }
+        ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        HashSet set = new HashSet();
+        for (int i = 0; i < list.size(); i++) {
+            Table t = (Table) list.get(i);
+            set.clear();
+            t.addDependencies(set);
+            if (set.contains(obj)) {
+                return t.getSQL();
+            }
+        }
+        return null;
+    }
+
     private String getFirstInvalidTable(Session session) {
         String conflict = null;
         try {
@@ -1216,7 +1239,12 @@ public class Database implements DataHandler {
             removeDatabaseObject(session, comment);
         }
         obj.getSchema().remove(session, obj);
-        String invalid = getFirstInvalidTable(session);
+        String invalid;
+        if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
+            invalid = getDependentObject(obj);
+        } else {
+            invalid = getFirstInvalidTable(session);
+        }
         if (invalid != null) {
             obj.getSchema().add(obj);
             throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[] { obj.getSQL(), invalid });

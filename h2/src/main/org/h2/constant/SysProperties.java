@@ -168,6 +168,17 @@ public class SysProperties {
      * Maximum size of an object in the cache.
      */
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
+
+    /**
+     * System property <code>h2.optimizeDropDependencies</code> (default: true).<br />
+     * Improve the performance of DROP and DROP ALL OBJECTS by quicker scanning if other objects depend on this object.
+     */
+    public static final boolean OPTIMIZE_DROP_DEPENDENCIES = getBooleanSetting("h2.optimizeDropDependencies", true);
+
+    /**
+     * System property <code>h2.optimizeDistinct</code> (default: true).<br />
+     * Improve the performance of simple DISTINCT queries if an index is available for the given column.
+     */
     public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
 
     /**

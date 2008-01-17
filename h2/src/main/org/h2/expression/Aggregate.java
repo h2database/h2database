@@ -357,16 +357,14 @@ public class Aggregate extends Expression {
             buff.append(on.getSQL());
             if (orderList != null) {
                 buff.append(" ORDER BY ");
-                if (orderList != null) {
-                    for (int i = 0; i < orderList.size(); i++) {
-                        SelectOrderBy o = (SelectOrderBy) orderList.get(i);
-                        if (i > 0) {
-                            buff.append(", ");
-                        }
-                        buff.append(o.expression.getSQL());
-                        if (o.descending) {
-                            buff.append(" DESC");
-                        }
+                for (int i = 0; i < orderList.size(); i++) {
+                    SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                    if (i > 0) {
+                        buff.append(", ");
+                    }
+                    buff.append(o.expression.getSQL());
+                    if (o.descending) {
+                        buff.append(" DESC");
                     }
                 }
             }
@@ -457,7 +455,19 @@ public class Aggregate extends Expression {
                 return false;
             }
         }
-        return (on == null || on.isEverything(visitor)) && (separator == null || separator.isEverything(visitor));
+        if (on != null && !on.isEverything(visitor)) {
+            return false;
+        }
+        if (separator != null && !separator.isEverything(visitor)) {
+            return false;
+        }
+        for (int i = 0; orderList != null && i < orderList.size(); i++) {
+            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            if (!o.expression.isEverything(visitor)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public int getCost() {

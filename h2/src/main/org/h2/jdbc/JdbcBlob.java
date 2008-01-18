@@ -66,7 +66,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             }
             return size;
         } catch (Throwable e) {
-            throw Message.convert(e);
+            throw logAndConvert(e);
         }
     }
 
@@ -108,7 +108,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             }
             return out.toByteArray();
         } catch (Throwable e) {
-            throw Message.convert(e);
+            throw logAndConvert(e);
         }
     }
 
@@ -134,8 +134,13 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the input stream
      */
     public InputStream getBinaryStream() throws SQLException {
-        debugCodeCall("getBinaryStream");
-        return value.getInputStream();
+        try {
+            debugCodeCall("getBinaryStream");
+            checkClosed();
+            return value.getInputStream();
+        } catch (Throwable e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -148,15 +153,15 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Searches a pattern and return the position.
+     *
+     * @param pattern the pattern to search
+     * @param start the index, the first byte is at position 1
+     * @return the position (first byte is at position 1), or -1 for not found
      */
     public long position(byte[] pattern, long start) throws SQLException {
         debugCode("position(pattern, "+start+");");
         throw Message.getUnsupportedException();
         // TODO test
-//        *
-//        * @param pattern the pattern to search
-//        * @param start the index, the first byte is at position 1
-//        * @return the position (first byte is at position 1), or -1 for not found
 //        try {
 //            debugCode("position(pattern, "+start+");");
 //            if(pattern == null) {
@@ -193,21 +198,21 @@ public class JdbcBlob extends TraceObject implements Blob {
 //            }
 //            return -1;
 //        } catch(Throwable e) {
-//            throw Message.convert(e);
+//            throw logAndConvert(e);
 //        }
     }
 
     /**
      * [Not supported] Searches a pattern and return the position.
+     *
+     * @param pattern the pattern to search
+     * @param start the index, the first byte is at position 1
+     * @return the position (first byte is at position 1), or -1 for not found
      */
     public long position(Blob blobPattern, long start) throws SQLException {
       debugCode("position(blobPattern, "+start+");");
       throw Message.getUnsupportedException();
 
-//      *
-//      * @param pattern the pattern to search
-//      * @param start the index, the first byte is at position 1
-//      * @return the position (first byte is at position 1), or -1 for not found
 //        try {
 //            debugCode("position(blobPattern, "+start+");");
 //            if(blobPattern == null) {
@@ -224,7 +229,7 @@ public class JdbcBlob extends TraceObject implements Blob {
 //            }
 //            return position(out.toByteArray(), start);
 //        } catch(Throwable e) {
-//            throw Message.convert(e);
+//            throw logAndConvert(e);
 //        }
     }
 

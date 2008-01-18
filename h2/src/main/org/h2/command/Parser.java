@@ -1997,7 +1997,10 @@ public class Parser {
             read();
             if (indexed && currentTokenType == VALUE && currentValue.getType() == Value.INT) {
                 if (indexedParameterList == null) {
-                    if (parameters.size() > 0) {
+                    if (parameters == null) {
+                        // this can occur when parsing expressions only (for example check constraints)
+                        throw getSyntaxError();
+                    } else if (parameters.size() > 0) {
                         throw Message.getSQLException(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
                     }
                     indexedParameterList = new ObjectArray();

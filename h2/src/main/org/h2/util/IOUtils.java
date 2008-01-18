@@ -7,6 +7,7 @@ package org.h2.util;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,13 +43,21 @@ public class IOUtils {
 
     public static void skipFully(InputStream in, long skip) throws IOException {
         while (skip > 0) {
-            skip -= in.skip(skip);
+            long skipped = in.skip(skip);
+            if (skipped <= 0) {
+                throw new EOFException();
+            }
+            skip -= skipped;
         }
     }
 
     public static void skipFully(Reader reader, long skip) throws IOException {
         while (skip > 0) {
-            skip -= reader.skip(skip);
+            long skipped = reader.skip(skip);
+            if (skipped <= 0) {
+                throw new EOFException();
+            }
+            skip -= skipped;
         }
     }
 

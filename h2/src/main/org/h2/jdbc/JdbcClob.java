@@ -79,7 +79,7 @@ public class JdbcClob extends TraceObject implements Clob
                 in.close();
             }
         } catch (Throwable e) {
-            throw Message.convert(e);
+            throw logAndConvert(e);
         }
     }
 
@@ -155,7 +155,7 @@ public class JdbcClob extends TraceObject implements Clob
             if (length < 0) {
                 throw Message.getInvalidValueException("length", "" + length);
             }
-            StringBuffer buff = new StringBuffer(length);
+            StringBuffer buff = new StringBuffer(Math.min(4096, length));
             Reader reader = value.getReader();
             try {
                 IOUtils.skipFully(reader, pos - 1);
@@ -229,7 +229,7 @@ public class JdbcClob extends TraceObject implements Clob
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
-    
+
     /**
      * INTERNAL
      */

@@ -168,15 +168,35 @@ public class RandomGen {
         StringBuffer buff = new StringBuffer();
         buff.append(getInt(10) + 2000);
         buff.append('-');
-        buff.append(getInt(12) + 1);
+        int month = getInt(12) + 1;
+        if (month < 10) {
+            buff.append('0');
+        }
+        buff.append(month);
         buff.append('-');
-        buff.append(getInt(28) + 1);
+        int day = getInt(28) + 1;
+        if (day < 10) {
+            buff.append('0');
+        }
+        buff.append(day);
         buff.append(' ');
-        buff.append(getInt(24));
+        int hour = getInt(24);
+        if (hour < 10) {
+            buff.append('0');
+        }
+        buff.append(hour);
         buff.append(':');
-        buff.append(getInt(60));
+        int minute = getInt(60);
+        if (minute < 10) {
+            buff.append('0');
+        }
+        buff.append(minute);
         buff.append(':');
-        buff.append(getInt(60));
+        int second = getInt(60);
+        if (second < 10) {
+            buff.append('0');
+        }
+        buff.append(second);
         // TODO test timestamp nanos
         return Timestamp.valueOf(buff.toString());
     }

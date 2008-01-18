@@ -252,6 +252,8 @@ public class TestCrashAPI extends TestBase {
     private void printIfBad(int seed, int id, int objectId, Throwable t) {
         if (t instanceof BatchUpdateException) {
             // do nothing
+        } else if (t.getClass().getName().indexOf("SQLClientInfoException") >= 0) {
+            // do nothing
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;
             String state = s.getSQLState();

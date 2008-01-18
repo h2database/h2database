@@ -10,6 +10,43 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(35,
+'New version available: 1.0.65 (2008-01-18)', '2008-01-18 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>User defined variables are now supported.
+</li><li>JNDI support in the H2 Console has been improved.
+</li><li>The bind IP address can be set (system property h2.bindAddress).
+</li><li>The build automatically switches the source code to the correct JDK.
+</li><li>The SCRIPT command uses multi-row inserts to save space.
+</li><li>Large result sets in the server mode are now faster.
+</li><li>The performance for DROP has been improved. 
+</li><li>Optimization for single column distinct queries with an index.
+</li><li>LIKE comparisons are now faster.
+</li><li>Encrypted databases are now faster.
+</li><li>PostgreSQL compatibility: COUNT(T.*) is now supported. 
+</li><li>The ChangePassword API has been improved. 
+</li><li>The Ukrainian translation has been improved.
+</li><li>CALL statements can now be used in batch updates.
+</li><li>New read-only setting CREATE_BUILD.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>A recovery bug has been fixed.
+</li><li>The optimizer did not always use the right indexes.
+</li><li>BatchUpdateException.printStackTrace() could run out of memory. 
+</li><li>Sometimes unused indexes where not dropped when altering a table.
+</li><li>The SCRIPT command did not split up CLOB data correctly. 
+</li><li>DROP ALL OBJECTS did not drop some objects. 
+</li></ul>
+For details, see the ''Change Log'' at
+http://groups.google.com/group/h2-database/web/change-log
+<br />
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(34,
 'New version available: 1.0.64 (2007-12-27)', '2007-12-27 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -306,47 +343,6 @@ INSERT INTO ITEM VALUES(26,
 </li><li>Result set in the H2 Console can now be modified again.
 </li><li>Views using UNION did not work correctly.
 </li><li>Function tables did not work with views and EXPLAIN.
-</li>
-</ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(25,
-'New version available: 1.0 / 2007-07-12', '2007-07-12 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-<li>The H2 Console can run as a standalone web application.
-</li><li>The default database name is now jdbc:h2:~/test.
-</li><li>The new view implementation is now enabled by default. 
-</li><li>The Polish translation is available. Thanks a lot to Tomek!
-</li><li>Support for the system property baseDir.
-</li><li>Improved PostgreSQL compatibility.
-</li><li>New column ID in INFORMATION_SCHEMA tables.
-</li><li>PreparedStatement.getMetaData is now implemented.
-</li><li>New setting h2.allowBigDecimalExtensions.
-</li><li>The SQL statement SET ASSERT has been deprecated.
-</li><li>The trace level for JdbcDataSourceFactory is now ERROR.
-</li><li>Referential integrity violation: Two SQL states are now used.
-</li><li>DatabaseEventListener.exceptionThrown is changed.
-</li><li>The catalog name can now be used in queries.
-</li><li>The default result set type is now FETCH_FORWARD.
-</li>
-</ul>
-<b>Bugfixes:</b>
-<ul>
-</li><li>Views did not work in some cases. 
-</li><li>LIKE ESCAPE did not work correctly in some cases.
-</li><li>In some situations, large objects were deleted.
-</li><li>CREATE TABLE AS SELECT .. UNION .. did not work.
-</li><li>Sometimes temp files were not deleted.
-</li><li>PooledConnection.getConnection is now faster.
-</li><li>Deleting databases in the root directory now works.
-</li><li>Windows service: the CLASSPATH was not included.
-</li><li>For READ_COMMITTED, when the multi-threaded 
-    kernel is enabled, read locks are now acquired but released 
-    immediately after a query.
 </li>
 </ul>
 For future plans, see the new ''Roadmap'' page on the web site.

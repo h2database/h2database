@@ -16,9 +16,9 @@ package org.h2.engine;
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   set path=C:\Program Files\Java\jdk1.6.0_01\bin;%PATH%
  *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_01
- *   ant codeswitchJdk16
  *   ant compile
  *   set classpath=
+ *   ant javadoc
  *   ant javadocImpl (to find missing javadocs)
  *   ant codeswitchJdk14
  *   ant javadocImpl
@@ -31,7 +31,7 @@ package org.h2.engine;
  *     download.html
  * - Maybe increase TCP_DRIVER_VERSION
  * - Check code coverage
- * - No "  Message.getInternalError" (must be "throw Message.getInternalError")
+ * - No "  Message.get" (must be "throw Message.get")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
  *
@@ -72,8 +72,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 64;
-    private static final String BUILD = "2007-12-27";
+    public static final int BUILD_ID = 65;
+    private static final String BUILD = "2008-01-18";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

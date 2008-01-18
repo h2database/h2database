@@ -67,6 +67,11 @@ public class TestCases extends TestBase {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
+        try {
+            stat.execute("create table address(id identity, name varchar check? instr(value, '@') > 1)");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
         stat.execute("SET AUTOCOMMIT OFF; \n//create sequence if not exists object_id;\n");
         stat.execute("SET AUTOCOMMIT OFF;\n//create sequence if not exists object_id;\n");
         stat.execute("SET AUTOCOMMIT OFF; //create sequence if not exists object_id;");

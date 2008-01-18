@@ -150,7 +150,13 @@ public class FileSystemDisk extends FileSystem {
         }
         File f = File.createTempFile(prefix, suffix, dir);
         if (deleteOnExit) {
-            f.deleteOnExit();
+            try {
+                f.deleteOnExit();
+            } catch (Throwable e) {
+                // sometimes this throws a NullPointerException
+                // at java.io.DeleteOnExitHook.add(DeleteOnExitHook.java:33)
+                // we can ignore it
+            }
         }
         return f.getCanonicalPath();
     }

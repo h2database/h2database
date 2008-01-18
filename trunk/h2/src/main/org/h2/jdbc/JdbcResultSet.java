@@ -2065,6 +2065,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateBlob("+columnIndex+", x, " + length + "L);");
             }
+            checkClosed();
             Value v = conn.createBlob(x, length);
             update(columnIndex, v);
         } catch (Throwable e) {
@@ -2084,6 +2085,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateBlob("+columnIndex+", x);");
             }
+            checkClosed();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -2108,6 +2110,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateBlob("+quote(columnName)+", x);");
             }
+            checkClosed();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -2144,6 +2147,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateBlob("+quote(columnName)+", x, " + length + "L);");
             }
+            checkClosed();
             Value v = conn.createBlob(x, -1);
             update(columnName, v);
         } catch (Throwable e) {
@@ -3014,6 +3018,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public int getHoldability() throws SQLException {
         try {
             debugCodeCall("getHoldability");
+            checkClosed();
             return conn.getHoldability();
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -3367,6 +3372,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateNCharacterStream("+columnIndex+", x, "+length+"L);");
             }
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnIndex, v);
         } catch (Throwable e) {
@@ -3410,6 +3416,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (debug()) {
                 debugCode("updateNCharacterStream("+quote(columnName)+", x, "+length+"L);");
             }
+            checkClosed();
             Value v = conn.createClob(x, length);
             update(columnName, v);
         } catch (Throwable e) {

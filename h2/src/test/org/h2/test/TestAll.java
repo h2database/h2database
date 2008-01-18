@@ -150,8 +150,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-where is base64 code?
-
 Roadmap:
 
 History:
@@ -165,8 +163,6 @@ link to history page, bug page
 Add a link to the google code bug page
 
 test DbStarter
-
-find send mail source code?
 
 ----
 A file is sent although the Japanese translation has not been completed yet.

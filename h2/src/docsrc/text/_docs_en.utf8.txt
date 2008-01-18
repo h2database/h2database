@@ -950,7 +950,7 @@ The conversion between UTF-8 and Java encoding (using the \u syntax), as well as
 Downloads
 
 @download_1001_h3
-Version 1.0.64 (2007-12-27, Current)
+Version 1.0.65 (2008-01-18, Current)
 
 @download_1002_a
 Windows Installer
@@ -959,7 +959,7 @@ Windows Installer
 Platform-Independent Zip
 
 @download_1004_h3
-Version 1.0.63 (2007-12-02, Last Stable)
+Version 1.0.64 (2007-12-27, Last Stable)
 
 @download_1005_a
 Windows Installer
@@ -986,13 +986,13 @@ For details about changes, see the <a href="history.html">Change Log</a> .
 Frequently Asked Questions
 
 @faq_1001_a
-Are there any known bugs? When is the next release?
+Are there Known Bugs? When is the Next Release?
 
 @faq_1002_a
 Is this Database Engine Open Source?
 
 @faq_1003_a
-My query is slow
+My Query is Slow
 
 @faq_1004_a
 How to Create a New Database?
@@ -1004,19 +1004,19 @@ How to Connect to a Database?
 Where are the Database Files Stored?
 
 @faq_1007_a
-What is the Size Limit (maximum size) of a Database?
+What is the Size Limit (Maximum Size) of a Database?
 
 @faq_1008_a
 Is it Reliable?
 
 @faq_1009_a
-Is the GCJ version stable? Faster?
+Is the GCJ Version Stable? Faster?
 
 @faq_1010_a
 How to Translate this Project?
 
 @faq_1011_h3
-Are there any known bugs? When is the next release?
+Are there Known Bugs? When is the Next Release?
 
 @faq_1012_p
 Usually, bugs get fixes as they are found. There is a release every few weeks. Here is the list of known and confirmed issues:
@@ -1031,7 +1031,7 @@ Is this Database Engine Open Source?
 Yes. It is free to use and distribute, and the source code is included. See also under license.
 
 @faq_1016_h3
-My query is slow
+My Query is Slow
 
 @faq_1017_p
 Slow SELECT (or DELETE, UPDATE, MERGE) statement can have multiple reasons. Follow this checklist:
@@ -1067,7 +1067,7 @@ Where are the Database Files Stored?
 When using database URLs like jdbc:h2:~/test, the database is stored in the user directory. For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;. If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started (the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin. The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory). The directory must exist. It is also possible to use the fully qualified directory (and for Windows, drive) name. Example: jdbc:h2:file:C:/data/test
 
 @faq_1028_h3
-What is the Size Limit (maximum size) of a Database?
+What is the Size Limit (Maximum Size) of a Database?
 
 @faq_1029_p
 The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data: Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
@@ -1136,7 +1136,7 @@ Compatibility modes for other databases (only some features are implemented)
 The ARRAY data type and related functionality
 
 @faq_1051_h3
-Is the GCJ version stable? Faster?
+Is the GCJ Version Stable? Faster?
 
 @faq_1052_p
 The GCJ version is not as stable as the Java version. When running the regression test with the GCJ version, sometimes the application just stops at what seems to be a random point without error message. Currently, the GCJ version is also slower than when using the Sun VM. However, the startup of the GCJ version is faster than when using a VM.
@@ -3065,7 +3065,7 @@ JDBC and (partial) ODBC API; Web Client application
 Download
 
 @mainWeb_1007_td
-Version 1.0.64 (2007-12-27):
+Version 1.0.65 (2008-01-18):
 
 @mainWeb_1008_a
 Windows Installer (2.8 MB)

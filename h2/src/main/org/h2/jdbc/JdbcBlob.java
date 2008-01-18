@@ -205,7 +205,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     /**
      * [Not supported] Searches a pattern and return the position.
      *
-     * @param pattern the pattern to search
+     * @param blobPattern the pattern to search
      * @param start the index, the first byte is at position 1
      * @return the position (first byte is at position 1), or -1 for not found
      */

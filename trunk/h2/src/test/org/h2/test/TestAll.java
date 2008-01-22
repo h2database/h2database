@@ -150,6 +150,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+CACHE_SIZE_INDEX_DEFAULT
+INTERNAL
+ErrorCodes doesn't look nice
+
+
 Roadmap:
 
 History:

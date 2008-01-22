@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -38,7 +37,6 @@ public class LocalResult implements ResultInterface {
     private SortOrder sort;
     private ValueHashMap distinctRows;
     private Value[] currentRow;
-    private int[] displaySizes;
     private int offset, limit;
     private ResultDiskBuffer disk;
     private int diskOffset;
@@ -99,7 +97,6 @@ public class LocalResult implements ResultInterface {
         copy.sort = this.sort;
         copy.distinctRows = this.distinctRows;
         copy.currentRow = null;
-        copy.displaySizes = this.displaySizes;
         copy.offset = 0;
         copy.limit = 0;
         copy.disk = this.disk;
@@ -138,7 +135,6 @@ public class LocalResult implements ResultInterface {
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
-        this.displaySizes = new int[expressions.length];
     }
 
     public void setSortOrder(SortOrder sort) {
@@ -205,13 +201,6 @@ public class LocalResult implements ResultInterface {
     }
 
     public void addRow(Value[] values) throws SQLException {
-        if (!SysProperties.NEW_DISPLAY_SIZE) {
-            for (int i = 0; i < values.length; i++) {
-                Value v = values[i];
-                int size = v.getDisplaySize();
-                displaySizes[i] = Math.max(displaySizes[i], size);
-            }
-        }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
             distinctRows.put(array, values);
@@ -299,11 +288,7 @@ public class LocalResult implements ResultInterface {
     }
 
     public int getDisplaySize(int i) {
-        if (SysProperties.NEW_DISPLAY_SIZE) {
-            return expressions[i].getDisplaySize();
-        } else {
-            return displaySizes[i];
-        }
+        return expressions[i].getDisplaySize();
     }
 
     public String getColumnName(int i) {

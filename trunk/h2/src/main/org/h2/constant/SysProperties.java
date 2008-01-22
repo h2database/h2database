@@ -62,7 +62,18 @@ public class SysProperties {
      * Comma separated list of class names or prefixes.
      */
     public static final String BIND_ADDRESS = getStringSetting("h2.bindAddress", null);
+    
+    /**
+     * System property <code>h2.cacheSizeDefault</code> (default: 16384).<br />
+     * The default cache size in KB.
+     */
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
+    
+    /**
+     * System property <code>h2.cacheSizeIndexShift</code> (default: 3).<br />
+     * How many time the cache size value is divided by two to get the index cache size.
+     * The index cache size is calculated like this: cacheSize >> cacheSizeIndexShift.
+     */
     public static final int CACHE_SIZE_INDEX_SHIFT = getIntSetting("h2.cacheSizeIndexShift", 3);
 
     /**
@@ -89,12 +100,27 @@ public class SysProperties {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
-     * System property <code>h2.check2</code> (default: true).<br />
-     * Additional assertions in the database engine.
+     * System property <code>h2.defaultMaxOperationMemory</code> (default: 100000).<br />
+     * The default for the setting MAX_OPERATION_MEMORY.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
+    
+    /**
+     * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
+     * The trace level of the data source implementation. Default is 1 for error.
+     */
     public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
+    
+    /**
+     * System property <code>h2.defaultMaxMemoryUndo</code> (default: 100000).<br />
+     * The default value for the MAX_MEMORY_UNDO setting.
+     */
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 100000);
+    
+    /**
+     * System property <code>h2.defaultLockMode</code> (default: 3).<br />
+     * The default value for the LOCK_MODE setting.
+     */
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
 
     /**
@@ -108,8 +134,6 @@ public class SysProperties {
      * Minimum size of 'reserve' file.
      */
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 64 * 1024);
-
-    public static final boolean INDEX_LOOKUP_NEW = getBooleanSetting("h2.indexLookupNew", true);
 
     /**
      * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
@@ -147,9 +171,19 @@ public class SysProperties {
      * Number of times to retry file delete and rename.
      */
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
+    
+    /**
+     * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
+     * The minimum number of columns where a hash table is created when result set 
+     * methods with column name (instead of column index) parameter are called.
+     */
     public static final int MIN_COLUMN_NAME_MAP = getIntSetting("h2.minColumnNameMap", 3);
+    
+    /**
+     * System property <code>h2.minWriteDelay</code> (default: 5).<br />
+     * The minimum write delay that causes commits to be delayed.
+     */
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
-    public static final boolean NEW_DISPLAY_SIZE = getBooleanSetting("h2.newDisplaySize", true);
 
     /**
      * System property <code>h2.objectCache</code> (default: true).<br />
@@ -192,6 +226,11 @@ public class SysProperties {
      * Optimize IN(...) comparisons.
      */
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
+    
+    /**
+     * System property <code>h2.optimizeInJoin</code> (default: false).<br />
+     * Optimize IN(SELECT ...) comparisons by converting them to a join.
+     */
     public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
     /**
@@ -205,7 +244,17 @@ public class SysProperties {
      * Cache subquery results.
      */
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
+    
+    /**
+     * System property <code>h2.optimizeNot</code> (default: true).<br />
+     * Optimize NOT expression.
+     */
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
+    
+    /**
+     * System property <code>h2.optimizeTwoEquals</code> (default: true).<br />
+     * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is added so an index on A can be used.
+     */    
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
 
     /**
@@ -249,6 +298,11 @@ public class SysProperties {
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
+    
+    /**
+     * System property <code>h2.traceIO</code> (default: false).<br />
+     * Trace I/O operations.
+     */
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 
     private static String baseDir = getStringSetting("h2.baseDir", null);

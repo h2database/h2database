@@ -137,22 +137,40 @@ public class Doclet {
             if (!field.isFinal() || !field.isStatic() || !field.isPublic()) {
                 continue;
             }
+            String text = field.commentText();
+            if (text.startsWith("INTERNAL")) {
+                continue;
+            }
             if (fieldId == 0) {
                 writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
             String name = field.name();
             String type = getTypeName(true, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
-            // writer.println("<a href=\"#f" + fieldId + "\">" + name + "</a>");
             String constant = field.constantValueExpression();
+            
+            // add a link (a name) if there is a <code> tag
+            int linkStart = text.indexOf("<code>");
+            if (linkStart >= 0) {
+                int linkEnd = text.indexOf("</code>", linkStart);
+                String link = text.substring(linkStart + "<code>".length(), linkEnd);
+                if (constant != null && !constant.equals(link)) {
+                    throw new Error("wrong code tag? " + clazz.name() + "." + name + 
+                            " code: " + link + " constant: " + constant);
+                }
+                if (Character.isDigit(link.charAt(0))) {
+                    link = "c" + link;
+                }
+                writer.println("<a name=\"" + link + "\"></a>");
+            }
+            
             if (constant == null) {
                 writer.println(name);
             } else {
                 writer.println(name + " = " + constant);
             }
-            String text = field.commentText();
             if (text != null) {
-                writer.println("<div class=\"methodText\">" + formatText(text) + "</div>");
+                writer.println("<div class=\"fieldText\">" + formatText(text) + "</div>");
             }
             writer.println("</td></tr>");
             fieldId++;

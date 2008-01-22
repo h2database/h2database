@@ -5,10 +5,10 @@
 package org.h2.constraint;
 
 import java.sql.SQLException;
+
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
@@ -288,11 +288,7 @@ public class ConstraintReferential extends Constraint {
         Cursor cursor = index.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;
-            if (SysProperties.INDEX_LOOKUP_NEW) {
-                found = cursor.getSearchRow();
-            } else {
-                found = cursor.get();
-            }
+            found = cursor.getSearchRow();
             Column[] cols = index.getColumns();
             boolean allEqual = true;
             for (int i = 0; i < columns.length && i < cols.length; i++) {

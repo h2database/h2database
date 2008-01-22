@@ -538,29 +538,18 @@ public class TableFilter implements ColumnResolver {
     }
 
     public Value getValue(Column column) throws SQLException {
-        if (SysProperties.INDEX_LOOKUP_NEW) {
-            if (currentSearchRow == null) {
-                return null;
-            }
-            int columnId = column.getColumnId();
-            if (current == null) {
-                Value v = currentSearchRow.getValue(columnId);
-                if (v != null) {
-                    return v;
-                }
-                current = cursor.get();
-            }
-            return current.getValue(columnId);
-        } else {
-            if (currentSearchRow == null) {
-                return null;
-            }
-            if (current == null) {
-                current = cursor.get();
-            }
-            int columnId = column.getColumnId();
-            return current.getValue(columnId);
+        if (currentSearchRow == null) {
+            return null;
         }
+        int columnId = column.getColumnId();
+        if (current == null) {
+            Value v = currentSearchRow.getValue(columnId);
+            if (v != null) {
+                return v;
+            }
+            current = cursor.get();
+        }
+        return current.getValue(columnId);
     }
 
     public TableFilter getTableFilter() {

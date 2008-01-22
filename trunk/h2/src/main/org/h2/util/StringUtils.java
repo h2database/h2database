@@ -608,6 +608,11 @@ public class StringUtils {
         return buff.append('\"').toString();
     }
 
+    /**
+     * Check if a String is null or empty (the length is null).
+     *
+     * @return true if it is null or empty
+     */
     public static boolean isNullOrEmpty(String s) {
         return s == null || s.length() == 0;
     }

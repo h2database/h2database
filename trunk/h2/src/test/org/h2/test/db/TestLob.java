@@ -34,6 +34,7 @@ public class TestLob extends TestBase {
         if (config.memory) {
             return;
         }
+        testLobVariable();
         testLobDrop();
         testLobNoClose();
         testLobTransactions(10);
@@ -52,6 +53,23 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+
+    private void testLobVariable() throws Exception {
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
+        stat.execute("INSERT INTO TEST VALUES(1, SPACE(100000))");
+        stat.execute("SET @TOTAL = SELECT DATA FROM TEST WHERE ID=1");
+        stat.execute("DROP TABLE TEST");
+        stat.execute("CALL @TOTAL LIKE '%X'");
+        stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
+        stat.execute("INSERT INTO TEST VALUES(1, @TOTAL)");
+        stat.execute("INSERT INTO TEST VALUES(2, @TOTAL)");
+        stat.execute("DROP TABLE TEST");
+        stat.execute("CALL @TOTAL LIKE '%X'");
+        conn.close();
     }
 
     private void testLobDrop() throws Exception {

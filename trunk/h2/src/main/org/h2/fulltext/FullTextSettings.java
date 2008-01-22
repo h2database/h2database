@@ -67,11 +67,11 @@ public class FullTextSettings {
 
     private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
+        ResultSet rs = stat.executeQuery("CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
         rs.next();
         String path = rs.getString(1);
-        if (path == null) {
-            throw new SQLException("FULLTEXT", "Fulltext search for in-memory databases is not supported.");
+        if ("MEM:UNNAMED".equals(path)) {
+            throw new SQLException("FULLTEXT", "Fulltext search for private (unnamed) in-memory databases is not supported.");
         }
         rs.close();
         return path;

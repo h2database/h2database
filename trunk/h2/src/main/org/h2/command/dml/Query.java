@@ -223,10 +223,17 @@ public abstract class Query extends Prepared {
             }
         }
         lastParameters = params;
+        closeLastResult();
         lastResult = queryWithoutCache(limit);
         this.lastEvaluated = now;
         lastLimit = limit;
         return lastResult;
+    }
+
+    private void closeLastResult() {
+        if (lastResult != null) {
+            lastResult.close();
+        }
     }
 
     protected void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,

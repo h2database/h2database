@@ -60,6 +60,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLob;
 
 /**
  * There is one database object per open database.
@@ -869,6 +870,14 @@ public class Database implements DataHandler {
             }
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
+        }
+        // remove all session variables
+        if (persistent) {
+            try {
+                ValueLob.removeAllForTable(this, ValueLob.TABLE_ID_SESSION);
+            } catch (SQLException e) {
+                traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            }
         }
         try {
             closeOpenFilesAndUnlock();

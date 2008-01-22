@@ -21,10 +21,34 @@ public class TestBigResult extends TestBase {
         if (config.memory) {
             return;
         }
+        testLargeSubquery();
         testLargeUpdateDelete();
         testCloseConnectionDelete();
         testOrderGroup();
         testLimitBufferedResult();
+    }
+
+    private void testLargeSubquery() throws Exception {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        int len = getSize(1000, 4000);
+        stat.execute("SET MAX_MEMORY_ROWS " + (len / 10));
+        stat.execute("CREATE TABLE RECOVERY(TRANSACTION_ID INT, SQL_STMT VARCHAR)");
+        stat.execute("INSERT INTO RECOVERY " +
+                "SELECT X, CASE MOD(X, 2) WHEN 0 THEN 'commit' ELSE 'begin' END " +
+                "FROM SYSTEM_RANGE(1, "+len+")");
+        ResultSet rs = stat.executeQuery("SELECT * FROM RECOVERY WHERE SQL_STMT LIKE 'begin%' AND " +
+                "TRANSACTION_ID NOT IN(SELECT TRANSACTION_ID FROM RECOVERY " +
+                "WHERE SQL_STMT='commit' OR SQL_STMT='rollback')");
+        int count = 0, last = 1;
+        while (rs.next()) {
+            check(last, rs.getInt(1));
+            last += 2;
+            count++;
+        }
+        check(len / 2, count);
+        conn.close();
     }
 
     private void testLargeUpdateDelete() throws Exception {

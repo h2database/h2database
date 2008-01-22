@@ -46,33 +46,30 @@ public class ConditionInSelect extends Condition {
         }
         query.setSession(session);
         LocalResult rows = query.query(0);
+        session.addTemporaryResult(rows);
         boolean hasNull = false;
         boolean result = all;
-        try {
-            while (rows.next()) {
-                boolean value;
-                Value r = rows.currentRow()[0];
-                if (r == ValueNull.INSTANCE) {
-                    value = false;
-                    hasNull = true;
-                } else {
-                    value = Comparison.compareNotNull(database, l, r, compareType);
-                }
-                if (!value && all) {
-                    result = false;
-                    break;
-                } else if (value && !all) {
-                    result = true;
-                    break;
-                }
+        while (rows.next()) {
+            boolean value;
+            Value r = rows.currentRow()[0];
+            if (r == ValueNull.INSTANCE) {
+                value = false;
+                hasNull = true;
+            } else {
+                value = Comparison.compareNotNull(database, l, r, compareType);
             }
-            if (!result && hasNull) {
-                return ValueNull.INSTANCE;
+            if (!value && all) {
+                result = false;
+                break;
+            } else if (value && !all) {
+                result = true;
+                break;
             }
-            return ValueBoolean.get(result);
-        } finally {
-            rows.close();
         }
+        if (!result && hasNull) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(result);
     }
 
     public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {

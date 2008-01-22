@@ -226,10 +226,10 @@ public class SysProperties {
      * Optimize IN(...) comparisons.
      */
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
-    
+
     /**
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
-     * Optimize IN(SELECT ...) comparisons by converting them to a join.
+     * Optimize IN(...) comparisons by converting them to inner joins.
      */
     public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
@@ -244,17 +244,17 @@ public class SysProperties {
      * Cache subquery results.
      */
     public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
-    
+
     /**
      * System property <code>h2.optimizeNot</code> (default: true).<br />
-     * Optimize NOT expression.
+     * Optimize NOT conditions by removing the NOT and inverting the condition.
      */
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
     
     /**
      * System property <code>h2.optimizeTwoEquals</code> (default: true).<br />
      * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is added so an index on A can be used.
-     */    
+     */   
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
 
     /**
@@ -298,10 +298,10 @@ public class SysProperties {
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
-    
+
     /**
      * System property <code>h2.traceIO</code> (default: false).<br />
-     * Trace I/O operations.
+     * Trace all I/O operations.
      */
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 

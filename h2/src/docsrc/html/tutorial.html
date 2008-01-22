@@ -34,6 +34,8 @@ Tutorial
     Java Web Start / JNLP</a><br />
 <a href="#fulltext">
     Fulltext Search</a><br />
+<a href="#user_defined_variables">
+    User Defined Variables</a><br />
 
 <br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
@@ -591,5 +593,28 @@ You can also call the index from within a Java application:
 <pre>
 org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset)
 </pre>
+
+<br /><a name="user_defined_variables"></a>
+<h2>User Defined Variables</h2>
+<p>
+This database supports user defined variables. Variables start with @ and can be used whereever
+expressions or parameters are used. Variables not persisted and session scoped, that means only visible for
+the session where they are defined. A value is usually assigned using the SET command:
+</p>
+<pre>
+SET @USER = 'Joe';
+</pre>
+<p>
+It is also possible to change a value using the SET() method. This is useful in queries:
+</p>
+<pre>
+SET @TOTAL = NULL;
+SELECT X, SET(@TOTAL, IFNULL(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
+</pre>
+<p>
+Variables that are not set evaluate to NULL. The data type of a user defined variable is the data type
+of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them.
+There are no restrictions on the assigned values, large objects (LOBs) are supported as well.
+</p>
 
 </div></td></tr></table></body></html>

@@ -463,7 +463,7 @@ public class Column {
     }
 
     public String getDefaultSQL() {
-        return defaultExpression == null ? "" : defaultExpression.getSQL();
+        return defaultExpression == null ? null : defaultExpression.getSQL();
     }
 
     public int getPrecisionAsInt() {

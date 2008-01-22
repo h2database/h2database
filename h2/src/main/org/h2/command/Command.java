@@ -139,6 +139,7 @@ public abstract class Command implements CommandInterface {
     }
 
     private void stop() throws SQLException {
+        session.closeTemporaryResults();
         session.setCurrentCommand(null, 0);
         if (!isTransactional()) {
             session.commit(true);

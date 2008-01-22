@@ -28,12 +28,9 @@ public class ConditionExists extends Condition {
     public Value getValue(Session session) throws SQLException {
         query.setSession(session);
         LocalResult result = query.query(1);
-        try {
-            boolean r = result.getRowCount() > 0;
-            return ValueBoolean.get(r);
-        } finally {
-            result.close();
-        }
+        session.addTemporaryResult(result);
+        boolean r = result.getRowCount() > 0;
+        return ValueBoolean.get(r);
     }
 
     public Expression optimize(Session session) throws SQLException {

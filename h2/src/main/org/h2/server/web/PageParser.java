@@ -223,19 +223,21 @@ public class PageParser {
         return escapeHtml(s, true);
     }
 
-    public static String escapeHtml(String s, boolean convertBreak) {
+    private static String escapeHtml(String s, boolean convertBreak) {
         if (s == null) {
             return null;
         }
-        if (s.length() == 0) {
-            return "&nbsp;";
+        if (convertBreak) {
+            if (s.length() == 0) {
+                return "&nbsp;";
+            }
         }
         StringBuffer buff = new StringBuffer(s.length());
         boolean convertSpace = true;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == ' ') {
-                if (convertSpace) {
+                if (convertSpace && convertBreak) {
                     buff.append("&nbsp;");
                 } else {
                     buff.append(' ');

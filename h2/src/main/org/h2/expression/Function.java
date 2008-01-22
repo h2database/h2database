@@ -114,8 +114,8 @@ public class Function extends Expression implements FunctionCall {
         datePart.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
         datePart.put("DD", ObjectUtils.getInteger(Calendar.DATE));
         datePart.put("DAY", ObjectUtils.getInteger(Calendar.DATE));
-        datePart.put("HH", ObjectUtils.getInteger(Calendar.HOUR));
-        datePart.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR));
+        datePart.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
+        datePart.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
         datePart.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
         datePart.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
         datePart.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
@@ -1102,7 +1102,7 @@ public class Function extends Expression implements FunctionCall {
 //            return (t2 - t1) / 1000;
 //        case Calendar.MINUTE:
 //            return (t2 - t1) / 1000 / 60;
-//        case Calendar.HOUR:
+//        case Calendar.HOUR_OF_DAY:
 //            return (t2 - t1) / 1000 / 60 / 60;
 //        case Calendar.DATE:
 //            return (t2 - t1) / 1000 / 60 / 60 / 24;
@@ -1170,7 +1170,7 @@ public class Function extends Expression implements FunctionCall {
             return t2 - t1;
         case Calendar.SECOND:
         case Calendar.MINUTE:
-        case Calendar.HOUR: {
+        case Calendar.HOUR_OF_DAY: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
@@ -1181,7 +1181,7 @@ public class Function extends Expression implements FunctionCall {
                 return t2 / 1000 - t1 / 1000;
             case Calendar.MINUTE:
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
-            case Calendar.HOUR:
+            case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
             default:
                 throw Message.getInternalError("field:" + field);

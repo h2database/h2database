@@ -26,6 +26,7 @@ import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
@@ -33,6 +34,7 @@ import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
@@ -77,6 +79,7 @@ public class Session implements SessionInterface {
     private long sessionStart = System.currentTimeMillis();
     private long currentCommandStart;
     private HashMap variables;
+    private HashSet temporaryResults;
 
     public Session() {
     }
@@ -87,12 +90,22 @@ public class Session implements SessionInterface {
         }
     }
 
-    public void setVariable(String name, Value value) {
+    public void setVariable(String name, Value value) throws SQLException {
         initVariables();
+        Value old;
         if (value == ValueNull.INSTANCE) {
-            variables.remove(name);
+            old = (Value) variables.remove(name);
         } else {
-            variables.put(name, value);
+            if (value instanceof ValueLob) {
+                // link it, to make sure we have our own file
+                value = value.link(database, ValueLob.TABLE_ID_SESSION);
+            }
+            old = (Value) variables.put(name, value);
+        }
+        if (old != null) {
+            // close the old value (in case it is a lob)
+            old.unlink();
+            old.close();
         }
     }
 
@@ -659,6 +672,22 @@ public class Session implements SessionInterface {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 // ignore
+            }
+        }
+    }
+
+    public void addTemporaryResult(LocalResult result) {
+        if (temporaryResults == null) {
+            temporaryResults = new HashSet();
+        }
+        temporaryResults.add(result);
+    }
+
+    public void closeTemporaryResults() {
+        if (temporaryResults != null) {
+            for (Iterator it = temporaryResults.iterator(); it.hasNext();) {
+                LocalResult result = (LocalResult) it.next();
+                result.close();
             }
         }
     }

@@ -29,6 +29,7 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
         conn = getConnection("metaData");
 
+        testColumnDefault();
         testCrossReferences();
         testProcedureColumns();
 
@@ -188,6 +189,22 @@ public class TestMetaData extends TestBase {
         conn.close();
         testTempTable();
 
+    }
+
+    private void testColumnDefault() throws Exception {
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT DEFAULT NULL)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        rs.next();
+        check("A", rs.getString("COLUMN_NAME"));
+        check(null, rs.getString("COLUMN_DEF"));
+        rs.next();
+        check("B", rs.getString("COLUMN_NAME"));
+        check("NULL", rs.getString("COLUMN_DEF"));
+        checkFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testProcedureColumns() throws Exception {
@@ -550,24 +567,24 @@ public class TestMetaData extends TestBase {
         testResultSetOrdered(rs,
                 new String[][] {
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "" + Types.INTEGER, "INTEGER", "10", "10", "0",
-                                "10", "" + DatabaseMetaData.columnNoNulls, "", "", "" + Types.INTEGER, "0", "10", "1",
+                                "10", "" + DatabaseMetaData.columnNoNulls, "", null, "" + Types.INTEGER, "0", "10", "1",
                                 "NO" },
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "TEXT_V", "" + Types.VARCHAR, "VARCHAR", "120",
-                                "120", "0", "10", "" + DatabaseMetaData.columnNullable, "", "", "" + Types.VARCHAR,
+                                "120", "0", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.VARCHAR,
                                 "0", "120", "2", "YES" },
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "DEC_V", "" + Types.DECIMAL, "DECIMAL", "12", "12",
-                                "3", "10", "" + DatabaseMetaData.columnNullable, "", "", "" + Types.DECIMAL, "0", "12",
+                                "3", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.DECIMAL, "0", "12",
                                 "3", "YES" },
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "DATE_V", "" + Types.TIMESTAMP, "TIMESTAMP", "23",
-                                "23", "10", "10", "" + DatabaseMetaData.columnNullable, "", "", "" + Types.TIMESTAMP,
+                                "23", "10", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.TIMESTAMP,
                                 "0", "23", "4", "YES" },
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "BLOB_V", "" + Types.BLOB, "BLOB",
                                 "" + Integer.MAX_VALUE, "" + Integer.MAX_VALUE, "0", "10",
-                                "" + DatabaseMetaData.columnNullable, "", "", "" + Types.BLOB, "0",
+                                "" + DatabaseMetaData.columnNullable, "", null, "" + Types.BLOB, "0",
                                 "" + Integer.MAX_VALUE, "5", "YES" },
                         { catalog, Constants.SCHEMA_MAIN, "TEST", "CLOB_V", "" + Types.CLOB, "CLOB",
                                 "" + Integer.MAX_VALUE, "" + Integer.MAX_VALUE, "0", "10",
-                                "" + DatabaseMetaData.columnNullable, "", "", "" + Types.CLOB, "0",
+                                "" + DatabaseMetaData.columnNullable, "", null, "" + Types.CLOB, "0",
                                 "" + Integer.MAX_VALUE, "6", "YES" } });
         /*
          * rs=meta.getColumns(null,null,"TEST",null); while(rs.next()) { int

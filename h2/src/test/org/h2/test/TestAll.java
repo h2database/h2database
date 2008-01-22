@@ -150,14 +150,59 @@ java org.h2.test.TestAll timer
 
 /*
 
-CACHE_SIZE_INDEX_DEFAULT
-INTERNAL
-ErrorCodes doesn't look nice
+drop table test;
+create table test(id int);
+insert into test values(1);
+select extract(hour from timestamp '2001-02-03 14:15:16') from test;
+select extract(hour from '2001-02-03 14:15:16') from test;
+select hour('2001-02-03 14:15:16') from test;
+
+
+
+A bug was introduced into the H2 Console's Web Server last year. When
+opening the Console (default port 8082), the user is presented with
+web page that includes a <select> of Saved Settings
+(.h2.server.properties). If the Name of a setting contains consecutive
+spaces, the spaces may get escaped to '&nbsp;'. That causes the name
+in HTML to no longer match the name from the properties file. Thus,
+the setting cannot be selected by the user.
+
+
+
+Noting a 'compatibility' difference between H2 and Oracle or MySQL. In
+org.h2.expression.Fucntion.java, you map 'HOUR' to Calendar.HOUR
+instead of Calendar.HOUR_OF_DAY. This, given a timestamp at 6pm,
+Oracle and MySQL will return 18 whereas H2 will return 6. It seems a
+bug in H2 to me, because trying to GROUP on EXTRACT(HOUR FROM...) will
+fold all afternoon aggregates into the morning aggregates. Even if it
+is a bug in H2, I guess it could be problematic to 'fix it' since
+existing users of H2 might rely the 'buggy' behaviour. Could you
+change the default to HOUR_OF_DAY and make it an option to keep the
+old HOUR behaviour?
+
+flights.zip     example usage
+    light.zip   source code and binary jar
+
+copyright 2008
+
+other databases return SQL 'null' if there is no column default defined. The next release of H2 will do the same.
+
+google analytics to web site
+
+quaere:
+where(test(a).bigger(b));
+where(test(a, BIGGER, b));
+where(test(a).bigger(b).and(a).smaller(b));
 
 
 Roadmap:
 
 History:
+The method EXTRACT(HOUR FROM...) returned the wrong values (0 to 11 instead of 0 to 23).
+For compatibility with other databases the column default (COLUMN_DEF) for columns without default is now null (it was an empty string).
+Statements that contain very large subqueries (where the subquery result does not fit in memory) are now faster.
+Variables: large objects (CLOB and BLOB) that don't fit in memory did not work correctly when used as variables.
+Fulltext search is now supported in named in-memory databases.
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

@@ -10,16 +10,65 @@ package org.h2.constant;
 public class ErrorCode {
 
     // 02: no data
+    /**
+     * The error with code <code>2000</code> is thrown when
+     * the result set is positioned before the first or after the last row, or
+     * not on a valid row for the given operation.
+     * Example:
+     * <pre>
+     * ResultSet rs = stat.executeQuery("SELECT * FROM DUAL");
+     * rs.getString(1);
+     * </pre>
+     * Correct:
+     * <pre>
+     * ResultSet rs = stat.executeQuery("SELECT * FROM DUAL");
+     * rs.next();
+     * rs.getString(1);
+     * </pre>
+     */    
     public static final int NO_DATA_AVAILABLE = 2000;
 
     // 07: dynamic SQL error
+    /**
+     * The error with code <code>7001</code> is thrown when
+     * trying to call a function with the wrong number of parameters.
+     * Example:
+     * <pre>
+     * CALL ABS(1, 2)
+     * </pre>
+     */        
     public static final int INVALID_PARAMETER_COUNT_2 = 7001;
 
     // 08: connection exception
+    /**
+     * The error with code <code>8000</code> is thrown when
+     * there was a problem trying to create a database lock.
+     * See the cause for details.
+     */       
     public static final int ERROR_OPENING_DATABASE = 8000;
+    
+    /**
+     * The error with code <code>8004</code> is thrown when
+     * there is no such user registered in the database, when
+     * the user password does not match, or when the database encryption password
+     * does not match (if database encryption is used).
+     */       
     public static final int WRONG_USER_OR_PASSWORD = 8004;
 
     // 21: cardinality violation
+    /**
+     * The error with code <code>21002</code> is thrown when
+     * the number of columns does not match.
+     * Possible reasons are: for an INSERT or MERGE statement, the column count does not match
+     * the table or the column list specified. For a SELECT UNION statement, both queries 
+     * return a different number of columns. For a constraint, the number of referenced and referencing
+     * columns does not match.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR);
+     * INSERT INTO TEST VALUES('Hello');
+     * </pre>
+     */
     public static final int COLUMN_COUNT_DOES_NOT_MATCH = 21002;
 
     // 22: data exception
@@ -62,16 +111,14 @@ public class ErrorCode {
     public static final int METHOD_ONLY_ALLOWED_FOR_QUERY = 90002;
 
     /**
-     * Thrown when trying to convert a String to a binary value. Two hex digits
+     * The error with code <code>90003</code> is thrown when
+     * trying to convert a String to a binary value. Two hex digits
      * per byte are required. Example:
-     *
      * <pre>
      * CALL X'00023';
      * Hexadecimal string with odd number of characters: 00023
      * </pre>
-     *
      * Correct:
-     *
      * <pre>
      * CALL X'000023';
      * </pre>
@@ -91,17 +138,17 @@ public class ErrorCode {
     public static final int SUM_OR_AVG_ON_WRONG_DATATYPE_1 = 90015;
 
     /**
-     * The column must be included in the GROUP BY clause. Example:
-     *
+     * The error with code <code>90016</code> is thrown when 
+     * a column was used in the expression list or the order by clause 
+     * of a group or aggregate query, and that column is not in the GROUP BY clause. 
+     * Example:
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
      * SELECT ID, MAX(NAME) FROM TEST;
      * Column ID must be in the GROUP BY list.
      * </pre>
-     *
      * Correct:
-     *
      * <pre>
      * SELECT ID, MAX(NAME) FROM TEST GROUP BY ID;
      * </pre>
@@ -110,13 +157,13 @@ public class ErrorCode {
     public static final int SECOND_PRIMARY_KEY = 90017;
 
     /**
-     * The connection was opened, but never closed. In the finalizer of the
+     * The error with code <code>90018</code> is thrown when 
+     * the connection was opened, but never closed. In the finalizer of the
      * connection, this forgotten close was detected and the connection was
      * closed automatically, but relying on the finalizer is not good practice
      * as it is not guaranteed and behavior is virtual machine dependent. The
      * application should close the connection. This exception only appears in
      * the .trace.db file. Example:
-     *
      * <pre>
      * Connection conn = DriverManager.getConnection(&quot;jdbc:h2:&tilde;/test&quot;);
      * conn = null;
@@ -126,7 +173,6 @@ public class ErrorCode {
      * <pre>
      * conn.close();
      * </pre>
-     *
      */
     public static final int TRACE_CONNECTION_NOT_CLOSED = 90018;
     public static final int CANNOT_DROP_CURRENT_USER = 90019;
@@ -180,7 +226,9 @@ public class ErrorCode {
     public static final int CONNECTION_BROKEN = 90067;
 
     /**
-     * The given expression that is used in the ORDER BY clause must be in the result list, otherwise the result would be ambiguous.
+     * The error with code <code>90068</code> is thrown when 
+     * the given expression that is used in the ORDER BY is not in the result list.
+     * This is required for distinct queries, otherwise the result would be ambiguous.
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * INSERT INTO TEST VALUES(2, 'Hello'), (1, 'Hello');
@@ -211,8 +259,8 @@ public class ErrorCode {
     public static final int CANNOT_DROP_LAST_COLUMN = 90084;
 
     /**
-     * The index was generated by the system because of a unique constraint,
-     * and it is not allowed to drop it manually.
+     * The error with code <code>90085</code> is thrown when 
+     * trying to manually drop an index that was generated by the system because of a unique constraint.
      * <pre>
      * CREATE TABLE TEST(ID INT, CONSTRAINT UID UNIQUE(ID));
      * DROP INDEX UID_INDEX_0;
@@ -229,7 +277,10 @@ public class ErrorCode {
     public static final int UNKNOWN_MODE_1 = 90088;
 
     /**
-     * The collection of the database must be set when the database is empty.
+     * The error with code <code>90089</code> is thrown when 
+     * trying to change the collation while there was already data in
+     * the database. The collation of the database must be set when the 
+     * database is empty.
      * <pre>
      * CREATE TABLE TEST(NAME VARCHAR PRIMARY KEY);
      * INSERT INTO TEST VALUES('Hello', 'World');
@@ -268,7 +319,8 @@ public class ErrorCode {
     public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
 
     /**
-     * When locking was disabled, a row was deleted twice.
+     * The error with code <code>90112</code> is thrown when 
+     * a row was deleted twice while locking was disabled.
      * This is an intern exception that should never be thrown to the application,
      * because such deleted should be detected and the resulting exception ignored inside the database engine.
      * <pre>
@@ -290,7 +342,8 @@ public class ErrorCode {
     public static final int FILE_NOT_FOUND_1 = 90124;
 
     /**
-     * This exception is thrown when PreparedStatement.setBigDecimal is called
+     * The error with code <code>90125</code> is thrown when 
+     * PreparedStatement.setBigDecimal is called
      * with object that extends the class BigDecimal, and the system property
      * h2.allowBigDecimalExtensions is not set. Using extensions of BigDecimal is
      * dangerous because the database relies on the behavior of BigDecimal.
@@ -319,7 +372,8 @@ public class ErrorCode {
     public static final int UNSUPPORTED_OUTER_JOIN_CONDITION_1 = 90136;
 
     /**
-     * Can only assign to a variable.
+     * The error with code <code>90137</code> is thrown when 
+     * trying to assign a value to something that is not a variable.
      * <pre>
      * SELECT AMOUNT, SET(@V, IFNULL(@V, 0)+AMOUNT) FROM TEST;
      * </pre>

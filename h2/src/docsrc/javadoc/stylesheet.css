@@ -71,6 +71,9 @@ td.method {
 .method {
 }
 
+.fieldText {
+    margin: 6px 20px 6px 20px;
+}
 
 .methodName {
     font-weight: bold;

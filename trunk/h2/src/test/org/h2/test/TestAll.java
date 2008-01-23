@@ -155,8 +155,6 @@ sourceforge h2 database
 update wikipedia
 try https://hudson.dev.java.net/
 
-google analytics to web site
-
 quaere:
 where(test(a).bigger(b));
 where(test(a, BIGGER, b));
@@ -166,16 +164,6 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
-The acting as PostgreSQL server, when a base directory was set, and the H2 Console was started as well,
-    the base directory was applied twice.
-Calling EXTRACT(HOUR FROM ...) or EXTRACT(HH FROM ...) returned the wrong values (0 to 11 instead of 0 to 23).
-    All other tested databases return values from 0 to 23.
-    Please check if your application relies on the old behavior before upgrading.
-For compatibility with other databases the column default (COLUMN_DEF) for columns without default is now null (it was an empty string).
-Statements that contain very large subqueries (where the subquery result does not fit in memory) are now faster.
-Variables: large objects (CLOB and BLOB) that don't fit in memory did not work correctly when used as variables.
-Fulltext search is now supported in named in-memory databases.
-H2 Console: multiple consequtive spaces in the setting name did not work. Fixed.
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

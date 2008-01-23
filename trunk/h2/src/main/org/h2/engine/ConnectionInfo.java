@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -67,8 +67,8 @@ public class ConnectionInfo {
         }
         this.url = u;
         readProperties(info);
-        readSettings();
-        readUser();
+        readSettingsFromURL();
+        setUserName(removeProperty("USER", ""));
         readPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
@@ -143,7 +143,7 @@ public class ConnectionInfo {
         }
     }
 
-    private void readSettings() throws SQLException {
+    private void readSettingsFromURL() throws SQLException {
         int idx = url.indexOf(';');
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
@@ -192,13 +192,7 @@ public class ConnectionInfo {
         }
     }
 
-    private void readUser() {
-        // TODO document: the user name is case-insensitive (stored uppercase)
-        // and english conversion is used
-        user = StringUtils.toUpperEnglish(removeProperty("USER", ""));
-    }
-
-    void readPasswords() throws SQLException {
+    public void readPasswords() throws SQLException {
         char[] password = removePassword();
         SHA256 sha = new SHA256();
         if (getProperty("CIPHER", null) != null) {
@@ -297,7 +291,9 @@ public class ConnectionInfo {
     }
 
     public void setUserName(String name) {
-        this.user = name;
+        // TODO document: the user name is case-insensitive (stored uppercase)
+        // and english conversion is used
+        this.user = StringUtils.toUpperEnglish(name);
     }
 
     public void setUserPasswordHash(byte[] bs) {

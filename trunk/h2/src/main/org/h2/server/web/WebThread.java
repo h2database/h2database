@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -240,7 +240,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         for (int i = 0; i < elements.length; i++) {
             String value = elements[i];
             buff.append("<option value=\"");
-            buff.append(PageParser.escapeHtml(value));
+            buff.append(PageParser.escapeHtmlData(value));
             buff.append("\"");
             if (value.equals(selected)) {
                 buff.append(" selected");
@@ -257,7 +257,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         for (int i = 0; i < elements.length; i++) {
             String[] n = elements[i];
             buff.append("<option value=\"");
-            buff.append(PageParser.escapeHtml(n[0]));
+            buff.append(PageParser.escapeHtmlData(n[0]));
             buff.append("\"");
             if (n[0].equals(selected)) {
                 buff.append(" selected");
@@ -558,7 +558,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String getHistory() {
         int id = Integer.parseInt(attributes.getProperty("id"));
         String sql = session.getCommand(id);
-        session.put("query", PageParser.escapeHtmlNoBreak(sql));
+        session.put("query", PageParser.escapeHtmlData(sql));
         return "query.jsp";
     }
 

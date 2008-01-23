@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools.code;
@@ -29,7 +29,7 @@ public class CheckTextFiles {
     boolean autoFix = true;
     boolean useCRLF = true;
     // must contain "+" otherwise this here counts as well
-    String copyrightLicense = "Copyright 2004-2007 H2 Group. "
+    String copyrightLicense = "Copyright 2004-2008 H2 Group. "
             + "Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).";
     String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task" };
     boolean hasError;

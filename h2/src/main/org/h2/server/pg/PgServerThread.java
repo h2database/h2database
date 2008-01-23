@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.pg;
@@ -26,9 +26,10 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Properties;
 
-import org.h2.Driver;
+import org.h2.constant.SysProperties;
+import org.h2.engine.ConnectionInfo;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectUtils;
@@ -174,22 +175,26 @@ public class PgServerThread implements Runnable {
             server.log("PasswordMessage");
             String password = readString();
             try {
+                ConnectionInfo ci = new ConnectionInfo(databaseName);
                 String baseDir = server.getBaseDir();
-                String db = databaseName;
+                if (baseDir == null) {
+                    baseDir = SysProperties.getBaseDir();
+                }
                 if (baseDir != null) {
-                    db = baseDir + "/" + db;
+                    ci.setBaseDir(baseDir);
                 }
                 if (server.getIfExists()) {
-                    db += ";IFEXISTS=TRUE";
+                    ci.setProperty("IFEXISTS", "TRUE");
                 }
-                String url = "jdbc:h2:" + db + ";MODE=PostgreSQL";
+                ci.setProperty("MODE", "PostgreSQL");
+                ci.setOriginalURL("jdbc:h2:" + databaseName + ";MODE=PostgreSQL");
+                ci.setUserName(userName);
+                ci.setProperty("PASSWORD", password);
+                ci.readPasswords();
+                conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs
                 // conn = DriverManager.getConnection(url, userName, password);
-                Properties prop = new Properties();
-                prop.setProperty("user", userName);
-                prop.setProperty("password", password);
-                conn = Driver.load().connect(url, prop);
                 initDb();
                 sendAuthenticationOk();
             } catch (SQLException e) {

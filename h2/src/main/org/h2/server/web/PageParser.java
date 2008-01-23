@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2007 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -215,19 +215,31 @@ public class PageParser {
         return false;
     }
 
-    public static String escapeHtmlNoBreak(String s) {
+    /**
+     * Convert data to HTML, but don't convert newlines and multiple spaces.
+     *
+     * @param s the data
+     * @return the escaped html text
+     */
+    public static String escapeHtmlData(String s) {
         return escapeHtml(s, false);
     }
 
+    /**
+     * Convert data to HTML, including newlines and multiple spaces.
+     *
+     * @param s the data
+     * @return the escaped html text
+     */
     public static String escapeHtml(String s) {
         return escapeHtml(s, true);
     }
 
-    private static String escapeHtml(String s, boolean convertBreak) {
+    private static String escapeHtml(String s, boolean convertBreakAndSpace) {
         if (s == null) {
             return null;
         }
-        if (convertBreak) {
+        if (convertBreakAndSpace) {
             if (s.length() == 0) {
                 return "&nbsp;";
             }
@@ -237,7 +249,7 @@ public class PageParser {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == ' ') {
-                if (convertSpace && convertBreak) {
+                if (convertSpace && convertBreakAndSpace) {
                     buff.append("&nbsp;");
                 } else {
                     buff.append(' ');
@@ -268,7 +280,7 @@ public class PageParser {
                 buff.append("&#39;");
                 break;
             case '\n':
-                if (convertBreak) {
+                if (convertBreakAndSpace) {
                     buff.append("<br />");
                     convertSpace = true;
                 } else {

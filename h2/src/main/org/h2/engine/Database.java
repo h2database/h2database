@@ -21,7 +21,6 @@ import org.h2.constant.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.log.LogSystem;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
@@ -378,7 +377,7 @@ public class Database implements DataHandler {
         return store;
     }
 
-    public void checkFilePasswordHash(String c, byte[] hash) throws JdbcSQLException {
+    public void checkFilePasswordHash(String c, byte[] hash) throws SQLException {
         if (!ByteUtils.compareSecure(hash, filePasswordHash) || !StringUtils.equals(c, cipher)) {
             throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }

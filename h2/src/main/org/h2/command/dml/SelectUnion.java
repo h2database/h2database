@@ -15,7 +15,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.SortOrder;
@@ -50,7 +49,7 @@ public class SelectUnion extends Query {
         this.unionType = type;
     }
 
-    public void setRight(Query select) throws JdbcSQLException {
+    public void setRight(Query select) throws SQLException {
         right = select;
     }
 

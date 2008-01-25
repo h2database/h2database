@@ -22,6 +22,9 @@ import org.h2.util.StringUtils;
 public class LinkChecker {
 
     private static final boolean OPEN_EXTERNAL_LINKS = false;
+    private static final String[] IGNORE_MISSING_LINKS_TO = new String[]{
+        "SysProperties", "ErrorCode"
+    };
 
     public static void main(String[] args) throws Exception {
         new LinkChecker().run(args);
@@ -76,7 +79,16 @@ public class LinkChecker {
         for (Iterator it = targets.keySet().iterator(); it.hasNext();) {
             String name = (String) it.next();
             if (targets.get(name).equals("name")) {
-                errors.add("No link to " + name);
+                boolean ignore = false;
+                for (int i = 0; i < IGNORE_MISSING_LINKS_TO.length; i++) {
+                    if (name.indexOf(IGNORE_MISSING_LINKS_TO[i]) >= 0) {
+                        ignore = true;
+                        break;
+                    }
+                }
+                if (!ignore) {
+                    errors.add("No link to " + name);
+                }
             }
         }
         Collections.sort(errors);

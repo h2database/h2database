@@ -17,7 +17,6 @@ import java.util.Properties;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -314,7 +313,7 @@ public class FileLock {
         return Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
     }
 
-    public static int getFileLockMethod(String method) throws JdbcSQLException {
+    public static int getFileLockMethod(String method) throws SQLException {
         if (method == null || method.equalsIgnoreCase("FILE")) {
             return FileLock.LOCK_FILE;
         } else if (method.equalsIgnoreCase("NO")) {

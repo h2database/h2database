@@ -150,6 +150,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+orphan?
+
 javadoc: design patterns
 sourceforge h2 database
 update wikipedia
@@ -164,6 +166,8 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
+The exception "Hexadecimal string contains non-hex character" was not always thrown when it should have been. Fixed.
+The H2 Console now provides a link to the documentation when an error occurs (H2 databases only so far).
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

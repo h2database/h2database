@@ -18,8 +18,8 @@ public class TestXASimple extends TestBase {
 
     public void test() throws Exception {
 
-        deleteDb("xaDb1");
-        deleteDb("xaDb2");
+        deleteDb("xaSimple1");
+        deleteDb("xaSimple2");
         Class.forName("org.h2.Driver");
 
         // InitialContext context = new InitialContext();
@@ -28,12 +28,12 @@ public class TestXASimple extends TestBase {
         JdbcDataSource ds1 = new JdbcDataSource();
         ds1.setPassword("");
         ds1.setUser("sa");
-        ds1.setURL("jdbc:h2:" + baseDir + " /xaDb1");
+        ds1.setURL("jdbc:h2:" + baseDir + " /xaSimple1");
 
         JdbcDataSource ds2 = new JdbcDataSource();
         ds2.setPassword("");
         ds2.setUser("sa");
-        ds2.setURL("jdbc:h2:" + baseDir + "/xaDb2");
+        ds2.setURL("jdbc:h2:" + baseDir + "/xaSimple2");
 
         // UserTransaction ut = (UserTransaction)
         // context.lookup("UserTransaction");
@@ -58,8 +58,8 @@ public class TestXASimple extends TestBase {
 
         // j.stop();
         // System.exit(0);
-        deleteDb("xaDb1");
-        deleteDb("xaDb2");
+        deleteDb("xaSimple1");
+        deleteDb("xaSimple2");
 
     }
 }

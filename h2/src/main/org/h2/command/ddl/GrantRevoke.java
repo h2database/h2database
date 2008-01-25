@@ -12,7 +12,6 @@ import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
@@ -52,7 +51,7 @@ public class GrantRevoke extends DefineCommand {
         roleNames.add(roleName);
     }
 
-    public void setGranteeName(String granteeName) throws JdbcSQLException {
+    public void setGranteeName(String granteeName) throws SQLException {
         Database db = session.getDatabase();
         grantee = db.findUser(granteeName);
         if (grantee == null) {

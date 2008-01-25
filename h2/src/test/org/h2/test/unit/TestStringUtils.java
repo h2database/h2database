@@ -6,10 +6,12 @@ package org.h2.test.unit;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.util.ByteUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -18,11 +20,31 @@ import org.h2.util.StringUtils;
 public class TestStringUtils extends TestBase {
 
     public void test() throws Exception {
+        testHex();
         testXML();
         testSplit();
         testJavaString();
         testURL();
         testPad();
+    }
+
+    private void testHex() throws Exception {
+        check("face", ByteUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
+        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("face"));
+        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("fAcE"));
+        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
+        try {
+            ByteUtils.convertStringToBytes("120");
+            error("unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        try {
+            ByteUtils.convertStringToBytes("fast");
+            error("unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
     }
 
     private void testPad() throws Exception {

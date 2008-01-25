@@ -56,7 +56,7 @@ public class XMLChecker {
         if (!suffix.equals("html") && !suffix.equals("xml") && !suffix.equals("jsp")) {
             return;
         }
-        System.out.println("Checking file:" + fileName);
+        // System.out.println("Checking file:" + fileName);
         FileReader reader = new FileReader(fileName);
         String s = readStringAndClose(reader, -1);
         Exception last = null;

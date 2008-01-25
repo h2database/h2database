@@ -726,12 +726,13 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String tables() {
         DbContents contents = session.getContents();
+        boolean isH2 = false;
         try {
             contents.readContents(session.getMetaData());
             session.loadBnf();
             Connection conn = session.getConnection();
             DatabaseMetaData meta = session.getMetaData();
-            boolean isH2 = contents.isH2;
+            isH2 = contents.isH2;
 
             StringBuffer buff = new StringBuffer();
             buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript((String) session.get("url"))
@@ -807,24 +808,29 @@ class WebThread extends Thread implements DatabaseEventListener {
             session.put("tree", buff.toString());
         } catch (Exception e) {
             session.put("tree", "");
-            session.put("error", getStackTrace(0, e));
+            session.put("error", getStackTrace(0, e, isH2));
         }
         return "tables.jsp";
     }
 
-    private String getStackTrace(int id, Throwable e) {
+    private String getStackTrace(int id, Throwable e, boolean isH2) {
         try {
             StringWriter writer = new StringWriter();
             e.printStackTrace(new PrintWriter(writer));
-            String s = writer.toString();
-            s = PageParser.escapeHtml(s);
-            s = StringUtils.replaceAll(s, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+            String stackTrace = writer.toString();
+            stackTrace = PageParser.escapeHtml(stackTrace);
+            stackTrace = StringUtils.replaceAll(stackTrace, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
             String message = PageParser.escapeHtml(e.getMessage());
-            s = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
-                    + "').style;x.display=x.display==''?'none':'';\">" + message
-                    + "</a><span style=\"display: none;\" id=\"st" + id + "\"><br />" + s + "</span>";
-            s = formatAsError(s);
-            return s;
+            String error = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
+                    + "').style;x.display=x.display==''?'none':'';\">" + message + "</a>";
+            if (e instanceof SQLException && isH2) {
+                SQLException se = (SQLException) e;
+                int code = se.getErrorCode();
+                error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code + "\">(${text.a.help})</a>";
+            }
+            error += "<span style=\"display: none;\" id=\"st" + id + "\"><br />" + stackTrace + "</span>";
+            error = formatAsError(error);
+            return error;
         } catch (OutOfMemoryError e2) {
             e.printStackTrace();
             return e.toString();
@@ -843,22 +849,23 @@ class WebThread extends Thread implements DatabaseEventListener {
         session.put("driver", driver);
         session.put("url", url);
         session.put("user", user);
+        boolean isH2 = url.startsWith("jdbc:h2:");
         try {
             Connection conn = server.getConnection(driver, url, user, password, this);
             JdbcUtils.closeSilently(conn);
             session.put("error", "${text.login.testSuccessful}");
             return "login.jsp";
         } catch (Exception e) {
-            session.put("error", getLoginError(e));
+            session.put("error", getLoginError(e, isH2));
             return "login.jsp";
         }
     }
 
-    private String getLoginError(Exception e) {
+    private String getLoginError(Exception e, boolean isH2) {
         if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
-            return "${text.login.driverNotFound}<br />" + getStackTrace(0, e);
+            return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
         } else {
-            return getStackTrace(0, e);
+            return getStackTrace(0, e, isH2);
         }
     }
 
@@ -879,6 +886,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             thread = true;
         }
         if (!thread) {
+            boolean isH2 = url.startsWith("jdbc:h2:");
             try {
                 Connection conn = server.getConnection(driver, url, user, password, this);
                 session.setConnection(conn);
@@ -888,7 +896,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 settingSave();
                 return "frame.jsp";
             } catch (Exception e) {
-                session.put("error", getLoginError(e));
+                session.put("error", getLoginError(e, isH2));
                 return "login.jsp";
             }
         }
@@ -969,6 +977,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
             public void run() {
                 String sessionId = (String) session.get("sessionId");
+                boolean isH2 = url.startsWith("jdbc:h2:");
                 try {
                     Connection conn = server.getConnection(driver, url, user, password, this);
                     session.setConnection(conn);
@@ -979,7 +988,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     log("OK<script type=\"text/javascript\">top.location=\"frame.jsp?jsessionid=" +sessionId+ "\"</script></body></htm>");
                     // return "frame.jsp";
                 } catch (Exception e) {
-                    session.put("error", getLoginError(e));
+                    session.put("error", getLoginError(e, isH2));
                     log("Error<script type=\"text/javascript\">top.location=\"index.jsp?jsessionid=" +sessionId+ "\"</script></body></html>");
                     // return "index.jsp";
                 }
@@ -1026,7 +1035,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     try {
                         result = executeJava(sql.substring("@JAVA".length()));
                     } catch (Throwable t) {
-                        result = getStackTrace(0, t);
+                        result = getStackTrace(0, t, false);
                     }
                 } else {
                     result = "Executing Java code is not allowed, use command line parameters -webScript true";
@@ -1076,7 +1085,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
             session.put("result", result);
         } catch (Throwable e) {
-            session.put("result", getStackTrace(0, e));
+            session.put("result", getStackTrace(0, e, session.getContents().isH2));
         }
         return "result.jsp";
     }
@@ -1198,7 +1207,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 // cancel
             }
         } catch (Throwable e) {
-            result = "<br />" + getStackTrace(0, e);
+            result = "<br />" + getStackTrace(0, e, session.getContents().isH2);
             error = formatAsError(e.getMessage());
         }
         String sql = "@EDIT " + (String) session.get("resultSetSQL");
@@ -1532,7 +1541,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             return buff.toString();
         } catch (Throwable e) {
             // throwable: including OutOfMemoryError and so on
-            return getStackTrace(id, e);
+            return getStackTrace(id, e, session.getContents().isH2);
         } finally {
             session.executingStatement = null;
         }

@@ -55,7 +55,7 @@ public class LinkChecker {
                 if (OPEN_EXTERNAL_LINKS) {
                     StartBrowser.openURL(link);
                 }
-                System.out.println("External Link: " + link);
+                // System.out.println("External Link: " + link);
             }
         }
     }

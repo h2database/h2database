@@ -113,7 +113,11 @@ public class TestFileSystem extends TestBase {
         random.nextBytes(buffer);
         fo.write(buffer, 0, 10000);
         fo.close();
-        check(fs.getLastModified(fsBase + "/test") >= time);
+        long lastMod = fs.getLastModified(fsBase + "/test");
+        if (lastMod < time - 999) {
+            // at most 1 second difference
+            check(lastMod, time);
+        }
         check(fs.length(fsBase + "/test"), 10000);
         list = fs.listFiles(fsBase);
         check(list.length, 1);

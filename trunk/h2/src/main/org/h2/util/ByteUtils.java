@@ -50,15 +50,23 @@ public class ByteUtils {
         }
         len /= 2;
         byte[] buff = new byte[len];
-        try {
-            for (int i = 0; i < len; i++) {
-                buff[i] = (byte) ((Character.digit(s.charAt(i + i), 16) << 4) | (Character.digit(s.charAt(i + i + 1),
-                        16)));
-            }
-        } catch (NumberFormatException e) {
-            throw Message.getSQLException(ErrorCode.HEX_STRING_WRONG_1, s);
+        for (int i = 0; i < len; i++) {
+            buff[i] = (byte) ((getHexDigit(s, i + i) << 4) | getHexDigit(s, i + i + 1));
         }
         return buff;
+    }
+
+    private static int getHexDigit(String s, int i) throws SQLException {
+        char c = s.charAt(i);
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        } else if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 0xa;
+        } else if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 0xa;
+        } else {
+            throw Message.getSQLException(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
     }
 
     public static int getByteArrayHash(byte[] value) {

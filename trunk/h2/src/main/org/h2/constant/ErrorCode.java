@@ -77,7 +77,7 @@ public class ErrorCode {
      * a value is out of range when converting to another data type.
      * Example:
      * <pre>
-     *CALL CAST(1000000 AS TINYINT);
+     * CALL CAST(1000000 AS TINYINT);
      * </pre>
      */
     public static final int NUMERIC_VALUE_OUT_OF_RANGE = 22003;
@@ -87,38 +87,163 @@ public class ErrorCode {
      * trying to divide a value by zero.
      * Example:
      * <pre>
-     *CALL 1/0;
+     * CALL 1/0;
      * </pre>
      */
     public static final int DIVISION_BY_ZERO_1 = 22012;
 
     /**
      * The error with code <code>22025</code> is thrown when
-     * using an invalid escape character sequence for LIKE or REGEXP
+     * using an invalid escape character sequence for LIKE or REGEXP.
      * Example:
      * <pre>
-     *CALL 'Hello' LIKE '1+' ESCAPE '+';
+     * CALL 'Hello' LIKE '1+' ESCAPE '+';
      * </pre>
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;
 
     // 23: integrity constraint violation
+    /**
+     * The error with code <code>23000</code> is thrown when
+     * a check constraint is violated.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT CHECK ID>0);
+     * INSERT INTO TEST VALUES(0);
+     * </pre>
+     */
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23000;
+
+    /**
+     * The error with code <code>23001</code> is thrown when
+     * trying to insert a row that would violate a unique index or primary key.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT PRIMARY KEY);
+     * INSERT INTO TEST VALUES(1);
+     * INSERT INTO TEST VALUES(1);
+     * </pre>
+     */
     public static final int DUPLICATE_KEY_1 = 23001;
+
+    /**
+     * The error with code <code>23002</code> is thrown when
+     * trying to insert or update a row that would violate a referential constraint,
+     * because the referenced row does not exist.
+     * Example:
+     * <pre>
+     * CREATE TABLE PARENT(ID INT);
+     * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
+     * INSERT INTO CHILD VALUES(1);
+     * </pre>
+     */
     public static final int REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1 = 23002;
+
+    /**
+     * The error with code <code>23003</code> is thrown when
+     * trying to delete or update a row when this would violate a referential constraint,
+     * because there is a child row that would become an orphan.
+     * Example:
+     * <pre>
+     * CREATE TABLE PARENT(ID INT);
+     * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
+     * INSERT INTO PARENT VALUES(1);
+     * INSERT INTO CHILD VALUES(1);
+     * DELETE FROM PARENT;
+     * </pre>
+     */
     public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23003;
 
     // 3B: savepoint exception
 
     // 42: syntax error or access rule violation
+    /**
+     * The error with code <code>42000</code> is thrown when
+     * trying to execute an invalid SQL statement.
+     * Example:
+     * <pre>
+     * CREATE ALIAS REMAINDER FOR "IEEEremainder";
+     * </pre>
+     */
     public static final int SYNTAX_ERROR_1 = 42000;
+
+    /**
+     * The error with code <code>42001</code> is thrown when
+     * trying to execute an invalid SQL statement.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST(1);
+     * </pre>
+     */
     public static final int SYNTAX_ERROR_2 = 42001;
+
+    /**
+     * The error with code <code>42101</code> is thrown when
+     * trying to create a table or view if an object with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * CREATE TABLE TEST(ID INT PRIMARY KEY);
+     * </pre>
+     */
     public static final int TABLE_OR_VIEW_ALREADY_EXISTS_1 = 42101;
+
+    /**
+     * The error with code <code>42102</code> is thrown when
+     * trying to query, modify or drop a table or view that does not exists.
+     * Example:
+     * <pre>
+     * SELECT * FROM ABC;
+     * </pre>
+     */
     public static final int TABLE_OR_VIEW_NOT_FOUND_1 = 42102;
+
+    /**
+     * The error with code <code>42111</code> is thrown when
+     * trying to create an index if an index with the same name already exists.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR);
+     * CREATE INDEX IDX_ID ON TEST(ID);
+     * CREATE TABLE ADDRESS(ID INT);
+     * CREATE INDEX IDX_ID ON ADDRESS(ID);
+     * </pre>
+     */
     public static final int INDEX_ALREADY_EXISTS_1 = 42111;
+
+    /**
+     * The error with code <code>42112</code> is thrown when
+     * trying to drop or reference an index that does not exist.
+     * Example:
+     * <pre>
+     * DROP INDEX ABC;
+     * </pre>
+     */
     public static final int INDEX_NOT_FOUND_1 = 42112;
+
+    /**
+     * The error with code <code>42121</code> is thrown when
+     * trying to create a table or insert into a table and use the same column name twice.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, ID INT);
+     * </pre>
+     */
     public static final int DUPLICATE_COLUMN_NAME_1 = 42121;
+
+    /**
+     * The error with code <code>42122</code> is thrown when
+     * referencing an non-existing column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * SELECT NAME FROM TEST;
+     * </pre>
+     */
     public static final int COLUMN_NOT_FOUND_1 = 42122;
+
+
     public static final int SETTING_NOT_FOUND_1 = 42132;
 
     // 0A: feature not supported
@@ -126,14 +251,71 @@ public class ErrorCode {
     // HZ: remote database access
 
     //
+    /**
+     * The error with code <code>50000</code> is thrown when
+     * something unexpected occurs, for example an internal stack
+     * overflow. For details about the problem, see the cause of the
+     * exception in the stack trace.
+     */
     public static final int GENERAL_ERROR_1 = 50000;
+
+    /**
+     * The error with code <code>50004</code> is thrown when
+     * creating a table with an unsupported data type, or
+     * when the data type is unknown because parameters are used.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID VERYSMALLINT);
+     * </pre>
+     */
     public static final int UNKNOWN_DATA_TYPE_1 = 50004;
 
+    /**
+     * The error with code <code>50100</code> is thrown when
+     * calling an unsupported JDBC method.
+     */
     public static final int FEATURE_NOT_SUPPORTED = 50100;
+
+    /**
+     * The error with code <code>50200</code> is thrown when
+     * another connection locked an object longer than the lock timeout
+     * set for this connection, or when a deadlock occured.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * -- connection 1:
+     * SET AUTOCOMMIT FALSE;
+     * INSERT INTO TEST VALUES(1);
+     * -- connection 2:
+     * SET AUTOCOMMIT FALSE;
+     * INSERT INTO TEST VALUES(1);
+     * </pre>
+     */
     public static final int LOCK_TIMEOUT_1 = 50200;
 
+    /**
+     * The error with code <code>90000</code> is thrown when
+     * a function that does not return a result set was used in the FROM clause.
+     * Example:
+     * <pre>
+     * SELECT * FROM SIN(1);
+     * </pre>
+     */
     public static final int FUNCTION_MUST_RETURN_RESULT_SET_1 = 90000;
+
+    /**
+     * The error with code <code>90001</code> is thrown when
+     * Statement.executeUpdate() was called for a SELECT statement.
+     * This is not allowed according to the JDBC specs.
+     */
     public static final int METHOD_NOT_ALLOWED_FOR_QUERY = 90001;
+
+    /**
+     * The error with code <code>90002</code> is thrown when
+     * Statement.executeQuery() was called for a statement that does
+     * not return a result set (for example, an UPDATE statement).
+     * This is not allowed according to the JDBC specs.
+     */
     public static final int METHOD_ONLY_ALLOWED_FOR_QUERY = 90002;
 
     /**
@@ -150,14 +332,97 @@ public class ErrorCode {
      * </pre>
      */
     public static final int HEX_STRING_ODD_1 = 90003;
+
+    /**
+     * The error with code <code>90004</code> is thrown when
+     * trying to convert a text to binary, but the expression contains
+     * a non-hexadecimal character.
+     * Example:
+     * <pre>
+     * CALL X'ABCDEFGH';
+     * CALL CAST('ABCDEFGH' AS BINARY);
+     * </pre>
+     * Conversion from text to binary is supported, but the text must
+     * represent the hexadecimal encoded bytes.
+     */
     public static final int HEX_STRING_WRONG_1 = 90004;
+
+    /**
+     * The error with code <code>90005</code> is thrown when
+     * trying to insert a value that is too long for the column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR(2));
+     * INSERT INTO TEST VALUES(1, 'Hello');
+     * </pre>
+     */
     public static final int VALUE_TOO_LONG_1 = 90005;
+
+    /**
+     * The error with code <code>90006</code> is thrown when
+     * trying to insert NULL into a column that does not allow NULL.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR NOT NULL);
+     * INSERT INTO TEST(ID) VALUES(1);
+     * </pre>
+     */
     public static final int NULL_NOT_ALLOWED = 90006;
+
+    /**
+     * The error with code <code>90007</code> is thrown when
+     * trying to call a JDBC method on an object that has been closed.
+     */
     public static final int OBJECT_CLOSED = 90007;
+
+    /**
+     * The error with code <code>90008</code> is thrown when
+     * trying to use a value that is not valid for the given operation.
+     * Example:
+     * <pre>
+     * CREATE SEQUENCE TEST INCREMENT 0;
+     * </pre>
+     */
     public static final int INVALID_VALUE_2 = 90008;
+
+    /**
+     * The error with code <code>90009</code> is thrown when
+     * a text can not be converted to a date constant.
+     * Example:
+     * <pre>
+     * CALL DATE '2007-January-01';
+     * </pre>
+     */
     public static final int DATE_CONSTANT_2 = 90009;
+
+    /**
+     * The error with code <code>90010</code> is thrown when
+     * a text can not be converted to a time constant.
+     * Example:
+     * <pre>
+     * CALL TIME '14:61:00';
+     * </pre>
+     */
     public static final int TIME_CONSTANT_2 = 90010;
+
+    /**
+     * The error with code <code>90011</code> is thrown when
+     * a text can not be converted to a timestamp constant.
+     * Example:
+     * <pre>
+     * CALL TIMESTAMP '2001-02-30 12:00:00';
+     * </pre>
+     */
     public static final int TIMESTAMP_CONSTANT_2 = 90011;
+
+    /**
+     * The error with code <code>90012</code> is thrown when
+     * trying to execute a statement with an parameter.
+     * Example:
+     * <pre>
+     * CALL SIN(?);
+     * </pre>
+     */
     public static final int PARAMETER_NOT_SET_1 = 90012;
     public static final int DATABASE_NOT_FOUND_1 = 90013;
     public static final int PARSE_ERROR_1 = 90014;

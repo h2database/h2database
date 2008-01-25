@@ -17,7 +17,6 @@ import org.h2.engine.DbObjectBase;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.index.Index;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -222,7 +221,7 @@ public class Schema extends DbObjectBase {
         return table;
     }
 
-    public Index getIndex(String name) throws JdbcSQLException {
+    public Index getIndex(String name) throws SQLException {
         Index index = (Index) indexes.get(name);
         if (index == null) {
             throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, name);

@@ -24,7 +24,6 @@ import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
@@ -740,7 +739,7 @@ public class DataType {
     }
 
     public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
-            throws JdbcSQLException {
+            throws SQLException {
         if (paramClass == java.sql.Blob.class) {
             return new JdbcBlob(session, conn, v, 0);
         } else if (paramClass == Clob.class) {

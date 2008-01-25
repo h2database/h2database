@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -44,8 +43,8 @@ public class Sequence extends SchemaObjectBase {
         return increment;
     }
 
-    public void setIncrement(long inc) throws JdbcSQLException {
-        if (increment == 0) {
+    public void setIncrement(long inc) throws SQLException {
+        if (inc == 0) {
             throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" }, null);
         }
         this.increment = inc;

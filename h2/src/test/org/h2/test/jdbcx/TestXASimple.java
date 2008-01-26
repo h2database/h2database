@@ -28,7 +28,7 @@ public class TestXASimple extends TestBase {
         JdbcDataSource ds1 = new JdbcDataSource();
         ds1.setPassword("");
         ds1.setUser("sa");
-        ds1.setURL("jdbc:h2:" + baseDir + " /xaSimple1");
+        ds1.setURL("jdbc:h2:" + baseDir + "/xaSimple1");
 
         JdbcDataSource ds2 = new JdbcDataSource();
         ds2.setPassword("");

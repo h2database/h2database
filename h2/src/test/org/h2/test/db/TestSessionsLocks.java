@@ -99,11 +99,16 @@ public class TestSessionsLocks extends TestBase {
         };
         new Thread(runnable).start();
         while (true) {
-            Thread.sleep(1000);
+            Thread.sleep(100);
             rs = stat.executeQuery("CALL CANCEL_SESSION(" + otherId + ")");
             rs.next();
             if (rs.getBoolean(1)) {
-                Thread.sleep(100);
+            	for (int i = 0; i < 20; i++) {
+            		Thread.sleep(100);
+            		if (done[0]) {
+            			break;
+            		}
+            	}
                 check(done[0]);
                 break;
             } else {

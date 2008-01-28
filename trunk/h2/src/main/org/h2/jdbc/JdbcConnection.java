@@ -234,6 +234,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (session == null) {
                 return;
             }
+            session.cancel();
             synchronized (session) {
                 try {
                     if (!session.isClosed()) {

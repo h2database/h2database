@@ -357,7 +357,7 @@ public class TableLink extends Table {
         boolean deleteInsert;
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
-                session.checkCancelled();
+                prepared.checkCancelled();
                 Row oldRow = rows.next();
                 Row newRow = rows.next();
                 linkedIndex.update(session, oldRow, newRow);

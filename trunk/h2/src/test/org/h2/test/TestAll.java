@@ -104,6 +104,7 @@ import org.h2.test.unit.TestStringUtils;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
+import org.h2.test.unit.TestValueMemory;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
@@ -121,12 +122,12 @@ Random test:
 cd bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"
-start cmd /k "java -cp . org.h2.test.TestAll crash >testCrash.txt"
 start cmd /k "java -cp . org.h2.test.TestAll synth >testSynth.txt"
 start cmd /k "java -cp . org.h2.test.TestAll all >testAll.txt"
 start cmd /k "java -cp . org.h2.test.TestAll random >testRandom.txt"
 start cmd /k "java -cp . org.h2.test.TestAll btree >testBtree.txt"
 start cmd /k "java -cp . org.h2.test.TestAll halt >testHalt.txt"
+java -cp . org.h2.test.TestAll crash >testCrash.txt
 
 java org.h2.test.TestAll timer
 
@@ -150,6 +151,51 @@ java org.h2.test.TestAll timer
 
 /*
 
+adjust cache memory usage
+
+simple pure java config file (interpreted)
+
+DROP ALL OBJECTS;
+SET MAX_LENGTH_INPLACE_LOB 32768;
+CREATE TABLE TEST(ID IDENTITY, DATA CLOB);
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
+CALL MEMORY_USED();
+
+ResultRemote.close()
+   public void close() {
+       result = null;
+       // NULL OUT THE SESSION REFERENCE
+       sendClose();
+       if (lobValues != null) {
+           for (int i = 0; i < lobValues.size(); i++) {
+               Value v = (Value) lobValues.get(i);
+               try {
+                   v.close();
+               } catch (SQLException e) {
+                   // BANG NullPointerException
+                   session.getTrace().error("delete lob " + v.getSQL(), e);
+               }
+           }
+           lobValues = null;
+       }
+   }
+
 orphan?
 
 javadoc: design patterns
@@ -166,6 +212,8 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
+The cache size was not correctly calculated for tables with large objects (specially if compression is used).
+  This could lead to out-of-memory exceptions.
 The exception "Hexadecimal string contains non-hex character" was not always thrown when it should have been. Fixed.
 The H2 Console now provides a link to the documentation when an error occurs (H2 databases only so far).
 
@@ -592,6 +640,7 @@ Features of H2
         new TestTools().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
+        new TestValueMemory().runTest(this);
 
         afterTest();
     }

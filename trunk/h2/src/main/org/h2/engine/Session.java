@@ -74,7 +74,8 @@ public class Session implements SessionInterface {
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
-    private boolean isClosed;
+    private volatile long cancelAt;
+    private boolean closed;
     private boolean rollbackMode;
     private long sessionStart = System.currentTimeMillis();
     private long currentCommandStart;
@@ -150,7 +151,7 @@ public class Session implements SessionInterface {
         if (!SysProperties.runFinalize) {
             return;
         }
-        if (!isClosed) {
+        if (!closed) {
             throw Message.getInternalError("not closed", stackTrace);
         }
     }
@@ -205,7 +206,7 @@ public class Session implements SessionInterface {
     }
 
     public Command prepareLocal(String sql) throws SQLException {
-        if (isClosed) {
+        if (closed) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
         Parser parser = new Parser(this);
@@ -320,13 +321,17 @@ public class Session implements SessionInterface {
         return id;
     }
 
+    public void cancel() {
+        cancelAt = System.currentTimeMillis();
+    }
+
     public void close() throws SQLException {
-        if (!isClosed) {
+        if (!closed) {
             try {
                 cleanTempTables(true);
                 database.removeSession(this);
             } finally {
-                isClosed = true;
+                closed = true;
             }
         }
     }
@@ -420,7 +425,7 @@ public class Session implements SessionInterface {
         if (traceModuleName == null) {
             traceModuleName = Trace.JDBC + "[" + id + "]";
         }
-        if (isClosed) {
+        if (closed) {
             return new TraceSystem(null, false).getTrace(traceModuleName);
         }
         return database.getTrace(traceModuleName);
@@ -512,7 +517,7 @@ public class Session implements SessionInterface {
     }
 
     public boolean isClosed() {
-        return isClosed;
+        return closed;
     }
 
     public void setThrottle(int throttle) {
@@ -541,8 +546,14 @@ public class Session implements SessionInterface {
     }
 
     public void checkCancelled() throws SQLException {
-        if (currentCommand != null) {
-            currentCommand.checkCancelled();
+        throttle();
+        if (cancelAt == 0) {
+            return;
+        }
+        long time = System.currentTimeMillis();
+        if (time >= cancelAt) {
+            cancelAt = 0;
+            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
         }
     }
 

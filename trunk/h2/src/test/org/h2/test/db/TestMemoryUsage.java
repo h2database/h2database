@@ -79,7 +79,7 @@ public class TestMemoryUsage extends TestBase {
 
         // update
         time = System.currentTimeMillis();
-        prep = conn.prepareStatement("UPDATE TEST SET NAME='Hallo Welt' WHERE ID = ?");
+        prep = conn.prepareStatement("UPDATE TEST SET NAME='Hallo Welt' || ID WHERE ID = ?");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.execute();

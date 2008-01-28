@@ -70,4 +70,8 @@ abstract class ValueBytesBase extends Value {
         return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) v).value) == 0;
     }
 
+    public int getMemory() {
+        return value.length + 4;
+    }
+
 }

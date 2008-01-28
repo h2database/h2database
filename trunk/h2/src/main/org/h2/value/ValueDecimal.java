@@ -185,4 +185,8 @@ public class ValueDecimal extends Value {
         return v instanceof ValueDecimal && value.equals(((ValueDecimal) v).value);
     }
 
+    public int getMemory() {
+        return getString().length() * 3 + 120;
+    }
+
 }

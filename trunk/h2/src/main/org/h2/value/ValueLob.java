@@ -642,4 +642,11 @@ public class ValueLob extends Value {
         this.fileName = fileName;
     }
 
+    public int getMemory() {
+        if (small != null) {
+            return small.length + 32;
+        }
+        return 128;
+    }
+
 }

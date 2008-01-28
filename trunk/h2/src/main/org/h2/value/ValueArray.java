@@ -133,4 +133,12 @@ public class ValueArray extends Value {
         return true;
     }
 
+    public int getMemory() {
+        int memory = 0;
+        for (int i = 0; i < values.length; i++) {
+            memory += values[i].getMemory();
+        }
+        return memory;
+    }
+
 }

@@ -60,4 +60,8 @@ abstract class ValueStringBase extends Value {
         return v instanceof ValueString && value.equals(((ValueString) v).value);
     }
 
+    public int getMemory() {
+        return value.length() * 2 + 30;
+    }
+
 }

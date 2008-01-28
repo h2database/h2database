@@ -224,7 +224,7 @@
 	</target>
 
 	<target name="jarDb" depends="compileResources, manifest">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
+		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="false">
 			<include name="org/h2/*" />
 			<include name="org/h2/engine/**" />
 			<include name="org/h2/jdbc/**" />

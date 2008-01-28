@@ -116,103 +116,103 @@ public class DataType {
         add(Value.SHORT, Types.SMALLINT, "Short",
                 createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0, ValueShort.DISPLAY_SIZE, false, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"},
-                1
+                5
         );
         add(Value.INT, Types.INTEGER, "Int",
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, false, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"},
-                1
+                5
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, false, false),
                 new String[]{"BIGINT", "INT8"},
-                1
+                5
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, false, true),
                 new String[]{"IDENTITY", "SERIAL"},
-                1
+                5
         );
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"DECIMAL", "DEC"},
-                7
+                17
                 // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"NUMERIC", "NUMBER"},
-                7
+                17
                 // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.FLOAT, Types.REAL, "Float",
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE, false, false),
                 new String[] {"REAL", "FLOAT4"},
-                1
+                5
         );
         add(Value.DOUBLE, Types.DOUBLE, "Double",
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, false, false),
                 new String[] { "DOUBLE", "DOUBLE PRECISION" },
-                1
+                4
         );
         add(Value.DOUBLE, Types.FLOAT, "Double",
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, false, false),
                 new String[] {"FLOAT", "FLOAT8" },
-                1
+                4
                 // TODO value: show min and max values, E format if supported
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0, ValueTime.DISPLAY_SIZE),
                 new String[]{"TIME"},
-                4
+                10
                 // TODO value: min / max for time
         );
         add(Value.DATE, Types.DATE, "Date",
                 createDate(ValueDate.PRECISION, "DATE", 0, ValueDate.DISPLAY_SIZE),
                 new String[]{"DATE"},
-                4
+                10
                 // TODO value: min / max for date
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP, "Timestamp",
                 createDate(ValueTimestamp.PRECISION, "TIMESTAMP", ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
                 new String[]{"TIMESTAMP", "DATETIME", "SMALLDATETIME"},
-                4
+                12
                 // TODO value: min / max for timestamp
         );
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),
                 new String[]{"VARBINARY"},
-                4
+               8
         );
         add(Value.BYTES, Types.BINARY, "Bytes",
                 createString(false),
                 new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"},
-                4
+                8
         );
         add(Value.BYTES, Types.LONGVARBINARY, "Bytes",
                 createString(false),
                 new String[]{"LONGVARBINARY"},
-                4
+                8
         );
         add(Value.UUID, Types.BINARY, "Bytes",
                 createString(false),
                 new String[]{"UUID"},
-                4
+                8
         );
         add(Value.JAVA_OBJECT, Types.OTHER, "Object",
                 createString(false),
                 new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"},
-                4
+                8
         );
         add(Value.BLOB, Types.BLOB, "Bytes",
                 createString(false),
                 new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE", "OID"},
-                4
+                8
         );
         add(Value.CLOB, Types.CLOB, "String",
                 createString(true),
                 new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT", "NCLOB"},
-                4
+                10
         );
         DataType dataType = new DataType();
         dataType.prefix = "(";
@@ -220,13 +220,13 @@ public class DataType {
         add(Value.ARRAY, Types.ARRAY, "Array",
                 dataType,
                 new String[]{"ARRAY"},
-                2
+                10
         );
         dataType = new DataType();
         add(Value.RESULT_SET, 0, "ResultSet",
                 dataType,
                 new String[]{"RESULT_SET"},
-                2
+                20
         );
         for (int i = 0; i < typesByValueType.length; i++) {
             DataType dt = typesByValueType[i];

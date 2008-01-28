@@ -34,6 +34,7 @@ import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -42,6 +43,7 @@ import org.h2.value.Value;
  * instead it is kept in the indexes. There is at least one index, the scan index.
  */
 public class TableData extends Table implements RecordReader {
+    private final boolean clustered;
     private ScanIndex scanIndex;
     private long rowCount;
     private Session lockExclusive;
@@ -50,7 +52,7 @@ public class TableData extends Table implements RecordReader {
     private boolean globalTemporary;
     private final ObjectArray indexes = new ObjectArray();
     private long lastModificationId;
-    private final boolean clustered;
+    private boolean containsLargeObject;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
             boolean persistent, boolean clustered) throws SQLException {
@@ -62,6 +64,11 @@ public class TableData extends Table implements RecordReader {
         if (!clustered) {
             scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));
             indexes.add(scanIndex);
+        }
+        for (int i = 0; i < cols.length; i++) {
+            if (DataType.isLargeObject(cols[i].getType())) {
+                containsLargeObject = true;
+            }
         }
         traceLock = database.getTrace(Trace.LOCK);
     }
@@ -457,7 +464,9 @@ public class TableData extends Table implements RecordReader {
         for (int i = 0; i < len; i++) {
             data[i] = s.readValue();
         }
-        return new Row(data, memoryPerRow);
+        int memory = containsLargeObject ? Row.MEMORY_CALCULATE : memoryPerRow;
+        Row row = new Row(data, memory);
+        return row;
     }
 
     public void setRowCount(int count) {
@@ -528,6 +537,10 @@ public class TableData extends Table implements RecordReader {
 
     public boolean isClustered() {
         return clustered;
+    }
+
+    public boolean getContainsLargeObject() {
+        return containsLargeObject;
     }
 
 }

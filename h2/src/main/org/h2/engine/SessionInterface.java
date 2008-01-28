@@ -73,4 +73,9 @@ public interface SessionInterface {
      * @return the data handler
      */
     DataHandler getDataHandler();
+
+    /**
+     * Cancel the current or next command (called when closing a connection).
+     */
+    void cancel();
 }

@@ -103,12 +103,12 @@ public class TestSessionsLocks extends TestBase {
             rs = stat.executeQuery("CALL CANCEL_SESSION(" + otherId + ")");
             rs.next();
             if (rs.getBoolean(1)) {
-            	for (int i = 0; i < 20; i++) {
-            		Thread.sleep(100);
-            		if (done[0]) {
-            			break;
-            		}
-            	}
+                for (int i = 0; i < 20; i++) {
+                    Thread.sleep(100);
+                    if (done[0]) {
+                        break;
+                    }
+                }
                 check(done[0]);
                 break;
             } else {

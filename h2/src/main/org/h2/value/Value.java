@@ -77,6 +77,15 @@ public abstract class Value {
     public abstract int getDisplaySize();
 
     /**
+     * Get the memory used by this object.
+     *
+     * @return the memory used in bytes
+     */
+    public int getMemory() {
+        return DataType.getDataType(getType()).memory * 4;
+    }
+
+    /**
      * Get the value as a string.
      *
      * @return the string

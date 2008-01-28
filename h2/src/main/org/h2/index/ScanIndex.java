@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.log.UndoLogRecord;
@@ -21,7 +22,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
@@ -35,7 +35,6 @@ public class ScanIndex extends BaseIndex {
     private ObjectArray rows = new ObjectArray();
     private Storage storage;
     private TableData tableData;
-    private boolean containsLargeObject;
     private int rowCountDiff;
     private HashMap sessionRowCount;
     private HashSet delta;
@@ -54,11 +53,6 @@ public class ScanIndex extends BaseIndex {
         rowCount = count;
         table.setRowCount(count);
         trace.info("open existing " + table.getName() + " rows: " + count);
-        for (int i = 0; i < columns.length; i++) {
-            if (DataType.isLargeObject(columns[i].column.getType())) {
-                containsLargeObject = true;
-            }
-        }
     }
 
     public void remove(Session session) throws SQLException {
@@ -75,7 +69,7 @@ public class ScanIndex extends BaseIndex {
         } else {
             storage.truncate(session);
         }
-        if (containsLargeObject && tableData.isPersistent()) {
+        if (tableData.getContainsLargeObject() && tableData.isPersistent()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);
@@ -104,7 +98,7 @@ public class ScanIndex extends BaseIndex {
 
     public void add(Session session, Row row) throws SQLException {
         if (storage != null) {
-            if (containsLargeObject) {
+            if (tableData.getContainsLargeObject()) {
                 for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     Value v2 = v.link(database, getId());
@@ -164,7 +158,7 @@ public class ScanIndex extends BaseIndex {
     public void remove(Session session, Row row) throws SQLException {
         if (storage != null) {
             storage.removeRecord(session, row.getPos());
-            if (containsLargeObject) {
+            if (tableData.getContainsLargeObject()) {
                 for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     if (v.isLinked()) {

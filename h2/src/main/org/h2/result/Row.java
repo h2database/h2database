@@ -15,6 +15,7 @@ import org.h2.value.Value;
  * Represents a row in a table.
  */
 public class Row extends Record implements SearchRow {
+    public static final int MEMORY_CALCULATE = -1;
     private final Value[] data;
     private final int memory;
 
@@ -63,7 +64,14 @@ public class Row extends Record implements SearchRow {
     }
 
     public int getMemorySize() {
-        return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
+        if (memory != MEMORY_CALCULATE) {
+            return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
+        }
+        int m = blockCount * (DiskFile.BLOCK_SIZE / 16);
+        for (int i = 0; data != null && i < data.length; i++) {
+            m += data[i].getMemory();
+        }
+        return m;
     }
 
     public String toString() {

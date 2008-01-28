@@ -135,7 +135,6 @@ public abstract class Command implements CommandInterface {
             cancel = false;
             throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
         }
-        session.throttle();
     }
 
     private void stop() throws SQLException {

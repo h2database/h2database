@@ -183,7 +183,7 @@ public class TestCases extends TestBase {
             }
         });
         t.start();
-        Thread.sleep(500);
+        Thread.sleep(300);
         long time = System.currentTimeMillis();
         conn.close();
         t.join(5000);

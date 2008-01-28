@@ -13,6 +13,11 @@ public class MemoryUtils {
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
 
+    /**
+     * Get the used memory in KB.
+     *
+     * @return the used memory
+     */
     public static int getMemoryUsed() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();
@@ -20,6 +25,11 @@ public class MemoryUtils {
         return (int) (mem >> 10);
     }
 
+    /**
+     * Get the free memory in KB.
+     *
+     * @return the used memory
+     */
     public static int getMemoryFree() {
         collectGarbage();
         Runtime rt = Runtime.getRuntime();

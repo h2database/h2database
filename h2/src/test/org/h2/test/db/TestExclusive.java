@@ -49,12 +49,12 @@ public class TestExclusive extends TestBase {
         t.start();
         state[0] = 1;
         stat.execute("set exclusive false");
-		for (int i = 0; i < 20; i++) {
-			Thread.sleep(100);
-			if (state[0] == 2) {
-				break;
-			}
-		}
+        for (int i = 0; i < 20; i++) {
+            Thread.sleep(100);
+            if (state[0] == 2) {
+                break;
+            }
+        }
         check(state[0], 2);
         stat.execute("set exclusive true");
         conn.close();

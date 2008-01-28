@@ -44,12 +44,14 @@ public class TestExit extends TestBase implements DatabaseEventListener {
             System.out.print((char) ch);
         }
         proc.waitFor();
+        Thread.sleep(100);
         if (!getClosedFile().exists()) {
             error("did not close database");
         }
         procDef = new String[] { "java", "-cp", classPath, getClass().getName(), "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();
+        Thread.sleep(100);
         if (getClosedFile().exists()) {
             error("closed database");
         }

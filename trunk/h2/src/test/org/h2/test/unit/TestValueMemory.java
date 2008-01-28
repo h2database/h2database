@@ -43,7 +43,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         }
     }
 
-    private void testType(int type) throws SQLException {
+    private void testType(int type) throws Exception {
         System.gc();
         System.gc();
         long first = MemoryUtils.getMemoryUsed();
@@ -60,10 +60,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         long used = MemoryUtils.getMemoryUsed() - first;
         memory /= 1024;
-        System.out.println("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length);
-        if (Math.abs(used - memory) > used / 10) {
-            int todoMaybeThrowError;
-            System.out.println("ERROR");
+        if (Math.abs(used - memory) > used) {
+            error("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length);
         }
     }
     Value create(int type) throws SQLException {

@@ -155,6 +155,7 @@ adjust cache memory usage
 
 simple pure java config file (interpreted)
 
+not done yet:
 DROP ALL OBJECTS;
 SET MAX_LENGTH_INPLACE_LOB 32768;
 CREATE TABLE TEST(ID IDENTITY, DATA CLOB);
@@ -196,6 +197,14 @@ ResultRemote.close()
        }
    }
 
+create table bla (id integer not null);
+alter table bla add constraint pk primary key (id);
+alter table bla drop constraint pk;
+alter table bla drop primary key;
+drop table bla;
+
+implement max_query_time and use it for TestCrashAPI
+
 orphan?
 
 javadoc: design patterns
@@ -212,10 +221,7 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
-The cache size was not correctly calculated for tables with large objects (specially if compression is used).
-  This could lead to out-of-memory exceptions.
-The exception "Hexadecimal string contains non-hex character" was not always thrown when it should have been. Fixed.
-The H2 Console now provides a link to the documentation when an error occurs (H2 databases only so far).
+
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

@@ -70,8 +70,8 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         t2.start();
         Thread.sleep(20);
         conn1.commit();
-        t2.join(100);
-        t1.join(100);
+        t2.join(1000);
+        t1.join(1000);
         ResultSet rs = s1.executeQuery("SELECT * FROM TEST1 ORDER BY ID");
         rs.next();
         check(rs.getInt(1), 1);

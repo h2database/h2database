@@ -64,7 +64,7 @@ public class TestBigDb extends TestBase {
                     if (t - time > 1000) {
                         time = t;
                         int free = MemoryUtils.getMemoryFree();
-                        System.out.println("i: " + i + " free: " + free + " used: " + MemoryUtils.getMemoryUsed());
+                        println("i: " + i + " free: " + free + " used: " + MemoryUtils.getMemoryUsed());
                     }
                 }
                 prep.setInt(1, i);
@@ -118,12 +118,9 @@ public class TestBigDb extends TestBase {
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES('Hello World')");
         int len = getSize(1000, 10000);
-        long time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
             if (i % 1000 == 0) {
-                long t = System.currentTimeMillis();
-                time = t;
-                trace("rows:" + i + " time:" + (t - time));
+                println("rows: " + i);
                 Thread.yield();
             }
             prep.execute();

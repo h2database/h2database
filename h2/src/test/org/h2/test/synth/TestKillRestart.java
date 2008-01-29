@@ -49,7 +49,7 @@ public class TestKillRestart extends TestBase {
                     error("Expected: #..., got: " + s);
                 } else if (s.startsWith("#Running")) {
                     Thread.sleep(100);
-                    printTime("Killing..." + i);
+                    printTime("killing: " + i);
                     p.destroy();
                     break;
                 } else if (s.startsWith("#Fail")) {

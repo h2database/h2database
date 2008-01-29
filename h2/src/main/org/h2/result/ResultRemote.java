@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.util.ObjectArray;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
@@ -163,7 +164,11 @@ public class ResultRemote implements ResultInterface {
     }
 
     public void close() {
+        if (session == null) {
+            return;
+        }
         result = null;
+        Trace trace = session.getTrace();
         sendClose();
         if (lobValues != null) {
             for (int i = 0; i < lobValues.size(); i++) {
@@ -171,7 +176,7 @@ public class ResultRemote implements ResultInterface {
                 try {
                     v.close();
                 } catch (SQLException e) {
-                    session.getTrace().error("delete lob " + v.getSQL(), e);
+                    trace.error("delete lob " + v.getSQL(), e);
                 }
             }
             lobValues = null;

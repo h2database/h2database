@@ -7,9 +7,12 @@ package org.h2.command.ddl;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
@@ -28,6 +31,7 @@ public class CreateIndex extends SchemaCommand {
     private boolean primaryKey, unique, hash;
     private boolean ifNotExists;
     private String comment;
+    private String constraintName;
 
     public CreateIndex(Session session, Schema schema) {
         super(session, schema);
@@ -55,6 +59,13 @@ public class CreateIndex extends SchemaCommand {
 
     public IndexColumn[] getIndexColumns() {
         return indexColumns;
+    }
+
+    private String generateConstraintName(DbObject obj, int id) throws SQLException {
+        if (constraintName == null) {
+            constraintName = getSchema().getUniqueConstraintName(obj);
+        }
+        return constraintName;
     }
 
     public int update() throws SQLException {
@@ -90,7 +101,20 @@ public class CreateIndex extends SchemaCommand {
             indexType = IndexType.createNonUnique(persistent);
         }
         IndexColumn.mapColumns(indexColumns, table);
-        table.addIndex(session, indexName, id, indexColumns, indexType, headPos, comment);
+        Index index = table.addIndex(session, indexName, id, indexColumns, indexType, headPos, comment);
+        int todo;
+//        if (primaryKey) {
+//            // TODO this code is a copy of CreateTable (primaryKey creation)
+//            // for primary keys, create a constraint as well
+//            String name = generateConstraintName(table, id);
+//            int constraintId = getObjectId(true, true);
+//            ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
+//            pk.setColumns(index.getIndexColumns());
+//            pk.setIndex(index, true);
+//            pk.setComment(comment);
+//            db.addSchemaObject(session, pk);
+//            table.addConstraint(pk);
+//        }
         return 0;
     }
 
@@ -112,6 +136,10 @@ public class CreateIndex extends SchemaCommand {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public void setConstraintName(String constraintName) {
+        this.constraintName = constraintName;
     }
 
 }

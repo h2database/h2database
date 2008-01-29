@@ -49,7 +49,7 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
         long time = System.currentTimeMillis();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
-        println("Create index " + prefix + ": " + (System.currentTimeMillis() - time) + " ms");
+        println("create " + prefix + ": " + (System.currentTimeMillis() - time));
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
         time = System.currentTimeMillis();
         ResultSet rs = stat.executeQuery("SELECT TEXT FROM TEST");
@@ -70,7 +70,7 @@ public class TestFullText extends TestBase {
                 }
             }
         }
-        println("Search " + prefix + ": " + (System.currentTimeMillis() - time) + " ms, count: " + count);
+        println("search " + prefix + ": " + (System.currentTimeMillis() - time) + " count: " + count);
         stat.execute("CALL " + prefix + "_DROP_ALL()");
         conn.close();
     }

@@ -37,6 +37,11 @@ public abstract class Constraint extends SchemaObjectBase {
     public static final String UNIQUE = "UNIQUE";
 
     /**
+     * The constraint type name for primary key constraints.
+     */
+    public static final String PRIMARY_KEY = "PRIMARY KEY";
+
+    /**
      * The table for which this constraint is defined.
      */
     protected Table table;

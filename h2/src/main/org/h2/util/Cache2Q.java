@@ -203,9 +203,9 @@ public class Cache2Q implements Cache {
                     removeCacheObject(r.getPos());
                     removeFromList(r);
                 }
-            } else {
+            } else if (sizeMain > 0) {
                 CacheObject r = headMain.next;
-                if (!r.canRemove()) {
+                if (!r.canRemove() && !(r instanceof CacheHead)) {
                     removeFromList(r);
                     addToFront(headMain, r);
                     continue;

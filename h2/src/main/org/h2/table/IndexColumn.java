@@ -9,14 +9,14 @@ import java.sql.SQLException;
 import org.h2.result.SortOrder;
 
 /**
- * This represents a column item of an index. This is required because some 
+ * This represents a column item of an index. This is required because some
  * indexes support descending sorted columns.
  */
 public class IndexColumn {
     public String columnName;
     public Column column;
     public int sortType = SortOrder.ASCENDING;
-    
+
     public String getSQL() {
         StringBuffer buff = new StringBuffer(column.getSQL());
         if ((sortType & SortOrder.DESCENDING) != 0) {
@@ -29,8 +29,9 @@ public class IndexColumn {
         }
         return buff.toString();
     }
-    
+
     public static IndexColumn[] wrap(Column[] columns) {
+        int testDelete_;
         IndexColumn[] list = new IndexColumn[columns.length];
         for (int i = 0; i < list.length; i++) {
             list[i] = new IndexColumn();

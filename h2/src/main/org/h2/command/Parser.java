@@ -4166,9 +4166,9 @@ public class Parser {
     }
 
     private Prepared parseAlterTableAddConstraintIf(String tableName, Schema schema) throws SQLException {
-        String name = null, comment = null;
+        String constraintName = null, comment = null;
         if (readIf("CONSTRAINT")) {
-            name = readIdentifierWithSchema(schema.getName());
+            constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             comment = readCommentIf();
         }
@@ -4176,6 +4176,7 @@ public class Parser {
             read("KEY");
             CreateIndex command = new CreateIndex(session, schema);
             command.setComment(comment);
+            command.setConstraintName(constraintName);
             command.setTableName(tableName);
             command.setPrimaryKey(true);
             if (readIf("HASH")) {
@@ -4206,10 +4207,10 @@ public class Parser {
             command = new AlterTableAddConstraint(session, schema);
             command.setType(AlterTableAddConstraint.UNIQUE);
             if (!readIf("(")) {
-                name = readUniqueIdentifier();
+                constraintName = readUniqueIdentifier();
                 read("(");
             }
-            command.setColumnNames(parseColumnList());
+            command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(indexName));
@@ -4219,8 +4220,7 @@ public class Parser {
             command.setType(AlterTableAddConstraint.REFERENTIAL);
             read("KEY");
             read("(");
-            String[] cols = parseColumnList();
-            command.setColumnNames(cols);
+            command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(schema.findIndex(indexName));
@@ -4228,7 +4228,7 @@ public class Parser {
             read("REFERENCES");
             parseReferences(command, schema, tableName);
         } else {
-            if (name != null) {
+            if (constraintName != null) {
                 throw getSyntaxError();
             }
             return null;
@@ -4240,23 +4240,20 @@ public class Parser {
             command.setCheckExisting(true);
         }
         command.setTableName(tableName);
-        command.setConstraintName(name);
+        command.setConstraintName(constraintName);
         command.setComment(comment);
         return command;
     }
 
     private void parseReferences(AlterTableAddConstraint command, Schema schema, String tableName) throws SQLException {
-        String[] cols;
         if (readIf("(")) {
             command.setRefTableName(schema, tableName);
-            cols = parseColumnList();
-            command.setRefColumnNames(cols);
+            command.setRefIndexColumns(parseIndexColumnList());
         } else {
             String refTableName = readIdentifierWithSchema(schema.getName());
             command.setRefTableName(getSchema(), refTableName);
             if (readIf("(")) {
-                cols = parseColumnList();
-                command.setRefColumnNames(cols);
+                command.setRefIndexColumns(parseIndexColumnList());
             }
         }
         if (readIf("INDEX")) {
@@ -4357,7 +4354,9 @@ public class Parser {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema);
                             unique.setConstraintName(constraintName);
                             unique.setType(AlterTableAddConstraint.UNIQUE);
-                            unique.setColumnNames(new String[] { columnName });
+                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            cols[0].columnName = columnName;
+                            unique.setIndexColumns(cols);
                             unique.setTableName(tableName);
                             command.addConstraintCommand(unique);
                         }
@@ -4369,7 +4368,9 @@ public class Parser {
                             AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema);
                             ref.setConstraintName(constraintName);
                             ref.setType(AlterTableAddConstraint.REFERENTIAL);
-                            ref.setColumnNames(new String[] { columnName });
+                            IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
+                            cols[0].columnName = columnName;
+                            ref.setIndexColumns(cols);
                             ref.setTableName(tableName);
                             parseReferences(ref, schema, tableName);
                             command.addConstraintCommand(ref);

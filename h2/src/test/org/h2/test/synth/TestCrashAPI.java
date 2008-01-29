@@ -133,7 +133,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     private void testOne(int seed) throws Exception {
-        printTime("TestCrashAPI " + seed);
+        printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
         random = new RandomGen(null);

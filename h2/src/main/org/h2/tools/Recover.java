@@ -138,6 +138,12 @@ public class Recover implements DataHandler {
         }
     }
 
+    private void log(String message) {
+        if (log) {
+            System.out.println(message);
+        }
+    }
+
     private void logError(String message, Throwable t) {
         System.out.println(message + ": " + t.toString());
         if (log) {
@@ -289,10 +295,10 @@ public class Recover implements DataHandler {
         }
     }
 
-    private static PrintWriter getWriter(String fileName, String suffix) throws IOException, SQLException {
+    private PrintWriter getWriter(String fileName, String suffix) throws IOException, SQLException {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
-        System.out.println("Created file: " + outputFile);
+        log("Created file: " + outputFile);
         return new PrintWriter(FileUtils.openFileWriter(outputFile, false));
     }
 

@@ -60,7 +60,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         long used = MemoryUtils.getMemoryUsed() - first;
         memory /= 1024;
-        if (used > memory * 2) {
+        if (used > memory * 3) {
             error("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length);
         }
     }

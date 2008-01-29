@@ -51,9 +51,8 @@ public abstract class TestBase {
         try {
             init(conf);
             start = System.currentTimeMillis();
-            printlnWithTime("start");
             test();
-            println("done ");
+            println("");
         } catch (Exception e) {
             fail("FAIL " + e.toString(), e);
             if (config.stopOnError) {
@@ -193,7 +192,7 @@ public abstract class TestBase {
 
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(time + " ms; " + getMemoryUsed() + " MB: " + s);
+            println(getMemoryUsed() + " MB: " + s);
         }
     }
 
@@ -244,19 +243,19 @@ public abstract class TestBase {
     }
 
     protected void println(String s) {
-        printlnWithTime(s);
-    }
-
-    private void printlnWithTime(String s) {
         long time = System.currentTimeMillis() - start;
-        String t = "          " + time;
-        t = t.substring(t.length() - 6);
-        System.out.println(s + " (" + t + " ms) " + getClass().getName());
+        printlnWithTime(time, getClass().getName() + " " + s);
     }
 
-    protected static void printTime(String s) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println(dateFormat.format(new java.util.Date()) + " " + s);
+    private static void printlnWithTime(long time, String s) {
+        String t = "0000000000" + time;
+        t = t.substring(t.length() - 6);
+        System.out.println(t + " " + s);
+    }
+
+    protected void printTime(String s) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        println(dateFormat.format(new java.util.Date()) + " " + s);
     }
 
     protected void deleteDb(String name) throws Exception {

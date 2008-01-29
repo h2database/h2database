@@ -68,6 +68,7 @@ public class TableData extends Table implements RecordReader {
         for (int i = 0; i < cols.length; i++) {
             if (DataType.isLargeObject(cols[i].getType())) {
                 containsLargeObject = true;
+                memoryPerRow = Row.MEMORY_CALCULATE;
             }
         }
         traceLock = database.getTrace(Trace.LOCK);
@@ -464,8 +465,7 @@ public class TableData extends Table implements RecordReader {
         for (int i = 0; i < len; i++) {
             data[i] = s.readValue();
         }
-        int memory = containsLargeObject ? Row.MEMORY_CALCULATE : memoryPerRow;
-        Row row = new Row(data, memory);
+        Row row = new Row(data, memoryPerRow);
         return row;
     }
 

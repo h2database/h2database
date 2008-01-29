@@ -151,59 +151,20 @@ java org.h2.test.TestAll timer
 
 /*
 
-adjust cache memory usage
-
-simple pure java config file (interpreted)
-
-not done yet:
-DROP ALL OBJECTS;
-SET MAX_LENGTH_INPLACE_LOB 32768;
-CREATE TABLE TEST(ID IDENTITY, DATA CLOB);
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-@LOOP 1000 INSERT INTO TEST(DATA) VALUES(SPACE(32000));
-CALL MEMORY_USED();
-
-ResultRemote.close()
-   public void close() {
-       result = null;
-       // NULL OUT THE SESSION REFERENCE
-       sendClose();
-       if (lobValues != null) {
-           for (int i = 0; i < lobValues.size(); i++) {
-               Value v = (Value) lobValues.get(i);
-               try {
-                   v.close();
-               } catch (SQLException e) {
-                   // BANG NullPointerException
-                   session.getTrace().error("delete lob " + v.getSQL(), e);
-               }
-           }
-           lobValues = null;
-       }
-   }
-
 create table bla (id integer not null);
 alter table bla add constraint pk primary key (id);
+-- doesn't create a constraint!
 alter table bla drop constraint pk;
 alter table bla drop primary key;
 drop table bla;
+-- PostgreSQL, Derby, HSQLDB: works
+-- MySQL: does not work
 
 implement max_query_time and use it for TestCrashAPI
+
+adjust cache memory usage
+
+simple pure java config file (interpreted)
 
 orphan?
 
@@ -401,7 +362,6 @@ Features of H2
                 deleteIndex = (a & 128) != 0;
                 for (logMode = 0; logMode < 3; logMode++) {
                     traceLevelFile = logMode;
-                    TestBase.printTime("cipher:" + cipher +" a:" +a+" logMode:"+logMode);
                     test();
                 }
             }
@@ -542,7 +502,8 @@ Features of H2
      * Run all tests with the current settings.
      */
     private void test() throws Exception {
-        System.out.println("test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
+        System.out.println();
+        System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
         beforeTest();
 
         // db
@@ -552,7 +513,6 @@ Features of H2
         new TestBackup().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
-        new TestCache().runTest(this);
         new TestCases().runTest(this);
         new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);
@@ -623,6 +583,7 @@ Features of H2
 
         // unit
         new TestBitField().runTest(this);
+        new TestCache().runTest(this);
         new TestCompress().runTest(this);
         new TestDataPage().runTest(this);
         new TestDate().runTest(this);

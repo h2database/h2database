@@ -40,6 +40,7 @@ import oracle.toplink.essentials.internal.sessions.AbstractSession;
  *   name="toplink.platform.class.name"
  *   value="oracle.toplink.essentials.platform.database.H2Platform"/>
  * </pre>
+ * See also: https://glassfish.dev.java.net/issues/show_bug.cgi?id=4042
  */
 public class H2Platform extends DatabasePlatform {
     public H2Platform() {

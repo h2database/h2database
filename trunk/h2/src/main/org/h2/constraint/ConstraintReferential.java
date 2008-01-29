@@ -20,6 +20,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
@@ -39,8 +40,8 @@ public class ConstraintReferential extends Constraint {
     private Index refIndex;
     private boolean indexOwner;
     private boolean refIndexOwner;
-    protected Column[] columns;
-    protected Column[] refColumns;
+    protected IndexColumn[] columns;
+    protected IndexColumn[] refColumns;
     private String deleteSQL, updateSQL;
     private boolean skipOwnTable;
 
@@ -83,8 +84,8 @@ public class ConstraintReferential extends Constraint {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        Column[] cols = columns;
-        Column[] refCols = refColumns;
+        IndexColumn[] cols = columns;
+        IndexColumn[] refCols = refColumns;
         buff.append(" FOREIGN KEY(");
         for (int i = 0; i < cols.length; i++) {
             if (i > 0) {
@@ -164,19 +165,19 @@ public class ConstraintReferential extends Constraint {
         return getCreateSQLForCopy(table, getSQL());
     }
 
-    public void setColumns(Column[] cols) {
+    public void setColumns(IndexColumn[] cols) {
         columns = cols;
     }
 
-    public Column[] getColumns() {
+    public IndexColumn[] getColumns() {
         return columns;
     }
 
-    public void setRefColumns(Column[] refCols) {
+    public void setRefColumns(IndexColumn[] refCols) {
         refColumns = refCols;
     }
 
-    public Column[] getRefColumns() {
+    public IndexColumn[] getRefColumns() {
         return refColumns;
     }
 
@@ -240,7 +241,7 @@ public class ConstraintReferential extends Constraint {
         }
         boolean containsNull = false;
         for (int i = 0; i < columns.length; i++) {
-            int idx = columns[i].getColumnId();
+            int idx = columns[i].column.getColumnId();
             Value v = newRow.getValue(idx);
             if (v == ValueNull.INSTANCE) {
                 containsNull = true;
@@ -255,9 +256,9 @@ public class ConstraintReferential extends Constraint {
             // first
             boolean self = true;
             for (int i = 0; i < columns.length; i++) {
-                int idx = columns[i].getColumnId();
+                int idx = columns[i].column.getColumnId();
                 Value v = newRow.getValue(idx);
-                Column refCol = refColumns[i];
+                Column refCol = refColumns[i].column;
                 int refIdx = refCol.getColumnId();
                 Value r = newRow.getValue(refIdx);
                 if (!database.areEqual(r, v)) {
@@ -271,9 +272,9 @@ public class ConstraintReferential extends Constraint {
         }
         Row check = refTable.getTemplateRow();
         for (int i = 0; i < columns.length; i++) {
-            int idx = columns[i].getColumnId();
+            int idx = columns[i].column.getColumnId();
             Value v = newRow.getValue(idx);
-            Column refCol = refColumns[i];
+            Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             check.setValue(refIdx, v.convertTo(refCol.getType()));
         }
@@ -317,10 +318,10 @@ public class ConstraintReferential extends Constraint {
             // first
             boolean self = true;
             for (int i = 0; i < columns.length; i++) {
-                Column refCol = refColumns[i];
+                Column refCol = refColumns[i].column;
                 int refIdx = refCol.getColumnId();
                 Value v = oldRow.getValue(refIdx);
-                int idx = columns[i].getColumnId();
+                int idx = columns[i].column.getColumnId();
                 Value r = oldRow.getValue(idx);
                 if (!database.areEqual(r, v)) {
                     self = false;
@@ -333,9 +334,9 @@ public class ConstraintReferential extends Constraint {
         }
         SearchRow check = table.getTemplateSimpleRow(false);
         for (int i = 0; i < columns.length; i++) {
-            Column refCol = refColumns[i];
+            Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
-            Column col = columns[i];
+            Column col = columns[i].column;
             int idx = col.getColumnId();
             Value v = oldRow.getValue(refIdx).convertTo(col.getType());
             check.setValue(idx, v);
@@ -375,7 +376,7 @@ public class ConstraintReferential extends Constraint {
                     ObjectArray params = updateCommand.getParameters();
                     for (int i = 0; i < columns.length; i++) {
                         Parameter param = (Parameter) params.get(i);
-                        Column refCol = refColumns[i];
+                        Column refCol = refColumns[i].column;
                         param.setValue(newRow.getValue(refCol.getColumnId()));
                     }
                 }
@@ -400,7 +401,7 @@ public class ConstraintReferential extends Constraint {
 
     void setWhere(Prepared command, int pos, Row row) {
         for (int i = 0; i < refColumns.length; i++) {
-            int idx = refColumns[i].getColumnId();
+            int idx = refColumns[i].column.getColumnId();
             Value v = row.getValue(idx);
             ObjectArray params = command.getParameters();
             Parameter param = (Parameter) params.get(pos + i);
@@ -462,7 +463,7 @@ public class ConstraintReferential extends Constraint {
         if (action != CASCADE) {
             ObjectArray params = command.getParameters();
             for (int i = 0; i < columns.length; i++) {
-                Column column = columns[i];
+                Column column = columns[i].column;
                 Parameter param = (Parameter) params.get(i);
                 Value value;
                 if (action == SET_NULL) {
@@ -488,7 +489,7 @@ public class ConstraintReferential extends Constraint {
             if (i > 0) {
                 buff.append(" , ");
             }
-            Column column = columns[i];
+            Column column = columns[i].column;
             buff.append(Parser.quoteIdentifier(column.getName()));
             buff.append("=?");
         }
@@ -500,7 +501,7 @@ public class ConstraintReferential extends Constraint {
             if (i > 0) {
                 buff.append(" AND ");
             }
-            Column column = columns[i];
+            Column column = columns[i].column;
             buff.append(Parser.quoteIdentifier(column.getName()));
             buff.append("=?");
         }
@@ -516,12 +517,12 @@ public class ConstraintReferential extends Constraint {
 
     public boolean containsColumn(Column col) {
         for (int i = 0; i < columns.length; i++) {
-            if (columns[i] == col) {
+            if (columns[i].column == col) {
                 return true;
             }
         }
         for (int i = 0; i < refColumns.length; i++) {
-            if (refColumns[i] == col) {
+            if (refColumns[i].column == col) {
                 return true;
             }
         }

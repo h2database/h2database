@@ -162,7 +162,7 @@ public class TestRandomSQL extends TestBase {
         String old = SysProperties.scriptDirectory;
         SysProperties.scriptDirectory = "dataScript/";
         seed = i;
-        printTime("TestRandomSQL " + seed);
+        printTime("seed: " + seed);
         try {
             deleteDb();
         } catch (SQLException e) {

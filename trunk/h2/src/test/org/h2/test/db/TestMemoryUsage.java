@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.util.MemoryUtils;
 
 /**
  * Tests the memory usage of the cache.
@@ -30,12 +31,38 @@ public class TestMemoryUsage extends TestBase {
 
     public void test() throws Exception {
         deleteDb("memoryUsage");
+        testClob();
+        deleteDb("memoryUsage");
         testReconnectOften();
         deleteDb("memoryUsage");
         reconnect();
         insertUpdateSelectDelete();
         reconnect();
         insertUpdateSelectDelete();
+        conn.close();
+    }
+
+    private void testClob() throws Exception {
+        if (config.memory || !config.big) {
+            return;
+        }
+        Connection conn = getConnection("memoryUsage");
+        Statement stat = conn.createStatement();
+        stat.execute("SET MAX_LENGTH_INPLACE_LOB 32768");
+        stat.execute("SET CACHE_SIZE 8000");
+        stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
+        System.gc();
+        System.gc();
+        int start = MemoryUtils.getMemoryUsed();
+        for (int i = 0; i < 4; i++) {
+            stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
+            System.gc();
+            System.gc();
+            int used = MemoryUtils.getMemoryUsed();
+            if ((used - start) > 16000) {
+                error("Used: " + (used - start));
+            }
+        }
         conn.close();
     }
 

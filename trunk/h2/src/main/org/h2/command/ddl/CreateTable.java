@@ -10,6 +10,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
+import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -146,8 +147,18 @@ public class CreateTable extends SchemaCommand {
             if (pkColumns != null) {
                 IndexColumn.mapColumns(pkColumns, table);
                 int indexId = getObjectId(true, false);
-                table.addIndex(session, null, indexId, pkColumns, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
+                Index index = table.addIndex(session, null, indexId, pkColumns, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
                         Index.EMPTY_HEAD, null);
+                // TODO this code is a copy of CreateIndex (if primaryKey)
+                int todo;
+//                String name = getSchema().getUniqueConstraintName(table);
+//                int constraintId = getObjectId(true, true);
+//                ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
+//                pk.setColumns(index.getIndexColumns());
+//                pk.setIndex(index, true);
+//                pk.setComment(comment);
+//                db.addSchemaObject(session, pk);
+//                table.addConstraint(pk);
             }
             for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);

@@ -11,6 +11,7 @@ import org.h2.index.Index;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 
@@ -21,14 +22,16 @@ public class ConstraintUnique extends Constraint {
 
     private Index index;
     private boolean indexOwner;
-    private Column[] columns;
+    private IndexColumn[] columns;
+    private boolean primaryKey;
 
-    public ConstraintUnique(Schema schema, int id, String name, Table table) {
+    public ConstraintUnique(Schema schema, int id, String name, Table table, boolean primaryKey) {
         super(schema, id, name, table);
+        this.primaryKey = primaryKey;
     }
 
     public String getConstraintType() {
-        return Constraint.UNIQUE;
+        return primaryKey ? Constraint.PRIMARY_KEY : Constraint.UNIQUE;
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
@@ -45,14 +48,16 @@ public class ConstraintUnique extends Constraint {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(" UNIQUE(");
+        buff.append(' ');
+        buff.append(getTypeName());
+        buff.append('(');
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(Parser.quoteIdentifier(columns[i].getName()));
+            buff.append(Parser.quoteIdentifier(columns[i].column.getName()));
         }
-        buff.append(")");
+        buff.append(')');
         if (internalIndex && indexOwner && table == this.table) {
             buff.append(" INDEX ");
             buff.append(index.getSQL());
@@ -60,16 +65,25 @@ public class ConstraintUnique extends Constraint {
         return buff.toString();
     }
 
+    private String getTypeName() {
+        if (primaryKey) {
+            return "PRIMARY KEY";
+        } else {
+            return "UNIQUE";
+        }
+    }
+
     public String getShortDescription() {
         StringBuffer buff = new StringBuffer();
         buff.append(getName());
         buff.append(": ");
-        buff.append("UNIQUE(");
+        buff.append(getTypeName());
+        buff.append('(');
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(Parser.quoteIdentifier(columns[i].getName()));
+            buff.append(Parser.quoteIdentifier(columns[i].column.getName()));
         }
         buff.append(")");
         return buff.toString();
@@ -83,11 +97,11 @@ public class ConstraintUnique extends Constraint {
         return getCreateSQLForCopy(table, getSQL());
     }
 
-    public void setColumns(Column[] columns) {
+    public void setColumns(IndexColumn[] columns) {
         this.columns = columns;
     }
 
-    public Column[] getColumns() {
+    public IndexColumn[] getColumns() {
         return columns;
     }
 
@@ -117,7 +131,7 @@ public class ConstraintUnique extends Constraint {
 
     public boolean containsColumn(Column col) {
         for (int i = 0; i < columns.length; i++) {
-            if (columns[i] == col) {
+            if (columns[i].column == col) {
                 return true;
             }
         }

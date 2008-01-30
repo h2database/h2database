@@ -5,6 +5,7 @@
 package org.h2.value;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.MathUtils;
 import org.h2.util.StringCache;
 
 /**
@@ -54,6 +55,14 @@ public class ValueString extends ValueStringBase {
 //            return h;
 //        }
 
+    }
+
+    public Value convertPrecision(long precision) {
+        if (precision == 0 || value.length() <= precision) {
+            return this;
+        }
+        int p = MathUtils.convertLongToInt(precision);
+        return ValueString.get(value.substring(0, p));
     }
 
     public static ValueString get(String s) {

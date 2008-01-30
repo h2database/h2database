@@ -7,7 +7,6 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -44,21 +43,15 @@ abstract class ValueStringBase extends Value {
         prep.setString(parameterIndex, value);
     }
 
-    public Value convertPrecision(long precision) {
-        if (precision == 0 || value.length() <= precision) {
-            return this;
-        }
-        int p = MathUtils.convertLongToInt(precision);
-        return ValueString.get(value.substring(0, p));
-    }
-
     public int getDisplaySize() {
         return value.length();
     }
 
     protected boolean isEqual(Value v) {
-        return v instanceof ValueString && value.equals(((ValueString) v).value);
+        return v instanceof ValueStringBase && value.equals(((ValueStringBase) v).value);
     }
+
+    public abstract Value convertPrecision(long precision);
 
     public int getMemory() {
         return value.length() * 2 + 30;

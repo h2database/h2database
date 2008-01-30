@@ -1,0 +1,55 @@
+<!--
+Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html><script>
+<!--
+    var line = 0, file = '';
+    var params = location.search.substring(1).split('&');
+    var build = 'trunk';
+    for (var i = 0; i<params.length; i++) {
+        var k = params[i].split('=');
+        var key = k[0], value = k[1];
+        if (key == 'line') {
+            line = value;
+        } else if (key == 'file') {
+            file = value;
+        } else if (key == 'build') {
+            build = 'tags/version-1.0.' + value;
+        }
+    }
+-->
+</script>
+<pre>
+<table width="100%">
+    <tr>
+        <td style="width: 50px">
+            <script>
+<!--
+                for(var i = 1; i <= 5000; i++) {
+                    if (line == i) {
+                        document.write('<b>' + i + ' ></b><br />');
+                    } else if (line <= 4 || i + 4 == line) {
+                        document.write(i + '<a name="here"></a><br />');
+                    } else {
+                        document.write(i + '<br />');
+                    }
+                }
+-->
+            </script>
+        </td>
+        <td width="92%" style="vertical-align: top;">
+            <iframe id="source" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="80000px" scrolling="no" src="">
+            </iframe>
+        </td>
+    </tr>
+</table>
+<a href="#here"></a>
+<script>
+<!--
+    var source = document.getElementById('source');
+    source.src = 'http://h2database.googlecode.com/svn/' + build + '/h2/src/main/' + file;
+    document.location = '#here';
+-->
+</script>
+</pre></html>

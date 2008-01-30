@@ -5,6 +5,7 @@
 package org.h2.value;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.MathUtils;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 
@@ -60,6 +61,14 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         } else {
             return obj;
         }
+    }
+
+    public Value convertPrecision(long precision) {
+        if (precision == 0 || value.length() <= precision) {
+            return this;
+        }
+        int p = MathUtils.convertLongToInt(precision);
+        return ValueStringIgnoreCase.get(value.substring(0, p));
     }
 
 }

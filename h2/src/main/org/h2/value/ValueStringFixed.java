@@ -7,6 +7,7 @@ package org.h2.value;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.MathUtils;
 import org.h2.util.StringCache;
 
 /**
@@ -36,10 +37,6 @@ public class ValueStringFixed extends ValueStringBase {
         return s;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
-    }
-
     public int hashCode() {
         // TODO hash performance: could build a quicker hash by hashing the size and a few characters
         return value.hashCode();
@@ -59,6 +56,14 @@ public class ValueStringFixed extends ValueStringBase {
             return obj;
         }
         return (ValueStringFixed) Value.cache(obj);
+    }
+
+    public Value convertPrecision(long precision) {
+        if (precision == 0 || value.length() <= precision) {
+            return this;
+        }
+        int p = MathUtils.convertLongToInt(precision);
+        return ValueStringFixed.get(value.substring(0, p));
     }
 
 }

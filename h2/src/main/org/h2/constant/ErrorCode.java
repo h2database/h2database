@@ -356,7 +356,7 @@ public class ErrorCode {
      * INSERT INTO TEST VALUES(1, 'Hello');
      * </pre>
      */
-    public static final int VALUE_TOO_LONG_1 = 90005;
+    public static final int VALUE_TOO_LONG_2 = 90005;
 
     /**
      * The error with code <code>90006</code> is thrown when

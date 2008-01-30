@@ -47,16 +47,26 @@ public class DropIndex extends SchemaCommand {
             }
         } else {
             Table table = index.getTable();
+            session.getUser().checkRight(index.getTable(), Right.ALL);
+            Constraint pkConstraint = null;
             ObjectArray constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint cons = (Constraint) constraints.get(i);
                 if (cons.usesIndex(index)) {
-                    throw Message.getSQLException(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_1, indexName);
+                    // can drop primary key index (for compatibility)
+                    if (Constraint.PRIMARY_KEY.equals(cons.getConstraintType())) {
+                        pkConstraint = cons;
+                    } else {
+                        throw Message.getSQLException(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_1, indexName);
+                    }
                 }
             }
-            session.getUser().checkRight(index.getTable(), Right.ALL);
             index.getTable().setModified();
-            db.removeSchemaObject(session, index);
+            if (pkConstraint != null) {
+                db.removeSchemaObject(session, pkConstraint);
+            } else {
+                db.removeSchemaObject(session, index);
+            }
         }
         return 0;
     }

@@ -6,6 +6,7 @@ package org.h2.schema;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -39,6 +40,13 @@ public class Schema extends DbObjectBase {
     private HashMap triggers = new HashMap();
     private HashMap constraints = new HashMap();
     private HashMap constants = new HashMap();
+
+    /*
+     * Set of returned unique names that are not yet stored
+     * (to avoid returning the same unique name twice when multiple threads
+     * concurrently create objects).
+     */
+    private HashSet temporaryUniqueNames = new HashSet();
 
     public Schema(Database database, int id, String schemaName, User owner, boolean system) {
         super(database, id, schemaName, Trace.SCHEMA);
@@ -139,6 +147,7 @@ public class Schema extends DbObjectBase {
             throw Message.getInternalError("object already exists");
         }
         map.put(name, obj);
+        freeUniqueName(name);
     }
 
     public void rename(SchemaObject obj, String newName) throws SQLException {
@@ -153,8 +162,10 @@ public class Schema extends DbObjectBase {
             }
         }
         map.remove(obj.getName());
+        freeUniqueName(obj.getName());
         obj.rename(newName);
         map.put(newName, obj);
+        freeUniqueName(newName);
     }
 
     public Table findTableOrView(Session session, String name) {
@@ -185,21 +196,33 @@ public class Schema extends DbObjectBase {
         return (Constant) constants.get(constantName);
     }
 
+    public void freeUniqueName(String name) {
+        if (name != null) {
+            temporaryUniqueNames.remove(name);
+        }
+    }
+
     private String getUniqueName(DbObject obj, HashMap map, String prefix) {
         String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
+        String name = null;
         for (int i = 1; i < hash.length(); i++) {
-            String name = prefix + hash.substring(0, i);
-            if (map.get(name) == null) {
-                return name;
+            name = prefix + hash.substring(0, i);
+            if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
+                break;
+            }
+            name = null;
+        }
+        if (name == null) {
+            prefix = prefix + hash + "_";
+            for (int i = 0;; i++) {
+                name = prefix + i;
+                if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
+                    break;
+                }
             }
         }
-        prefix = prefix + hash + "_";
-        for (int i = 0;; i++) {
-            String name = prefix + i;
-            if (map.get(name) == null) {
-                return name;
-            }
-        }
+        temporaryUniqueNames.add(name);
+        return name;
     }
 
     public String getUniqueConstraintName(DbObject obj) {
@@ -265,6 +288,7 @@ public class Schema extends DbObjectBase {
             throw Message.getInternalError("not found: " + objName);
         }
         map.remove(objName);
+        freeUniqueName(objName);
     }
 
     public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent, boolean clustered)

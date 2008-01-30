@@ -116,7 +116,8 @@ public class Constants {
     public static final int DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB = 65536;
     public static final int SALT_LEN = 8;
     public static final int DEFAULT_DATA_PAGE_SIZE = 512;
-    public static final String PRIMARY_KEY_PREFIX = "PRIMARY_KEY_";
+    public static final String PREFIX_PRIMARY_KEY = "PRIMARY_KEY_";
+    public static final String PREFIX_INDEX = "INDEX_";
     public static final int LOCK_SLEEP = 1000;
 
     // TODO for testing, the lock timeout is smaller than for interactive use cases

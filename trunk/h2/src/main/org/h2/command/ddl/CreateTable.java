@@ -10,12 +10,9 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
-import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.index.Index;
-import org.h2.index.IndexType;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -37,7 +34,6 @@ public class CreateTable extends SchemaCommand {
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean persistent = true;
-    private boolean hashPrimaryKey;
     private boolean temporary;
     private boolean globalTemporary;
     private boolean onCommitDrop;
@@ -68,15 +64,18 @@ public class CreateTable extends SchemaCommand {
 
     public void addConstraintCommand(Prepared command) throws SQLException {
         if (command instanceof CreateIndex) {
-            CreateIndex create = (CreateIndex) command;
-            if (create.getPrimaryKey()) {
-                setPrimaryKeyColumns(create.getIndexColumns());
-                setHashPrimaryKey(create.getHash());
+            constraintCommands.add(command);
+        } else {
+            AlterTableAddConstraint con = (AlterTableAddConstraint) command;
+            boolean alreadySet;
+            if (con.getType() == AlterTableAddConstraint.PRIMARY_KEY) {
+                alreadySet = setPrimaryKeyColumns(con.getIndexColumns());
             } else {
+                alreadySet = false;
+            }
+            if (!alreadySet) {
                 constraintCommands.add(command);
             }
-        } else {
-            constraintCommands.add(command);
         }
     }
 
@@ -144,22 +143,6 @@ public class CreateTable extends SchemaCommand {
                 Column c = (Column) columns.get(i);
                 c.prepareExpression(session);
             }
-            if (pkColumns != null) {
-                IndexColumn.mapColumns(pkColumns, table);
-                int indexId = getObjectId(true, false);
-                Index index = table.addIndex(session, null, indexId, pkColumns, IndexType.createPrimaryKey(persistent, hashPrimaryKey),
-                        Index.EMPTY_HEAD, null);
-                // TODO this code is a copy of CreateIndex (if primaryKey)
-                int todo;
-//                String name = getSchema().getUniqueConstraintName(table);
-//                int constraintId = getObjectId(true, true);
-//                ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
-//                pk.setColumns(index.getIndexColumns());
-//                pk.setIndex(index, true);
-//                pk.setComment(comment);
-//                db.addSchemaObject(session, pk);
-//                table.addConstraint(pk);
-            }
             for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
                 table.addSequence(sequence);
@@ -214,7 +197,13 @@ public class CreateTable extends SchemaCommand {
         }
     }
 
-    public void setPrimaryKeyColumns(IndexColumn[] columns) throws SQLException {
+    /**
+     * Sets the primary key columns, but also check if an primary key with different columns is already defined.
+     *
+     * @param columns the primary key columns
+     * @return true if the same primary key columns where already set
+     */
+    private boolean setPrimaryKeyColumns(IndexColumn[] columns) throws SQLException {
         if (pkColumns != null) {
             if (columns.length != pkColumns.length) {
                 throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
@@ -224,16 +213,14 @@ public class CreateTable extends SchemaCommand {
                     throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
+            return true;
         }
         this.pkColumns = columns;
+        return false;
     }
 
     public void setPersistent(boolean persistent) {
         this.persistent = persistent;
-    }
-
-    public void setHashPrimaryKey(boolean b) {
-        this.hashPrimaryKey = b;
     }
 
     public void setGlobalTemporary(boolean globalTemporary) {

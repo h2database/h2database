@@ -819,6 +819,9 @@ class WebThread extends Thread implements DatabaseEventListener {
             e.printStackTrace(new PrintWriter(writer));
             String stackTrace = writer.toString();
             stackTrace = PageParser.escapeHtml(stackTrace);
+            if (isH2) {
+                stackTrace = linkToSource(stackTrace);
+            }
             stackTrace = StringUtils.replaceAll(stackTrace, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
             String message = PageParser.escapeHtml(e.getMessage());
             String error = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
@@ -834,6 +837,49 @@ class WebThread extends Thread implements DatabaseEventListener {
         } catch (OutOfMemoryError e2) {
             e.printStackTrace();
             return e.toString();
+        }
+    }
+
+    private String linkToSource(String s) {
+        try {
+            StringBuffer result = new StringBuffer(s.length());
+            int idx = s.indexOf("<br />");
+            result.append(s.substring(0, idx));
+            while (true) {
+                int start = s.indexOf("org.h2.", idx);
+                if (start < 0) {
+                    result.append(s.substring(idx));
+                    break;
+                }
+                result.append(s.substring(idx, start));
+                int end = s.indexOf(')', start);
+                if (end < 0) {
+                    result.append(s.substring(idx));
+                    break;
+                }
+                String element = s.substring(start, end);
+                int open = element.lastIndexOf('(');
+                int dotMethod = element.lastIndexOf('.', open - 1);
+                int dotClass = element.lastIndexOf('.', dotMethod - 1);
+                String packageName = element.substring(0, dotClass);
+                int colon = element.lastIndexOf(':');
+                String file = element.substring(open + 1, colon);
+                String lineNumber = element.substring(colon + 1, element.length());
+                String fullFileName = packageName.replace('.', '/') + "/" + file;
+                result.append("<a href=\"http://h2database.com/html/source.html?file=");
+                result.append(fullFileName);
+                result.append("&line=");
+                result.append(lineNumber);
+                result.append("&build=");
+                result.append(Constants.BUILD_ID);
+                result.append("\">");
+                result.append(element);
+                result.append("</a>");
+                idx = end;
+            }
+            return result.toString();
+        } catch (Throwable t) {
+            return s;
         }
     }
 

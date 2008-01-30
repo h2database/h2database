@@ -447,7 +447,7 @@ public abstract class Table extends SchemaObjectBase {
         if (index != null) {
             return index;
         }
-        throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, Constants.PRIMARY_KEY_PREFIX);
+        throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, Constants.PREFIX_PRIMARY_KEY);
     }
 
     public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {

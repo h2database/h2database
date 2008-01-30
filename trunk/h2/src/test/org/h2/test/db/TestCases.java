@@ -495,7 +495,7 @@ public class TestCases extends TestBase {
         conn.createStatement().execute("CREATE TABLE TEST_SEQ(ID INT IDENTITY, NAME VARCHAR(255))");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         conn.createStatement().execute("ALTER TABLE TEST RENAME TO TEST2");
-        conn.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME));");
+        conn.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
         conn.close();
         conn = getConnection("cases");
         conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('Hi')");

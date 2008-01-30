@@ -318,10 +318,10 @@ public abstract class TestBase {
             error("a: " + a + " is not smaller than b: " + b);
         }
     }
-    
-    protected void checkContains(String result, String contains)  throws Exception {
-        if(result.indexOf(contains) < 0) {
-        	error(result + " does not contain: " + contains);
+
+    protected void checkContains(String result, String contains) throws Exception {
+        if (result.indexOf(contains) < 0) {
+            error(result + " does not contain: " + contains);
         }
     }
 

@@ -4174,16 +4174,20 @@ public class Parser {
         }
         if (readIf("PRIMARY")) {
             read("KEY");
-            CreateIndex command = new CreateIndex(session, schema);
+            AlterTableAddConstraint command = new AlterTableAddConstraint(session, schema);
+            command.setType(AlterTableAddConstraint.PRIMARY_KEY);
             command.setComment(comment);
             command.setConstraintName(constraintName);
             command.setTableName(tableName);
-            command.setPrimaryKey(true);
             if (readIf("HASH")) {
-                command.setHash(true);
+                command.setPrimaryKeyHash(true);
             }
             read("(");
             command.setIndexColumns(parseIndexColumnList());
+            if (readIf("INDEX")) {
+                String indexName = readIdentifierWithSchema();
+                command.setIndex(getSchema().findIndex(indexName));
+            }
             return command;
         } else if (database.getMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
             // MySQL
@@ -4335,7 +4339,11 @@ public class Parser {
                         if (column.getAutoIncrement()) {
                             IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
                             cols[0].columnName = column.getName();
-                            command.setPrimaryKeyColumns(cols);
+                            AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema);
+                            pk.setType(AlterTableAddConstraint.PRIMARY_KEY);
+                            pk.setTableName(tableName);
+                            pk.setIndexColumns(cols);
+                            command.addConstraintCommand(pk);
                         }
                         command.addColumn(column);
                         String constraintName = null;
@@ -4344,12 +4352,15 @@ public class Parser {
                         }
                         if (readIf("PRIMARY")) {
                             read("KEY");
-                            if (readIf("HASH")) {
-                                command.setHashPrimaryKey(true);
-                            }
+                            boolean hash = readIf("HASH");
                             IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
                             cols[0].columnName = column.getName();
-                            command.setPrimaryKeyColumns(cols);
+                            AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema);
+                            pk.setPrimaryKeyHash(hash);
+                            pk.setType(AlterTableAddConstraint.PRIMARY_KEY);
+                            pk.setTableName(tableName);
+                            pk.setIndexColumns(cols);
+                            command.addConstraintCommand(pk);
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema);
                             unique.setConstraintName(constraintName);

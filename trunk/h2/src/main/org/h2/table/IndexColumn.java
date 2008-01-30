@@ -31,7 +31,6 @@ public class IndexColumn {
     }
 
     public static IndexColumn[] wrap(Column[] columns) {
-        int testDelete_;
         IndexColumn[] list = new IndexColumn[columns.length];
         for (int i = 0; i < list.length; i++) {
             list[i] = new IndexColumn();

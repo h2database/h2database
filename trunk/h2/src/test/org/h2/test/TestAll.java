@@ -151,16 +151,22 @@ java org.h2.test.TestAll timer
 
 /*
 
-create table bla (id integer not null);
-alter table bla add constraint pk primary key (id);
--- doesn't create a constraint!
-alter table bla drop constraint pk;
-alter table bla drop primary key;
-drop table bla;
--- PostgreSQL, Derby, HSQLDB: works
--- MySQL: does not work
-
 implement max_query_time and use it for TestCrashAPI
+
+Value too long for column DESC. But which value?
+org.h2.jdbc.JdbcSQLException: Value too long for column DESC
+[90005-64]
+       at org.h2.message.Message.getSQLException(Message.java:89)
+       at org.h2.message.Message.getSQLException(Message.java:93)
+       at org.h2.message.Message.getSQLException(Message.java:71)
+       at org.h2.table.Column.validateConvertUpdateSequence(Column.java:226)
+       at org.h2.table.Table.validateConvertUpdateSequence(Table.java:331)
+       at org.h2.command.dml.Insert.update(Insert.java:111)
+       at org.h2.command.CommandContainer.update(CommandContainer.java:68)
+
+CREATE {[UNIQUE [HASH]] INDEX [[IF NOT EXISTS] newIndexName]
+| PRIMARY KEY [HASH]} ON (columnName [,...])
+There is missing name of table
 
 adjust cache memory usage
 
@@ -182,6 +188,8 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
+Primary keys are now considered constraints and can have a constraint name.
+H2 Console: stack traces are now links to the source code in the source repository (H2 database only)
 
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes

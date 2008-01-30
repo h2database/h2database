@@ -2644,7 +2644,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 //#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        debugCodeCall("unwrap");        
+        debugCodeCall("unwrap");
         throw Message.getUnsupportedException();
     }
 */
@@ -2656,7 +2656,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        debugCodeCall("isWrapperFor");        
+        debugCodeCall("isWrapperFor");
         throw Message.getUnsupportedException();
     }
 */
@@ -2666,7 +2666,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of function columns.
      */
     public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
-        debugCodeCall("getFunctionColumns");        
+        debugCodeCall("getFunctionColumns");
         throw Message.getUnsupportedException();
     }
 
@@ -2674,10 +2674,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of functions.
      */
     public ResultSet getFunctions(String arg0, String arg1, String arg2) throws SQLException {
-        debugCodeCall("getFunctions");        
+        debugCodeCall("getFunctions");
         throw Message.getUnsupportedException();
     }
-    
+
     /**
      * INTERNAL
      */
@@ -2686,4 +2686,3 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
 }
-

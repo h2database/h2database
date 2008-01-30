@@ -743,21 +743,21 @@ public class TestMetaData extends TestBase {
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "1", "C", "A" /*
                                                                                  * ,
                                                                                  * null,
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "2", "A", "A" /*
                                                                                  * ,
                                                                                  * null,
                                                                                  * null,
                                                                                  * null
                                                                                  */},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_146",
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "3", "B", "A"/*
                                                                              * ,
                                                                              * null,
@@ -787,9 +787,10 @@ public class TestMetaData extends TestBase {
                                                                                  */}, });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
-        testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "PRIMARY_KEY_14" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "PRIMARY_KEY_14" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "PRIMARY_KEY_14" }, });
+        testResultSetOrdered(rs, new String[][] {
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "PRIMARY_KEY_1" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "PRIMARY_KEY_1" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "PRIMARY_KEY_1" }, });
         stat.executeUpdate("DROP TABLE TX2");
         stat.executeUpdate("DROP TABLE T_2");
         stat.executeUpdate("CREATE TABLE PARENT(ID INT PRIMARY KEY)");

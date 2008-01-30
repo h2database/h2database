@@ -48,7 +48,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private Index index, refIndex;
     private String comment;
     private boolean checkExisting;
-    private boolean primaryKeyKash;
+    private boolean primaryKeyHash;
 
     public AlterTableAddConstraint(Session session, Schema schema) {
         super(session, schema);
@@ -104,7 +104,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             if (index == null) {
-                IndexType indexType = IndexType.createPrimaryKey(table.isPersistent(), primaryKeyKash);
+                IndexType indexType = IndexType.createPrimaryKey(table.isPersistent(), primaryKeyHash);
                 String indexName = getSchema().getUniqueIndexName(table, Constants.PREFIX_PRIMARY_KEY);
                 int id = getObjectId(true, false);
                 try {
@@ -385,11 +385,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     public void setPrimaryKeyHash(boolean b) {
-        this.primaryKeyKash = b;
+        this.primaryKeyHash = b;
     }
 
     public boolean getPrimaryKeyHash() {
-        return primaryKeyKash;
+        return primaryKeyHash;
     }
 
 }

@@ -273,7 +273,14 @@ ShutdownHandler {
         frame.setSize(width, height);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation((screenSize.width - width) / 2, (screenSize.height - height) / 2);
-        frame.setVisible(true);
+        try {
+            frame.setVisible(true);
+        } catch (Throwable t) {
+            // some systems don't support this method, for example IKVM
+            // however it still works
+            // ignore
+            System.out.println("URL: " + web.getURL());
+        }
     }
 
     private void startBrowser() {

@@ -224,7 +224,7 @@ public class Column {
         value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
         if (precision > 0) {
             if (!value.checkPrecision(precision)) {
-                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_1, name);
+                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2, new String[]{name, value.getSQL()});
             }
         }
         updateSequenceIfRequired(session, value);

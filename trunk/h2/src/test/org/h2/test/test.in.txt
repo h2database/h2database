@@ -1,4 +1,20 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE TEST(ID INT PRIMARY KEY, LABEL CHAR(20), LOOKUP CHAR(30));
+> ok
+
+INSERT INTO TEST VALUES (1, 'Mouse', 'MOUSE'), (2, 'MOUSE', 'Mouse');
+> update count: 2
+
+SELECT * FROM TEST;
+> ID LABEL LOOKUP
+> -- ----- ------
+> 1  Mouse MOUSE
+> 2  MOUSE Mouse
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
 call 'a' regexp '\Ho.*';
 > exception
 

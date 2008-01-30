@@ -378,7 +378,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 CREATE {[UNIQUE [HASH]] INDEX [[IF NOT EXISTS] newIndexName]
-| PRIMARY KEY [HASH]} ON (columnName [,...])
+| PRIMARY KEY [HASH]} ON tableName(columnName [,...])
 ","
 Creates a new index.
 ","

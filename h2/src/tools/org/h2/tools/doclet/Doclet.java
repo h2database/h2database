@@ -78,6 +78,7 @@ public class Doclet {
         writer.println("<h1>" + className + "</h1>");
         writer.println(formatText(clazz.commentText()) + "<br /><br />");
 
+        // method overview
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator() {
             public int compare(Object a, Object b) {
@@ -122,6 +123,8 @@ public class Doclet {
         if (hasMethods) {
             writer.println("</table>");
         }
+
+        // field overview
         FieldDoc[] fields = clazz.fields();
         if (clazz.interfaces().length > 0) {
             fields = clazz.interfaces()[0].fields();
@@ -148,29 +151,14 @@ public class Doclet {
             String type = getTypeName(true, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             String constant = field.constantValueExpression();
-            
+
             // add a link (a name) if there is a <code> tag
-            int linkStart = text.indexOf("<code>");
-            if (linkStart >= 0) {
-                int linkEnd = text.indexOf("</code>", linkStart);
-                String link = text.substring(linkStart + "<code>".length(), linkEnd);
-                if (constant != null && !constant.equals(link)) {
-                    throw new Error("wrong code tag? " + clazz.name() + "." + name + 
-                            " code: " + link + " constant: " + constant);
-                }
-                if (Character.isDigit(link.charAt(0))) {
-                    link = "c" + link;
-                }
-                writer.println("<a name=\"" + link + "\"></a>");
-            }
-            
+            String link = getFieldLink(text, constant, clazz, name);
+            writer.print("<a href=\"#" + link + "\">" + name + "</a>");
             if (constant == null) {
-                writer.println(name);
+                writer.println();
             } else {
-                writer.println(name + " = " + constant);
-            }
-            if (text != null) {
-                writer.println("<div class=\"fieldText\">" + formatText(text) + "</div>");
+                writer.println(" = " + constant);
             }
             writer.println("</td></tr>");
             fieldId++;
@@ -179,6 +167,7 @@ public class Doclet {
             writer.println("</table>");
         }
 
+        // message details
         for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
@@ -255,9 +244,66 @@ public class Doclet {
             }
             writer.println("<hr />");
         }
+
+        // field details
+        Arrays.sort(fields, new Comparator() {
+            public int compare(Object a, Object b) {
+                FieldDoc fa = (FieldDoc) a;
+                FieldDoc fb = (FieldDoc) b;
+                String ca = fa.constantValueExpression();
+                String cb = fb.constantValueExpression();
+                if (ca != null && cb != null) {
+                    return ca.compareTo(cb);
+                }
+                return fa.name().compareTo(fb.name());
+            }
+        });
+        for (int i = 0; i < fields.length; i++) {
+            FieldDoc field = fields[i];
+            if (!field.isFinal() || !field.isStatic() || !field.isPublic()) {
+                continue;
+            }
+            String text = field.commentText();
+            if (text.startsWith("INTERNAL")) {
+                continue;
+            }
+            String name = field.name();
+            String constant = field.constantValueExpression();
+            String link = getFieldLink(text, constant, clazz, name);
+            writer.println("<a name=\"" + link + "\"></a>");
+            writer.println("<h4><span class=\"methodName\">" + name);
+            if (constant == null) {
+                writer.println();
+            } else {
+                writer.println(" = " + constant);
+            }
+            writer.println("</span></h4>");
+            if (text != null) {
+                writer.println("<div class=\"item\">" + formatText(text) + "</div>");
+            }
+            writer.println("<hr />");
+        }
+
         writer.println("</div></td></tr></table></body></html>");
         writer.close();
         out.close();
+    }
+
+    private static String getFieldLink(String text, String constant, ClassDoc clazz, String name) {
+        String link = constant != null ? constant : name.toLowerCase();
+        int linkStart = text.indexOf("<code>");
+        if (linkStart >= 0) {
+            int linkEnd = text.indexOf("</code>", linkStart);
+            link = text.substring(linkStart + "<code>".length(), linkEnd);
+            if (constant != null && !constant.equals(link)) {
+                throw new Error("wrong code tag? " + clazz.name() + "." + name +
+                        " code: " + link + " constant: " + constant);
+            }
+        }
+        if (Character.isDigit(link.charAt(0))) {
+            link = "c" + link;
+        }
+        return link;
     }
 
     private static String formatText(String text) {

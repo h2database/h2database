@@ -155,7 +155,7 @@ public class JdbcSQLException extends SQLException {
             buff.append(sql);
         }
         buff.append(" [");
-        buff.append(getSQLState());
+        buff.append(getErrorCode());
         buff.append('-');
         buff.append(Constants.BUILD_ID);
         buff.append(']');

@@ -2,8 +2,9 @@
 Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
-<html><script>
-<!--
+<html>
+<script type="text/javascript">
+// <!--
     var line = 0, file = '';
     var params = location.search.substring(1).split('&');
     var build = 'trunk';
@@ -14,28 +15,28 @@ Initial Developer: H2 Group
             line = value;
         } else if (key == 'file') {
             file = value;
-        } else if (key == 'build') {
+        } else if (key == 'build' && value >= 63) {
             build = 'tags/version-1.0.' + value;
         }
     }
--->
+// -->
 </script>
 <pre>
 <table width="100%">
     <tr>
         <td style="width: 50px">
-            <script>
-<!--
+			<script type="text/javascript">
+// <!--
                 for(var i = 1; i <= 5000; i++) {
                     if (line == i) {
-                        document.write('<b>' + i + ' ></b><br />');
+                        document.write('<b>' + i + '></b><br />');
                     } else if (line <= 4 || i + 4 == line) {
                         document.write(i + '<a name="here"></a><br />');
                     } else {
                         document.write(i + '<br />');
                     }
                 }
--->
+// -->
             </script>
         </td>
         <td width="92%" style="vertical-align: top;">
@@ -45,11 +46,11 @@ Initial Developer: H2 Group
     </tr>
 </table>
 <a href="#here"></a>
-<script>
-<!--
+<script type="text/javascript">
+// <!--
     var source = document.getElementById('source');
     source.src = 'http://h2database.googlecode.com/svn/' + build + '/h2/src/main/' + file;
     document.location = '#here';
--->
+// -->
 </script>
 </pre></html>

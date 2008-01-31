@@ -99,6 +99,7 @@ public class TestIndex extends TestBase {
         rs.next();
         check(rs.getInt(1), 11);
         stat.execute("DROP TABLE TEST");
+        conn.close();
     }
 
     String getRandomString(int len) {

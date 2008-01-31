@@ -675,6 +675,9 @@ public class ErrorCode {
      * INTERNAL
      */
     public static String getState(int errorCode) {
+        // To convert SQLState to error code, replace
+        // 21S: 210, 42S: 421, HY: 50, C: 1, T: 2
+
         switch (errorCode) {
         // 02: no data
         case NO_DATA_AVAILABLE: return "02000";

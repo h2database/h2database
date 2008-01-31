@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Error Analytics
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<style type="text/css">
+a {
+    text-decoration: underline;
+    font-weight: normal;
+    color: #0000ff;
+}
+a.selected {
+    text-decoration: none;
+    font-weight: bold;
+    color: #000000;
+}
+a.disabled {
+    text-decoration: none;
+    font-weight: normal;
+    color: lightGray;
+}
+</style>
+</head><body style="margin:20px">
+
+<script type="text/javascript">
+//<!--
+
+function $(id) {
+	return document.getElementById(id);
+}
+
+function goDetails(code) {
+	code = code.replace('21S', '210');
+	code = code.replace('42S', '421');
+	code = code.replace('HY', '50');
+	code = code.replace('C', '1');
+	code = code.replace('T', '2');
+	$('more').src = 'http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c' + code;
+}
+
+function go(url, file) {
+	$('file').innerHTML = file;
+	$('code').src = url;
+}
+
+var lastError = '';
+var hasData = false;
+var errorCode = '0';
+
+function convert() {
+	try {
+		var s = $('error').value;
+		if(lastError == s) {
+			return;
+		}
+		lastError = s;
+	    var result = '';
+	    hasData = false;
+	    var idx = s.lastIndexOf("[");
+	    if (idx >= 0) {
+		    $('message').innerHTML = s.substring(0, idx);
+	    	var end = s.indexOf("]", idx);
+	    	errorCode = s.substring(idx + 1, end);
+	    	hasData = true;
+	    	idx = errorCode.indexOf("-");
+	    	build = errorCode.substring(idx + 1);
+	    	$('version').innerHTML = '1.0.' + build;
+	    	errorCode = errorCode.substring(0, idx);
+	    	while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
+	    		errorCode = errorCode.substring(1);
+	    	}
+	    	$('errorCode').innerHTML = errorCode;
+	    	goDetails(errorCode);
+	    	s = s.substring(end + 1);
+	    }
+	    idx = 0;
+	    while (true) {
+	        var start = s.indexOf("org.h2.", idx);
+	        if (start < 0) {
+	            result += s.substring(idx);
+	            break;
+	        }
+	        if (idx > 0) {
+		        result += s.substring(idx, start);
+		    }
+	        var end = s.indexOf(')', start);
+	        if (end < 0) {
+	            result += s.substring(idx);
+	            break;
+	        }
+	        var element = s.substring(start, end + 1);
+	        var open = element.lastIndexOf('(');
+	        var dotMethod = element.lastIndexOf('.', open - 1);
+	        var dotClass = element.lastIndexOf('.', dotMethod - 1);
+	        var packageName = element.substring(0, dotClass);
+	        var colon = element.lastIndexOf(':');
+	        var file = element.substring(open + 1, colon);
+	        var lineNumber = element.substring(colon + 1, element.length - 1);
+	        var fullFileName = packageName.replace(/\./g, '/') + "/" + file;
+
+	        var url = "http://h2database.com/html/source.html?file=";
+	        url += fullFileName;
+	        url += "&line=";
+	        url += lineNumber;
+	        url += "&build=";
+	        url += build;
+
+	        result += "<a href='javascript:go(\"";
+	        result += url;
+	        result += "\",\"";
+	        result += fullFileName;
+	        result += "\")'>";
+	        result += element;
+	        result += "</a>";
+
+	        hasData = true;
+	        idx = end + 1;
+	    }
+	    result = result.replace(/[\n\r]+/g, "<br/>");
+	    result = result.replace(/ at /g, "");
+		$('links').innerHTML = result;
+		select('input');
+    } catch(e) {
+    	hasData = false;
+    	alert('Can not parse the stack trace: ' + e);
+    }
+
+}
+
+function select(id) {
+	$('input').style.display = 'none';
+	$('details').style.display = 'none';
+	$('source').style.display = 'none';
+	$('inputTab').className = '';
+	$('detailsTab').className = hasData ? '' : 'disabled';
+	$('sourceTab').className = hasData ? '' : 'disabled';
+	$(id + 'Tab').className = 'selected';
+	$(id).style.display = '';
+	if(id=='details') {
+		goDetails(errorCode);
+	}
+}
+
+//-->
+</script>
+
+<h1>Error Analytics</h1>
+<h2>
+	<a href="javascript:select('input')" id="inputTab">Input</a>&nbsp;
+	<a href="javascript:select('details')" id="detailsTab">Details</a>&nbsp;
+	<a href="javascript:select('source')" id="sourceTab">Source Code</a>
+</h2>
+
+<hr/>
+
+<div id="input">
+	<p>Fill in the error message and stack trace and click on 'Details' or 'Source Code': </p>
+	<textarea id="error" cols="100" style="width: 100%; overflow: auto;" rows="20"
+		onChange="convert()"
+		onSelect="convert()"
+		onKeyUp="convert()"
+		onKeyPress="convert()"
+		onFocus="convert()"
+		onBlur="convert()"
+	>
+	</textarea>
+</div>
+
+<div id="details">
+	<p><b>Error Code: </b><span id="errorCode"></span></p>
+	<p><b>Product Version: </b><span id="version"></span></p>
+	<p><b>Message: </b></p>
+	<p id="message"></p>
+	<p><b>More Information:</b></p>
+	<iframe id="more" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="300px" src="">
+	</iframe>
+</div>
+
+<div id="source">
+	<table style="border:0px" width="100%"><tr><td style="border:0px" width="30px">
+		<p><b>Stack Trace: </b></p>
+		<p id="links"></p>
+	</td><td style="border:0px" width="90%">
+		<p><b>Source File: </b><span id="file"></span></p>
+		<iframe id="code" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="300px" src="">
+		</iframe>
+	</td></tr></table>
+</div>
+
+<script type="text/javascript">
+//<!--
+select('input');
+//-->
+</script>
+
+</body></html>

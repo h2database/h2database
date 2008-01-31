@@ -151,6 +151,16 @@ java org.h2.test.TestAll timer
 
 /*
 
+add sourceError as an official link
+
+corruption should be it's own error code(s)
+
+Online Error Analyzer
+
+add a 'kill process while altering tables' test case
+
+1.5 tool: closeSilently(s1, s2,...)
+
 implement max_query_time and use it for TestCrashAPI
 
 document IKVM
@@ -175,11 +185,6 @@ Roadmap:
 Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
 History:
-Primary keys are now considered constraints and can have a constraint name.
-H2 Console: stack traces are now links to the source code in the source repository (H2 database only).
-CHAR data type equals comparison was case insensitive instead of case sensitive.
-The exception 'Value too long for column' now includes the data.
-The table name was missing in the documentation of CREATE INDEX.
 
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 

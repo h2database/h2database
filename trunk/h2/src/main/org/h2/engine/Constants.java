@@ -29,7 +29,7 @@ package org.h2.engine;
  *     build.html
  *     mainWeb.html
  *     download.html
- * - Maybe increase TCP_DRIVER_VERSION
+ * - Maybe increase TCP_DRIVER_VERSION (but clients must be backwards compatible!)
  * - Check code coverage
  * - No "  Message.get" (must be "throw Message.get")
  * - No TODO in the docs, remove @~ in .utf8.txt files

@@ -151,161 +151,32 @@ java org.h2.test.TestAll timer
 
 /*
 
-add sourceError as an official link
-
-corruption should be it's own error code(s)
-
-Online Error Analyzer
-
-add a 'kill process while altering tables' test case
-
-1.5 tool: closeSilently(s1, s2,...)
-
 implement max_query_time and use it for TestCrashAPI
 
-document IKVM
+link from h2 console to sourceError
+add sourceError as an official link
+Adjust cache memory usage
+At startup, when corrupted, say if LOG=0 was used before
+Extend tests that simulate power off
+Automate real power off tests
+timer test
+// test with garbage at the end of the log file (must be consistently detected as such)
+// TestRandomSQL is too random; most statements fails
+// extend the random join test that compared the result against PostgreSQL
+// long running test with the same database
+// repeatable test with a very big database (making backups of the database files)
 
-adjust cache memory usage
 
-simple pure java config file (interpreted)
-
-orphan?
-
-javadoc: design patterns
-sourceforge h2 database
-update wikipedia
-try https://hudson.dev.java.net/
-
-quaere:
-where(test(a).bigger(b));
-where(test(a, BIGGER, b));
-where(test(a).bigger(b).and(a).smaller(b));
+Test with many columns (180), create index
+add a 'kill process while altering tables' test case
+Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 Roadmap:
-Move Maven 2 repository from hsql.sf.net to h2database.sf.net
+
 
 History:
 
-Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
-Test H2 on OS X (result are here: h2-2007-12-27_test.zip)
-
-Web site:
-link to history page, bug page
-Add a link to the google code bug page
-
-test DbStarter
-
-----
-A file is sent although the Japanese translation has not been completed yet.
-----
-
-At startup, when corrupted, say if LOG=0 was used before
-
-slow:
-select ta.attname, ia.attnum, ic.relname
-from pg_catalog.pg_attribute ta, pg_catalog.pg_attribute ia, pg_catalog.pg_class ic, pg_catalog.pg_index i, pg_catalog.pg_namespace n
-where ic.relname = 'dummy_pkey'
-AND n.nspname = ''
-AND ic.oid = i.indexrelid
-AND n.oid = ic.relnamespace
-AND ia.attrelid = i.indexrelid
-AND ta.attrelid = i.indrelid
-AND ta.attnum = i.indkey[ia.attnum-1]
-AND (NOT ta.attisdropped)
-AND (NOT ia.attisdropped)
-order by ia.attnum;
-
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
-@LOOP 1000000 INSERT INTO TEST VALUES(?, SPACE(100000));
-<stop>
-<reconnect>
-out of memory?
-
-don't create @~ of not translated
-
-extend tests that simulate power off
-
-HSQLDB compatibility:
-Openfire server uses this script to setup a user permissions
-on the fresh-installed server. The database is [current] HSQLDB :
-CREATE SCHEMA PUBLIC AUTHORIZATION DBA
-CREATE USER SA PASSWORD ""
-GRANT DBA TO SA
-SET SCHEMA PUBLIC
-Unfortunately, this does not work in H2
-Wrong user name or password [08004-55]
-
-rename Performance > Comparison [/Compatibility]
-move  Comparison to Other Database Engines > Comparison
-move Products that Work with H2 > Comparison
-move Performance Tuning > Advanced Topics
-
-testHalt
-java org.h2.test.TestAll halt
-
-Automate real power off tests
-timer test
-
-ftp server: problem with multithreading?
-
-h2\src\docsrc\html\images\SQLInjection.txt
-
-Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-send http://thecodist.com/fiche/thecodist/article/sql-injections-how-not-to-get-stuck to JavaWorld, TheServerSide,
-Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
-MySQL, PostgreSQL
-
-READ_TEXT(fileName String) returning a CLOB.
-I am not sure if this will read the CLOB in memory however.
-
-Improve LOB in directories performance
-
-http://fastutil.dsi.unimi.it/
-http://javolution.org/
-http://joda-time.sourceforge.net/
-http://ibatis.apache.org/
-
-http://www.igniterealtime.org/projects/openfire/index.jsp
-
-translation:
-src/org.h2.res/help.csv (using ${.} as in .jsp?)
-javadocs (using generated ${.} ?)
-glossary
-spell check / word list per language
-translated .pdf
-
-*/
-
-// run  TestHalt
-
-// GroovyServlet
-
-// Cluster: hot deploy (adding a node on runtime)
-
-// test with PostgreSQL  Version 8.2
-
-// http://dev.helma.org/Wiki/RhinoLoader
-
-// test with garbage at the end of the log file (must be consistently detected as such)
-// test LIKE: compare against other databases
-
-// TestRandomSQL is too random; most statements fails
-
-// extend the random join test that compared the result against PostgreSQL
-
-// long running test with the same database
-
-// repeatable test with a very big database (making backups of the database files)
-
-/*
-Features of H2
-- Case insensitive string data type
-- GROUP_CONCAT aggregate, User defined aggregates
-- Fulltext search
-- MVCC
-- User defined types
 */
 
         if (args.length > 0) {

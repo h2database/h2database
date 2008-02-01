@@ -7,7 +7,7 @@ Initial Developer: H2 Group
 // <!--
     var line = 0, file = '';
     var params = location.search.substring(1).split('&');
-    var build = 'trunk';
+	var tag = 'trunk/h2';
     for (var i = 0; i<params.length; i++) {
         var k = params[i].split('=');
         var key = k[0], value = k[1];
@@ -15,8 +15,12 @@ Initial Developer: H2 Group
             line = value;
         } else if (key == 'file') {
             file = value;
-        } else if (key == 'build' && value >= 63) {
-            build = 'tags/version-1.0.' + value;
+        } else if (key == 'build') {
+			if (value == 64) {
+	            tag = 'tags/version-1.0.' + value;
+			} else if (value >= 63) {
+	            tag = 'tags/version-1.0.' + value + '/h2';
+	        }
         }
     }
 // -->
@@ -24,7 +28,7 @@ Initial Developer: H2 Group
 <pre>
 <table width="100%">
     <tr>
-        <td style="width: 50px">
+        <td style="width: 50px; vertical-align: top">
 			<script type="text/javascript">
 // <!--
                 for(var i = 1; i <= 5000; i++) {
@@ -39,7 +43,7 @@ Initial Developer: H2 Group
 // -->
             </script>
         </td>
-        <td width="92%" style="vertical-align: top;">
+        <td width="92%" style="vertical-align: top">
             <iframe id="source" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="80000px" scrolling="no" src="">
             </iframe>
         </td>
@@ -49,7 +53,7 @@ Initial Developer: H2 Group
 <script type="text/javascript">
 // <!--
     var source = document.getElementById('source');
-    source.src = 'http://h2database.googlecode.com/svn/' + build + '/h2/src/main/' + file;
+    source.src = 'http://h2database.googlecode.com/svn/' + tag + '/src/main/' + file;
     document.location = '#here';
 // -->
 </script>

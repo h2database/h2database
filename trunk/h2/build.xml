@@ -1,5 +1,11 @@
 <project name="h2" default="all" basedir=".">
 
+    <!-- dependencies (optional):
+    		http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar
+    		(actually any servlet api)
+			http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar
+			(or newer)
+    -->
 	<property file="ant-build.properties" />
 
 	<!-- jar files required by the benchmark -->
@@ -281,19 +287,6 @@
 			<attribute name="Implementation-Version" value="${version.name.maven}"/>
 			<attribute name="Build-Jdk" value="${java.specification.version}"/>
 		</manifest>
-	</target>
-
-	<target name="mavenBuildCentral">
-		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
-		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
-			<filterset>
-				<filter token="version" value="${version.name.maven}"/>
-		    </filterset>
-		</copy>
-		<jar destfile="bin/h2-${version.name.maven}-bundle.jar" basedir="bin">
-			<include name="pom.xml" />
-			<include name="h2-${version.name.maven}.jar" />
-		</jar>
 	</target>
 
 	<target name="mavenDeployCentral" depends="jar">

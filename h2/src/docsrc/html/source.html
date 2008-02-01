@@ -2,12 +2,14 @@
 Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
-<html>
+<html><head>
+<title>Source Code Viewer</title>
+</head>
 <script type="text/javascript">
 // <!--
     var line = 0, file = '';
     var params = location.search.substring(1).split('&');
-	var tag = 'trunk/h2';
+    var tag = 'trunk/h2';
     for (var i = 0; i<params.length; i++) {
         var k = params[i].split('=');
         var key = k[0], value = k[1];
@@ -16,11 +18,11 @@ Initial Developer: H2 Group
         } else if (key == 'file') {
             file = value;
         } else if (key == 'build') {
-			if (value == 64) {
-	            tag = 'tags/version-1.0.' + value;
-			} else if (value >= 63) {
-	            tag = 'tags/version-1.0.' + value + '/h2';
-	        }
+            if (value == 64) {
+                tag = 'tags/version-1.0.' + value;
+            } else if (value >= 63) {
+                tag = 'tags/version-1.0.' + value + '/h2';
+            }
         }
     }
 // -->
@@ -29,7 +31,7 @@ Initial Developer: H2 Group
 <table width="100%">
     <tr>
         <td style="width: 50px; vertical-align: top">
-			<script type="text/javascript">
+            <script type="text/javascript">
 // <!--
                 for(var i = 1; i <= 5000; i++) {
                     if (line == i) {

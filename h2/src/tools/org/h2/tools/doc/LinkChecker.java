@@ -64,7 +64,8 @@ public class LinkChecker {
         ArrayList errors = new ArrayList();
         for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
-            if (!link.startsWith("http") && !link.endsWith("h2.pdf") && link.indexOf("_ja.") < 0) {
+            if (!link.startsWith("http") && !link.endsWith("h2.pdf")
+                    && link.indexOf("_ja.") < 0) {
                 if (targets.get(link) == null) {
                     errors.add(links.get(link) + ": missing link " + link);
                 }
@@ -161,6 +162,12 @@ public class LinkChecker {
             if (type.equals("href")) {
                 if (ref.startsWith("http:") || ref.startsWith("https:")) {
                     // ok
+                } else if (ref.startsWith("javascript:")) {
+                    ref = null;
+                    // ok
+                } else if (ref.length() == 0) {
+                    ref = null;
+                    // ok
                 } else if (ref.startsWith("#")) {
                     ref = path + ref;
                 } else {
@@ -175,7 +182,9 @@ public class LinkChecker {
                     }
                     ref = p + "/" + ref;
                 }
-                links.put(ref, path);
+                if (ref != null) {
+                    links.put(ref, path);
+                }
             } else if (type.equals("name")) {
                 targets.put(path + "#" + ref, "name");
             } else {

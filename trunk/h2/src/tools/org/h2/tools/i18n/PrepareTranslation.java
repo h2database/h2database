@@ -259,7 +259,7 @@ public class PrepareTranslation {
                     } else {
                         buff.append(clean(trim));
                     }
-                } else if ("pre".equals(tag) || "title".equals(tag) || "script".equals(tag)) {
+                } else if ("pre".equals(tag) || "title".equals(tag) || "script".equals(tag) || "style".equals(tag)) {
                     // ignore, don't translate
                     template.append(s);
                 } else {

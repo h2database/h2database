@@ -61,10 +61,10 @@ package org.h2.engine;
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge
+ * - svn copy: .../svn/trunk .../svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
- * - svn copy: .../svn/trunk .../svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  */
 /**
  * Constants are fixed values that are used in the whole database code.
@@ -72,7 +72,8 @@ package org.h2.engine;
 public class Constants {
 
     public static final int BUILD_ID = 66;
-    private static final String BUILD = "2008-01-18";
+    private static final String BUILD = "2008-02-02";
+    
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 

@@ -29,6 +29,7 @@ public class TableFunction extends Expression implements FunctionCall {
     private Column[] columnList;
 
     public Value getValue(Session session) throws SQLException {
+        int todoClassIsNotUsed;
         return getTable(session, args, false, distinct);
     }
 

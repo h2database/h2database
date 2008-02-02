@@ -165,11 +165,11 @@ timer test
 // extend the random join test that compared the result against PostgreSQL
 // long running test with the same database
 // repeatable test with a very big database (making backups of the database files)
+Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
-
+ODBC must include a password; I cannot use the default 'sa' with no password for it.
 Test with many columns (180), create index
 add a 'kill process while altering tables' test case
-Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 Roadmap:
 

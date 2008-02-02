@@ -61,7 +61,6 @@ package org.h2.engine;
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge
- * - Newsletter: send without 'to unsubscribe...' to h2database-news@googlegroups.com
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
@@ -72,7 +71,7 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 65;
+    public static final int BUILD_ID = 66;
     private static final String BUILD = "2008-01-18";
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;

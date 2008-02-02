@@ -31,7 +31,7 @@ input {
 <script type="text/javascript">
 //<!--
 
-function $(id) {
+function get(id) {
     return document.getElementById(id);
 }
 
@@ -46,12 +46,12 @@ function goDetails(code) {
     code = code.replace('HY', '50');
     code = code.replace('C', '1');
     code = code.replace('T', '2');
-    $('more').src = 'http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c' + code;
+    get('more').src = 'http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c' + code;
 }
 
 function go(file, line) {
     var url;
-    if ($('rawSource').checked == true) {
+    if (get('rawSource').checked == true) {
         url = "source.html?file=";
         url += file;
         url += "&line=";
@@ -72,13 +72,13 @@ function go(file, line) {
         url += '#';
         url += line;
     }
-    $('file').innerHTML = file;
-    $('code').src = url;
+    get('file').innerHTML = file;
+    get('code').src = url;
 }
 
 function convert() {
     try {
-        var s = $('error').value;
+        var s = get('error').value;
         if(lastError == s) {
             return;
         }
@@ -87,18 +87,18 @@ function convert() {
         hasData = false;
         var idx = s.lastIndexOf("[");
         if (idx >= 0) {
-            $('message').innerHTML = s.substring(0, idx);
+            get('message').innerHTML = s.substring(0, idx);
             var end = s.indexOf("]", idx);
             errorCode = s.substring(idx + 1, end);
             hasData = true;
             idx = errorCode.indexOf("-");
             build = errorCode.substring(idx + 1);
-            $('version').innerHTML = '1.0.' + build;
+            get('version').innerHTML = '1.0.' + build;
             errorCode = errorCode.substring(0, idx);
             while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
                 errorCode = errorCode.substring(1);
             }
-            $('errorCode').innerHTML = errorCode;
+            get('errorCode').innerHTML = errorCode;
             goDetails(errorCode);
             s = s.substring(end + 1);
         }
@@ -139,7 +139,7 @@ function convert() {
         }
         result = result.replace(/[\n\r]+/g, "<br/>");
         result = result.replace(/ at /g, "");
-        $('links').innerHTML = result;
+        get('links').innerHTML = result;
         select('input');
     } catch(e) {
         hasData = false;
@@ -149,14 +149,14 @@ function convert() {
 }
 
 function select(id) {
-    $('input').style.display = 'none';
-    $('details').style.display = 'none';
-    $('source').style.display = 'none';
-    $('inputTab').className = '';
-    $('detailsTab').className = hasData ? '' : 'disabled';
-    $('sourceTab').className = hasData ? '' : 'disabled';
-    $(id + 'Tab').className = 'selected';
-    $(id).style.display = '';
+    get('input').style.display = 'none';
+    get('details').style.display = 'none';
+    get('source').style.display = 'none';
+    get('inputTab').className = '';
+    get('detailsTab').className = hasData ? '' : 'disabled';
+    get('sourceTab').className = hasData ? '' : 'disabled';
+    get(id + 'Tab').className = 'selected';
+    get(id).style.display = '';
     if(id=='details') {
         goDetails(errorCode);
     }
@@ -165,12 +165,12 @@ function select(id) {
 
 function sizeTextArea() {
     var height=document.body.clientHeight;
-    var error = $('error');
+    var error = get('error');
     error.style.height = (height - error.offsetTop - 25) + 'px';
-    var more = $('more');
+    var more = get('more');
     more.style.height = (height - more.offsetTop - 25) + 'px';
-    var code = $('code');
-    code.style.height = (height - $('sourceTable').offsetTop - code.offsetTop - 30) + 'px';
+    var code = get('code');
+    code.style.height = (height - get('sourceTable').offsetTop - code.offsetTop - 30) + 'px';
 }
 
 //-->

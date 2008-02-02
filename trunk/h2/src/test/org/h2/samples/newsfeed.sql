@@ -10,6 +10,39 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(36,
+'New version available: 1.0.66 (2008-02-02)', '2008-02-02 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>New tool: <a href="http://www.h2database.com/html/sourceError.html">Online Error Analyzer</a>.
+</li><li>In the H2 Console, errors now link to the docs and source code.
+</li><li>IKVM (www.ikvm.net) is now better supported.
+</li><li>The exception ''Value too long for column'' now includes the data.
+</li><li>Statements that contain very large subqueries are now faster.
+</li><li>Fulltext search is now supported in named in-memory databases.
+</li><li>Primary keys can now have a constraint name.
+</li><li>Calling EXTRACT(HOUR FROM ...) returned the wrong values.
+	Please check if your application relies on the old behavior before upgrading.
+</li><li>The meta data compatibility with other databases has been improved.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>CHAR data type equals comparison was wrong.
+</li><li>The table name was missing in the documentation of CREATE INDEX.
+</li><li>The cache memory usage calculation has been improved.
+</li><li>The exception "Hex string contains non-hex character" was not thrown.
+</li><li>The acting as PostgreSQL server, a base directory was not set correctly.
+</li><li>Variables: large objects now work correctly.
+</li><li>H2 Console: multiple consecutive spaces in the setting name did not work.
+</li></ul>
+For details, see the ''Change Log'' at
+http://groups.google.com/group/h2-database/web/change-log
+<br />
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(35,
 'New version available: 1.0.65 (2008-01-18)', '2008-01-18 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -303,48 +336,6 @@ Some unit tests failed on Linux because the file system works differently.
 </li><li>The CONVERT function did not work with views when using UNION.
 </li><li>Google translate did not work for the H2 homepage.
 </li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(26,
-'New version available: 1.0 / 2007-08-02', '2007-08-02 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-
-<br />
-<b>Changes and new functionality:</b>
-<ul>
-</li><li>H2 databases can now be accessed using the PostgreSQL ODBC driver.
-</li><li>The old H2 ODBC driver has been removed.
-</li><li>Function REGEXP_REPLACE and regular expression LIKE: REGEXP.
-</li><li>CREATE TABLE ... AS SELECT now needs less memory.
-</li><li>The per session undo log can now be disabled.
-</li><li>Referential integrity can now be disabled.
-</li><li>To avoid memory problems when using large transactions,
-    h2.defaultMaxMemoryUndo is now 50000.    
-</li><li>DEFAULT_MAX_LENGTH_INPLACE_LOB is now 1024.
-</li><li>The cache size is now measured in KB.
-</li><li>Optimization for NOT, boolean columns, and certain joins. 
-</li><li>Part of the documentation has been translated to Japanese.
-</li><li>The error messages (src/main/org/h2/res/_*.*) can now be translated.
-</li><li>A new tool to help translation has been implemented
-</li><li>The SysTray tool has been removed.
-</ul>
-<b>Bugfixes:</b>
-<ul>
-</li><li>Running out of memory while inserting could corrupt the database.
-</li><li>Some Unicode characters where not supported as identifiers.
-</li><li>H2 Console: The shutdown button works again.
-</li><li>LOBs were not backed up using the BACKUP statement or tool when 
-    h2.lobFilesInDirectories was enabled. 
-</li><li>Calculation of cache memory usage has been improved.
-</li><li>In some situations records were released from the cache too late.
-</li><li>Documentation: the source code in ''Compacting a Database'' was incorrect.
-</li><li>Result set in the H2 Console can now be modified again.
-</li><li>Views using UNION did not work correctly.
-</li><li>Function tables did not work with views and EXPLAIN.
-</li>
-</ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 ');
 

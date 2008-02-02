@@ -952,7 +952,7 @@ Centralリポジトリの利用
 ダウンロード
 
 @download_1001_h3
-#Version 1.0.65 (2008-01-18, Current)
+#Version 1.0.66 (2008-02-02, Current)
 
 @download_1002_a
 Windows Installer
@@ -961,7 +961,7 @@ Windows Installer
 Platform-Independent Zip
 
 @download_1004_h3
-#Version 1.0.64 (2007-12-27, Last Stable)
+#Version 1.0.65 (2008-01-18, Last Stable)
 
 @download_1005_a
 Windows Installer
@@ -2604,6 +2604,9 @@ Javaは将来への証明でもあります: 多くの会社がJavaをサポー�
 @history_1033_li
 #Oliver Computing LLC, USA
 
+@history_1034_li
+#Harpal Grover, USA
+
 @installation_1000_h1
 インストール
 
@@ -3067,7 +3070,7 @@ JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
 ダウンロード
 
 @mainWeb_1007_td
-#Version 1.0.65 (2008-01-18):
+#Version 1.0.66 (2008-02-02):
 
 @mainWeb_1008_a
 #Windows Installer (2.9 MB)
@@ -4519,19 +4522,22 @@ Javadoc JDBC API
 @search_1014_a
 PDFドキュメント
 
-@search_1015_b
+@search_1015_a
+#Error Analyzer
+
+@search_1016_b
 付録
 
-@search_1016_a
+@search_1017_a
 ビルド
 
-@search_1017_a
+@search_1018_a
 歴史とロードマップ
 
-@search_1018_a
+@search_1019_a
 FAQ
 
-@search_1019_a
+@search_1020_a
 ライセンス
 
 @sourceError_1000_h1
@@ -5021,486 +5027,4 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 
 @tutorial_1149_p
 #Variables that are not set evaluate to NULL. The data type of a user defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values, large objects (LOBs) are supported as well.
-
-@~performance_1004_h2
-#Performance Comparison
-
-@~performance_1005_p
-#In most cases H2 is a lot faster than all other (open source and not open source) database engines. Please note this is mostly a single connection benchmark run on one computer.
-
-@~performance_1006_h3
-#Embedded
-
-@~performance_1007_th
-#Test Case
-
-@~performance_1012_td
-#Simple: Init
-
-@~performance_1102_h3
-#Client-Server
-
-@~performance_1103_th
-#Test Case
-
-@~performance_1110_td
-#Simple: Init
-
-@~performance_1236_h3
-#Benchmark Results and Comments
-
-@~performance_1237_h4
-H2
-
-@~performance_1238_p
-#Version 1.0 (2007-09-15) was used for the test. For simpler operations, the performance of H2 is about the same as for HSQLDB. For more complex queries, the query optimizer is very important. However H2 is not very fast in every case, certain kind of queries may still be slow. One situation where is H2 is slow is large result sets, because they are buffered to disk if more than a certain number of records are returned. The advantage of buffering is, there is no limit on the result set size. The open/close time is almost fixed, because of the file locking protocol: The engine waits 20 ms after opening a database to ensure the database files are not opened by another process.
-
-@~performance_1239_h4
-HSQLDB
-
-@~performance_1240_p
-#Version 1.8.0.8 was used for the test. Cached tables are used in this test (hsqldb.default_table_type=cached), and the write delay is 1 second (SET WRITE_DELAY 1). HSQLDB is fast when using simple operations. HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer. One query where HSQLDB is slow is a two-table join:
-
-@~performance_1242_h4
-Derby
-
-@~performance_1243_p
-#Version 10.3.1.4 was used for the test. Derby is clearly the slowest embedded database in this test. This seems to be a structural problem, because all operations are really slow. It will not be easy for the developers of Derby to improve the performance to a reasonable level. A few problems have been identified: Leaving autocommit on is a problem for Derby. If it is switched off during the whole test, the results are about 20% better for Derby.
-
-@~performance_1244_h4
-PostgreSQL
-
-@~performance_1245_p
-#Version 8.1.4 was used for the test. The following options where changed in postgresql.conf: fsync = off, commit_delay = 1000. PostgreSQL is run in server mode. It looks like the base performance is slower than MySQL, the reason could be the network layer. The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
-
-@~performance_1246_h4
-MySQL
-
-@~performance_1247_p
-#Version 5.0.22 was used for the test. MySQL was run with the InnoDB backend. The setting innodb_flush_log_at_trx_commit (found in the my.ini file) was set to 0. Otherwise (and by default), MySQL is really slow (around 140 statements per second in this test) because it tries to flush the data to disk for each commit. For small transactions (when autocommit is on) this is really slow. But many use cases use small or relatively small transactions. Too bad this setting is not listed in the configuration wizard, and it always overwritten when using the wizard. You need to change this setting manually in the file my.ini, and then restart the service. The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
-
-@~performance_1248_h4
-#Firebird
-
-@~performance_1249_p
-#Firebird 1.5 (default installation) was tested, but the results are not published currently. It is possible to run the performance test with the Firebird database, and any information on how to configure Firebird for higher performance are welcome.
-
-@~performance_1250_h4
-#Why Oracle / MS SQL Server / DB2 are Not Listed
-
-@~performance_1251_p
-#The license of these databases does not allow to publish benchmark results. This doesn't mean that they are fast. They are in fact quite slow, and need a lot of memory. But you will need to test this yourself. SQLite was not tested because the JDBC driver doesn't support transactions.
-
-@~performance_1252_h3
-#About this Benchmark
-
-@~performance_1253_h4
-#Number of Connections
-
-@~performance_1254_p
-#This is mostly a single-connection benchmark. BenchB uses multiple connections, the other tests one connection.
-
-@~performance_1255_h4
-#Real-World Tests
-
-@~performance_1256_p
-#Good benchmarks emulate real-world use cases. This benchmark includes 3 test cases: A simple test case with one table and many small updates / deletes. BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org). BenchB is similar to the TPC-B test, using multiple connections (one thread per connection). BenchC is similar to the TPC-C test, but single connection / single threaded.
-
-@~performance_1257_h4
-#Comparing Embedded with Server Databases
-
-@~performance_1258_p
-#This is mainly a benchmark for embedded databases (where the application runs in the same virtual machine than the database engine). However MySQL and PostgreSQL are not Java databases and cannot be embedded into a Java application. For the Java databases, both embedded and server modes are tested.
-
-@~performance_1259_h4
-#Test Platform
-
-@~performance_1260_p
-#This test is run on Windows XP with the virus scanner switched off. The VM used is Sun JDK 1.5.
-
-@~performance_1261_h4
-#Multiple Runs
-
-@~performance_1262_p
-#When a Java benchmark is run first, the code is not fully compiled and therefore runs slower than when running multiple times. A benchmark should always run the same test multiple times and ignore the first run(s). This benchmark runs three times, the last run counts.
-
-@~performance_1263_h4
-#Memory Usage
-
-@~performance_1264_p
-#It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved in databases by using a bigger in-memory cache, but there is only a limited amount of memory available on the system. HSQLDB tables are kept fully in memory by default, this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
-
-@~performance_1265_h4
-#Delayed Operations
-
-@~performance_1266_p
-#Some databases delay some operations (for example flushing the buffers) until after the benchmark is run. This benchmark waits between each database tested, and each database runs in a different process (sequentially).
-
-@~performance_1267_h4
-#Transaction Commit / Durability
-
-@~performance_1268_p
-#Durability means transaction committed to the database will not be lost. Some databases (for example MySQL) try to enforce this by default by calling fsync() to flush the buffers, but most hard drives don't actually flush all data. Calling fsync() slows down transaction commit a lot, but doesn't always make data durable. When comparing the results, it is important to think about the effect. Many database suggest to 'batch' operations when possible. This benchmark switches off autocommit when loading the data, and calls commit after each 1000 inserts. However many applications need 'short' transactions at runtime (a commit after each update). This benchmark commits after each update / delete in the simple benchmark, and after each business transaction in the other benchmarks. For databases that support delayed commits, a delay of one second is used.
-
-@~performance_1269_h4
-#Using Prepared Statements
-
-@~performance_1270_p
-#Wherever possible, the test cases use prepared statements.
-
-@~performance_1271_h4
-#Currently Not Tested: Startup Time
-
-@~performance_1272_p
-#The startup time of a database engine is important as well for embedded use. This time is not measured currently. Also, not tested is the time used to create a database and open an existing database. Here, one (wrapper) connection is opened at the start, and for each step a new connection is opened and then closed. That means the Open/Close time listed is for opening a connection if the database is already in use.
-
-@~performance_1273_h3
-#PolePosition Benchmark
-
-@~performance_1274_p
-#The PolePosition is an open source benchmark. The algorithms are all quite simple. It was developed / sponsored by db4o.
-
-@~performance_1275_th
-#Test Case
-
-@~performance_1280_td
-#Melbourne write
-
-@~performance_1380_h2
-#Application Profiling
-
-@~performance_1381_h3
-#Analyze First
-
-@~performance_1382_p
-#Before trying to optimize the performance, it is important to know where the time is actually spent. The same is true for memory problems. Premature or 'blind' optimization should be avoided, as it is not an efficient way to solve the problem. There are various ways to analyze the application. In some situations it is possible to compare two implementations and use System.currentTimeMillis() to find out which one is faster. But this does not work for complex applications with many modules, and for memory problems. A very good tool to measure both the memory and the CPU is the <a href="http://www.yourkit.com">YourKit Java Profiler</a> . This tool is also used to optimize the performance and memory footprint of this database engine.
-
-@~performance_1383_h2
-#Database Performance Tuning
-
-@~performance_1384_h3
-#Virus Scanners
-
-@~performance_1385_p
-#Some virus scanners scan files every time they are accessed. It is very important for performance that database files are not scanned for viruses. The database engine does never interprets the data stored in the files as programs, that means even if somebody would store a virus in a database file, this would be harmless (when the virus does not run, it cannot spread). Some virus scanners allow excluding file endings. Make sure files ending with .db are not scanned.
-
-@~performance_1386_h3
-トレースオプションを使用する
-
-@~performance_1387_p
-#If the main performance hot spots are in the database engine, in many cases the performance can be optimized by creating additional indexes, or changing the schema. Sometimes the application does not directly generate the SQL statements, for example if an O/R mapping tool is used. To view the SQL statements and JDBC API calls, you can use the trace options. For more information, see <a href="features.html#trace_options">Using the Trace Options</a> .
-
-@~performance_1388_h3
-#Index Usage
-
-@~performance_1389_p
-#This database uses indexes to improve the performance of SELECT, UPDATE and DELETE statements. If a column is used in the WHERE clause of a query, and if an index exists on this column, then the index can be used. Multi-column indexes are used if all or the first columns of the index are used. Both equality lookup and range scans are supported. Indexes are not used to order result sets: The results are sorted in memory if required. Indexes are created automatically for primary key and unique constraints. Indexes are also created for foreign key constraints, if required. For other columns, indexes need to be created manually using the CREATE INDEX statement.
-
-@~performance_1390_h3
-#Optimizer
-
-@~performance_1391_p
-#This database uses a cost based optimizer. For simple and queries and queries with medium complexity (less than 7 tables in the join), the expected cost (running time) of all possible plans is calculated, and the plan with the lowest cost is used. For more complex queries, the algorithm first tries all possible combinations for the first few tables, and the remaining tables added using a greedy algorithm (this works well for most joins). Afterwards a genetic algorithm is used to test at most 2000 distinct plans. Only left-deep plans are evaluated.
-
-@~performance_1392_h3
-#Expression Optimization
-
-@~performance_1393_p
-#After the statement is parsed, all expressions are simplified automatically if possible. Operations are evaluated only once if all parameters are constant. Functions are also optimized, but only if the function is constant (always returns the same result for the same parameter values). If the WHERE clause is always false, then the table is not accessed at all.
-
-@~performance_1394_h3
-#COUNT(*) Optimization
-
-@~performance_1395_p
-#If the query only counts all rows of a table, then the data is not accessed. However, this is only possible if no WHERE clause is used, that means it only works for queries of the form SELECT COUNT(*) FROM table.
-
-@~performance_1396_h3
-#Updating Optimizer Statistics / Column Selectivity
-
-@~performance_1397_p
-#When executing a query, at most one index per joined table can be used. If the same table is joined multiple times, for each join only one index is used. Example: for the query SELECT * FROM TEST T1, TEST T2 WHERE T1.NAME='A' AND T2.ID=T1.ID, two index can be used, in this case the index on NAME for T1 and the index on ID for T2.
-
-@~tutorial_1012_h2
-起動とH2コンソールの使用
-
-@~tutorial_1013_p
-このアプリケーションはブラウザインターフェースを使ってSQLデータベースにアクセスします。 これは、H2データベース、またはJDBC APIをサポートする別のデータベースであるかもしれません。
-
-@~tutorial_1016_th
-OS
-
-@~tutorial_1018_td
-Windows
-
-@~tutorial_1027_h3
-ファイアウォール
-
-@~tutorial_1028_p
-サーバーを起動させたら、ファイアウォールによるセキュリティ警告を受けるでしょう (1度インストールした場合)。外部ネットワークからあなたのマシンのデータベースにアクセスされたくないのであれば、ファイアーウォールが他の接続を遮断します。ローカルマシンからの接続はまだつながっています。他のコンピュータから、このコンピューターのデータベースにアクセスしたい場合のみ、 ファイアウォールでリモート接続を許可する必要があります。
-
-@~tutorial_1030_h3
-ネイティブ バージョン
-
-@~tutorial_1031_p
-ネイティブ バージョンはJavaを必要としていません。なぜなら、これはGCJを使用してコンパイルされるからです。しかし、H2は現在、Windows上のGCJプロジェクトでは実行されません。異なったプラットフォームでソフトウェアをコンパイルすることが可能です。
-
-@~tutorial_1032_h3
-Javaをテストする
-
-@~tutorial_1033_p
-インストールしたJavaのバージョンを調べるためには、 コマンドプロンプトを開き、 下記を入力します:
-
-@~tutorial_1035_h3
-エラーメッセージ 'Port is in use'
-
-@~tutorial_1036_p
-ひとつのH2コンソールのみ起動することができます。 そうでなければ、次のようなエラーメッセージが表示されます:
-<code>Port is in use, maybe another ... server already running on...</code>
-複数のコンソールアプリケーションを同じコンピューターで起動することは可能です (異なったポートを使用します)、しかし、コンソールが複数の同時接続を維持するということは、普通は必要とされていません。
-
-@~tutorial_1037_h3
-他のポートを使用する
-
-@~tutorial_1038_p
-もしポートが他のアプリケーションによって使用されている場合は、H2コンソールを異なったポートで起動したいはずです。これは、.h2.server.properties.ファイル内のポートを変更することにより実行できます。このファイルはユーザディレクトリ内に格納されています (Windowsでは通常、"Documents and Settings/&lt;ユーザ名>")。関連する項目はwebPortです。
-
-@~tutorial_1039_h3
-起動成功
-
-@~tutorial_1040_p
-コンソールウィンドウからのサーバー起動が成功したら、新しいウィンドウが開き、 下記のように表示されます:
-
-@~tutorial_1042_h3
-ブラウザを使用してサーバーに接続
-
-@~tutorial_1043_p
-サーバーの接続に成功したら、webブラウザを使用してサーバーに接続することができます。ブラウザにはJavaScript、フレーム、カスケードスタイルシート (css)のサポートが必要です。もし同じコンピューターのブラウザでサーバーを起動したら、 http://localhost:8082 へアクセスしてください。他のコンピューターからアプリケーションに接続したい場合は、 サーバーのIPアドレスを用意することが必要です。 例: http://192.168.0.2:8082 サーバー側でSSLを使用したい場合は、URLをHTTPSから始めます。
-
-@~tutorial_1044_h3
-複数の同時セッション
-
-@~tutorial_1045_p
-複数の同時ブラウザセッションがサポートされています。 データベースオブジェクトはサーバーに属しているため、同時接続の数はサーバーアプリケーションの利用可能メモリによって制限されています。
-
-@~tutorial_1046_h3
-アプリケーションプロパティ
-
-@~tutorial_1047_p
-サーバーを起動するとローカルのホームディレクトリに .h2.server.properties と呼ばれるファイル構成が作成されます。Windowsのインストールでは、このファイルは will be in the directory C:\Documents and Settings\[ユーザ名]のディレクトリ内にあります。このファイルはアプリケーションのセッティングに含まれています。
-
-@~tutorial_1048_h3
-ログイン
-
-@~tutorial_1049_p
-ログインページでは、データベースに接続するための接続情報を設定する必要があります。 JDBCドライバをデータベースのクラスに設定し、JDBCのURL、ユーザ名とパスワードを入力します。 完了したら [Connect] をクリックします。
-
-@~tutorial_1051_h3
-エラーメッセージ
-
-@~tutorial_1052_p
-エラーメッセージは赤で表示されます。 メッセージをクリックすることによって、例外の記録の表示、非表示を切り替えることができます。
-
-@~tutorial_1053_h3
-データベースドライバの追加
-
-@~tutorial_1054_p
-H2DRIVERSかCLASSPATHの環境変数に、ドライバのJarファイルの位置を追加することにより、データベースドライバの追加を行うことができます。 例 (Windowsの場合): データベースドライバのライブラリに C:\Programs\hsqldb\lib\hsqldb.jar を追加し、H2DRIVERSの環境変数に C:\Programs\hsqldb\lib\hsqldb.jar を設定します。
-
-@~tutorial_1057_h3
-アプリケーションを使用する
-
-@~tutorial_1058_p
-アプリケーションは3つのメインパネルを保持しています。上部のツールバー、左側のツリーとクエリ、右側の結果表示パネルです。データベースオブジェクト (例; テーブル) は左側のパネルに一覧表示されます。クエリパネルにSQLコマンドを打ち、 'Run' をクリックします。 コマンドの結果は、コマンドのすぐ下に表示されます。
-
-@~tutorial_1059_h3
-テーブル名、またはカラム名をインサートする
-
-@~tutorial_1060_p
-テーブル名やカラム名は、ツリー内のテーブル名、カラム名をクリックすることによってスクリプトにインサートすることができます。クエリが空の時にテーブルをクリックすると、 'SELECT * FROM ...' も同様に追加されます。 クエリを入力している間、使用されているテーブルはツリー内で自動的に拡張されます。例えば、 'SELECT * FROM TEST T WHERE T.' と入力すると、ツリー内のTESTテーブルは自動的に拡張されます。
-
-@~tutorial_1061_h3
-切断とアプリケーションの終了
-
-@~tutorial_1062_p
-ブラウザでは、ツールバーパネルの 'Disconnect' をクリックします。データベースからログアウトします。しかし、サーバーはまだ接続されていて、 新しいセッションを受け入れる準備をしています。
-
-@~tutorial_1064_h2
-JDBCを使用してデータベースに接続
-
-@~tutorial_1065_p
-#To connect to a database, a Java application first needs to load the database driver, and then get a connection. A simple way to do that is using the following code:
-
-@~tutorial_1067_h2
-新しいデータベースを作成する
-
-@~tutorial_1068_p
-初期設定では、データベースの指定されたURLがまだ存在しない場合、自動的に新しい (空の) データベースが作られます。
-
-@~tutorial_1069_h2
-サーバーを使用する
-
-@~tutorial_1070_p
-H2は現在、3つのサーバーをサポートしています: Webサーバー、TCPサーバー、ODBCサーバーです。 これらのサーバーは異なった方法で起動します。
-
-@~tutorial_1071_h3
-コマンドラインから起動する
-
-@~tutorial_1072_p
-初期設定でコマンドラインからサーバーを起動させるには、次のように実行します。
-
-@~tutorial_1075_h3
-TCPサーバーに接続する
-
-@~tutorial_1076_p
-データベースへリモート接続するためには、TCPサーバーを使用します。次のドライバとデータベースURLを利用します:
-
-@~tutorial_1077_li
-JDBCドライバクラス: org.h2.Driver
-
-@~tutorial_1079_p
-データベースURLについての詳細は、特徴内のページをご覧下さい。
-
-@~tutorial_1080_h3
-アプリケーション内で起動する
-
-@~tutorial_1081_p
-アプリケーション内からサーバーを起動、終了することも可能です。 以下はサンプルコードです:
-
-@~tutorial_1082_h3
-他の過程からTCPサーバーを終了する
-
-@~tutorial_1083_p
-TCPサーバーは他の過程から終了することができます。 コマンドラインからサーバーを終了するには、次のように実行します:
-
-@~tutorial_1086_h3
-サーバーの制限
-
-@~tutorial_1087_p
-現在、サーバーやクラスターモードを使用する時にいくつかの制限があります:
-
-@~tutorial_1088_li
-Statement.cancel() はエンベッドモードのみサポートされています。接続はサーバー、またはクラスターモードで1度にひとつのオペレーションで実行され、 このオペレーションが終了するまで接続は遮断されます。
-
-@~tutorial_1089_h2
-Hibernateを使用する
-
-@~tutorial_1090_p
-このデータベースはHibernate version 3.1 と以降の新しいバージョンをサポートしています。 HSQLDB Dialect、または H2 Dialectは src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内で使用可能です。 H2 dialectは Hibernateのより新しいバージョンに含まれています。H2 dialectが含まれていないバージョンでは、 src\org\hibernate\dialect (Hibernate 3.1の場合) フォルダ内のファイルをコピーし、 H2Dialect.java にファイル名を変更し、 Hibernateを再びコンパイルします。
-
-@~tutorial_1091_h2
-Webアプリケーションでデータベースを使用する
-
-@~tutorial_1092_p
-Webアプリケーション内からデータベースに接続するには様々な方法があります。 以下はTomcatかJBossを使用の場合のいくつかの例です。
-
-@~tutorial_1093_h3
-エンベッドモード
-
-@~tutorial_1094_p
-(現在)最も簡単なソリューションはエンベッドモードでデータベースを使用することです。 それは、アプリケーションが起動する時や (良いソリューションは Servletリスナーを使用します。下記参照)、セッションが起動する時、アプリケーションにおける接続が開始するということを意味します。データベースは、セッションやアプリケーションが同じ過程で実行している限り、多様なセッションやアプリケーションから同時に接続されることが可能です。 多くのServletコンテナは (例； Tomcat) ただひとつのプロセスで利用されるので、問題はありません。 (Tomcatをクラスターモードで起動している場合を除いて)。 Tomcatはマルチスレッドとマルチクラスローダーを使用しています。もし複数のアプリケーションが同じデータベースに同時にアクセスする場合、データベースjarをshared/lib、またはserver/libディレクトリに置く必要があります。 webアプリケーションが起動した時にデータベースを開き、webアプリケーションが終了した時にデータベースを閉じるのが良い方法です。もし複数のアプリケーションを使用する場合、そのうちひとつのアプリケーションをこのように動作することが必要です。アプリケーションでは、セッションごとにひとつの接続を使うか、リクエスト(アクション)ごとにひとつの接続を使うという概念があります。これらの接続はできる限り、使用後に終了させます(しかし、終了させなくても悪くはありません)。
-
-@~tutorial_1095_h3
-サーバーモード
-
-@~tutorial_1096_p
-サーバーモードは類似していますが、他のプロセスでサーバーを起動させることを許可しています。
-
-@~tutorial_1097_h3
-データベースの起動と終了にServletリスナーを使用する
-
-@~tutorial_1098_p
-以下を web.xmlファイルに追記して下さい。 (context-paramとfilterの間):
-
-@~tutorial_1100_h2
-CSV (Comma Separated Values) サポート
-
-@~tutorial_1101_p
-データベースにCSVREADとCSVWRITEの関数を使用することで、 CSVファイルサポートを使用することができ、スタンドアロンツールとしてデータベースの外でCSVライブラリを使用することができます。
-
-@~tutorial_1102_h3
-データベース内からCSVファイルに書き込む
-
-@~tutorial_1103_p
-クエリからCSVファイルを作成するのに、組込み関数 CSVWRITEを使用することができます。例:
-
-@~tutorial_1104_h3
-データベース内からCSVファイルを読み込む
-
-@~tutorial_1105_p
-CSVREAD関数を使用してCSVファイルを読み込むことができます。 例:
-
-@~tutorial_1106_h3
-JavaアプリケーションからCSVファイルに書き込む
-
-@~tutorial_1107_p
-データベースを全く使用しなくても、JavaアプリケーションでCSVツールを使用することができます。 例:
-
-@~tutorial_1108_h3
-JavaアプリケーションからCSVファイルを読み込む
-
-@~tutorial_1109_p
-データベースを開かなくてもCSVファイルを読み込むことができます。 例:
-
-@~tutorial_1110_h2
-アップグレード、 バックアップ、修復
-
-@~tutorial_1111_h3
-データベースのアップグレー
-
-@~tutorial_1112_p
-あるバージョンのデータベースエンジンを次のバージョンにアップグレードする際の推奨する方法は、 古いエンジンを使って(SQLスクリプトのフォームでの)データベースのバックアップを作成し、新しいエンジンを使ってSQLスクリプトを実行します。
-
-@~tutorial_1113_h3
-バックアップ
-
-@~tutorial_1114_p
-異なった方法のデータベースのバックアップがあります。例えば、データベースファイルをコピーすることが可能です。しかしながら、この方法はデータベースが使用されている間は推奨しません。データベースは人が判読しやすく、極めて大きいというわけではありません。データベースバックアップの推奨する方法は、圧縮したSQLスクリプトを作成することです。この方法は、バックアップツールを使用することで可能です:
-
-@~tutorial_1116_h3
-修復
-
-@~tutorial_1117_p
-SQLスクリプトファイルからデータベースを修復するには、RunScriptツールを使用する必要があります:
-
-@~tutorial_1119_h3
-オンラインバックアップ
-
-@~tutorial_1120_p
-BACKUP SQLステートメントとバックアップツールの両方が全てのデータベースファイルをzipファイル形式で作成します。しかし、このファイルのコンテンツは人間が解読可能なものではありません。SCRIPTステートメントを除いて、BACKUPステートメントはデータベースオブジェクトをロックしないため、他のユーザーをブロックしません。結果として、バックアップは一貫性のあるトランザクションです:
-
-@~tutorial_1122_h2
-OpenOffice Baseを使用する
-
-@~tutorial_1123_p
-OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
-
-@~tutorial_1124_li
-オートスタートを含め、OpenOfficeを終了する
-
-@~tutorial_1130_p
-これで、C:/temp ディレクトリ内に格納されているデータベースにアクセス可能です。
-
-@~tutorial_1131_h2
-Java Web Start / JNLP
-
-@~tutorial_1132_p
-Java Web Start / JNLP (Java Network Launch Protocol) を使用している時、パーミッションタグは.jnlp ファイルに設定され、application.jarファイルは署名されていなければなりません。そうでなければ、ファイルシステムに書き込もうとした時、次の例外が発生するでしょう: java.security.AccessControlException: access denied (java.io.FilePermission ... read) パーミッションタグの例:
-
-@~tutorial_1133_h2
-フルテキストサーチ
-
-@~tutorial_1134_p
-H2はLuceneフルテキストサーチとnativeフルテキストサーチの実装をサポートしています。
-
-@~tutorial_1135_h3
-Nativeフルテキストサーチを使用する
-
-@~tutorial_1136_p
-初期化するには、次を呼び出します:
-
-@~tutorial_1140_h3
-Luceneフルテキストサーチを使用する
-
-@~tutorial_1141_p
-#To use the Lucene full text search, you need the Lucene library in the classpath. How his is done depends on the application; if you use the H2 Console, you can add the Lucene jar file to the the environment variables H2DRIVERS or CLASSPATH. To initialize the Lucene full text search in a database, call:
 

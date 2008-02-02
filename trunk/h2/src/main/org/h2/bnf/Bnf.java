@@ -65,11 +65,11 @@ public class Bnf {
 
     void addFixedRule(String name, int fixedType) {
         Rule rule = new RuleFixed(fixedType);
-        addRule(name, 0, "Fixed", rule);
+        addRule(name, "Fixed", rule);
     }
 
-    RuleHead addRule(String topic, int id, String section, Rule rule) {
-        RuleHead head = new RuleHead(id, section, topic, rule);
+    RuleHead addRule(String topic, String section, Rule rule) {
+        RuleHead head = new RuleHead(section, topic, rule);
         if (ruleMap.get(StringUtils.toLowerEnglish(topic)) != null) {
             throw new Error("already exists: " + topic);
         }
@@ -106,7 +106,7 @@ public class Bnf {
             if (section.startsWith("Command")) {
                 rule = new RuleList(rule, new RuleElement(";\n\n", currentTopic), false);
             }
-            RuleHead head = addRule(topic, id, section, rule);
+            RuleHead head = addRule(topic, section, rule);
             if (section.startsWith("Function")) {
                 if (functions == null) {
                     functions = rule;
@@ -117,7 +117,7 @@ public class Bnf {
                 statements.add(head);
             }
         }
-        addRule("@func@", 0, "Function", functions);
+        addRule("@func@", "Function", functions);
         addFixedRule("@ymd@", RuleFixed.YMD);
         addFixedRule("@hms@", RuleFixed.HMS);
         addFixedRule("@nanos@", RuleFixed.NANOS);
@@ -295,7 +295,7 @@ public class Bnf {
         topic = StringUtils.toLowerEnglish(topic);
         RuleHead head = (RuleHead) ruleMap.get(topic);
         if (head == null) {
-            head = new RuleHead(0, "db", topic, rule);
+            head = new RuleHead("db", topic, rule);
             ruleMap.put(topic, head);
             statements.add(head);
         } else {

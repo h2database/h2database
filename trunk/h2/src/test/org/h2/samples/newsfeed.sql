@@ -24,7 +24,7 @@ INSERT INTO ITEM VALUES(36,
 </li><li>Fulltext search is now supported in named in-memory databases.
 </li><li>Primary keys can now have a constraint name.
 </li><li>Calling EXTRACT(HOUR FROM ...) returned the wrong values.
-	Please check if your application relies on the old behavior before upgrading.
+    Please check if your application relies on the old behavior before upgrading.
 </li><li>The meta data compatibility with other databases has been improved.
 </li></ul>
 <b>Bugfixes:</b>

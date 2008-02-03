@@ -708,10 +708,11 @@ public class MetaTable extends Table {
                     add(rows, new String[] { "property." + s, SysProperties.getStringSetting(s, "") });
                 }
             }
-            add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
             add(rows, new String[] { "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE" });
             add(rows, new String[] { "MODE", database.getMode().getName() });
             add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
+            add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
+            add(rows, new String[] { "QUERY_TIMEOUT", "" + session.getQueryTimeout() });
             add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS});
             add(rows, new String[]{"h2.baseDir", "" + SysProperties.getBaseDir()});
             add(rows, new String[]{"h2.check", "" + SysProperties.CHECK});
@@ -725,6 +726,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS});
             add(rows, new String[]{"h2.logAllErrorsFile", "" + SysProperties.LOG_ALL_ERRORS_FILE});
             add(rows, new String[]{"h2.maxFileRetry", "" + SysProperties.MAX_FILE_RETRY});
+            add(rows, new String[]{SysProperties.H2_MAX_QUERY_TIMEOUT, "" + SysProperties.getMaxQueryTimeout()});
             add(rows, new String[]{"h2.lobCloseBetweenReads", "" + SysProperties.lobCloseBetweenReads});
             add(rows, new String[]{"h2.objectCache", "" + SysProperties.OBJECT_CACHE});
             add(rows, new String[]{"h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE});

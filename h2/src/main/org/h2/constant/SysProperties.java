@@ -22,6 +22,11 @@ import org.h2.message.TraceSystem;
 public class SysProperties {
 
     /**
+     * INTERNAL
+     */
+    public static final String H2_MAX_QUERY_TIMEOUT = "h2.maxQueryTimeout";
+
+    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the RunScript and CSV tool.
      */
@@ -62,13 +67,13 @@ public class SysProperties {
      * Comma separated list of class names or prefixes.
      */
     public static final String BIND_ADDRESS = getStringSetting("h2.bindAddress", null);
-    
+
     /**
      * System property <code>h2.cacheSizeDefault</code> (default: 16384).<br />
      * The default cache size in KB.
      */
     public static final int CACHE_SIZE_DEFAULT = getIntSetting("h2.cacheSizeDefault", 16 * 1024);
-    
+
     /**
      * System property <code>h2.cacheSizeIndexShift</code> (default: 3).<br />
      * How many time the cache size value is divided by two to get the index cache size.
@@ -104,19 +109,19 @@ public class SysProperties {
      * The default for the setting MAX_OPERATION_MEMORY.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
-    
+
     /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
      * The trace level of the data source implementation. Default is 1 for error.
      */
     public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
-    
+
     /**
      * System property <code>h2.defaultMaxMemoryUndo</code> (default: 100000).<br />
      * The default value for the MAX_MEMORY_UNDO setting.
      */
     public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 100000);
-    
+
     /**
      * System property <code>h2.defaultLockMode</code> (default: 3).<br />
      * The default value for the LOCK_MODE setting.
@@ -171,14 +176,20 @@ public class SysProperties {
      * Number of times to retry file delete and rename.
      */
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
-    
+
+    /**
+     * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />
+     * The maximum timeout of a query. The default is 0, meaning no limit.
+     */
+    public static final int MAX_QUERY_TIMEOUT = getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
+
     /**
      * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
-     * The minimum number of columns where a hash table is created when result set 
+     * The minimum number of columns where a hash table is created when result set
      * methods with column name (instead of column index) parameter are called.
      */
     public static final int MIN_COLUMN_NAME_MAP = getIntSetting("h2.minColumnNameMap", 3);
-    
+
     /**
      * System property <code>h2.minWriteDelay</code> (default: 5).<br />
      * The minimum write delay that causes commits to be delayed.
@@ -250,11 +261,11 @@ public class SysProperties {
      * Optimize NOT conditions by removing the NOT and inverting the condition.
      */
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
-    
+
     /**
      * System property <code>h2.optimizeTwoEquals</code> (default: true).<br />
      * Optimize expressions of the form A=B AND B=1. In this case, AND A=1 is added so an index on A can be used.
-     */   
+     */
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
 
     /**
@@ -335,7 +346,7 @@ public class SysProperties {
         return s == null ? defaultValue : s;
     }
 
-    private static int getIntSetting(String name, int defaultValue) {
+    public static int getIntSetting(String name, int defaultValue) {
         String s = getProperty(name);
         if (s != null) {
             try {
@@ -361,6 +372,13 @@ public class SysProperties {
      */
     public static String getBaseDir() {
         return baseDir;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static int getMaxQueryTimeout() {
+        return getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
     }
 
 }

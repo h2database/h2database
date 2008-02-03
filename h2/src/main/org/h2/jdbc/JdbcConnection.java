@@ -39,6 +39,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 //#ifdef JDK16
 /*
@@ -67,6 +68,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface setAutoCommitTrue, setAutoCommitFalse, getAutoCommit;
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setLockMode, getLockMode;
+    private CommandInterface setQueryTimeout, getQueryTimeout;
     private Exception openStackTrace;
 //#ifdef JDK14
     private int savepointId;
@@ -249,6 +251,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                             getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
                             getLockMode = closeAndSetNull(getLockMode);
                             setLockMode = closeAndSetNull(setLockMode);
+                            getQueryTimeout = closeAndSetNull(getQueryTimeout);
+                            setQueryTimeout = closeAndSetNull(setQueryTimeout);
                         } finally {
                             session.close();
                         }
@@ -519,7 +523,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Changes the current transaction isolation level. Calling this method will
-     * commit any open transactions, even if the new level is the same as the
+     * commit an open transaction, even if the new level is the same as the
      * old one, except if the level is not supported.
      *
      * @param level the new transaction isolation level,
@@ -554,6 +558,43 @@ public class JdbcConnection extends TraceObject implements Connection {
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void setQueryTimeout(int seconds) throws SQLException {
+        try {
+            commit();
+            setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?", setQueryTimeout);
+            ((ParameterInterface) setQueryTimeout.getParameters().get(0)).setValue(ValueInt.get(seconds * 1000));
+            setQueryTimeout.executeUpdate();
+        } catch (Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public int getQueryTimeout() throws SQLException {
+        try {
+            getQueryTimeout = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
+            ((ParameterInterface) getQueryTimeout.getParameters().get(0)).setValue(ValueString.get("QUERY_TIMEOUT"));
+            ResultInterface result = getQueryTimeout.executeQuery(0, false);
+            result.next();
+            int queryTimeout = result.currentRow()[0].getInt();
+            result.close();
+            if (queryTimeout == 0) {
+                return 0;
+            } else {
+                // round to the next second, otherwise 999 millis would return 0 seconds
+                return (queryTimeout + 999) / 1000;
+            }
+        } catch (Throwable e) {
+            throw logAndConvert(e);
+        }
+
     }
 
     /**

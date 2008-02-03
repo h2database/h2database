@@ -21,8 +21,7 @@ public class SetTypes {
     public static final int COMPRESS_LOB = 23, ALLOW_LITERALS = 24, MULTI_THREADED = 25, SCHEMA = 26;
     public static final int OPTIMIZE_REUSE_RESULTS = 27, SCHEMA_SEARCH_PATH = 28, UNDO_LOG = 29;
     public static final int REFERENTIAL_INTEGRITY = 30, MVCC = 31, MAX_OPERATION_MEMORY = 32, EXCLUSIVE = 33;
-    public static final int CREATE_BUILD = 34;
-    public static final int VARIABLE = 35;
+    public static final int CREATE_BUILD = 34, VARIABLE = 35, QUERY_TIMEOUT = 36;
 
     private static ObjectArray types = new ObjectArray();
 
@@ -62,6 +61,7 @@ public class SetTypes {
         setType(EXCLUSIVE, "EXCLUSIVE");
         setType(CREATE_BUILD, "CREATE_BUILD");
         setType(VARIABLE, "@");
+        setType(QUERY_TIMEOUT, "QUERY_TIMEOUT");
     }
 
     private static void setType(int type, String name) {

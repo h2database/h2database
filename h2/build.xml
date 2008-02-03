@@ -56,43 +56,38 @@
 	</target>
 
 	<target name="codeswitchAndroid" depends="codeswitchPrepare">
-		<propertyfile file="ant-build.properties">
-			<entry key="jdk" value="1.3" />
-		</propertyfile>
 		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
-			<arg line="+JDK13 -JDK14 -JDK16 -AWT src/main/org/h2"/>
+			<arg line="+JDK13 -JDK14 -JDK16 -AWT src/main/org/h2 -set ant-build.properties jdk 1.3"/>
 		</java>
 	</target>
 
 	<target name="codeswitchJdk13" depends="codeswitchPrepare">
 		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
-			<arg line="+JDK13 -JDK14 -JDK16 +AWT src/main/org/h2"/>
+			<arg line="+JDK13 -JDK14 -JDK16 +AWT src/main/org/h2 -set ant-build.properties jdk 1.3"/>
 		</java>
-		<propertyfile file="ant-build.properties">
-			<entry key="jdk" value="1.3" />
-		</propertyfile>
-	    <property name="jdk" value="1.3"/>
 	</target>
 
-	<target name="codeswitchJdk14" depends="codeswitchPrepare" if="codeswitch.14">
+	<target name="codeswitchJdk14" depends="codeswitchPrepare">
 		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
-			<arg line="-JDK13 +JDK14 -JDK16 +AWT src/main/org/h2"/>
+			<arg line="-JDK13 +JDK14 -JDK16 +AWT src/main/org/h2 -set ant-build.properties jdk 1.4"/>
 		</java>
-		<propertyfile file="ant-build.properties">
-			<entry key="jdk" value="1.4" />
-		</propertyfile>
 	</target>
 
-	<target name="codeswitchJdk16" depends="codeswitchPrepare" if="codeswitch.16">
+	<target name="codeswitchJdk16" depends="codeswitchPrepare">
 		<java classname="org.h2.tools.code.CodeSwitch" classpath="bin">
-			<arg line="-JDK13 +JDK14 +JDK16 +AWT src/main/org/h2"/>
+			<arg line="-JDK13 +JDK14 +JDK16 +AWT src/main/org/h2 -set ant-build.properties jdk 1.6"/>
 		</java>
-		<propertyfile file="ant-build.properties">
-			<entry key="jdk" value="1.6" />
-		</propertyfile>
 	</target>
 
-	<target name="compileResources" depends="clean, codeswitchJdk14, codeswitchJdk16">
+	<target name="codeswitchJdk14Auto" if="codeswitch.14">
+	    <antcall target="codeswitchJdk14" />
+	</target>
+
+	<target name="codeswitchJdk16Auto" if="codeswitch.16">
+	    <antcall target="codeswitchJdk16" />
+	</target>
+
+	<target name="compileResources" depends="clean, codeswitchJdk14Auto, codeswitchJdk16Auto">
 		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/Resources.java"/>
 		<java classname="org.h2.util.Resources" classpath="bin"/>
 		<delete>
@@ -159,7 +154,7 @@
 		<javac executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
     </target>
 
-	<target name="docs" depends="clean,javadoc,compile">
+	<target name="docs" depends="clean, javadoc, compile">
 		<copy todir="docs">
 			<fileset dir="src/docsrc" includes="index.html"/>
 			<fileset dir="src/docsrc" includes="html/**/*" excludes="**/*.jsp" />

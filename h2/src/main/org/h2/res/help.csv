@@ -1033,6 +1033,17 @@ This setting can be appended to the database URL: jdbc:h2:test;OPTIMIZE_REUSE_RE
 SET OPTIMIZE_REUSE_RESULTS 0
 "
 
+"Commands (Other)","SET QUERY_TIMEOUT","
+SET QUERY_TIMEOUT int
+","
+Set the query timeout of the current session to the given value.
+The timeout is in milliseconds. All kinds of statements will
+throw an exception if they take longer than the given value.
+The default timeout is 0, meaning no timeout.
+","
+SET QUERY_TIMEOUT 10000
+"
+
 "Commands (Other)","SET PASSWORD","
 SET PASSWORD string
 ","

@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 
@@ -41,6 +43,70 @@ public class TestCancel extends TestBase {
     }
 
     public void test() throws Exception {
+        testMaxQueryTimeout();
+        testQueryTimeout();
+        testJdbcQueryTimeout();
+        testCancelStatement();
+    }
+
+    private void testJdbcQueryTimeout() throws Exception {
+        deleteDb("cancel");
+        Connection conn = getConnection("cancel");
+        Statement stat = conn.createStatement();
+        check(0, stat.getQueryTimeout());
+        stat.setQueryTimeout(1);
+        check(1, stat.getQueryTimeout());
+        Statement s2 = conn.createStatement();
+        check(1, s2.getQueryTimeout());
+        ResultSet rs = s2.executeQuery("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'QUERY_TIMEOUT'");
+        rs.next();
+        check(1000, rs.getInt(1));
+        try {
+            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
+            error("unexpected success");
+        } catch (SQLException e) {
+            check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
+        }
+        stat.setQueryTimeout(0);
+        stat.execute("SET QUERY_TIMEOUT 1100");
+        check(2, stat.getQueryTimeout());
+        conn.close();
+    }
+
+    private void testQueryTimeout() throws Exception {
+        deleteDb("cancel");
+        Connection conn = getConnection("cancel");
+        Statement stat = conn.createStatement();
+        stat.execute("SET QUERY_TIMEOUT 10");
+        try {
+            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
+            error("unexpected success");
+        } catch (SQLException e) {
+            check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
+        }
+        conn.close();
+    }
+
+    private void testMaxQueryTimeout() throws Exception {
+        deleteDb("cancel");
+        int oldMax = SysProperties.getMaxQueryTimeout();
+        try {
+            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10);
+            Connection conn = getConnection("cancel");
+            Statement stat = conn.createStatement();
+            try {
+                stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
+                error("unexpected success");
+            } catch (SQLException e) {
+                check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
+            }
+            conn.close();
+        } finally {
+            System.setProperty("h2.maxQueryTimeout", "" + oldMax);
+        }
+    }
+
+    private void testCancelStatement() throws Exception {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();

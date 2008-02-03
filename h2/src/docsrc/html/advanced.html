@@ -456,6 +456,11 @@ Also, there may be compatibility problems on the SQL level, with the catalog, or
 Problems are fixed as they are found.
 Currently, statements can not be cancelled when using the PG protocol.
 </p>
+<p>
+PostgreSQL ODBC Driver Setup requires a database password, that means it
+is not possible to connect to H2 databases without password. This is a limitation
+of the ODBC driver.
+</p>
 
 <h3>Security Considerations</h3>
 <p>

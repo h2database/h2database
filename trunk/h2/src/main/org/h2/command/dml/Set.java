@@ -295,9 +295,16 @@ public class Set extends Prepared {
             session.setVariable(stringValue, expr.getValue(session));
             break;
         }
+        case SetTypes.QUERY_TIMEOUT: {
+            int value = getIntValue();
+            session.setQueryTimeout(value);
+            break;
+        }
         default:
             throw Message.getInternalError("type="+type);
         }
+        // the meta data information has changed
+        database.getNextModificationDataId();
         return 0;
     }
 

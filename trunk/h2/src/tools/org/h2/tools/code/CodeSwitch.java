@@ -4,10 +4,21 @@
  */
 package org.h2.tools.code;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Vector;
 
 /**
  * This application allows to switch source code to different 'modes', so that
@@ -25,15 +36,16 @@ public class CodeSwitch {
     private ArrayList lines;
     private boolean changed;
 
-    public static void main(String[] argv) {
+    public static void main(String[] argv) throws Exception {
         (new CodeSwitch()).run(argv);
     }
 
-    private void run(String[] a) {
+    private void run(String[] a) throws Exception {
         if (a.length == 0) {
             showUsage();
             return;
         }
+        String propertiesFile = null, property = null, value = null;
         boolean path = false;
         recurse = true;
         for (int i = 0; i < a.length; i++) {
@@ -45,6 +57,10 @@ public class CodeSwitch {
                 recurse = true;
             } else if (p.startsWith("-r-")) {
                 recurse = false;
+            } else if (p.startsWith("-set")) {
+                propertiesFile = a[++i];
+                property = a[++i];
+                value = a[++i];
             } else if (p.startsWith("-")) {
                 switchOff.add(p.substring(1));
             } else {
@@ -60,15 +76,42 @@ public class CodeSwitch {
         if (switchOff.size() == 0 && switchOn.size() == 0) {
             printSwitches();
         }
+        if (propertiesFile != null) {
+            setProperty(propertiesFile, property, value);
+        }
+    }
+
+    private static class SortedProperties extends Properties {
+
+        private static final long serialVersionUID = 3926204645298674434L;
+
+        public synchronized Enumeration keys() {
+            Vector v = new Vector(keySet());
+            Collections.sort(v);
+            return v.elements();
+        }
+
+    }
+
+    private void setProperty(String propertiesFile, String property, String value) throws IOException {
+        SortedProperties prop = new SortedProperties();
+        InputStream in = new BufferedInputStream(new FileInputStream(propertiesFile));
+        prop.load(in);
+        in.close();
+        prop.setProperty(property, value);
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(propertiesFile));
+        prop.store(out, null);
+        out.close();
     }
 
     private void showUsage() {
         String className = getClass().getName();
-        System.out.println("Usage: java " + className + " [-r+] [-r-] paths [+|-][labels]");
+        System.out.println("Usage: java " + className + " [-r+] [-r-] paths [+|-][labels] [-set file property value]");
         System.out.println("If no labels are specified then all used");
         System.out.println("labels in the source code are shown.");
         System.out.println("-r+ recurse subdirectories (default)");
         System.out.println("-r- do not recurse subdirectories");
+        System.out.println("-set will update a value in a properties file after switching");
         System.out.println("Use +MODE to switch on code labeled MODE");
         System.out.println("Use -MODE to switch off code labeled MODE");
         System.out.println("Path: Any number of path or files may be specified.");

@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -392,9 +393,15 @@ public class TestCrashAPI extends TestBase {
     }
 
     public void testCase(int i) throws Exception {
-        baseDir = "dataCrash";
-        testOne(i);
-        baseDir = "data";
+        int old = SysProperties.getMaxQueryTimeout();
+        try {
+            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10000);
+            baseDir = "dataCrash";
+            testOne(i);
+        } finally {
+            baseDir = "data";
+            System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + old);
+        }
     }
 
     public void test() throws Exception {

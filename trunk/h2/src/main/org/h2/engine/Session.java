@@ -81,6 +81,7 @@ public class Session implements SessionInterface {
     private long currentCommandStart;
     private HashMap variables;
     private HashSet temporaryResults;
+    private int queryTimeout = SysProperties.getMaxQueryTimeout();
 
     public Session() {
     }
@@ -543,6 +544,9 @@ public class Session implements SessionInterface {
     public void setCurrentCommand(Command command, long startTime) {
         this.currentCommand = command;
         this.currentCommandStart = startTime;
+        if (queryTimeout > 0) {
+            cancelAt = startTime + queryTimeout;
+        }
     }
 
     public void checkCancelled() throws SQLException {
@@ -701,6 +705,19 @@ public class Session implements SessionInterface {
                 result.close();
             }
         }
+    }
+
+    public void setQueryTimeout(int queryTimeout) {
+        int max = SysProperties.getMaxQueryTimeout();
+        if (max != 0 && (max < queryTimeout || queryTimeout == 0)) {
+            // the value must be at most max
+            queryTimeout = max;
+        }
+        this.queryTimeout = queryTimeout;
+    }
+
+    public int getQueryTimeout() {
+        return queryTimeout;
     }
 
 }

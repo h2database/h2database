@@ -209,7 +209,7 @@ public class ConditionIn extends Condition {
         }
         Database db = session.getDatabase();
         Schema mainSchema = db.getSchema(Constants.SCHEMA_MAIN);
-        Function function = Function.getFunction(database, "TABLE_DISTINCT");
+        TableFunction function = new TableFunction(database, Function.getFunctionInfo("TABLE_DISTINCT"));
         Expression[] array = new Expression[values.size()];
         for (int i = 0; i < values.size(); i++) {
             Expression e = (Expression) values.get(i);

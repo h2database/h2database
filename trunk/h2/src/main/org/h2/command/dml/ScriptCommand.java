@@ -308,6 +308,13 @@ public class ScriptCommand extends ScriptBase {
                 tempLobTableCreated = false;
             }
             ObjectArray constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
+            constraints.sort(new Comparator() {
+                public int compare(Object o1, Object o2) {
+                    Constraint c1 = (Constraint) o1;
+                    Constraint c2 = (Constraint) o2;
+                    return c1.compareTo(c2);
+                }
+            });
             for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
                 add(constraint.getCreateSQLWithoutIndexes(), false);

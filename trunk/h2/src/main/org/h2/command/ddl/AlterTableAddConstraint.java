@@ -105,7 +105,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             if (index == null) {
                 IndexType indexType = IndexType.createPrimaryKey(table.isPersistent(), primaryKeyHash);
-                String indexName = getSchema().getUniqueIndexName(table, Constants.PREFIX_PRIMARY_KEY);
+                String indexName = table.getSchema().getUniqueIndexName(table, Constants.PREFIX_PRIMARY_KEY);
                 int id = getObjectId(true, false);
                 try {
                     index = table.addIndex(session, indexName, id, indexColumns, indexType, Index.EMPTY_HEAD, null);
@@ -237,7 +237,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
-        String indexName = getSchema().getUniqueIndexName(t, prefix + "_INDEX_");
+        String indexName = t.getSchema().getUniqueIndexName(t, prefix + "_INDEX_");
         Index idx;
         try {
             idx = t.addIndex(session, indexName, indexId, cols, indexType, Index.EMPTY_HEAD, null);
@@ -281,11 +281,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
         if (index.getTable() != table || !index.getIndexType().isUnique()) {
             return false;
         }
-        if (index.getIndexType().belongsToConstraint()) {
-            // the constraint might be dropped (also in an alter table
-            // statement)
-            return false;
-        }
         Column[] indexCols = index.getColumns();
         if (indexCols.length > cols.length) {
             return false;
@@ -307,11 +302,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean canUseIndex(Index index, Table table, IndexColumn[] cols) {
         if (index.getTable() != table || index.getCreateSQL() == null) {
             // can't use the scan index or index of another table
-            return false;
-        }
-        if (index.getIndexType().belongsToConstraint()) {
-            // the constraint might be dropped (also in an alter table
-            // statement)
             return false;
         }
         Column[] indexCols = index.getColumns();

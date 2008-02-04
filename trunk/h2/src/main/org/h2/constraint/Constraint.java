@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.index.Index;
+import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -19,7 +20,7 @@ import org.h2.table.Table;
 /**
  * The base class for constraint checking.
  */
-public abstract class Constraint extends SchemaObjectBase {
+public abstract class Constraint extends SchemaObjectBase implements Comparable {
 
     /**
      * The constraint type name for check constraints.
@@ -71,6 +72,13 @@ public abstract class Constraint extends SchemaObjectBase {
      * @return true if the index is used
      */
     public abstract boolean usesIndex(Index index);
+
+    /**
+     * This index is now the owner of the specified index.
+     *
+     * @param index
+     */
+    public abstract void setIndexOwner(Index index);
 
     /**
      * Check if this constraint contains the given column.
@@ -134,6 +142,31 @@ public abstract class Constraint extends SchemaObjectBase {
 
     public String getDropSQL() {
         return null;
+    }
+
+    private int getConstraintTypeOrder() {
+        String constraintType = getConstraintType();
+        if (CHECK.equals(constraintType)) {
+            return 0;
+        } else if (PRIMARY_KEY.equals(constraintType)) {
+            return 1;
+        } else if (UNIQUE.equals(constraintType)) {
+            return 2;
+        } else if (REFERENTIAL.equals(constraintType)) {
+            return 3;
+        } else {
+            throw Message.getInternalError("type: " + constraintType);
+        }
+    }
+
+    public int compareTo(Object other) {
+        if (this == other) {
+            return 0;
+        }
+        Constraint otherConstraint = (Constraint) other;
+        int thisType = getConstraintTypeOrder();
+        int otherType = otherConstraint.getConstraintTypeOrder();
+        return thisType - otherType;
     }
 
 }

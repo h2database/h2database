@@ -151,14 +151,20 @@ java org.h2.test.TestAll timer
 
 /*
 
-implement max_query_time and use it for TestCrashAPI
+recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...),
+and things should go into the .trace.db file
 
-link from h2 console to sourceError
-add sourceError as an official link
-Adjust cache memory usage
-At startup, when corrupted, say if LOG=0 was used before
-Extend tests that simulate power off
+RECOVER=2 should backup the database, run recovery, open the database
+
+Recovery should work with encrypted databases
+
+java org.h2.tool.Server -baseDir C:\temp\dbtest
+web console: jdbc:h2:~/chin
+C:\temp\dbtest\~
+
 Automate real power off tests
+Adjust cache memory usage
+Extend tests that simulate power off
 timer test
 // test with garbage at the end of the log file (must be consistently detected as such)
 // TestRandomSQL is too random; most statements fails
@@ -175,6 +181,9 @@ Roadmap:
 
 History:
 Statement.setQueryTimeout() is now supported. New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
+Changing the transaction log level (SET LOG) is now written to the trace file by default.
+In a SQL script, primary key constraints are now ordered before foreign key constraints.
+It was not possible to create a referential constraint to a table in a different schema in some situations.
 
 */
 

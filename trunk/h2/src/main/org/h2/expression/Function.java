@@ -22,7 +22,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
@@ -33,14 +32,12 @@ import org.h2.table.LinkSchema;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -86,45 +83,42 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, TABLE = 219, LEAST = 220, GREATEST = 221, TABLE_DISTINCT = 222, CANCEL_SESSION = 223, SET = 224;
+            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224;
 
     private static final int VAR_ARGS = -1;
 
-    private static HashMap functions;
-
-    private FunctionInfo info;
-    private Expression[] args;
-    private ObjectArray varArgs;
-    private int dataType, scale;
-    private long precision;
-    private int displaySize;
-    private Column[] columnList;
-    private Database database;
-
-    private static HashMap datePart;
+    private static final HashMap FUNCTIONS = new HashMap();
+    private static final HashMap DATE_PART = new HashMap();
     private static final SimpleDateFormat FORMAT_DAYNAME = new SimpleDateFormat("EEEE", Locale.ENGLISH);
     private static final SimpleDateFormat FORMAT_MONTHNAME = new SimpleDateFormat("MMMM", Locale.ENGLISH);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
-    static {
-        datePart = new HashMap();
-        datePart.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
-        datePart.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
-        datePart.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
-        datePart.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
-        datePart.put("DD", ObjectUtils.getInteger(Calendar.DATE));
-        datePart.put("DAY", ObjectUtils.getInteger(Calendar.DATE));
-        datePart.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
-        datePart.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
-        datePart.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
-        datePart.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
-        datePart.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
-        datePart.put("SECOND", ObjectUtils.getInteger(Calendar.SECOND));
-        datePart.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
-        datePart.put("MILLISECOND", ObjectUtils.getInteger(Calendar.MILLISECOND));
-    }
+    private FunctionInfo info;
+    protected Expression[] args;
+    private ObjectArray varArgs;
+    private int dataType, scale;
+    private long precision;
+    private int displaySize;
+    private Database database;
 
     static {
+        // DATE_PART
+        DATE_PART.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
+        DATE_PART.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
+        DATE_PART.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
+        DATE_PART.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
+        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DATE));
+        DATE_PART.put("DAY", ObjectUtils.getInteger(Calendar.DATE));
+        DATE_PART.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
+        DATE_PART.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
+        DATE_PART.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
+        DATE_PART.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
+        DATE_PART.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
+        DATE_PART.put("SECOND", ObjectUtils.getInteger(Calendar.SECOND));
+        DATE_PART.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
+        DATE_PART.put("MILLISECOND", ObjectUtils.getInteger(Calendar.MILLISECOND));
+
+        // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
         char number = 0;
         for (int i = 0; i < index.length(); i++) {
@@ -136,10 +130,8 @@ public class Function extends Expression implements FunctionCall {
                 SOUNDEX_INDEX[Character.toLowerCase(c)] = number;
             }
         }
-    }
 
-    static {
-        functions = new HashMap();
+        // FUNCTIONS
         addFunction("ABS", ABS, 1, Value.NULL);
         addFunction("ACOS", ACOS, 1, Value.DOUBLE);
         addFunction("ASIN", ASIN, 1, Value.DOUBLE);
@@ -284,12 +276,14 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("SESSION_ID", SESSION_ID, 0, Value.INT);
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
         addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
-        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
-        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
+
+        // TableFunction
+        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
@@ -301,7 +295,7 @@ public class Function extends Expression implements FunctionCall {
         info.dataType = dataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
         info.isDeterministic = isDeterm;
-        functions.put(name, info);
+        FUNCTIONS.put(name, info);
     }
 
     private static void addFunctionNotConst(String name, int type, int parameterCount, int dataType) {
@@ -316,15 +310,25 @@ public class Function extends Expression implements FunctionCall {
         addFunction(name, type, parameterCount, dataType, false, true);
     }
 
+    public static FunctionInfo getFunctionInfo(String name) {
+        return (FunctionInfo) FUNCTIONS.get(name);
+    }
+
     public static Function getFunction(Database database, String name) throws SQLException {
-        FunctionInfo info = (FunctionInfo) functions.get(name);
+        FunctionInfo info = getFunctionInfo(name);
         if (info == null) {
             return null;
         }
-        return new Function(database, info);
+        switch(info.type) {
+        case TABLE:
+        case TABLE_DISTINCT:
+            return new TableFunction(database, info);
+        default:
+            return new Function(database, info);
+        }
     }
 
-    private Function(Database database, FunctionInfo info) {
+    protected Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
@@ -638,12 +642,6 @@ public class Function extends Expression implements FunctionCall {
             result = v0;
             break;
         }
-        case TABLE:
-            result = getTable(session, args, false, false);
-            break;
-        case TABLE_DISTINCT:
-            result = getTable(session, args, false, true);
-            break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
             result = ValueInt.get(MemoryUtils.getMemoryFree());
@@ -1130,7 +1128,7 @@ public class Function extends Expression implements FunctionCall {
 //    }
 
     private static int getDatePart(String part) throws SQLException {
-        Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
+        Integer p = (Integer) DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
             throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part });
         }
@@ -1431,67 +1429,69 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    protected void checkParameterCount(int len) throws SQLException {
+        int min = 0, max = Integer.MAX_VALUE;
+        switch (info.type) {
+        case COALESCE:
+        case CSVREAD:
+        case LEAST:
+        case GREATEST:
+            min = 1;
+            break;
+        case NOW:
+        case CURRENT_TIMESTAMP:
+        case RAND:
+            max = 1;
+            break;
+        case COMPRESS:
+        case LTRIM:
+        case RTRIM:
+        case TRIM:
+            max = 2;
+            break;
+        case REPLACE:
+        case LOCATE:
+        case INSTR:
+        case SUBSTR:
+        case SUBSTRING:
+        case LPAD:
+        case RPAD:
+            min = 2;
+            max = 3;
+            break;
+        case CASE:
+        case CONCAT:
+        case CSVWRITE:
+            min = 2;
+            break;
+        case XMLNODE:
+            min = 1;
+            max = 3;
+            break;
+        case FORMATDATETIME:
+        case PARSEDATETIME:
+            min = 2;
+            max = 4;
+            break;
+        case CURRVAL:
+        case NEXTVAL:
+            min = 1;
+            max = 2;
+            break;
+        default:
+            throw Message.getInternalError("type=" + info.type);
+        }
+        boolean ok = (len >= min) && (len <= max);
+        if (!ok) {
+            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { info.name,
+                    min + ".." + max });
+        }
+    }
+
     public void doneWithParameters() throws SQLException {
         if (info.parameterCount == VAR_ARGS) {
             int len = varArgs.size();
-            int min = 0, max = Integer.MAX_VALUE;
-            switch (info.type) {
-            case COALESCE:
-            case CSVREAD:
-            case TABLE:
-            case TABLE_DISTINCT:
-            case LEAST:
-            case GREATEST:
-                min = 1;
-                break;
-            case NOW:
-            case CURRENT_TIMESTAMP:
-            case RAND:
-                max = 1;
-                break;
-            case COMPRESS:
-            case LTRIM:
-            case RTRIM:
-            case TRIM:
-                max = 2;
-                break;
-            case REPLACE:
-            case LOCATE:
-            case INSTR:
-            case SUBSTR:
-            case SUBSTRING:
-            case LPAD:
-            case RPAD:
-                min = 2;
-                max = 3;
-                break;
-            case CASE:
-            case CONCAT:
-            case CSVWRITE:
-                min = 2;
-                break;
-            case XMLNODE:
-                min = 1;
-                max = 3;
-                break;
-            case FORMATDATETIME:
-            case PARSEDATETIME:
-                min = 2;
-                max = 4;
-                break;
-            case CURRVAL:
-            case NEXTVAL:
-                min = 1;
-                max = 2;
-                break;
-            default:
-                throw Message.getInternalError("type=" + info.type);
-            }
-            boolean ok = (len >= min) && (len <= max);
-            if (!ok) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { info.name,
-                        min + ".." + max });
-            }
+            checkParameterCount(len);
             args = new Expression[len];
             varArgs.toArray(args);
             varArgs = null;
@@ -1716,19 +1716,6 @@ public class Function extends Expression implements FunctionCall {
             buff.append(args[1].getSQL());
             break;
         }
-        case TABLE_DISTINCT:
-        case TABLE: {
-            for (int i = 0; i < args.length; i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                buff.append(columnList[i].getCreateSQL());
-                buff.append("=");
-                Expression e = args[i];
-                buff.append(e.getSQL());
-            }
-            break;
-        }
         default: {
             for (int i = 0; i < args.length; i++) {
                 if (i > 0) {
@@ -1784,12 +1771,6 @@ public class Function extends Expression implements FunctionCall {
             ValueResultSet vr = ValueResultSet.getCopy(rs, 0);
             return vr;
         }
-        case TABLE: {
-            return getTable(session, args, true, false);
-        }
-        case TABLE_DISTINCT: {
-            return getTable(session, args, true, true);
-        }
         default:
             break;
         }
@@ -1837,83 +1818,6 @@ public class Function extends Expression implements FunctionCall {
             cost += args[i].getCost();
         }
         return cost;
-    }
-
-    public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
-        int len = columnList.length;
-        Expression[] header = new Expression[len];
-        Database db = session.getDatabase();
-        for (int i = 0; i < len; i++) {
-            Column c = columnList[i];
-            ExpressionColumn col = new ExpressionColumn(db, c);
-            header[i] = col;
-        }
-        LocalResult result = new LocalResult(session, header, len);
-        if (distinct) {
-            result.setDistinct();
-        }
-        if (!onlyColumnList) {
-            Value[][] list = new Value[len][];
-            int rowCount = 0;
-            for (int i = 0; i < len; i++) {
-                Value v = args[i].getValue(session);
-                if (v == ValueNull.INSTANCE) {
-                    list[i] = new Value[0];
-                } else {
-                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
-                    Value[] l = array.getList();
-                    list[i] = l;
-                    rowCount = Math.max(rowCount, l.length);
-                }
-            }
-            for (int row = 0; row < rowCount; row++) {
-                Value[] r = new Value[len];
-                for (int j = 0; j < len; j++) {
-                    Value[] l = list[j];
-                    Value v;
-                    if (l.length <= row) {
-                        v = ValueNull.INSTANCE;
-                    } else {
-                        Column c = columnList[j];
-                        v = l[row];
-                        v = v.convertTo(c.getType());
-                        v = v.convertPrecision(c.getPrecision());
-                        v = v.convertScale(true, c.getScale());
-                    }
-                    r[j] = v;
-                }
-                result.addRow(r);
-            }
-        }
-        result.done();
-        ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result, Integer.MAX_VALUE));
-        return vr;
-    }
-
-    SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
-        int columnCount = rs.getVisibleColumnCount();
-        SimpleResultSet simple = new SimpleResultSet();
-        for (int i = 0; i < columnCount; i++) {
-            String name = rs.getColumnName(i);
-            int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
-            int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
-            int scale = rs.getColumnScale(i);
-            simple.addColumn(name, sqlType, precision, scale);
-        }
-        rs.reset();
-        for (int i = 0; i < maxrows && rs.next(); i++) {
-            Object[] list = new Object[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                list[j] = rs.currentRow()[j].getObject();
-            }
-            simple.addRow(list);
-        }
-        return simple;
-    }
-
-    public void setColumns(ObjectArray columns) {
-        this.columnList = new Column[columns.size()];
-        columns.toArray(columnList);
     }
 
 }

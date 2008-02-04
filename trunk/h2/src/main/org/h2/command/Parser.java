@@ -106,6 +106,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
+import org.h2.expression.TableFunction;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
@@ -1889,7 +1890,8 @@ public class Parser {
             read(")");
             break;
         }
-        case Function.TABLE: {
+        case Function.TABLE:
+        case Function.TABLE_DISTINCT: {
             int i = 0;
             ObjectArray columns = new ObjectArray();
             do {
@@ -1901,7 +1903,8 @@ public class Parser {
                 i++;
             } while (readIf(","));
             read(")");
-            function.setColumns(columns);
+            TableFunction tf = (TableFunction) function;
+            tf.setColumns(columns);
             break;
         }
         default:

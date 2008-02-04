@@ -1486,6 +1486,7 @@ public class Database implements DataHandler {
             log.setDisabled(!logData);
             log.checkpoint();
         }
+        traceSystem.getTrace(Trace.DATABASE).error("SET LOG " + level, null);
         logLevel = level;
     }
 

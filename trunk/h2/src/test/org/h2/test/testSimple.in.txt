@@ -1,3 +1,17 @@
+create schema Contact;
+CREATE TABLE Account (id BIGINT);
+CREATE TABLE Person (id BIGINT, FOREIGN KEY (id) REFERENCES Account(id));
+CREATE TABLE Contact.Contact (id BIGINT, FOREIGN KEY (id) REFERENCES public.Person(id));
+drop schema contact;
+drop table account, person;
+
+create schema Contact;
+CREATE TABLE Account (id BIGINT primary key);
+CREATE TABLE Person (id BIGINT primary key, FOREIGN KEY (id) REFERENCES Account);
+CREATE TABLE Contact.Contact (id BIGINT primary key, FOREIGN KEY (id) REFERENCES public.Person);
+drop schema contact;
+drop table account, person;
+
 select extract(hour from timestamp '2001-02-03 14:15:16');
 > 14;
 select extract(hour from '2001-02-03 14:15:16');

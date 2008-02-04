@@ -666,4 +666,26 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
+    /**
+     * If the index is still required by a constraint, transfer the ownership to it.
+     * Otherwise, the index is removed.
+     *
+     * @param session the session
+     * @param index the index that is no longer required
+     */
+    public void removeIndexOrTransferOwnership(Session session, Index index) throws SQLException {
+        boolean stillNeeded = false;
+        for (int i = 0; constraints != null && i < constraints.size(); i++) {
+            Constraint cons = (Constraint) constraints.get(i);
+            if (cons.usesIndex(index)) {
+                cons.setIndexOwner(index);
+                database.update(session, cons);
+                stillNeeded = true;
+            }
+        }
+        if (!stillNeeded) {
+            database.removeSchemaObject(session, index);
+        }
+    }
+
 }

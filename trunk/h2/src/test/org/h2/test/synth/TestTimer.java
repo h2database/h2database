@@ -18,7 +18,7 @@ import org.h2.tools.DeleteDbFiles;
 /**
  * A recovery test that checks the consistency of a database (if it exists),
  * then deletes everything and runs in an endless loop executing random operations.
- * This loop is usually stopped by turning off the computer.
+ * This loop is usually stopped by switching off the computer.
  */
 public class TestTimer extends TestBase {
 
@@ -86,11 +86,25 @@ public class TestTimer extends TestBase {
             Connection conn = getConnection("timer");
             // TODO validate transactions
             Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID IDENTITY, NAME VARCHAR)");
             ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
             rs.next();
             int count = rs.getInt(1);
+            println("row count: " + count);
+            int real = 0;
+            rs = stat.executeQuery("SELECT * FROM TEST");
+            while (rs.next()) {
+                real++;
+            }
+            if (real != count) {
+                println("real count: " + real);
+                throw new Error("COUNT(*)=" + count + " SELECT=" + real);
+            }
+            rs = stat.executeQuery("SCRIPT");
+            while (rs.next()) {
+                rs.getString(1);
+            }
             conn.close();
-            println("done, rows: " + count);
         } catch (Throwable e) {
             logError("validate", e);
             backup();

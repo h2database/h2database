@@ -91,9 +91,9 @@ public class Server implements Runnable, ShutdownHandler {
      * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
      * </li><li>-pg (start the PG Server)
      * </li><li>-browser (start a browser and open a page to connect to the Web Server)
-     * </li><li>-log {true|false} (enable or disable logging)
-     * </li><li>-baseDir {directory} (sets the base directory for database files; not for H2 Console)
-     * </li><li>-ifExists {true|false} (only existing databases may be opened)
+     * </li><li>-log {true|false} (enable or disable logging, for all servers)
+     * </li><li>-baseDir {directory} (sets the base directory for H2 databases, for all servers)
+     * </li><li>-ifExists {true|false} (only existing databases may be opened, for all servers)
      * </li><li>-ftp (start the FTP Server)
      * </li></ul>
      * For each Server, additional options are available:

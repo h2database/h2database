@@ -98,6 +98,10 @@ public class ConstraintCheck extends Constraint {
         return false;
     }
 
+    public void setIndexOwner(Index index) {
+        throw Message.getInternalError();
+    }
+
     public boolean containsColumn(Column col) {
         // TODO check constraints / containsColumn: this is cheating, maybe the
         // column is not referenced

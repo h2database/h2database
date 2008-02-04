@@ -403,6 +403,7 @@ public class DiskFile implements CacheWriter {
     }
 
     private void go(int block) throws SQLException {
+        database.checkPowerOff();
         file.seek(getFilePos(block));
     }
 

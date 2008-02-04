@@ -6,14 +6,15 @@ package org.h2.expression;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
+import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -23,14 +24,24 @@ import org.h2.value.ValueResultSet;
 /**
  * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
  */
-public class TableFunction extends Expression implements FunctionCall {
+public class TableFunction extends Function implements FunctionCall {
     private boolean distinct;
-    private Expression[] args;
     private Column[] columnList;
 
+    TableFunction(Database database, FunctionInfo info) {
+        super(database, info);
+        distinct = info.type == Function.TABLE_DISTINCT;
+    }
+
     public Value getValue(Session session) throws SQLException {
-        int todoClassIsNotUsed;
         return getTable(session, args, false, distinct);
+    }
+
+    protected void checkParameterCount(int len) throws SQLException {
+        if (len < 1) {
+            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { getName(),
+                    ">0" });
+        }
     }
 
     public String getSQL() {
@@ -48,6 +59,37 @@ public class TableFunction extends Expression implements FunctionCall {
         }
         buff.append(')');
         return buff.toString();
+    }
+
+
+    public String getName() {
+        return distinct ? "TABLE_DISTINCT" : "TABLE";
+    }
+
+    public int getRowCount(Session session) throws SQLException {
+        int len = columnList.length;
+        int rowCount = 0;
+        for (int i = 0; i < len; i++) {
+            Expression expr = args[i];
+            if (expr.isConstant()) {
+                Value v = expr.getValue(session);
+                if (v != ValueNull.INSTANCE) {
+                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
+                    Value[] l = array.getList();
+                    rowCount = Math.max(rowCount, l.length);
+                }
+            }
+        }
+        return rowCount;
+    }
+
+    public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException {
+        return getTable(session, args, true, false);
+    }
+
+    public void setColumns(ObjectArray columns) {
+        this.columnList = new Column[columns.size()];
+        columns.toArray(columnList);
     }
 
     public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
@@ -120,116 +162,6 @@ public class TableFunction extends Expression implements FunctionCall {
             simple.addRow(list);
         }
         return simple;
-    }
-
-    public int getScale() {
-        return 0;
-    }
-
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            args[i].mapColumns(resolver, level);
-        }
-    }
-
-    public int getCost() {
-        int cost = 3;
-        for (int i = 0; i < args.length; i++) {
-            cost += args[i].getCost();
-        }
-        return cost;
-    }
-
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    public long getPrecision() {
-        return 0;
-    }
-
-    public int getType() {
-        return Value.RESULT_SET;
-    }
-
-    public boolean isEverything(ExpressionVisitor visitor) {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e != null && !e.isEverything(visitor)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public Expression optimize(Session session) throws SQLException {
-        boolean allConst = true;
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i].optimize(session);
-            args[i] = e;
-            if (!e.isConstant()) {
-                allConst = false;
-            }
-        }
-        if (allConst) {
-            return ValueExpression.get(getValue(session));
-        }
-        return this;
-    }
-
-    public void setEvaluatable(TableFilter tableFilter, boolean value) {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e != null) {
-                e.setEvaluatable(tableFilter, value);
-            }
-        }
-    }
-
-    public void updateAggregate(Session session) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
-            if (e != null) {
-                e.updateAggregate(session);
-            }
-        }
-    }
-
-    public boolean canGetRowCount() {
-        return true;
-    }
-
-    public Expression[] getArgs() {
-        return args;
-    }
-
-    public String getName() {
-        return distinct ? "TABLE_DISTINCT" : "TABLE";
-    }
-
-    public int getParameterCount() {
-        return args.length;
-    }
-
-    public int getRowCount(Session session) throws SQLException {
-        int len = columnList.length;
-        int rowCount = 0;
-        for (int i = 0; i < len; i++) {
-            Expression expr = args[i];
-            if (expr.isConstant()) {
-                Value v = expr.getValue(session);
-                if (v != ValueNull.INSTANCE) {
-                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
-                    Value[] l = array.getList();
-                    rowCount = Math.max(rowCount, l.length);
-                }
-            }
-        }
-        return rowCount;
-    }
-
-    public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException {
-        return getTable(session, args, true, false);
     }
 
 }

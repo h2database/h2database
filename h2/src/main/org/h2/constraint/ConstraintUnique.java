@@ -5,6 +5,7 @@
 package org.h2.constraint;
 
 import java.sql.SQLException;
+
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -113,7 +114,7 @@ public class ConstraintUnique extends Constraint {
     public void removeChildrenAndResources(Session session) throws SQLException {
         table.removeConstraint(this);
         if (indexOwner) {
-            database.removeSchemaObject(session, index);
+            table.removeIndexOrTransferOwnership(session, index);
         }
         index = null;
         columns = null;
@@ -127,6 +128,10 @@ public class ConstraintUnique extends Constraint {
 
     public boolean usesIndex(Index idx) {
         return idx == index;
+    }
+
+    public void setIndexOwner(Index index) {
+        indexOwner = true;
     }
 
     public boolean containsColumn(Column col) {

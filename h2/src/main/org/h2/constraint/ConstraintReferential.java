@@ -202,10 +202,10 @@ public class ConstraintReferential extends Constraint {
         table.removeConstraint(this);
         refTable.removeConstraint(this);
         if (indexOwner) {
-            database.removeSchemaObject(session, index);
+            table.removeIndexOrTransferOwnership(session, index);
         }
         if (refIndexOwner) {
-            database.removeSchemaObject(session, refIndex);
+            refTable.removeIndexOrTransferOwnership(session, refIndex);
         }
         refTable = null;
         index = null;
@@ -513,6 +513,16 @@ public class ConstraintReferential extends Constraint {
 
     public boolean usesIndex(Index idx) {
         return idx == index || idx == refIndex;
+    }
+
+    public void setIndexOwner(Index index) {
+        if (this.index == index) {
+            indexOwner = true;
+        } else if (this.refIndex == index) {
+            refIndexOwner = true;
+        } else {
+            throw Message.getInternalError();
+        }
     }
 
     public boolean containsColumn(Column col) {

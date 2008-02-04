@@ -71,9 +71,9 @@ public class CreateIndex extends SchemaCommand {
         }
         int id = getObjectId(true, false);
         if (primaryKey) {
-            indexName = getSchema().getUniqueIndexName(table, Constants.PREFIX_PRIMARY_KEY);
+            indexName = table.getSchema().getUniqueIndexName(table, Constants.PREFIX_PRIMARY_KEY);
         } else if (indexName == null) {
-            indexName = getSchema().getUniqueIndexName(table, Constants.PREFIX_INDEX);
+            indexName = table.getSchema().getUniqueIndexName(table, Constants.PREFIX_INDEX);
         }
         if (getSchema().findIndex(indexName) != null) {
             if (ifNotExists) {

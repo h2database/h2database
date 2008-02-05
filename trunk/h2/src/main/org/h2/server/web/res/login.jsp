@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<!-- 
-Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html><head>
@@ -20,9 +20,12 @@ Initial Developer: H2 Group
                     >
                     ${languageCombo}
                     </select>
-     &nbsp;&nbsp; <a href="admin.do?jsessionid=${sessionId}">${text.login.goAdmin}</a> 
+     &nbsp;&nbsp; <a href="admin.do?jsessionid=${sessionId}">${text.login.goAdmin}</a>
+<!--
+     &nbsp;&nbsp; <a href="tools.jsp?jsessionid=${sessionId}">${text.login.goTools}</a>
+-->
      &nbsp;&nbsp; <a href="help.jsp?jsessionid=${sessionId}">${text.a.help}</a>
-     </p>    
+     </p>
         <table class="login" cellspacing="0" cellpadding="0">
             <tr class="login">
                 <th class="login">${text.login.login}</th>

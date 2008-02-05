@@ -840,7 +840,9 @@ public class Select extends Query {
         case ExpressionVisitor.GET_DEPENDENCIES: {
             for (int i = 0; i < filters.size(); i++) {
                 TableFilter filter = (TableFilter) filters.get(i);
-                filter.getTable().addDependencies(visitor.getDependencies());
+                Table table = filter.getTable();
+                visitor.addDependency(table);
+                table.addDependencies(visitor.getDependencies());
             }
             break;
         }

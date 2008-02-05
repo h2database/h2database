@@ -191,7 +191,9 @@ public class ErrorCode {
 
     /**
      * The error with code <code>42102</code> is thrown when
-     * trying to query, modify or drop a table or view that does not exists.
+     * trying to query, modify or drop a table or view that does not exists
+     * in this schema and database. A common cause is that the wrong
+     * database was opened.
      * Example:
      * <pre>
      * SELECT * FROM ABC;
@@ -424,8 +426,39 @@ public class ErrorCode {
      * </pre>
      */
     public static final int PARAMETER_NOT_SET_1 = 90012;
+
+    /**
+     * The error with code <code>90013</code> is thrown when
+     * trying to open a database that does not exist using the flag IFEXISTS=TRUE,
+     * or when trying to access a database object with a catalog name that does
+     * not match the database name.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * SELECT XYZ.PUBLIC.TEST.ID FROM TEST;
+     * </pre>
+     */
     public static final int DATABASE_NOT_FOUND_1 = 90013;
+
+    /**
+     * The error with code <code>90014</code> is thrown when
+     * trying to parse a date with an unsupported format string, or
+     * when the date can not be parsed.
+     * Example:
+     * <pre>
+     * CALL PARSEDATETIME('2001 January', 'yyyy mm');
+     * </pre>
+     */
     public static final int PARSE_ERROR_1 = 90014;
+
+    /**
+     * The error with code <code>90015</code> is thrown when
+     * using an aggregate function with a data type that is not supported.
+     * Example:
+     * <pre>
+     * SELECT SUM('Hello') FROM DUAL;
+     * </pre>
+     */
     public static final int SUM_OR_AVG_ON_WRONG_DATATYPE_1 = 90015;
 
     /**
@@ -445,6 +478,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int MUST_GROUP_BY_COLUMN_1 = 90016;
+
+    /**
+     * The error with code <code>90017</code> is thrown when
+     * trying to define a second primary key constraint for this table.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
+     * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(NAME);
+     * </pre>
+     */
     public static final int SECOND_PRIMARY_KEY = 90017;
 
     /**
@@ -467,23 +510,82 @@ public class ErrorCode {
      */
     public static final int TRACE_CONNECTION_NOT_CLOSED = 90018;
     public static final int CANNOT_DROP_CURRENT_USER = 90019;
+
+    /**
+     * The error with code <code>90020</code> is thrown when
+     * trying to open a database in embedded mode if this database
+     * is already in use in another process (or in a different class loader).
+     * Multiple connections to the same database are supported in the following
+     * cases:
+     * <ul>
+     * <li>In embedded mode (URL of the form jdbc:h2:test) if all connections
+     * are opened within the same process and class loader.
+     * </li>
+     * <li>In server and cluster mode (URL of the form jdbc:h2:tcp://localhost/test)
+     * using remote connections.
+     * </li></ul>
+     * The mixed mode is also supported.
+     * This mode requires to start a server in the same process where
+     * the database is open in embedded mode.
+     */
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
+
+    /**
+     * The error with code <code>90021</code> is thrown when
+     * trying to convert a value to a data type where the conversion is undefined,
+     * or when an error occured trying to convert.
+     * Example:
+     * <pre>
+     * CALL CAST(DATE '2001-01-01' AS BOOLEAN);
+     * CALL CAST('CHF 99.95' AS INT);
+     * </pre>
+     */
     public static final int DATA_CONVERSION_ERROR_1 = 90021;
     public static final int FUNCTION_NOT_FOUND_1 = 90022;
     public static final int COLUMN_MUST_NOT_BE_NULLABLE_1 = 90023;
     public static final int FILE_RENAME_FAILED_2 = 90024;
+
+    /**
+     * The error with code <code>90025</code> is thrown when
+     * a file could not be deleted, because it is still in use
+     * (only in Windows), or because an error occured when deleting.
+     */
     public static final int FILE_DELETE_FAILED_1 = 90025;
     public static final int SERIALIZATION_FAILED_1 = 90026;
     public static final int DESERIALIZATION_FAILED_1 = 90027;
+
+    /**
+     * The error with code <code>90028</code> is thrown when
+     * an input / output error occured. For more information, see the root
+     * cause of the exception.
+     */
     public static final int IO_EXCEPTION_1 = 90028;
     public static final int NOT_ON_UPDATABLE_ROW = 90029;
     public static final int FILE_CORRUPTED_1 = 90030;
     public static final int IO_EXCEPTION_2 = 90031;
+
+    /**
+     * The error with code <code>90032</code> is thrown when
+     * trying to drop or alter a user that does not exist.
+     * Example:
+     * <pre>
+     * DROP USER TESTUSER;
+     * </pre>
+     */
     public static final int USER_NOT_FOUND_1 = 90032;
     public static final int USER_ALREADY_EXISTS_1 = 90033;
     public static final int LOG_FILE_ERROR_2 = 90034;
     public static final int SEQUENCE_ALREADY_EXISTS_1 = 90035;
     public static final int SEQUENCE_NOT_FOUND_1 = 90036;
+
+    /**
+     * The error with code <code>90037</code> is thrown when
+     * trying to drop or alter a view that does not exist.
+     * Example:
+     * <pre>
+     * DROP VIEW XYZ;
+     * </pre>
+     */
     public static final int VIEW_NOT_FOUND_1 = 90037;
     public static final int VIEW_ALREADY_EXISTS_1 = 90038;
     public static final int VALUE_TOO_LARGE_FOR_PRECISION_1 = 90039;
@@ -496,20 +598,133 @@ public class ErrorCode {
     public static final int URL_FORMAT_ERROR_2 = 90046;
     public static final int DRIVER_VERSION_ERROR_2 = 90047;
     public static final int FILE_VERSION_ERROR_1 = 90048;
+
+    /**
+     * The error with code <code>90049</code> is thrown when
+     * trying to open an encrypted database with the wrong file encryption
+     * password or algorithm.
+     */
     public static final int FILE_ENCRYPTION_ERROR_1 = 90049;
+
+    /**
+     * The error with code <code>90050</code> is thrown when
+     * trying to open an encrypted database, but not separating the file password
+     * from the user password. The file password is specified in the password field,
+     * before the user password. A single space needs to be added between the
+     * file password and the user password; the file password itself may not contain spaces.
+     * File passwords (as well as user passwords) are case sensitive.
+     * Example:
+     * <pre>
+     * String url = "jdbc:h2:~/test;CIPHER=AES";
+     * String passwords = "filePasswordUserPassword";
+     * DriverManager.getConnection(url, "sa", pwds);
+     * </pre>
+     * Correct:
+     * <pre>
+     * String url = "jdbc:h2:~/test;CIPHER=AES";
+     * String passwords = "filePassword userPassword";
+     * DriverManager.getConnection(url, "sa", pwds);
+     * </pre>
+     */
     public static final int WRONG_PASSWORD_FORMAT = 90050;
+
+    /**
+     * The error with code <code>90051</code> is thrown when
+     * a statement was cancelled using Statement.cancel() or
+     * when the query timeout has been reached.
+     * Examples:
+     * <pre>
+     * stat.setQueryTimeout(1);
+     * stat.cancel();
+     * </pre>
+     */
     public static final int STATEMENT_WAS_CANCELLED = 90051;
+
+    /**
+     * The error with code <code>90052</code> is thrown when
+     * a subquery that is used as a value contains more than one column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST VALUES(1), (2);
+     * SELECT * FROM TEST WHERE ID IN (SELECT 1, 2 FROM DUAL);
+     * </pre>
+     * Correct:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST VALUES(1), (2);
+     * SELECT * FROM TEST WHERE ID IN (1, 2);
+     * </pre>
+     */
     public static final int SUBQUERY_IS_NOT_SINGLE_COLUMN = 90052;
+
+    /**
+     * The error with code <code>90053</code> is thrown when
+     * a subquery that is used as a value contains more than one row.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR);
+     * INSERT INTO TEST VALUES(1, 'Hello'), (1, 'World');
+     * SELECT X, (SELECT NAME FROM TEST WHERE ID=X) FROM DUAL;
+     * </pre>
+     */
     public static final int SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW = 90053;
+
+    /**
+     * The error with code <code>90054</code> is thrown when
+     * an aggregate function is used where it is not allowed.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST VALUES(1), (2);
+     * SELECT MAX(ID) FROM TEST WHERE ID = MAX(ID) GROUP BY ID;
+     * </pre>
+     */
     public static final int INVALID_USE_OF_AGGREGATE_FUNCTION_1 = 90054;
     public static final int UNSUPPORTED_CIPHER = 90055;
     public static final int NO_DEFAULT_SET_1 = 90056;
+
+    /**
+     * The error with code <code>90057</code> is thrown when
+     * trying to drop a constraint that does not exist.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * ALTER TABLE TEST DROP CONSTRAINT CID;
+     * </pre>
+     */
     public static final int CONSTRAINT_NOT_FOUND_1 = 90057;
     public static final int DUPLICATE_TABLE_ALIAS = 90058;
+
+    /**
+     * The error with code <code>90059</code> is thrown when
+     * a query contains a column that could belong to multiple tables.
+     * Example:
+     * <pre>
+     * CREATE TABLE PARENT(ID INT, NAME VARCHAR);
+     * CREATE TABLE CHILD(PID INT, NAME VARCHAR);
+     * SELECT ID, NAME FROM PARENT P, CHILD C WHERE P.ID = C.PID;
+     * </pre>
+     */
     public static final int AMBIGUOUS_COLUMN_NAME_1 = 90059;
     public static final int UNSUPPORTED_LOCK_METHOD_1 = 90060;
+
+    /**
+     * The error with code <code>90061</code> is thrown when
+     * trying to start a server if a server is already running on the same port.
+     * It could also be a firewall problem.
+     */
     public static final int EXCEPTION_OPENING_PORT_2 = 90061;
     public static final int FILE_CREATION_FAILED_1 = 90062;
+
+    /**
+     * The error with code <code>90063</code> is thrown when
+     * trying to rollback to a savepoint that is not defined.
+     * Example:
+     * <pre>
+     * ROLLBACK TO SAVEPOINT S_UNKNOWN;
+     * </pre>
+     */
     public static final int SAVEPOINT_IS_INVALID_1 = 90063;
     public static final int SAVEPOINT_IS_UNNAMED = 90064;
     public static final int SAVEPOINT_IS_NAMED = 90065;
@@ -538,7 +753,28 @@ public class ErrorCode {
     public static final int ROLES_AND_RIGHT_CANNOT_BE_MIXED = 90072;
     public static final int RIGHT_NOT_FOUND = 90073;
     public static final int ROLE_ALREADY_GRANTED_1 = 90074;
+
+    /**
+     * The error with code <code>90075</code> is thrown when
+     * trying to alter a table and allow null for a column that is part of a
+     * primary key or hash index.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT PRIMARY KEY);
+     * ALTER TABLE TEST ALTER COLUMN ID NULL;
+     * </pre>
+     */
     public static final int COLUMN_IS_PART_OF_INDEX_1 = 90075;
+
+    /**
+     * The error with code <code>90076</code> is thrown when
+     * trying to create a function alias for a system function or for a function
+     * that is already defined.
+     * Example:
+     * <pre>
+     * CREATE ALIAS SQRT FOR "java.lang.Math.sqrt"
+     * </pre>
+     */
     public static final int FUNCTION_ALIAS_ALREADY_EXISTS_1 = 90076;
     public static final int FUNCTION_ALIAS_NOT_FOUND_1 = 90077;
     public static final int SCHEMA_ALREADY_EXISTS_1 = 90078;
@@ -546,6 +782,16 @@ public class ErrorCode {
     public static final int SCHEMA_NAME_MUST_MATCH = 90080;
     public static final int COLUMN_CONTAINS_NULL_VALUES_1 = 90081;
     public static final int SEQUENCE_BELONGS_TO_A_TABLE_1 = 90082;
+
+    /**
+     * The error with code <code>90083</code> is thrown when
+     * trying to drop a column that is part of a constraint.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, PID INT REFERENCES(ID));
+     * ALTER TABLE TEST DROP COLUMN PID;
+     * </pre>
+     */
     public static final int COLUMN_MAY_BE_REFERENCED_1 = 90083;
     public static final int CANNOT_DROP_LAST_COLUMN = 90084;
 
@@ -588,12 +834,32 @@ public class ErrorCode {
     public static final int COLLATION_CHANGE_WITH_DATA_TABLE_1 = 90089;
     public static final int SCHEMA_CAN_NOT_BE_DROPPED_1 = 90090;
     public static final int ROLE_CAN_NOT_BE_DROPPED_1 = 90091;
+
+    /**
+     * The error with code <code>90092</code> is thrown when
+     * the source code is not compiled for the Java platform used.
+     * At runtime, the existence of the class java.sql.Savepoint is checked.
+     * To run this database in JDK 1.3, it is first required to switch the
+     * source code to JDK 1.3 using ant codeswitchJdk13.
+     */
     public static final int UNSUPPORTED_JAVA_VERSION = 90092;
     public static final int CLUSTER_ERROR_DATABASE_RUNS_ALONE = 90093;
+
+    /**
+     * The error with code <code>90094</code> is thrown when
+     * trying to connect to a clustered database that runs together with a
+     * different cluster node setting than what is used when trying to connect.
+     */
     public static final int CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1 = 90094;
     public static final int STRING_FORMAT_ERROR_1 = 90095;
     public static final int NOT_ENOUGH_RIGHTS_FOR_1 = 90096;
     public static final int DATABASE_IS_READ_ONLY = 90097;
+
+    /**
+     * The error with code <code>90098</code> is thrown when
+     * the self-destruction counter has reached zero.
+     * This counter is only used for recovery testing, and not set in normal operation.
+     */
     public static final int SIMULATED_POWER_OFF = 90098;
     public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER_2 = 90099;
     public static final int NO_DISK_SPACE_AVAILABLE = 90100;
@@ -602,9 +868,40 @@ public class ErrorCode {
     public static final int UNSUPPORTED_COMPRESSION_ALGORITHM_1 = 90103;
     public static final int COMPRESSION_ERROR = 90104;
     public static final int EXCEPTION_IN_FUNCTION = 90105;
+
+    /**
+     * The error with code <code>90106</code> is thrown when
+     * trying to truncate a table that can not be truncated.
+     * Tables with referential integrity constraints can not be truncated.
+     * Also, system tables and view can not be truncated.
+     * Example:
+     * <pre>
+     * TRUNCATE TABLE INFORMATION_SCHEMA.SETTINGS;
+     * </pre>
+     */
     public static final int CANNOT_TRUNCATE_1 = 90106;
+
+    /**
+     * The error with code <code>90107</code> is thrown when
+     * trying to drop an object because another object would become invalid.
+     * Example:
+     * <pre>
+     * CREATE TABLE COUNT(X INT);
+     * CREATE TABLE ITEMS(ID INT DEFAULT SELECT MAX(X)+1 FROM COUNT);
+     * DROP TABLE COUNT;
+     * </pre>
+     */
     public static final int CANNOT_DROP_2 = 90107;
     public static final int STACK_OVERFLOW = 90108;
+
+    /**
+     * The error with code <code>90109</code> is thrown when
+     * trying to run a query against an invalid view.
+     * Example:
+     * <pre>
+     * CREATE FORCE VIEW TEST_VIEW AS SELECT * FROM TEST;
+     * SELECT * FROM TEST_VIEW;     * </pre>
+     */
     public static final int VIEW_IS_INVALID_2 = 90109;
     public static final int OVERFLOW_FOR_TYPE_1 = 90110;
     public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
@@ -624,6 +921,15 @@ public class ErrorCode {
     public static final int CONSTANT_NOT_FOUND_1 = 90115;
     public static final int LITERALS_ARE_NOT_ALLOWED = 90116;
     public static final int REMOTE_CONNECTION_NOT_ALLOWED = 90117;
+
+    /**
+     * The error with code <code>90118</code> is thrown when
+     * trying to drop a table can not be dropped.
+     * Example:
+     * <pre>
+     * DROP TABLE INFORMATION_SCHEMA.SETTINGS;
+     * </pre>
+     */
     public static final int CANNOT_DROP_TABLE_1  = 90118;
     public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = 90119;
     public static final int USER_DATA_TYPE_NOT_FOUND_1 = 90120;
@@ -659,7 +965,25 @@ public class ErrorCode {
     public static final int AGGREGATE_NOT_FOUND_1 = 90132;
     public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
     public static final int ACCESS_DENIED_TO_CLASS_1 = 90134;
+
+    /**
+     * The error with code <code>90135</code> is thrown when
+     * trying to open a connection to a database that is currently open
+     * in exclusive mode. The exclusive mode is set using:
+     * <pre>
+     * SET EXCLUSIVE TRUE;
+     * </pre>
+     */
     public static final int DATABASE_IS_IN_EXCLUSIVE_MODE = 90135;
+
+    /**
+     * The error with code <code>90136</code> is thrown when
+     * executing a query that used an unsupported outer join condition.
+     * Example:
+     * <pre>
+     * SELECT * FROM DUAL A LEFT JOIN DUAL B ON B.X=(SELECT MAX(X) FROM DUAL);
+     * </pre>
+     */
     public static final int UNSUPPORTED_OUTER_JOIN_CONDITION_1 = 90136;
 
     /**

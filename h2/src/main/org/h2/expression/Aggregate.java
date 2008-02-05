@@ -431,9 +431,12 @@ public class Aggregate extends Expression {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
-            Table table = col.getTableFilter().getTable();
-            Index index = table.getIndexForColumn(column, first);
-            return index;
+            TableFilter filter = col.getTableFilter();
+            if (filter != null) {
+                Table table = filter.getTable();
+                Index index = table.getIndexForColumn(column, first);
+                return index;
+            }
         }
         return null;
     }

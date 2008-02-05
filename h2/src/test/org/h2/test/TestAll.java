@@ -151,10 +151,19 @@ java org.h2.test.TestAll timer
 
 /*
 
+integrate tools in H2 Console
+
+for all tools: add link to javadoc (like Recover)
+
+DbStarter:    server.start();
+add test case!
+
+C:\temp\crash_db
+
 recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...),
 and things should go into the .trace.db file
 
-RECOVER=2 should backup the database, run recovery, open the database
+RECOVER=2 to backup the database, run recovery, open the database
 
 Recovery should work with encrypted databases
 

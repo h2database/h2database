@@ -394,7 +394,7 @@ public class StringUtils {
                 return dateFormat.parse(date);
             }
         } catch (ParseException e) {
-            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, date);
+            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, new String[]{date}, e);
         }
     }
 
@@ -421,7 +421,7 @@ public class StringUtils {
             }
             return df;
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, format + "/" + locale + "/" + timezone);
+            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, new String []{format + "/" + locale + "/" + timezone}, e);
         }
     }
 

@@ -4458,6 +4458,7 @@ public class Parser {
     }
 
     public Expression parseExpression(String sql) throws SQLException {
+        parameters = new ObjectArray();
         initialize(sql);
         read();
         return readExpression();

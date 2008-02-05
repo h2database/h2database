@@ -31,6 +31,9 @@ public class TestFullText extends TestBase {
         } catch (ClassNotFoundException e) {
             println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
+        } catch (NoClassDefFoundError e) {
+            println("Class not found, not tested: " + luceneFullTextClassName);
+            // ok
         }
 
     }

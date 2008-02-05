@@ -346,6 +346,9 @@ public class SysProperties {
         return s == null ? defaultValue : s;
     }
 
+    /**
+     * INTERNAL
+     */
     public static int getIntSetting(String name, int defaultValue) {
         String s = getProperty(name);
         if (s != null) {

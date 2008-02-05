@@ -68,6 +68,7 @@ public class Recover implements DataHandler {
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
+        System.out.println("For details, see http://h2database.com/javadoc/org/h2/tools/Recover.html");
     }
 
     /**

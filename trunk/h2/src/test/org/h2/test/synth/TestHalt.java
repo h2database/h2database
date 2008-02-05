@@ -157,7 +157,7 @@ public abstract class TestHalt extends TestBase {
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();
-            String s = catcher.readLine(5000);
+            String s = catcher.readLine(5 * 60 * 1000);
             if (s == null) {
                 throw new IOException("No reply from process, command: " + command);
             } else if (s.startsWith("READY")) {

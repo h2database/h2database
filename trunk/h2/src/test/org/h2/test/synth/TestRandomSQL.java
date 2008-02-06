@@ -41,11 +41,11 @@ public class TestRandomSQL extends TestBase {
 
     private String getDatabaseName() {
         if (config.big) {
-            return "dataSynth/randomSql" + dbId;
+            return "dataRandomSQL/randomSql" + dbId;
         } else {
             return "memFS:/randomSql" + dbId;
         }
-        // return "dataSynth/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
+        // return "dataRandomSQL/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
     }
 
     private Connection connect() throws Exception {

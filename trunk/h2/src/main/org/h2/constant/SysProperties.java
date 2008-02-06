@@ -27,6 +27,11 @@ public class SysProperties {
     public static final String H2_MAX_QUERY_TIMEOUT = "h2.maxQueryTimeout";
 
     /**
+     * INTERNAL
+     */
+    public static final String H2_LOG_DELETE_DELAY = "h2.logDeleteDelay";
+
+    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the RunScript and CSV tool.
      */
@@ -384,4 +389,10 @@ public class SysProperties {
         return getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
     }
 
+    /**
+     * INTERNAL
+     */
+    public static int getLogFileDeleteDelay() {
+        return getIntSetting(H2_LOG_DELETE_DELAY, 500);
+    }
 }

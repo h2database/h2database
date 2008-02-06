@@ -949,7 +949,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         class LoginTask implements Runnable, DatabaseEventListener {
             private DataOutputStream output;
             private PrintWriter writer;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+            private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
             LoginTask() throws IOException {
                 String message = "HTTP/1.1 200 OK\n";
@@ -974,6 +974,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
             public void exceptionThrown(SQLException e, String sql) {
                 log("Exception: " + PageParser.escapeHtml(e.toString()) + " SQL: " + PageParser.escapeHtml(sql));
+                server.traceError(e);
             }
 
             public void init(String url) {
@@ -1019,6 +1020,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     writer.println(message + "<br />");
                     writer.flush();
                 }
+                server.trace(message);
             }
 
             public void run() {

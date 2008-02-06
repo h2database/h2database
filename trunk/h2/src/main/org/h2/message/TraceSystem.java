@@ -195,7 +195,7 @@ public class TraceSystem {
         }
         writingErrorLogged = true;
         // TODO translate trace messages
-        SQLException se = Message.getSQLException(ErrorCode.LOG_FILE_ERROR_2, new String[] { fileName, e.toString() },
+        SQLException se = Message.getSQLException(ErrorCode.TRACE_FILE_ERROR_2, new String[] { fileName, e.toString() },
                 e);
         // print this error only once
         fileName = null;

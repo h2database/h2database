@@ -112,10 +112,13 @@
 	</target>
 
 	<target name="compileServlet" depends="compileServletTest, compile" if="servlet.jar.present">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
+		<javac executable="${javac}" destdir="bin" debug="true">
+		    <src path="src/main"/>
+		    <src path="src/test"/>
 			<classpath location="${path.servlet.jar}" />
 			<include name="org/h2/server/web/WebServlet.java"/>
 			<include name="org/h2/server/web/DbStarter.java"/>
+			<include name="org/h2/test/unit/TestServlet.java"/>
 		</javac>
 	</target>
 
@@ -133,6 +136,7 @@
 		    <exclude name="org/h2/fulltext/FullTextLucene.java"/>
 			<exclude name="org/h2/server/web/WebServlet.java"/>
 			<exclude name="org/h2/server/web/DbStarter.java"/>
+			<exclude name="org/h2/test/unit/TestServlet.java"/>
 	    </javac>
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/**/*"/>

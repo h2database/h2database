@@ -149,16 +149,25 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
 
+
+//        TestRecover.main(new String[0]);
+
 /*
+
+Automate real power off tests
+Extend tests that simulate power off
+timer test
+
+java org.h2.tool.Server -baseDir C:\temp\test
+web console: jdbc:h2:~/test
+C:\temp\test\~
+
+C:\temp\crash_db
+- try delayed log file delete
 
 integrate tools in H2 Console
 
 for all tools: add link to javadoc (like Recover)
-
-DbStarter:    server.start();
-add test case!
-
-C:\temp\crash_db
 
 recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...),
 and things should go into the .trace.db file
@@ -167,14 +176,7 @@ RECOVER=2 to backup the database, run recovery, open the database
 
 Recovery should work with encrypted databases
 
-java org.h2.tool.Server -baseDir C:\temp\dbtest
-web console: jdbc:h2:~/chin
-C:\temp\dbtest\~
-
-Automate real power off tests
 Adjust cache memory usage
-Extend tests that simulate power off
-timer test
 // test with garbage at the end of the log file (must be consistently detected as such)
 // TestRandomSQL is too random; most statements fails
 // extend the random join test that compared the result against PostgreSQL
@@ -185,10 +187,15 @@ Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 Test with many columns (180), create index
 add a 'kill process while altering tables' test case
 
+SysProperties: change everything to H2_...
+Use FilterIn / FilterOut putStream
+
 Roadmap:
 
 
 History:
+Old log files are now deleted a bit after a new log file is created. This helps recovery.
+The DbStarter servlet didn't start the TCP listener even if configured.
 Statement.setQueryTimeout() is now supported. New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
 Changing the transaction log level (SET LOG) is now written to the trace file by default.
 In a SQL script, primary key constraints are now ordered before foreign key constraints.
@@ -490,6 +497,7 @@ It was not possible to create a referential constraint to a table in a different
         new TestReader().runTest(this);
         new TestSampleApps().runTest(this);
         new TestScriptReader().runTest(this);
+        runTest("org.h2.test.unit.TestServlet");
         new TestSecurity().runTest(this);
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
@@ -500,6 +508,17 @@ It was not possible to create a referential constraint to a table in a different
         new TestValueMemory().runTest(this);
 
         afterTest();
+    }
+
+    private void runTest(String className) {
+        try {
+            Class clazz = Class.forName(className);
+            TestBase test = (TestBase) clazz.newInstance();
+            test.runTest(this);
+        } catch (Exception e) {
+            // ignore
+            TestBase.logError("Class not found: " + className, null);
+        }
     }
 
     public void beforeTest() throws SQLException {

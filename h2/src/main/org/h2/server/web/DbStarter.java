@@ -41,6 +41,7 @@ public class DbStarter implements ServletContextListener {
             if (serverParams != null) {
                 String[] params = StringUtils.arraySplit(serverParams, ' ', true);
                 server = Server.createTcpServer(params);
+                server.start();
             }
             // To access the database using the server, use the URL:
             // jdbc:h2:tcp://localhost/~/test

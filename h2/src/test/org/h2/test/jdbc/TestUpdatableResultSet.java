@@ -38,6 +38,7 @@ public class TestUpdatableResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World'), (3, 'Test')");
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+
         check(rs.isBeforeFirst());
         checkFalse(rs.isAfterLast());
         check(rs.getRow(), 0);
@@ -49,6 +50,14 @@ public class TestUpdatableResultSet extends TestBase {
         check(rs.getRow(), 1);
 
         rs.next();
+
+        try {
+            rs.insertRow();
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+
         checkFalse(rs.isBeforeFirst());
         checkFalse(rs.isAfterLast());
         check(rs.getInt(1), 2);

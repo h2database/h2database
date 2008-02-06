@@ -4,6 +4,7 @@
  */
 package org.h2.constant;
 
+
 /**
  * This class defines the error codes used for SQL exceptions.
  */
@@ -244,9 +245,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int COLUMN_NOT_FOUND_1 = 42122;
-
-
-    public static final int SETTING_NOT_FOUND_1 = 42132;
 
     // 0A: feature not supported
 
@@ -509,6 +507,15 @@ public class ErrorCode {
      * </pre>
      */
     public static final int TRACE_CONNECTION_NOT_CLOSED = 90018;
+
+    /**
+     * The error with code <code>90019</code> is thrown when
+     * trying to drop the current user.
+     * Example:
+     * <pre>
+     * DROP USER SA;
+     * </pre>
+     */
     public static final int CANNOT_DROP_CURRENT_USER = 90019;
 
     /**
@@ -541,8 +548,32 @@ public class ErrorCode {
      * </pre>
      */
     public static final int DATA_CONVERSION_ERROR_1 = 90021;
+
+    /**
+     * The error with code <code>90022</code> is thrown when
+     * trying to call a unknown function.
+     * Example:
+     * <pre>
+     * CALL SPECIAL_SIN(10);
+     * </pre>
+     */
     public static final int FUNCTION_NOT_FOUND_1 = 90022;
+
+    /**
+     * The error with code <code>90023</code> is thrown when
+     * trying to set a primary key on a nullable column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, NAME VARCHAR);
+     * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(ID);
+     * </pre>
+     */
     public static final int COLUMN_MUST_NOT_BE_NULLABLE_1 = 90023;
+
+    /**
+     * The error with code <code>90024</code> is thrown when
+     * a file could not be renamed.
+     */
     public static final int FILE_RENAME_FAILED_2 = 90024;
 
     /**
@@ -551,7 +582,17 @@ public class ErrorCode {
      * (only in Windows), or because an error occured when deleting.
      */
     public static final int FILE_DELETE_FAILED_1 = 90025;
+
+    /**
+     * The error with code <code>90026</code> is thrown when
+     * an object could not be serialized.
+     */
     public static final int SERIALIZATION_FAILED_1 = 90026;
+
+    /**
+     * The error with code <code>90027</code> is thrown when
+     * an object could not be de-serialized.
+     */
     public static final int DESERIALIZATION_FAILED_1 = 90027;
 
     /**
@@ -560,8 +601,33 @@ public class ErrorCode {
      * cause of the exception.
      */
     public static final int IO_EXCEPTION_1 = 90028;
+
+    /**
+     * The error with code <code>90029</code> is thrown when
+     * calling ResultSet.deleteRow(), insertRow(), or updateRow()
+     * when the current row is not updatable.
+     * Example:
+     * <pre>
+     * ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+     * rs.next();
+     * rs.insertRow();
+     * </pre>
+     */
     public static final int NOT_ON_UPDATABLE_ROW = 90029;
+
+    /**
+     * The error with code <code>90030</code> is thrown when
+     * the database engine has detected a checksum mismatch in the data
+     * or index. To solve this problem, restore a backup or use the
+     * Recovery tool (org.h2.tools.Recover).
+     */
     public static final int FILE_CORRUPTED_1 = 90030;
+
+    /**
+     * The error with code <code>90031</code> is thrown when
+     * an input / output error occured. For more information, see the root
+     * cause of the exception.
+     */
     public static final int IO_EXCEPTION_2 = 90031;
 
     /**
@@ -569,13 +635,50 @@ public class ErrorCode {
      * trying to drop or alter a user that does not exist.
      * Example:
      * <pre>
-     * DROP USER TESTUSER;
+     * DROP USER TEST_USER;
      * </pre>
      */
     public static final int USER_NOT_FOUND_1 = 90032;
+
+    /**
+     * The error with code <code>90033</code> is thrown when
+     * trying to create a user or role if a user with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE USER TEST_USER;
+     * CREATE USER TEST_USER;
+     * </pre>
+     */
     public static final int USER_ALREADY_EXISTS_1 = 90033;
-    public static final int LOG_FILE_ERROR_2 = 90034;
+
+    /**
+     * The error with code <code>90034</code> is thrown when
+     * writing to the trace file failed, for example because the there
+     * is an I/O exception. This message is printed to System.out,
+     * but only once.
+     */
+    public static final int TRACE_FILE_ERROR_2 = 90034;
+
+    /**
+     * The error with code <code>90035</code> is thrown when
+     * trying to create a sequence if a sequence with this name already
+     * exists.
+     * Example:
+     * <pre>
+     * CREATE SEQUENCE TEST_SEQ;
+     * CREATE SEQUENCE TEST_SEQ;
+     * </pre>
+     */
     public static final int SEQUENCE_ALREADY_EXISTS_1 = 90035;
+
+    /**
+     * The error with code <code>90036</code> is thrown when
+     * trying to access a sequence that does not exist.
+     * Example:
+     * <pre>
+     * SELECT NEXT VALUE FOR SEQUENCE XYZ;
+     * </pre>
+     */
     public static final int SEQUENCE_NOT_FOUND_1 = 90036;
 
     /**
@@ -587,15 +690,81 @@ public class ErrorCode {
      * </pre>
      */
     public static final int VIEW_NOT_FOUND_1 = 90037;
+
+    /**
+     * The error with code <code>90038</code> is thrown when
+     * trying to create a view if a view with this name already
+     * exists.
+     * Example:
+     * <pre>
+     * CREATE VIEW DUMMY AS SELECT * FROM DUAL;
+     * CREATE VIEW DUMMY AS SELECT * FROM DUAL;
+     * </pre>
+     */
     public static final int VIEW_ALREADY_EXISTS_1 = 90038;
+
+    /**
+     * The error with code <code>90039</code> is thrown when
+     * trying to convert a decimal value to lower precision if the
+     * value is out of range for this precision.
+     * Example:
+     * <pre>
+     * SELECT * FROM TABLE(X DECIMAL(2, 2) = (123.34));
+     * </pre>
+     */
     public static final int VALUE_TOO_LARGE_FOR_PRECISION_1 = 90039;
+
+    /**
+     * The error with code <code>90040</code> is thrown when
+     * a user that is not administrator tries to execute a statement
+     * that requires admin privileges.
+     */
     public static final int ADMIN_RIGHTS_REQUIRED = 90040;
+
+    /**
+     * The error with code <code>90041</code> is thrown when
+     * trying to create a trigger and there is already a trigger with that name.
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * CREATE TRIGGER TRIGGER_A AFTER INSERT ON TEST
+     *      CALL "org.h2.samples.TriggerSample$MyTrigger";
+     * CREATE TRIGGER TRIGGER_A AFTER INSERT ON TEST
+     *      CALL "org.h2.samples.TriggerSample$MyTrigger";
+     * </pre>
+     */
     public static final int TRIGGER_ALREADY_EXISTS_1 = 90041;
+
+    /**
+     * The error with code <code>90042</code> is thrown when
+     * trying to drop a trigger that does not exist.
+     * Example:
+     * <pre>
+     * DROP TRIGGER TRIGGER_XYZ;
+     * </pre>
+     */
     public static final int TRIGGER_NOT_FOUND_1 = 90042;
+
+    private int test;
+
     public static final int ERROR_CREATING_TRIGGER_OBJECT_3 = 90043;
     public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
     public static final int CONSTRAINT_ALREADY_EXISTS_1 = 90045;
+
+    /**
+     * The error with code <code>90046</code> is thrown when
+     * trying to open a connection to a database using an unsupported URL format.
+     * Please see the documentation on the supported URL format and examples.
+     * Example:
+     * <pre>
+     * jdbc:h2:;;
+     * </pre>
+     */
     public static final int URL_FORMAT_ERROR_2 = 90046;
+
+    /**
+     * The error with code <code>90047</code> is thrown when
+     * trying to connect to a TCP server with an incompatible client.
+     */
     public static final int DRIVER_VERSION_ERROR_2 = 90047;
     public static final int FILE_VERSION_ERROR_1 = 90048;
 
@@ -1025,7 +1194,6 @@ public class ErrorCode {
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";
         case COLUMN_NOT_FOUND_1: return "42S22";
-        case SETTING_NOT_FOUND_1: return "42S32";
 
         // 0A: feature not supported
 

@@ -469,376 +469,379 @@ PG Protocol Support Limitations
 @advanced_1156_p
 At this time, only a subset of the PostgreSQL network protocol is implemented. Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding. Problems are fixed as they are found. Currently, statements can not be cancelled when using the PG protocol.
 
-@advanced_1157_h3
+@advanced_1157_p
+PostgreSQL ODBC Driver Setup requires a database password, that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
+
+@advanced_1158_h3
 Security Considerations
 
-@advanced_1158_p
+@advanced_1159_p
 Currently, the PG Server does not support challenge response or encrypt passwords. This may be a problem if an attacker can listen to the data transferred between the ODBC driver and the server, because the password is readable to the attacker. Also, it is currently not possible to use encrypted SSL connections. Therefore the ODBC driver should not be used where security is important.
 
-@advanced_1159_h2
+@advanced_1160_h2
 ACID
 
-@advanced_1160_p
+@advanced_1161_p
 In the database world, ACID stands for:
 
-@advanced_1161_li
+@advanced_1162_li
 Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
 
-@advanced_1162_li
+@advanced_1163_li
 Consistency: All operations must comply with the defined constraints.
 
-@advanced_1163_li
+@advanced_1164_li
 Isolation: Transactions must be isolated from each other.
 
-@advanced_1164_li
+@advanced_1165_li
 Durability: Committed transaction will not be lost.
 
-@advanced_1165_h3
+@advanced_1166_h3
 Atomicity
 
-@advanced_1166_p
+@advanced_1167_p
 Transactions in this database are always atomic.
 
-@advanced_1167_h3
+@advanced_1168_h3
 Consistency
 
-@advanced_1168_p
+@advanced_1169_p
 This database is always in a consistent state. Referential integrity rules are always enforced.
 
-@advanced_1169_h3
+@advanced_1170_h3
 Isolation
 
-@advanced_1170_p
+@advanced_1171_p
 For H2, as with most other database systems, the default isolation level is 'read committed'. This provides better performance, but also means that transactions are not completely isolated. H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
 
-@advanced_1171_h3
+@advanced_1172_h3
 Durability
 
-@advanced_1172_p
+@advanced_1173_p
 This database does not guarantee that all committed transactions survive a power failure. Tests show that all databases sometimes lose transactions on power failure (for details, see below). Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. If durability is required for all possible cases of hardware failure, clustering should be used, such as the H2 clustering mode.
 
-@advanced_1173_h2
+@advanced_1174_h2
 Durability Problems
 
-@advanced_1174_p
+@advanced_1175_p
 Complete durability means all committed transaction survive a power failure. Some databases claim they can guarantee durability, but such claims are wrong. A durability test was run against H2, HSQLDB, PostgreSQL, and Derby. All of those databases sometimes lose committed transactions. The test is included in the H2 download, see org.h2.test.poweroff.Test.
 
-@advanced_1175_h3
+@advanced_1176_h3
 Ways to (Not) Achieve Durability
 
-@advanced_1176_p
+@advanced_1177_p
 Making sure that committed transaction are not lost is more complicated than it seems first. To guarantee complete durability, a database must ensure that the log record is on the hard drive before the commit call returns. To do that, databases use different methods. One is to use the 'synchronous write' file access mode. In Java, RandomAccessFile supports the modes "rws" and "rwd":
 
-@advanced_1177_li
+@advanced_1178_li
 rwd: Every update to the file's content is written synchronously to the underlying storage device.
 
-@advanced_1178_li
+@advanced_1179_li
 rws: In addition to rwd, every update to the metadata is written synchronously.
 
-@advanced_1179_p
+@advanced_1180_p
 This feature is used by Derby. A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second. Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second. This feature does not force changes to disk because it does not flush all buffers. The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM (revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
 
-@advanced_1180_p
+@advanced_1181_p
 Buffers can be flushed by calling the function fsync. There are two ways to do that in Java:
 
-@advanced_1181_li
+@advanced_1182_li
 FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device. Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor have been written to the physical medium.
 
-@advanced_1182_li
+@advanced_1183_li
 FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file to be written to the storage device that contains it.
 
-@advanced_1183_p
+@advanced_1184_p
 By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see 'Your Hard Drive Lies to You' at http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252. In Mac OS X fsync does not flush hard drive buffers: http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html. So the situation is confusing, and tests prove there is a problem.
 
-@advanced_1184_p
+@advanced_1185_p
 Trying to flush hard drive buffers hard, and if you do the performance is very bad. First you need to make sure that the hard drive actually flushes all buffers. Tests show that this can not be done in a reliable way. Then the maximum number of transactions is around 60 per second. Because of those reasons, the default behavior of H2 is to delay writing committed transactions.
 
-@advanced_1185_p
+@advanced_1186_p
 In H2, after a power failure, a bit more than one second of committed transactions may be lost. To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC. Most other databases support commit delay as well. In the performance comparison, commit delay was used for all databases that support it.
 
-@advanced_1186_h3
+@advanced_1187_h3
 Running the Durability Test
 
-@advanced_1187_p
+@advanced_1188_p
 To test the durability / non-durability of this and other databases, you can use the test application in the package org.h2.test.poweroff. Two computers with network connection are required to run this test. One computer just listens, while the test application is run (and power is cut) on the other computer. The computer with the listener application opens a TCP/IP port and listens for an incoming connection. The second computer first connects to the listener, and then created the databases and starts inserting records. The connection is set to 'autocommit', which means after each inserted record a commit is performed automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully. The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power manually, then restart the computer, and run the application again. You will find out that in most cases, none of the databases contains all the records that the listener computer knows about. For details, please consult the source code of the listener and test application.
 
-@advanced_1188_h2
+@advanced_1189_h2
 Using the Recover Tool
 
-@advanced_1189_p
+@advanced_1190_p
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted. At this time, it does not extract the content of the log file or large objects (CLOB or BLOB). To run the tool, type on the command line:
 
-@advanced_1190_p
+@advanced_1191_p
 For each database in the current directory, a text file will be created. This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate the schema of the database. This file cannot be executed directly, as the raw insert statements don't have the correct table names, so the file needs to be pre-processed manually before executing.
 
-@advanced_1191_h2
+@advanced_1192_h2
 File Locking Protocols
 
-@advanced_1192_p
+@advanced_1193_p
 Whenever a database is opened, a lock file is created to signal other processes that the database is in use. If database is closed, or if the process that opened the database terminates, this lock file is deleted.
 
-@advanced_1193_p
+@advanced_1194_p
 In special cases (if the process did not terminate normally, for example because there was a blackout), the lock file is not deleted by the process that created it. That means the existence of the lock file is not a safe protocol for file locking. However, this software uses a challenge-response protocol to protect the database files. There are two methods (algorithms) implemented to provide both security (that is, the same database files cannot be opened by two processes at the same time) and simplicity (that is, the lock file does not need to be deleted manually by the user). The two methods are 'file method' and 'socket methods'.
 
-@advanced_1194_h3
+@advanced_1195_h3
 File Locking Method 'File'
 
-@advanced_1195_p
+@advanced_1196_p
 The default method for database file locking is the 'File Method'. The algorithm is:
 
-@advanced_1196_li
+@advanced_1197_li
 When the lock file does not exist, it is created (using the atomic operation File.createNewFile). Then, the process waits a little bit (20ms) and checks the file again. If the file was changed during this time, the operation is aborted. This protects against a race condition when a process deletes the lock file just after one create it, and a third process creates the file again. It does not occur if there are only two writers.
 
-@advanced_1197_li
+@advanced_1198_li
 If the file can be created, a random number is inserted together with the locking method ('file'). Afterwards, a watchdog thread is started that checks regularly (every second once by default) if the file was deleted or modified by another (challenger) thread / process. Whenever that occurs, the file is overwritten with the old data. The watchdog thread runs with high priority so that a change to the lock file does not get through undetected even if the system is very busy. However, the watchdog thread does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk and does not write to it.
 
-@advanced_1198_li
+@advanced_1199_li
 If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times). If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent writers. Afterwards, the file is overwritten with a new version (challenge). After that, the thread waits for 2 seconds. If there is a watchdog thread protecting the file, he will overwrite the change and this process will fail to lock the database. However, if there is no watchdog thread, the lock file will still be as written by this thread. In this case, the file is deleted and atomically created again. The watchdog thread is started in this case and the file is locked.
 
-@advanced_1199_p
+@advanced_1200_p
 This algorithm is tested with over 100 concurrent threads. In some cases, when there are many concurrent threads trying to lock the database, they block each other (meaning the file cannot be locked by any of them) for some time. However, the file never gets locked by two threads at the same time. However using that many concurrent threads / processes is not the common use case. Generally, an application should throw an error to the user if it cannot open a database, and not try again in a (fast) loop.
 
-@advanced_1200_h3
+@advanced_1201_h3
 File Locking Method 'Socket'
 
-@advanced_1201_p
+@advanced_1202_p
 There is a second locking mechanism implemented, but disabled by default. The algorithm is:
 
-@advanced_1202_li
+@advanced_1203_li
 If the lock file does not exist, it is created. Then a server socket is opened on a defined port, and kept open. The port and IP address of the process that opened the database is written into the lock file.
 
-@advanced_1203_li
+@advanced_1204_li
 If the lock file exists, and the lock method is 'file', then the software switches to the 'file' method.
 
-@advanced_1204_li
+@advanced_1205_li
 If the lock file exists, and the lock method is 'socket', then the process checks if the port is in use. If the original process is still running, the port is in use and this process throws an exception (database is in use). If the original process died (for example due to a blackout, or abnormal termination of the virtual machine), then the port was released. The new process deletes the lock file and starts again.
 
-@advanced_1205_p
+@advanced_1206_p
 This method does not require a watchdog thread actively polling (reading) the same file every second. The problem with this method is, if the file is stored on a network share, two processes (running on different computers) could still open the same database files, if they do not have a direct TCP/IP connection.
 
-@advanced_1206_h2
+@advanced_1207_h2
 Protection against SQL Injection
 
-@advanced_1207_h3
+@advanced_1208_h3
 What is SQL Injection
 
-@advanced_1208_p
+@advanced_1209_p
 This database engine provides a solution for the security vulnerability known as 'SQL Injection'. Here is a short description of what SQL injection means. Some applications build SQL statements with embedded user input such as:
 
-@advanced_1209_p
+@advanced_1210_p
 If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded, it is possible for a user to inject SQL functionality or statements by using specially built input such as (in this example) this password: ' OR ''='. In this case the statement becomes:
 
-@advanced_1210_p
+@advanced_1211_p
 Which is always true no matter what the password stored in the database is. For more information about SQL Injection, see Glossary and Links.
 
-@advanced_1211_h3
+@advanced_1212_h3
 Disabling Literals
 
-@advanced_1212_p
+@advanced_1213_p
 SQL Injection is not possible if user input is not directly embedded in SQL statements. A simple solution for the problem above is to use a PreparedStatement:
 
-@advanced_1213_p
+@advanced_1214_p
 This database provides a way to enforce usage of parameters when passing user input to the database. This is done by disabling embedded literals in SQL statements. To do this, execute the statement:
 
-@advanced_1214_p
+@advanced_1215_p
 Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
 
-@advanced_1215_h3
+@advanced_1216_h3
 Using Constants
 
-@advanced_1216_p
+@advanced_1217_p
 Disabling literals also means disabling hard-coded 'constant' literals. This database supports defining constants using the CREATE CONSTANT command. Constants can be defined only when literals are enabled, but used even when literals are disabled. To avoid name clashes with column names, constants can be defined in other schemas:
 
-@advanced_1217_p
+@advanced_1218_p
 Even when literals are enabled, it is better to use constants instead of hard-coded number or text literals in queries or views. With constants, typos are found at compile time, the source code is easier to understand and change.
 
-@advanced_1218_h3
+@advanced_1219_h3
 Using the ZERO() Function
 
-@advanced_1219_p
+@advanced_1220_p
 It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
 
-@advanced_1220_h2
+@advanced_1221_h2
 Restricting Class Loading and Usage
 
-@advanced_1221_p
+@advanced_1222_p
 By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
 
-@advanced_1222_p
+@advanced_1223_p
 To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
 
-@advanced_1223_p
+@advanced_1224_p
 This mechanism is used for all user classes, including database event listeners, trigger classes, user defined functions, user defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
 
-@advanced_1224_h2
+@advanced_1225_h2
 Security Protocols
 
-@advanced_1225_p
+@advanced_1226_p
 The following paragraphs document the security protocols used in this database. These descriptions are very technical and only intended for security experts that already know the underlying security primitives.
 
-@advanced_1226_h3
+@advanced_1227_h3
 User Password Encryption
 
-@advanced_1227_p
+@advanced_1228_p
 When a user tries to connect to a database, the combination of user name, @, and password hashed using SHA-256, and this hash value is transmitted to the database. This step does not try to an attacker from re-using the value if he is able to listen to the (unencrypted) transmission between the client and the server. But, the passwords are never transmitted as plain text, even when using an unencrypted connection between client and server. That means if a user reuses the same password for different things, this password is still protected up to some point. See also 'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication' for more information.
 
-@advanced_1228_p
+@advanced_1229_p
 When a new database or user is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. Using the random salt reduces the risk of an attacker pre-calculating hash values for many different (commonly used) passwords.
 
-@advanced_1229_p
+@advanced_1230_p
 The combination of user-password hash value (see above) and salt is hashed using SHA-256. The resulting value is stored in the database. When a user tries to connect to the database, the database combines user-password hash value with the stored salt value and calculated the hash value. Other products use multiple iterations (hash the hash value again and again), but this is not done in this product to reduce the risk of denial of service attacks (where the attacker tries to connect with bogus passwords, and the server spends a lot of time calculating the hash value for each password). The reasoning is: if the attacker has access to the hashed passwords, he also has access to the data in plain text, and therefore does not need the password any more. If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
 
-@advanced_1230_h3
+@advanced_1231_h3
 File Encryption
 
-@advanced_1231_p
+@advanced_1232_p
 The database files can be encrypted using two different algorithms: AES-128 and XTEA (using 32 rounds). The reasons for supporting XTEA is performance (XTEA is about twice as fast as AES) and to have an alternative algorithm if AES is suddenly broken.
 
-@advanced_1232_p
+@advanced_1233_p
 When a user tries to connect to an encrypted database, the combination of the word 'file', @, and the file password is hashed using SHA-256. This hash value is transmitted to the server.
 
-@advanced_1233_p
+@advanced_1234_p
 When a new database file is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. The combination of the file password hash and the salt value is hashed 1024 times using SHA-256. The reason for the iteration is to make it harder for an attacker to calculate hash values for common passwords.
 
-@advanced_1234_p
+@advanced_1235_p
 The resulting hash value is used as the key for the block cipher algorithm (AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key is calculated by hashing the key again using SHA-256. This is to make sure the IV is unknown to the attacker. The reason for using a secret IV is to protect against watermark attacks.
 
-@advanced_1235_p
+@advanced_1236_p
 Before saving a block of data (each block is 8 bytes long), the following operations are executed: First, the IV is calculated by encrypting the block number with the IV key (using the same block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is encrypted using the AES-128 or XTEA algorithm.
 
-@advanced_1236_p
+@advanced_1237_p
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key, and then the IV is calculated combined with the decrypted text using XOR.
 
-@advanced_1237_p
+@advanced_1238_p
 Therefore, the block cipher modes of operation is CBC (Cipher-block chaining), but each chain is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits are not propagated to flipped plaintext bits in the next block.
 
-@advanced_1238_p
+@advanced_1239_p
 Database encryption is meant for securing the database while it is not in use (stolen laptop and so on). It is not meant for cases where the attacker has access to files while the database is in use. When he has write access, he can for example replace pieces of files with pieces of older versions and manipulate data like this.
 
-@advanced_1239_p
+@advanced_1240_p
 File encryption slows down the performance of the database engine. Compared to unencrypted mode, database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
 
-@advanced_1240_h3
+@advanced_1241_h3
 SSL/TLS Connections
 
-@advanced_1241_p
+@advanced_1242_p
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled. The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code> .
 
-@advanced_1242_h3
+@advanced_1243_h3
 HTTPS Connections
 
-@advanced_1243_p
+@advanced_1244_p
 The web server supports HTTP and HTTPS connections using SSLServerSocket. There is a default self-certified certificate to support an easy starting point, but custom certificates are supported as well.
 
-@advanced_1244_h2
+@advanced_1245_h2
 Universally Unique Identifiers (UUID)
 
-@advanced_1245_p
+@advanced_1246_p
 This database supports the UUIDs. Also supported is a function to create new UUIDs using a cryptographically strong pseudo random number generator. With random UUIDs, the chance of two having the same value can be calculated using the probability theory. See also 'Birthday Paradox'. Standardized randomly generated UUIDs have 122 random bits. 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz). This database supports generating such UUIDs using the built-in function RANDOM_UUID(). Here is a small program to estimate the probability of having two identical UUIDs after generating a number of values:
 
-@advanced_1246_p
+@advanced_1247_p
 Some values are:
 
-@advanced_1247_p
+@advanced_1248_p
 To help non-mathematicians understand what those numbers mean, here a comparison: One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, that means the probability is about 0.000'000'000'06.
 
-@advanced_1248_h2
+@advanced_1249_h2
 Settings Read from System Properties
 
-@advanced_1249_p
+@advanced_1250_p
 Some settings of the database can be set on the command line using -DpropertyName=value. It is usually not required to change those settings manually. The settings are case sensitive. Example:
 
-@advanced_1250_p
+@advanced_1251_p
 The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
 
-@advanced_1251_p
+@advanced_1252_p
 For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
 
-@advanced_1252_h2
+@advanced_1253_h2
 Setting the Server Bind Address
 
-@advanced_1253_p
+@advanced_1254_p
 Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
 
-@advanced_1254_h2
+@advanced_1255_h2
 Glossary and Links
 
-@advanced_1255_th
+@advanced_1256_th
 Term
 
-@advanced_1256_th
+@advanced_1257_th
 Description
 
-@advanced_1257_td
+@advanced_1258_td
 AES-128
 
-@advanced_1258_td
+@advanced_1259_td
 A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1259_td
+@advanced_1260_td
 Birthday Paradox
 
-@advanced_1260_td
+@advanced_1261_td
 Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1261_td
+@advanced_1262_td
 Digest
 
-@advanced_1262_td
+@advanced_1263_td
 Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1263_td
+@advanced_1264_td
 GCJ
 
-@advanced_1264_td
+@advanced_1265_td
 GNU Compiler for Java. <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1265_td
+@advanced_1266_td
 HTTPS
 
-@advanced_1266_td
+@advanced_1267_td
 A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1267_td
+@advanced_1268_td
 Modes of Operation
 
-@advanced_1268_a
+@advanced_1269_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1269_td
+@advanced_1270_td
 Salt
 
-@advanced_1270_td
+@advanced_1271_td
 Random number to increase the security of passwords.  See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1271_td
+@advanced_1272_td
 SHA-256
 
-@advanced_1272_td
+@advanced_1273_td
 A cryptographic one-way hash function.  See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1273_td
+@advanced_1274_td
 SQL Injection
 
-@advanced_1274_td
+@advanced_1275_td
 A security vulnerability where an application generates SQL statements with embedded user input.  See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1275_td
+@advanced_1276_td
 Watermark Attack
 
-@advanced_1276_td
+@advanced_1277_td
 Security problem of certain encryption programs where the existence of certain  data can be proven without decrypting.  For more information, search in the internet for 'watermark attack cryptoloop'
 
-@advanced_1277_td
+@advanced_1278_td
 SSL/TLS
 
-@advanced_1278_td
+@advanced_1279_td
 Secure Sockets Layer / Transport Layer Security.  See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1279_td
+@advanced_1280_td
 XTEA
 
-@advanced_1280_td
+@advanced_1281_td
 A block encryption algorithm.  See also: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -2603,7 +2606,7 @@ lumber-mill.co.jp, Japan
 Oliver Computing LLC, USA
 
 @history_1034_li
-Harpal Grover, USA
+Harpal Grover Consulting Inc., USA
 
 @installation_1000_h1
 Installation

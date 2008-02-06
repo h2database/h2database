@@ -1343,6 +1343,14 @@ public class Database implements DataHandler {
         }
     }
 
+    public void deleteLogFileLater(String fileName) throws SQLException {
+        if (writer == null) {
+            FileUtils.delete(fileName);
+        } else {
+            writer.deleteLater(fileName);
+        }
+    }
+
     public Class loadUserClass(String className) throws SQLException {
         try {
             return ClassUtils.loadUserClass(className);

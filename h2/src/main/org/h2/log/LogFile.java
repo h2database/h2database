@@ -390,7 +390,7 @@ public class LogFile {
                 file.close();
                 file = null;
                 if (delete) {
-                    FileUtils.delete(fileName);
+                    database.deleteLogFileLater(fileName);
                 }
             } catch (IOException e) {
                 if (closeException == null) {

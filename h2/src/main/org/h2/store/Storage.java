@@ -267,7 +267,8 @@ public class Storage {
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);
         if (file.isPageFree(page) && file.getPageOwner(page) == id) {
-            file.setPageOwner(page, -1);
+            int testing;
+//            file.setPageOwner(page, DiskFile.FREE_PAGE);
         }
     }
 

@@ -196,7 +196,9 @@ public class WriterThread extends Thread {
     }
 
     public void stopThread() {
-        delete(true);
+        int testing;
+        delete(false);
+
         stop = true;
     }
 

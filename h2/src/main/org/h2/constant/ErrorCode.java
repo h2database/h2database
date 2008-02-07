@@ -1089,6 +1089,8 @@ public class ErrorCode {
     public static final int CONSTANT_ALREADY_EXISTS_1 = 90114;
     public static final int CONSTANT_NOT_FOUND_1 = 90115;
     public static final int LITERALS_ARE_NOT_ALLOWED = 90116;
+
+    private int importantTodo;
     public static final int REMOTE_CONNECTION_NOT_ALLOWED = 90117;
 
     /**

@@ -143,6 +143,9 @@ public class TestServlet extends TestBase {
     };
 
     public void test() throws Exception {
+        if (config.networked) {
+            return;
+        }
         DbStarter listener = new DbStarter();
 
         TestServletContext context = new TestServletContext();

@@ -221,7 +221,7 @@ public class TestRecover {
             byte[] data = new byte[len];
             random.nextBytes(data);
             int op = random.nextInt();
-            if (op % 100 == 0) {
+            if (op % 1000 == 0) {
                 closeConnection(conn);
                 conn = openConnection();
                 prep = null;

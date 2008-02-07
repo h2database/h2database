@@ -44,11 +44,20 @@ import org.h2.util.ObjectArray;
  */
 public class DiskFile implements CacheWriter {
 
+    /**
+     * The size of a block in bytes.
+     * A block is the minimum row size.
+     */
     public static final int BLOCK_SIZE = 128;
-    // each page contains blocks from the same storage
+
+    /**
+     * The size of a page in blocks.
+     * Each page contains blocks from the same storage.
+     */
     static final int BLOCK_PAGE_PAGE_SHIFT = 6;
     public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
     public static final int OFFSET = FileStore.HEADER_LENGTH;
+    static final int FREE_PAGE = -1;
     // TODO storage: header should probably be 4 KB or so (to match block size of operating system)
     private Database database;
     private String fileName;
@@ -120,7 +129,7 @@ public class DiskFile implements CacheWriter {
         fileBlockCount = count;
         int pages = getPage(count);
         while (pages >= pageOwners.size()) {
-            pageOwners.add(-1);
+            pageOwners.add(FREE_PAGE);
         }
     }
 
@@ -139,8 +148,8 @@ public class DiskFile implements CacheWriter {
 
     private void freeUnusedPages() throws SQLException {
         for (int i = 0; i < pageOwners.size(); i++) {
-            if (pageOwners.get(i) != -1 && isPageFree(i)) {
-                setPageOwner(i, -1);
+            if (pageOwners.get(i) != FREE_PAGE && isPageFree(i)) {
+                setPageOwner(i, FREE_PAGE);
             }
         }
     }
@@ -309,7 +318,7 @@ public class DiskFile implements CacheWriter {
                     throw Message.getInternalError();
                 }
                 if (blockCount == 0) {
-                    setUnused(i, 1);
+                    setUnused(null, i, 1);
                     i++;
                 } else {
                     int id = s.readInt();
@@ -317,8 +326,8 @@ public class DiskFile implements CacheWriter {
                         throw Message.getInternalError();
                     }
                     Storage storage = database.getStorage(id, this);
-                    setUnused(i, blockCount);
-                    setBlockOwner(storage, i, blockCount, true);
+                    setUnused(null, i, blockCount);
+                    setBlockOwner(null, storage, i, blockCount, true);
                     storage.incrementRecordCount();
                     i += blockCount;
                 }
@@ -492,7 +501,7 @@ public class DiskFile implements CacheWriter {
             for (int i = 0; i < lastPage; i++) {
                 found = true;
                 for (int j = i; j < i + pageCount; j++) {
-                    if (j >= lastPage || getPageOwner(j) != -1) {
+                    if (j >= lastPage || getPageOwner(j) != FREE_PAGE) {
                         found = false;
                         break;
                     }
@@ -519,7 +528,7 @@ public class DiskFile implements CacheWriter {
                     }
                 }
             }
-            setBlockOwner(storage, pos, blockCount, false);
+            setBlockOwner(null, storage, pos, blockCount, false);
             for (int i = 0; i < blockCount; i++) {
                 storage.free(i + pos, 1);
             }
@@ -527,12 +536,12 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    private void setBlockOwner(Storage storage, int pos, int blockCount, boolean inUse) throws SQLException {
+    private void setBlockOwner(Session session, Storage storage, int pos, int blockCount, boolean inUse) throws SQLException {
         if (pos + blockCount > fileBlockCount) {
             setBlockCount(pos + blockCount);
         }
         if (!inUse) {
-            setUnused(pos, blockCount);
+            setUnused(session, pos, blockCount);
         }
         for (int i = getPage(pos); i <= getPage(pos + blockCount - 1); i++) {
             setPageOwner(i, storage.getId());
@@ -543,7 +552,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    private void setUnused(int pos, int blockCount) throws SQLException {
+    private void setUnused(Session session, int pos, int blockCount) throws SQLException {
         if (pos + blockCount > fileBlockCount) {
             setBlockCount(pos + blockCount);
         }
@@ -551,7 +560,10 @@ public class DiskFile implements CacheWriter {
             used.clear(i);
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
                 // if this is the first page of a block and if the whole page is free
-                setPageOwner(getPage(i), -1);
+
+int test;
+//                setPageOwner(getPage(i), FREE_PAGE);
+
             }
         }
     }
@@ -562,7 +574,7 @@ public class DiskFile implements CacheWriter {
 
     int getPageOwner(int page) {
         if (page * BLOCKS_PER_PAGE > fileBlockCount || page >= pageOwners.size()) {
-            return -1;
+            return FREE_PAGE;
         }
         return pageOwners.get(page);
     }
@@ -575,7 +587,11 @@ public class DiskFile implements CacheWriter {
         if (SysProperties.CHECK && old >= 0 && storageId >= 0 && old != storageId) {
             for (int i = 0; i < BLOCKS_PER_PAGE; i++) {
                 if (used.get(i + page * BLOCKS_PER_PAGE)) {
-                    throw Message.getInternalError("double allocation");
+                    throw Message.getInternalError(
+                            "double allocation in file " + fileName +
+                            " page " + page +
+                            " blocks " + (BLOCKS_PER_PAGE * page) +
+                            "-" + (BLOCKS_PER_PAGE * (page + 1) - 1));
                 }
             }
         }
@@ -697,7 +713,7 @@ public class DiskFile implements CacheWriter {
         synchronized (database) {
             go(pos);
             file.write(data, offset, BLOCK_SIZE);
-            setBlockOwner(storage, pos, 1, true);
+            setBlockOwner(null, storage, pos, 1, true);
         }
     }
 
@@ -757,7 +773,7 @@ public class DiskFile implements CacheWriter {
             }
             cache.remove(pos);
             deleted.setRange(pos, blockCount, true);
-            setUnused(pos, blockCount);
+            setUnused(session, pos, blockCount);
         }
     }
 
@@ -814,7 +830,7 @@ public class DiskFile implements CacheWriter {
                     }
                 }
                 deleted.setRange(page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE, true);
-                setUnused(page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
+                setUnused(session, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
             }
         }
     }

@@ -4,9 +4,12 @@
  */
 package org.h2.test;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.Driver;
 import org.h2.server.TcpServer;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
@@ -95,6 +98,7 @@ import org.h2.test.unit.TestMultiThreadedKernel;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestReader;
+import org.h2.test.unit.TestRecovery;
 import org.h2.test.unit.TestSampleApps;
 import org.h2.test.unit.TestScriptReader;
 import org.h2.test.unit.TestSecurity;
@@ -106,6 +110,8 @@ import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
+import org.h2.tools.Restore;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 
@@ -149,18 +155,45 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
 
-
 //        TestRecover.main(new String[0]);
-
+//DeleteDbFiles.execute("/temp/db", null, true);
+//Restore.execute("/temp/db/db.zip", "/temp/db", null, true);
+//Recover.execute("/temp/db", null);
+//Driver.load();
+//Connection conn = DriverManager.getConnection("jdbc:h2:/temp/db/crashApi423910006", "sa", "");
+//conn.close();
 /*
+
+out of memory tests
+
+old storage: 149
+new storage: 143
+block 452
+page of blocks 448-511
+conn1:
+1) delete from test
+conn2:
+2) truncate test
+3) commit
+conn3:
+4) insert into bla
+5) commit
 
 Automate real power off tests
 Extend tests that simulate power off
 timer test
 
+Currently, only the web based Console reads this file. What you need to do is, when starting the TCP server, you need to start it using -tcpAllowOthers true:
+java org.h2.tools.Server -tcp -tcpAllowOthers true
+
 java org.h2.tool.Server -baseDir C:\temp\test
 web console: jdbc:h2:~/test
 C:\temp\test\~
+
+PreparedStatement prep =
+conn.prepareStatement("ALTER TABLE tbltageseingabe ALTER COLUMN lfdnr RESTART WITH  ?";
+
+check ValueByte memory usage
 
 C:\temp\crash_db
 - try delayed log file delete
@@ -194,6 +227,7 @@ Roadmap:
 
 
 History:
+Recovery could fail when using the transaction isolation level read uncommitted and truncate table.
 Old log files are now deleted a bit after a new log file is created. This helps recovery.
 The DbStarter servlet didn't start the TCP listener even if configured.
 Statement.setQueryTimeout() is now supported. New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
@@ -495,6 +529,7 @@ It was not possible to create a referential constraint to a table in a different
         new TestOverflow().runTest(this);
         new TestPattern().runTest(this);
         new TestReader().runTest(this);
+        new TestRecovery().runTest(this);
         new TestSampleApps().runTest(this);
         new TestScriptReader().runTest(this);
         runTest("org.h2.test.unit.TestServlet");

@@ -32,46 +32,58 @@ public class TestIndex extends TestBase {
     }
 
     public void test() throws Exception {
-        testDescIndex();
-
+        int teting;
+//        testDescIndex();
+//
         if (config.networked && config.big) {
             return;
         }
 
-        random.setSeed(100);
+        int teting2;
+//
+//        random.setSeed(100);
+//
+//        deleteDb("index");
+//        testWideIndex(147);
+//        testWideIndex(313);
+//        testWideIndex(979);
+//        testWideIndex(1200);
+//        testWideIndex(2400);
+//        if (config.big && config.logMode == 2) {
+//            for (int i = 0; i < 2000; i++) {
+//                if ((i % 100) == 0) {
+//                    System.out.println("width: " + i);
+//                }
+//                testWideIndex(i);
+//            }
+//        }
+//
+//        testLike();
+//        reconnect();
+//        testConstraint();
+//        testLargeIndex();
+//        testMultiColumnIndex();
+//        // long time;
+//        // time = System.currentTimeMillis();
+//        testHashIndex(true, false);
 
-        deleteDb("index");
-        testWideIndex(147);
-        testWideIndex(313);
-        testWideIndex(979);
-        testWideIndex(1200);
-        testWideIndex(2400);
-        if (config.big && config.logMode == 2) {
-            for (int i = 0; i < 2000; i++) {
-                if ((i % 100) == 0) {
-                    System.out.println("width: " + i);
-                }
-                testWideIndex(i);
-            }
-        }
+System.setProperty("h2.logDeleteDelay", "999999999");
+int testx;
+if(config.logMode != 2) {
+    return;
+}
 
-        testLike();
-        reconnect();
-        testConstraint();
-        testLargeIndex();
-        testMultiColumnIndex();
-        // long time;
-        // time = System.currentTimeMillis();
-        testHashIndex(true, false);
         testHashIndex(false, false);
-        // System.out.println("btree="+(System.currentTimeMillis()-time));
-        // time = System.currentTimeMillis();
+//        // System.out.println("btree="+(System.currentTimeMillis()-time));
+//        // time = System.currentTimeMillis();
         testHashIndex(true, true);
         testHashIndex(false, true);
         // System.out.println("hash="+(System.currentTimeMillis()-time));
-        testMultiColumnHashIndex();
 
-        conn.close();
+        int te3;
+//        testMultiColumnHashIndex();
+//
+//        conn.close();
     }
 
     void testDescIndex() throws Exception {
@@ -217,6 +229,8 @@ public class TestIndex extends TestBase {
             check(1, prep.executeUpdate());
         }
         check(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        conn.close();
+        conn = null;
     }
 
     void testMultiColumnIndex() throws Exception {

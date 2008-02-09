@@ -146,6 +146,10 @@ public abstract class TestBase {
     }
 
     private Connection getConnectionInternal(String url, String user, String password) throws Exception {
+int test;
+//System.out.println();
+//System.out.println("connect to " + url);
+
         Class.forName("org.h2.Driver");
         // url += ";DEFAULT_TABLE_TYPE=1";
         // Class.forName("org.hsqldb.jdbcDriver");

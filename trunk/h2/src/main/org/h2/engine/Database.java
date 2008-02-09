@@ -51,6 +51,7 @@ import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.CacheLRU;
 import org.h2.util.ClassUtils;
+import org.h2.util.DelayedFileDeleter;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
@@ -1344,11 +1345,7 @@ public class Database implements DataHandler {
     }
 
     public void deleteLogFileLater(String fileName) throws SQLException {
-        if (writer == null) {
-            FileUtils.delete(fileName);
-        } else {
-            writer.deleteLater(fileName);
-        }
+        DelayedFileDeleter.getInstance().deleteLater(fileName);
     }
 
     public Class loadUserClass(String className) throws SQLException {

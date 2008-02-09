@@ -6,9 +6,6 @@ package org.h2.store;
 
 import java.lang.ref.WeakReference;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -19,10 +16,7 @@ import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.table.Table;
-import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
-import org.h2.util.TempFileDeleter;
 
 /**
  * The writer thread is responsible to flush the transaction log file from time to time.
@@ -44,55 +38,6 @@ public class WriterThread extends Thread {
     private int writeDelay;
     private long lastIndexFlush;
     private volatile boolean stop;
-    private HashMap deleteLater = new HashMap();
-    private volatile long deleteNext;
-
-    public void deleteLater(String fileName) {
-        long at = System.currentTimeMillis() + SysProperties.getLogFileDeleteDelay();
-        if (at < deleteNext || deleteNext == 0) {
-            deleteNext = at;
-        }
-        synchronized (deleteLater) {
-            deleteLater.put(fileName, ObjectUtils.getLong(at));
-        }
-    }
-
-    private void delete(boolean now) {
-        if (!now && (deleteNext == 0 || System.currentTimeMillis() < deleteNext)) {
-            return;
-        }
-        long time = System.currentTimeMillis();
-        ObjectArray delete = new ObjectArray();
-        synchronized (deleteLater) {
-            deleteNext = 0;
-            for (Iterator it = deleteLater.entrySet().iterator(); it.hasNext();) {
-                Entry entry = (Entry) it.next();
-                long at = ((Long) entry.getValue()).longValue();
-                if (now || time >= at) {
-                    String fileName = (String) entry.getKey();
-                    delete.add(fileName);
-                } else {
-                    if (at < deleteNext || deleteNext == 0) {
-                        deleteNext = at;
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < delete.size(); i++) {
-            String fileName = (String) delete.get(i);
-            try {
-                FileUtils.delete(fileName);
-                synchronized (deleteLater) {
-                    deleteLater.remove(fileName);
-                }
-            } catch (SQLException e) {
-                Database database = (Database) databaseRef.get();
-                if (database != null) {
-                    database.getTrace(Trace.DATABASE).error("delete " + fileName, e);
-                }
-            }
-        }
-    }
 
     private WriterThread(Database database, int writeDelay) {
         this.databaseRef = new WeakReference(database);
@@ -161,8 +106,6 @@ public class WriterThread extends Thread {
 
     public void run() {
         while (!stop) {
-            delete(false);
-            TempFileDeleter.deleteUnused();
             Database database = (Database) databaseRef.get();
             if (database == null) {
                 break;
@@ -196,9 +139,6 @@ public class WriterThread extends Thread {
     }
 
     public void stopThread() {
-        int testing;
-        delete(false);
-
         stop = true;
     }
 

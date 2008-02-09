@@ -312,6 +312,8 @@ public class LogFile {
     }
 
     public void redoAllGoEnd() throws SQLException {
+int test;
+//System.out.println("redo log " + fileName);
         boolean readOnly = logSystem.getDatabase().getReadOnly();
         long length = file.length();
         if (length <= FileStore.HEADER_LENGTH) {

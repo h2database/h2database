@@ -395,6 +395,8 @@ private int test;
      * INTERNAL
      */
     public static int getLogFileDeleteDelay() {
-        return getIntSetting(H2_LOG_DELETE_DELAY, 2000);
+        int test;
+        return getIntSetting(H2_LOG_DELETE_DELAY, 0);
+//      return getIntSetting(H2_LOG_DELETE_DELAY, 2000);
     }
 }

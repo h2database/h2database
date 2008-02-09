@@ -213,6 +213,10 @@ public class DiskFile implements CacheWriter {
     }
 
     public void initFromSummary(byte[] summary) {
+
+int test;
+//System.out.println("init from summary: " + this);
+
         synchronized (database) {
             if (summary == null || summary.length == 0) {
                 ObjectArray list = database.getAllStorages();

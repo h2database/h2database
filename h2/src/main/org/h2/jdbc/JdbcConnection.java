@@ -34,7 +34,6 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.ClassUtils;
 import org.h2.util.JdbcConnectionListener;
-import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
@@ -214,7 +213,6 @@ public class JdbcConnection extends TraceObject implements Connection {
      * rolled back.
      */
     public void close() throws SQLException {
-        TempFileDeleter.deleteUnused();
         synchronized (this) {
             if (listener == null) {
                 closeConnection();

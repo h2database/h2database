@@ -179,6 +179,8 @@ conn3:
 4) insert into bla
 5) commit
 
+after init, scan all storages and return those that don't belong to a live database object!!
+
 Automate real power off tests
 Extend tests that simulate power off
 timer test

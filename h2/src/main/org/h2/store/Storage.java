@@ -201,7 +201,9 @@ public class Storage {
 
     public void delete(Session session) throws SQLException {
         truncate(session);
-        database.removeStorage(id, file);
+
+        int test;
+//        database.removeStorage(id, file);
     }
 
     //    private int allocateBest(int start, int blocks) {

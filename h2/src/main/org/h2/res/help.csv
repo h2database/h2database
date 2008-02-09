@@ -112,11 +112,13 @@ Creates a SQL script with or without the insert statements.
 The simple format does not use multi-row insert statements.
 If no file name is specified, the script is returned as a result set.
 This command can be used to create a backup of the database.
+For long term storage, it is more portable than file based backup.
 If the DROP option is specified, drop statements are created for tables, views, and sequences.
 If the block size is set, CLOB and BLOB values larger than this size are split into separate blocks.
 If a file name is specified, then the whole script (including insert statements) is written to this file,
 and a result set without the insert statements is returned.
 When using encryption, only DEFLATE and LZF are supported.
+This command locks objects while it is running.
 The password must be in single quotes. It is case sensitive and can contain spaces.
 ","
 SCRIPT NODATA

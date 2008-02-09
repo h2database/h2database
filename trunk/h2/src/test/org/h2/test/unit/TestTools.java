@@ -15,8 +15,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.engine.Constants;
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
 import org.h2.tools.Backup;
@@ -28,6 +31,7 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
+import org.h2.util.FileUtils;
 import org.h2.util.Resources;
 
 /**
@@ -201,6 +205,13 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
+        ArrayList list = FileLister.getDatabaseFiles(baseDir, "toolsRemove", true);
+        for (int i = 0; i < list.size(); i++) {
+            String fileName = (String) list.get(i);
+            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
+                FileUtils.delete(fileName);
+            }
+        }
         Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword", "-log", "false"});
         conn = DriverManager.getConnection(url, "sa", "");
         stat = conn.createStatement();

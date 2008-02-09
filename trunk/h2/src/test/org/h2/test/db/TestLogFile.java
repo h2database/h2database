@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
@@ -42,17 +43,23 @@ public class TestLogFile extends TestBase {
             return;
         }
         deleteDb("logfile");
-        reconnect(0);
-        insert();
-        int maxFiles = 3; // data, index, log
-        for (int i = 0; i < 3; i++) {
-            long length = reconnect(maxFiles);
+        int old = SysProperties.getLogFileDeleteDelay();
+        System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "0");
+        try {
+            reconnect(0);
             insert();
-            long l2 = reconnect(maxFiles);
-            trace("l2=" + l2);
-            check(l2 <= length * 2);
+            int maxFiles = 3; // data, index, log
+            for (int i = 0; i < 3; i++) {
+                long length = reconnect(maxFiles);
+                insert();
+                long l2 = reconnect(maxFiles);
+                trace("l2=" + l2);
+                check(l2 <= length * 2);
+            }
+            conn.close();
+        } finally {
+            System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "" + old);
         }
-        conn.close();
     }
 
     private void checkLogSize() throws Exception {

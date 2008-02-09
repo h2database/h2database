@@ -213,10 +213,6 @@ public class DiskFile implements CacheWriter {
     }
 
     public void initFromSummary(byte[] summary) {
-
-int test;
-//System.out.println("init from summary: " + this);
-
         synchronized (database) {
             if (summary == null || summary.length == 0) {
                 ObjectArray list = database.getAllStorages();
@@ -231,7 +227,7 @@ int test;
                 init = false;
                 return;
             }
-            if (database.getRecovery() || initAlreadyTried) {
+            if (database.getRecovery() || (initAlreadyTried && (!dataFile || !SysProperties.CHECK))) {
                 return;
             }
             initAlreadyTried = true;
@@ -248,11 +244,18 @@ int test;
                 stage++;
                 for (int i = 0, x = 0; i < b2 / 8; i++) {
                     int mask = in.read();
-                    for (int j = 0; j < 8; j++) {
-                        if ((mask & (1 << j)) != 0) {
-                            used.set(x);
+                    if (init) {
+                        for (int j = 0; j < 8; j++, x++) {
+                            if (used.get(x) != ((mask & (1 << j)) != 0)) {
+                                throw Message.getInternalError("Redo failure, block: " + x + " expected in-use bit: " + used.get(x));
+                            }
                         }
-                        x++;
+                    } else {
+                        for (int j = 0; j < 8; j++, x++) {
+                            if ((mask & (1 << j)) != 0) {
+                                used.set(x);
+                            }
+                        }
                     }
                 }
                 stage++;
@@ -260,15 +263,22 @@ int test;
                 ObjectArray storages = new ObjectArray();
                 for (int i = 0; i < len; i++) {
                     int s = in.readInt();
-                    if (s >= 0) {
-                        Storage storage = database.getStorage(s, this);
-                        while (storages.size() <= s) {
-                            storages.add(null);
+                    if (init) {
+                        int old = getPageOwner(i);
+                        if (old != -1 && old != s) {
+                            throw Message.getInternalError("Redo failure, expected page owner: " + old + " got: " + s);
                         }
-                        storages.set(s, storage);
-                        storage.addPage(i);
+                    } else {
+                        if (s >= 0) {
+                            Storage storage = database.getStorage(s, this);
+                            while (storages.size() <= s) {
+                                storages.add(null);
+                            }
+                            storages.set(s, storage);
+                            storage.addPage(i);
+                        }
+                        setPageOwner(i, s);
                     }
-                    setPageOwner(i, s);
                 }
                 stage++;
                 while (true) {
@@ -278,7 +288,14 @@ int test;
                     }
                     int recordCount = in.readInt();
                     Storage storage = (Storage) storages.get(s);
-                    storage.setRecordCount(recordCount);
+                    if (init) {
+                        int current = storage.getRecordCount();
+                        if (current != recordCount) {
+                            throw Message.getInternalError("Redo failure, expected row count: " + current + " got: " + recordCount);
+                        }
+                    } else {
+                        storage.setRecordCount(recordCount);
+                    }
                 }
                 stage++;
                 freeUnusedPages();
@@ -565,7 +582,7 @@ int test;
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
                 // if this is the first page of a block and if the whole page is free
 
-int test;
+int disabledCurrently;
 //                setPageOwner(getPage(i), FREE_PAGE);
 
             }

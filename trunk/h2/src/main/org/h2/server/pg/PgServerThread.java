@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -76,6 +77,8 @@ public class PgServerThread implements Runnable {
                 process();
                 out.flush();
             }
+        } catch (EOFException e) {
+            // more or less normal disconnect
         } catch (Exception e) {
             error("process", e);
             server.logError(e);

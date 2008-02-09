@@ -474,7 +474,6 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
-        // TODO storage: antivir scans .script files, maybe other scanners scan .db files?
         ObjectArray cols = new ObjectArray();
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);

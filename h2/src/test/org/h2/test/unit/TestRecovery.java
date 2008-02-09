@@ -10,7 +10,6 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.Recover;
 
 /**
  * Tests database recovery.
@@ -34,7 +33,7 @@ public class TestRecovery extends TestBase {
         // overwrite the data of test
         stat1.execute("insert into abc select * from system_range(1, 100)");
         stat1.execute("shutdown immediately");
-        Recover.execute("data", null);
+        // Recover.execute("data", null);
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.close();
     }

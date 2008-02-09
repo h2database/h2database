@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
@@ -70,15 +71,32 @@ public class TestReadOnly extends TestBase {
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
+        stat.execute("SET DB_CLOSE_DELAY=0");
         conn.close();
     }
 
     private void setReadOnly() throws SQLException {
+        String lastLogFile = null;
         ArrayList list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
         for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
             File file = new File(fileName);
             file.setReadOnly();
+            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
+                if (lastLogFile == null || lastLogFile.compareTo(fileName) < 0) {
+                    lastLogFile = fileName;
+                }
+            }
+        }
+        // delete all log files except the last one
+        for (int i = 0; i < list.size(); i++) {
+            String fileName = (String) list.get(i);
+            if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
+                if (!lastLogFile.equals(fileName)) {
+                    File file = new File(fileName);
+                    file.delete();
+                }
+            }
         }
     }
 

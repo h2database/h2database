@@ -192,6 +192,13 @@ public class LogFile {
         return s;
     }
 
+    /**
+     * Redo or undo one item in the log file.
+     *
+     * @param undo true if the operation should be undone
+     * @param readOnly if the file is read only
+     * @return true if there are potentially more operations
+     */
     private boolean redoOrUndo(boolean undo, boolean readOnly) throws SQLException {
         int pos = getBlock();
         DataPage in = readPage();
@@ -199,8 +206,7 @@ public class LogFile {
         if (blocks < 0) {
             return true;
         } else if (blocks == 0) {
-            go(pos);
-            file.setLength((long) pos * BLOCK_SIZE);
+            truncate(pos);
             return false;
         }
         char type = (char) in.readByte();
@@ -312,8 +318,6 @@ public class LogFile {
     }
 
     public void redoAllGoEnd() throws SQLException {
-int test;
-//System.out.println("redo log " + fileName);
         boolean readOnly = logSystem.getDatabase().getReadOnly();
         long length = file.length();
         if (length <= FileStore.HEADER_LENGTH) {
@@ -335,7 +339,7 @@ int test;
             database.setProgress(DatabaseEventListener.STATE_RECOVER, fileName, max, max);
         } catch (SQLException e) {
             database.getTrace(Trace.LOG).debug("Stop reading log file: " + e.getMessage(), e);
-            // wrong checksum is ok (at the end of the log file)
+            // wrong checksum (at the end of the log file)
         } catch (OutOfMemoryError e) {
             // OutOfMemoryError means not enough memory is allocated to the VM.
             // this is not necessarily at the end of the log file
@@ -473,6 +477,11 @@ int test;
         file.seek(FileStore.HEADER_LENGTH);
         DataPage buff = getHeader();
         file.write(buff.getBytes(), 0, buff.length());
+    }
+
+    void truncate(int pos) throws SQLException {
+        go(pos);
+        file.setLength((long) pos * BLOCK_SIZE);
     }
 
     private DataPage getHeader() {

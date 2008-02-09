@@ -35,6 +35,9 @@ public class DelayedFileDeleter extends Thread {
             FileUtils.delete(fileName);
             return;
         }
+        if (deleteLater.containsKey(fileName)) {
+            return;
+        }
         long at = System.currentTimeMillis() + delay;
         if (deleteNext != 0 && at <= deleteNext) {
             // make sure files are deleted in the correct order
@@ -75,8 +78,6 @@ public class DelayedFileDeleter extends Thread {
 
     public static synchronized DelayedFileDeleter getInstance() {
         if (instance == null) {
-int test;
-//System.out.println("DelayerFileDeleter.getInstance()");
             instance = new DelayedFileDeleter();
             instance.setDaemon(true);
             instance.setPriority(Thread.MIN_PRIORITY);
@@ -106,8 +107,6 @@ int test;
                 }
             }
         }
-int test;
-//System.out.println("DelayerFileDeleter.stop()");
     }
 
     /**

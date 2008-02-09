@@ -34,10 +34,9 @@ public class TestLob extends TestBase {
         if (config.memory) {
             return;
         }
-        int test;
-//        testLobVariable();
-//        testLobDrop();
-//        testLobNoClose();
+        testLobVariable();
+        testLobDrop();
+        testLobNoClose();
         testLobTransactions(10);
         testLobTransactions(10000);
         testLobRollbackStop();

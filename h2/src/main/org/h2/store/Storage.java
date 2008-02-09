@@ -202,7 +202,7 @@ public class Storage {
     public void delete(Session session) throws SQLException {
         truncate(session);
 
-        int test;
+        int disabledCurrently;
 //        database.removeStorage(id, file);
     }
 
@@ -269,7 +269,7 @@ public class Storage {
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);
         if (file.isPageFree(page) && file.getPageOwner(page) == id) {
-            int testing;
+            int disabledCurrently;
 //            file.setPageOwner(page, DiskFile.FREE_PAGE);
         }
     }

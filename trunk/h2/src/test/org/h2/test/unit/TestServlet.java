@@ -143,7 +143,7 @@ public class TestServlet extends TestBase {
     };
 
     public void test() throws Exception {
-        if (config.networked) {
+        if (config.networked || config.memory) {
             return;
         }
         DbStarter listener = new DbStarter();

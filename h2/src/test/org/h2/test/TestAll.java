@@ -445,8 +445,8 @@ It was not possible to create a referential constraint to a table in a different
         new TestListener().runTest(this);
         new TestLob().runTest(this);
 
-//        // size problem!
-//        new TestLogFile().runTest(this);
+////        // size problem!
+////        new TestLogFile().runTest(this);
 
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
@@ -545,6 +545,9 @@ It was not possible to create a referential constraint to a table in a different
             TestBase test = (TestBase) clazz.newInstance();
             test.runTest(this);
         } catch (Exception e) {
+            // ignore
+            TestBase.logError("Class not found: " + className, null);
+        } catch (NoClassDefFoundError e) {
             // ignore
             TestBase.logError("Class not found: " + className, null);
         }

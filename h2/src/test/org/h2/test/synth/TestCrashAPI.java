@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
@@ -70,7 +71,9 @@ public class TestCrashAPI extends TestBase {
 
 //         int testing;
         // add = ";STORAGE=TEXT";
-//        if (openCount >= 33) {
+//        if(openCount >= 32) {
+//            int test;
+//            Runtime.getRuntime().halt(0);
 //            System.exit(1);
 //        }
         // add = ";LOG=2";
@@ -80,6 +83,11 @@ public class TestCrashAPI extends TestBase {
         // }
 
         String url = getURL(DIR + "/crashApi" + seed, true) + add;
+        
+//        int test;
+//        url += ";DB_CLOSE_ON_EXIT=FALSE";
+//      int test;
+//      url += ";TRACE_LEVEL_FILE=3";
 
         Connection conn = null;
         // System.gc();
@@ -114,7 +122,7 @@ public class TestCrashAPI extends TestBase {
 
             String sql = (String) statements.get(i);
             try {
-//                if(openCount == 32 && i == 1219) {
+//                if(openCount == 32) {
 //                    int test;
 //                    System.out.println("stop!");
 //                }
@@ -257,17 +265,16 @@ public class TestCrashAPI extends TestBase {
             // do nothing
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;
-            String state = s.getSQLState();
-            if (state == null) {
+            int errorCode = s.getErrorCode();
+            if (errorCode == 0) {
                 printError(seed, id, s);
-            } else if (state.equals("90008")) {
+            } else if (errorCode == ErrorCode.OBJECT_CLOSED) {
                 if (objectId >= 0) {
-                    // The object is already closed [90008]
                     // TODO at least call a few more times after close - maybe
                     // there is still an error
                     objects.remove(objectId);
                 }
-            } else if (state.equals("HY000")) {
+            } else if (errorCode == ErrorCode.GENERAL_ERROR_1) {
                 // General error [HY000]
                 printError(seed, id, s);
             }

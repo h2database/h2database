@@ -38,7 +38,6 @@ public class TestIndex extends TestBase {
             return;
         }
 
-
         random.setSeed(100);
 
         deleteDb("index");
@@ -220,8 +219,6 @@ public class TestIndex extends TestBase {
             check(1, prep.executeUpdate());
         }
         check(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
-        conn.close();
-        conn = null;
     }
 
     void testMultiColumnIndex() throws Exception {

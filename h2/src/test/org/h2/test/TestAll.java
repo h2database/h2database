@@ -445,8 +445,8 @@ It was not possible to create a referential constraint to a table in a different
         new TestListener().runTest(this);
         new TestLob().runTest(this);
 
-////        // size problem!
-////        new TestLogFile().runTest(this);
+//        // size problem!
+//        new TestLogFile().runTest(this);
 
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);

@@ -149,6 +149,9 @@ java org.h2.test.TestAll timer
         test.printSystem();
 /*
 
+fragekatalog ergänzen: mehrere connections
+alle corrupt fehler ein neuer fehlercode, hilfeseite
+
 out of memory tests
 
 old storage: 149
@@ -462,7 +465,7 @@ It was not possible to create a referential constraint to a table in a different
         new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
 
-        // should fail
+//        // should fail
 //        new TestSpaceReuse().runTest(this);
 
         new TestSpeed().runTest(this);

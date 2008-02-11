@@ -207,7 +207,7 @@ public class DataType {
         add(Value.BLOB, Types.BLOB, "Bytes",
                 createString(false),
                 new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE", "OID"},
-                8
+                10
         );
         add(Value.CLOB, Types.CLOB, "String",
                 createString(true),

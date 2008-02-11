@@ -173,6 +173,16 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         rowCount++;
     }
 
+    SearchRow getSearchRow(Row row) {
+        SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
+        r.setPos(row.getPos());
+        for (int j = 0; j < columns.length; j++) {
+            int idx = columns[j].getColumnId();
+            r.setValue(idx, row.getValue(idx));
+        }
+        return r;
+    }
+
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
         if (rowCount == 1) {

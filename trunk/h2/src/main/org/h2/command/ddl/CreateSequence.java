@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -21,9 +22,9 @@ public class CreateSequence extends SchemaCommand {
 
     private String sequenceName;
     private boolean ifNotExists;
-    private long start = 1;
-    private long increment = 1;
-    private long cacheSize = Sequence.DEFAULT_CACHE_SIZE;
+    private Expression start;
+    private Expression increment;
+    private Expression cacheSize;
     private boolean belongsToTable;
 
     public CreateSequence(Session session, Schema schema) {
@@ -49,18 +50,26 @@ public class CreateSequence extends SchemaCommand {
         }
         int id = getObjectId(false, true);
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);
-        sequence.setStartValue(start);
-        sequence.setIncrement(increment);
-        sequence.setCacheSize(cacheSize);
+        sequence.setStartValue(getLong(start, 1));
+        sequence.setIncrement(getLong(increment, 1));
+        sequence.setCacheSize(getLong(cacheSize, Sequence.DEFAULT_CACHE_SIZE));
         db.addSchemaObject(session, sequence);
         return 0;
     }
 
-    public void setStartWith(long start) {
+    private long getLong(Expression expr, long defaultValue) throws SQLException {
+        if (expr == null) {
+            return defaultValue;
+        } else {
+            return expr.optimize(session).getValue(session).getLong();
+        }
+    }
+
+    public void setStartWith(Expression start) {
         this.start = start;
     }
 
-    public void setIncrement(long increment) {
+    public void setIncrement(Expression increment) {
         this.increment = increment;
     }
 
@@ -68,7 +77,7 @@ public class CreateSequence extends SchemaCommand {
         this.belongsToTable = belongsToTable;
     }
 
-    public void setCacheSize(long cacheSize) {
+    public void setCacheSize(Expression cacheSize) {
         this.cacheSize = cacheSize;
     }
 

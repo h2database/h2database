@@ -31,6 +31,7 @@ public class TestMemoryUsage extends TestBase {
 
     public void test() throws Exception {
         deleteDb("memoryUsage");
+        testCreateIndex();
         testClob();
         deleteDb("memoryUsage");
         testReconnectOften();
@@ -63,6 +64,32 @@ public class TestMemoryUsage extends TestBase {
                 error("Used: " + (used - start));
             }
         }
+        conn.close();
+    }
+
+    private void testCreateIndex() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        Connection conn = getConnection("memoryUsage");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(200) || ?)");
+        int len = getSize(10000, 100000);
+        for (int i = 0; i < len; i++) {
+            prep.setInt(1, i);
+            prep.setInt(2, i);
+            prep.executeUpdate();
+        }
+        int start = MemoryUtils.getMemoryUsed();
+        stat.execute("create index idx_test_id on test(id)");
+        System.gc();
+        System.gc();
+        int used = MemoryUtils.getMemoryUsed();
+        if ((used - start) > 4000) {
+            error("Used: " + (used - start));
+        }
+        stat.execute("drop table test");
         conn.close();
     }
 

@@ -33,11 +33,14 @@ public class TestSampleApps extends TestBase {
         // tools
         testApp(org.h2.tools.ChangePassword.class, new String[] { "-?" },
                 "java org.h2.tools.ChangePassword [-dir <dir>] "
-                        + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]");
+                        + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
+                        + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
         testApp(org.h2.tools.ChangePassword.class, null, "java org.h2.tools.ChangePassword [-dir <dir>] "
-                + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]");
+                + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
+                + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
         testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-?" },
-                "java org.h2.tools.DeleteDbFiles [-dir <dir>] [-db <database>] [-quiet]");
+                "java org.h2.tools.DeleteDbFiles [-dir <dir>] [-db <database>] [-quiet]\n"
+                + "See also http://h2database.com/javadoc/org/h2/tools/DeleteDbFiles.html");
     }
 
     private void testApp(Class clazz, String[] args, String expected) throws Exception {

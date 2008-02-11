@@ -4,6 +4,7 @@
  */
 package org.h2.result;
 
+import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
@@ -62,6 +63,9 @@ class ResultDiskBuffer {
         }
         DataPage buff = rowBuff;
         long start = file.getFilePointer();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int bufferLen = 0;
+        int maxBufferSize = SysProperties.LARGE_RESULT_BUFFER_SIZE;
         for (int i = 0; i < rows.size(); i++) {
             buff.reset();
             buff.writeInt(0);
@@ -73,7 +77,22 @@ class ResultDiskBuffer {
             int len = buff.length();
             buff.setInt(0, len);
             buff.updateChecksum();
-            file.write(buff.getBytes(), 0, len);
+            if (maxBufferSize > 0) {
+                buffer.write(buff.getBytes(), 0, len);
+                bufferLen += len;
+                if (bufferLen > maxBufferSize) {
+                    byte[] data = buffer.toByteArray();
+                    buffer.reset();
+                    file.write(data, 0, data.length);
+                    bufferLen = 0;
+                }
+            } else {
+                file.write(buff.getBytes(), 0, len);
+            }
+        }
+        if (bufferLen > 0) {
+            byte[] data = buffer.toByteArray();
+            file.write(data, 0, data.length);
         }
         if (sort != null) {
             ResultDiskTape tape = new ResultDiskTape();

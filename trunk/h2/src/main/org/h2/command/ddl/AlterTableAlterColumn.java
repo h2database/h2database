@@ -47,7 +47,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private Column newColumn;
     private int type;
     private Expression defaultExpression;
-    private long newStart;
+    private Expression newStart;
     private String addBefore;
 
     public AlterTableAlterColumn(Session session, Schema schema) {
@@ -105,7 +105,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (sequence == null) {
                 throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, oldColumn.getSQL());
             }
-            sequence.setStartValue(newStart);
+            long value = newStart.optimize(session).getValue(session).getLong();
+            sequence.setStartValue(value);
             db.update(session, sequence);
             break;
         }
@@ -143,7 +144,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case SELECTIVITY: {
-            oldColumn.setSelectivity((int) newStart);
+            int value = newStart.optimize(session).getValue(session).getInt();
+            oldColumn.setSelectivity(value);
             db.update(session, table);
             break;
         }
@@ -400,7 +402,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.type = type;
     }
 
-    public void setStartWith(long start) {
+    public void setStartWith(Expression start) {
         newStart = start;
     }
 

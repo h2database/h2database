@@ -4,7 +4,6 @@
  */
 package org.h2.constant;
 
-
 /**
  * This class defines the error codes used for SQL exceptions.
  */
@@ -272,7 +271,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>50100</code> is thrown when
-     * calling an unsupported JDBC method.
+     * calling an unsupported JDBC method. See the stack trace
+     * for details.
      */
     public static final int FEATURE_NOT_SUPPORTED = 50100;
 
@@ -744,10 +744,37 @@ public class ErrorCode {
      */
     public static final int TRIGGER_NOT_FOUND_1 = 90042;
 
-    private int test;
-
+    /**
+     * The error with code <code>90043</code> is thrown when
+     * there is an error initializing the trigger, for example because the
+     * class does not implement the Trigger interface.
+     * See the root cause for details.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * CREATE TRIGGER TRIGGER_A AFTER INSERT ON TEST
+     *      CALL "java.lang.String";
+     * </pre>
+     */
     public static final int ERROR_CREATING_TRIGGER_OBJECT_3 = 90043;
+
+    /**
+     * The error with code <code>90044</code> is thrown when
+     * an exception or error occured while calling the triggers fire method.
+     * See the root cause for details.
+     */
     public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
+
+    /**
+     * The error with code <code>90045</code> is thrown when
+     * trying to create a constraint  if an object with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT NOT NULL);
+     * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(ID);
+     * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(ID);
+     * </pre>
+     */
     public static final int CONSTRAINT_ALREADY_EXISTS_1 = 90045;
 
     /**
@@ -766,6 +793,12 @@ public class ErrorCode {
      * trying to connect to a TCP server with an incompatible client.
      */
     public static final int DRIVER_VERSION_ERROR_2 = 90047;
+
+    /**
+     * The error with code <code>90048</code> is thrown when
+     * the file header of a database files (*.db) does not match the
+     * expected version, or if it is corrupted.
+     */
     public static final int FILE_VERSION_ERROR_1 = 90048;
 
     /**
@@ -850,7 +883,19 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_USE_OF_AGGREGATE_FUNCTION_1 = 90054;
+
+    /**
+     * The error with code <code>90055</code> is thrown when
+     * trying to open a database with an unsupported cipher algorithm.
+     * Supported are AES and XTEA.
+     * Example:
+     * <pre>
+     * jdbc:h2:test;CIPHER=DES
+     * </pre>
+     */
     public static final int UNSUPPORTED_CIPHER = 90055;
+
+    private int todo;
     public static final int NO_DEFAULT_SET_1 = 90056;
 
     /**
@@ -1090,7 +1135,20 @@ public class ErrorCode {
     public static final int CONSTANT_NOT_FOUND_1 = 90115;
     public static final int LITERALS_ARE_NOT_ALLOWED = 90116;
 
-    private int importantTodo;
+    /**
+     * The error with code <code>90117</code> is thrown when
+     * trying to connect to a TCP server from another machine, if remote
+     * connections are not allowed. To allow remote connections,
+     * start the TCP server using the option -tcpAllowOthers true as in:
+     * <pre>
+     * java org.h2.tools.Server -tcp -tcpAllowOthers true
+     * </pre>
+     * Or, when starting the server from an application, use:
+     * <pre>
+     * Server server = Server.createTcpServer(new String[] { "-tcpAllowOthers", "true" });
+        server.start();
+     * </pre>
+     */
     public static final int REMOTE_CONNECTION_NOT_ALLOWED = 90117;
 
     /**
@@ -1131,6 +1189,22 @@ public class ErrorCode {
     public static final int RESULT_SET_NOT_UPDATABLE = 90127;
     public static final int RESULT_SET_NOT_SCROLLABLE = 90128;
     public static final int TRANSACTION_NOT_FOUND_1 = 90129;
+
+    /**
+     * The error with code <code>90130</code> is thrown when
+     * an execute method of PreparedStatement was called with a SQL statement.
+     * This is not allowed according to the JDBC specification. Instead, use
+     * an execute method of Statement. Example:
+     * <pre>
+     * PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
+     * prep.execute("DELETE FROM TEST");
+     * </pre>
+     * Correct:
+     * <pre>
+     * Statement stat = conn.createStatement();
+     * stat.execute("DELETE FROM TEST");
+     * </pre>
+     */
     public static final int METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT = 90130;
     public static final int CONCURRENT_UPDATE_1 = 90131;
     public static final int AGGREGATE_NOT_FOUND_1 = 90132;

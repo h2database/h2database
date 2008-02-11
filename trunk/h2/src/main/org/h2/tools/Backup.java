@@ -28,6 +28,7 @@ public class Backup {
     private void showUsage() {
         System.out.println("java "+getClass().getName()
                 + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
+        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Backup.html");
     }
 
     /**

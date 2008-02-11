@@ -33,6 +33,7 @@ public class RunScript {
 
     private void showUsage() {
         System.out.println("java " + getClass().getName() + " -url <url> -user <user> [-password <pwd>] [-script <file>] [-driver <driver] [-options <option> ...]");
+        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/RunScript.html");
     }
 
     /**

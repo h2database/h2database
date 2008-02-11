@@ -32,6 +32,7 @@ public class ChangePassword {
     private void showUsage() {
         System.out.println("java "+getClass().getName()
                 + " [-dir <dir>] [-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]");
+        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
     }
 
     /**
@@ -90,7 +91,7 @@ public class ChangePassword {
     /**
      * Get the file encryption key for a given password.
      * The password must be supplied as char arrays and is cleaned in this method.
-     * 
+     *
      * @param password the password as a char array
      * @return the encryption key
      */

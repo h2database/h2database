@@ -3350,16 +3350,14 @@ public class Parser {
         command.setSequenceName(sequenceName);
         if (readIf("START")) {
             readIf("WITH");
-            long start = readLong();
-            command.setStartWith(start);
+            command.setStartWith(readExpression());
         }
         if (readIf("INCREMENT")) {
             readIf("BY");
-            long increment = readLong();
-            command.setIncrement(increment);
+            command.setIncrement(readExpression());
         }
         if (readIf("CACHE")) {
-            command.setCacheSize(readLong());
+            command.setCacheSize(readExpression());
         }
         if (readIf("BELONGS_TO_TABLE")) {
             command.setBelongsToTable(true);
@@ -3632,13 +3630,11 @@ public class Parser {
         command.setSequence(getSchema().getSequence(sequenceName));
         if (readIf("RESTART")) {
             read("WITH");
-            long start = readLong();
-            command.setStartWith(start);
+            command.setStartWith(readExpression());
         }
         if (readIf("INCREMENT")) {
             read("BY");
-            long increment = readLong();
-            command.setIncrement(increment);
+            command.setIncrement(readExpression());
         }
         return command;
     }
@@ -4106,7 +4102,7 @@ public class Parser {
                 }
             } else if (readIf("RESTART")) {
                 readIf("WITH");
-                long start = readLong();
+                Expression start = readExpression();
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.RESTART);
@@ -4114,12 +4110,11 @@ public class Parser {
                 command.setStartWith(start);
                 return command;
             } else if (readIf("SELECTIVITY")) {
-                int selectivity = getPositiveInt();
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.SELECTIVITY);
                 command.setOldColumn(column);
-                command.setStartWith(selectivity);
+                command.setStartWith(readExpression());
                 return command;
             } else {
                 Column newColumn = parseColumnForTable(columnName);

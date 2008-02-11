@@ -323,6 +323,12 @@ private int test;
      */
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 
+    /**
+     * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
+     * Buffer size for large result sets. Set this value to 0 to disable the buffer.
+     */
+    public static final int LARGE_RESULT_BUFFER_SIZE = getIntSetting("h2.largeResultBufferSize", 4 * 1024);
+
     private static String baseDir = getStringSetting("h2.baseDir", null);
 
     private static boolean getBooleanSetting(String name, boolean defaultValue) {

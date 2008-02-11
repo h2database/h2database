@@ -7,7 +7,7 @@ package org.h2.value;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -44,7 +44,7 @@ public abstract class Value {
 
     public static final int TYPE_COUNT = STRING_FIXED + 1;
 
-    private static WeakReference weakCache = new WeakReference(null);
+    private static SoftReference softCache = new SoftReference(null);
     private static final BigDecimal MAX_LONG_DECIMAL = new BigDecimal("" + Long.MAX_VALUE);
     private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
 
@@ -191,11 +191,11 @@ public abstract class Value {
 
     static Value cache(Value v) {
         if (SysProperties.OBJECT_CACHE) {
-            Value[] cache = (Value[]) weakCache.get();
+            Value[] cache = (Value[]) softCache.get();
             int hash = v.hashCode();
             if (cache == null) {
                 cache = new Value[SysProperties.OBJECT_CACHE_SIZE];
-                weakCache = new WeakReference(cache);
+                softCache = new SoftReference(cache);
             }
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             Value cached = cache[index];

@@ -113,7 +113,9 @@ public class ConnectionInfo {
 
     public void setBaseDir(String dir) {
         if (persistent) {
-            name = dir + SysProperties.FILE_SEPARATOR + name;
+            if (!name.startsWith("~")) {
+                name = dir + SysProperties.FILE_SEPARATOR + name;
+            }
         }
     }
 

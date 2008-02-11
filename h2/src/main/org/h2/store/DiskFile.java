@@ -263,6 +263,9 @@ public class DiskFile implements CacheWriter {
                 ObjectArray storages = new ObjectArray();
                 for (int i = 0; i < len; i++) {
                     int s = in.readInt();
+                    while (storages.size() <= s) {
+                        storages.add(null);
+                    }
                     if (init) {
                         int old = getPageOwner(i);
                         if (old != -1 && old != s) {
@@ -271,9 +274,6 @@ public class DiskFile implements CacheWriter {
                     } else {
                         if (s >= 0) {
                             Storage storage = database.getStorage(s, this);
-                            while (storages.size() <= s) {
-                                storages.add(null);
-                            }
                             storages.set(s, storage);
                             storage.addPage(i);
                         }
@@ -289,9 +289,11 @@ public class DiskFile implements CacheWriter {
                     int recordCount = in.readInt();
                     Storage storage = (Storage) storages.get(s);
                     if (init) {
-                        int current = storage.getRecordCount();
-                        if (current != recordCount) {
-                            throw Message.getInternalError("Redo failure, expected row count: " + current + " got: " + recordCount);
+                        if (storage != null) {
+                            int current = storage.getRecordCount();
+                            if (current != recordCount) {
+                                throw Message.getInternalError("Redo failure, expected row count: " + current + " got: " + recordCount);
+                            }
                         }
                     } else {
                         storage.setRecordCount(recordCount);

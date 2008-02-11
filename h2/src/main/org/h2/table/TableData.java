@@ -254,8 +254,8 @@ public class TableData extends Table implements RecordReader {
             throw Message.convert(e);
         }
         for (int i = 0; i < list.size(); i++) {
-            Row r = (Row) list.get(i);
-            index.add(session, r);
+            Row row = (Row) list.get(i);
+            index.add(session, row);
         }
         list.clear();
     }

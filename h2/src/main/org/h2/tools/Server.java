@@ -40,6 +40,7 @@ public class Server implements Runnable, ShutdownHandler {
             out.println();
         }
         out.println("java "+getClass().getName() + " [options]");
+        out.println("See also http://h2database.com/javadoc/org/h2/tools/Server.html");
         out.println("By default, -tcp, -web, -browser and -pg are started.");
         out.println("Options are case sensitive. Options:");
         out.println();

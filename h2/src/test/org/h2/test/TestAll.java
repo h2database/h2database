@@ -4,9 +4,13 @@
  */
 package org.h2.test;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.Driver;
+import org.h2.constant.SysProperties;
 import org.h2.server.TcpServer;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
@@ -64,6 +68,7 @@ import org.h2.test.jdbcx.TestXA;
 import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
+import org.h2.test.poweroff.TestRecover;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
@@ -105,6 +110,8 @@ import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
+import org.h2.tools.Restore;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 
@@ -147,57 +154,24 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
+
+//System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "20");
+//TestRecover.main(new String[0]);
+
 /*
 
-fragekatalog ergänzen: mehrere connections
-alle corrupt fehler ein neuer fehlercode, hilfeseite
-
 out of memory tests
-
-old storage: 149
-new storage: 143
-block 452
-page of blocks 448-511
-conn1:
-1) delete from test
-conn2:
-2) truncate test
-3) commit
-conn3:
-4) insert into bla
-5) commit
-
-after init, scan all storages and return those that don't belong to a live database object!!
+add a 'kill process while altering tables' test case
 
 Automate real power off tests
 Extend tests that simulate power off
 timer test
 
-Currently, only the web based Console reads this file. What you need to do is, when starting the TCP server, you need to start it using -tcpAllowOthers true:
-java org.h2.tools.Server -tcp -tcpAllowOthers true
+Test delayed log files delete
 
-java org.h2.tool.Server -baseDir C:\temp\test
-web console: jdbc:h2:~/test
-C:\temp\test\~
-
-PreparedStatement prep =
-conn.prepareStatement("ALTER TABLE tbltageseingabe ALTER COLUMN lfdnr RESTART WITH  ?";
+link to new changelog and roadmap, remove pages from google groups
 
 check ValueByte memory usage
-
-C:\temp\crash_db
-- try delayed log file delete
-
-integrate tools in H2 Console
-
-for all tools: add link to javadoc (like Recover)
-
-recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...),
-and things should go into the .trace.db file
-
-RECOVER=2 to backup the database, run recovery, open the database
-
-Recovery should work with encrypted databases
 
 Adjust cache memory usage
 // test with garbage at the end of the log file (must be consistently detected as such)
@@ -207,23 +181,26 @@ Adjust cache memory usage
 // repeatable test with a very big database (making backups of the database files)
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
-Test with many columns (180), create index
-add a 'kill process while altering tables' test case
-
-SysProperties: change everything to H2_...
-Use FilterIn / FilterOut putStream
+History:
+The value cache is now a soft reference cache. This should help save memory.
+Large result sets are now a bit faster.
+ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support an expressions.
+When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 
 Roadmap:
+Support CREATE FORCE TRIGGER.
+drop all objects;
+CREATE TABLE INVOICE(ID INT PRIMARY KEY, AMOUNT DECIMAL);
+CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE FOR EACH ROW CALL "org.h2.samples.TriggerSample$MyTrigger" ;
+DROP TRIGGER INV_INS;
+CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE FOR EACH ROW CALL "org.h2.samples.TriggerSample$MyTrigger" ;
+insert into invoice values(1, 2);
+disconnect
+change to MyTrigger2
+connect
+insert into invoice values(2, 3);
+DROP TRIGGER INV_INS;
 
-
-History:
-Recovery could fail when using the transaction isolation level read uncommitted and truncate table.
-Old log files are now deleted a bit after a new log file is created. This helps recovery.
-The DbStarter servlet didn't start the TCP listener even if configured.
-Statement.setQueryTimeout() is now supported. New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
-Changing the transaction log level (SET LOG) is now written to the trace file by default.
-In a SQL script, primary key constraints are now ordered before foreign key constraints.
-It was not possible to create a referential constraint to a table in a different schema in some situations.
 
 */
 

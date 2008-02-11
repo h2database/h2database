@@ -75,7 +75,9 @@ public class BtreeLeaf extends BtreePage {
         }
         index.deletePage(session, this);
         int at = l;
-        pageData.add(at, newRow);
+        // safe memory
+        SearchRow row = index.getSearchRow(newRow);
+        pageData.add(at, row);
         updateRealByteCount(true, newRow);
         int splitPoint = getSplitPoint();
         if (splitPoint == 0) {

@@ -21,6 +21,7 @@ public class CreateCluster {
     private void showUsage() {
         System.out.println("java "+getClass().getName()
                 + " -urlSource <url> -urlTarget <url> -user <user> [-password <pwd>] -serverlist <serverlist>");
+        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/CreateCluster.html");
     }
 
     /**

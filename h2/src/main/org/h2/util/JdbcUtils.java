@@ -116,6 +116,8 @@ public class JdbcUtils {
                  }
             } catch (ClassNotFoundException e) {
                 throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
+            } catch (NoClassDefFoundError e) {
+                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
             }
         }
         return DriverManager.getConnection(url, prop);

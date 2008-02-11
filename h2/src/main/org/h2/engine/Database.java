@@ -1352,6 +1352,8 @@ public class Database implements DataHandler {
             return ClassUtils.loadUserClass(className);
         } catch (ClassNotFoundException e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+        } catch (NoClassDefFoundError e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
         }
     }
 

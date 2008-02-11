@@ -9,6 +9,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.Random;
 
 import org.h2.store.DataHandler;
@@ -63,13 +64,20 @@ public class TestValueMemory extends TestBase implements DataHandler {
             list.add(v);
         }
         Object[] array = list.toArray();
+        IdentityHashMap map = new IdentityHashMap();
+        for (int i = 0; i < array.length; i++) {
+            map.put(array[i], array[i]);
+        }
+        int size = map.size();
+        map.clear();
+        map = null;
         list = null;
         System.gc();
         System.gc();
         long used = MemoryUtils.getMemoryUsed() - first;
         memory /= 1024;
         if (used > memory * 3) {
-            error("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length);
+            error("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);
         }
     }
     Value create(int type) throws SQLException {

@@ -6,6 +6,7 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -68,7 +69,7 @@ public class Recover implements DataHandler {
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
-        System.out.println("For details, see http://h2database.com/javadoc/org/h2/tools/Recover.html");
+        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Recover.html");
     }
 
     /**
@@ -300,7 +301,7 @@ public class Recover implements DataHandler {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         log("Created file: " + outputFile);
-        return new PrintWriter(FileUtils.openFileWriter(outputFile, false));
+        return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {

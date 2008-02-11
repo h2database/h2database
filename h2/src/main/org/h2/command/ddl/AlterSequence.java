@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.schema.Sequence;
 
@@ -19,10 +20,8 @@ import org.h2.schema.Sequence;
 public class AlterSequence extends DefineCommand {
 
     private Sequence sequence;
-    private boolean newStart;
-    private long start;
-    private boolean newIncrement;
-    private long increment;
+    private Expression start;
+    private Expression increment;
 
     public AlterSequence(Session session) {
         super(session);
@@ -32,16 +31,11 @@ public class AlterSequence extends DefineCommand {
         this.sequence = sequence;
     }
 
-    public void setStartWith(long start) {
-        newStart = true;
+    public void setStartWith(Expression start) {
         this.start = start;
     }
 
-    public void setIncrement(long increment) throws SQLException {
-        newIncrement = true;
-        if (increment == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" });
-        }
+    public void setIncrement(Expression increment) throws SQLException {
         this.increment = increment;
     }
 
@@ -49,11 +43,16 @@ public class AlterSequence extends DefineCommand {
         // TODO rights: what are the rights required for a sequence?
         session.commit(true);
         Database db = session.getDatabase();
-        if (newStart) {
-            sequence.setStartValue(start);
+        if (start != null) {
+            long startValue = start.optimize(session).getValue(session).getLong();
+            sequence.setStartValue(startValue);
         }
-        if (newIncrement) {
-            sequence.setIncrement(increment);
+        if (increment != null) {
+            long incrementValue = increment.optimize(session).getValue(session).getLong();
+            if (incrementValue == 0) {
+                throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" });
+            }
+            sequence.setIncrement(incrementValue);
         }
         db.update(session, sequence);
         return 0;

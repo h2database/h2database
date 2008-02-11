@@ -41,9 +41,11 @@ public class DbSchema {
         rs.close();
         tables = new DbTableOrView[list.size()];
         list.toArray(tables);
-        for (int i = 0; i < tables.length; i++) {
-            DbTableOrView tab = tables[i];
-            tab.readColumns(meta);
+        if (tables.length < 100) {
+            for (int i = 0; i < tables.length; i++) {
+                DbTableOrView tab = tables[i];
+                tab.readColumns(meta);
+            }
         }
     }
 

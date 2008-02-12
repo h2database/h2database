@@ -30,6 +30,7 @@ public class CreateTrigger extends SchemaCommand {
     private boolean noWait;
     private String tableName;
     private String triggerClassName;
+    private boolean force;
 
     public CreateTrigger(Session session, Schema schema) {
         super(session, schema);
@@ -90,10 +91,14 @@ public class CreateTrigger extends SchemaCommand {
         trigger.setQueueSize(queueSize);
         trigger.setRowBased(rowBased);
         trigger.setTypeMask(typeMask);
-        trigger.setTriggerClassName(session, triggerClassName);
+        trigger.setTriggerClassName(session, triggerClassName, force);
         db.addSchemaObject(session, trigger);
         table.addTrigger(trigger);
         return 0;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
     }
 
 }

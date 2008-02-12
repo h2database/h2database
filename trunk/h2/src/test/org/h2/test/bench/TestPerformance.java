@@ -5,6 +5,7 @@
 package org.h2.test.bench;
 
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -71,7 +72,9 @@ public class TestPerformance {
         openResults(init);
 
         Properties prop = new Properties();
-        prop.load(getClass().getResourceAsStream("test.properties"));
+        InputStream in = getClass().getResourceAsStream("test.properties");
+        prop.load(in);
+        in.close();
         int size = Integer.parseInt(prop.getProperty("size"));
         ArrayList dbs = new ArrayList();
         for (int i = 0; i < 100; i++) {

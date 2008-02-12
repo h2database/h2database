@@ -160,6 +160,13 @@ public class Database implements DataHandler {
         String lockMethodName = ci.removeProperty("FILE_LOCK", null);
         this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
+
+        int testing;
+        if ("r".equals(accessModeData)) {
+            readOnly = true;
+            accessModeLog = "r";
+        }
+
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.textStorage = ci.getTextStorage();
         this.databaseURL = ci.getURL();
@@ -380,6 +387,11 @@ public class Database implements DataHandler {
 
     public void checkFilePasswordHash(String c, byte[] hash) throws SQLException {
         if (!ByteUtils.compareSecure(hash, filePasswordHash) || !StringUtils.equals(c, cipher)) {
+            try {
+                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
+            } catch (InterruptedException e) {
+                // ignore
+            }
             throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }
     }
@@ -419,7 +431,12 @@ public class Database implements DataHandler {
         if (persistent) {
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             if (FileUtils.exists(dataFileName)) {
-                readOnly = FileUtils.isReadOnly(dataFileName);
+
+            int testingReadOnly;
+                // if it is already read-only because ACCESS_MODE_DATA=r
+                readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
+                // readOnly = FileUtils.isReadOnly(dataFileName);
+
                 textStorage = isTextStorage(dataFileName, textStorage);
             }
         }
@@ -767,6 +784,11 @@ public class Database implements DataHandler {
     public User getUser(String name, SQLException notFound) throws SQLException {
         User user = (User) users.get(name);
         if (user == null) {
+            try {
+                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
+            } catch (InterruptedException e) {
+                // ignore
+            }
             throw notFound;
         }
         return user;

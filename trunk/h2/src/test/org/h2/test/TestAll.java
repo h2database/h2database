@@ -155,13 +155,20 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
 
-//System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "20");
-//TestRecover.main(new String[0]);
+int test2;
+// System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "20");
+
+// TestRecover.main(new String[0]);
 
 /*
 
-out of memory tests
-add a 'kill process while altering tables' test case
+valentine
+
+create force trigger : test & document
+read only databases without having to make the files read-only: test & document
+
+TestSessionsLocks
+...?
 
 Automate real power off tests
 Extend tests that simulate power off
@@ -170,8 +177,6 @@ timer test
 Test delayed log files delete
 
 link to new changelog and roadmap, remove pages from google groups
-
-check ValueByte memory usage
 
 Adjust cache memory usage
 // test with garbage at the end of the log file (must be consistently detected as such)
@@ -182,6 +187,8 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
+Security: The database now waits 200 ms before throwing an exception if
+    the user name or password don't match, to slow down dictionary attacks.
 The value cache is now a soft reference cache. This should help save memory.
 Large result sets are now a bit faster.
 ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support an expressions.

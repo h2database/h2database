@@ -47,8 +47,10 @@ public class TriggerObject extends SchemaObjectBase {
         this.before = before;
     }
 
-    public void setTriggerClassName(Session session, String triggerClassName) throws SQLException {
-        this.triggerClassName = triggerClassName;
+    private synchronized void load(Session session) throws SQLException {
+        if (triggerCallback != null) {
+            return;
+        }
         try {
             Connection c2 = session.createConnection(false);
             Object obj = session.getDatabase().loadUserClass(triggerClassName).newInstance();
@@ -60,10 +62,22 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
+    public void setTriggerClassName(Session session, String triggerClassName, boolean force) throws SQLException {
+        this.triggerClassName = triggerClassName;
+        try {
+            load(session);
+        } catch (SQLException e) {
+            if (!force) {
+                throw e;
+            }
+        }
+    }
+
     public void fire(Session session, boolean beforeAction) throws SQLException {
         if (rowBased || before != beforeAction) {
             return;
         }
+        load(session);
         Connection c2 = session.createConnection(false);
         try {
             triggerCallback.fire(c2, null, null);
@@ -170,7 +184,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuffer buff = new StringBuffer();
-        buff.append("CREATE TRIGGER ");
+        buff.append("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
         if (before) {
             buff.append(" BEFORE ");

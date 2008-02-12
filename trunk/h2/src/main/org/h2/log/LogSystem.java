@@ -9,9 +9,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
@@ -257,6 +259,19 @@ public class LogSystem {
             LogFile l = new LogFile(this, 0, fileNamePrefix);
             activeLogs.add(l);
         }
+
+        int checkNoMissing;
+if(SysProperties.getIntSetting(SysProperties.H2_LOG_DELETE_DELAY, 0) > 0) {
+        LogFile last = null;
+        for(int i=0; i<activeLogs.size();i++) {
+            LogFile current = (LogFile) activeLogs.get(i);
+            if(last != null && last.getId() + 1 != current.getId()) {
+                throw Message.getInternalError("Miissing log file: " + last.getId() + ", " + current.getId());
+            }
+            last = current;
+        }
+}
+
         currentLog = (LogFile) activeLogs.get(activeLogs.size() - 1);
     }
 

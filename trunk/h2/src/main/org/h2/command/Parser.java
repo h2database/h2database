@@ -3201,7 +3201,7 @@ public class Parser {
         } else if (readIf("USER")) {
             return parseCreateUser();
         } else if (readIf("TRIGGER")) {
-            return parseCreateTrigger();
+            return parseCreateTrigger(force);
         } else if (readIf("ROLE")) {
             return parseCreateRole();
         } else if (readIf("SCHEMA")) {
@@ -3421,7 +3421,7 @@ public class Parser {
         return command;
     }
 
-    private CreateTrigger parseCreateTrigger() throws SQLException {
+    private CreateTrigger parseCreateTrigger(boolean force) throws SQLException {
         boolean ifNotExists = readIfNoExists();
         String triggerName = readIdentifierWithSchema(null);
         Schema schema = getSchema();
@@ -3448,6 +3448,7 @@ public class Parser {
         String tableName = readIdentifierWithSchema();
         checkSchema(schema);
         CreateTrigger command = new CreateTrigger(session, getSchema());
+        command.setForce(force);
         command.setTriggerName(triggerName);
         command.setIfNotExists(ifNotExists);
         command.setBefore(isBefore);

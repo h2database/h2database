@@ -112,10 +112,9 @@ public class TestSessionsLocks extends TestBase {
                 check(done[0]);
                 break;
             } else {
-                System.out.println("no statement is executing yet");
+                // no statement is executing yet
             }
         }
-
         conn2.close();
         conn.close();
     }

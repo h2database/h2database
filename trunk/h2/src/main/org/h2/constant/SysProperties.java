@@ -401,9 +401,6 @@ private int test;
      * INTERNAL
      */
     public static int getLogFileDeleteDelay() {
-        int test;
         return getIntSetting(H2_LOG_DELETE_DELAY, 0);
-//        return getIntSetting(H2_LOG_DELETE_DELAY, 100);
-        // return getIntSetting(H2_LOG_DELETE_DELAY, Integer.MAX_VALUE);
     }
 }

@@ -73,7 +73,7 @@ public class Constants {
 
     public static final int BUILD_ID = 66;
     private static final String BUILD = "2008-02-02";
-    
+
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -172,8 +172,19 @@ public class Constants {
     public static final int VIEW_COST_CACHE_MAX_AGE = 10000; // 10 seconds
     public static final int MAX_PARAMETER_INDEX = 100000;
 
-    // to slow down dictionary attacks
+    /**
+     * The password is hashed this many times
+     * to slow down dictionary attacks.
+     */
     public static final int ENCRYPTION_KEY_HASH_ITERATIONS = 1024;
     public static final String SCRIPT_SQL = "script.sql";
     public static final int CACHE_MIN_RECORDS = 16;
+
+    /**
+     * The delay in milliseconds before an exception about
+     * a wrong user or password is thrown.
+     * This slows down dictionary attacks.
+     * An attacker can still open multiple connections.
+     */
+    public static final long DELAY_WRONG_PASSWORD = 200;
 }

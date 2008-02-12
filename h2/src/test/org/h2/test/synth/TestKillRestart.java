@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -32,7 +33,7 @@ public class TestKillRestart extends TestBase {
         String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
 
-        int len = getSize(1, 10);
+        int len = getSize(2, 15);
         for (int i = 0; i < len; i++) {
             Process p = Runtime.getRuntime().exec(procDef);
             // InputStream err = p.getErrorStream();
@@ -97,8 +98,10 @@ public class TestKillRestart extends TestBase {
             System.out.println("#Starting...");
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
+            stat.execute("DROP ALL OBJECTS");
             stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
             stat.execute("CREATE TABLE TEST2(ID IDENTITY, NAME VARCHAR)");
+            stat.execute("CREATE TABLE TEST_META(ID INT)");
             PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES(?)");
             PreparedStatement prep2 = conn.prepareStatement("INSERT INTO TEST2(NAME) VALUES(?)");
             Random r = new Random(0);
@@ -116,6 +119,9 @@ public class TestKillRestart extends TestBase {
             for (int i = 0; i < 2000; i++) {
                 if (i == 100) {
                     System.out.println("#Running...");
+                }
+                if (r.nextInt(100) < 10) {
+                    conn.createStatement().execute("ALTER TABLE TEST_META ALTER COLUMN ID INT DEFAULT 10");
                 }
                 if (r.nextBoolean()) {
                     if (r.nextBoolean()) {

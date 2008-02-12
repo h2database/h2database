@@ -4,6 +4,9 @@
  */
 package org.h2.constant;
 
+import java.sql.SQLException;
+import java.sql.Savepoint;
+
 /**
  * This class defines the error codes used for SQL exceptions.
  */
@@ -895,7 +898,19 @@ public class ErrorCode {
      */
     public static final int UNSUPPORTED_CIPHER = 90055;
 
-    private int todo;
+    /**
+     * The error with code <code>90056</code> is thrown when
+     * updating or deleting from a table with a foreign key constraint
+     * that should set the default value, but there is no default value defined.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, PARENT INT);
+     * INSERT INTO TEST VALUES(1, 1), (2, 1);
+     * ALTER TABLE TEST ADD CONSTRAINT TEST_ID_PARENT
+     *   FOREIGN KEY(PARENT) REFERENCES(ID) ON DELETE SET DEFAULT;
+     *   DELETE FROM TEST WHERE ID=1;
+     * </pre>
+     */
     public static final int NO_DEFAULT_SET_1 = 90056;
 
     /**
@@ -908,7 +923,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CONSTRAINT_NOT_FOUND_1 = 90057;
-    public static final int DUPLICATE_TABLE_ALIAS = 90058;
 
     /**
      * The error with code <code>90059</code> is thrown when
@@ -921,6 +935,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int AMBIGUOUS_COLUMN_NAME_1 = 90059;
+
+    /**
+     * The error with code <code>90060</code> is thrown when
+     * trying to use a file locking mechanism that is not supported.
+     * Currently only FILE (the default) and SOCKET are supported
+     * Example:
+     * <pre>
+     * jdbc:h2:test;FILE_LOCK=LDAP
+     * </pre>
+     */
     public static final int UNSUPPORTED_LOCK_METHOD_1 = 90060;
 
     /**
@@ -929,6 +953,14 @@ public class ErrorCode {
      * It could also be a firewall problem.
      */
     public static final int EXCEPTION_OPENING_PORT_2 = 90061;
+
+    /**
+     * The error with code <code>90062</code> is thrown when
+     * a directory or file could not be created. This can occur when
+     * trying to create a directory if a file with the same name already
+     * exists, or vice versa.
+     *
+     */
     public static final int FILE_CREATION_FAILED_1 = 90062;
 
     /**
@@ -940,9 +972,46 @@ public class ErrorCode {
      * </pre>
      */
     public static final int SAVEPOINT_IS_INVALID_1 = 90063;
+
+    /**
+     * The error with code <code>90064</code> is thrown when
+     * Savepoint.getSavepointName() is called on an unnamed savepoint.
+     * Example:
+     * <pre>
+     * Savepoint sp = conn.setSavepoint();
+     * sp.getSavepointName();
+     * </pre>
+     */
     public static final int SAVEPOINT_IS_UNNAMED = 90064;
+
+    /**
+     * The error with code <code>90065</code> is thrown when
+     * Savepoint.getSavepointId() is called on a named savepoint.
+     * Example:
+     * <pre>
+     * Savepoint sp = conn.setSavepoint("Joe");
+     * sp.getSavepointId();
+     * </pre>
+     */
     public static final int SAVEPOINT_IS_NAMED = 90065;
+
+    /**
+     * The error with code <code>90066</code> is thrown when
+     * the same property appears twice in the database URL or in
+     * the connection properties.
+     * Example:
+     * <pre>
+     * jdbc:h2:test;LOG=0;LOG=1
+     * </pre>
+     */
     public static final int DUPLICATE_PROPERTY_1 = 90066;
+
+    /**
+     * The error with code <code>90067</code> is thrown when
+     * the connection to the database is lost. A possible reason
+     * is that the connection has been closed due to a shutdown,
+     * or that the server is stopped.
+     */
     public static final int CONNECTION_BROKEN = 90067;
 
     /**
@@ -961,11 +1030,69 @@ public class ErrorCode {
      * </pre>
      */
     public static final int ORDER_BY_NOT_IN_RESULT = 90068;
+
+    /**
+     * The error with code <code>90069</code> is thrown when
+     * trying to create a role if an object with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE ROLE TEST_ROLE;
+     * CREATE ROLE TEST_ROLE;
+     * </pre>
+     */
     public static final int ROLE_ALREADY_EXISTS_1 = 90069;
+
+    /**
+     * The error with code <code>90070</code> is thrown when
+     * trying to drop or grant a role that does not exists.
+     * Example:
+     * <pre>
+     * DROP ROLE TEST_ROLE_2;
+     * </pre>
+     */
     public static final int ROLE_NOT_FOUND_1 = 90070;
+
+    /**
+     * The error with code <code>90071</code> is thrown when
+     * trying to grant or revoke if no role or user with that name exists.
+     * Example:
+     * <pre>
+     * GRANT SELECT ON TEST TO UNKNOWN;
+     * </pre>
+     */
     public static final int USER_OR_ROLE_NOT_FOUND_1 = 90071;
+
+    /**
+     * The error with code <code>90072</code> is thrown when
+     * trying to grant or revoke if no role or user with that name exists.
+     * Example:
+     * <pre>
+     * GRANT SELECT, TEST_ROLE ON TEST TO SA;
+     * </pre>
+     */
     public static final int ROLES_AND_RIGHT_CANNOT_BE_MIXED = 90072;
+
+    /**
+     * The error with code <code>90073</code> is thrown when
+     * trying to revoke a right that does not or no longer exist.
+     * Example:
+     * <pre>
+     * CREATE USER TEST_USER PASSWORD 'abc';
+     * REVOKE SELECT ON TEST FROM TEST_USER;
+     * </pre>
+     */
     public static final int RIGHT_NOT_FOUND = 90073;
+
+    /**
+     * The error with code <code>90074</code> is thrown when
+     * trying to grant a role that has already been granted.
+     * Example:
+     * <pre>
+     * CREATE ROLE TEST_ROLE;
+     * GRANT TEST_ROLE TO SA;
+     * GRANT TEST_ROLE TO SA;
+     * </pre>
+     */
     public static final int ROLE_ALREADY_GRANTED_1 = 90074;
 
     /**
@@ -990,6 +1117,9 @@ public class ErrorCode {
      * </pre>
      */
     public static final int FUNCTION_ALIAS_ALREADY_EXISTS_1 = 90076;
+
+    private int todo44;
+
     public static final int FUNCTION_ALIAS_NOT_FOUND_1 = 90077;
     public static final int SCHEMA_ALREADY_EXISTS_1 = 90078;
     public static final int SCHEMA_NOT_FOUND_1 = 90079;
@@ -1239,6 +1369,8 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
+
+    // next is 90058
 
     /**
      * INTERNAL

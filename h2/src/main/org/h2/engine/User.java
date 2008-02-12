@@ -126,6 +126,11 @@ public class User extends RightOwner {
         SHA256 sha = new SHA256();
         byte[] hash = sha.getHashWithSalt(buff, salt);
         if (!ByteUtils.compareSecure(hash, passwordHash)) {
+            try {
+                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
+            } catch (InterruptedException e) {
+                // ignore
+            }
             throw onError;
         }
     }

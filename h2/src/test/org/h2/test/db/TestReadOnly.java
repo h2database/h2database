@@ -24,6 +24,15 @@ public class TestReadOnly extends TestBase {
         if (config.memory) {
             return;
         }
+        testReadOnlyFileAccessMode();
+        testReadOnlyFiles();
+    }
+
+    private void testReadOnlyFileAccessMode() {
+        int todo;
+    }
+
+    private void testReadOnlyFiles() throws Exception {
 
         File f = File.createTempFile("test", "temp");
         check(f.canWrite());

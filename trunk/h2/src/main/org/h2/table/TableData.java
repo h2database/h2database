@@ -95,14 +95,7 @@ public class TableData extends Table implements RecordReader {
             for (; i < indexes.size(); i++) {
                 Index index = (Index) indexes.get(i);
                 index.add(session, row);
-                if (SysProperties.CHECK) {
-                    if (!database.isMultiVersion()) {
-                        long rc = index.getRowCount(session);
-                        if (rc != rowCount + 1) {
-                            throw Message.getInternalError("rowCount expected " + (rowCount + 1) + " got " + rc);
-                        }
-                    }
-                }
+                checkRowCount(session, index, 1);
             }
             rowCount++;
         } catch (Throwable e) {
@@ -110,14 +103,7 @@ public class TableData extends Table implements RecordReader {
                 while (--i >= 0) {
                     Index index = (Index) indexes.get(i);
                     index.remove(session, row);
-                    if (SysProperties.CHECK) {
-                        if (!database.isMultiVersion()) {
-                            long rc = index.getRowCount(session);
-                            if (rc != rowCount) {
-                                throw Message.getInternalError("rowCount expected " + (rowCount) + " got " + rc);
-                            }
-                        }
-                    }
+                    checkRowCount(session, index, 0);
                 }
             } catch (SQLException e2) {
                 // this could happen, for example on failure in the storage
@@ -127,6 +113,15 @@ public class TableData extends Table implements RecordReader {
                 throw e2;
             }
             throw Message.convert(e);
+        }
+    }
+    
+    private void checkRowCount(Session session, Index index, int offset) {
+        if (SysProperties.CHECK && !database.isMultiVersion()) {
+            long rc = index.getRowCount(session);
+            if (rc != rowCount + offset) {
+                throw Message.getInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+            }
         }
     }
 
@@ -285,19 +280,30 @@ public class TableData extends Table implements RecordReader {
                 throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
         }
-        for (int i = indexes.size() - 1; i >= 0; i--) {
-            Index index = (Index) indexes.get(i);
-            index.remove(session, row);
-            if (SysProperties.CHECK) {
-                if (!database.isMultiVersion()) {
-                    long rc = index.getRowCount(session);
-                    if (rc != rowCount - 1) {
-                        throw Message.getInternalError("rowCount expected " + (rowCount - 1) + " got " + rc);
-                    }
-                }
+        int i = indexes.size() - 1;
+        try {
+            for (; i >= 0; i--) {
+                Index index = (Index) indexes.get(i);
+                index.remove(session, row);
+                checkRowCount(session, index, -1);
             }
+            rowCount--;
+        } catch (Throwable e) {
+            try {
+                while (++i < indexes.size()) {
+                    Index index = (Index) indexes.get(i);
+                    index.add(session, row);
+                    checkRowCount(session, index, 0);
+                }
+            } catch (SQLException e2) {
+                // this could happen, for example on failure in the storage
+                // but if that is not the case it means there is something wrong
+                // with the database
+                // TODO log this problem
+                throw e2;
+            }
+            throw Message.convert(e);
         }
-        rowCount--;
     }
 
     public void truncate(Session session) throws SQLException {

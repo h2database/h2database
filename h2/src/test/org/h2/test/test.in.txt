@@ -1,5 +1,17 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select rtrim() from dual;
+> exception
+
 CREATE TABLE COUNT(X INT);
+> ok
+
+CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL "com.Unknown";
+> ok
+
+INSERT INTO COUNT VALUES(NULL);
+> exception
+
+DROP TRIGGER T_COUNT;
 > ok
 
 CREATE TABLE ITEMS(ID INT CHECK ID < SELECT MAX(ID) FROM COUNT);

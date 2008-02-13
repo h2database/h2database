@@ -16,6 +16,7 @@ import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.table.Table;
+import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 
 /**
@@ -38,6 +39,7 @@ public class WriterThread extends Thread {
     private int writeDelay;
     private long lastIndexFlush;
     private volatile boolean stop;
+    private String oldLogFile;
 
     private WriterThread(Database database, int writeDelay) {
         this.databaseRef = new WeakReference(database);
@@ -106,6 +108,14 @@ public class WriterThread extends Thread {
 
     public void run() {
         while (!stop) {
+            synchronized (this) {
+                if (oldLogFile != null) {
+                    FileUtils.tryDelete(oldLogFile);
+                    if (!FileUtils.exists(oldLogFile)) {
+                        oldLogFile = null;
+                    }
+                }
+            }
             Database database = (Database) databaseRef.get();
             if (database == null) {
                 break;
@@ -138,8 +148,16 @@ public class WriterThread extends Thread {
         databaseRef = null;
     }
 
-    public void stopThread() {
+    public void stopThread() throws SQLException {
         stop = true;
+        deleteLogFileLater(null);
+    }
+
+    public synchronized void deleteLogFileLater(String fileName) throws SQLException {
+        if (oldLogFile != null) {
+            FileUtils.delete(oldLogFile);
+        }
+        oldLogFile = fileName;
     }
 
 }

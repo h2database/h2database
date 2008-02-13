@@ -795,6 +795,7 @@ SET [DATABASE] COLLATION
 ","
 Sets the collation used for comparing strings.
 This command can only be executed if there are no tables defined.
+See java.test.Collator for details about STRENGTH.
 This setting is persistent.
 Admin rights are required to execute this command.
 ","

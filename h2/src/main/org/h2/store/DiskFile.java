@@ -41,6 +41,15 @@ import org.h2.util.ObjectArray;
  * The disk file is responsible for caching; each object contains a {@link Cache} object.
  * Changes in the file are logged in a {@link LogSystem} object.
  * Reading and writing to the file is delegated to the {@link FileStore} class.
+ * <p>
+ * There are 'blocks' of 128 bytes (DiskFile.BLOCK_SIZE). Each objects own one or more pages;
+ * each page size is 64 blocks (DiskFile.BLOCKS_PER_PAGE). That is 8 KB page size.
+ * However pages are not read or written as one unit; only individual objects (multiple blocks at a time)
+ * are read or written.
+ * <p>
+ * Currently there are no in-place updates. Each row occupies one or multiple blocks.
+ * Row can occupy multiple pages. Rows are always contiguous (except LOBs, they are
+ * stored in their own files).
  */
 public class DiskFile implements CacheWriter {
 

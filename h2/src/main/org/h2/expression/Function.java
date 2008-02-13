@@ -1447,6 +1447,7 @@ public class Function extends Expression implements FunctionCall {
         case LTRIM:
         case RTRIM:
         case TRIM:
+            min = 1;
             max = 2;
             break;
         case REPLACE:

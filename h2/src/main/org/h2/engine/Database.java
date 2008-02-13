@@ -51,7 +51,6 @@ import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.CacheLRU;
 import org.h2.util.ClassUtils;
-import org.h2.util.DelayedFileDeleter;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
@@ -160,13 +159,10 @@ public class Database implements DataHandler {
         String lockMethodName = ci.removeProperty("FILE_LOCK", null);
         this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
-
-        int testing;
         if ("r".equals(accessModeData)) {
             readOnly = true;
             accessModeLog = "r";
         }
-
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         this.textStorage = ci.getTextStorage();
         this.databaseURL = ci.getURL();
@@ -431,12 +427,8 @@ public class Database implements DataHandler {
         if (persistent) {
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             if (FileUtils.exists(dataFileName)) {
-
-            int testingReadOnly;
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
-                // readOnly = FileUtils.isReadOnly(dataFileName);
-
                 textStorage = isTextStorage(dataFileName, textStorage);
             }
         }
@@ -933,7 +925,11 @@ public class Database implements DataHandler {
 
     private void stopWriter() {
         if (writer != null) {
-            writer.stopThread();
+            try {
+                writer.stopThread();
+            } catch (SQLException e) {
+                traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            }
             writer = null;
         }
     }
@@ -1366,7 +1362,11 @@ public class Database implements DataHandler {
     }
 
     public void deleteLogFileLater(String fileName) throws SQLException {
-        DelayedFileDeleter.getInstance().deleteLater(fileName);
+        if (writer != null) {
+            writer.deleteLogFileLater(fileName);
+        } else {
+            FileUtils.delete(fileName);
+        }
     }
 
     public Class loadUserClass(String className) throws SQLException {

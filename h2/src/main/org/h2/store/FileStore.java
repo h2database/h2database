@@ -16,7 +16,7 @@ import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
-import org.h2.util.DelayedFileDeleter;
+import org.h2.util.TempFileDeleter;
 
 /**
  * This class is an abstraction of a random access file.
@@ -163,7 +163,7 @@ public class FileStore {
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
-            DelayedFileDeleter.getInstance().autoDeleteFile(autoDeleteReference, name);
+            TempFileDeleter.deleteFile(autoDeleteReference, name);
             name = null;
         }
     }
@@ -324,11 +324,11 @@ public class FileStore {
     }
 
     public void autoDelete() {
-        autoDeleteReference = DelayedFileDeleter.getInstance().addTempFile(name, this);
+        autoDeleteReference = TempFileDeleter.addFile(name, this);
     }
 
     public void stopAutoDelete() {
-        DelayedFileDeleter.getInstance().stopAutoDelete(autoDeleteReference, name);
+        TempFileDeleter.stopAutoDelete(autoDeleteReference, name);
         autoDeleteReference = null;
     }
 

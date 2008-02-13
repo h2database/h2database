@@ -1118,13 +1118,68 @@ public class ErrorCode {
      */
     public static final int FUNCTION_ALIAS_ALREADY_EXISTS_1 = 90076;
 
-    private int todo44;
-
+    /**
+     * The error with code <code>90077</code> is thrown when
+     * trying to drop a system function or a function alias that does not exist.
+     * Example:
+     * <pre>
+     * DROP ALIAS SQRT;
+     * </pre>
+     */
     public static final int FUNCTION_ALIAS_NOT_FOUND_1 = 90077;
+
+    /**
+     * The error with code <code>90078</code> is thrown when
+     * trying to create a schema if an object with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE SCHEMA TEST_SCHEMA;
+     * CREATE SCHEMA TEST_SCHEMA;
+     * </pre>
+     */
     public static final int SCHEMA_ALREADY_EXISTS_1 = 90078;
+
+    /**
+     * The error with code <code>90079</code> is thrown when
+     * trying to drop a schema that does not exist.
+     * Example:
+     * <pre>
+     * DROP SCHEMA UNKNOWN;
+     * </pre>
+     */
     public static final int SCHEMA_NOT_FOUND_1 = 90079;
+
+    /**
+     * The error with code <code>90080</code> is thrown when
+     * trying to rename a object to a different schema, or when trying to
+     * create a related object in another schema.
+     * Example:
+     * <pre>
+     * CREATE SCHEMA TEST_SCHEMA;
+     * CREATE TABLE TEST(ID INT);
+     * CREATE INDEX TEST_ID ON TEST(ID);
+     * ALTER INDEX TEST_ID RENAME TO TEST_SCHEMA.IDX_TEST_ID;
+     * </pre>
+     */
     public static final int SCHEMA_NAME_MUST_MATCH = 90080;
+
+    /**
+     * The error with code <code>90081</code> is thrown when
+     * trying to alter a column to not allow NULL, if there
+     * is already data in the table where this column is NULL.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST VALUES(NULL);
+     * ALTER TABLE TEST ALTER COLUMN ID VARCHAR NOT NULL;
+     * </pre>
+     */
     public static final int COLUMN_CONTAINS_NULL_VALUES_1 = 90081;
+
+    /**
+     * The error with code <code>90082</code> is thrown when
+     * trying to drop a system generated sequence.
+     */
     public static final int SEQUENCE_BELONGS_TO_A_TABLE_1 = 90082;
 
     /**
@@ -1137,6 +1192,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int COLUMN_MAY_BE_REFERENCED_1 = 90083;
+
+    /**
+     * The error with code <code>90084</code> is thrown when
+     * trying to drop the last column of a table.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * ALTER TABLE TEST DROP COLUMN ID;
+     * </pre>
+     */
     public static final int CANNOT_DROP_LAST_COLUMN = 90084;
 
     /**
@@ -1153,6 +1218,9 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INDEX_BELONGS_TO_CONSTRAINT_1 = 90085;
+
+    private int todo37;
+
     public static final int CLASS_NOT_FOUND_1 = 90086;
     public static final int METHOD_NOT_FOUND_1 = 90087;
     public static final int UNKNOWN_MODE_1 = 90088;

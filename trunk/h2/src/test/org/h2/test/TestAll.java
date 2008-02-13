@@ -156,7 +156,7 @@ java org.h2.test.TestAll timer
         test.printSystem();
 
 int test2;
-// System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "20");
+// System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "2");
 
 // TestRecover.main(new String[0]);
 
@@ -164,15 +164,19 @@ int test2;
 
 valentine
 
-create force trigger : test & document
-read only databases without having to make the files read-only: test & document
-
-TestSessionsLocks
-...?
+the user should be allowed to do everything with his own temp tables (and views).
+CREATE USER IF NOT EXISTS READER PASSWORD 'READER';
+<login as READER>
+CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT);
+INSERT INTO MY_TEST VALUES(1);
+SELECT * FROM MY_TEST;
+DROP TABLE MY_TEST;
 
 Automate real power off tests
 Extend tests that simulate power off
 timer test
+
+Can sometimes not delete log file?
 
 Test delayed log files delete
 
@@ -187,6 +191,11 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
+Databases can now be opened even if trigger classes are not in the classpath.
+    The exception is thrown when trying to fire the trigger.
+Opening databases with ACCESS_MODE_DATA=r is now supported.
+    In this case the database is read-only, but the files don't not need
+    to be read-only.
 Security: The database now waits 200 ms before throwing an exception if
     the user name or password don't match, to slow down dictionary attacks.
 The value cache is now a soft reference cache. This should help save memory.
@@ -195,19 +204,7 @@ ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support an expressions.
 When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 
 Roadmap:
-Support CREATE FORCE TRIGGER.
-drop all objects;
-CREATE TABLE INVOICE(ID INT PRIMARY KEY, AMOUNT DECIMAL);
-CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE FOR EACH ROW CALL "org.h2.samples.TriggerSample$MyTrigger" ;
-DROP TRIGGER INV_INS;
-CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE FOR EACH ROW CALL "org.h2.samples.TriggerSample$MyTrigger" ;
-insert into invoice values(1, 2);
-disconnect
-change to MyTrigger2
-connect
-insert into invoice values(2, 3);
-DROP TRIGGER INV_INS;
-
+BIT VARYING
 
 */
 
@@ -408,7 +405,7 @@ DROP TRIGGER INV_INS;
      */
     private void test() throws Exception {
         System.out.println();
-        System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc);
+        System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc + " deleteIndex:" + deleteIndex);
         beforeTest();
 
         // db

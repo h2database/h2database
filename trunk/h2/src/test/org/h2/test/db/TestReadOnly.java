@@ -24,15 +24,13 @@ public class TestReadOnly extends TestBase {
         if (config.memory) {
             return;
         }
-        testReadOnlyFileAccessMode();
-        testReadOnlyFiles();
+        testReadOnlyFiles(true);
+        if (!config.deleteIndex) {
+            testReadOnlyFiles(false);
+        }
     }
 
-    private void testReadOnlyFileAccessMode() {
-        int todo;
-    }
-
-    private void testReadOnlyFiles() throws Exception {
+    private void testReadOnlyFiles(boolean setReadOnly) throws Exception {
 
         File f = File.createTempFile("test", "temp");
         check(f.canWrite());
@@ -57,9 +55,12 @@ public class TestReadOnly extends TestBase {
         check(!conn.isReadOnly());
         conn.close();
 
-        setReadOnly();
-
-        conn = getConnection("readonly");
+        if (setReadOnly) {
+            setReadOnly();
+            conn = getConnection("readonly");
+        } else {
+            conn = getConnection("readonly;ACCESS_MODE_DATA=r");
+        }
         check(conn.isReadOnly());
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
@@ -71,7 +72,11 @@ public class TestReadOnly extends TestBase {
         }
         conn.close();
 
-        conn = getConnection("readonly;DB_CLOSE_DELAY=1");
+        if (setReadOnly) {
+            conn = getConnection("readonly;DB_CLOSE_DELAY=1");
+        } else {
+            conn = getConnection("readonly;DB_CLOSE_DELAY=1;ACCESS_MODE_DATA=r");
+        }
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         try {

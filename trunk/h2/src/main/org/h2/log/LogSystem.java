@@ -266,7 +266,7 @@ if(SysProperties.getIntSetting(SysProperties.H2_LOG_DELETE_DELAY, 0) > 0) {
         for(int i=0; i<activeLogs.size();i++) {
             LogFile current = (LogFile) activeLogs.get(i);
             if(last != null && last.getId() + 1 != current.getId()) {
-                throw Message.getInternalError("Miissing log file: " + last.getId() + ", " + current.getId());
+                throw Message.getInternalError("Missing log file: " + last.getId() + ", " + current.getId());
             }
             last = current;
         }

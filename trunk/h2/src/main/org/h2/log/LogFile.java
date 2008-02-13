@@ -103,6 +103,10 @@ public class LogFile {
             }
         }
         int id = Integer.parseInt(s);
+        if (!FileUtils.exists(fileName)) {
+            // the file could have been deleted by now (by the DelayedFileDeleter)
+            return null;
+        }
         return new LogFile(log, id, fileNamePrefix);
     }
 

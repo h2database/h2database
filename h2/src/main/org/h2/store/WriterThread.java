@@ -39,6 +39,7 @@ public class WriterThread extends Thread {
     private int writeDelay;
     private long lastIndexFlush;
     private volatile boolean stop;
+    private long oldLogFileDelete;
     private String oldLogFile;
 
     private WriterThread(Database database, int writeDelay) {
@@ -110,9 +111,12 @@ public class WriterThread extends Thread {
         while (!stop) {
             synchronized (this) {
                 if (oldLogFile != null) {
-                    FileUtils.tryDelete(oldLogFile);
-                    if (!FileUtils.exists(oldLogFile)) {
-                        oldLogFile = null;
+                    long time = System.currentTimeMillis();
+                    if (time > oldLogFileDelete) {
+                        FileUtils.tryDelete(oldLogFile);
+                        if (!FileUtils.exists(oldLogFile)) {
+                            oldLogFile = null;
+                        }
                     }
                 }
             }
@@ -158,6 +162,9 @@ public class WriterThread extends Thread {
             FileUtils.delete(oldLogFile);
         }
         oldLogFile = fileName;
+        if (fileName != null) {
+            oldLogFileDelete = System.currentTimeMillis() + SysProperties.getLogFileDeleteDelay();
+        }
     }
 
 }

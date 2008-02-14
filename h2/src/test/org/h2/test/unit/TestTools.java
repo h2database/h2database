@@ -259,9 +259,9 @@ public class TestTools extends TestBase {
     private void testManagementDb() throws Exception {
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
-            Server server = Server.createTcpServer(new String[] {}).start();
+            Server server = Server.createTcpServer(new String[] {"-tcpPort", "9192"}).start();
             server.stop();
-            server = Server.createTcpServer(new String[] { "-tcpPassword", "abc" }).start();
+            server = Server.createTcpServer(new String[] { "-tcpPassword", "abc", "-tcpPort", "9192" }).start();
             server.stop();
         }
     }
@@ -387,33 +387,33 @@ public class TestTools extends TestBase {
     private void testServer() throws Exception {
         Connection conn;
         deleteDb("test");
-        Server server = Server.createTcpServer(new String[] { "-ifExists", "false", "-baseDir", baseDir }).start();
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
+        Server server = Server.createTcpServer(new String[] { "-ifExists", "false", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();
         server = Server.createTcpServer(
-                new String[] { "-ifExists", "true", "-tcpPassword", "abc", "-baseDir", baseDir }).start();
+                new String[] { "-ifExists", "true", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test2", "sa", "");
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             error("should not be able to create new db");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         try {
-            Server.shutdownTcpServer("tcp://localhost", "", true);
+            Server.shutdownTcpServer("tcp://localhost:9192", "", true);
             error("shouldn't work and should throw an exception");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         // conn.close();
-        Server.shutdownTcpServer("tcp://localhost", "abc", true);
+        Server.shutdownTcpServer("tcp://localhost:9192", "abc", true);
         // check that the database is closed
         deleteDb("test");
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/test", "sa", "");
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
             error("server must have been closed");
         } catch (SQLException e) {
             checkNotGeneralException(e);

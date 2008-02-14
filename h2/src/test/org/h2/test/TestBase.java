@@ -99,9 +99,9 @@ public abstract class TestBase {
             }
             if (config.networked) {
                 if (config.ssl) {
-                    url = "ssl://localhost:9092/" + name;
+                    url = "ssl://localhost:9192/" + name;
                 } else {
-                    url = "tcp://localhost:9092/" + name;
+                    url = "tcp://localhost:9192/" + name;
                 }
             } else {
                 url = name;

@@ -61,7 +61,7 @@ class OutputCatcher extends Thread {
                     buff.append((char) x);
                 }
             } catch (IOException e) {
-                // ignore
+                break;
             }
         }
         IOUtils.closeSilently(in);

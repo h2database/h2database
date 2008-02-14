@@ -22,10 +22,10 @@ public class TestFtp extends TestBase implements FtpEventListener {
     }
 
     private void test(String dir) throws Exception {
-        Server server = Server.createFtpServer(new String[]{"-ftpDir", dir}).start();
+        Server server = Server.createFtpServer(new String[]{"-ftpDir", dir, "-ftpPort", "8121"}).start();
         FtpServer ftp = (FtpServer) server.getService();
         ftp.setEventListener(this);
-        FtpClient client = FtpClient.open("localhost:8021");
+        FtpClient client = FtpClient.open("localhost:8121");
         client.login("sa", "sa");
         client.makeDirectory("test");
         client.changeWorkingDirectory("test");

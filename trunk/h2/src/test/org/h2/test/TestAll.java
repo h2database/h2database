@@ -155,14 +155,7 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
 
-int test2;
-// System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "2");
-
-// TestRecover.main(new String[0]);
-
 /*
-
-valentine
 
 the user should be allowed to do everything with his own temp tables (and views).
 CREATE USER IF NOT EXISTS READER PASSWORD 'READER';
@@ -176,9 +169,7 @@ Automate real power off tests
 Extend tests that simulate power off
 timer test
 
-Can sometimes not delete log file?
-
-Test delayed log files delete
+Can sometimes not delete log file? need test case
 
 link to new changelog and roadmap, remove pages from google groups
 
@@ -204,8 +195,8 @@ ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support an expressions.
 When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 
 Roadmap:
-BIT VARYING
-
+BIT VARYING (PostgreSQL)
+Bitwise AND operator (1 & 3) (PostgreSQL, MySQL)
 */
 
         if (args.length > 0) {
@@ -542,7 +533,8 @@ BIT VARYING
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {
             TcpServer.logInternalErrors = true;
-            String[] args = ssl ? new String[] { "-tcpSSL", "true" } : new String[0];
+            String[] args = ssl ? new String[] { "-tcpSSL", "true", "-tcpPort", "9192" } : new String[] { "-tcpPort",
+                    "9192" };
             server = Server.createTcpServer(args);
             try {
                 server.start();

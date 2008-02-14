@@ -23,7 +23,7 @@ public class TestPgServer extends TestBase {
 
     public void test() throws Exception {
         deleteDb("test");
-        Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-ifExists", "false", "-pgAllowOthers", "false"});
+        Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-ifExists", "false", "-pgAllowOthers", "false", "-pgPort", "5535"});
         server.start();
         try {
             Class.forName("org.postgresql.Driver");
@@ -36,7 +36,7 @@ public class TestPgServer extends TestBase {
     }
 
     private void testPgClient() throws Exception {
-        Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5435/test", "sa", "sa");
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
         Statement stat = conn.createStatement();
         try {
             stat.execute("select ***");
@@ -45,7 +45,7 @@ public class TestPgServer extends TestBase {
             // expected
         }
         conn.close();
-        conn = DriverManager.getConnection("jdbc:postgresql://localhost:5435/test", "sa", "sa");
+        conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");

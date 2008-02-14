@@ -289,9 +289,7 @@ public class SysProperties {
      * System property <code>h2.redoBufferSize</code> (default: 262144).<br />
      * Size of the redo buffer (used at startup when recovering).
      */
-private int test;
-//    public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
-    public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 0);
+    public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
 
     /**
      * System property <code>h2.runFinalize</code> (default: true).<br />

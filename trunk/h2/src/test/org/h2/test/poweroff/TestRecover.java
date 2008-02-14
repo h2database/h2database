@@ -44,7 +44,7 @@ public class TestRecover {
 
     private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
     private static final String BACKUP_DIRECTORY = DIR + "/last";
-    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test");
+    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;MAX_LOG_SIZE=2");
     private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     public static void main(String[] args) throws Exception {
@@ -205,7 +205,9 @@ public class TestRecover {
     private void runOneTest(int i) throws Exception {
         Random random = new Random(i);
         Connection conn = openConnection();
-        PreparedStatement prep = null;
+        PreparedStatement prepInsert = null;
+        PreparedStatement prepDelete = null;
+        conn.setAutoCommit(false);
         for (int id = 0;; id++) {
             boolean rollback = random.nextInt(10) == 1;
             int len;
@@ -218,21 +220,35 @@ public class TestRecover {
                 // make the length odd
                 len++;
             }
-            byte[] data = new byte[len];
-            random.nextBytes(data);
+//            byte[] data = new byte[len];
+//            random.nextBytes(data);
             int op = random.nextInt();
-            if (op % 1000 == 0) {
+            if (op % 1000000 == 0) {
                 closeConnection(conn);
                 conn = openConnection();
-                prep = null;
-            }
-            if (prep == null) {
-                prep = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, ?)");
                 conn.setAutoCommit(false);
+                prepInsert = null;
+                prepDelete = null;
             }
-            prep.setInt(1, id);
-            prep.setString(2, "" + len);
-            prep.execute();
+            if (random.nextBoolean()) {
+                if (prepInsert == null) {
+                    prepInsert = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, ?)");
+                }
+                prepInsert.setInt(1, id);
+                prepInsert.setString(2, "" + len);
+                prepInsert.execute();
+            } else {
+                ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+                rs.next();
+                int count = rs.getInt(1);
+                rs.close();
+                if (count > 1000) {
+                    if (prepDelete == null) {
+                        prepDelete = conn.prepareStatement("DELETE FROM TEST WHERE ROWNUM <= 4");
+                    }
+                    prepDelete.execute();
+                }
+            }
             if (rollback) {
                 conn.rollback();
             } else {
@@ -258,7 +274,9 @@ public class TestRecover {
             conn = openConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
             int max = 0;
+            int count = 0;
             while (rs.next()) {
+                count++;
                 int id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 int value = Integer.parseInt(name);
@@ -269,7 +287,7 @@ public class TestRecover {
             }
             rs.close();
             closeConnection(conn);
-            System.out.println("max rows: " + max);
+            System.out.println("max row id: " + max + " rows: " + count);
             return true;
         } catch (Throwable t) {
             t.printStackTrace();

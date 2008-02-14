@@ -4,9 +4,6 @@
  */
 package org.h2.constant;
 
-import java.sql.SQLException;
-import java.sql.Savepoint;
-
 /**
  * This class defines the error codes used for SQL exceptions.
  */
@@ -1219,10 +1216,35 @@ public class ErrorCode {
      */
     public static final int INDEX_BELONGS_TO_CONSTRAINT_1 = 90085;
 
-    private int todo37;
-
+    /**
+     * The error with code <code>90086</code> is thrown when
+     * a class can not be loaded because it is not in the classpath
+     * or because a related class is not in the classpath.
+     * Example:
+     * <pre>
+     * CREATE ALIAS TEST FOR "java.lang.invalid.Math.sqrt";
+     * </pre>
+     */
     public static final int CLASS_NOT_FOUND_1 = 90086;
+
+    /**
+     * The error with code <code>90087</code> is thrown when
+     * the specified method was not found in the class.
+     * Example:
+     * <pre>
+     * CREATE ALIAS TEST FOR "java.lang.Math.test";
+     * </pre>
+     */
     public static final int METHOD_NOT_FOUND_1 = 90087;
+
+    /**
+     * The error with code <code>90088</code> is thrown when
+     * trying to switch to an unknown mode.
+     * Example:
+     * <pre>
+     * SET MODE UNKNOWN;
+     * </pre>
+     */
     public static final int UNKNOWN_MODE_1 = 90088;
 
     /**
@@ -1230,6 +1252,7 @@ public class ErrorCode {
      * trying to change the collation while there was already data in
      * the database. The collation of the database must be set when the
      * database is empty.
+     * Example:
      * <pre>
      * CREATE TABLE TEST(NAME VARCHAR PRIMARY KEY);
      * INSERT INTO TEST VALUES('Hello', 'World');
@@ -1244,7 +1267,26 @@ public class ErrorCode {
      * </pre>
      */
     public static final int COLLATION_CHANGE_WITH_DATA_TABLE_1 = 90089;
+
+    /**
+     * The error with code <code>90090</code> is thrown when
+     * trying to drop a schema that may not be dropped (the schema PUBLIC
+     * and the schema INFORMATION_SCHEMA).
+     * Example:
+     * <pre>
+     * DROP SCHEMA PUBLIC;
+     * </pre>
+     */
     public static final int SCHEMA_CAN_NOT_BE_DROPPED_1 = 90090;
+
+    /**
+     * The error with code <code>90091</code> is thrown when
+     * trying to drop the role PUBLIC.
+     * Example:
+     * <pre>
+     * DROP ROLE PUBLIC;
+     * </pre>
+     */
     public static final int ROLE_CAN_NOT_BE_DROPPED_1 = 90091;
 
     /**
@@ -1255,6 +1297,14 @@ public class ErrorCode {
      * source code to JDK 1.3 using ant codeswitchJdk13.
      */
     public static final int UNSUPPORTED_JAVA_VERSION = 90092;
+
+    /**
+     * The error with code <code>90093</code> is thrown when
+     * trying to connect to a clustered database that runs in standalone
+     * mode. This can happen if clustering is not enabled on the database,
+     * or if one of the clients disabled clustering because it can not see
+     * the other cluster node.
+     */
     public static final int CLUSTER_ERROR_DATABASE_RUNS_ALONE = 90093;
 
     /**
@@ -1263,8 +1313,35 @@ public class ErrorCode {
      * different cluster node setting than what is used when trying to connect.
      */
     public static final int CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1 = 90094;
+
+    /**
+     * The error with code <code>90095</code> is thrown when
+     * calling the method STRINGDECODE with an invalid escape sequence.
+     * Only Java style escape sequences and Java properties file escape
+     * sequences are supported.
+     * Example:
+     * <pre>
+     * CALL STRINGDECODE('\i');
+     * </pre>
+     */
     public static final int STRING_FORMAT_ERROR_1 = 90095;
+
+    /**
+     * The error with code <code>90096</code> is thrown when
+     * trying to perform an operation with a non-admin user if the
+     * user does not have enough rights.
+     */
     public static final int NOT_ENOUGH_RIGHTS_FOR_1 = 90096;
+
+    /**
+     * The error with code <code>90097</code> is thrown when
+     * trying to delete or update a database if it is open in read-only mode.
+     * Example:
+     * <pre>
+     * jdbc:h2:~/test;ACCESS_MODE_DATA=R
+     * CREATE TABLE TEST(ID INT);
+     * </pre>
+     */
     public static final int DATABASE_IS_READ_ONLY = 90097;
 
     /**
@@ -1273,9 +1350,34 @@ public class ErrorCode {
      * This counter is only used for recovery testing, and not set in normal operation.
      */
     public static final int SIMULATED_POWER_OFF = 90098;
+
+    /**
+     * The error with code <code>90099</code> is thrown when
+     * an error occured trying to initialize the database event listener.
+     * Example:
+     * <pre>
+     * jdbc:h2:~/test;DATABASE_EVENT_LISTENER='java.lang.String'
+     * </pre>
+     */
     public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER_2 = 90099;
+
+    /**
+     * The error with code <code>90100</code> is thrown when
+     * there is no more space available on the device where the database
+     * files are stored.
+     */
     public static final int NO_DISK_SPACE_AVAILABLE = 90100;
+
+    /**
+     * The error with code <code>90101</code> is thrown when
+     * the XA API detected unsupported transaction names. This can happen
+     * when mixing application generated transaction names and transaction names
+     * generated by this databases XAConnection API.
+     */
     public static final int WRONG_XID_FORMAT_1 = 90101;
+
+    private int todo25;
+
     public static final int UNSUPPORTED_COMPRESSION_OPTIONS_1 = 90102;
     public static final int UNSUPPORTED_COMPRESSION_ALGORITHM_1 = 90103;
     public static final int COMPRESSION_ERROR = 90104;

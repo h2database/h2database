@@ -13,7 +13,7 @@ import org.h2.tools.Server;
 public class TestWeb extends TestBase {
 
     public void test() throws Exception {
-        Server server = Server.createWebServer(new String[0]);
+        Server server = Server.createWebServer(new String[]{"-webPort", "8182"});
         server.start();
         String url = server.getURL();
         WebClient client = new WebClient();

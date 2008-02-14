@@ -592,10 +592,10 @@ public class DiskFile implements CacheWriter {
             used.clear(i);
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
                 // if this is the first page of a block and if the whole page is free
-
 int disabledCurrently;
-//                setPageOwner(getPage(i), FREE_PAGE);
-
+                if (!logChanges) {
+                    setPageOwner(getPage(i), FREE_PAGE);
+                }
             }
         }
     }

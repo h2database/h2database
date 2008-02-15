@@ -149,8 +149,6 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-
-        new TestCrashAPI().init(test).testCase(2005340068);
         
 /*
 

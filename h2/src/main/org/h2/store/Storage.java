@@ -201,9 +201,6 @@ public class Storage {
 
     public void delete(Session session) throws SQLException {
         truncate(session);
-
-        int disabledCurrently;
-//        database.removeStorage(id, file);
     }
 
     //    private int allocateBest(int start, int blocks) {
@@ -269,8 +266,7 @@ public class Storage {
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);
         if (file.isPageFree(page) && file.getPageOwner(page) == id) {
-            int disabledCurrently;
-//            file.setPageOwner(page, DiskFile.FREE_PAGE);
+            file.freePage(page);
         }
     }
 

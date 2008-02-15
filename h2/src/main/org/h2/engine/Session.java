@@ -82,6 +82,7 @@ public class Session implements SessionInterface {
     private HashMap variables;
     private HashSet temporaryResults;
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
+    private int lastUncommittedDelete;
 
     public Session() {
     }
@@ -226,11 +227,20 @@ public class Session implements SessionInterface {
         database.setPowerOffCount(count);
     }
 
+    public int getLastUncommittedDelete() {
+        return lastUncommittedDelete;
+    }
+
+    public void setLastUncommittedDelete(int deleteId) {
+        lastUncommittedDelete = deleteId;
+    }
+
     public void commit(boolean ddl) throws SQLException {
+        lastUncommittedDelete = 0;
         currentTransactionName = null;
         if (containsUncommitted()) {
-            // need to commit even if rollback is not possible (create/drop
-            // table and so on)
+            // need to commit even if rollback is not possible
+            // (create/drop table and so on)
             logSystem.commit(this);
         }
         if (undoLog.size() > 0) {

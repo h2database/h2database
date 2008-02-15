@@ -31,6 +31,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testExecuteErrorTwice(conn);
         testTempView(conn);
         testInsertFunction(conn);
         testPrepareRecompile(conn);
@@ -57,6 +58,23 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
     }
+    
+    private void testExecuteErrorTwice(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
+        try {
+            prep.execute();
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        try {
+            prep.execute();
+            error("Unexpected success");
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+    }
+
 
     private void testTempView(Connection conn) throws Exception {
         Statement stat = conn.createStatement();

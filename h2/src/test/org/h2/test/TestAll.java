@@ -150,6 +150,8 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
 
+        new TestCrashAPI().init(test).testCase(2005340068);
+        
 /*
 
 Test space re-use
@@ -410,8 +412,8 @@ DROP TABLE MY_TEST;
 
         int todo;
 //        new TestLogFile().runTest(this);
+        
         new TestMemoryUsage().runTest(this);
-
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
@@ -424,7 +426,10 @@ DROP TABLE MY_TEST;
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
-        new TestSpaceReuse().runTest(this);
+        
+        int todo2;
+//        new TestSpaceReuse().runTest(this);
+        
         new TestSpeed().runTest(this);
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);

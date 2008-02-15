@@ -621,28 +621,28 @@ public class DiskFile implements CacheWriter {
             setPageOwner(page, FREE_PAGE);
         } else {
             int todoTestThis;
-            synchronized (potentiallyFreePages) {
-                potentiallyFreePages.add(ObjectUtils.getInteger(page));
-                if (potentiallyFreePages.size() > 20) {
-                    Session[] sessions = database.getSessions();
-                    int oldest = 0;
-                    for (int i = 0; i < sessions.length; i++) {
-                        int deleteId = sessions[i].getLastUncommittedDelete();
-                        if (oldest == 0 || deleteId < oldest) {
-                            oldest = deleteId;
-                        }
-                    }
-                    for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
-                        int p = ((Integer) it.next()).intValue();
-                        if (oldest == 0 || oldest > pageDelete.get(p)) {
-                            setPageOwner(p, FREE_PAGE);
-//int testing;
-//System.out.println("free page " + p);
-                            it.remove();
-                        }
-                    }
-                }
-            }
+//            synchronized (potentiallyFreePages) {
+//                potentiallyFreePages.add(ObjectUtils.getInteger(page));
+//                if (potentiallyFreePages.size() > 20) {
+//                    Session[] sessions = database.getSessions();
+//                    int oldest = 0;
+//                    for (int i = 0; i < sessions.length; i++) {
+//                        int deleteId = sessions[i].getLastUncommittedDelete();
+//                        if (oldest == 0 || deleteId < oldest) {
+//                            oldest = deleteId;
+//                        }
+//                    }
+//                    for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
+//                        int p = ((Integer) it.next()).intValue();
+//                        if (oldest == 0 || oldest > pageDelete.get(p)) {
+//                            setPageOwner(p, FREE_PAGE);
+////int testing;
+////System.out.println("free page " + p);
+//                            it.remove();
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

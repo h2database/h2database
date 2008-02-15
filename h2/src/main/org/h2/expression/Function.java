@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.PatternSyntaxException;
 
 import org.h2.command.Command;
 import org.h2.constant.ErrorCode;
@@ -913,9 +914,15 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content));
             break;
         }
-        case REGEXP_REPLACE:
-            result = ValueString.get(v0.getString().replaceAll(v1.getString(), v2.getString()));
+        case REGEXP_REPLACE: {
+            String regexp = v1.getString();
+            try {
+                result = ValueString.get(v0.getString().replaceAll(regexp, v2.getString()));
+            } catch (PatternSyntaxException e) {
+                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, new String[]{regexp}, e);
+            }
             break;
+        }
         case RPAD:
             result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true));
             break;

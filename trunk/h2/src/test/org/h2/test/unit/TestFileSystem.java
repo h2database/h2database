@@ -114,8 +114,8 @@ public class TestFileSystem extends TestBase {
         fo.write(buffer, 0, 10000);
         fo.close();
         long lastMod = fs.getLastModified(fsBase + "/test");
-        if (lastMod < time - 999) {
-            // at most 1 second difference
+        if (lastMod < time - 1999) {
+            // at most 2 seconds difference
             check(lastMod, time);
         }
         check(fs.length(fsBase + "/test"), 10000);

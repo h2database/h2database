@@ -525,10 +525,9 @@ public class ErrorCode {
      * Multiple connections to the same database are supported in the following
      * cases:
      * <ul>
-     * <li>In embedded mode (URL of the form jdbc:h2:test) if all connections
+     * <li>In embedded mode (URL of the form jdbc:h2:~/test) if all connections
      * are opened within the same process and class loader.
-     * </li>
-     * <li>In server and cluster mode (URL of the form jdbc:h2:tcp://localhost/test)
+     * </li><li>In server and cluster mode (URL of the form jdbc:h2:tcp://localhost/test)
      * using remote connections.
      * </li></ul>
      * The mixed mode is also supported.
@@ -890,7 +889,7 @@ public class ErrorCode {
      * Supported are AES and XTEA.
      * Example:
      * <pre>
-     * jdbc:h2:test;CIPHER=DES
+     * jdbc:h2:~/test;CIPHER=DES
      * </pre>
      */
     public static final int UNSUPPORTED_CIPHER = 90055;
@@ -939,7 +938,7 @@ public class ErrorCode {
      * Currently only FILE (the default) and SOCKET are supported
      * Example:
      * <pre>
-     * jdbc:h2:test;FILE_LOCK=LDAP
+     * jdbc:h2:~/test;FILE_LOCK=LDAP
      * </pre>
      */
     public static final int UNSUPPORTED_LOCK_METHOD_1 = 90060;
@@ -998,7 +997,7 @@ public class ErrorCode {
      * the connection properties.
      * Example:
      * <pre>
-     * jdbc:h2:test;LOG=0;LOG=1
+     * jdbc:h2:~/test;LOG=0;LOG=1
      * </pre>
      */
     public static final int DUPLICATE_PROPERTY_1 = 90066;
@@ -1376,11 +1375,49 @@ public class ErrorCode {
      */
     public static final int WRONG_XID_FORMAT_1 = 90101;
 
-    private int todo25;
-
+    /**
+     * The error with code <code>90102</code> is thrown when
+     * trying to use unsupported options for the given compression algorithm.
+     * Example:
+     * <pre>
+     * CALL COMPRESS(STRINGTOUTF8(SPACE(100)), 'DEFLATE l 10');
+     * </pre>
+     * Correct:
+     * <pre>
+     * CALL COMPRESS(STRINGTOUTF8(SPACE(100)), 'DEFLATE l 9');
+     * </pre>
+     */
     public static final int UNSUPPORTED_COMPRESSION_OPTIONS_1 = 90102;
+
+    /**
+     * The error with code <code>90103</code> is thrown when
+     * trying to use an unsupported compression algorithm.
+     * Example:
+     * <pre>
+     * CALL COMPRESS(STRINGTOUTF8(SPACE(100)), 'BZIP');
+     * </pre>
+     */
     public static final int UNSUPPORTED_COMPRESSION_ALGORITHM_1 = 90103;
+
+    /**
+     * The error with code <code>90104</code> is thrown when
+     * the data can not be de-compressed.
+     * Example:
+     * <pre>
+     * CALL EXPAND(X'00FF');
+     * </pre>
+     */
     public static final int COMPRESSION_ERROR = 90104;
+
+    /**
+     * The error with code <code>90105</code> is thrown when
+     * an exception occured in a user defined method.
+     * Example:
+     * <pre>
+     * CREATE ALIAS SYS_PROP FOR "java.lang.System.getProperty";
+     * CALL SYS_PROP(NULL);
+     * </pre>
+     */
     public static final int EXCEPTION_IN_FUNCTION = 90105;
 
     /**
@@ -1406,7 +1443,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CANNOT_DROP_2 = 90107;
-    public static final int STACK_OVERFLOW = 90108;
 
     /**
      * The error with code <code>90109</code> is thrown when
@@ -1414,10 +1450,25 @@ public class ErrorCode {
      * Example:
      * <pre>
      * CREATE FORCE VIEW TEST_VIEW AS SELECT * FROM TEST;
-     * SELECT * FROM TEST_VIEW;     * </pre>
+     * SELECT * FROM TEST_VIEW;
+     * </pre>
      */
     public static final int VIEW_IS_INVALID_2 = 90109;
+
+    /**
+     * The error with code <code>90110</code> is thrown when
+     * the result of the calculation does not fit in the given data type.
+     * Example:
+     * <pre>
+     * CALL -CAST(-128 AS TINYINT);
+     * </pre>
+     */
     public static final int OVERFLOW_FOR_TYPE_1 = 90110;
+
+    /**
+     * The error with code <code>90111</code> is thrown when
+     * an exception occured while accessing a linked table.
+     */
     public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
 
     /**
@@ -1430,9 +1481,49 @@ public class ErrorCode {
      * </pre>
      */
     public static final int ROW_NOT_FOUND_WHEN_DELETING_1 = 90112;
+
+    /**
+     * The error with code <code>90113</code> is thrown when
+     * the database URL contains unsupported settings.
+     * Example:
+     * <pre>
+     * jdbc:h2:~/test;UNKNOWN=TRUE
+     * </pre>
+     */
     public static final int UNSUPPORTED_SETTING_1 = 90113;
+
+    /**
+     * The error with code <code>90114</code> is thrown when
+     * trying to create a constant if a constant with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE CONSTANT TEST VALUE 1;
+     * CREATE CONSTANT TEST VALUE 1;
+     * </pre>
+     */
     public static final int CONSTANT_ALREADY_EXISTS_1 = 90114;
+
+    /**
+     * The error with code <code>90115</code> is thrown when
+     * trying to drop a constant that does not exists.
+     * Example:
+     * <pre>
+     * DROP CONSTANT UNKNOWN;
+     * </pre>
+     */
     public static final int CONSTANT_NOT_FOUND_1 = 90115;
+
+    /**
+     * The error with code <code>90116</code> is thrown when
+     * trying use a literal in a SQL statement if literals are disabled.
+     * If literals are disabled, use PreparedStatement and parameters instead
+     * of literals in the SQL statement.
+     * Example:
+     * <pre>
+     * SET ALLOW_LITERALS NONE;
+     * CALL 1+1;
+     * </pre>
+     */
     public static final int LITERALS_ARE_NOT_ALLOWED = 90116;
 
     /**
@@ -1460,6 +1551,9 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CANNOT_DROP_TABLE_1  = 90118;
+
+    private int todo14;
+
     public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = 90119;
     public static final int USER_DATA_TYPE_NOT_FOUND_1 = 90120;
     public static final int DATABASE_CALLED_AT_SHUTDOWN = 90121;
@@ -1540,7 +1634,7 @@ public class ErrorCode {
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
-    // next is 90058
+    // next is 90058, 90108
 
     /**
      * INTERNAL

@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
@@ -33,6 +35,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 
 /**
  * This class represents a file that is usually written to disk.
@@ -73,8 +76,10 @@ public class DiskFile implements CacheWriter {
     private FileStore file;
     private BitField used;
     private BitField deleted;
+    private HashSet potentiallyFreePages;
     private int fileBlockCount;
     private IntArray pageOwners;
+    private IntArray pageDelete;
     private Cache cache;
     private LogSystem log;
     private DataPage rowBuff;
@@ -87,6 +92,8 @@ public class DiskFile implements CacheWriter {
     private int redoBufferSize;
     private int readCount, writeCount;
     private String mode;
+
+    private int nextDeleteId;
 
     public DiskFile(Database database, String fileName, String mode, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
         reset();
@@ -129,9 +136,11 @@ public class DiskFile implements CacheWriter {
         used = new BitField();
         deleted = new BitField();
         pageOwners = new IntArray();
+        pageDelete = new IntArray();
         // init pageOwners
         setBlockCount(fileBlockCount);
         redoBuffer = new ObjectArray();
+        potentiallyFreePages = new HashSet();
     }
 
     private void setBlockCount(int count) {
@@ -139,6 +148,7 @@ public class DiskFile implements CacheWriter {
         int pages = getPage(count);
         while (pages >= pageOwners.size()) {
             pageOwners.add(FREE_PAGE);
+            pageDelete.add(0);
         }
     }
 
@@ -588,16 +598,57 @@ public class DiskFile implements CacheWriter {
         if (pos + blockCount > fileBlockCount) {
             setBlockCount(pos + blockCount);
         }
+        int deleteId = 0;
+        if (session != null) {
+            deleteId = nextDeleteId++;
+            setUncommittedDelete(session, getPage(pos), deleteId);
+        }
         for (int i = pos; i < pos + blockCount; i++) {
             used.clear(i);
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
                 // if this is the first page of a block and if the whole page is free
-int disabledCurrently;
-                if (!logChanges) {
+                if (session != null && logChanges) {
+                    setUncommittedDelete(session, getPage(i), deleteId);
+                } else {
                     setPageOwner(getPage(i), FREE_PAGE);
                 }
             }
         }
+    }
+
+    void freePage(int page) throws SQLException {
+        if (!logChanges) {
+            setPageOwner(page, FREE_PAGE);
+        } else {
+            int todoTestThis;
+            synchronized (potentiallyFreePages) {
+                potentiallyFreePages.add(ObjectUtils.getInteger(page));
+                if (potentiallyFreePages.size() > 20) {
+                    Session[] sessions = database.getSessions();
+                    int oldest = 0;
+                    for (int i = 0; i < sessions.length; i++) {
+                        int deleteId = sessions[i].getLastUncommittedDelete();
+                        if (oldest == 0 || deleteId < oldest) {
+                            oldest = deleteId;
+                        }
+                    }
+                    for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
+                        int p = ((Integer) it.next()).intValue();
+                        if (oldest == 0 || oldest > pageDelete.get(p)) {
+                            setPageOwner(p, FREE_PAGE);
+//int testing;
+//System.out.println("free page " + p);
+                            it.remove();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void setUncommittedDelete(Session session, int page, int deleteId) {
+        session.setLastUncommittedDelete(deleteId);
+        pageDelete.set(page, deleteId);
     }
 
     int getPage(int pos) {

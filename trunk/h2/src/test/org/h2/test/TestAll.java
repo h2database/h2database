@@ -4,13 +4,9 @@
  */
 package org.h2.test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.Driver;
-import org.h2.constant.SysProperties;
 import org.h2.server.TcpServer;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
@@ -29,6 +25,7 @@ import org.h2.test.db.TestIndex;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
+import org.h2.test.db.TestLogFile;
 import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
@@ -44,6 +41,7 @@ import org.h2.test.db.TestScript;
 import org.h2.test.db.TestScriptSimple;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
+import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpeed;
 import org.h2.test.db.TestTempTables;
 import org.h2.test.db.TestTransaction;
@@ -68,7 +66,6 @@ import org.h2.test.jdbcx.TestXA;
 import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
-import org.h2.test.poweroff.TestRecover;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
@@ -110,8 +107,6 @@ import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.Recover;
-import org.h2.tools.Restore;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
 
@@ -157,13 +152,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-the user should be allowed to do everything with his own temp tables (and views).
-CREATE USER IF NOT EXISTS READER PASSWORD 'READER';
-<login as READER>
-CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT);
-INSERT INTO MY_TEST VALUES(1);
-SELECT * FROM MY_TEST;
-DROP TABLE MY_TEST;
+Test space re-use
 
 Automate real power off tests
 Extend tests that simulate power off
@@ -182,21 +171,20 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
-Databases can now be opened even if trigger classes are not in the classpath.
-    The exception is thrown when trying to fire the trigger.
-Opening databases with ACCESS_MODE_DATA=r is now supported.
-    In this case the database is read-only, but the files don't not need
-    to be read-only.
-Security: The database now waits 200 ms before throwing an exception if
-    the user name or password don't match, to slow down dictionary attacks.
-The value cache is now a soft reference cache. This should help save memory.
-Large result sets are now a bit faster.
-ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support an expressions.
-When setting the base directory on the command line, the user directory prefix ('~') was ignored.
+
 
 Roadmap:
-BIT VARYING (PostgreSQL)
-Bitwise AND operator (1 & 3) (PostgreSQL, MySQL)
+
+
+
+The user should be allowed to do everything with his own temp tables (and views).
+CREATE USER IF NOT EXISTS READER PASSWORD 'READER';
+<login as READER>
+CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT);
+INSERT INTO MY_TEST VALUES(1);
+SELECT * FROM MY_TEST;
+DROP TABLE MY_TEST;
+
 */
 
         if (args.length > 0) {
@@ -420,10 +408,10 @@ Bitwise AND operator (1 & 3) (PostgreSQL, MySQL)
         new TestListener().runTest(this);
         new TestLob().runTest(this);
 
-//        // size problem!
+        int todo;
 //        new TestLogFile().runTest(this);
-
         new TestMemoryUsage().runTest(this);
+
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
@@ -436,10 +424,7 @@ Bitwise AND operator (1 & 3) (PostgreSQL, MySQL)
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
-
-//        // should fail
-//        new TestSpaceReuse().runTest(this);
-
+        new TestSpaceReuse().runTest(this);
         new TestSpeed().runTest(this);
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);

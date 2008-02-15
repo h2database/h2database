@@ -2076,10 +2076,10 @@ COMPRESS(dataBytes [, algorithmString]): bytes
 ","
 Compresses the data using the specified compression algorithm.
 Supported algorithms are:
-LZF (fast but lower compression),
-DEFLATE (higher compression; default).
-Compression only makes reduces the size if the
-original data contains redundancy and is at least about 30 bytes long.
+LZF (fast but lower compression; default),
+DEFLATE (higher compression).
+Compression does not always reduce size.
+Very small objects and objects with little redundancy may get larger.
 ","
 COMPRESS(STRINGTOUTF8('Test'))
 "

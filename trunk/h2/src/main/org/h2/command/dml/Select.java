@@ -443,7 +443,6 @@ public class Select extends Query {
         if (SysProperties.CHECK && checkInit) {
             throw Message.getInternalError();
         }
-        checkInit = true;
         expandColumnList();
         visibleColumnCount = expressions.size();
         ObjectArray expressionSQL;
@@ -510,6 +509,7 @@ public class Select extends Query {
                 condition.mapColumns(f, 0);
             }
         }
+        checkInit = true;
     }
 
     public void prepare() throws SQLException {
@@ -520,7 +520,6 @@ public class Select extends Query {
         if (SysProperties.CHECK && !checkInit) {
             throw Message.getInternalError("not initialized");
         }
-        isPrepared = true;
         if (orderList != null) {
             sort = prepareOrder(expressions, orderList);
             orderList = null;
@@ -582,6 +581,7 @@ public class Select extends Query {
                 }
             }
         }
+        isPrepared = true;
     }
 
     public double getCost() {

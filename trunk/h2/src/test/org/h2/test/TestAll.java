@@ -149,14 +149,17 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-        
+
 /*
+
+Extend tests that simulate power off (multiple connections, truncate table, drop table, rename objects,...)
+
+Automate real power off tests
+timer test
 
 Test space re-use
 
-Automate real power off tests
-Extend tests that simulate power off
-timer test
+enforce javadoc comments for constants
 
 Can sometimes not delete log file? need test case
 
@@ -171,6 +174,7 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
+
 
 
 Roadmap:
@@ -410,7 +414,7 @@ DROP TABLE MY_TEST;
 
         int todo;
 //        new TestLogFile().runTest(this);
-        
+
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
@@ -424,10 +428,10 @@ DROP TABLE MY_TEST;
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
-        
+
         int todo2;
 //        new TestSpaceReuse().runTest(this);
-        
+
         new TestSpeed().runTest(this);
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);

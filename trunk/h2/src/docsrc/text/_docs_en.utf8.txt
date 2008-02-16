@@ -2657,7 +2657,7 @@ In addition to the settings already described (cipher, file_lock, ifexists, user
 Custom File Access Mode
 
 @features_1271_p
-Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
+Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). To open a database in read-only mode if the files are not read-only, use ACCESS_MODE_DATA=r. Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
 
 @features_1272_p
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a> . On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.

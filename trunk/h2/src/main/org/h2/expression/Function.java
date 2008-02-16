@@ -1007,8 +1007,13 @@ public class Function extends Expression implements FunctionCall {
             String fieldSeparatorWrite = v3 == null ? null : v3.getString();
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
+            Value v6 = getNullOrValue(session, args, 6);
+            String lineSeparator = v6 == null ? null : v6.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
+            if (lineSeparator != null) {
+                csv.setLineSeparator(lineSeparator);
+            }
             int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
             result = ValueInt.get(rows);
             break;

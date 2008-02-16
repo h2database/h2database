@@ -82,10 +82,9 @@ public class TestCsv extends TestBase {
         f.delete();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '')");
+        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '', null, chr(10))");
         FileReader reader = new FileReader(baseDir + "/test.csv");
         String text = IOUtils.readStringAndClose(reader, -1).trim();
-        text = StringUtils.replaceAll(text, "\r", "");
         text = StringUtils.replaceAll(text, "\n", " ");
         check("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, '|', '')");

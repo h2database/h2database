@@ -498,6 +498,12 @@ public class DataType {
             return null;
         case Value.JAVA_OBJECT:
             return Object.class.getName(); // "java.lang.Object";
+        case Value.UNKNOWN:
+            return Object.class.getName(); // anything
+        case Value.ARRAY:
+            return Array.class.getName();
+        case Value.RESULT_SET:
+            return ResultSet.class.getName();
         default:
             throw Message.getInternalError("type="+type);
         }

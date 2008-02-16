@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.sql.Connection;
@@ -25,6 +24,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 
+import org.h2.constant.SysProperties;
+import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -45,9 +46,10 @@ public class Csv implements SimpleRowSource {
     private String rowSeparatorWrite;
     private char fieldDelimiter = '\"';
     private char escapeCharacter = '\"';
+    private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String fileName;
     private Reader reader;
-    private PrintWriter writer;
+    private Writer writer;
     private int back;
     private boolean endOfLine, endOfFile;
 
@@ -78,6 +80,8 @@ public class Csv implements SimpleRowSource {
                 rows++;
             }
             return rows;
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
         } finally {
             close();
             JdbcUtils.closeSilently(rs);
@@ -96,7 +100,7 @@ public class Csv implements SimpleRowSource {
      *             IOException
      */
     public int write(Writer writer, ResultSet rs) throws SQLException, IOException {
-        this.writer = new PrintWriter(writer);
+        this.writer = writer;
         return writeResultSet(rs);
     }
 
@@ -223,7 +227,7 @@ public class Csv implements SimpleRowSource {
             try {
                 OutputStream out = new FileOutputStream(fileName);
                 out = new BufferedOutputStream(out, bufferSize);
-                writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(out, charset)));
+                writer = new BufferedWriter(new OutputStreamWriter(out, charset));
             } catch (IOException e) {
                 close();
                 throw e;
@@ -231,32 +235,33 @@ public class Csv implements SimpleRowSource {
         }
     }
 
-    private void writeRow(String[] values) {
+    private void writeRow(String[] values) throws IOException {
         for (int i = 0; i < values.length; i++) {
             if (i > 0) {
                 if (fieldSeparatorWrite != null) {
-                    writer.print(fieldSeparatorWrite);
+                    writer.write(fieldSeparatorWrite);
                 }
             }
             String s = values[i];
             if (s != null) {
                 if (escapeCharacter != 0) {
                     if (fieldDelimiter != 0) {
-                        writer.print(fieldDelimiter);
+                        writer.write(fieldDelimiter);
+
                     }
-                    writer.print(escape(s));
+                    writer.write(escape(s));
                     if (fieldDelimiter != 0) {
-                        writer.print(fieldDelimiter);
+                        writer.write(fieldDelimiter);
                     }
                 } else {
-                    writer.print(s);
+                    writer.write(s);
                 }
             }
         }
         if (rowSeparatorWrite != null) {
-            writer.print(rowSeparatorWrite);
+            writer.write(rowSeparatorWrite);
         }
-        writer.println();
+        writer.write(lineSeparator);
     }
 
     private String escape(String data) {
@@ -606,6 +611,15 @@ public class Csv implements SimpleRowSource {
      */
     public char getEscapeCharacter() {
         return escapeCharacter;
+    }
+
+    /**
+     * Set the line separator.
+     *
+     * @param lineSeparator the line separator
+     */
+    public void setLineSeparator(String lineSeparator) {
+        this.lineSeparator = lineSeparator;
     }
 
 }

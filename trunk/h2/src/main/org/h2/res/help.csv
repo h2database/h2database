@@ -2664,13 +2664,13 @@ CALL CSVREAD('test.csv')
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString
-[, fieldDelimiterString [, escapeCharacterString [, lineSeparator]]]]): int
+CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString [, fieldDelimiterString
+[, escapeCharacterString [, lineSeparatorString]]]]]): int
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.
 The default charset is the default value for this system, and the default field separator is a comma.
-The default line separator is the default value for this system ("line.separator" system property).
+The default line separator is the default value for this system ('line.separator' system property).
 The returned value is the number or rows written.
 Admin rights are required to execute this command.
 ","

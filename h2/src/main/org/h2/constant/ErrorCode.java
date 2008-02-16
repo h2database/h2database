@@ -1552,13 +1552,61 @@ public class ErrorCode {
      */
     public static final int CANNOT_DROP_TABLE_1  = 90118;
 
-    private int todo14;
-
+    /**
+     * The error with code <code>90119</code> is thrown when
+     * trying to create a domain if an object with this name already exists.
+     * Example:
+     * <pre>
+     * CREATE DOMAIN EMAIL AS VARCHAR CHECK LOCATE('@', VALUE) > 0;
+     * CREATE DOMAIN EMAIL AS VARCHAR CHECK LOCATE('@', VALUE) > 0;
+     * </pre>
+     */
     public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = 90119;
+
+    /**
+     * The error with code <code>90120</code> is thrown when
+     * trying to drop a domain that doesn't exists.
+     * Example:
+     * <pre>
+     * DROP DOMAIN UNKNOWN;
+     * </pre>
+     */
     public static final int USER_DATA_TYPE_NOT_FOUND_1 = 90120;
+
+    /**
+     * The error with code <code>90121</code> is thrown when
+     * a database operation is started while the virtual machine exits
+     * (for example in a shutdown hook), or when the session is closed.
+     */
     public static final int DATABASE_CALLED_AT_SHUTDOWN = 90121;
+
+    /**
+     * The error with code <code>90122</code> is thrown when
+     * trying to altering, adding or dropping columns of a table that has views.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT);
+     * CREATE VIEW TEST_VIEW AS SELECT * FROM TEST;
+     * ALTER TABLE TEST ADD COLUMN NAME VARCHAR;
+     * </pre>
+     */
     public static final int OPERATION_NOT_SUPPORTED_WITH_VIEWS_2 = 90122;
+
+    /**
+     * The error with code <code>90123</code> is thrown when
+     * trying mix regular parameters and indexed parameters in the same statement.
+     * Example:
+     * <pre>
+     * SELECT ?, ?1 FROM DUAL;
+     * </pre>
+     */
     public static final int CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS = 90123;
+
+    /**
+     * The error with code <code>90124</code> is thrown when
+     * trying to access a file that doesn't exist. This can occur when trying to
+     * read a lob if the lob file has been deleted by another application.
+     */
     public static final int FILE_NOT_FOUND_1 = 90124;
 
     /**
@@ -1579,9 +1627,45 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_CLASS_2 = 90125;
+
+    /**
+     * The error with code <code>90126</code> is thrown when
+     * trying to call the BACKUP statement for an in-memory database.
+     * Example:
+     * <pre>
+     * jdbc:h2:mem:
+     * BACKUP TO 'test.zip';
+     * </pre>
+     */
     public static final int DATABASE_IS_NOT_PERSISTENT = 90126;
+
+    /**
+     * The error with code <code>90127</code> is thrown when
+     * trying to update or delete a row in a result set if the result set is
+     * not updatable.
+     */
     public static final int RESULT_SET_NOT_UPDATABLE = 90127;
+
+    /**
+     * The error with code <code>90128</code> is thrown when
+     * trying to call a method of the ResultSet that is only supported
+     * for scrollable result sets, and the result set is not scrollable.
+     * Example:
+     * <pre>
+     * rs.first();
+     * </pre>
+     */
     public static final int RESULT_SET_NOT_SCROLLABLE = 90128;
+
+    /**
+     * The error with code <code>90129</code> is thrown when
+     * trying to commit a transaction that doesn't exist.
+     * Example:
+     * <pre>
+     * PREPARE COMMIT ABC;
+     * COMMIT TRANSACTION TEST;
+     * </pre>
+     */
     public static final int TRANSACTION_NOT_FOUND_1 = 90129;
 
     /**
@@ -1600,9 +1684,50 @@ public class ErrorCode {
      * </pre>
      */
     public static final int METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT = 90130;
+
+    /**
+     * The error with code <code>90131</code> is thrown when
+     * using multi version concurrency control, and trying to update the same
+     * row from within two connections at the same time.
+     * Example:
+     * <pre>
+     * jdbc:h2:~/test;MVCC=TRUE
+     * Session 1:
+     * CREATE TABLE TEST(ID INT);
+     * INSERT INTO TEST VALUES(1);
+     * SET AUTOCOMMIT FALSE;
+     * UPDATE TEST SET ID = 2;
+     * Session 2:
+     * SET AUTOCOMMIT FALSE;
+     * UPDATE TEST SET ID = 3;
+     * </pre>
+     */
     public static final int CONCURRENT_UPDATE_1 = 90131;
+
+    /**
+     * The error with code <code>90132</code> is thrown when
+     * trying to drop a user defined aggregate function that doesn't exist.
+     * Example:
+     * <pre>
+     * DROP AGGREGATE UNKNOWN;
+     * </pre>
+     */
     public static final int AGGREGATE_NOT_FOUND_1 = 90132;
+
+    /**
+     * The error with code <code>90133</code> is thrown when
+     * trying to change a specific database property while the database is already
+     * open. The MVCC property needs to be set in the first connection
+     * (in the connection opening the database) and can not be changed later on.
+     */
     public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
+
+    /**
+     * The error with code <code>90134</code> is thrown when
+     * trying to load a Java class that is not part of the allowed classes.
+     * By default, all classes are allowed, but this can be changed using the system
+     * property h2.allowedClasses.
+     */
     public static final int ACCESS_DENIED_TO_CLASS_1 = 90134;
 
     /**

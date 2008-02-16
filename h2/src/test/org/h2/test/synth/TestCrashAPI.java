@@ -383,11 +383,8 @@ public class TestCrashAPI extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc || config.networked) {
+        if (config.mvcc || config.networked || config.logMode == 0) {
             return this;
-        }
-        if (config.logMode == 0) {
-            error("Log mode 0 may corrupt the db, can't test");
         }
         baseDir = "dataCrash";
         startServerIfRequired();
@@ -412,7 +409,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     public void test() throws Exception {
-        if (config.mvcc || config.networked) {
+        if (config.mvcc || config.networked || config.logMode == 0) {
             return;
         }
         int len = getSize(2, 6);

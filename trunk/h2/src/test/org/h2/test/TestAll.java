@@ -75,6 +75,7 @@ import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestKillRestart;
+import org.h2.test.synth.TestKillRestartMulti;
 import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
@@ -174,7 +175,7 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
-
+CSV tool now support lineSeparator
 
 
 Roadmap:
@@ -472,6 +473,7 @@ DROP TABLE MY_TEST;
         new TestCrashAPI().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
+        new TestKillRestartMulti().runTest(this);
 
         // unit
         new TestBitField().runTest(this);
@@ -513,10 +515,10 @@ DROP TABLE MY_TEST;
             test.runTest(this);
         } catch (Exception e) {
             // ignore
-            TestBase.logError("Class not found: " + className, null);
+            TestBase.printlnWithTime(0, className + " class not found");
         } catch (NoClassDefFoundError e) {
             // ignore
-            TestBase.logError("Class not found: " + className, null);
+            TestBase.printlnWithTime(0, className + " class not found");
         }
     }
 

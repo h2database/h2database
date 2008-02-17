@@ -326,6 +326,7 @@ public class TableLink extends Table {
     public void removeChildrenAndResources(Session session) throws SQLException {
         super.removeChildrenAndResources(session);
         close(session);
+        database.removeMeta(session, getId());
         driver = null;
         url = user = password = originalTable = null;
         conn = null;

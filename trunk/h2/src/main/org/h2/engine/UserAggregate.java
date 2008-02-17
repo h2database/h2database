@@ -64,6 +64,7 @@ public class UserAggregate extends DbObjectBase {
     }
 
     public synchronized void removeChildrenAndResources(Session session) throws SQLException {
+        database.removeMeta(session, getId());
         className = null;
         javaClass = null;
         invalidate();

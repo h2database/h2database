@@ -106,6 +106,7 @@ public class Right extends DbObjectBase {
         } else {
             grantee.revokeRole(session, grantedRole);
         }
+        database.removeMeta(session, getId());
         grantedRole = null;
         grantedTable = null;
         grantee = null;

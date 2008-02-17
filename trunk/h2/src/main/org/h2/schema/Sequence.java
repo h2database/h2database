@@ -117,7 +117,8 @@ public class Sequence extends SchemaObjectBase {
         return DbObject.SEQUENCE;
     }
 
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(Session session) throws SQLException {
+        database.removeMeta(session, getId());
         invalidate();
     }
 

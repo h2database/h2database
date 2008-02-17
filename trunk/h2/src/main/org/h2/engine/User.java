@@ -172,6 +172,7 @@ public class User extends RightOwner {
                 database.removeDatabaseObject(session, right);
             }
         }
+        database.removeMeta(session, getId());
         salt = null;
         ByteUtils.clear(passwordHash);
         passwordHash = null;

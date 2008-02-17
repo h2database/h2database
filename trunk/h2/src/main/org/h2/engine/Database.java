@@ -673,7 +673,7 @@ public class Database implements DataHandler {
         }
     }
 
-    private synchronized void removeMeta(Session session, int id) throws SQLException {
+    public synchronized void removeMeta(Session session, int id) throws SQLException {
         SearchRow r = meta.getTemplateSimpleRow(false);
         r.setValue(0, ValueInt.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);

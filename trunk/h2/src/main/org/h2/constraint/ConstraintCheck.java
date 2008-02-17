@@ -75,8 +75,9 @@ public class ConstraintCheck extends Constraint {
         return getCreateSQLForCopy(table, getSQL());
     }
 
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(Session session) throws SQLException {
         table.removeConstraint(this);
+        database.removeMeta(session, getId());
         filter = null;
         expr = null;
         table = null;

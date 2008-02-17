@@ -66,6 +66,7 @@ public class Role extends RightOwner {
                 database.removeDatabaseObject(session, right);
             }
         }
+        database.removeMeta(session, getId());
         invalidate();
     }
 

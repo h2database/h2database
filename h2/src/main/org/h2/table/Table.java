@@ -332,18 +332,20 @@ public abstract class Table extends SchemaObjectBase {
             constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
-        while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = (Sequence) sequences.get(0);
-            sequences.remove(0);
-            if (!getTemporary()) {
-                database.removeSchemaObject(session, sequence);
-            }
-        }
         ObjectArray rights = database.getAllRights();
         for (int i = 0; i < rights.size(); i++) {
             Right right = (Right) rights.get(i);
             if (right.getGrantedTable() == this) {
                 database.removeDatabaseObject(session, right);
+            }
+        }
+        database.removeMeta(session, getId());
+        // must delete sequences later (in case there is a power failure before removing the table object)
+        while (sequences != null && sequences.size() > 0) {
+            Sequence sequence = (Sequence) sequences.get(0);
+            sequences.remove(0);
+            if (!getTemporary()) {
+                database.removeSchemaObject(session, sequence);
             }
         }
     }

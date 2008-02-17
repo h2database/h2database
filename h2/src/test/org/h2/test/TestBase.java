@@ -247,7 +247,7 @@ public abstract class TestBase {
         printlnWithTime(time, getClass().getName() + " " + s);
     }
 
-    private static void printlnWithTime(long time, String s) {
+    static void printlnWithTime(long time, String s) {
         String t = "0000000000" + time;
         t = t.substring(t.length() - 6);
         System.out.println(t + " " + s);

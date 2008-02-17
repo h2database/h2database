@@ -207,6 +207,7 @@ public class ConstraintReferential extends Constraint {
         if (refIndexOwner) {
             refTable.removeIndexOrTransferOwnership(session, refIndex);
         }
+        database.removeMeta(session, getId());
         refTable = null;
         index = null;
         refIndex = null;

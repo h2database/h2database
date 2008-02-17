@@ -63,7 +63,8 @@ public class Setting extends DbObjectBase {
         return DbObject.SETTING;
     }
 
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(Session session) throws SQLException {
+        database.removeMeta(session, getId());
         invalidate();
     }
 

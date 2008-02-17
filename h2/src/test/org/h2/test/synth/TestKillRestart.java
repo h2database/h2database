@@ -24,9 +24,9 @@ public class TestKillRestart extends TestBase {
         if (config.networked) {
             return;
         }
-        deleteDb("corrupt");
-        String url = getURL("corrupt", true);
-        // String url = getURL("corrupt;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
+        deleteDb("killRestart");
+        String url = getURL("killRestart", true);
+        // String url = getURL("killRestart;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         String user = getUser(), password = getPassword();
 
         String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
@@ -35,7 +35,6 @@ public class TestKillRestart extends TestBase {
         int len = getSize(2, 15);
         for (int i = 0; i < len; i++) {
             Process p = Runtime.getRuntime().exec(procDef);
-            // InputStream err = p.getErrorStream();
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();

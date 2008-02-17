@@ -116,6 +116,7 @@ public class ConstraintUnique extends Constraint {
         if (indexOwner) {
             table.removeIndexOrTransferOwnership(session, index);
         }
+        database.removeMeta(session, getId());
         index = null;
         columns = null;
         table = null;

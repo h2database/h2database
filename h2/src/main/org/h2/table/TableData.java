@@ -115,7 +115,7 @@ public class TableData extends Table implements RecordReader {
             throw Message.convert(e);
         }
     }
-    
+
     private void checkRowCount(Session session, Index index, int offset) {
         if (SysProperties.CHECK && !database.isMultiVersion()) {
             long rc = index.getRowCount(session);
@@ -498,6 +498,7 @@ public class TableData extends Table implements RecordReader {
             }
         }
         scanIndex.remove(session);
+        database.removeMeta(session, getId());
         scanIndex = null;
         lockExclusive = null;
         lockShared = null;

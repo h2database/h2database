@@ -236,8 +236,9 @@ public class TriggerObject extends SchemaObjectBase {
         return DbObject.TRIGGER;
     }
 
-    public void removeChildrenAndResources(Session session) {
+    public void removeChildrenAndResources(Session session) throws SQLException {
         table.removeTrigger(session, this);
+        database.removeMeta(session, getId());
         table = null;
         triggerClassName = null;
         triggerCallback = null;

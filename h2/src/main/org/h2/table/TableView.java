@@ -221,6 +221,7 @@ public class TableView extends Table {
     public void removeChildrenAndResources(Session session) throws SQLException {
         removeViewFromTables();
         super.removeChildrenAndResources(session);
+        database.removeMeta(session, getId());
         querySQL = null;
         index = null;
         invalidate();

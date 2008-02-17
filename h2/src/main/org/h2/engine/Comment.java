@@ -84,6 +84,7 @@ public class Comment extends DbObjectBase {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
+        database.removeMeta(session, getId());
     }
 
     public void checkRename() throws SQLException {

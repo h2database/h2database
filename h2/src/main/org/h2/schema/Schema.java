@@ -107,6 +107,7 @@ public class Schema extends DbObjectBase {
             Constant obj = (Constant) constants.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
+        database.removeMeta(session, getId());
         owner = null;
         invalidate();
     }

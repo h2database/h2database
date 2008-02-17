@@ -151,6 +151,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public void removeChildrenAndResources(Session session) throws SQLException {
         table.removeIndex(this);
         remove(session);
+        database.removeMeta(session, getId());
     }
 
     public boolean canFindNext() {

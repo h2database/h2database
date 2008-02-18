@@ -153,14 +153,13 @@ java org.h2.test.TestAll timer
 
 /*
 
-Extend tests that simulate power off (multiple connections, truncate table, drop table, rename objects,...)
+Test space re-use
+REUSE_SPACE_AFTER=20 or so
+
+sourceDocs.html: move
 
 Automate real power off tests
 timer test
-
-Test space re-use
-
-enforce javadoc comments for constants
 
 Can sometimes not delete log file? need test case
 
@@ -175,6 +174,7 @@ Adjust cache memory usage
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
+Empty space is re-used less agressively because this could cause database corruption in some cases.
 CSV tool now support lineSeparator
 
 
@@ -412,10 +412,7 @@ DROP TABLE MY_TEST;
         new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
         new TestLob().runTest(this);
-
-        int todo;
-//        new TestLogFile().runTest(this);
-
+        new TestLogFile().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
@@ -431,7 +428,7 @@ DROP TABLE MY_TEST;
         new TestSequence().runTest(this);
 
         int todo2;
-//        new TestSpaceReuse().runTest(this);
+        new TestSpaceReuse().runTest(this);
 
         new TestSpeed().runTest(this);
         new TestTempTables().runTest(this);
@@ -472,6 +469,8 @@ DROP TABLE MY_TEST;
         // synth
         new TestCrashAPI().runTest(this);
         new TestRandomSQL().runTest(this);
+
+        int test3;
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
 

@@ -33,6 +33,7 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.IntArray;
+import org.h2.util.IntHashMap;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
@@ -79,6 +80,8 @@ public class DiskFile implements CacheWriter {
     private HashSet potentiallyFreePages;
     private int fileBlockCount;
     private IntArray pageOwners;
+
+    // the latest delete in a page
     private IntArray pageDelete;
     private Cache cache;
     private LogSystem log;
@@ -92,8 +95,7 @@ public class DiskFile implements CacheWriter {
     private int redoBufferSize;
     private int readCount, writeCount;
     private String mode;
-
-    private int nextDeleteId;
+    private int nextDeleteId = 1;
 
     public DiskFile(Database database, String fileName, String mode, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
         reset();
@@ -531,6 +533,7 @@ public class DiskFile implements CacheWriter {
     }
 
     int allocate(Storage storage, int blockCount) throws SQLException {
+        reuseSpace();
         synchronized (database) {
             if (file == null) {
                 throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
@@ -598,20 +601,49 @@ public class DiskFile implements CacheWriter {
         if (pos + blockCount > fileBlockCount) {
             setBlockCount(pos + blockCount);
         }
-        int deleteId = 0;
-        if (session != null) {
-            deleteId = nextDeleteId++;
-            setUncommittedDelete(session, getPage(pos), deleteId);
-        }
+        uncommittedDelete(session);
         for (int i = pos; i < pos + blockCount; i++) {
             used.clear(i);
             if ((i % BLOCKS_PER_PAGE == 0) && (pos + blockCount >= i + BLOCKS_PER_PAGE)) {
                 // if this is the first page of a block and if the whole page is free
-                if (session != null && logChanges) {
-                    setUncommittedDelete(session, getPage(i), deleteId);
-                } else {
-                    setPageOwner(getPage(i), FREE_PAGE);
+                freePage(getPage(i));
+            }
+        }
+        int start = getPage(pos), end = getPage(pos + blockCount);
+        for (int i = start; i <= end; i++) {
+            pageDelete.set(i, nextDeleteId);
+        }
+    }
+
+    void reuseSpace() throws SQLException {
+        if (SysProperties.REUSE_SPACE_QUICKLY) {
+            if (potentiallyFreePages.size() >= SysProperties.REUSE_SPACE_AFTER) {
+                Session[] sessions = database.getSessions();
+                int oldest = 0;
+                for (int i = 0; i < sessions.length; i++) {
+                    int deleteId = sessions[i].getLastUncommittedDelete();
+                    if (oldest == 0 || deleteId < oldest) {
+                        oldest = deleteId;
+                    }
                 }
+                for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
+                    int p = ((Integer) it.next()).intValue();
+                    int testingReallyCareful;
+                    if (oldest == 0 /*|| oldest > pageDelete.get(p)*/) {
+                        setPageOwner(p, FREE_PAGE);
+                        it.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    void uncommittedDelete(Session session) throws SQLException {
+        if (session != null && logChanges && SysProperties.REUSE_SPACE_QUICKLY) {
+            int deleteId = session.getLastUncommittedDelete();
+            if (deleteId == 0 || deleteId < nextDeleteId) {
+                deleteId = ++nextDeleteId;
+                session.setLastUncommittedDelete(deleteId);
             }
         }
     }
@@ -620,35 +652,11 @@ public class DiskFile implements CacheWriter {
         if (!logChanges) {
             setPageOwner(page, FREE_PAGE);
         } else {
-            int todoTestThis;
-//            synchronized (potentiallyFreePages) {
-//                potentiallyFreePages.add(ObjectUtils.getInteger(page));
-//                if (potentiallyFreePages.size() > 20) {
-//                    Session[] sessions = database.getSessions();
-//                    int oldest = 0;
-//                    for (int i = 0; i < sessions.length; i++) {
-//                        int deleteId = sessions[i].getLastUncommittedDelete();
-//                        if (oldest == 0 || deleteId < oldest) {
-//                            oldest = deleteId;
-//                        }
-//                    }
-//                    for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
-//                        int p = ((Integer) it.next()).intValue();
-//                        if (oldest == 0 || oldest > pageDelete.get(p)) {
-//                            setPageOwner(p, FREE_PAGE);
-////int testing;
-////System.out.println("free page " + p);
-//                            it.remove();
-//                        }
-//                    }
-//                }
-//            }
+            if (SysProperties.REUSE_SPACE_QUICKLY) {
+                potentiallyFreePages.add(ObjectUtils.getInteger(page));
+                reuseSpace();
+            }
         }
-    }
-
-    private void setUncommittedDelete(Session session, int page, int deleteId) {
-        session.setLastUncommittedDelete(deleteId);
-        pageDelete.set(page, deleteId);
     }
 
     int getPage(int pos) {
@@ -688,6 +696,10 @@ public class DiskFile implements CacheWriter {
         }
         if (storageId >= 0) {
             database.getStorage(storageId, this).addPage(page);
+            if (SysProperties.REUSE_SPACE_QUICKLY) {
+                potentiallyFreePages.remove(ObjectUtils.getInteger(page));
+                pageDelete.set(page, 0);
+            }
         }
         pageOwners.set(page, storageId);
     }

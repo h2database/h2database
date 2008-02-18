@@ -53,7 +53,7 @@ public class TestLogFile extends TestBase {
                 long length = reconnect(maxFiles);
                 insert();
                 long l2 = reconnect(maxFiles);
-                trace("l2=" + l2);
+                trace("length:" + length + " l2:" + l2);
                 check(l2 <= length * 2);
             }
             conn.close();
@@ -90,6 +90,7 @@ public class TestLogFile extends TestBase {
             }
         }
         checkLogSize();
+        // stat.execute("TRUNCATE TABLE TEST");
     }
 
 }

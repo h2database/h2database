@@ -137,17 +137,20 @@ public class Doclet {
         int fieldId = 0;
         for (int i = 0; i < fields.length; i++) {
             FieldDoc field = fields[i];
-            if (!field.isFinal() || !field.isStatic() || !field.isPublic()) {
+            if (skipField(clazz, field)) {
                 continue;
             }
+            String name = field.name();
             String text = field.commentText();
+            if (text == null || text.trim().length() == 0) {
+                throw new Error("undocumented field? " + clazz.name() + "." + name + " " + field);
+            }
             if (text.startsWith("INTERNAL")) {
                 continue;
             }
             if (fieldId == 0) {
                 writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
-            String name = field.name();
             String type = getTypeName(true, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             String constant = field.constantValueExpression();
@@ -260,7 +263,7 @@ public class Doclet {
         });
         for (int i = 0; i < fields.length; i++) {
             FieldDoc field = fields[i];
-            if (!field.isFinal() || !field.isStatic() || !field.isPublic()) {
+            if (skipField(clazz, field)) {
                 continue;
             }
             String text = field.commentText();
@@ -312,6 +315,13 @@ public class Doclet {
         }
         text = StringUtils.replaceAll(text, "\n </pre>", "</pre>");
         return text;
+    }
+
+    private static boolean skipField(ClassDoc clazz, FieldDoc field) {
+        if (!field.isFinal() || !field.isStatic() || !field.isPublic() || field.containingClass() != clazz) {
+            return true;
+        }
+        return false;
     }
 
     private static boolean skipMethod(MethodDoc method) {

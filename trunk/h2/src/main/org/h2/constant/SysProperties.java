@@ -292,6 +292,19 @@ public class SysProperties {
     public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
 
     /**
+     * System property <code>h2.reuseSpaceAfter</code> (default: 16).<br />
+     * Reuse space in database files after this many pages are free.
+     */
+    public static final int REUSE_SPACE_AFTER = getIntSetting("h2.reuseSpaceAfter", 1);
+
+    /**
+     * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />
+     * Reuse space in database files quickly.
+     */
+private int test;
+    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
+
+    /**
      * System property <code>h2.runFinalize</code> (default: true).<br />
      * Run finalizers to detect unclosed connections.
      */

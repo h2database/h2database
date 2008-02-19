@@ -41,7 +41,7 @@ public class TestTransaction extends TestBase {
         Statement s2 = c2.createStatement();
         try {
             s2.executeUpdate("insert into B values('two', 1)");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

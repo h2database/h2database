@@ -149,6 +149,7 @@ public class Storage {
         }
         record.setDeleted(true);
         int blockCount = record.getBlockCount();
+        file.uncommittedDelete(session);
         free(pos, blockCount);
         recordCount--;
         file.removeRecord(session, pos, record, blockCount);
@@ -266,7 +267,7 @@ public class Storage {
         pageCheckIndex = (pageCheckIndex + 1) % pages.size();
         int page = pages.get(pageCheckIndex);
         if (file.isPageFree(page) && file.getPageOwner(page) == id) {
-            file.freePage(page);
+//            file.freePage(page);
         }
     }
 

@@ -34,13 +34,13 @@ public class TestAutoRecompile extends TestBase {
         stat.execute("ALTER TABLE TEST ADD COLUMN Z INT");
         try {
             prep.execute();
-            error("must fail");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             prep.execute();
-            error("must fail");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

@@ -156,6 +156,9 @@ java org.h2.test.TestAll timer
 Test space re-use
 REUSE_SPACE_AFTER=20 or so
 
+delete old ipowerb content (first filter, then remove)
+link to new changelog and roadmap, remove pages from google groups
+
 sourceDocs.html: move
 
 Automate real power off tests
@@ -163,32 +166,17 @@ timer test
 
 Can sometimes not delete log file? need test case
 
-link to new changelog and roadmap, remove pages from google groups
-
 Adjust cache memory usage
+
 // test with garbage at the end of the log file (must be consistently detected as such)
-// TestRandomSQL is too random; most statements fails
 // extend the random join test that compared the result against PostgreSQL
 // long running test with the same database
 // repeatable test with a very big database (making backups of the database files)
 Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
-Empty space is re-used less agressively because this could cause database corruption in some cases.
-CSV tool now support lineSeparator
-
 
 Roadmap:
-
-
-
-The user should be allowed to do everything with his own temp tables (and views).
-CREATE USER IF NOT EXISTS READER PASSWORD 'READER';
-<login as READER>
-CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT);
-INSERT INTO MY_TEST VALUES(1);
-SELECT * FROM MY_TEST;
-DROP TABLE MY_TEST;
 
 */
 
@@ -426,10 +414,7 @@ DROP TABLE MY_TEST;
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSequence().runTest(this);
-
-        int todo2;
         new TestSpaceReuse().runTest(this);
-
         new TestSpeed().runTest(this);
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);
@@ -469,8 +454,6 @@ DROP TABLE MY_TEST;
         // synth
         new TestCrashAPI().runTest(this);
         new TestRandomSQL().runTest(this);
-
-        int test3;
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
 

@@ -65,7 +65,7 @@ public class TestRunscript extends TestBase implements Trigger {
         if (password) {
             try {
                 stat2.execute(sql);
-                error("should fail");
+                error();
             } catch (SQLException e) {
                 checkNotGeneralException(e);
             }

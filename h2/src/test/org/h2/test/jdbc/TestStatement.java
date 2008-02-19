@@ -56,7 +56,7 @@ public class TestStatement extends TestBase {
         int id1 = savepoint1.getSavepointId();
         try {
             savepoint1.getSavepointName();
-            error("exception expected");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -68,7 +68,7 @@ public class TestStatement extends TestBase {
         conn.releaseSavepoint(savepoint2a);
         try {
             savepoint2a.getSavepointId();
-            error("exception expected");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -80,7 +80,7 @@ public class TestStatement extends TestBase {
         check(savepointTest.getSavepointName(), "Joe's");
         try {
             savepointTest.getSavepointId();
-            error("exception expected");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -93,7 +93,7 @@ public class TestStatement extends TestBase {
         checkFalse(rs.next());
         try {
             conn.rollback(savepoint2);
-            error("exception expected");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

@@ -63,7 +63,7 @@ public class TestCancel extends TestBase {
         check(1000, rs.getInt(1));
         try {
             stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
         }
@@ -80,7 +80,7 @@ public class TestCancel extends TestBase {
         stat.execute("SET QUERY_TIMEOUT 10");
         try {
             stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
         }
@@ -96,7 +96,7 @@ public class TestCancel extends TestBase {
             Statement stat = conn.createStatement();
             try {
                 stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-                error("unexpected success");
+                error();
             } catch (SQLException e) {
                 check(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
             }

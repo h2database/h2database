@@ -92,6 +92,10 @@ public class User extends RightOwner {
             }
         }
         if (!isRightGrantedRecursive(table, rightMask)) {
+            if (table.getTemporary() && !table.getGlobalTemporary()) {
+                // the owner has all rights on local temporary tables
+                return;
+            }
             throw Message.getSQLException(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
         }
     }

@@ -226,7 +226,7 @@ public class TestCases extends TestBase {
         stat.execute("insert into test values(1);");
         try {
             stat.execute("alter table test add column name varchar not null;");
-            error("shouldn't work");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -253,7 +253,7 @@ public class TestCases extends TestBase {
         stat.execute("insert into test values(1)");
         try {
             stat.execute("alter table test alter column id date");
-            error("shouldn't work");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -353,7 +353,7 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         try {
             stat.execute("select * from abc");
-            error("abc should be deleted");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -560,7 +560,7 @@ public class TestCases extends TestBase {
         Statement stat2 = conn2.createStatement();
         try {
             stat2.execute("UPDATE TEST SET ID=2");
-            error("must fail");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

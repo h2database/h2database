@@ -40,9 +40,9 @@ public class TestPgServer extends TestBase {
         Statement stat = conn.createStatement();
         try {
             stat.execute("select ***");
-            error("expected failure");
+            error();
         } catch (SQLException e) {
-            // expected
+            checkNotGeneralException(e);
         }
         conn.close();
         conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");

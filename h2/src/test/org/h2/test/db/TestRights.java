@@ -20,6 +20,7 @@ public class TestRights extends TestBase {
     private Statement stat;
 
     public void test() throws Exception {
+        testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
         testAccessRights();
@@ -39,6 +40,28 @@ public class TestRights extends TestBase {
 //        conn.close();
 //    }
 
+    private void testDropTempTables() throws Exception {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("CREATE USER IF NOT EXISTS READER PASSWORD 'READER'");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        Connection conn2 = getConnection("rights", "READER", "READER");
+        Statement stat2 = conn2.createStatement();
+        try {
+            stat2.execute("SELECT * FROM TEST");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        stat2.execute("CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT)");
+        stat2.execute("INSERT INTO MY_TEST VALUES(1)");
+        stat2.execute("SELECT * FROM MY_TEST");
+        stat2.execute("DROP TABLE MY_TEST");
+        conn2.close();
+        conn.close();
+    }
+
     public void testSchemaRenameUser() throws Exception {
         if (config.memory) {
             return;
@@ -56,13 +79,13 @@ public class TestRights extends TestBase {
         stat.execute("select * from b.test");
         try {
             stat.execute("alter user test1 admin false");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             stat.execute("drop user test1");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -145,19 +168,19 @@ public class TestRights extends TestBase {
 
         try {
             conn = getConnection("rights", "Test", "abc");
-            error("unexpected success (mixed case user name)");
+            error("mixed case user name");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             conn = getConnection("rights", "TEST", "abc");
-            error("unexpected success (wrong password)");
+            error("wrong password");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             conn = getConnection("rights", "TEST", null);
-            error("unexpected success (wrong password)");
+            error("wrong password");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -223,7 +246,7 @@ public class TestRights extends TestBase {
     public void executeError(String sql) throws Exception {
         try {
             stat.execute(sql);
-            error("unexpected success (not admin)");
+            error("not admin");
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

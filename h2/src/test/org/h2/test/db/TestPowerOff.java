@@ -163,9 +163,9 @@ public class TestPowerOff extends TestBase {
         try {
             stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
             stat.execute("CHECKPOINT");
-            error("should not work!");
+            error();
         } catch (SQLException e) {
-            // expected
+            checkNotGeneralException(e);
         }
         boolean deleted = false;
         ArrayList files = FileLister.getDatabaseFiles(dir, dbName, false);
@@ -197,9 +197,9 @@ public class TestPowerOff extends TestBase {
             stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
             stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
             stat.execute("CHECKPOINT");
-            error("should have failed!");
-        } catch (Exception e) {
-            // ok
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
         }
 
         ((JdbcConnection) conn).setPowerOffCount(0);

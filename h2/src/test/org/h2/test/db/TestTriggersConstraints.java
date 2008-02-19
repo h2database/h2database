@@ -89,7 +89,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
         try {
             stat.execute("DROP TRIGGER INS_BEFORE");
-            error("must not work");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

@@ -23,7 +23,7 @@ public class TestExclusive extends TestBase {
         try {
             Connection conn2 = getConnection("exclusive");
             conn2.close();
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

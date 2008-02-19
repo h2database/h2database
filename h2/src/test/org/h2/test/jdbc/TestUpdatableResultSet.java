@@ -53,7 +53,7 @@ public class TestUpdatableResultSet extends TestBase {
 
         try {
             rs.insertRow();
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

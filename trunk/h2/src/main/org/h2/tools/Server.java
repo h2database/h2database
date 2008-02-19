@@ -5,9 +5,6 @@
 package org.h2.tools;
 
 import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
@@ -20,8 +17,6 @@ import org.h2.server.TcpServer;
 import org.h2.server.ftp.FtpServer;
 import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
-import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StartBrowser;
 
 /**
@@ -309,50 +304,7 @@ public class Server implements Runnable, ShutdownHandler {
      * @throws SQLException
      */
     public static void shutdownTcpServer(String url, String password, boolean force) throws SQLException {
-        int port = Constants.DEFAULT_SERVER_PORT;
-        int idx = url.indexOf(':', "jdbc:h2:".length());
-        if (idx >= 0) {
-            String p = url.substring(idx + 1);
-            idx = p.indexOf('/');
-            if (idx >= 0) {
-                p = p.substring(0, idx);
-            }
-            port = MathUtils.decodeInt(p);
-        }
-        String db = TcpServer.getManagementDbName(port);
-        try {
-            org.h2.Driver.load();
-        } catch (Throwable e) {
-            throw Message.convert(e);
-        }
-        for (int i = 0; i < 2; i++) {
-            Connection conn = null;
-            PreparedStatement prep = null;
-            try {
-                conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
-                prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
-                prep.setInt(1, port);
-                prep.setString(2, password);
-                prep.setInt(3, force ? TcpServer.SHUTDOWN_FORCE : TcpServer.SHUTDOWN_NORMAL);
-                try {
-                    prep.execute();
-                } catch (SQLException e) {
-                    if (force) {
-                        // ignore
-                    } else {
-                        throw e;
-                    }
-                }
-                break;
-            } catch (SQLException e) {
-                if (i == 1) {
-                    throw e;
-                }
-            } finally {
-                JdbcUtils.closeSilently(prep);
-                JdbcUtils.closeSilently(conn);
-            }
-        }
+        TcpServer.shutdown(url, password, force);
     }
 
     String getStatus() {

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,6 +22,7 @@ import java.util.Set;
 
 import org.h2.Driver;
 import org.h2.engine.Constants;
+import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -109,23 +111,27 @@ public class TcpServer implements Service {
         return ports;
     }
 
-    synchronized void addConnection(int id, String url, String user) {
-        try {
-            managementDbAdd.setInt(1, id);
-            managementDbAdd.setString(2, url);
-            managementDbAdd.setString(3, user);
-            managementDbAdd.execute();
-        } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+    void addConnection(int id, String url, String user) {
+        synchronized (TcpServer.class) {
+            try {
+                managementDbAdd.setInt(1, id);
+                managementDbAdd.setString(2, url);
+                managementDbAdd.setString(3, user);
+                managementDbAdd.execute();
+            } catch (SQLException e) {
+                TraceSystem.traceThrowable(e);
+            }
         }
     }
 
-    synchronized void removeConnection(int id) {
-        try {
-            managementDbRemove.setInt(1, id);
-            managementDbRemove.execute();
-        } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+    void removeConnection(int id) {
+        synchronized (TcpServer.class) {
+            try {
+                managementDbRemove.setInt(1, id);
+                managementDbRemove.execute();
+            } catch (SQLException e) {
+                TraceSystem.traceThrowable(e);
+            }
         }
     }
 
@@ -219,39 +225,41 @@ public class TcpServer implements Service {
         }
     }
 
-    public synchronized void stop() {
+    public void stop() {
         // TODO server: share code between web and tcp servers
-        if (!stop) {
-            stopManagementDb();
-            stop = true;
-            if (serverSocket != null) {
+        synchronized (TcpServer.class) {
+            if (!stop) {
+                stopManagementDb();
+                stop = true;
+                if (serverSocket != null) {
+                    try {
+                        serverSocket.close();
+                    } catch (IOException e) {
+                        TraceSystem.traceThrowable(e);
+                    }
+                    serverSocket = null;
+                }
+                if (listenerThread != null) {
+                    try {
+                        listenerThread.join(1000);
+                    } catch (InterruptedException e) {
+                        TraceSystem.traceThrowable(e);
+                    }
+                }
+            }
+            // TODO server: using a boolean 'now' argument? a timeout?
+            ArrayList list = new ArrayList(running);
+            for (int i = 0; i < list.size(); i++) {
+                TcpServerThread c = (TcpServerThread) list.get(i);
+                c.close();
                 try {
-                    serverSocket.close();
-                } catch (IOException e) {
+                    c.getThread().join(100);
+                } catch (Exception e) {
                     TraceSystem.traceThrowable(e);
                 }
-                serverSocket = null;
             }
-            if (listenerThread != null) {
-                try {
-                    listenerThread.join(1000);
-                } catch (InterruptedException e) {
-                    TraceSystem.traceThrowable(e);
-                }
-            }
+            SERVERS.remove("" + port);
         }
-        // TODO server: using a boolean 'now' argument? a timeout?
-        ArrayList list = new ArrayList(running);
-        for (int i = 0; i < list.size(); i++) {
-            TcpServerThread c = (TcpServerThread) list.get(i);
-            c.close();
-            try {
-                c.getThread().join(100);
-            } catch (Exception e) {
-                TraceSystem.traceThrowable(e);
-            }
-        }
-        SERVERS.remove("" + port);
     }
 
     public static synchronized void stopServer(int port, String password, int shutdownMode) {
@@ -276,7 +284,7 @@ public class TcpServer implements Service {
         }
     }
 
-    synchronized void remove(TcpServerThread t) {
+    void remove(TcpServerThread t) {
         running.remove(t);
     }
 
@@ -318,6 +326,53 @@ public class TcpServer implements Service {
 
     public boolean getIfExists() {
         return ifExists;
+    }
+
+    public static synchronized void shutdown(String url, String password, boolean force) throws SQLException {
+        int port = Constants.DEFAULT_SERVER_PORT;
+        int idx = url.indexOf(':', "jdbc:h2:".length());
+        if (idx >= 0) {
+            String p = url.substring(idx + 1);
+            idx = p.indexOf('/');
+            if (idx >= 0) {
+                p = p.substring(0, idx);
+            }
+            port = MathUtils.decodeInt(p);
+        }
+        String db = TcpServer.getManagementDbName(port);
+        try {
+            org.h2.Driver.load();
+        } catch (Throwable e) {
+            throw Message.convert(e);
+        }
+        for (int i = 0; i < 2; i++) {
+            Connection conn = null;
+            PreparedStatement prep = null;
+            try {
+                conn = DriverManager.getConnection("jdbc:h2:" + url + "/" + db, "sa", password);
+                prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
+                prep.setInt(1, port);
+                prep.setString(2, password);
+                prep.setInt(3, force ? TcpServer.SHUTDOWN_FORCE : TcpServer.SHUTDOWN_NORMAL);
+                try {
+                    prep.execute();
+                } catch (SQLException e) {
+                    if (force) {
+                        // ignore
+                    } else {
+                        throw e;
+                    }
+                }
+                break;
+            } catch (SQLException e) {
+                if (i == 1) {
+                    throw e;
+                }
+            } finally {
+                JdbcUtils.closeSilently(prep);
+                JdbcUtils.closeSilently(conn);
+            }
+        }
     }
 
 }

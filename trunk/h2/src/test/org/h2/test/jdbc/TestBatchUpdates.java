@@ -167,7 +167,7 @@ public class TestBatchUpdates extends TestBase {
 
         trace("updateCount length:" + updateCountLen);
         if (updateCountLen != 3) {
-            error("addBatch");
+            error("updateCount: " + updateCountLen);
         } else {
             trace("addBatch add the SQL statements to Batch ");
         }
@@ -204,7 +204,7 @@ public class TestBatchUpdates extends TestBase {
         updCountLength = updateCount.length;
         trace("updateCount Length:" + updCountLength);
         if (updCountLength != 3) {
-            error("addBatch");
+            error("addBatch " + updCountLength);
         } else {
             trace("addBatch add the SQL statements to Batch ");
         }
@@ -243,7 +243,7 @@ public class TestBatchUpdates extends TestBase {
         if (updCountLength == 0) {
             trace("clearBatch Method clears the current Batch ");
         } else {
-            error("clearBatch");
+            error("clearBatch " + updCountLength);
         }
     }
 

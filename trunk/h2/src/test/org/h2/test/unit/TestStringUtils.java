@@ -35,13 +35,13 @@ public class TestStringUtils extends TestBase {
         check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
         try {
             ByteUtils.convertStringToBytes("120");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             ByteUtils.convertStringToBytes("fast");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

@@ -42,9 +42,9 @@ public class RuleFixed implements Rule {
         case ANY_WORD:
         case ANY_UNTIL_END: {
             StringBuffer buff = new StringBuffer();
-            int len = r.nextInt(10);
+            int len = r.nextBoolean() ? 1 : r.nextInt(5);
             for (int i = 0; i < len; i++) {
-                buff.append((char) ('A' + r.nextInt('Z' - 'A')));
+                buff.append((char) ('A' + r.nextInt('C' - 'A')));
             }
             return buff.toString();
         }
@@ -53,7 +53,7 @@ public class RuleFixed implements Rule {
         case CONCAT:
             return "||";
         case AZ_UNDERLINE:
-            return "" + (char) ('A' + r.nextInt('Z' - 'A'));
+            return "" + (char) ('A' + r.nextInt('C' - 'A'));
         case AF:
             return "" + (char) ('A' + r.nextInt('F' - 'A'));
         case DIGIT:

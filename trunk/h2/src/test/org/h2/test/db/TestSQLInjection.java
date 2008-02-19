@@ -38,7 +38,7 @@ public class TestSQLInjection extends TestBase {
 
         try {
             check(checkPasswordInsecure("123456"));
-            error("Should fail now");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

@@ -29,6 +29,7 @@ public class TestRandomSQL extends TestBase {
     private int seed;
     private boolean exitOnError = true;
     private Bnf bnf;
+    private int success, total;
 
     private void processException(String sql, SQLException e) {
         if (e.getSQLState().equals("HY000")) {
@@ -100,7 +101,7 @@ public class TestRandomSQL extends TestBase {
             if (topic.equals("select")) {
                 weight = 10;
             } else if (topic.equals("createtable")) {
-                weight = 5;
+                weight = 20;
             } else if (topic.equals("insert")) {
                 weight = 5;
             } else if (topic.startsWith("update")) {
@@ -130,11 +131,10 @@ public class TestRandomSQL extends TestBase {
             conn = connect();
         }
         Statement stat = conn.createStatement();
-
         for (int i = 0; i < statements.size(); i++) {
             int sid = config.getRandom().nextInt(statements.size());
             RuleHead r = (RuleHead) statements.get(sid);
-            String rand = r.getRule().random(config, 0);
+            String rand = r.getRule().random(config, 0).trim();
             if (rand.length() > 0) {
                 try {
                     Thread.yield();
@@ -144,7 +144,12 @@ public class TestRandomSQL extends TestBase {
                         if (showSQL) {
                             System.out.println(i + "  " + rand);
                         }
+                        total++;
+                        if (total % 100 == 0) {
+                            printTime("total: " + total + " success: " + (100 * success / total) + "%");
+                        }
                         stat.execute(rand);
+                        success++;
                     }
                 } catch (SQLException e) {
                     processException(rand, e);

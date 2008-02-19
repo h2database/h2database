@@ -38,7 +38,7 @@ public class TestMvcc1 extends TestBase {
         check("FALSE", rs.getString("VALUE"));
         try {
             stat.execute("SET MVCC TRUE");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             check(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
         }
@@ -80,7 +80,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("insert into test values(1)");
         try {
             s2.execute("drop table test");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             // lock timeout expected
             checkNotGeneralException(e);
@@ -107,7 +107,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("insert into a(code) values('one')");
         try {
              s2.execute("insert into b values('un B', 1)");
-            error("Unexpected success");
+             error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -123,7 +123,7 @@ public class TestMvcc1 extends TestBase {
         s2.execute("select * from test for update");
         try {
             s1.execute("insert into test values(2, 'x')");
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             // lock timeout expected
             checkNotGeneralException(e);
@@ -346,7 +346,7 @@ public class TestMvcc1 extends TestBase {
         c1.commit();
         try {
             s1.execute("update test set id=2 where id=1");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

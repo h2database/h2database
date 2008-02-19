@@ -58,18 +58,18 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
     }
-    
+
     private void testExecuteErrorTwice(Connection conn) throws Exception {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
         try {
             prep.execute();
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
         try {
             prep.execute();
-            error("Unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
@@ -174,9 +174,9 @@ public class TestPreparedStatement extends TestBase {
             "SELECT * FROM (SELECT ? FROM DUAL)");
             prep.setInt(1, 1);
             prep.execute();
-            error("Must fail");
+            error();
         } catch (SQLException e) {
-            // expected
+            checkNotGeneralException(e);
         }
         PreparedStatement prep = conn.prepareStatement("SELECT -?");
         prep.setInt(1, 1);
@@ -342,22 +342,22 @@ public class TestPreparedStatement extends TestBase {
         check(pm.isSigned(1), true);
         try {
             pm.getPrecision(0);
-            error("should fail");
+            error();
         } catch (SQLException e) {
-            // ok
+            checkNotGeneralException(e);
         }
         try {
             pm.getPrecision(4);
-            error("should fail");
+            error();
         } catch (SQLException e) {
-            // ok
+            checkNotGeneralException(e);
         }
         prep.close();
         try {
             pm.getPrecision(1);
-            error("should fail");
+            error();
         } catch (SQLException e) {
-            // ok
+            checkNotGeneralException(e);
         }
     }
 
@@ -439,10 +439,9 @@ public class TestPreparedStatement extends TestBase {
         checkFalse(rs.next());
         try {
             prep = conn.prepareStatement("select ? from dual union select ? from dual");
-            error("expected error");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
-            // ok
         }
         prep = conn.prepareStatement("select cast(? as varchar) from dual union select ? from dual");
         check(prep.getParameterMetaData().getParameterCount(), 2);

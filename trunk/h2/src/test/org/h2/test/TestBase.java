@@ -211,6 +211,10 @@ public abstract class TestBase {
         return mb;
     }
 
+    protected void error() throws Exception {
+        error("Unexpected success");
+    }
+
     protected void error(String string) throws Exception {
         println(string);
         throw new Exception(string);

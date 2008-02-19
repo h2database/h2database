@@ -127,7 +127,7 @@ public class TestLinkedTable extends TestBase {
         stat2.executeUpdate("INSERT INTO TEST_LINK_DI VALUES(2, 'World')");
         try {
             stat2.executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
-            error("unexpected success");
+            error();
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }

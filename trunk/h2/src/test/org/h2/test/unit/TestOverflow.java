@@ -69,13 +69,13 @@ public class TestOverflow extends TestBase {
 
     void onSuccess() throws Exception {
         if (!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
-            error("unexpected success");
+            error();
         }
     }
 
     void onError() throws Exception {
         if (successExpected) {
-            error("unexpected error");
+            error();
         }
     }
 

@@ -839,7 +839,7 @@ public class Parser {
                 int paramIndex = parameters.size();
                 Query query = parseSelectUnion();
                 read(")");
-                query = parseSelectUnionExtension(query, start);
+                query = parseSelectUnionExtension(query, start, true);
                 ObjectArray params = new ObjectArray();
                 for (int i = paramIndex; i < parameters.size(); i++) {
                     params.add(parameters.get(i));
@@ -1248,10 +1248,10 @@ public class Parser {
     private Query parseSelectUnion() throws SQLException {
         int start = lastParseIndex;
         Query command = parseSelectSub();
-        return parseSelectUnionExtension(command, start);
+        return parseSelectUnionExtension(command, start, false);
     }
 
-    private Query parseSelectUnionExtension(Query command, int start) throws SQLException {
+    private Query parseSelectUnionExtension(Query command, int start, boolean unionOnly) throws SQLException {
         while (true) {
             if (readIf("UNION")) {
                 SelectUnion union = new SelectUnion(session, command);
@@ -1277,7 +1277,7 @@ public class Parser {
                 break;
             }
         }
-        if (readIf("ORDER")) {
+        if (!unionOnly && readIf("ORDER")) {
             read("BY");
             Select oldSelect = currentSelect;
             if (command instanceof Select) {
@@ -1317,7 +1317,7 @@ public class Parser {
             command.setOrder(orderList);
             currentSelect = oldSelect;
         }
-        if (readIf("LIMIT")) {
+        if (!unionOnly && readIf("LIMIT")) {
             Select temp = currentSelect;
             // make sure aggregate functions will not work here
             currentSelect = null;
@@ -1338,7 +1338,7 @@ public class Parser {
             }
             currentSelect = temp;
         }
-        if (readIf("FOR")) {
+        if (!unionOnly && readIf("FOR")) {
             if (readIf("UPDATE")) {
                 if (readIf("OF")) {
                     do {

@@ -155,10 +155,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-Test space re-use
-REUSE_SPACE_AFTER=20 or so
-
-delete old ipowerb content (first filter, then remove)
+delete old ipowerb content
 link to new changelog and roadmap, remove pages from google groups
 
 Can sometimes not delete log file? need test case

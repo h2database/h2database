@@ -18,6 +18,7 @@ import java.util.Random;
 
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.unit.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
@@ -149,9 +150,9 @@ public abstract class TestHalt extends TestBase {
             // for Derby and HSQLDB
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
+            String selfDestruct = SelfDestructor.getPropertyString(60);
             String classPath = "";
-            String command = "java " + classPath + " " + getClass().getName() + " " + operations + " " + flags + " "
-                    + value;
+            String[] command = {"java", selfDestruct, classPath, getClass().getName(), "" + operations, "" + flags, "" + value};
             traceOperation("start: " + command);
             Process p = Runtime.getRuntime().exec(command);
             InputStream in = p.getInputStream();

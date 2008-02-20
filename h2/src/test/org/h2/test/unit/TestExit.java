@@ -27,7 +27,8 @@ public class TestExit extends TestBase implements DatabaseEventListener {
 
         deleteDb("exit");
         String[] procDef;
-        procDef = new String[] { "java", "-cp", classPath, getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
+        String selfDestruct = SelfDestructor.getPropertyString(60);
+        procDef = new String[] { "java", selfDestruct, "-cp", classPath, getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
             int ch = proc.getErrorStream().read();
@@ -62,6 +63,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
     public static Connection conn;
 
     public static void main(String[] args) throws Exception {
+        SelfDestructor.startCountdown(60);
         if (args.length == 0) {
             System.exit(1);
         }

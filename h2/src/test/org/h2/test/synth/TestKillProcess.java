@@ -12,12 +12,14 @@ import java.util.Random;
 
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
+import org.h2.test.unit.SelfDestructor;
 
 /**
  * Test application for {@link TestKill}.
  */
 public class TestKillProcess {
     public static void main(String[] args) throws Exception {
+        SelfDestructor.startCountdown(60);
         try {
             Class.forName("org.h2.Driver");
             String url = args[0], user = args[1], password = args[2];

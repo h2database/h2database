@@ -445,7 +445,7 @@ TABLE [IF NOT EXISTS] name
 [{AUTO_INCREMENT | IDENTITY}[(startInt [, incrementInt])]]
 [SELECTIVITY selectivity]
 [PRIMARY KEY [HASH] | UNIQUE]
-| constraint} [,...] ) } | { AS select }
+| constraint} [,...] ) [ AS select ] } | { AS select }
 ","
 Creates a new table.
 Cached tables (the default) are persistent, and the number or rows is not limited by the main memory.

@@ -15,6 +15,7 @@ import java.util.Random;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.unit.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.util.FileUtils;
 
@@ -39,8 +40,8 @@ public class TestKillRestartMulti extends TestBase {
         // String url = getURL("killRestartMulti;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         user = getUser();
         password = getPassword();
-
-        String[] procDef = new String[] { "java", "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
+        String selfDestruct = SelfDestructor.getPropertyString(60);
+        String[] procDef = new String[] { "java", selfDestruct, "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
         deleteDb("killRestartMulti");
         int len = getSize(3, 10);
@@ -97,6 +98,7 @@ public class TestKillRestartMulti extends TestBase {
     }
 
     public static void main(String[] args) throws Exception {
+        SelfDestructor.startCountdown(60);
         new TestKillRestartMulti().test(args);
     }
 
@@ -129,8 +131,6 @@ public class TestKillRestartMulti extends TestBase {
                     createTable(random);
                 }
                 int p = random.nextInt(100);
-                int todoLargeInsertsDeletes;
-                int todoAlterTable;
                 if ((p -= 2) <= 0) {
                     // 2%: open new connection
                     if (connections.size() < 5) {

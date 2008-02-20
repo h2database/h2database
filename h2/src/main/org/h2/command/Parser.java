@@ -1318,6 +1318,9 @@ public class Parser {
             currentSelect = oldSelect;
         }
         if (readIf("LIMIT")) {
+            Select temp = currentSelect;
+            // make sure aggregate functions will not work here
+            currentSelect = null;
             Expression limit = readExpression().optimize(session);
             command.setLimit(limit);
             if (readIf("OFFSET")) {
@@ -1333,6 +1336,7 @@ public class Parser {
             if (readIf("SAMPLE_SIZE")) {
                 command.setSampleSize(getPositiveInt());
             }
+            currentSelect = temp;
         }
         if (readIf("FOR")) {
             if (readIf("UPDATE")) {
@@ -1402,6 +1406,9 @@ public class Parser {
     }
 
     private void parseSelectSimpleSelectPart(Select command) throws SQLException {
+        Select temp = currentSelect;
+        // make sure aggregate functions will not work in TOP and LIMIT clauses
+        currentSelect = null;
         if (readIf("TOP")) {
             // can't read more complex expressions here because
             // SELECT TOP 1 +? A FROM TEST could mean
@@ -1415,6 +1422,7 @@ public class Parser {
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
         }
+        currentSelect = temp;
         if (readIf("DISTINCT")) {
             command.setDistinct(true);
         } else {
@@ -4323,8 +4331,7 @@ public class Parser {
         command.setTableName(tableName);
         command.setComment(readCommentIf());
         if (readIf("AS")) {
-            Query query = parseSelect();
-            command.setQuery(query);
+            command.setQuery(parseSelect());
         } else {
             read("(");
             if (!readIf(")")) {
@@ -4388,6 +4395,9 @@ public class Parser {
                     }
                 } while (readIf(","));
                 read(")");
+            }
+            if (readIf("AS")) {
+                command.setQuery(parseSelect());
             }
         }
         if (temp) {

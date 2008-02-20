@@ -72,7 +72,6 @@ public class TestTools extends TestBase {
         result = runServer(new String[]{"-xy"}, 1);
         check(result.indexOf("[options]") >= 0);
         check(result.indexOf("Unknown option") >= 0);
-
         result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "false", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
         check(result.indexOf("tcp://") >= 0);
         check(result.indexOf(":9001") >= 0);
@@ -90,8 +89,15 @@ public class TestTools extends TestBase {
         check(result.indexOf("[options]") < 0);
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
+
         result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef", "-tcpShutdownForce", "false"}, 0);
         check(result.indexOf("Shutting down") >= 0);
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
 
         result = runServer(new String[]{
                 "-web", "-webPort", "9002", "-webAllowOthers", "true", "-webSSL", "true",
@@ -113,6 +119,12 @@ public class TestTools extends TestBase {
         result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
         check(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9005/mem:", "sa", "sa");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
     }
 
     private String runServer(String[] args, int exitCode) throws Exception {

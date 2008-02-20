@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.unit.SelfDestructor;
 
 /**
  * A random recovery test. This test starts a process that executes random operations
@@ -32,8 +33,8 @@ public class TestKill extends TestBase {
         String url = getURL(DIR + "/kill" + connect, true);
         String user = getUser();
         String password = getPassword();
-
-        String[] procDef = new String[] { "java.exe", "-cp", "bin", "org.h2.test.synth.TestKillProcess", url, user,
+        String selfDestruct = SelfDestructor.getPropertyString(60);
+        String[] procDef = new String[] { "java", selfDestruct, "-cp", "bin", "org.h2.test.synth.TestKillProcess", url, user,
                 password, baseDir, "" + accounts };
 
         for (int i = 0;; i++) {

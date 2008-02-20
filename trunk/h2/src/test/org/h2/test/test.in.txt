@@ -1,4 +1,19 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select top sum(1) 0 from dual;
+> exception
+
+create table test(id int primary key, name varchar) as select 1, 'Hello World';
+> ok
+
+select * from test;
+> ID NAME
+> -- -----------
+> 1  Hello World
+> rows: 1
+
+drop table test;
+> ok
+
 select rtrim() from dual;
 > exception
 

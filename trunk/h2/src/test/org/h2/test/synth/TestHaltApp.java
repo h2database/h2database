@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.test.unit.SelfDestructor;
+
 /**
  * The application code for the {@link TestHalt} application.
  */
@@ -17,6 +19,7 @@ public class TestHaltApp extends TestHalt {
     private int rowCount;
 
     public static void main(String[] args) throws Exception {
+        SelfDestructor.startCountdown(60);
         baseDir = TestHalt.DIR;
         new TestHaltApp().start(args);
     }

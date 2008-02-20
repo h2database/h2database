@@ -44,8 +44,8 @@ public class TcpServer implements Service {
     // automatically use the next free port?
 
     public static final int DEFAULT_PORT = 9092;
-    public static final int SHUTDOWN_NORMAL = 0;
-    public static final int SHUTDOWN_FORCE = 1;
+    private static final int SHUTDOWN_NORMAL = 0;
+    private static final int SHUTDOWN_FORCE = 1;
     public static boolean logInternalErrors;
 
     private int port;
@@ -111,40 +111,34 @@ public class TcpServer implements Service {
         return ports;
     }
 
-    void addConnection(int id, String url, String user) {
-        synchronized (TcpServer.class) {
-            try {
-                managementDbAdd.setInt(1, id);
-                managementDbAdd.setString(2, url);
-                managementDbAdd.setString(3, user);
-                managementDbAdd.execute();
-            } catch (SQLException e) {
-                TraceSystem.traceThrowable(e);
-            }
+    synchronized void addConnection(int id, String url, String user) {
+        try {
+            managementDbAdd.setInt(1, id);
+            managementDbAdd.setString(2, url);
+            managementDbAdd.setString(3, user);
+            managementDbAdd.execute();
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
         }
     }
 
-    void removeConnection(int id) {
-        synchronized (TcpServer.class) {
-            try {
-                managementDbRemove.setInt(1, id);
-                managementDbRemove.execute();
-            } catch (SQLException e) {
-                TraceSystem.traceThrowable(e);
-            }
+    synchronized void removeConnection(int id) {
+        try {
+            managementDbRemove.setInt(1, id);
+            managementDbRemove.execute();
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
         }
     }
 
-    private void stopManagementDb() {
-        synchronized (TcpServer.class) {
-            if (managementDb != null) {
-                try {
-                    managementDb.close();
-                } catch (SQLException e) {
-                    TraceSystem.traceThrowable(e);
-                }
-                managementDb = null;
+    private synchronized void stopManagementDb() {
+        if (managementDb != null) {
+            try {
+                managementDb.close();
+            } catch (SQLException e) {
+                TraceSystem.traceThrowable(e);
             }
+            managementDb = null;
         }
     }
 
@@ -183,11 +177,9 @@ public class TcpServer implements Service {
         return NetUtils.isLoopbackAddress(socket);
     }
 
-    public void start() throws SQLException {
-        synchronized (TcpServer.class) {
-            serverSocket = NetUtils.createServerSocket(port, ssl);
-            initManagementDb();
-        }
+    public synchronized void start() throws SQLException {
+        serverSocket = NetUtils.createServerSocket(port, ssl);
+        initManagementDb();
     }
 
     public void listen() {
@@ -212,7 +204,7 @@ public class TcpServer implements Service {
         stopManagementDb();
     }
 
-    public boolean isRunning() {
+    public synchronized boolean isRunning() {
         if (serverSocket == null) {
             return false;
         }
@@ -225,44 +217,44 @@ public class TcpServer implements Service {
         }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         // TODO server: share code between web and tcp servers
-        synchronized (TcpServer.class) {
-            if (!stop) {
-                stopManagementDb();
-                stop = true;
-                if (serverSocket != null) {
-                    try {
-                        serverSocket.close();
-                    } catch (IOException e) {
-                        TraceSystem.traceThrowable(e);
-                    }
-                    serverSocket = null;
-                }
-                if (listenerThread != null) {
-                    try {
-                        listenerThread.join(1000);
-                    } catch (InterruptedException e) {
-                        TraceSystem.traceThrowable(e);
-                    }
-                }
-            }
-            // TODO server: using a boolean 'now' argument? a timeout?
-            ArrayList list = new ArrayList(running);
-            for (int i = 0; i < list.size(); i++) {
-                TcpServerThread c = (TcpServerThread) list.get(i);
-                c.close();
+        // need to remove the server first, otherwise the connection is broken
+        // while the server is still registered in this map
+        SERVERS.remove("" + port);
+        if (!stop) {
+            stopManagementDb();
+            stop = true;
+            if (serverSocket != null) {
                 try {
-                    c.getThread().join(100);
-                } catch (Exception e) {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    TraceSystem.traceThrowable(e);
+                }
+                serverSocket = null;
+            }
+            if (listenerThread != null) {
+                try {
+                    listenerThread.join(1000);
+                } catch (InterruptedException e) {
                     TraceSystem.traceThrowable(e);
                 }
             }
-            SERVERS.remove("" + port);
+        }
+        // TODO server: using a boolean 'now' argument? a timeout?
+        ArrayList list = new ArrayList(running);
+        for (int i = 0; i < list.size(); i++) {
+            TcpServerThread c = (TcpServerThread) list.get(i);
+            c.close();
+            try {
+                c.getThread().join(100);
+            } catch (Exception e) {
+                TraceSystem.traceThrowable(e);
+            }
         }
     }
 
-    public static synchronized void stopServer(int port, String password, int shutdownMode) {
+    public static void stopServer(int port, String password, int shutdownMode) {
         TcpServer server = (TcpServer) SERVERS.get("" + port);
         if (server == null) {
             return;
@@ -270,7 +262,7 @@ public class TcpServer implements Service {
         if (!server.managementPassword.equals(password)) {
             return;
         }
-        if (shutdownMode == TcpServer.SHUTDOWN_NORMAL) {
+        if (shutdownMode == SHUTDOWN_NORMAL) {
             server.stopManagementDb();
             server.stop = true;
             try {
@@ -279,7 +271,7 @@ public class TcpServer implements Service {
             } catch (Exception e) {
                 // try to connect - so that accept returns
             }
-        } else if (shutdownMode == TcpServer.SHUTDOWN_FORCE) {
+        } else if (shutdownMode == SHUTDOWN_FORCE) {
             server.stop();
         }
     }
@@ -318,7 +310,7 @@ public class TcpServer implements Service {
     }
 
     public void logInternalError(String string) {
-        if (TcpServer.logInternalErrors) {
+        if (logInternalErrors) {
             System.out.println(string);
             new Error(string).printStackTrace();
         }
@@ -339,7 +331,7 @@ public class TcpServer implements Service {
             }
             port = MathUtils.decodeInt(p);
         }
-        String db = TcpServer.getManagementDbName(port);
+        String db = getManagementDbName(port);
         try {
             org.h2.Driver.load();
         } catch (Throwable e) {
@@ -353,7 +345,7 @@ public class TcpServer implements Service {
                 prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
                 prep.setInt(1, port);
                 prep.setString(2, password);
-                prep.setInt(3, force ? TcpServer.SHUTDOWN_FORCE : TcpServer.SHUTDOWN_NORMAL);
+                prep.setInt(3, force ? SHUTDOWN_FORCE : SHUTDOWN_NORMAL);
                 try {
                     prep.execute();
                 } catch (SQLException e) {

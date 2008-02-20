@@ -80,6 +80,7 @@ import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
+import org.h2.test.unit.SelfDestructor;
 import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
@@ -147,6 +148,7 @@ java org.h2.test.TestAll timer
     public boolean cache2Q;
 
     public static void main(String[] args) throws Exception {
+        SelfDestructor.startCountdown(6 * 60);
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
@@ -159,20 +161,7 @@ REUSE_SPACE_AFTER=20 or so
 delete old ipowerb content (first filter, then remove)
 link to new changelog and roadmap, remove pages from google groups
 
-sourceDocs.html: move
-
-Automate real power off tests
-timer test
-
 Can sometimes not delete log file? need test case
-
-Adjust cache memory usage
-
-// test with garbage at the end of the log file (must be consistently detected as such)
-// extend the random join test that compared the result against PostgreSQL
-// long running test with the same database
-// repeatable test with a very big database (making backups of the database files)
-Test Recovery with MAX_LOG_FILE_SIZE=1; test with various log file sizes
 
 History:
 

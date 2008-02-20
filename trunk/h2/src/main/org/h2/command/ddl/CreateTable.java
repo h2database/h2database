@@ -59,6 +59,9 @@ public class CreateTable extends SchemaCommand {
     }
 
     public void addColumn(Column column) {
+        if (columns == null) {
+            columns = new ObjectArray();
+        }
         columns.add(column);
     }
 
@@ -97,7 +100,12 @@ public class CreateTable extends SchemaCommand {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, tableName);
         }
         if (asQuery != null) {
-            generateColumnFromQuery();
+            asQuery.prepare();
+            if (columns.size() == 0) {
+                generateColumnFromQuery();
+            } else if (columns.size() != asQuery.getColumnCount()) {
+                throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            }
         }
         if (pkColumns != null) {
             int len = pkColumns.length;
@@ -174,7 +182,6 @@ public class CreateTable extends SchemaCommand {
     }
 
     private void generateColumnFromQuery() throws SQLException {
-        asQuery.prepare();
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {

@@ -32,6 +32,7 @@ public class SelfDestructor extends Thread {
                             // ignore
                         }
                     }
+                    System.out.println("Killing the process after " + minutes + " minutes");
                     Runtime.getRuntime().halt(1);
                 }
             };

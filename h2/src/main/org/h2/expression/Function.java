@@ -4,6 +4,10 @@
  */
 package org.h2.expression;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -33,6 +37,8 @@ import org.h2.table.LinkSchema;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.util.AutoCloseInputStream;
+import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
@@ -46,6 +52,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -84,7 +91,8 @@ public class Function extends Expression implements FunctionCall {
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224;
+            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
+            FILE_READ = 225;
 
     private static final int VAR_ARGS = -1;
 
@@ -281,6 +289,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -1024,6 +1033,28 @@ public class Function extends Expression implements FunctionCall {
             result = v1;
             break;
         }
+        case FILE_READ: {
+            session.getUser().checkAdmin();
+            String fileName = v0.getString();
+            boolean blob = args.length == 1;
+            try {
+                InputStream in = new AutoCloseInputStream(FileUtils.openFileInputStream(fileName));
+                if (blob) {
+                    result = ValueLob.createBlob(in, -1, database);
+                } else {
+                    Reader reader;
+                    if (v1 == ValueNull.INSTANCE) {
+                        reader = new InputStreamReader(in);
+                    } else {
+                        reader = new InputStreamReader(in, v1.getString());
+                    }
+                    result = ValueLob.createClob(reader, -1, database);
+                }
+            } catch (IOException e) {
+                throw Message.convertIOException(e, fileName);
+            }
+            break;
+        }
         default:
             throw Message.getInternalError("type=" + info.type);
         }
@@ -1459,6 +1490,7 @@ public class Function extends Expression implements FunctionCall {
         case LTRIM:
         case RTRIM:
         case TRIM:
+        case FILE_READ:
             min = 1;
             max = 2;
             break;
@@ -1605,6 +1637,17 @@ public class Function extends Expression implements FunctionCall {
             if (!(p0 instanceof Variable)) {
                 throw Message.getSQLException(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
             }
+            break;
+        }
+        case FILE_READ: {
+            if (args.length == 1) {
+                dataType = Value.BLOB;
+            } else {
+                dataType = Value.CLOB;
+            }
+            precision = Integer.MAX_VALUE;
+            scale = 0;
+            displaySize = Integer.MAX_VALUE;
             break;
         }
         default:

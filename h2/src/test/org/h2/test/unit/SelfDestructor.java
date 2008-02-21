@@ -4,6 +4,8 @@
  */
 package org.h2.test.unit;
 
+import java.sql.Timestamp;
+
 /**
  * This is a self-destructor class to kill a long running process automatically after
  * a pre-defined time. The class reads the number of minutes
@@ -32,7 +34,8 @@ public class SelfDestructor extends Thread {
                             // ignore
                         }
                     }
-                    System.out.println("Killing the process after " + minutes + " minutes");
+                    String time = new Timestamp(System.currentTimeMillis()).toString();
+                    System.out.println(time + " Killing the process after " + minutes + " minutes");
                     Runtime.getRuntime().halt(1);
                 }
             };

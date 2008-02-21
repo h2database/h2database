@@ -295,7 +295,7 @@ public class SysProperties {
      * System property <code>h2.reuseSpaceAfter</code> (default: 16).<br />
      * Reuse space in database files after this many pages are free.
      */
-    public static final int REUSE_SPACE_AFTER = getIntSetting("h2.reuseSpaceAfter", 1);
+    public static final int REUSE_SPACE_AFTER = getIntSetting("h2.reuseSpaceAfter", 32);
 
     /**
      * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />

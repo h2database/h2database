@@ -3303,6 +3303,9 @@ Javaは将来への証明でもあります: 多くの会社がJavaをサポー�
 @history_1034_li
 #Harpal Grover Consulting Inc., USA
 
+@history_1035_li
+#Elisabetta Berlini, Italy
+
 @installation_1000_h1
 インストール
 

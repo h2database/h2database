@@ -5,6 +5,9 @@
 package org.h2.test.db;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -15,10 +18,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Properties;
 
 import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.IOUtils;
 
 /**
  * Tests for user defined functions and aggregates.
@@ -30,6 +35,33 @@ public class TestFunctions extends TestBase {
     public void test() throws Exception {
         testAggregate();
         testFunctions();
+        testFileRead();
+    }
+
+    public void testFileRead() throws Exception {
+        Connection conn = getConnection("functions");
+        stat = conn.createStatement();
+        File f = new File(baseDir + "/test.txt");
+        Properties prop = System.getProperties();
+        FileOutputStream out = new FileOutputStream(f);
+        prop.store(out, "");
+        out.close();
+        ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + baseDir + "/test.txt')) LEN");
+        rs.next();
+        check(f.length(), rs.getInt(1));
+        rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt') PROP");
+        rs.next();
+        Properties p2 = new Properties();
+        p2.load(rs.getBinaryStream(1));
+        check(prop.size(), p2.size());
+        rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt', NULL) PROP");
+        rs.next();
+        String ps = rs.getString(1);
+        FileReader r = new FileReader(f);
+        String ps2 = IOUtils.readStringAndClose(r, -1);
+        check(ps, ps2);
+        f.delete();
+        conn.close();
     }
 
     public static class MedianString implements AggregateFunction {

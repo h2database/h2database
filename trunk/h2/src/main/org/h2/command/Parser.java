@@ -1407,7 +1407,7 @@ public class Parser {
 
     private void parseSelectSimpleSelectPart(Select command) throws SQLException {
         Select temp = currentSelect;
-        // make sure aggregate functions will not work in TOP and LIMIT clauses
+        // make sure aggregate functions will not work in TOP and LIMIT
         currentSelect = null;
         if (readIf("TOP")) {
             // can't read more complex expressions here because

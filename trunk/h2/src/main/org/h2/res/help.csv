@@ -2694,6 +2694,20 @@ Returns NULL otherwise.
 DATABASE_PATH()
 "
 
+"Functions (System)","FILE_READ","
+FILE_READ(fileNameString [,encodingString]): value
+","
+Returns the contents of a file. If only one parameter is supplied,
+the data are returned as a BLOB. If two parameters are used,
+the data is returned as a CLOB (text). The second parameter
+is the character set to use, NULL meaning the default character set
+for this system. File names and URLs are supported.
+Admin rights are required to execute this command.
+","
+SELECT LENGTH(FILE_READ('~/.h2.server.properties')) LEN;
+SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
+"
+
 "Functions (System)","GREATEST","
 GREATEST(aValue, bValue [,...]): value
 ","

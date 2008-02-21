@@ -161,6 +161,8 @@ link to new changelog and roadmap, remove pages from google groups
 Can sometimes not delete log file? need test case
 
 History:
+New function FILE_READ to read a file or from an URL.
+    Both binary and text data is supported.
 
 Roadmap:
 

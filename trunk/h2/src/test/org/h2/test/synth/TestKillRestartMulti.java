@@ -83,21 +83,21 @@ public class TestKillRestartMulti extends TestBase {
             try {
                 Backup.execute(backup, baseDir, "killRestartMulti", true);
                 Connection conn = null;
-				for (int j = 0;; j++) {
-					try {
-						conn = openConnection();
-						break;
-					} catch (SQLException e2) {
-						if (e2.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1
-								&& j < 3) {
-							Thread.sleep(100);
-						} else {
-							throw e2;
-						}
-					}
-				}
-				testConsistent(conn);
-				Statement stat = conn.createStatement();
+                for (int j = 0;; j++) {
+                    try {
+                        conn = openConnection();
+                        break;
+                    } catch (SQLException e2) {
+                        if (e2.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1
+                                && j < 3) {
+                            Thread.sleep(100);
+                        } else {
+                            throw e2;
+                        }
+                    }
+                }
+                testConsistent(conn);
+                Statement stat = conn.createStatement();
                 stat.execute("DROP ALL OBJECTS");
                 conn.close();
                 conn = openConnection();

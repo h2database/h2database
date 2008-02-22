@@ -15,7 +15,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>
+<li>-
 </li></ul>
 
 <h2>Version 1.0.67 (2008-02-22)</h2>
@@ -24,8 +24,8 @@ Change Log
 </li><li>CREATE TABLE AS SELECT now supports specifying the column list and data types.
 </li><li>Connecting to a TCP server and at shutting it down at the same time could cause a Java level deadlock.
 </li><li>A user now has all rights on his own local temporary tables.
-</li><li>CSV tool now support lineSeparator.
-</li><li>When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
+</li><li>The CSV tool now supports a custom lineSeparator.
+</li><li>When using multiple connections, empty space was reused too early sometimes. This could corrupt the database when recovering.
 </li><li>The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
 </li><li>Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
 </li><li>Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
@@ -36,7 +36,6 @@ Change Log
 </li><li>ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
 </li><li>When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 </li><li>The DbStarter servlet didn't start the TCP listener even if configured.
-</li><li>Recovery could fail when using multiple connections and larger transactions that deleted many rows.
 </li><li>Statement.setQueryTimeout() is now supported.
 </li><li>New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
 </li><li>Changing the transaction log level (SET LOG) is now written to the trace file by default.

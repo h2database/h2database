@@ -43,10 +43,10 @@ INSERT INTO ITEM VALUES(37,
 </li><li>A referential constraint to a table in a different schema could not be created.
 </li></ul>
 For details, see the ''Change Log'' at
-http://groups.google.com/group/h2-database/web/change-log
+http://www.h2database.com/html/changelog.html
 <br />
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(36,
@@ -76,10 +76,10 @@ INSERT INTO ITEM VALUES(36,
 </li><li>H2 Console: multiple consecutive spaces in the setting name did not work.
 </li></ul>
 For details, see the ''Change Log'' at
-http://groups.google.com/group/h2-database/web/change-log
+http://www.h2database.com/html/changelog.html
 <br />
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(35,
@@ -113,10 +113,10 @@ INSERT INTO ITEM VALUES(35,
 </li><li>DROP ALL OBJECTS did not drop some objects. 
 </li></ul>
 For details, see the ''Change Log'' at
-http://groups.google.com/group/h2-database/web/change-log
+http://www.h2database.com/html/changelog.html
 <br />
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(34,
@@ -154,7 +154,7 @@ INSERT INTO ITEM VALUES(34,
 </li><li>The index file is now re-created automatically when required.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(33,
@@ -180,7 +180,7 @@ INSERT INTO ITEM VALUES(33,
 </li><li>Using LIMIT with values close to Integer.MAX_VALUE didn''t work. 
 </li></ul>
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(32,
@@ -211,7 +211,7 @@ INSERT INTO ITEM VALUES(32,
 </li><li>Now changing MVCC too late throws an Exception.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(31,
@@ -238,7 +238,7 @@ INSERT INTO ITEM VALUES(31,
 </li><li>The code coverage is now at 83%.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(30,
@@ -265,7 +265,7 @@ INSERT INTO ITEM VALUES(30,
 </li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
-http://groups.google.com/group/h2-database/web/roadmap
+http://www.h2database.com/html/roadmap.html
 ');
 
 INSERT INTO ITEM VALUES(29,

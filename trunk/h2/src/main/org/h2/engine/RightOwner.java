@@ -36,6 +36,9 @@ public abstract class RightOwner extends DbObjectBase {
     }
 
     public boolean isRoleGranted(Role grantedRole) {
+        if (grantedRole == this) {
+            return true;
+        }
         if (grantedRoles != null) {
             Iterator it = grantedRoles.keySet().iterator();
             while (it.hasNext()) {

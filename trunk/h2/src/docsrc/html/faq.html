@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
-Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html). 
+<!--
+Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -62,7 +62,7 @@ Follow this checklist:
 <li>Run ANALYSE (see documentation for details).
 </li><li>Run the query with EXPLAIN and check if indexes are used (see documentation for details).
 </li><li>If required, create additional indexes and try again using ANALYZE and EXPLAIN.
-</li><li>If it doesn't help please report the problem. 
+</li><li>If it doesn't help please report the problem.
 </li>
 </ul>
 
@@ -104,8 +104,8 @@ The theoretical limit is currently 256 GB for the data. This number is excluding
 Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
 </p>
 <p>
-The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT or FAT32, the 
-limit is 4 GB for the data. 
+The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT or FAT32, the
+limit is 4 GB for the data.
 </p>
 
 <br /><a name="reliable"></a>
@@ -120,6 +120,7 @@ Areas that are not fully tested:
 <ul>
 <li>Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
 </li><li>The MVCC (multi version concurrency) mode
+</li><li>The persistent linear hash index
 </li><li>Cluster mode, 2-Phase Commit, Savepoints
 </li><li>Multi-Threading and using multiple connections
 </li><li>24/7 operation and large databases (500 MB and up)
@@ -156,7 +157,7 @@ However, the startup of the GCJ version is faster than when using a VM.
 <br /><a name="translate"></a>
 <h3>How to Translate this Project?</h3>
 <p>
-For more information, see 
+For more information, see
 <a href="build.html#translating">Build/Translating</a>.
 </p>
 

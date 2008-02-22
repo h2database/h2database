@@ -1,4 +1,22 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE ROLE X;
+> ok
+
+GRANT X TO X;
+> exception
+
+CREATE ROLE Y;
+> ok
+
+GRANT Y TO X;
+> ok
+
+DROP ROLE Y;
+> ok
+
+DROP ROLE X;
+> ok
+
 create table test as select * from table(id int=(1, 2, 3));
 > ok
 

@@ -155,6 +155,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+fix or disable the linear hash index
+
 delete old ipowerb content
 link to new changelog and roadmap, remove pages from google groups
 

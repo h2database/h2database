@@ -15,8 +15,26 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>CREATE INDEX on a table with many rows could run out of memory. Fixed.
-</li><li>The H2 Console was slow when the database contains many tables. Now the column names are not shown in this case.
+<li>
+</li></ul>
+
+<h2>Version 1.0.67 (2008-02-22)</h2>
+<ul>
+<li>New function FILE_READ to read a file or from an URL. Both binary and text data is supported.
+</li><li>CREATE TABLE AS SELECT now supports specifying the column list and data types.
+</li><li>Connecting to a TCP server and at shutting it down at the same time could cause a Java level deadlock.
+</li><li>A user now has all rights on his own local temporary tables.
+</li><li>CSV tool now support lineSeparator.
+</li><li>When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
+</li><li>The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
+</li><li>Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
+</li><li>Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
+</li><li>Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
+</li><li>The value cache is now a soft reference cache. This should help save memory.
+</li><li>CREATE INDEX on a table with many rows could run out of memory. Fixed.
+</li><li>Large result sets are now a bit faster.
+</li><li>ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
+</li><li>When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 </li><li>The DbStarter servlet didn't start the TCP listener even if configured.
 </li><li>Recovery could fail when using multiple connections and larger transactions that deleted many rows.
 </li><li>Statement.setQueryTimeout() is now supported.
@@ -24,6 +42,7 @@ Change Log
 </li><li>Changing the transaction log level (SET LOG) is now written to the trace file by default.
 </li><li>In a SQL script, primary key constraints are now ordered before foreign key constraints.
 </li><li>It was not possible to create a referential constraint to a table in a different schema in some situations.
+</li><li>The H2 Console was slow when the database contains many tables. Now the column names are not shown in this case.
 </li></ul>
 
 <h2>Version 1.0.66 (2008-02-02)</h2>
@@ -275,11 +294,6 @@ Change Log
 </li><li>In the H2 Console, result sets could not be modified because the default result set type is now forward only. For H2, now uses scrollable result sets. Also for other databases, but only when the query starts with @EDIT.
 </li><li>Views using UNION did not work correctly. Fixed.
 </li><li>Function tables did not work with views and EXPLAIN. Fixed.
-</li></ul>
-
-<h2>Version 0.9 (2005-12-13)</h2>
-<ul>
-<li>First public release.
 </li></ul>
 
 </div></td></tr></table></body></html>

@@ -955,59 +955,59 @@ Change Log
 @changelog_1001_h2
 Next Version (unreleased)
 
-@changelog_1002_h2
+@changelog_1002_li
+-
+
+@changelog_1003_h2
 Version 1.0.67 (2008-02-22)
 
-@changelog_1003_li
+@changelog_1004_li
 New function FILE_READ to read a file or from an URL. Both binary and text data is supported.
 
-@changelog_1004_li
+@changelog_1005_li
 CREATE TABLE AS SELECT now supports specifying the column list and data types.
 
-@changelog_1005_li
+@changelog_1006_li
 Connecting to a TCP server and at shutting it down at the same time could cause a Java level deadlock.
 
-@changelog_1006_li
+@changelog_1007_li
 A user now has all rights on his own local temporary tables.
 
-@changelog_1007_li
-CSV tool now support lineSeparator.
-
 @changelog_1008_li
-When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
+The CSV tool now supports a custom lineSeparator.
 
 @changelog_1009_li
-The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
+When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
 
 @changelog_1010_li
-Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
+The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
 
 @changelog_1011_li
-Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
+Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
 
 @changelog_1012_li
-Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
+Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
 
 @changelog_1013_li
-The value cache is now a soft reference cache. This should help save memory.
+Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
 
 @changelog_1014_li
-CREATE INDEX on a table with many rows could run out of memory. Fixed.
+The value cache is now a soft reference cache. This should help save memory.
 
 @changelog_1015_li
-Large result sets are now a bit faster.
+CREATE INDEX on a table with many rows could run out of memory. Fixed.
 
 @changelog_1016_li
-ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
+Large result sets are now a bit faster.
 
 @changelog_1017_li
-When setting the base directory on the command line, the user directory prefix ('~') was ignored.
+ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
 
 @changelog_1018_li
-The DbStarter servlet didn't start the TCP listener even if configured.
+When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 
 @changelog_1019_li
-Recovery could fail when using multiple connections and larger transactions that deleted many rows.
+The DbStarter servlet didn't start the TCP listener even if configured.
 
 @changelog_1020_li
 Statement.setQueryTimeout() is now supported.
@@ -3809,7 +3809,7 @@ Version 1.0.67 (2008-02-22):
 Windows Installer (2.9 MB)
 
 @mainWeb_1009_a
-All platforms (zip, 4.0 MB)
+All platforms (zip, 4.1 MB)
 
 @mainWeb_1010_a
 All Downloads

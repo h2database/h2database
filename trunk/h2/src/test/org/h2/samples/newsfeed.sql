@@ -10,6 +10,45 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(37,
+'New version available: 1.0.67 (2008-02-22)', '2008-02-22 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>New function FILE_READ to read a file or from an URL.
+</li><li>CREATE TABLE AS SELECT now supports a column list.
+</li><li>The CSV tool now supports a custom lineSeparator.
+</li><li>A user now has all rights on his own local temporary tables.
+</li><li>Opening databases with ACCESS_MODE_DATA=r is now supported.
+</li><li>Protection against password dictionary attacks in server mode.
+</li><li>The value cache is improved to save memory.
+</li><li>Large result sets are now a bit faster.
+</li><li>ALTER SEQUENCE now support parameters.
+</li><li>Statement.setQueryTimeout() is now supported.
+</li><li>New session setting QUERY_TIMEOUT.
+</li><li>The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
+</li><li>The H2 Console is now faster for databases containing many tables.
+</li><li>Databases can now be opened even if trigger classes are not in the classpath.
+</li><li>Changing the transaction log level (SET LOG) is now written to the trace file.
+</li><li>Primary key are now ordered before foreign key constraints.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>When using multiple connections, empty space was reused too early sometimes. 
+	This could corrupt the database when recovering.
+</li><li>The DbStarter servlet didn''t start the TCP listener even if configured.
+</li><li>The user directory prefix (''~'') was ignored sometimes.
+</li><li>Connecting to a TCP server and at shutting it down at the same time could fail.
+</li><li>CREATE INDEX on a table with many rows used too much memory.
+</li><li>A referential constraint to a table in a different schema could not be created.
+</li></ul>
+For details, see the ''Change Log'' at
+http://groups.google.com/group/h2-database/web/change-log
+<br />
+For future plans, see the ''Roadmap'' page at
+http://groups.google.com/group/h2-database/web/roadmap
+');
+
 INSERT INTO ITEM VALUES(36,
 'New version available: 1.0.66 (2008-02-02)', '2008-02-02 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -294,47 +333,6 @@ INSERT INTO ITEM VALUES(28,
 </li><li>When comparing TINYINT or SMALLINT columns, the index was not used
 </li><li>The documentation indexer does no longer index Japanese pages
 </li><li>Using a function in a GROUP BY expression did not always work
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
-INSERT INTO ITEM VALUES(27,
-'New version available: 1.0.57 (2007-08-25)', '2007-08-25 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>
-The default lock mode is now read committed instead of serialized.
-</li><li>The build now issues a warning if the source code is switched to the wrong version.
-</li><li>The H2 Console can now connect to databases using JNDI. 
-</li><li>New experimental feature MVCC (multi version concurrency control). 
-</li><li>The version number is now major.minor.micro where micro is the build number. 
-</li><li>New Japanese translation of the error messages thanks to Ikemoto Masahiro.
-</li><li>Disabling / enabling referential integrity for a table can now be used inside a transaction.
-</li><li>Check and foreign key constraints now checks if the existing data is consistent.
-</li><li>Can now incrementally translate the documentation.
-</li><li>Improved error messages.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>
-Some unit tests failed on Linux because the file system works differently. 
-</li><li>Rights checking for dynamic tables (SELECT * FROM (SELECT ...)) did not work. 
-</li><li>More than 10 views that depend on each other was very slow. 
-</li><li>When used as as Servlet, the H2 Console did not work with SSL (using Tomcat). 
-</li><li>Problem when altering a table with foreign key constraint, if there was no manual index.
-</li><li>The backup tool (org.h2.tools.Backup) did not work. 
-</li><li>Opening large read-only databases was very slow. Fixed.
-</li><li>OpenOffice compatibility: support database name in column names.
-</li><li>The column name C_CURRENT_TIMESTAMP did not work in the last release.
-</li><li>Two-phase commit: commit with transaction name was only supported in the recovery scan. 
-</li><li>PG server: data was truncated when reading large VARCHAR columns and decimal columns.
-</li><li>PG server: error when the same database was accessed multiple times using the PostgreSQL ODBC driver.
-</li><li>Some file operations didn''t work for files in the root directory. 
-</li><li>In the Restore tool, the parameter -file did not work.
-</li><li>The CONVERT function did not work with views when using UNION.
-</li><li>Google translate did not work for the H2 homepage.
 </li></ul>
 For future plans, see the new ''Roadmap'' page on the web site.
 ');

@@ -957,59 +957,59 @@ Centralリポジトリの利用
 @changelog_1001_h2
 #Next Version (unreleased)
 
-@changelog_1002_h2
+@changelog_1002_li
+#-
+
+@changelog_1003_h2
 #Version 1.0.67 (2008-02-22)
 
-@changelog_1003_li
+@changelog_1004_li
 #New function FILE_READ to read a file or from an URL. Both binary and text data is supported.
 
-@changelog_1004_li
+@changelog_1005_li
 #CREATE TABLE AS SELECT now supports specifying the column list and data types.
 
-@changelog_1005_li
+@changelog_1006_li
 #Connecting to a TCP server and at shutting it down at the same time could cause a Java level deadlock.
 
-@changelog_1006_li
+@changelog_1007_li
 #A user now has all rights on his own local temporary tables.
 
-@changelog_1007_li
-#CSV tool now support lineSeparator.
-
 @changelog_1008_li
-#When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
+#The CSV tool now supports a custom lineSeparator.
 
 @changelog_1009_li
-#The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
+#When using multiple connections, empty space was reused too early sometimes. This was sometimes causing database corruption.
 
 @changelog_1010_li
-#Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
+#The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
 
 @changelog_1011_li
-#Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
+#Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
 
 @changelog_1012_li
-#Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
+#Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
 
 @changelog_1013_li
-#The value cache is now a soft reference cache. This should help save memory.
+#Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
 
 @changelog_1014_li
-#CREATE INDEX on a table with many rows could run out of memory. Fixed.
+#The value cache is now a soft reference cache. This should help save memory.
 
 @changelog_1015_li
-#Large result sets are now a bit faster.
+#CREATE INDEX on a table with many rows could run out of memory. Fixed.
 
 @changelog_1016_li
-#ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
+#Large result sets are now a bit faster.
 
 @changelog_1017_li
-#When setting the base directory on the command line, the user directory prefix ('~') was ignored.
+#ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
 
 @changelog_1018_li
-#The DbStarter servlet didn't start the TCP listener even if configured.
+#When setting the base directory on the command line, the user directory prefix ('~') was ignored.
 
 @changelog_1019_li
-#Recovery could fail when using multiple connections and larger transactions that deleted many rows.
+#The DbStarter servlet didn't start the TCP listener even if configured.
 
 @changelog_1020_li
 #Statement.setQueryTimeout() is now supported.
@@ -3811,7 +3811,7 @@ JDBC、 (部分的な) ODBC API; Web クライアントアプリケーション
 #Windows Installer (2.9 MB)
 
 @mainWeb_1009_a
-#All platforms (zip, 4.0 MB)
+#All platforms (zip, 4.1 MB)
 
 @mainWeb_1010_a
 全てダウンロード
@@ -6846,309 +6846,9 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 @tutorial_1149_p
 #Variables that are not set evaluate to NULL. The data type of a user defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values, large objects (LOBs) are supported as well.
 
-@~advanced_1157_h3
-セキュリティ考慮
-
-@~advanced_1158_p
-現在、PGサーバーはchallenge response、またはパスワードの暗号化をサポートしていません。パスワードが読みやすいため、アタッカーがODBCドライバとサーバー間でのデータ転送を傾聴できる場合、これは問題になるでしょう。また、暗号化SSL接続も現在使用不可能です。そのため、ODBCドライバはセキュリティが重視される場面においては使用されるべきではありません。
-
-@~advanced_1159_h2
-ACID
-
-@~advanced_1160_p
-データベースの世界では、ACIDとは以下を表しています:
-
-@~advanced_1161_li
-Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
-
-@~advanced_1165_h3
-Atomicity (原子性)
-
-@~advanced_1166_p
-このデータベースでのトランザクションは常にアトミックです。
-
-@~advanced_1167_h3
-Consistency (一貫性)
-
-@~advanced_1168_p
-このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
-
-@~advanced_1169_h3
-Isolation (独立性 / 分離性)
-
-@~advanced_1170_p
-H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
-
-@~advanced_1171_h3
-Durability (永続性)
-
-@~advanced_1172_p
-このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
-
-@~advanced_1173_h2
-永続性問題
-
-@~advanced_1174_p
-完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
-
-@~advanced_1175_h3
-永続性を実現する (しない) 方法
-
-@~advanced_1176_p
-失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
-
-@~advanced_1177_li
-rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
-
-@~advanced_1179_p
-この特徴はDerbyで使用されています。それらのモードのうちのひとつは、テスト (org.h2.test.poweroff.TestWrite) において、毎秒およそ5万件の書き込み操作を実現します。オペレーティングシステムのライトバッファーが無効の時でさえも、 書き込み速度は毎秒およそ5万件です。この特徴はディスクを交換させるというものではありません。 なぜなら、全てのバッファーをフラッシュするのではないからです。テストはファイル内の同じバイトを何度も更新しました。 もしハードドライブがこの速度での書き込みが可能なら、ディスクは少なくても毎秒5万回転か、 または300万 RPM (revolutions per minute 回転毎分) を行う必要があります。 そのようなハードドライブは存在しません。テストで使用されたハードドライブは、およそ7200 RPM、または 毎秒120回転です。これがオーバーヘッドなので、最大書き込み速度はこれより低くなくてはなりません。
-
-@~advanced_1181_li
-FileDescriptor.sync() ドキュメンテーションには、これは強制的に全てのシステムバッファーに基本となる デバイスとの同期を取らせる、と書かれています。このFileDescriptorに関連するバッファーのインメモリでの 変更コピーが全て物理メディアに書かれた後、Syncは返ることになっています。
-
-@~advanced_1183_p
-デフォルトでは、MySQLはそれぞれのコミットごとに fsync を呼びます。それらのメソッドのうちひとつを使用している時、 毎秒およそ60件だけが実行され、使用されているハードドライブのRPM速度と一貫性があります。 残念ながら、FileDescriptor.sync() または FileChannel.force() を呼んだ時でさえも データは常にハードドライブに存続するとは限りません。なぜなら、多くのハードドライブは fsync() に従わないからです: http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252 内の"Your Hard Drive Lies to You" をご覧下さい。Mac OS X では、fsync はハードドライブバッファーをフラッシュしません: http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html そのため状況は混乱していて、 問題があることをテストは証明しています。
-
-@~advanced_1186_h3
-永続性テストを実行する
-
-@~advanced_1187_p
-このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
-
-@~advanced_1188_h2
-リカバーツールを使用する
-
-@~advanced_1189_p
-リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
-
-@~advanced_1191_h2
-ファイルロックプロトコル
-
-@~advanced_1192_p
-データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
-
-@~advanced_1194_h3
-ファイルロックメソッド "File"
-
-@~advanced_1195_p
-データベースファイルロックのデフォルトメソッドは "Fileメソッド" です。アルゴリズム:
-
-@~advanced_1196_li
-ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
-
-@~advanced_1199_p
-このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
-
-@~advanced_1200_h3
-ファイルロックメソッド "Socket"
-
-@~advanced_1201_p
-実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
-
-@~advanced_1202_li
-ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
-
-@~advanced_1205_p
-このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
-
-@~advanced_1206_h2
-SQLインジェクションに対する防御
-
-@~advanced_1207_h3
-SQLインジェクションとは
-
-@~advanced_1208_p
-このデータベースエンジンは "SQLインジェクション" として知られる セキュリティ脆弱性の解決策を備えています。 これは、SQLインジェクションの意味とは何か、 についての短い説明です。いくつかのアプリケーションは、エンベッドユーザーがこのように入力する SQLステートメントを構築します:
-
-@~advanced_1211_h3
-リテラルを無効にする
-
-@~advanced_1212_p
-ユーザー入力が直接SQLステートメントに組み込まれなければ、 SQLインジェクションは不可能です。上記の問題の簡単な解決方法は、PreparedStatementを使用することです:
-
-@~advanced_1215_h3
-定数を使用する
-
-@~advanced_1216_p
-リテラルを無効にするということは、ハードコード化された "定数" リテラルを無効にする、 ということも意味します。このデータベースは、CREATE CONSTANT コマンドを使用して定数を定義することをサポートしています。 定数はリテラルが有効であるときのみ定義することができますが、リテラルが無効の時でも使用することができます。 カラム名の名前の衝突を避けるために、定数は他のスキーマで定義できます:
-
-@~advanced_1218_h3
-ZERO() 関数を使用する
-
-@~advanced_1219_p
-組み込み関数 ZERO() がすでにあるため、 数値 0 のための定数を作る必要はありません:
-
-@~advanced_1220_h2
-#Restricting Class Loading and Usage
-
-@~advanced_1221_p
-#By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
-
-@~advanced_1224_h2
-セキュリティプロトコル
-
-@~advanced_1225_p
-次の文章は、このデータベースで使用されている セキュリティプロトコルのドキュメントです。これらの記述は非常に専門的で、 根本的なセキュリティの基本をすでに知っているセキュリティ専門家のみを対象としています。
-
-@~advanced_1226_h3
-ユーザーパスワードの暗号化
-
-@~advanced_1227_p
-ユーザーがデータベースに接続しようとする時、ユーザー名の組み合わせ、@、パスワードは SHA-256 を使用してハッシュ化され、このハッシュ値はデータベースに送信されます。 この手順は、クライアントとサーバー間の転送をアタッカーが聞ける (非暗号化できる) のであれば、 再使用する値からのアタッカーを試みることはありません。しかし、パスワードはクライアントとサーバー間で 暗号化されていない接続を使用している時でさえも、プレーンテキストで送信されることはありません これはもしユーザーが、異なる場面で同じパスワードを再利用しても、このパスワードはある程度まで保護されます。 詳細は"RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication" もご覧下さい。
-
-@~advanced_1230_h3
-ファイル暗号化
-
-@~advanced_1231_p
-データベースファイルは二つの異なるアルゴリズムを使用して、暗号化されます: AES-128 と XTEA です (32 ラウンドを使用)。 XTEAをサポートする理由はパフォーマンス (XTEAはAESのおよそ二倍の速さです) と、AESが突然壊れた場合、代わりとなるアルゴリズムを 持っているからです。
-
-@~advanced_1240_h3
-SSL/TLS 接続
-
-@~advanced_1241_p
-遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
-
-@~advanced_1242_h3
-HTTPS 接続
-
-@~advanced_1243_p
-webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
-
-@~advanced_1244_h2
-汎用一意識別子 (UUID)
-
-@~advanced_1245_p
-このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
-
-@~advanced_1248_h2
-システムプロパティから読み込まれた設定
-
-@~advanced_1249_p
-いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
-
-@~advanced_1252_h2
-#Setting the Server Bind Address
-
-@~advanced_1253_p
-#Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
-
-@~advanced_1254_h2
-用語集とリンク
-
-@~advanced_1255_th
-用語
-
-@~advanced_1257_td
-AES-128
-
-@~advanced_1268_a
-Wikipedia: Block cipher modes of operation
-
-@~advanced_1269_td
-Salt
-
-@~changelog_1002_li
-#CREATE INDEX on a table with many rows could run out of memory. Fixed.
-
-@~changelog_1011_h2
-#Version 1.0.66 (2008-02-02)
-
-@~changelog_1026_li
-#Fulltext search is now supported in named in-memory databases.
-
-@~changelog_1028_h2
-#Version 1.0.65 (2008-01-18)
-
-@~changelog_1043_li
-#The setting h2.serverSmallResultSetSize has been renamed to h2.serverResultSetFetchSize.
-
-@~changelog_1051_h2
-#Version 1.0.64 (2007-12-27)
-
-@~changelog_1066_li
-#Opening a database with many indexes (thousands) was slow. Fixed.
-
-@~changelog_1077_h2
-#Version 1.0.63 (2007-12-02)
-
-@~changelog_1088_h2
-#Version 1.0.62 (2007-11-25)
-
-@~changelog_1092_li
-#Renaming or dropping a user with a schema, or removing the admin property of that user made the schema inaccessible after re-opening the database. Fixed.
-
-@~changelog_1103_li
-#A patch for Apache DDL Utils is available at https://issues.apache.org/jira/browse/DDLUTILS-185
-
-@~changelog_1107_h2
-#Version 1.0.61 (2007-11-10)
-
-@~changelog_1134_h2
-#Version 1.0.59 (2007-10-03)
-
-@~changelog_1137_li
-#Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
-
-@~changelog_1149_li
-#Compatibility: comparing columns with constants that are out of range does not throw an exception.
-
-@~changelog_1150_h2
-#Version 1.0.58 (2007-09-15)
-
-@~changelog_1165_li
-#In some systems, SecureRandom.generateSeed is very slow (taking one minute or more). For those cases, an alternative method is used that takes less than one second.
-
-@~changelog_1175_h2
-#Version 1.0.57 (2007-08-25)
-
-@~changelog_1190_li
-#The H2 Console can now connect to databases using JNDI. The driver class name must be a javax.naming.Context, (for example javax.naming.InitialContext), and the URL the resource name (for example java:comp/env/jdbc/Test). This should also work for linked tables.
-
-@~changelog_1202_h2
-#Version 1.0.56 (2007-08-02)
-
-@~changelog_1217_li
-#Calculation of cache memory usage has been improved.
-
-@~changelog_1229_h2
-#Version 0.9 (2005-12-13)
-
-@~faq_1046_p
-試験的に考慮された箇所は以下の通り:
-
-@~faq_1047_li
-#The PostgreSQL server
-
-@~faq_1051_h3
-#Is the GCJ Version Stable? Faster?
-
-@~faq_1052_p
-GCJバージョンは、Javaバージョンほどは安定していません。GCJバージョンでリグレッションテストを実行した時、アプリケーションはランダムポイントと思われるところで、エラーメッセージなしで停止する場合があります。現在、GCJバージョンはSun VMの使用時よりも低速です。しかし、GCJバージョンの起動はVM使用時よりも高速です。
-
-@~faq_1053_h3
-このプロジェクトの翻訳方法は？
-
-@~faq_1054_p
-#For more information, see <a href="build.html#translating">Build/Translating</a> .
-
-@~history_1023_h3
-#Not Planned
-
-@~history_1024_li
-#HSQLDB does/did support this: select id i from test where i>0 (other databases don't)
-
-@~history_1026_h2
-支援者
-
-@~history_1027_p
-#Many thanks for those who helped by finding and reporting bugs, gave valuable feedback, spread the word and have translated this project. Also many thanks to the donors who contributed via PayPal:
-
-@~history_1034_li
-#Harpal Grover Consulting Inc., USA
-
-@~history_1035_li
-#Elisabetta Berlini, Italy
-
-@~roadmap_1322_h2
-#Not Planned
+@~changelog_1002_h2
+#Version 1.0.67 (2008-02-22)
+
+@~changelog_1003_li
+#New function FILE_READ to read a file or from an URL. Both binary and text data is supported.
 

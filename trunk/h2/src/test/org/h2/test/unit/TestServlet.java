@@ -140,7 +140,7 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
-    };
+    }
 
     public void test() throws Exception {
         if (config.networked || config.memory) {

@@ -52,7 +52,6 @@ Roadmap
 <ul>
 <li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
-</li><li>Built-in methods to read/write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World'), FILE_READ('test.txt' AS VARCHAR)
 </li><li>Better space re-use in the files after deleting data (shrink the files)
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Full outer joins
@@ -344,6 +343,47 @@ Roadmap
 </li><li>Remember the domain of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Optimize truncate and drop table (currently all pages are overwritten)
+</li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
+</li><li>Change package name in version 2.0: org.h2database
+</li><li>MVCC: support transactionally consistent backups using SCRIPT
+</li><li>Improve time to open large databases (see mail 'init time for distributed setup')
+</li><li>Use ARRAY for fulltext search return value, at least internally in the native implementation (and as an option for the user)
+</li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
+</li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
+</li><li>Document how to use IKVM
+</li><li>Javadoc: document design patterns used
+</li><li>Update Wikipedia
+</li><li>Try https://hudson.dev.java.net/
+</li><li>Don't create @~ of not translated
+</li><li>Triggers for metadata tables; use for PostgreSQL catalog
+</li><li>Does the FTP server has problems with multithreading?
+</li><li>Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
+</li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
+</li><li>Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
+</li><li>Improve LOB in directories performance
+</li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
+</li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
+    CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
+</li><li>Web site: Rename Performance to Comparison [/Compatibility],
+    move Comparison to Other Database Engines to Comparison,
+    move Products that Work with H2 to Comparison,
+    move Performance Tuning to Advanced Topics
+</li><li>Translation: use ${.} in help.csv
+</li><li>Translated .pdf
+</li><li>Cluster: hot deploy (adding a node on runtime)
+</li><li>Test with PostgreSQL  Version 8.2
+</li><li>Submit again to http://www.docjar.com/
+</li><li>Website: Don't use frames.
+</li><li>Try again with Lobo browser (pure Java)
+</li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
+</li><li>RECOVER=2 to backup the database, run recovery, open the database
+</li><li>Recovery should work with encrypted databases
+</li><li>Integrate tools in H2 Console
+</li><li>Corruption: new error code, add help
+</li><li>Space reuse: after init, scan all storages and free those that don't belong to a live database object
+</li><li>SysProperties: change everything to H2_...
+</li><li>Use FilterIn / FilterOut putStream?
+</li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li></ul>
 
 <h2>Not Planned</h2>

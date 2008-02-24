@@ -1,4 +1,38 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(a int, b int default 1);
+> ok
+
+insert into test values(1, default), (2, 2), (3, null);
+> update count: 3
+
+select * from test;
+> A B
+> - ----
+> 1 1
+> 2 2
+> 3 null
+> rows: 3
+
+update test set b = default where a = 2;
+> update count: 1
+
+explain update test set b = default where a = 2;
+> PLAN
+> ---------------------------------------------------------------------------
+> UPDATE PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ SET B = DEFAULT WHERE A = 2
+> rows: 1
+
+select * from test;
+> A B
+> - ----
+> 1 1
+> 2 1
+> 3 null
+> rows: 3
+
+drop table test;
+> ok
+
 CREATE ROLE X;
 > ok
 

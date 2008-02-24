@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
@@ -80,6 +81,9 @@ public class Update extends Prepared {
                         Value newValue;
                         if (newExpr == null) {
                             newValue = oldRow.getValue(i);
+                        } else if (newExpr == ValueExpression.DEFAULT) {
+                            Column column = table.getColumn(i);
+                            newValue = column.getDefaultExpression().getValue(session).convertTo(column.getType());
                         } else {
                             Column column = table.getColumn(i);
                             newValue = newExpr.getValue(session).convertTo(column.getType());

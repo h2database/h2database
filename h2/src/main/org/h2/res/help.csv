@@ -29,7 +29,7 @@ INSERT INTO TEST VALUES(1, 'Hello')
 
 "Commands (DML)","UPDATE","
 UPDATE tableName
-SET {columnName=expression} [,...]
+SET {columnName= {DEFAULT | expression} } [,...]
 [WHERE expression]
 ","
 Updates data in a table.

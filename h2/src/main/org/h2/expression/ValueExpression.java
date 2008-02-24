@@ -22,6 +22,7 @@ public class ValueExpression extends Expression {
     private Value value;
 
     public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
+    public static final ValueExpression DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
     public static ValueExpression get(Value v) {
         if (v == ValueNull.INSTANCE) {
@@ -86,7 +87,11 @@ public class ValueExpression extends Expression {
     }
 
     public String getSQL() {
-        return value.getSQL();
+        if (this == DEFAULT) {
+            return "DEFAULT";
+        } else {
+            return value.getSQL();
+        }
     }
 
     public void updateAggregate(Session session) throws SQLException {

@@ -635,7 +635,12 @@ public class Parser {
             do {
                 Column column = readTableColumn(filter);
                 read("=");
-                Expression expression = readExpression();
+                Expression expression;
+                if (readIf("DEFAULT")) {
+                    expression = ValueExpression.DEFAULT;
+                } else {
+                    expression = readExpression();
+                }
                 command.setAssignment(column, expression);
             } while (readIf(","));
         }

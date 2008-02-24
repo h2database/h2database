@@ -155,7 +155,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+
 test startBrowser in Linux
+larger H2 tray icon for ubuntu
+Can not select URL
+Strange font
 
 fix or disable the linear hash index
 
@@ -165,8 +169,8 @@ link to new changelog and roadmap, remove pages from google groups
 Can sometimes not delete log file? need test case
 
 History:
-New function FILE_READ to read a file or from an URL.
-    Both binary and text data is supported.
+H2 Console: on Linux, Firefox is now started if available. This has been tested on Ubuntu.
+
 
 Roadmap:
 

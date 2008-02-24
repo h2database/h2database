@@ -26,10 +26,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import org.h2.util.IOUtils;
+
+import java.io.IOException;
 import java.io.InputStream;
 //#endif
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.StartBrowser;
 
@@ -46,11 +49,12 @@ ShutdownHandler {
 
 //#ifdef AWT
     private Font font;
-    private Image icon;
+    private Image icon16, icon24;
     private Frame frame;
 //#endif
     private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg;
+    private boolean isWindows;
 
     /**
      * The command line interface for this tool.
@@ -69,6 +73,7 @@ ShutdownHandler {
     }
 
     private int run(String[] args) {
+        isWindows = SysProperties.getStringSetting("os.name", "").startsWith("Windows");
         int exitCode = 0;
         try {
             web = Server.createWebServer(args);
@@ -103,13 +108,14 @@ ShutdownHandler {
         }
 //#ifdef AWT
         if (!GraphicsEnvironment.isHeadless()) {
-            font = new Font("Dialog", Font.PLAIN, 11);
+            if (isWindows) {
+                font = new Font("Dialog", Font.PLAIN, 11);
+            } else {
+                font = new Font("Dialog", Font.PLAIN, 12);
+            }
             try {
-                InputStream in = Console.class.getResourceAsStream("/org/h2/res/h2.png");
-                if (in != null) {
-                    byte[] imageData = IOUtils.readBytesAndClose(in, -1);
-                    icon = Toolkit.getDefaultToolkit().createImage(imageData);
-                }
+                icon16 = loadImage("/org/h2/res/h2.png");
+                icon24 = loadImage("/org/h2/res/h2b.png");
                 if (!createTrayIcon()) {
                     showWindow(true);
                 }
@@ -127,6 +133,15 @@ ShutdownHandler {
             exitCode = EXIT_ERROR;
         }
         return exitCode;
+    }
+
+    private Image loadImage(String name) throws IOException {
+        InputStream in = Console.class.getResourceAsStream(name);
+        if (in != null) {
+            byte[] imageData = IOUtils.readBytesAndClose(in, -1);
+            return Toolkit.getDefaultToolkit().createImage(imageData);
+        }
+        return null;
     }
 
     /**
@@ -187,15 +202,22 @@ ShutdownHandler {
             itemExit.addActionListener(this);
             menuConsole.add(itemExit);
 
-            // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            Object trayIcon = Class.forName("java.awt.TrayIcon").
-                getConstructor(new Class[] { Image.class, String.class, PopupMenu.class }).
-                newInstance(new Object[] { icon, "H2 Database Engine", menuConsole });
-
             // SystemTray tray = SystemTray.getSystemTray();
             Object tray = Class.forName("java.awt.SystemTray").
                 getMethod("getSystemTray", new Class[0]).
                 invoke(null, new Object[0]);
+
+            // Dimension d = tray.getTrayIconSize();
+            Dimension d = (Dimension) Class.forName("java.awt.SystemTray").
+                getMethod("getTrayIconSize", new Class[0]).
+                invoke(tray, new Object[0]);
+
+            Image icon = (d.width >= 24 && d.height >= 24) ? icon24 : icon16;
+
+            // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
+            Object trayIcon = Class.forName("java.awt.TrayIcon").
+                getConstructor(new Class[] { Image.class, String.class, PopupMenu.class }).
+                newInstance(new Object[] { icon, "H2 Database Engine", menuConsole });
 
             // trayIcon.addMouseListener(this);
             trayIcon.getClass().
@@ -224,8 +246,8 @@ ShutdownHandler {
                 }
             }
         });
-        if (icon != null) {
-            frame.setIconImage(icon);
+        if (icon16 != null) {
+            frame.setIconImage(icon16);
         }
         frame.setResizable(false);
         frame.setBackground(SystemColor.control);
@@ -250,7 +272,9 @@ ShutdownHandler {
         text.setEditable(false);
         text.setFont(font);
         text.setText(web.getURL());
-        text.setFocusable(false);
+        if (isWindows) {
+            text.setFocusable(false);
+        }
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
         frame.add(text, c);
@@ -269,7 +293,7 @@ ShutdownHandler {
         c.gridwidth = GridBagConstraints.REMAINDER;
         frame.add(startBrowser, c);
 
-        int width = 250, height = 120;
+        int width = 300, height = 120;
         frame.setSize(width, height);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation((screenSize.width - width) / 2, (screenSize.height - height) / 2);

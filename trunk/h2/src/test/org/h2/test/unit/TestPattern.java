@@ -14,7 +14,7 @@ import org.h2.value.CompareMode;
 public class TestPattern extends TestBase {
 
     public void test() throws Exception {
-        CompareMode mode = new CompareMode(null, null);
+        CompareMode mode = new CompareMode(null, null, 100);
         CompareLike comp = new CompareLike(mode, null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");

@@ -10,6 +10,7 @@ import java.text.Collator;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
@@ -119,10 +120,10 @@ public class Set extends Prepared {
             CompareMode compareMode;
             StringBuffer buff = new StringBuffer(stringValue);
             if (stringValue.equals(CompareMode.OFF)) {
-                compareMode = new CompareMode(null, null);
+                compareMode = new CompareMode(null, null, 0);
             } else {
                 Collator coll = CompareMode.getCollator(stringValue);
-                compareMode = new CompareMode(coll, stringValue);
+                compareMode = new CompareMode(coll, stringValue, SysProperties.getCollatorCacheSize());
                 buff.append(" STRENGTH ");
                 if (getIntValue() == Collator.IDENTICAL) {
                     buff.append("IDENTICAL");

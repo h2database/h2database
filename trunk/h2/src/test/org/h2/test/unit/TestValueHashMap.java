@@ -23,7 +23,7 @@ import org.h2.value.ValueInt;
  */
 public class TestValueHashMap extends TestBase implements DataHandler {
 
-    CompareMode compareMode = new CompareMode(null, null);
+    CompareMode compareMode = new CompareMode(null, null, 0);
 
     public void test() throws Exception {
         ValueHashMap map = new ValueHashMap(this);

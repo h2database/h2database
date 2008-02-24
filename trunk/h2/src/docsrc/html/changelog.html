@@ -15,7 +15,11 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>UPDATE SET column=DEFAULT is now supported.
+<li>The performance of text comparison has been improved when using locale sensitive
+	string comparison (SET COLLATOR). Now CollationKey is used with a LRU cache.
+	The default cache size is 10000, and can be changed using the system property
+	h2.collatorCacheSize. Use 0 to disable the cache.
+</li><li>UPDATE SET column=DEFAULT is now supported.
 </li></ul>
 
 <h2>Version 1.0.67 (2008-02-22)</h2>

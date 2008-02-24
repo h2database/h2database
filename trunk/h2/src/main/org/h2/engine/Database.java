@@ -150,7 +150,7 @@ public class Database implements DataHandler {
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
-        this.compareMode = new CompareMode(null, null);
+        this.compareMode = new CompareMode(null, null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = name;

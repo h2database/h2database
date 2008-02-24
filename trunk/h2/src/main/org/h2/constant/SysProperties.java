@@ -32,6 +32,11 @@ public class SysProperties {
     public static final String H2_LOG_DELETE_DELAY = "h2.logDeleteDelay";
 
     /**
+     * INTERNAL
+     */
+    public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
+
+    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the RunScript and CSV tool.
      */
@@ -339,6 +344,12 @@ public class SysProperties {
      */
     public static final int LARGE_RESULT_BUFFER_SIZE = getIntSetting("h2.largeResultBufferSize", 4 * 1024);
 
+    /**
+     * System property <code>h2.collatorCacheSize</code> (default: 10000).<br />
+     * The cache size for collation keys (in elements). Used when a collator has been set for the database.
+     */
+    public static final int COLLATOR_CACHE_SIZE = getCollatorCacheSize();
+
     private static String baseDir = getStringSetting("h2.baseDir", null);
 
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
@@ -412,5 +423,12 @@ public class SysProperties {
      */
     public static int getLogFileDeleteDelay() {
         return getIntSetting(H2_LOG_DELETE_DELAY, 0);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static int getCollatorCacheSize() {
+        return getIntSetting(H2_COLLATOR_CACHE_SIZE, 32000);
     }
 }

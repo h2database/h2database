@@ -4,9 +4,11 @@
  */
 package org.h2.value;
 
+import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Locale;
 
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
 /**
@@ -18,9 +20,15 @@ public class CompareMode {
     public static final String OFF = "OFF";
     private final Collator collator;
     private final String name;
+    private final SmallLRUCache collationKeys;
 
-    public CompareMode(Collator collator, String name) {
+    public CompareMode(Collator collator, String name, int cacheSize) {
         this.collator = collator;
+        if (collator != null && cacheSize != 0) {
+            collationKeys = new SmallLRUCache(cacheSize);
+        } else {
+            collationKeys = null;
+        }
         this.name = name == null ? OFF : name;
     }
 
@@ -49,8 +57,26 @@ public class CompareMode {
             a = a.toUpperCase();
             b = b.toUpperCase();
         }
-        int comp = collator.compare(a, b);
+        int comp;
+        if (collationKeys != null) {
+            CollationKey aKey = getKey(a);
+            CollationKey bKey = getKey(b);
+            comp = aKey.compareTo(bKey);
+        } else {
+            comp = collator.compare(a, b);
+        }
         return comp;
+    }
+
+    private CollationKey getKey(String a) {
+        synchronized (collationKeys) {
+            CollationKey key = (CollationKey) collationKeys.get(a);
+            if (key == null) {
+                key = collator.getCollationKey(a);
+                collationKeys.put(a, key);
+            }
+            return key;
+        }
     }
 
     public static String getName(Locale l) {

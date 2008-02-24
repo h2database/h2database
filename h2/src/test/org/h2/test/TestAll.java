@@ -155,6 +155,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+test startBrowser in Linux
+
 fix or disable the linear hash index
 
 delete old ipowerb content

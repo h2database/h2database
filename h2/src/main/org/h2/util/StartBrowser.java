@@ -23,10 +23,19 @@ public class StartBrowser {
                 // Runtime.getRuntime().exec("open " + url + "/index.html");
                 Runtime.getRuntime().exec("open " + url);
             } else {
-                System.out.println("Please open a browser and go to "+ url);
+                try {
+                    Runtime.getRuntime().exec("firefox " + url);
+                } catch (Exception e) {
+                    try {
+                        Runtime.getRuntime().exec("mozilla-firefox " + url);
+                    } catch (Exception e2) {
+                        // No success in detection.
+                        System.out.println("Please open a browser and go to " + url);
+                    }
+                }
             }
         } catch (IOException e) {
-            System.out.println("Failed to start a browser to open the url " + url);
+            System.out.println("Failed to start a browser to open the URL " + url);
             e.printStackTrace();
         }
     }

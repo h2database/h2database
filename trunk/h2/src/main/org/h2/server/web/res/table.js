@@ -133,9 +133,6 @@ function resortTable(link) {
     if (x.match(/^[\d\.]+$/)) {
         sortNumeric = true;
     }
-
-//alert("start copy");
-
     var newRows = new Array();
     var rows = table.rows;
     for (i=1; i<rows.length; i++) {
@@ -150,9 +147,7 @@ function resortTable(link) {
         }
         newRows[i-1] = o;
     }
-//alert("start sort");
     newRows.sort(sortCallback);
-
     var arrow;
     if (span.getAttribute("sortDir") == 'down') {
         arrow = '&nbsp;<img src="sort_up.gif" with=7 height=10 border=0/>';
@@ -163,14 +158,12 @@ function resortTable(link) {
         span.setAttribute('sortDir','down');
     }
 
-//alert("start move");
     // we appendChild rows that already exist to the tbody,
     // so it moves them rather than creating new ones
     var body = table.tBodies[0];
     for (i=0; i<newRows.length; i++) {
         body.appendChild(newRows[i].data);
     }
-//alert("end");
 
     // delete any other arrows there may be showing
     var allSpans = document.getElementsByTagName("span");

@@ -13,8 +13,10 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Label;
 import java.awt.MenuItem;
+import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.SystemColor;
 import java.awt.TextField;
@@ -255,18 +257,38 @@ ShutdownHandler {
         GridBagLayout layout = new GridBagLayout();
         frame.setLayout(layout);
 
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.EAST;
-        c.insets.left = 2;
-        c.insets.right = 2;
-        c.insets.top = 2;
-        c.insets.bottom = 2;
+        // the main panel keeps everything together
+        Panel mainPanel = new Panel(layout);
+
+        GridBagConstraints contraintsPanel = new GridBagConstraints();
+        contraintsPanel.gridx = 0;
+        contraintsPanel.weightx = 1.0D;
+        contraintsPanel.weighty = 1.0D;
+        contraintsPanel.fill = GridBagConstraints.BOTH;
+        contraintsPanel.insets = new Insets(0, 10, 0, 10);
+        contraintsPanel.gridy = 0;
+
+        GridBagConstraints constraintsButton = new GridBagConstraints();
+        constraintsButton.gridx = 0;
+        constraintsButton.gridwidth = 2;
+        constraintsButton.insets = new Insets(10, 0, 0, 0);
+        constraintsButton.gridy = 1;
+        constraintsButton.anchor = GridBagConstraints.EAST;
+
+        GridBagConstraints constraintsTextField = new GridBagConstraints();
+        constraintsTextField.fill = GridBagConstraints.HORIZONTAL;
+        constraintsTextField.gridy = 0;
+        constraintsTextField.weightx = 1.0;
+        constraintsTextField.insets = new Insets(0, 5, 0, 0);
+        constraintsTextField.gridx = 1;
+
+        GridBagConstraints constraintsLabel = new GridBagConstraints();
+        constraintsLabel.gridx = 0;
+        constraintsLabel.gridy = 0;
 
         Label label = new Label("H2 Console URL:", Label.LEFT);
         label.setFont(font);
-        c.anchor = GridBagConstraints.WEST;
-        c.gridwidth = GridBagConstraints.EAST;
-        frame.add(label, c);
+        mainPanel.add(label, constraintsLabel);
 
         TextField text = new TextField();
         text.setEditable(false);
@@ -275,23 +297,15 @@ ShutdownHandler {
         if (isWindows) {
             text.setFocusable(false);
         }
-        c.anchor = GridBagConstraints.EAST;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        frame.add(text, c);
-
-        Label label2 = new Label();
-        c.anchor = GridBagConstraints.WEST;
-        c.gridwidth = GridBagConstraints.EAST;
-        frame.add(label2, c);
+        mainPanel.add(text, constraintsTextField);
 
         Button startBrowser = new Button("Start Browser");
         startBrowser.setFocusable(false);
         startBrowser.setActionCommand("console");
         startBrowser.addActionListener(this);
         startBrowser.setFont(font);
-        c.anchor = GridBagConstraints.EAST;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        frame.add(startBrowser, c);
+        mainPanel.add(startBrowser, constraintsButton);
+        frame.add(mainPanel, contraintsPanel);
 
         int width = 300, height = 120;
         frame.setSize(width, height);

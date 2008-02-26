@@ -155,11 +155,55 @@ java org.h2.test.TestAll timer
 
 /*
 
+apple:
+- console doesn't always work in safari, fix
 
-test startBrowser in Linux
-larger H2 tray icon for ubuntu
-Can not select URL
-Strange font
+ant 'get' for dependencies
+
+H2 is an SQL database engine written in Java.
+It is very fast and small (about 1 MB).
+Embedded, server, and clustering modes are available.
+A browser based console application is included.
+Disk based and in-memory tables and databases are supported.
+Some of its features are transactions isolation, multi-version concurrency
+(MVCC), level locking, encrypted databases, fulltext search,
+and strong security.
+The main API is JDBC, however ODBC and others are also
+supported via PostgreSQL network protocol compatibility.
+
+I was looking at MVCC today, I hope it will solve some of my problems
+in future. MVCC is listed in the "Advanced Topics" documentation
+without any warnings. However, I have encountered a major problem. All
+you need to do is use jdbc:h2:test;MVCC=true with a range comparison
+in a WHERE clause on an indexed column:
+SET AUTOCOMMIT TRUE;
+DROP TABLE IF EXISTS test;
+CREATE TABLE test (id IDENTITY, A INT, B INT);
+CREATE INDEX A ON test(A);
+INSERT INTO test VALUES(0, 0, 0);
+INSERT INTO test VALUES(2, 2, 2);
+SET AUTOCOMMIT FALSE;
+SELECT * FROM test WHERE id BETWEEN 0 AND 2;
+ -- Returned the correct result: TABLE(ID INT=(0,2), A INT=(0,2), B INT=(0,2))
+INSERT INTO test VALUES(1, 1, 1);
+SELECT * FROM test;
+ -- Returned the correct result: TABLE(ID INT=(0,2,1), A INT=(0,2,1), B INT=(0,2,1))
+SELECT * FROM test WHERE id IS NOT NULL;
+ -- Returned the correct result: TABLE(ID INT=(0,2,1), A INT=(0,2,1), B INT=(0,2,1))
+SELECT * FROM test WHERE id <> 99;
+ -- Returned the correct result: TABLE(ID INT=(0,2,1), A INT=(0,2,1), B INT=(0,2,1))
+SELECT * FROM test WHERE id < 99;
+ -- Returned WRONG result: TABLE(ID INT=(1,1,2), A INT=(1,1,2), B INT=(1,1,2))
+SELECT * FROM test WHERE id >= 0;
+ -- Returned WRONG result: TABLE(ID INT=(1,1,2), A INT=(1,1,2), B INT=(1,1,2))
+SELECT * FROM test WHERE A >= 0;
+ -- Returned WRONG result: TABLE(ID INT=(1,1,2), A INT=(1,1,2), B INT=(1,1,2))
+SELECT * FROM test WHERE B >= 0;
+ -- Returned the correct result: TABLE(ID INT=(0,2,1), A INT=(0,2,1), B INT=(0,2,1))
+If you have a 2nd connection open while the 1st connection's
+transaction is uncommitted, the 2nd connection also returns the wrong
+result set! This is the same whether the lock mode is READ_COMMITTED
+or SERIALIZABLE.
 
 fix or disable the linear hash index
 
@@ -169,8 +213,8 @@ link to new changelog and roadmap, remove pages from google groups
 Can sometimes not delete log file? need test case
 
 History:
+H2 Console: remote connections were very slow because getHostName/getRemoteHost was used. Fixed (now using getHostAddress/getRemoteAddr.
 H2 Console: on Linux, Firefox is now started if available. This has been tested on Ubuntu.
-
 
 Roadmap:
 

@@ -82,8 +82,7 @@ public class PageParser {
                         append(s);
                         i = pos;
                     } else {
-                        setError(i);
-                        return;
+                        buff.append(c);
                     }
                     break;
                 } else if (p.charAt(i + 3) == ':' && p.charAt(i + 1) == '/') {
@@ -149,6 +148,8 @@ public class PageParser {
                     i = j;
                     String s = (String) get(item);
                     append(s);
+                } else {
+                    buff.append(c);
                 }
                 break;
             default:

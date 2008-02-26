@@ -102,7 +102,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return requestedFile;
     }
 
-    public String processRequest(String file, String hostname) {
+    public String processRequest(String file, String hostAddr) {
         int index = file.lastIndexOf('.');
         String suffix;
         if (index >= 0) {
@@ -123,7 +123,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             cache = false;
             mimeType = "text/html";
             if (session == null) {
-                session = server.createNewSession(hostname);
+                session = server.createNewSession(hostAddr);
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
                 }
@@ -165,14 +165,12 @@ class WebThread extends Thread implements DatabaseEventListener {
                     session = server.getSession(sessionId);
                 }
                 parseHeader();
-                String hostname = socket.getInetAddress().getHostName();
-
-                file = processRequest(file, hostname);
+                String hostAddr = socket.getInetAddress().getHostAddress();
+                file = processRequest(file, hostAddr);
                 if (file.length() == 0) {
                     // asynchronous request
                     return;
                 }
-
                 String message;
                 byte[] bytes;
                 if (cache && ifModifiedSince != null && ifModifiedSince.equals(server.getStartDateTime())) {
@@ -225,7 +223,6 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private void closeOutput(DataOutputStream output) {
         try {
-            output.flush();
             output.close();
             socket.close();
         } catch (IOException e) {
@@ -826,10 +823,13 @@ class WebThread extends Thread implements DatabaseEventListener {
             String message = PageParser.escapeHtml(e.getMessage());
             String error = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
                     + "').style;x.display=x.display==''?'none':'';\">" + message + "</a>";
-            if (e instanceof SQLException && isH2) {
+            if (e instanceof SQLException) {
                 SQLException se = (SQLException) e;
-                int code = se.getErrorCode();
-                error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code + "\">(${text.a.help})</a>";
+                error += " " + se.getSQLState() + "/" + se.getErrorCode();
+                if (isH2) {
+                    int code = se.getErrorCode();
+                    error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code + "\">(${text.a.help})</a>";
+                }
             }
             error += "<span style=\"display: none;\" id=\"st" + id + "\"><br />" + stackTrace + "</span>";
             error = formatAsError(error);

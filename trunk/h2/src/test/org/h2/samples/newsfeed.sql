@@ -35,7 +35,7 @@ INSERT INTO ITEM VALUES(37,
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>When using multiple connections, empty space was reused too early sometimes. 
-	This could corrupt the database when recovering.
+    This could corrupt the database when recovering.
 </li><li>The DbStarter servlet didn''t start the TCP listener even if configured.
 </li><li>The user directory prefix (''~'') was ignored sometimes.
 </li><li>Connecting to a TCP server and at shutting it down at the same time could fail.

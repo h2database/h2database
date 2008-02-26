@@ -164,14 +164,14 @@ public class WebServer implements Service {
         return session;
     }
 
-    WebSession createNewSession(String hostname) {
+    WebSession createNewSession(String hostAddr) {
         String newId;
         do {
             newId = generateSessionId();
         } while(sessions.get(newId) != null);
         WebSession session = new WebSession(this);
         session.put("sessionId", newId);
-        session.put("ip", hostname);
+        session.put("ip", hostAddr);
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
         // always read the english translation, to that untranslated text appears at least in english

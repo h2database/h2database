@@ -493,7 +493,7 @@ tgconstrrelid classoid relhasoids pretty portals rolcatupdate rolsuper spcowner 
 latin tgconstrname datallowconn atttypmod dattablespace attrelid ctid timestamptz atthasdef
 nspname objsubid typnamespace rolcreaterole tgrelid spclocation relhasrules dont indkey postmaster
 relkind autovacuum datlastsysoid attisdropped amname datacl deallocate tgdeferrable stats
-spcacl relname rolvaliduntil attnotnull authid aclitem
+spcacl relname rolvaliduntil attnotnull authid aclitem game
 plpgsql interrupting spring oids plperl regex newest
 xhtml transactionally remotly jnlp launch mirror subversion matcher hoohoho matching bulk
 prorettype pronamespace groname inlining nopmd openfire joda fastutil ibatis igniterealtime unimi dsi
@@ -520,7 +520,7 @@ involves ukrainian chile machines restricting summer aliased backus naur multipl
 countdown paused javac analyzing accesses solving forcefully urgent originally defect coordinates
 camel council merges spelled adaptive pull controller abstractions workarounds driven
 thousands ridvan incremented slots debugging inherit agar fulvio invisible biondi hundreds occupied remap retrieved involved
-turkish fulfils iapi filesync
+turkish fulfils iapi filesync ubuntu ahilmnqbjkcdeopfrsg unind ind looking encountered browsers
 compares packets destroying echo homed hosts clock countries validated catches turning staging kills distance morning performs internationalization simulator constructed nicer
 echo callablestatement procid homed getstart staging prices meantime qujd qujdra qui divided quaere restrictions hudson scoped design inverting newlines
 violate verysmallint eremainder iee cgi adjust estimation consumption occupy ikvm light gray viewer grover harpal

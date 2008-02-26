@@ -42,6 +42,8 @@ import org.h2.util.StartBrowser;
  * This tool starts the H2 Console (web-) server, as well as the TCP and PG server.
  * For JDK 1.6, a system tray icon is created, for platforms that support it.
  * Otherwise, a small window opens.
+ *
+ * @author Thomas Mueller, Ridvan Agar
  */
 public class Console implements
 //#ifdef AWT

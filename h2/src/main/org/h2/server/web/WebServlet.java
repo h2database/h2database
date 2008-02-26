@@ -112,8 +112,8 @@ public class WebServlet extends HttpServlet {
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
 
-        String hostname = req.getRemoteHost();
-        file = app.processRequest(file, hostname);
+        String hostAddr = req.getRemoteAddr();
+        file = app.processRequest(file, hostAddr);
         session = app.getSession();
 
         String mimeType = app.getMimeType();

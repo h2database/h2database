@@ -242,7 +242,7 @@ public class TableFilter implements ColumnResolver {
                 state = AFTER_LAST;
             } else {
                 if ((++scanCount & 4095) == 0) {
-                    logScanCount();
+                    checkTimeout();
                 }
                 if (cursor.next()) {
                     currentSearchRow = cursor.getSearchRow();
@@ -267,20 +267,18 @@ public class TableFilter implements ColumnResolver {
                 continue;
             }
             boolean joinConditionOk = isOk(joinCondition);
-            if (state == FOUND && joinConditionOk) {
-                foundOne = true;
+            if (state == FOUND) {
+                if (joinConditionOk) {
+                    foundOne = true;
+                } else {
+                    continue;
+                }
             }
             if (join != null) {
                 join.reset();
-            }
-            boolean doContinue = false;
-            if (join != null) {
                 if (!join.next()) {
-                    doContinue = true;
+                    continue;
                 }
-            }
-            if (doContinue) {
-                continue;
             }
             // check if it's ok
             if (state == NULL_ROW || joinConditionOk) {
@@ -291,7 +289,8 @@ public class TableFilter implements ColumnResolver {
         return false;
     }
 
-    private void logScanCount() {
+    private void checkTimeout() throws SQLException {
+        session.checkCancelled();
         // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
     }
 

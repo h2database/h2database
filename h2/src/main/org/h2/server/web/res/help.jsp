@@ -74,8 +74,6 @@ function set(s) {
 <h3>${text.helpAddDrivers}</h3>
 <p>
 ${text.helpAddDriversText}
-</p><p>
-${text.helpAddDriversOnlyJava}
 </p>
 
 </div>

@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.sql.Types;
 
@@ -29,6 +30,7 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
         conn = getConnection("metaData");
 
+        testColumnPrecision();
         testColumnDefault();
         testCrossReferences();
         testProcedureColumns();
@@ -189,6 +191,27 @@ public class TestMetaData extends TestBase {
         conn.close();
         testTempTable();
 
+    }
+
+    private void testColumnPrecision() throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
+        stat.execute("CREATE TABLE TWO AS SELECT * FROM ONE");
+        ResultSet rs;
+        ResultSetMetaData meta;
+        rs = stat.executeQuery("SELECT * FROM ONE");
+        meta = rs.getMetaData();
+        check(12, meta.getPrecision(1));
+        check(17, meta.getPrecision(2));
+        check(Types.DECIMAL, meta.getColumnType(1));
+        check(Types.DOUBLE, meta.getColumnType(2));
+        rs = stat.executeQuery("SELECT * FROM TWO");
+        meta = rs.getMetaData();
+        check(12, meta.getPrecision(1));
+        check(17, meta.getPrecision(2));
+        check(Types.DECIMAL, meta.getColumnType(1));
+        check(Types.DOUBLE, meta.getColumnType(2));
+        stat.execute("DROP TABLE ONE, TWO");
     }
 
     private void testColumnDefault() throws Exception {

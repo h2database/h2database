@@ -14,24 +14,28 @@ import org.h2.constant.SysProperties;
 public class StartBrowser {
 
     public static void openURL(String url) {
-        String osName = SysProperties.getStringSetting("os.name", "Linux");
+        String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
+        Runtime rt = Runtime.getRuntime();
         try {
-            if (osName.startsWith("Windows")) {
-                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
-            } else if (osName.startsWith("Mac OS X")) {
-                // Runtime.getRuntime().exec("open -a safari " + url);
-                // Runtime.getRuntime().exec("open " + url + "/index.html");
-                Runtime.getRuntime().exec("open " + url);
+            if (osName.indexOf("windows") >= 0) {
+                rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
+            } else if (osName.indexOf("mac") >= 0) {
+                Runtime.getRuntime().exec(new String[] { "open", url });
             } else {
-                try {
-                    Runtime.getRuntime().exec("firefox " + url);
-                } catch (Exception e) {
+                String[] browsers = { "firefox", "mozilla-firefox", "mozilla", "konqueror", "netscape", "opera" };
+                boolean ok = false;
+                for (int i = 0; i < browsers.length; i++) {
                     try {
-                        Runtime.getRuntime().exec("mozilla-firefox " + url);
-                    } catch (Exception e2) {
-                        // No success in detection.
-                        System.out.println("Please open a browser and go to " + url);
+                        rt.exec(new String[] { browsers[i], url });
+                        ok = true;
+                        break;
+                    } catch (Exception e) {
+                        // ignore and try the next
                     }
+                }
+                if (!ok) {
+                    // No success in detection.
+                    System.out.println("Please open a browser and go to " + url);
                 }
             }
         } catch (IOException e) {

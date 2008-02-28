@@ -217,7 +217,7 @@ public class TcpServer implements Service {
         }
     }
 
-    public synchronized void stop() {
+    public void stop() {
         // TODO server: share code between web and tcp servers
         // need to remove the server first, otherwise the connection is broken
         // while the server is still registered in this map
@@ -264,12 +264,14 @@ public class TcpServer implements Service {
         }
         if (shutdownMode == SHUTDOWN_NORMAL) {
             server.stopManagementDb();
-            server.stop = true;
-            try {
-                Socket s = NetUtils.createLoopbackSocket(port, false);
-                s.close();
-            } catch (Exception e) {
-                // try to connect - so that accept returns
+            synchronized (TcpServer.class) {
+                server.stop = true;
+                try {
+                    Socket s = NetUtils.createLoopbackSocket(port, false);
+                    s.close();
+                } catch (Exception e) {
+                    // try to connect - so that accept returns
+                }
             }
         } else if (shutdownMode == SHUTDOWN_FORCE) {
             server.stop();

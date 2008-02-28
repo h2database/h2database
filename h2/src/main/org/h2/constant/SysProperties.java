@@ -160,6 +160,7 @@ public class SysProperties {
      * System property <code>h2.lobFilesInDirectories</code> (default: false).<br />
      * Store LOB files in subdirectories.
      */
+    // TODO change in version 1.1
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
 
@@ -252,6 +253,7 @@ public class SysProperties {
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
      * Optimize IN(...) comparisons by converting them to inner joins.
      */
+    // TODO change in version 1.1
     public static final boolean OPTIMIZE_IN_JOIN = getBooleanSetting("h2.optimizeInJoin", false);
 
     /**

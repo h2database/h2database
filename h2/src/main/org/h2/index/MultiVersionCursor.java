@@ -153,12 +153,14 @@ public class MultiVersionCursor implements Cursor {
                     }
                 }
                 if (compare > 0) {
+                    onBase = true;
                     needNewBase = true;
                     return true;
                 }
                 if (!isDeleted) {
                     throw Message.getInternalError();
                 }
+                onBase = false;
                 needNewDelta = true;
                 return true;
             }

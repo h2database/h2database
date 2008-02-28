@@ -90,7 +90,7 @@ public class RuleElement implements Rule {
             return null;
         } else {
             query = link.matchRemove(query, sentence);
-            if (query != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
+            if (query != null && name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
                 while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                     query = query.substring(1);
                 }

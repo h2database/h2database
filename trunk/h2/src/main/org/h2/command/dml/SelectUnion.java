@@ -61,8 +61,8 @@ public class SelectUnion extends Query {
         orderList = order;
     }
 
-    private Value[] convert(Value[] values) throws SQLException {
-        for (int i = 0; i < values.length; i++) {
+    private Value[] convert(Value[] values, int columnCount) throws SQLException {
+        for (int i = 0; i < columnCount; i++) {
             Expression e = (Expression) expressions.get(i);
             values[i] = values[i].convertTo(e.getType());
         }
@@ -116,19 +116,19 @@ public class SelectUnion extends Query {
         case UNION_ALL:
         case UNION: {
             while (l.next()) {
-                result.addRow(convert(l.currentRow()));
+                result.addRow(convert(l.currentRow(), columnCount));
             }
             while (r.next()) {
-                result.addRow(convert(r.currentRow()));
+                result.addRow(convert(r.currentRow(), columnCount));
             }
             break;
         }
         case EXCEPT: {
             while (l.next()) {
-                result.addRow(convert(l.currentRow()));
+                result.addRow(convert(l.currentRow(), columnCount));
             }
             while (r.next()) {
-                result.removeDistinct(convert(r.currentRow()));
+                result.removeDistinct(convert(r.currentRow(), columnCount));
             }
             break;
         }
@@ -136,10 +136,10 @@ public class SelectUnion extends Query {
             LocalResult temp = new LocalResult(session, expressions, columnCount);
             temp.setDistinct();
             while (l.next()) {
-                temp.addRow(convert(l.currentRow()));
+                temp.addRow(convert(l.currentRow(), columnCount));
             }
             while (r.next()) {
-                Value[] values = convert(r.currentRow());
+                Value[] values = convert(r.currentRow(), columnCount);
                 if (temp.containsDistinct(values)) {
                     result.addRow(values);
                 }

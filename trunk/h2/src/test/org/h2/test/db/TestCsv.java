@@ -17,6 +17,7 @@ import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
+import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -26,6 +27,7 @@ import org.h2.util.StringUtils;
 public class TestCsv extends TestBase {
 
     public void test() throws Exception {
+        testNull();
         testRandomData();
         testEmptyFieldDelimiter();
         testFieldDelimiter();
@@ -33,6 +35,52 @@ public class TestCsv extends TestBase {
         testWriteRead();
         testRead();
         testPipe();
+    }
+
+    /**
+     * Test custom NULL string.
+     *
+     * @author Sylvain Cuaz, Thomas Mueller
+     */
+    public void testNull() throws Exception {
+        deleteDb("csv");
+
+        File f = new File(baseDir + "/testNull.csv");
+        FileUtils.delete(f.getAbsolutePath());
+
+        RandomAccessFile file = new RandomAccessFile(f, "rw");
+        String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
+        file.write(csvContent.getBytes("UTF-8"));
+        file.close();
+        Csv csv = Csv.getInstance();
+        csv.setNullString("\\N");
+        ResultSet rs = csv.read(f.getPath(), null, "UTF8");
+        ResultSetMetaData meta = rs.getMetaData();
+        check(meta.getColumnCount(), 4);
+        check(meta.getColumnLabel(1), "A");
+        check(meta.getColumnLabel(2), "B");
+        check(meta.getColumnLabel(3), "C");
+        check(meta.getColumnLabel(4), "D");
+        check(rs.next());
+        check(rs.getString(1), null);
+        check(rs.getString(2), "");
+        // null is never quoted
+        check(rs.getString(3), "\\N");
+        // an empty string is always parsed as null
+        check(rs.getString(4), null);
+        checkFalse(rs.next());
+
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("call csvwrite('" + f.getPath() + "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
+        FileReader reader = new FileReader(f);
+        // on read, an empty string is treated like null,
+        // but on write a null is always written with the nullString
+        String data = IOUtils.readStringAndClose(reader, -1);
+        check(csvContent + "\\N", data.trim());
+        conn.close();
+
+        FileUtils.delete(f.getAbsolutePath());
     }
 
     private void testRandomData() throws Exception {
@@ -82,7 +130,7 @@ public class TestCsv extends TestBase {
         f.delete();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '', null, chr(10))");
+        stat.execute("call csvwrite('"+baseDir+"/test.csv', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
         FileReader reader = new FileReader(baseDir + "/test.csv");
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");

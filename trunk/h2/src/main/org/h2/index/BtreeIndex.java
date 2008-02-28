@@ -26,6 +26,19 @@ import org.h2.value.ValueNull;
 
 /**
  * This is the most common type of index, a b tree index.
+ * The index structure is:
+ * <ul>
+ * <li>There is one {@link BtreeHead} that points to the root page.
+ * The head always stays where it is.
+ * </li><li>There is a number of {@link BtreePage}s. Each page is eighter
+ * a {@link BtreeNode} or a {@link BtreeLeaf}.
+ * </li><li>A node page links to other leaf pages or to node pages.
+ * Leaf pages don't point to other pages (but may have a parent).
+ * </li><li>The uppermost page is the root page. If pages
+ * are added or deleted, the root page may change.
+ * </li>
+ * </ul>
+ * Only the data of the indexed columns are stored in the index.
  */
 public class BtreeIndex extends BaseIndex implements RecordReader {
 

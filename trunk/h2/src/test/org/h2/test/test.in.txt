@@ -1,4 +1,11 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+(SELECT X FROM DUAL ORDER BY X+2) UNION SELECT X FROM DUAL;
+> X
+> -
+> 1
+> 1
+> rows (ordered): 2
+
 create table test(a int, b int default 1);
 > ok
 

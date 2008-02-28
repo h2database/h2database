@@ -51,6 +51,8 @@ public class RandomUtils {
                 }
             };
             Thread t = new Thread(runnable);
+            // let the process terminate even if generating the seed is really slow
+            t.setDaemon(true);
             t.start();
             Thread.yield();
             try {

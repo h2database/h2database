@@ -34,6 +34,8 @@ import org.h2.util.StringUtils;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files.
+ *
+ * @author Thomas Mueller, Sylvain Cuaz
  */
 public class Csv implements SimpleRowSource {
 
@@ -47,6 +49,7 @@ public class Csv implements SimpleRowSource {
     private char fieldDelimiter = '\"';
     private char escapeCharacter = '\"';
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
+    private String nullString = "";
     private String fileName;
     private Reader reader;
     private Writer writer;
@@ -256,6 +259,8 @@ public class Csv implements SimpleRowSource {
                 } else {
                     writer.write(s);
                 }
+            } else if (nullString.length() > 0) {
+                writer.write(nullString);
             }
         }
         if (rowSeparatorWrite != null) {
@@ -351,8 +356,10 @@ public class Csv implements SimpleRowSource {
                 // ignore spaces
                 continue;
             } else if (ch == fieldSeparatorRead) {
+                // null
                 break;
             } else if (ch == fieldDelimiter) {
+                // delimited value
                 StringBuffer buff = new StringBuffer();
                 boolean containsEscape = false;
                 while (true) {
@@ -403,6 +410,7 @@ public class Csv implements SimpleRowSource {
                 }
                 break;
             } else if (ch == commentLineStart) {
+                // comment until end of line
                 while (true) {
                     ch = readChar();
                     if (ch < 0 || ch == '\r' || ch == '\n') {
@@ -412,6 +420,7 @@ public class Csv implements SimpleRowSource {
                 endOfLine = true;
                 break;
             } else {
+                // undelimited value
                 StringBuffer buff = new StringBuffer();
                 buff.append((char) ch);
                 while (true) {
@@ -427,12 +436,17 @@ public class Csv implements SimpleRowSource {
                     }
                     buff.append((char) ch);
                 }
-                value = buff.toString().trim();
+                // check undelimited value for nullString
+                value = readNull(buff.toString().trim());
                 break;
             }
         }
         // save memory
         return StringCache.get(value);
+    }
+
+    private String readNull(String s) {
+        return s.equals(nullString) ? null : s;
     }
 
     private String unEscape(String s) {
@@ -620,6 +634,15 @@ public class Csv implements SimpleRowSource {
      */
     public void setLineSeparator(String lineSeparator) {
         this.lineSeparator = lineSeparator;
+    }
+
+    /**
+     * Set the value that represents NULL.
+     *
+     * @param nullString the null
+     */
+    public void setNullString(String nullString) {
+        this.nullString = nullString;
     }
 
 }

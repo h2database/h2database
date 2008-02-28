@@ -261,7 +261,11 @@ public class ConnectionInfo {
     }
 
     public String getProperty(String key) {
-        return prop.getProperty(key);
+        Object value = prop.get(key);
+        if (value == null || !(value instanceof String)) {
+            return null;
+        }
+        return value.toString();
     }
 
     public String getProperty(String key, String defaultValue) {

@@ -4,14 +4,15 @@
  */
 package org.h2.server.web;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -47,6 +48,7 @@ import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
@@ -57,8 +59,7 @@ import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
 /**
- * For each request, an object of this class is created.
- * Keep-alive is not supported at this time.
+ * For each connection to a session, an object of this class is created.
  * This class is used by the H2 Console.
  */
 class WebThread extends Thread implements DatabaseEventListener {
@@ -68,6 +69,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private Socket socket;
 
     private InputStream input;
+    private OutputStream output;
     private String ifModifiedSince;
     private String mimeType;
     private boolean cache;
@@ -147,89 +149,94 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     public void run() {
         try {
-            input = socket.getInputStream();
-            String head = readHeaderLine();
-            if (head.startsWith("GET ") || head.startsWith("POST ")) {
-                int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
-                String file = head.substring(begin + 1, end).trim();
-                server.trace(head + ": " + file);
-                file = getAllowedFile(file);
-                attributes = new Properties();
-                int paramIndex = file.indexOf("?");
-                session = null;
-                if (paramIndex >= 0) {
-                    String attrib = file.substring(paramIndex + 1);
-                    parseAttributes(attrib);
-                    String sessionId = attributes.getProperty("jsessionid");
-                    file = file.substring(0, paramIndex);
-                    session = server.getSession(sessionId);
+            input = new BufferedInputStream(socket.getInputStream());
+            output = new BufferedOutputStream(socket.getOutputStream());
+            while (true) {
+                if (!process()) {
+                    break;
                 }
-                parseHeader();
-                String hostAddr = socket.getInetAddress().getHostAddress();
-                file = processRequest(file, hostAddr);
-                if (file.length() == 0) {
-                    // asynchronous request
-                    return;
-                }
-                String message;
-                byte[] bytes;
-                if (cache && ifModifiedSince != null && ifModifiedSince.equals(server.getStartDateTime())) {
-                    bytes = null;
-                    message = "HTTP/1.1 304 Not Modified\n";
-                } else {
-                    bytes = server.getFile(file);
-                    if (bytes == null) {
-                        message = "HTTP/1.0 404 Not Found\n";
-                        bytes = StringUtils.utf8Encode("File not found: " + file);
-                    } else {
-                        if (session != null && file.endsWith(".jsp")) {
-                            String page = StringUtils.utf8Decode(bytes);
-                            page = PageParser.parse(server, page, session.map);
-                            try {
-                                bytes = StringUtils.utf8Encode(page);
-                            } catch (SQLException e) {
-                                server.traceError(e);
-                            }
-                        }
-                        message = "HTTP/1.1 200 OK\n";
-                        message += "Content-Type: " + mimeType + "\n";
-                        if (!cache) {
-                            message += "Cache-Control: no-cache\n";
-                        } else {
-                            message += "Cache-Control: max-age=10\n";
-                            message += "Last-Modified: " + server.getStartDateTime() + "\n";
-                        }
-                    }
-                }
-                message += "\n";
-                server.trace(message);
-                DataOutputStream output = openOutput(message);
-                if (bytes != null) {
-                    output.write(bytes);
-                }
-                closeOutput(output);
-                return;
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
+            TraceSystem.traceThrowable(e);
+        } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }
-    }
-
-    private DataOutputStream openOutput(String message) throws IOException {
-        DataOutputStream output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-        output.write(message.getBytes());
-        return output;
-    }
-
-    private void closeOutput(DataOutputStream output) {
+        IOUtils.closeSilently(output);
+        IOUtils.closeSilently(input);
         try {
-            output.close();
             socket.close();
         } catch (IOException e) {
             // ignore
         } finally {
             server.remove(this);
         }
+    }
+
+    public boolean process() throws IOException, SQLException {
+        boolean keepAlive = false;
+        String head = readHeaderLine();
+        if (head.startsWith("GET ") || head.startsWith("POST ")) {
+            int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
+            String file = head.substring(begin + 1, end).trim();
+            server.trace(head + ": " + file);
+            file = getAllowedFile(file);
+            attributes = new Properties();
+            int paramIndex = file.indexOf("?");
+            session = null;
+            if (paramIndex >= 0) {
+                String attrib = file.substring(paramIndex + 1);
+                parseAttributes(attrib);
+                String sessionId = attributes.getProperty("jsessionid");
+                file = file.substring(0, paramIndex);
+                session = server.getSession(sessionId);
+            }
+            keepAlive = parseHeader();
+            String hostAddr = socket.getInetAddress().getHostAddress();
+            file = processRequest(file, hostAddr);
+            if (file.length() == 0) {
+                // asynchronous request
+                return true;
+            }
+            String message;
+            byte[] bytes;
+            if (cache && ifModifiedSince != null && ifModifiedSince.equals(server.getStartDateTime())) {
+                bytes = null;
+                message = "HTTP/1.1 304 Not Modified\n";
+            } else {
+                bytes = server.getFile(file);
+                if (bytes == null) {
+                    message = "HTTP/1.0 404 Not Found\n";
+                    bytes = StringUtils.utf8Encode("File not found: " + file);
+                } else {
+                    if (session != null && file.endsWith(".jsp")) {
+                        String page = StringUtils.utf8Decode(bytes);
+                        page = PageParser.parse(server, page, session.map);
+                        try {
+                            bytes = StringUtils.utf8Encode(page);
+                        } catch (SQLException e) {
+                            server.traceError(e);
+                        }
+                    }
+                    message = "HTTP/1.1 200 OK\n";
+                    message += "Content-Type: " + mimeType + "\n";
+                    if (!cache) {
+                        message += "Cache-Control: no-cache\n";
+                    } else {
+                        message += "Cache-Control: max-age=10\n";
+                        message += "Last-Modified: " + server.getStartDateTime() + "\n";
+                    }
+                    message += "Content-Length: " + bytes.length + "\n";
+                }
+            }
+            message += "\n";
+            server.trace(message);
+            output.write(message.getBytes());
+            if (bytes != null) {
+                output.write(bytes);
+            }
+            output.flush();
+        }
+        return keepAlive;
     }
 
     protected String getComboBox(String[] elements, String selected) {
@@ -280,7 +287,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
-    private void parseAttributes(String s) throws Exception {
+    private void parseAttributes(String s) throws SQLException {
         server.trace("data=" + s);
         while (s != null) {
             int idx = s.indexOf('=');
@@ -291,12 +298,12 @@ class WebThread extends Thread implements DatabaseEventListener {
                 String value;
                 if (idx >= 0) {
                     value = s.substring(0, idx);
-                    s = s.substring(idx+1);
+                    s = s.substring(idx + 1);
                 } else {
                     value = s;
                 }
                 // TODO compatibility problem with JDK 1.3
-                //String attr = URLDecoder.decode(value, "UTF-8");
+                // String attr = URLDecoder.decode(value, "UTF-8");
                 // String attr = URLDecoder.decode(value);
                 String attr = StringUtils.urlDecode(value);
                 attributes.put(property, attr);
@@ -307,7 +314,8 @@ class WebThread extends Thread implements DatabaseEventListener {
         server.trace(attributes.toString());
     }
 
-    private void parseHeader() throws Exception {
+    private boolean parseHeader() throws IOException, SQLException {
+        boolean keepAlive = false;
         server.trace("parseHeader");
         int len = 0;
         ifModifiedSince = null;
@@ -320,6 +328,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             String lower = StringUtils.toLowerEnglish(line);
             if (lower.startsWith("if-modified-since")) {
                 ifModifiedSince = line.substring(line.indexOf(':') + 1).trim();
+            } else if (lower.startsWith("connection")) {
+                String conn = line.substring(line.indexOf(':') + 1).trim();
+                if ("keep-alive".equals(conn)) {
+                    keepAlive = true;
+                }
             } else if (lower.startsWith("content-length")) {
                 len = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
                 server.trace("len=" + len);
@@ -363,6 +376,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             String s = new String(bytes);
             parseAttributes(s);
         }
+        return keepAlive;
     }
 
     String process(String file) {
@@ -494,8 +508,8 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String admin() {
-        session.put("port", ""+server.getPort());
-        session.put("allowOthers", ""+server.getAllowOthers());
+        session.put("port", "" + server.getPort());
+        session.put("allowOthers", "" + server.getAllowOthers());
         session.put("ssl", String.valueOf(server.getSSL()));
         session.put("sessions", server.getSessions());
         return "admin.jsp";
@@ -828,7 +842,8 @@ class WebThread extends Thread implements DatabaseEventListener {
                 error += " " + se.getSQLState() + "/" + se.getErrorCode();
                 if (isH2) {
                     int code = se.getErrorCode();
-                    error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code + "\">(${text.a.help})</a>";
+                    error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code
+                            + "\">(${text.a.help})</a>";
                 }
             }
             error += "<span style=\"display: none;\" id=\"st" + id + "\"><br />" + stackTrace + "</span>";
@@ -884,7 +899,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String formatAsError(String s) {
-        return "<div class=\"error\">"+s+"</div>";
+        return "<div class=\"error\">" + s + "</div>";
     }
 
     private String test() {
@@ -924,11 +939,8 @@ class WebThread extends Thread implements DatabaseEventListener {
         session.put("autoComplete", "1");
         session.put("maxrows", "1000");
         boolean thread = false;
-        if (socket != null
-                && url.startsWith("jdbc:h2:")
-                && !url.startsWith("jdbc:h2:tcp:")
-                && !url.startsWith("jdbc:h2:ssl:")
-                && !url.startsWith("jdbc:h2:mem:")) {
+        if (socket != null && url.startsWith("jdbc:h2:") && !url.startsWith("jdbc:h2:tcp:")
+                && !url.startsWith("jdbc:h2:ssl:") && !url.startsWith("jdbc:h2:mem:")) {
             thread = true;
         }
         if (!thread) {
@@ -947,14 +959,13 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         }
         class LoginTask implements Runnable, DatabaseEventListener {
-            private DataOutputStream output;
             private PrintWriter writer;
             private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
             LoginTask() throws IOException {
                 String message = "HTTP/1.1 200 OK\n";
                 message += "Content-Type: " + mimeType + "\n\n";
-                output = openOutput(message);
+                output.write(message.getBytes());
                 writer = new PrintWriter(output);
                 writer.println("<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheet.css\" /></head>");
                 writer.println("<body><h2>Opening Database</h2>URL: " + PageParser.escapeHtml(url) + "<br />");
@@ -996,7 +1007,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 } else {
                     listenerLastState = state;
                 }
-                switch(state) {
+                switch (state) {
                 case DatabaseEventListener.STATE_BACKUP_FILE:
                     log("Backing up " + name + " " + (100L * x / max) + "%");
                     break;
@@ -1033,15 +1044,22 @@ class WebThread extends Thread implements DatabaseEventListener {
                     session.put("user", user);
                     session.remove("error");
                     settingSave();
-                    log("OK<script type=\"text/javascript\">top.location=\"frame.jsp?jsessionid=" +sessionId+ "\"</script></body></htm>");
+                    log("OK<script type=\"text/javascript\">top.location=\"frame.jsp?jsessionid=" + sessionId
+                            + "\"</script></body></htm>");
                     // return "frame.jsp";
                 } catch (Exception e) {
                     session.put("error", getLoginError(e, isH2));
-                    log("Error<script type=\"text/javascript\">top.location=\"index.jsp?jsessionid=" +sessionId+ "\"</script></body></html>");
+                    log("Error<script type=\"text/javascript\">top.location=\"index.jsp?jsessionid=" + sessionId
+                            + "\"</script></body></html>");
                     // return "index.jsp";
                 }
                 synchronized (this) {
-                    closeOutput(output);
+                    IOUtils.closeSilently(output);
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
                     output = null;
                 }
             }
@@ -1322,7 +1340,9 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.getCatalogTerm", "" + meta.getCatalogTerm() });
             rs.addRow(new String[] { "meta.getDatabaseProductName", "" + meta.getDatabaseProductName() });
             rs.addRow(new String[] { "meta.getDatabaseProductVersion", "" + meta.getDatabaseProductVersion() });
-            rs.addRow(new String[] { "meta.getDefaultTransactionIsolation", "" + meta.getDefaultTransactionIsolation() });
+            rs
+                    .addRow(new String[] { "meta.getDefaultTransactionIsolation",
+                            "" + meta.getDefaultTransactionIsolation() });
             rs.addRow(new String[] { "meta.getDriverMajorVersion", "" + meta.getDriverMajorVersion() });
             rs.addRow(new String[] { "meta.getDriverMinorVersion", "" + meta.getDriverMinorVersion() });
             rs.addRow(new String[] { "meta.getDriverName", "" + meta.getDriverName() });
@@ -1353,66 +1373,81 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.getProcedureTerm", "" + meta.getProcedureTerm() });
             rs.addRow(new String[] { "meta.getSchemaTerm", "" + meta.getSchemaTerm() });
             rs.addRow(new String[] { "meta.getSearchStringEscape", "" + meta.getSearchStringEscape() });
-            rs.addRow(new String[] { "meta.getSQLKeywords", "" + meta.getSQLKeywords()});
-            rs.addRow(new String[]{"meta.getStringFunctions", ""+meta.getStringFunctions()});
-            rs.addRow(new String[]{"meta.getSystemFunctions", ""+meta.getSystemFunctions()});
-            rs.addRow(new String[]{"meta.getTimeDateFunctions", ""+meta.getTimeDateFunctions()});
-            rs.addRow(new String[]{"meta.getURL", ""+meta.getURL()});
-            rs.addRow(new String[]{"meta.getUserName", ""+meta.getUserName()});
-            rs.addRow(new String[]{"meta.isCatalogAtStart", ""+meta.isCatalogAtStart()});
-            rs.addRow(new String[]{"meta.isReadOnly", ""+meta.isReadOnly()});
-            rs.addRow(new String[]{"meta.allProceduresAreCallable", ""+meta.allProceduresAreCallable()});
-            rs.addRow(new String[]{"meta.allTablesAreSelectable", ""+meta.allTablesAreSelectable()});
-            rs.addRow(new String[]{"meta.dataDefinitionCausesTransactionCommit", ""+meta.dataDefinitionCausesTransactionCommit()});
-            rs.addRow(new String[]{"meta.dataDefinitionIgnoredInTransactions", ""+meta.dataDefinitionIgnoredInTransactions()});
-            rs.addRow(new String[]{"meta.doesMaxRowSizeIncludeBlobs", ""+meta.doesMaxRowSizeIncludeBlobs()});
-            rs.addRow(new String[]{"meta.nullPlusNonNullIsNull", ""+meta.nullPlusNonNullIsNull()});
-            rs.addRow(new String[]{"meta.nullsAreSortedAtEnd", ""+meta.nullsAreSortedAtEnd()});
-            rs.addRow(new String[]{"meta.nullsAreSortedAtStart", ""+meta.nullsAreSortedAtStart()});
-            rs.addRow(new String[]{"meta.nullsAreSortedHigh", ""+meta.nullsAreSortedHigh()});
-            rs.addRow(new String[]{"meta.nullsAreSortedLow", ""+meta.nullsAreSortedLow()});
-            rs.addRow(new String[]{"meta.storesLowerCaseIdentifiers", ""+meta.storesLowerCaseIdentifiers()});
-            rs.addRow(new String[]{"meta.storesLowerCaseQuotedIdentifiers", ""+meta.storesLowerCaseQuotedIdentifiers()});
-            rs.addRow(new String[]{"meta.storesMixedCaseIdentifiers", ""+meta.storesMixedCaseIdentifiers()});
-            rs.addRow(new String[]{"meta.storesMixedCaseQuotedIdentifiers", ""+meta.storesMixedCaseQuotedIdentifiers()});
-            rs.addRow(new String[]{"meta.storesUpperCaseIdentifiers", ""+meta.storesUpperCaseIdentifiers()});
-            rs.addRow(new String[]{"meta.storesUpperCaseQuotedIdentifiers", ""+meta.storesUpperCaseQuotedIdentifiers()});
-            rs.addRow(new String[]{"meta.supportsAlterTableWithAddColumn", ""+meta.supportsAlterTableWithAddColumn()});
-            rs.addRow(new String[]{"meta.supportsAlterTableWithDropColumn", ""+meta.supportsAlterTableWithDropColumn()});
-            rs.addRow(new String[]{"meta.supportsANSI92EntryLevelSQL", ""+meta.supportsANSI92EntryLevelSQL()});
-            rs.addRow(new String[]{"meta.supportsANSI92FullSQL", ""+meta.supportsANSI92FullSQL()});
-            rs.addRow(new String[]{"meta.supportsANSI92IntermediateSQL", ""+meta.supportsANSI92IntermediateSQL()});
-            rs.addRow(new String[]{"meta.supportsBatchUpdates", ""+meta.supportsBatchUpdates()});
-            rs.addRow(new String[]{"meta.supportsCatalogsInDataManipulation", ""+meta.supportsCatalogsInDataManipulation()});
-            rs.addRow(new String[]{"meta.supportsCatalogsInIndexDefinitions", ""+meta.supportsCatalogsInIndexDefinitions()});
-            rs.addRow(new String[]{"meta.supportsCatalogsInPrivilegeDefinitions", ""+meta.supportsCatalogsInPrivilegeDefinitions()});
-            rs.addRow(new String[]{"meta.supportsCatalogsInProcedureCalls", ""+meta.supportsCatalogsInProcedureCalls()});
-            rs.addRow(new String[]{"meta.supportsCatalogsInTableDefinitions", ""+meta.supportsCatalogsInTableDefinitions()});
-            rs.addRow(new String[]{"meta.supportsColumnAliasing", ""+meta.supportsColumnAliasing()});
-            rs.addRow(new String[]{"meta.supportsConvert", ""+meta.supportsConvert()});
-            rs.addRow(new String[]{"meta.supportsCoreSQLGrammar", ""+meta.supportsCoreSQLGrammar()});
-            rs.addRow(new String[]{"meta.supportsCorrelatedSubqueries", ""+meta.supportsCorrelatedSubqueries()});
-            rs.addRow(new String[]{"meta.supportsDataDefinitionAndDataManipulationTransactions", ""+meta.supportsDataDefinitionAndDataManipulationTransactions()});
-            rs.addRow(new String[]{"meta.supportsDataManipulationTransactionsOnly", ""+meta.supportsDataManipulationTransactionsOnly()});
-            rs.addRow(new String[]{"meta.supportsDifferentTableCorrelationNames", ""+meta.supportsDifferentTableCorrelationNames()});
-            rs.addRow(new String[]{"meta.supportsExpressionsInOrderBy", ""+meta.supportsExpressionsInOrderBy()});
-            rs.addRow(new String[]{"meta.supportsExtendedSQLGrammar", ""+meta.supportsExtendedSQLGrammar()});
-            rs.addRow(new String[]{"meta.supportsFullOuterJoins", ""+meta.supportsFullOuterJoins()});
-            rs.addRow(new String[]{"meta.supportsGroupBy", ""+meta.supportsGroupBy()});
+            rs.addRow(new String[] { "meta.getSQLKeywords", "" + meta.getSQLKeywords() });
+            rs.addRow(new String[] { "meta.getStringFunctions", "" + meta.getStringFunctions() });
+            rs.addRow(new String[] { "meta.getSystemFunctions", "" + meta.getSystemFunctions() });
+            rs.addRow(new String[] { "meta.getTimeDateFunctions", "" + meta.getTimeDateFunctions() });
+            rs.addRow(new String[] { "meta.getURL", "" + meta.getURL() });
+            rs.addRow(new String[] { "meta.getUserName", "" + meta.getUserName() });
+            rs.addRow(new String[] { "meta.isCatalogAtStart", "" + meta.isCatalogAtStart() });
+            rs.addRow(new String[] { "meta.isReadOnly", "" + meta.isReadOnly() });
+            rs.addRow(new String[] { "meta.allProceduresAreCallable", "" + meta.allProceduresAreCallable() });
+            rs.addRow(new String[] { "meta.allTablesAreSelectable", "" + meta.allTablesAreSelectable() });
+            rs.addRow(new String[] { "meta.dataDefinitionCausesTransactionCommit",
+                    "" + meta.dataDefinitionCausesTransactionCommit() });
+            rs.addRow(new String[] { "meta.dataDefinitionIgnoredInTransactions",
+                    "" + meta.dataDefinitionIgnoredInTransactions() });
+            rs.addRow(new String[] { "meta.doesMaxRowSizeIncludeBlobs", "" + meta.doesMaxRowSizeIncludeBlobs() });
+            rs.addRow(new String[] { "meta.nullPlusNonNullIsNull", "" + meta.nullPlusNonNullIsNull() });
+            rs.addRow(new String[] { "meta.nullsAreSortedAtEnd", "" + meta.nullsAreSortedAtEnd() });
+            rs.addRow(new String[] { "meta.nullsAreSortedAtStart", "" + meta.nullsAreSortedAtStart() });
+            rs.addRow(new String[] { "meta.nullsAreSortedHigh", "" + meta.nullsAreSortedHigh() });
+            rs.addRow(new String[] { "meta.nullsAreSortedLow", "" + meta.nullsAreSortedLow() });
+            rs.addRow(new String[] { "meta.storesLowerCaseIdentifiers", "" + meta.storesLowerCaseIdentifiers() });
+            rs.addRow(new String[] { "meta.storesLowerCaseQuotedIdentifiers",
+                    "" + meta.storesLowerCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.storesMixedCaseIdentifiers", "" + meta.storesMixedCaseIdentifiers() });
+            rs.addRow(new String[] { "meta.storesMixedCaseQuotedIdentifiers",
+                    "" + meta.storesMixedCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.storesUpperCaseIdentifiers", "" + meta.storesUpperCaseIdentifiers() });
+            rs.addRow(new String[] { "meta.storesUpperCaseQuotedIdentifiers",
+                    "" + meta.storesUpperCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.supportsAlterTableWithAddColumn",
+                    "" + meta.supportsAlterTableWithAddColumn() });
+            rs.addRow(new String[] { "meta.supportsAlterTableWithDropColumn",
+                    "" + meta.supportsAlterTableWithDropColumn() });
+            rs.addRow(new String[] { "meta.supportsANSI92EntryLevelSQL", "" + meta.supportsANSI92EntryLevelSQL() });
+            rs.addRow(new String[] { "meta.supportsANSI92FullSQL", "" + meta.supportsANSI92FullSQL() });
+            rs.addRow(new String[] { "meta.supportsANSI92IntermediateSQL", "" + meta.supportsANSI92IntermediateSQL() });
+            rs.addRow(new String[] { "meta.supportsBatchUpdates", "" + meta.supportsBatchUpdates() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInDataManipulation",
+                    "" + meta.supportsCatalogsInDataManipulation() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInIndexDefinitions",
+                    "" + meta.supportsCatalogsInIndexDefinitions() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInPrivilegeDefinitions",
+                    "" + meta.supportsCatalogsInPrivilegeDefinitions() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInProcedureCalls",
+                    "" + meta.supportsCatalogsInProcedureCalls() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInTableDefinitions",
+                    "" + meta.supportsCatalogsInTableDefinitions() });
+            rs.addRow(new String[] { "meta.supportsColumnAliasing", "" + meta.supportsColumnAliasing() });
+            rs.addRow(new String[] { "meta.supportsConvert", "" + meta.supportsConvert() });
+            rs.addRow(new String[] { "meta.supportsCoreSQLGrammar", "" + meta.supportsCoreSQLGrammar() });
+            rs.addRow(new String[] { "meta.supportsCorrelatedSubqueries", "" + meta.supportsCorrelatedSubqueries() });
+            rs.addRow(new String[] { "meta.supportsDataDefinitionAndDataManipulationTransactions",
+                    "" + meta.supportsDataDefinitionAndDataManipulationTransactions() });
+            rs.addRow(new String[] { "meta.supportsDataManipulationTransactionsOnly",
+                    "" + meta.supportsDataManipulationTransactionsOnly() });
+            rs.addRow(new String[] { "meta.supportsDifferentTableCorrelationNames",
+                    "" + meta.supportsDifferentTableCorrelationNames() });
+            rs.addRow(new String[] { "meta.supportsExpressionsInOrderBy", "" + meta.supportsExpressionsInOrderBy() });
+            rs.addRow(new String[] { "meta.supportsExtendedSQLGrammar", "" + meta.supportsExtendedSQLGrammar() });
+            rs.addRow(new String[] { "meta.supportsFullOuterJoins", "" + meta.supportsFullOuterJoins() });
+            rs.addRow(new String[] { "meta.supportsGroupBy", "" + meta.supportsGroupBy() });
             // TODO meta data: more supports methods (I'm tired now)
-            rs.addRow(new String[]{"meta.usesLocalFilePerTable", ""+meta.usesLocalFilePerTable()});
-            rs.addRow(new String[]{"meta.usesLocalFiles", ""+meta.usesLocalFiles()});
-//#ifdef JDK14
-            rs.addRow(new String[]{"conn.getHoldability", ""+conn.getHoldability()});
-            rs.addRow(new String[]{"meta.getDatabaseMajorVersion", ""+meta.getDatabaseMajorVersion()});
-            rs.addRow(new String[]{"meta.getDatabaseMinorVersion", ""+meta.getDatabaseMinorVersion()});
-            rs.addRow(new String[]{"meta.getJDBCMajorVersion", ""+meta.getJDBCMajorVersion()});
-            rs.addRow(new String[]{"meta.getJDBCMinorVersion", ""+meta.getJDBCMinorVersion()});
-            rs.addRow(new String[]{"meta.getResultSetHoldability", ""+meta.getResultSetHoldability()});
-            rs.addRow(new String[]{"meta.getSQLStateType", ""+meta.getSQLStateType()});
-            rs.addRow(new String[]{"meta.supportsGetGeneratedKeys", ""+meta.supportsGetGeneratedKeys()});
-            rs.addRow(new String[]{"meta.locatorsUpdateCopy", ""+meta.locatorsUpdateCopy()});
-//#endif
+            rs.addRow(new String[] { "meta.usesLocalFilePerTable", "" + meta.usesLocalFilePerTable() });
+            rs.addRow(new String[] { "meta.usesLocalFiles", "" + meta.usesLocalFiles() });
+            // #ifdef JDK14
+            rs.addRow(new String[] { "conn.getHoldability", "" + conn.getHoldability() });
+            rs.addRow(new String[] { "meta.getDatabaseMajorVersion", "" + meta.getDatabaseMajorVersion() });
+            rs.addRow(new String[] { "meta.getDatabaseMinorVersion", "" + meta.getDatabaseMinorVersion() });
+            rs.addRow(new String[] { "meta.getJDBCMajorVersion", "" + meta.getJDBCMajorVersion() });
+            rs.addRow(new String[] { "meta.getJDBCMinorVersion", "" + meta.getJDBCMinorVersion() });
+            rs.addRow(new String[] { "meta.getResultSetHoldability", "" + meta.getResultSetHoldability() });
+            rs.addRow(new String[] { "meta.getSQLStateType", "" + meta.getSQLStateType() });
+            rs.addRow(new String[] { "meta.supportsGetGeneratedKeys", "" + meta.supportsGetGeneratedKeys() });
+            rs.addRow(new String[] { "meta.locatorsUpdateCopy", "" + meta.locatorsUpdateCopy() });
+            // #endif
             return rs;
         } else if (sql.startsWith("@CATALOGS")) {
             return meta.getCatalogs();
@@ -1456,7 +1491,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             return meta.getUDTs(p[1], p[2], p[3], types);
         } else if (sql.startsWith("@TYPE_INFO")) {
             return meta.getTypeInfo();
-//#ifdef JDK14
+            // #ifdef JDK14
         } else if (sql.startsWith("@SUPER_TYPES")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
@@ -1466,7 +1501,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else if (sql.startsWith("@ATTRIBUTES")) {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
-//#endif
+            // #endif
         }
         return null;
     }
@@ -1560,9 +1595,9 @@ class WebThread extends Thread implements DatabaseEventListener {
                 session.addCommand(sql);
                 if (generatedKeys) {
                     rs = null;
-//#ifdef JDK14
+                    // #ifdef JDK14
                     rs = stat.getGeneratedKeys();
-//#endif
+                    // #endif
                 } else {
                     if (!isResultSet) {
                         buff.append("${text.result.updateCount}: " + stat.getUpdateCount());
@@ -1578,11 +1613,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
             time = System.currentTimeMillis() - time;
             buff.append(getResultSet(sql, rs, metadata, list, edit, time, allowEdit));
-//            SQLWarning warning = stat.getWarnings();
-//            if(warning != null) {
-//                buff.append("<br />Warning:<br />");
-//                buff.append(getStackTrace(id, warning));
-//            }
+            // SQLWarning warning = stat.getWarnings();
+            // if(warning != null) {
+            // buff.append("<br />Warning:<br />");
+            // buff.append(getStackTrace(id, warning));
+            // }
             if (!edit) {
                 stat.close();
             }
@@ -1697,7 +1732,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             buff.append("<tr><td>");
             buff.append("<a href=\"getHistory.do?id=");
             buff.append(i);
-            buff.append("&jsessionid=${sessionId}\" target=\"h2query\" ><img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/></a>");
+            buff
+                    .append("&jsessionid=${sessionId}\" target=\"h2query\" ><img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/></a>");
             buff.append("</td><td>");
             buff.append(PageParser.escapeHtml(sql));
             buff.append("</td></tr>");
@@ -1707,7 +1743,8 @@ class WebThread extends Thread implements DatabaseEventListener {
         return buff.toString();
     }
 
-    private String getResultSet(String sql, ResultSet rs, boolean metadata, boolean list, boolean edit, long time, boolean allowEdit) throws SQLException {
+    private String getResultSet(String sql, ResultSet rs, boolean metadata, boolean list, boolean edit, long time,
+            boolean allowEdit) throws SQLException {
         int maxrows = getMaxrows();
         time = System.currentTimeMillis() - time;
         StringBuffer buff = new StringBuffer();
@@ -1795,10 +1832,12 @@ class WebThread extends Thread implements DatabaseEventListener {
                     buff.append("<img onclick=\"javascript:editRow(");
                     buff.append(rs.getRow());
                     buff.append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'");
-                    buff.append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>");
+                    buff
+                            .append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>");
                     buff.append("<a href=\"editResult.do?op=2&row=");
                     buff.append(rs.getRow());
-                    buff.append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>");
+                    buff
+                            .append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>");
                     buff.append("</td>");
                 }
                 for (int i = 0; i < columns; i++) {
@@ -1951,7 +1990,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else {
             listenerLastState = state;
         }
-        switch(state) {
+        switch (state) {
         case DatabaseEventListener.STATE_BACKUP_FILE:
             log("Backing up " + name + " " + (100L * x / max) + "%");
             break;

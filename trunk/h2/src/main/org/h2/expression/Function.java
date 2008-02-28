@@ -993,8 +993,11 @@ public class Function extends Expression implements FunctionCall {
             String fieldSeparatorRead = v3 == null ? null : v3.getString();
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
+            Value v6 = getNullOrValue(session, args, 6);
+            String nullString = v6 == null ? null : v6.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+            csv.setNullString(nullString);
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
             ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
@@ -1017,9 +1020,12 @@ public class Function extends Expression implements FunctionCall {
             String fieldDelimiter = v4 == null ? null : v4.getString();
             String escapeCharacter = v5 == null ? null : v5.getString();
             Value v6 = getNullOrValue(session, args, 6);
-            String lineSeparator = v6 == null ? null : v6.getString();
+            String nullString = v6 == null ? null : v6.getString();
+            Value v7 = getNullOrValue(session, args, 7);
+            String lineSeparator = v7 == null ? null : v7.getString();
             Csv csv = Csv.getInstance();
             setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
+            csv.setNullString(nullString);
             if (lineSeparator != null) {
                 csv.setLineSeparator(lineSeparator);
             }

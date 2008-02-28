@@ -2649,13 +2649,15 @@ CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString [, fieldDelimiterString [, escapeCharacterString]]]]]): resultSet
+CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString [, fieldDelimiterString
+[, escapeCharacterString [, nullString]]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 If the column names are specified (a comma separated list of column names),
 those are used they are read from the file, otherwise (or if they are set to NULL) the first line
 of the file is interpreted as the column names.
 The default charset is the default value for this system, and the default field separator is a comma.
+Missing unquoted values as well as data that matches the null string is parsed as NULL.
 This function can be used like a table: SELECT * FROM CSVREAD(...).
 Instead of a file, an URL may be used, for example jar:file:///c:/temp/example.zip!/org/example/nested.zip.
 Admin rights are required to execute this command.
@@ -2665,11 +2667,12 @@ CALL CSVREAD('test.csv')
 
 "Functions (System)","CSVWRITE","
 CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString [, fieldDelimiterString
-[, escapeCharacterString [, lineSeparatorString]]]]]): int
+[, escapeCharacterString [, nullString [, lineSeparatorString]]]]]]): int
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.
 The default charset is the default value for this system, and the default field separator is a comma.
+The null string is used when writing NULL (by default nothing is written when NULL appears).
 The default line separator is the default value for this system ('line.separator' system property).
 The returned value is the number or rows written.
 Admin rights are required to execute this command.

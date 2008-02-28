@@ -374,6 +374,9 @@ public class DbContextRule implements Rule {
             if (set != null && !set.contains(table)) {
                 continue;
             }
+            if (table == null || table.columns == null) {
+                continue;
+            }
             for (int j = 0; j < table.columns.length; j++) {
                 String name = StringUtils.toUpperEnglish(table.columns[j].name);
                 if (up.startsWith(name)) {

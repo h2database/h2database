@@ -67,6 +67,7 @@ public abstract class Table extends SchemaObjectBase {
     private ObjectArray views;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
+    private Row nullRow;
 
     /**
      * Lock the table for the given session.
@@ -385,13 +386,15 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getNullRow() {
-        // TODO memory usage: if rows are immutable, we could use a static null
-        // row
-        Row row = new Row(new Value[columns.length], 0);
-        for (int i = 0; i < columns.length; i++) {
-            row.setValue(i, ValueNull.INSTANCE);
+        synchronized (this) {
+            if (nullRow == null) {
+                nullRow = new Row(new Value[columns.length], 0);
+                for (int i = 0; i < columns.length; i++) {
+                    nullRow.setValue(i, ValueNull.INSTANCE);
+                }
+            }
+            return nullRow;
         }
-        return row;
     }
 
     public Column[] getColumns() {

@@ -197,7 +197,7 @@ public class CreateTable extends SchemaCommand {
             }
             int scale = expr.getScale();
             if (scale > 0 && (dt.defaultScale == 0 || dt.defaultScale > scale)) {
-                precision = dt.defaultScale;
+                scale = dt.defaultScale;
             }
             Column col = new Column(name, type, precision, scale, displaySize);
             addColumn(col);

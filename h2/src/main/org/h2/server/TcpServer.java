@@ -264,14 +264,12 @@ public class TcpServer implements Service {
         }
         if (shutdownMode == SHUTDOWN_NORMAL) {
             server.stopManagementDb();
-            synchronized (TcpServer.class) {
-                server.stop = true;
-                try {
-                    Socket s = NetUtils.createLoopbackSocket(port, false);
-                    s.close();
-                } catch (Exception e) {
-                    // try to connect - so that accept returns
-                }
+            server.stop = true;
+            try {
+                Socket s = NetUtils.createLoopbackSocket(port, false);
+                s.close();
+            } catch (Exception e) {
+                // try to connect - so that accept returns
             }
         } else if (shutdownMode == SHUTDOWN_FORCE) {
             server.stop();

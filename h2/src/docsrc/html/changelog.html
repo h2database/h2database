@@ -15,7 +15,23 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>The performance of text comparison has been improved when using locale sensitive
+</li><li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
+    with uncommitted changes in the same session.
+</li><li>H2 Console: remote connections were very slow because getHostName/getRemoteHost was used.
+	Fixed (now using getHostAddress/getRemoteAddr.
+</li><li>H2 Console: on Linux, Firefox, Konqueror, or Opera (in this order) are now started if available.
+	This has been tested on Ubuntu.
+</li><li>H2 Console: the start window works better with IKVM
+</li><li>H2 Console: improved compatibility with Safari (Safari requires keep-alive)
+</li><li>Random: the process didn't stop if generating the random seed using the standard
+    way (SecureRandom.generateSeed) was very slow. Now using a daemon thread
+    to avoid this problem.
+</li><li>SELECT UNION with a different number of ORDER BY columns did throw an ArrayIndexOutOfBoundsException.
+</li><li>When using view, the precision of column was changed to the default scale for some data types.
+</li><li>CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
+</li><li>Some long running queries could not be cancelled.
+</li><li>Queries with many outer join tables were very slow. Fixed.
+</li><li>The performance of text comparison has been improved when using locale sensitive
     string comparison (SET COLLATOR). Now CollationKey is used with a LRU cache.
     The default cache size is 10000, and can be changed using the system property
     h2.collatorCacheSize. Use 0 to disable the cache.

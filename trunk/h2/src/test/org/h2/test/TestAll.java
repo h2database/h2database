@@ -18,6 +18,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCsv;
+import org.h2.test.db.TestEncryptedDb;
 import org.h2.test.db.TestExclusive;
 import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctions;
@@ -156,10 +157,18 @@ java org.h2.test.TestAll timer
 
 /*
 
-C:\temp\db
-select.sql
 
-test startbrowser with ubuntu
+There is now an optimization for SELECT DISTINCT (see http://www.h2database.com/javadoc/org/h2/constant/SysProperties.html#h2.optimizeDistinct) so that the index is used. There are a few conditions:
+
+- It must be as simple as: SELECT DISTINCT <column> FROM <table>
+- The column must be indexed
+- The selectivity must be quite low, that is, below 20. You need to run ANALYZE or set the selectivity manually.
+
+I will add this to the docs.
+
+
+
+remove old in use, links
 
 fix or disable the linear hash index
 
@@ -173,20 +182,15 @@ ant 'get' for dependencies
 Add where required // TODO: change in version 1.1
 
 History:
-When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
-    with uncommitted changes in the same session.
-H2 Console: remote connections were very slow because getHostName/getRemoteHost was used. Fixed (now using getHostAddress/getRemoteAddr.
-H2 Console: on Linux, Firefox is now started if available. This has been tested on Ubuntu.
-H2 Console: the start window works better with IKVM
-H2 Console: improved compatibility with Safari (Safari requires keep-alive)
-Random: the process didn't stop if generating the random seed using the standard
-    way (SecureRandom.generateSeed) was very slow. Now using a daemon thread
-    to avoid this problem.
-SELECT UNION with a different number of ORDER BY columns did throw an ArrayIndexOutOfBoundsException.
-When using view, the precision of column was changed to the default scale for some data types.
-CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
-Some long running queries could not be cancelled.
-Queries with many outer join tables were very slow. Fixed.
+
+I'm trying to use h2database embedded with AES encryption.  It all
+seems to work fine UNLESS the wrong decryption password id specified
+in the connection ( DriverManager.getConnection(url, prop) ).  If this
+happens, I get dot corrupt (.corrupt) files created.
+After several failed attempts (total
+across a database's lifespan), FILE_RENAME_FAILED_2 errors start occur
+until I delete the .corrupt files.
+
 
 Roadmap:
 
@@ -405,6 +409,7 @@ Roadmap:
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);
+        new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
         new TestFullText().runTest(this);
         new TestFunctions().runTest(this);

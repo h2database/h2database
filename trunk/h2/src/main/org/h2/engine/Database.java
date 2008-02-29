@@ -454,6 +454,7 @@ public class Database implements DataHandler {
             deleteOldTempFiles();
             log = new LogSystem(this, databaseName, readOnly, accessModeLog);
             openFileData();
+            log.open();
             openFileIndex();
             log.recover();
             fileData.init();

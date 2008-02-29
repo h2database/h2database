@@ -52,12 +52,12 @@ public class LogSystem {
         this.database = database;
         this.readOnly = readOnly;
         this.accessMode = accessMode;
+        closed = true;
         if (database == null) {
             return;
         }
         this.fileNamePrefix = fileNamePrefix;
         rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
-        loadActiveLogFiles();
     }
 
     public void setMaxLogSize(long maxSize) {
@@ -225,7 +225,7 @@ public class LogSystem {
         l.close(deleteOldLogFilesAutomatically && keepFiles == 0);
     }
 
-    private void loadActiveLogFiles() throws SQLException {
+    public void open() throws SQLException {
         String path = FileUtils.getParent(fileNamePrefix);
         String[] list = FileUtils.listFiles(path);
         activeLogs = new ObjectArray();
@@ -238,6 +238,7 @@ public class LogSystem {
                 database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
                 // this can happen if the system crashes just after creating a new file (before writing the header)
                 // rename it, so that it doesn't get in the way the next time
+                FileUtils.delete(s + ".corrupt");
                 FileUtils.rename(s, s + ".corrupt");
             }
             if (l != null) {
@@ -258,6 +259,7 @@ public class LogSystem {
             activeLogs.add(l);
         }
         currentLog = (LogFile) activeLogs.get(activeLogs.size() - 1);
+        closed = false;
     }
 
     Storage getStorageForRecovery(int id) throws SQLException {

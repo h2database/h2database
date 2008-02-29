@@ -108,8 +108,7 @@ public class DiskFile implements CacheWriter {
             this.cache = new CacheLRU(this, cacheSize);
         }
         rowBuff = DataPage.create(database, BLOCK_SIZE);
-        // TODO: the overhead is larger in the log file, so this value is too
-        // high :-(
+        // TODO: the overhead is larger in the log file, so this value is too high :-(
         recordOverhead = 4 * rowBuff.getIntLen() + 1 + rowBuff.getFillerLength();
         freeBlock = DataPage.create(database, BLOCK_SIZE);
         freeBlock.fill(BLOCK_SIZE);

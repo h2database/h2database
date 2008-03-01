@@ -15,12 +15,12 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-</li><li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
+<li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
     with uncommitted changes in the same session.
 </li><li>H2 Console: remote connections were very slow because getHostName/getRemoteHost was used.
-	Fixed (now using getHostAddress/getRemoteAddr.
+    Fixed (now using getHostAddress/getRemoteAddr.
 </li><li>H2 Console: on Linux, Firefox, Konqueror, or Opera (in this order) are now started if available.
-	This has been tested on Ubuntu.
+    This has been tested on Ubuntu.
 </li><li>H2 Console: the start window works better with IKVM
 </li><li>H2 Console: improved compatibility with Safari (Safari requires keep-alive)
 </li><li>Random: the process didn't stop if generating the random seed using the standard

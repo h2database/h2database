@@ -157,16 +157,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-
-There is now an optimization for SELECT DISTINCT (see http://www.h2database.com/javadoc/org/h2/constant/SysProperties.html#h2.optimizeDistinct) so that the index is used. There are a few conditions:
-
-- It must be as simple as: SELECT DISTINCT <column> FROM <table>
-- The column must be indexed
-- The selectivity must be quite low, that is, below 20. You need to run ANALYZE or set the selectivity manually.
-
-I will add this to the docs.
-
-
+test t
 
 remove old in use, links
 

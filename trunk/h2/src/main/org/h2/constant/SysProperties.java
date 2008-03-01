@@ -234,6 +234,13 @@ public class SysProperties {
     /**
      * System property <code>h2.optimizeDistinct</code> (default: true).<br />
      * Improve the performance of simple DISTINCT queries if an index is available for the given column.
+     * The optimization is used if:
+     * <ul><li>The select is a single column query without condition
+     * </li><li>The query contains only one table, and no group by
+     * </li><li>There is only one table involved
+     * </li><li>There is an ascending index on the column
+     * </li><li>The selectivity of the column is below 20
+     * </li></ul>
      */
     public static final boolean OPTIMIZE_DISTINCT = getBooleanSetting("h2.optimizeDistinct", true);
 

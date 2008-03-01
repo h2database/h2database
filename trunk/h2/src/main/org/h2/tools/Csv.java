@@ -420,7 +420,7 @@ public class Csv implements SimpleRowSource {
                 endOfLine = true;
                 break;
             } else {
-                // undelimited value
+                // un-delimited value
                 StringBuffer buff = new StringBuffer();
                 buff.append((char) ch);
                 while (true) {
@@ -436,7 +436,7 @@ public class Csv implements SimpleRowSource {
                     }
                     buff.append((char) ch);
                 }
-                // check undelimited value for nullString
+                // check un-delimited value for nullString
                 value = readNull(buff.toString().trim());
                 break;
             }

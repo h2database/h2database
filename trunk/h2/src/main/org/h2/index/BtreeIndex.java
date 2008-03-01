@@ -30,7 +30,7 @@ import org.h2.value.ValueNull;
  * <ul>
  * <li>There is one {@link BtreeHead} that points to the root page.
  * The head always stays where it is.
- * </li><li>There is a number of {@link BtreePage}s. Each page is eighter
+ * </li><li>There is a number of {@link BtreePage}s. Each page is either
  * a {@link BtreeNode} or a {@link BtreeLeaf}.
  * </li><li>A node page links to other leaf pages or to node pages.
  * Leaf pages don't point to other pages (but may have a parent).

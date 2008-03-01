@@ -262,13 +262,13 @@ ShutdownHandler {
         // the main panel keeps everything together
         Panel mainPanel = new Panel(layout);
 
-        GridBagConstraints contraintsPanel = new GridBagConstraints();
-        contraintsPanel.gridx = 0;
-        contraintsPanel.weightx = 1.0D;
-        contraintsPanel.weighty = 1.0D;
-        contraintsPanel.fill = GridBagConstraints.BOTH;
-        contraintsPanel.insets = new Insets(0, 10, 0, 10);
-        contraintsPanel.gridy = 0;
+        GridBagConstraints constraintsPanel = new GridBagConstraints();
+        constraintsPanel.gridx = 0;
+        constraintsPanel.weightx = 1.0D;
+        constraintsPanel.weighty = 1.0D;
+        constraintsPanel.fill = GridBagConstraints.BOTH;
+        constraintsPanel.insets = new Insets(0, 10, 0, 10);
+        constraintsPanel.gridy = 0;
 
         GridBagConstraints constraintsButton = new GridBagConstraints();
         constraintsButton.gridx = 0;
@@ -307,7 +307,7 @@ ShutdownHandler {
         startBrowser.addActionListener(this);
         startBrowser.setFont(font);
         mainPanel.add(startBrowser, constraintsButton);
-        frame.add(mainPanel, contraintsPanel);
+        frame.add(mainPanel, constraintsPanel);
 
         int width = 300, height = 120;
         frame.setSize(width, height);

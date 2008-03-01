@@ -505,6 +505,32 @@ The steps to connect to a H2 database are:
 <p>
 Now you can access the database stored in the directory C:/temp.
 </p>
+<p>
+To use H2 in NeoOffice (OpenOffice without X11):
+</p>
+<ul><li>In NeoOffice, go to [NeoOffice], [Preferences]
+</li><li>Look for the page under [NeoOffice], [Java]
+</li><li>Click [Classpath], [Add Archive...]
+</li><li>Select your h2.jar (location is up to you, could be wherever you choose)
+</li><li>Click [OK] (as much as needed), restart NeoOffice.
+</li></ul>
+<p>
+Now, when creating a new database using the "Database Wizard":
+</p>
+<ul><li>Select "connect to existing database" and the type "jdbc". Click next.
+</li><li>Enter your h2 database URL. The normal behavior of H2 is that a new db is created if it doesn't exist.
+</li><li>Next step - up to you... you can just click finish and start working.
+</li></ul>
+<p>
+Another solution to use H2 in NeoOffice is:
+</p>
+<ul><li>Package the h2 jar within an extension package
+</li><li>Install it as a Java extension in NeoOffice
+</li></ul>
+<p>
+This can be done by create it using the NetBeans OpenOffice plugin.
+See also <a href="http://wiki.services.openoffice.org/wiki/Extensions_development_java">Extensions Development</a>.
+</p>
 
 <br /><a name="web_start"></a>
 <h2>Java Web Start / JNLP</h2>

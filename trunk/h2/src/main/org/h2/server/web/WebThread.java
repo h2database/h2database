@@ -1437,7 +1437,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             // TODO meta data: more supports methods (I'm tired now)
             rs.addRow(new String[] { "meta.usesLocalFilePerTable", "" + meta.usesLocalFilePerTable() });
             rs.addRow(new String[] { "meta.usesLocalFiles", "" + meta.usesLocalFiles() });
-            // #ifdef JDK14
+//#ifdef JDK14
             rs.addRow(new String[] { "conn.getHoldability", "" + conn.getHoldability() });
             rs.addRow(new String[] { "meta.getDatabaseMajorVersion", "" + meta.getDatabaseMajorVersion() });
             rs.addRow(new String[] { "meta.getDatabaseMinorVersion", "" + meta.getDatabaseMinorVersion() });
@@ -1447,7 +1447,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.getSQLStateType", "" + meta.getSQLStateType() });
             rs.addRow(new String[] { "meta.supportsGetGeneratedKeys", "" + meta.supportsGetGeneratedKeys() });
             rs.addRow(new String[] { "meta.locatorsUpdateCopy", "" + meta.locatorsUpdateCopy() });
-            // #endif
+//#endif
             return rs;
         } else if (sql.startsWith("@CATALOGS")) {
             return meta.getCatalogs();
@@ -1491,7 +1491,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             return meta.getUDTs(p[1], p[2], p[3], types);
         } else if (sql.startsWith("@TYPE_INFO")) {
             return meta.getTypeInfo();
-            // #ifdef JDK14
+//#ifdef JDK14
         } else if (sql.startsWith("@SUPER_TYPES")) {
             String[] p = split(sql);
             return meta.getSuperTypes(p[1], p[2], p[3]);
@@ -1501,7 +1501,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else if (sql.startsWith("@ATTRIBUTES")) {
             String[] p = split(sql);
             return meta.getAttributes(p[1], p[2], p[3], p[4]);
-            // #endif
+//#endif
         }
         return null;
     }
@@ -1595,9 +1595,9 @@ class WebThread extends Thread implements DatabaseEventListener {
                 session.addCommand(sql);
                 if (generatedKeys) {
                     rs = null;
-                    // #ifdef JDK14
+//#ifdef JDK14
                     rs = stat.getGeneratedKeys();
-                    // #endif
+//#endif
                 } else {
                     if (!isResultSet) {
                         buff.append("${text.result.updateCount}: " + stat.getUpdateCount());

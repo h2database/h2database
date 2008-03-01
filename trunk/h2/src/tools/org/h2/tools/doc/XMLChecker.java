@@ -64,7 +64,7 @@ public class XMLChecker {
             checkXML(s, !suffix.equals("xml"));
         } catch (Exception e) {
             last = e;
-            System.out.println("ERROR: " + e.toString());
+            System.out.println("ERROR in file " + fileName + " " + e.toString());
         }
         if (last != null) {
             last.printStackTrace();

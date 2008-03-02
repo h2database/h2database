@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Random;
 
+import org.h2.constant.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
@@ -133,6 +134,10 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     public Object getLobSyncObject() {
         return this;
+    }
+
+    public boolean getLobFilesInDirectories() {
+        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
 }

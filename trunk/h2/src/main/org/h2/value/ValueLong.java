@@ -179,8 +179,8 @@ public class ValueLong extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueLong && value == ((ValueLong) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueLong && value == ((ValueLong) other).value;
     }
 
 }

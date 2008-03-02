@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.h2.command.Parser;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -66,6 +67,7 @@ public class Recover implements DataHandler {
     private int recordLength;
     private int valueId;
     private boolean log;
+    private boolean lobFilesInDirectories;
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
@@ -154,7 +156,7 @@ public class Recover implements DataHandler {
     }
 
     private void removePassword(String fileName) throws SQLException {
-        databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+        setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
         textStorage = Database.isTextStorage(fileName, false);
         byte[] magic = Database.getMagic(textStorage);
         FileStore store = FileStore.open(null, fileName, "rw", magic);
@@ -282,8 +284,6 @@ public class Recover implements DataHandler {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
         for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
-            // TODO recover: should create a working SQL script if possible (2
-            // passes)
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 dumpData(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
@@ -433,11 +433,16 @@ public class Recover implements DataHandler {
         return v.getSQL();
     }
 
+    private void setDatabaseName(String name) {
+        databaseName = name;
+        lobFilesInDirectories = FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
+    }
+
     private void dumpLog(String fileName) throws SQLException {
         PrintWriter writer = null;
         FileStore store = null;
         try {
-            databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length());
+            setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length()));
             writer = getWriter(fileName, ".txt");
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
@@ -593,7 +598,7 @@ public class Recover implements DataHandler {
         PrintWriter writer = null;
         FileStore store = null;
         try {
-            databaseName = fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length());
+            setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length()));
             writer = getWriter(fileName, ".txt");
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
@@ -669,7 +674,7 @@ public class Recover implements DataHandler {
         PrintWriter writer = null;
         FileStore store = null;
         try {
-            databaseName = fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+            setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
             writer = getWriter(fileName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
@@ -946,6 +951,13 @@ public class Recover implements DataHandler {
      */
     public Object getLobSyncObject() {
         return this;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public boolean getLobFilesInDirectories() {
+        return lobFilesInDirectories;
     }
 
 }

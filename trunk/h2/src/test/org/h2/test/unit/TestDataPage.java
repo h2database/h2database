@@ -6,6 +6,7 @@ package org.h2.test.unit;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
 import org.h2.store.FileStore;
@@ -135,6 +136,10 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     public Object getLobSyncObject() {
         return this;
+    }
+
+    public boolean getLobFilesInDirectories() {
+        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
 }

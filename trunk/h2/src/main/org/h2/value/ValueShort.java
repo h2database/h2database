@@ -124,8 +124,8 @@ public class ValueShort extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueShort && value == ((ValueShort) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueShort && value == ((ValueShort) other).value;
     }
 
 }

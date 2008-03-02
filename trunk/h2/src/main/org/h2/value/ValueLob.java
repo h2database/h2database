@@ -26,6 +26,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.RandomUtils;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
 /**
@@ -88,7 +89,7 @@ public class ValueLob extends Value {
         if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
             throw Message.getInternalError("0 LOB");
         }
-        if (SysProperties.LOB_FILES_IN_DIRECTORIES) {
+        if (handler.getLobFilesInDirectories()) {
             String table = tableId < 0 ? ".temp" : ".t" + tableId;
             return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
         } else {
@@ -197,7 +198,11 @@ public class ValueLob extends Value {
         int objectId = 0;
         while (true) {
             String dir = getFileNamePrefix(path, objectId);
-            String[] list = FileUtils.listFiles(dir);
+
+            int test;
+            String[] list = getFileList(handler, dir);
+//            String[] list = FileUtils.listFiles(dir);
+
             int fileCount = 0;
             boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
             for (int i = 0; i < list.length; i++) {
@@ -228,6 +233,7 @@ public class ValueLob extends Value {
             }
             if (fileId > 0) {
                 objectId += fileId;
+                invalidateFileList(handler, dir);
                 break;
             } else {
                 if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
@@ -236,13 +242,42 @@ public class ValueLob extends Value {
                     objectId = 0;
                 } else {
                     // start with 1 (otherwise we don't know the number of directories)
-                    int dirId = RandomUtils.nextInt(SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
+
+                    int testHack;
+//                    int dirId = RandomUtils.nextInt(SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
+//                    int dirId = 1 + ((objectId / (SysProperties.LOB_FILES_PER_DIRECTORY-1)) % (SysProperties.LOB_FILES_PER_DIRECTORY - 1));
+                    int dirId = 1 + (counter++ / (SysProperties.LOB_FILES_PER_DIRECTORY-1));
+
+
                     objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
                     objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
                 }
             }
         }
         return objectId;
+    }
+
+    private static int counter;
+
+    private static final SmallLRUCache FILE_LIST_CACHE = new SmallLRUCache(128);
+
+    private void invalidateFileList(DataHandler handler, String dir) {
+        int test;
+        synchronized (FILE_LIST_CACHE) {
+            FILE_LIST_CACHE.remove(dir);
+        }
+    }
+
+    private String[] getFileList(DataHandler handler, String dir) throws SQLException {
+        int test;
+        synchronized (FILE_LIST_CACHE) {
+            String[] list = (String[]) FILE_LIST_CACHE.get(dir);
+            if (list == null) {
+                list = FileUtils.listFiles(dir);
+                FILE_LIST_CACHE.put(dir, list);
+            }
+            return list;
+        }
     }
 
     public static ValueLob createBlob(InputStream in, long length, DataHandler handler) throws SQLException {
@@ -278,7 +313,7 @@ public class ValueLob extends Value {
         String compressionAlgorithm = handler.getLobCompressionAlgorithm(type);
         this.compression = compressionAlgorithm != null;
         synchronized (handler) {
-            if (SysProperties.LOB_FILES_IN_DIRECTORIES) {
+            if (handler.getLobFilesInDirectories()) {
                 objectId = getNewObjectId(handler);
                 fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + ".temp.db";
             } else {
@@ -355,7 +390,7 @@ public class ValueLob extends Value {
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup
             synchronized (handler) {
-                if (SysProperties.LOB_FILES_IN_DIRECTORIES) {
+                if (handler.getLobFilesInDirectories()) {
                     temp = getFileName(handler, -1, objectId);
                 } else {
                     // just to get a filename - an empty file will be created
@@ -379,7 +414,7 @@ public class ValueLob extends Value {
         }
         if (linked) {
             ValueLob copy = ValueLob.copy(this);
-            if (SysProperties.LOB_FILES_IN_DIRECTORIES) {
+            if (handler.getLobFilesInDirectories()) {
                 copy.objectId = getNewObjectId(handler);
             } else {
                 copy.objectId = handler.allocateObjectId(false, true);
@@ -551,9 +586,9 @@ public class ValueLob extends Value {
         return MathUtils.convertLongToInt(getPrecision());
     }
 
-    protected boolean isEqual(Value v) {
+    public boolean equals(Object other) {
         try {
-            return compareSecure(v, null) == 0;
+            return compareSecure((Value) other, null) == 0;
         } catch (SQLException e) {
             // TODO exceptions: improve concept, maybe remove throws
             // SQLException almost everywhere
@@ -579,7 +614,7 @@ public class ValueLob extends Value {
     }
 
     public static void removeAllForTable(DataHandler handler, int tableId) throws SQLException {
-        if (SysProperties.LOB_FILES_IN_DIRECTORIES) {
+        if (handler.getLobFilesInDirectories()) {
             String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
             removeAllForTable(handler, dir, tableId);
         } else {

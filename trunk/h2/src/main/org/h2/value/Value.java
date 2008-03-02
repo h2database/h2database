@@ -116,13 +116,17 @@ public abstract class Value {
      */
     protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
 
+    public abstract int hashCode();
+
     /**
      * Check if the two values are equal.
+     * No data conversion is made; this method returns false
+     * if the other object is not of the same class.
      *
-     * @param v the other value
+     * @param other the other value
      * @return true if they are equal
      */
-    protected abstract boolean isEqual(Value v);
+    public abstract boolean equals(Object other);
 
     public static int getOrder(int type) {
         switch(type) {
@@ -200,7 +204,7 @@ public abstract class Value {
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             Value cached = cache[index];
             if (cached != null) {
-                if (cached.getType() == v.getType() && v.isEqual(cached)) {
+                if (cached.getType() == v.getType() && v.equals(cached)) {
                     // cacheHit++;
                     return cached;
                 }
@@ -625,10 +629,10 @@ public abstract class Value {
             return false;
         }
         if (getType() == v.getType()) {
-            return isEqual(v);
+            return equals(v);
         }
         int t2 = Value.getHigherOrder(getType(), v.getType());
-        return convertTo(t2).isEqual(v.convertTo(t2));
+        return convertTo(t2).equals(v.convertTo(t2));
     }
 
     public final int compareTo(Value v, CompareMode mode) throws SQLException {

@@ -83,8 +83,8 @@ public class ValueTime extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueTime && value.equals(((ValueTime) v).value);
+    public boolean equals(Object other) {
+        return other instanceof ValueTime && value.equals(((ValueTime) other).value);
     }
 
 }

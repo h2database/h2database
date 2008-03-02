@@ -30,8 +30,8 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         return mode.compareString(value, v.value, true);
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) v).value);
+    public boolean equals(Object other) {
+        return other instanceof ValueStringBase && value.equalsIgnoreCase(((ValueStringBase) other).value);
     }
 
     public int hashCode() {

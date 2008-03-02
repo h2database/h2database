@@ -181,8 +181,8 @@ public class ValueDecimal extends Value {
         return MathUtils.convertLongToInt(getPrecision() + 2); // - .
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueDecimal && value.equals(((ValueDecimal) v).value);
+    public boolean equals(Object other) {
+        return other instanceof ValueDecimal && value.equals(((ValueDecimal) other).value);
     }
 
     public int getMemory() {

@@ -73,8 +73,9 @@ public class ValueBoolean extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueBoolean && value.booleanValue() == ((ValueBoolean) v).value.booleanValue();
+    public boolean equals(Object other) {
+        // there are only ever two instances, so the instance must match
+        return this == other;
     }
 
 }

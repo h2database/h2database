@@ -114,11 +114,11 @@ public class ValueArray extends Value {
         return MathUtils.convertLongToInt(size);
     }
 
-    protected boolean isEqual(Value o) {
-        if (!(o instanceof ValueArray)) {
+    public boolean equals(Object other) {
+        if (!(other instanceof ValueArray)) {
             return false;
         }
-        ValueArray v = (ValueArray) o;
+        ValueArray v = (ValueArray) other;
         if (values == v.values) {
             return true;
         }
@@ -126,7 +126,7 @@ public class ValueArray extends Value {
             return false;
         }
         for (int i = 0; i < values.length; i++) {
-            if (!values[i].isEqual(v.values[i])) {
+            if (!values[i].equals(v.values[i])) {
                 return false;
             }
         }

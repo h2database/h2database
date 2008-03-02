@@ -162,7 +162,9 @@ public class SysProperties {
      */
     // TODO change in version 1.1
     // TODO: also remove DataHandler.allocateObjectId, createTempFile when setting this to true and removing it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", true);
+private int test;
+//    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
 
     /**
      * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />

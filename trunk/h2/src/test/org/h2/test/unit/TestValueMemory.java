@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
 
+import org.h2.constant.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
@@ -219,6 +220,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
         return FileStore.open(this, name, mode, null);
+    }
+
+    public boolean getLobFilesInDirectories() {
+        return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
 }

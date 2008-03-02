@@ -125,8 +125,8 @@ public class ValueNull extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v == ValueNull.INSTANCE;
+    public boolean equals(Object other) {
+        return other == this;
     }
 
 }

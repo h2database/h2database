@@ -93,8 +93,12 @@ public class ValueResultSet extends Value {
         throw Message.getUnsupportedException();
     }
 
-    protected boolean isEqual(Value v) {
-        return false;
+    public boolean equals(Object other) {
+        return other == this;
+    }
+
+    public int hashCode() {
+        return 0;
     }
 
     public Object getObject() throws SQLException {

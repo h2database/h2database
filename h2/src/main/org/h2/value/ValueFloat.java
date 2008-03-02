@@ -118,8 +118,8 @@ public class ValueFloat extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueFloat && value == ((ValueFloat) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueFloat && value == ((ValueFloat) other).value;
     }
 
 }

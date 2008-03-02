@@ -162,6 +162,7 @@ public class FullText implements Trigger {
 
     /**
      * Drops all full text indexes from the database.
+     *
      * @param conn the connection
      */
     public static void dropAll(Connection conn) throws SQLException {
@@ -463,7 +464,7 @@ public class FullText implements Trigger {
     }
 
     private static void addWords(FullTextSettings setting, HashSet set, String text) {
-       StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
+        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();
             word = setting.convertWord(word);
@@ -564,6 +565,7 @@ public class FullText implements Trigger {
         addWords(setting, words, text);
         HashSet rIds = null, lastRowIds = null;
         HashMap allWords = setting.getWordList();
+
         PreparedStatement prepSelectMapByWordId = setting.getPrepSelectMapByWordId();
         for (Iterator it = words.iterator(); it.hasNext();) {
             lastRowIds = rIds;

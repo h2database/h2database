@@ -124,8 +124,8 @@ public class ValueByte extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueByte && value == ((ValueByte) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueByte && value == ((ValueByte) other).value;
     }
 
 }

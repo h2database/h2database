@@ -103,6 +103,9 @@ public class ValueUuid extends Value {
     }
 
     protected int compareSecure(Value o, CompareMode mode) {
+        if (o == this) {
+            return 0;
+        }
         ValueUuid v = (ValueUuid) o;
         if (high == v.high) {
             return (low == v.low) ? 0 : (low > v.low ? 1 : -1);
@@ -111,8 +114,8 @@ public class ValueUuid extends Value {
         }
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueUuid && compareSecure(v, null) == 0;
+    public boolean equals(Object other) {
+        return other instanceof ValueUuid && compareSecure((Value) other, null) == 0;
     }
 
     public Object getObject() {

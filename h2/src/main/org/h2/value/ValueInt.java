@@ -145,8 +145,8 @@ public class ValueInt extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueInt && value == ((ValueInt) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueInt && value == ((ValueInt) other).value;
     }
 
 }

@@ -149,6 +149,7 @@ public class Database implements DataHandler {
     // TODO change in version 1.1
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
+    private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -431,6 +432,7 @@ public class Database implements DataHandler {
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
                 textStorage = isTextStorage(dataFileName, textStorage);
+                lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
         }
         dummy = DataPage.create(this, 0);
@@ -1707,6 +1709,10 @@ public class Database implements DataHandler {
 
     public void setExclusiveSession(Session session) {
         this.exclusiveSession = session;
+    }
+
+    public boolean getLobFilesInDirectories() {
+        return lobFilesInDirectories;
     }
 
 }

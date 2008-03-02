@@ -157,7 +157,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-test t
+recovery with System.setProperty("h2.lobFilesInDirectories", "true");
+
+sparse files
 
 remove old in use, links
 
@@ -181,6 +183,7 @@ happens, I get dot corrupt (.corrupt) files created.
 After several failed attempts (total
 across a database's lifespan), FILE_RENAME_FAILED_2 errors start occur
 until I delete the .corrupt files.
+Improved performance when using lob files in directories
 
 
 Roadmap:

@@ -232,6 +232,7 @@ public class FileSystemZip extends FileSystem {
         } else {
             fileName = fileName.substring(idx + 1);
         }
+        fileName = fileName.replace('\\', '/');
         if (fileName.startsWith("/")) {
             fileName = fileName.substring(1);
         }

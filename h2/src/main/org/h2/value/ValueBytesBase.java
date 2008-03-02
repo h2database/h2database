@@ -66,12 +66,12 @@ abstract class ValueBytesBase extends Value {
         return MathUtils.convertLongToInt(value.length * 2L);
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) v).value) == 0;
-    }
-
     public int getMemory() {
         return value.length + 4;
+    }
+
+    public boolean equals(Object other) {
+        return other instanceof ValueBytesBase && ByteUtils.compareNotNull(value, ((ValueBytesBase) other).value) == 0;
     }
 
 }

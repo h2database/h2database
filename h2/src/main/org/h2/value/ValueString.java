@@ -29,6 +29,10 @@ public class ValueString extends ValueStringBase {
         return mode.compareString(value, v.value, false);
     }
 
+    public boolean equals(Object other) {
+        return other instanceof ValueStringBase && value.equals(((ValueStringBase) other).value);
+    }
+
     public int hashCode() {
         // TODO hash performance: could build a quicker hash by hashing the size and a few characters
         return value.hashCode();

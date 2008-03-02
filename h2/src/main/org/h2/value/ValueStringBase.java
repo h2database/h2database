@@ -47,10 +47,6 @@ abstract class ValueStringBase extends Value {
         return value.length();
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueStringBase && value.equals(((ValueStringBase) v).value);
-    }
-
     public abstract Value convertPrecision(long precision);
 
     public int getMemory() {

@@ -215,4 +215,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return this;
     }
 
+    public boolean getLobFilesInDirectories() {
+        return session.getDatabase().getLobFilesInDirectories();
+    }
+
 }

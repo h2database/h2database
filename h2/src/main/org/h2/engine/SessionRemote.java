@@ -392,4 +392,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
         // TODO open another remote connection and cancel this session using a unique id (like PostgreSQL)
     }
 
+    public boolean getLobFilesInDirectories() {
+        return false;
+    }
+
 }

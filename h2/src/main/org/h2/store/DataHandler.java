@@ -104,7 +104,7 @@ public interface DataHandler {
 
     /**
      * Get the next object id.
-     *  This method is not required if LOB_FILES_IN_DIRECTORIES is enabled.
+     * This method is not required if LOB_FILES_IN_DIRECTORIES is enabled.
      *
      * @param needFresh if a fresh id is required
      * @param dataFile true if the id is for the data file
@@ -125,5 +125,12 @@ public interface DataHandler {
      * @return the synchronization object
      */
     Object getLobSyncObject();
+
+    /**
+     * Checks if the lob files stored in directories.
+     *
+     * @return true if lob files are stored in directories.
+     */
+    boolean getLobFilesInDirectories();
 
 }

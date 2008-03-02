@@ -118,8 +118,8 @@ public class ValueDouble extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueDouble && value == ((ValueDouble) v).value;
+    public boolean equals(Object other) {
+        return other instanceof ValueDouble && value == ((ValueDouble) other).value;
     }
 
 }

@@ -115,8 +115,8 @@ public class ValueTimestamp extends Value {
         return DISPLAY_SIZE;
     }
 
-    protected boolean isEqual(Value v) {
-        return v instanceof ValueTimestamp && value.equals(((ValueTimestamp) v).value);
+    public boolean equals(Object other) {
+        return other instanceof ValueTimestamp && value.equals(((ValueTimestamp) other).value);
     }
 
 }

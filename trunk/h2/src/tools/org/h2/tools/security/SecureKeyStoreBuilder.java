@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.tools.security;
@@ -17,13 +18,14 @@ import org.h2.security.SecureSocketFactory;
 import org.h2.util.ByteUtils;
 
 /**
- * Tool to generate source code for the SecureSocketFactory.
- * First, create a keystore using:
+ * Tool to generate source code for the SecureSocketFactory. First, create a
+ * keystore using:
  * <pre>
- * keytool -genkey -alias h2 -keyalg RSA -dname "cn=H2" -validity 25000 -keypass h2pass -keystore h2.keystore -storepass h2pass
+ * keytool -genkey -alias h2 -keyalg RSA -dname &quot;cn=H2&quot; -validity 25000 
+ *      -keypass h2pass -keystore h2.keystore -storepass h2pass
  * </pre>
- * Then run this application to generate the source code.
- * Then replace the code in the function SecureSocketFactory.getKeyStore as specified
+ * Then run this application to generate the source code. Then replace the code
+ * in the function SecureSocketFactory.getKeyStore as specified
  */
 public class SecureKeyStoreBuilder {
 
@@ -56,9 +58,10 @@ public class SecureKeyStoreBuilder {
                 String enc = ByteUtils.convertBytesToString(cert.getEncoded());
                 System.out.println("        generateCertificate(new ByteArrayInputStream(getBytes(\""+enc+"\"))),");
                 // PublicKey pubKey = cert.getPublicKey();
-                // System.out.println("    publicKey algorithm="+pubKey.getAlgorithm());
-                // System.out.println("    publicKey format="+pubKey.getFormat());
-                // System.out.println("    publicKey format="+ByteUtils.convertBytesToString(pubKey.getEncoded()));
+                // System.out.println("    pubKey algorithm="+pubKey.getAlgorithm());
+                // System.out.println("    pubKey format="+pubKey.getFormat());
+                // System.out.println("    pubKey format="+
+                //     ByteUtils.convertBytesToString(pubKey.getEncoded()));
             }
             System.out.println("};");
             System.out.println("store.setKeyEntry(\""+alias+"\", privateKey, password.toCharArray(), certs);");

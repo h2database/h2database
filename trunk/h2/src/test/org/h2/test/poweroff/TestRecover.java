@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.poweroff;
@@ -30,7 +31,8 @@ import java.util.zip.ZipOutputStream;
 import org.h2.util.IOUtils;
 
 /**
- * This standalone test checks if recovery of a database works after power failure.
+ * This standalone test checks if recovery of a database works after power
+ * failure.
  */
 public class TestRecover {
 
@@ -38,9 +40,14 @@ public class TestRecover {
     private static final String NODE = System.getProperty("test.node", "");
     private static final String DIR = System.getProperty("test.dir", "/temp/db");
 
-    // private static final String DIR = System.getProperty("test.dir", "/temp/derby");
-    // private static final String URL = System.getProperty("test.url", "jdbc:derby:/temp/derby/data/test;create=true");
-    // private static final String DRIVER = System.getProperty("test.driver", "org.apache.derby.jdbc.EmbeddedDriver");
+    // private static final String DIR = 
+    //     System.getProperty("test.dir", "/temp/derby");
+    // private static final String URL = 
+    //     System.getProperty("test.url", 
+    //         "jdbc:derby:/temp/derby/data/test;create=true");
+    // private static final String DRIVER = 
+    //     System.getProperty("test.driver", 
+    //         "org.apache.derby.jdbc.EmbeddedDriver");
 
     private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
     private static final String BACKUP_DIRECTORY = DIR + "/last";

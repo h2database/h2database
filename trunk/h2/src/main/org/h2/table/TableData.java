@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -38,9 +39,9 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
- * Most tables are an instance of this class.
- * For this table, the data is stored in the database. The actual data is not kept here,
- * instead it is kept in the indexes. There is at least one index, the scan index.
+ * Most tables are an instance of this class. For this table, the data is stored
+ * in the database. The actual data is not kept here, instead it is kept in the
+ * indexes. There is at least one index, the scan index.
  */
 public class TableData extends Table implements RecordReader {
     private final boolean clustered;
@@ -201,7 +202,8 @@ public class TableData extends Table implements RecordReader {
                     index.remove(session);
                 } catch (SQLException e2) {
                     // this could happen, for example on failure in the storage
-                    // but if that is not the case it means there is something wrong with the database
+                    // but if that is not the case it means 
+                    // there is something wrong with the database
                     // TODO log this problem
                     throw e2;
                 }

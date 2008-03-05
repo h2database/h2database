@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -37,24 +38,30 @@ public class RunScript {
     }
 
     /**
-     * The command line interface for this tool. The options must be split into strings like this: "-user", "sa",...
-     * Options are case sensitive. The following options are supported:
+     * The command line interface for this tool. The options must be split into
+     * strings like this: "-user", "sa",... Options are case sensitive. The
+     * following options are supported:
      * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-url jdbc:h2:... (database URL)
-     * </li><li>-user username
-     * </li><li>-password password
-     * </li><li>-script filename (default file name is backup.sql)
-     * </li><li>-driver driver the JDBC driver class name (not required for H2)
-     * </li><li>-options to specify a list of options (only for H2 and only when using the embedded mode)
-     * </li></ul>
-     * To include local files when using remote databases, use the special syntax:
+     * <li>-help or -? (print the list of options) </li>
+     * <li>-url jdbc:h2:... (database URL) </li>
+     * <li>-user username </li>
+     * <li>-password password </li>
+     * <li>-script filename (default file name is backup.sql) </li>
+     * <li>-driver driver the JDBC driver class name (not required for H2)
+     * </li>
+     * <li>-options to specify a list of options (only for H2 and only when
+     * using the embedded mode) </li>
+     * </ul>
+     * To include local files when using remote databases, use the special
+     * syntax:
+     * 
      * <pre>
-     * &#64;INCLUDE fileName
+     * &#064;INCLUDE fileName
      * </pre>
-     * This syntax is only supported by this tool.
-     * Embedded RUNSCRIPT SQL statements will be executed by the database.
-     *
+     * 
+     * This syntax is only supported by this tool. Embedded RUNSCRIPT SQL
+     * statements will be executed by the database.
+     * 
      * @param args the command line arguments
      * @throws SQLException
      */

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -226,8 +227,10 @@ public class TestCrashAPI extends TestBase {
         StringWriter writer = new StringWriter();
         t.printStackTrace(new PrintWriter(writer));
         String s = writer.toString();
-        TestBase.logError("new TestCrashAPI().init(test).testCase(" + seed + "); // Bug " + s.hashCode() + " seed="
-                + seed + " id=" + id + " callCount=" + callCount + " openCount=" + openCount + " " + t.getMessage(), t);
+        TestBase.logError("new TestCrashAPI().init(test).testCase(" + 
+                seed + "); // Bug " + s.hashCode() + " id=" + id + 
+                " callCount=" + callCount + " openCount=" + openCount + 
+                " " + t.getMessage(), t);
     }
 
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) throws Exception {

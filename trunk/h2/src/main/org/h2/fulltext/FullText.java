@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.fulltext;
@@ -19,6 +20,14 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 
 import org.h2.api.Trigger;
+import org.h2.command.Parser;
+import org.h2.engine.Session;
+import org.h2.expression.Comparison;
+import org.h2.expression.ConditionAndOr;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ValueExpression;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.ObjectUtils;
@@ -33,7 +42,32 @@ public class FullText implements Trigger {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
+    
+    /**
+     * The column name of the result set returned by the search method.
+     */
     private static final String FIELD_QUERY = "QUERY";
+    
+    /**
+     * A column name of the result set returned by the searchData method.
+     */
+    private static final String FIELD_SCHEMA = "SCHEMA";
+
+    /**
+     * A column name of the result set returned by the searchData method.
+     */
+    private static final String FIELD_TABLE = "TABLE";
+
+    /**
+     * A column name of the result set returned by the searchData method.
+     */
+    private static final String FIELD_COLUMNS = "COLUMNS";
+
+    /**
+     * A column name of the result set returned by the searchData method.
+     */
+    private static final String FIELD_KEYS = "KEYS";
+
     private IndexInfo index;
     private int[] dataTypes;
     private PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
@@ -116,10 +150,11 @@ public class FullText implements Trigger {
     }
 
     /**
-     * Change the ignore list. The ignore list is a comma separated list of common words that must
-     * not be indexed. The default ignore list is empty. If indexes already exist at the time this list is changed,
-     * reindex must be called.
-     *
+     * Change the ignore list. The ignore list is a comma separated list of
+     * common words that must not be indexed. The default ignore list is empty.
+     * If indexes already exist at the time this list is changed, reindex must
+     * be called.
+     * 
      * @param conn the connection
      * @param commaSeparatedList the list
      */
@@ -176,21 +211,23 @@ public class FullText implements Trigger {
     }
 
     /**
-     * Initializes full text search functionality for this database.
-     * This adds the following Java functions to the database:
+     * Initializes full text search functionality for this database. This adds
+     * the following Java functions to the database:
      * <ul>
      * <li>FT_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-     * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set
+     * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set 
      * </li><li>FT_REINDEX()
      * </li><li>FT_DROP_ALL()
      * </li></ul>
-     * It also adds a schema FULLTEXT to the database where bookkeeping information is stored.
-     * This function may be called from a Java application, or by using the SQL statements:
+     * It also adds a schema FULLTEXT to the database where bookkeeping
+     * information is stored. This function may be called from a Java
+     * application, or by using the SQL statements:
      * <pre>
-     * CREATE ALIAS IF NOT EXISTS FULLTEXT_INIT FOR "org.h2.fulltext.FullText.init";
+     * CREATE ALIAS IF NOT EXISTS FULLTEXT_INIT FOR 
+     *      &quot;org.h2.fulltext.FullText.init&quot;;
      * CALL FULLTEXT_INIT();
      * </pre>
-     *
+     * 
      * @param conn the connection
      */
     public static void init(Connection conn) throws SQLException {
@@ -209,6 +246,7 @@ public class FullText implements Trigger {
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" + FullText.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" + FullText.class.getName() + ".dropAll\"");
         FullTextSettings setting = FullTextSettings.getInstance(conn);
@@ -545,7 +583,35 @@ public class FullText implements Trigger {
     }
 
     /**
-     * Re-creates the full text index for this database.
+     * Searches from the full text index for this database. The result contains
+     * the primary key data as an array. The returned result set has the
+     * following columns:
+     * <ul>
+     * <li>SCHEMA (varchar): The schema name. Example: PUBLIC </li>
+     * <li>TABLE (varchar): The table name. Example: TEST </li>
+     * <li>COLUMNS (array of varchar): Comma separated list of quoted column
+     * names. The column names are quoted if necessary. Example: (ID) </li>
+     * <li>KEYS (array of values): Comma separated list of values. Example: (1)
+     * </li>
+     * </ul>
+     * 
+     * @param conn the connection
+     * @param text the search query
+     * @param limit the maximum number of rows or 0 for no limit
+     * @param offset the offset or 0 for no offset
+     * @return the result set
+     */
+    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
+        return search(conn, text, limit, offset, true);
+    }
+
+    /**
+     * Searches from the full text index for this database.
+     * The returned result set has the following column:
+     * <ul><li>QUERY (varchar): The query to use to get the data.
+     * The query does not include 'SELECT * FROM '. Example:
+     * PUBLIC.TEST WHERE ID = 1
+     * </li></ul>
      *
      * @param conn the connection
      * @param text the search query
@@ -554,9 +620,25 @@ public class FullText implements Trigger {
      * @return the result set
      */
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
+        return search(conn, text, limit, offset, false);
+    }
+    
+    protected static SimpleResultSet createResultSet(boolean data) throws SQLException {
         SimpleResultSet result = new SimpleResultSet();
-        result.addColumn(FIELD_QUERY, Types.VARCHAR, 0, 0);
-        if (text == null) {
+        if (data) {
+            result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
+            result.addColumn(FullText.FIELD_TABLE, Types.VARCHAR, 0, 0);
+            result.addColumn(FullText.FIELD_COLUMNS, Types.ARRAY, 0, 0);
+            result.addColumn(FullText.FIELD_KEYS, Types.ARRAY, 0, 0);
+        } else {
+            result.addColumn(FullText.FIELD_QUERY, Types.VARCHAR, 0, 0);
+        }
+        return result;
+    }
+
+    private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+        SimpleResultSet result = createResultSet(data);
+        if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
             return result;
         }
@@ -602,14 +684,25 @@ public class FullText implements Trigger {
                 String key = rs.getString(1);
                 int indexId = rs.getInt(2);
                 IndexInfo index = setting.getIndexInfo(indexId);
-                StringBuffer buff = new StringBuffer();
-                buff.append(StringUtils.quoteIdentifier(index.schemaName));
-                buff.append('.');
-                buff.append(StringUtils.quoteIdentifier(index.tableName));
-                buff.append(" WHERE ");
-                buff.append(key);
-                String query = buff.toString();
-                result.addRow(new String[] { query });
+                if (data) {
+                    Object[][] columnData = parseKey(conn, key);
+                    Object[] row = new Object[] {  
+                        index.schemaName,
+                        index.tableName,
+                        columnData[0],
+                        columnData[1]
+                    };
+                    result.addRow(row);
+                } else {
+                    StringBuffer buff = new StringBuffer();
+                    buff.append(StringUtils.quoteIdentifier(index.schemaName));
+                    buff.append('.');
+                    buff.append(StringUtils.quoteIdentifier(index.tableName));
+                    buff.append(" WHERE ");
+                    buff.append(key);
+                    String query = buff.toString();
+                    result.addRow(new String[] { query });
+                }
                 rowCount++;
                 if (limit > 0 && rowCount >= limit) {
                     break;
@@ -617,6 +710,45 @@ public class FullText implements Trigger {
             }
         }
         return result;
+    }
+
+    protected static Object[][] parseKey(Connection conn, String key) throws SQLException {
+        ArrayList columns = new ArrayList();
+        ArrayList data = new ArrayList();
+        JdbcConnection c = (JdbcConnection) conn;
+        Session session = (Session) c.getSession();
+        Parser p = new Parser(session);
+        Expression expr = p.parseExpression(key);
+        addColumnData(columns, data, expr);
+        Object[] col = new Object[columns.size()];
+        columns.toArray(col);
+        Object[] dat = new Object[columns.size()];
+        data.toArray(dat);
+        Object[][] columnData = new Object[][] {
+                col, dat
+        };
+        return columnData;
+    }
+    
+    private static void addColumnData(ArrayList columns, ArrayList data, Expression expr) {
+        if (expr instanceof ConditionAndOr) {
+            ConditionAndOr and = (ConditionAndOr) expr;
+            Expression left = and.getExpression(true);
+            Expression right = and.getExpression(false);
+            addColumnData(columns, data, left);
+            addColumnData(columns, data, right);
+        } else {
+            Comparison comp = (Comparison) expr;
+            ExpressionColumn ec = (ExpressionColumn) comp.getExpression(true);
+            ValueExpression ev = (ValueExpression) comp.getExpression(false);
+            String columnName = ec.getColumnName();
+            columns.add(columnName);
+            if (ev == null) {
+                data.add(null);
+            } else {
+                data.add(ev.getValue(null).getString());
+            }
+        }
     }
 
 }

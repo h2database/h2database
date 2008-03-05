@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -14,8 +15,9 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 /**
- * Utility class that supports random and secure random functions.
- * In some systems SecureRandom initialization is very slow, a workaround is implemented here.
+ * Utility class that supports random and secure random functions. In some
+ * systems SecureRandom initialization is very slow, a workaround is implemented
+ * here.
  */
 public class RandomUtils {
 

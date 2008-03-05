@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -39,10 +40,10 @@ import org.h2.server.ShutdownHandler;
 import org.h2.util.StartBrowser;
 
 /**
- * This tool starts the H2 Console (web-) server, as well as the TCP and PG server.
- * For JDK 1.6, a system tray icon is created, for platforms that support it.
- * Otherwise, a small window opens.
- *
+ * This tool starts the H2 Console (web-) server, as well as the TCP and PG
+ * server. For JDK 1.6, a system tray icon is created, for platforms that
+ * support it. Otherwise, a small window opens.
+ * 
  * @author Thomas Mueller, Ridvan Agar
  */
 public class Console implements

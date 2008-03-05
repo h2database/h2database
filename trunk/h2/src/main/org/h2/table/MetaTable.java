@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -62,7 +63,8 @@ import org.h2.value.ValueString;
  */
 public class MetaTable extends Table {
 
-    // TODO INFORMATION_SCHEMA.tables: select table_name from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
+    // TODO INFORMATION_SCHEMA.tables: select table_name 
+    // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
 
     public static final int TABLES = 0, COLUMNS = 1, INDEXES = 2, TABLE_TYPES = 3, TYPE_INFO = 4, CATALOGS = 5,
             SETTINGS = 6, HELP = 7, SEQUENCES = 8, USERS = 9, ROLES = 10, RIGHTS = 11, FUNCTION_ALIASES = 12,
@@ -713,7 +715,7 @@ public class MetaTable extends Table {
             add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
             add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
             add(rows, new String[] { "QUERY_TIMEOUT", "" + session.getQueryTimeout() });
-            int todoNotASettingYet;
+            // the setting for the current database
             add(rows, new String[] { "LOB_FILES_IN_DIRECTORIES", "" + database.getLobFilesInDirectories() });
             add(rows, new String[]{"h2.allowBigDecimalExtensions", "" + SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS});
             add(rows, new String[]{"h2.baseDir", "" + SysProperties.getBaseDir()});

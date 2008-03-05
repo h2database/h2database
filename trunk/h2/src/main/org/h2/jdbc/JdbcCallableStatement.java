@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -390,7 +391,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         throw Message.getUnsupportedException();
     }
 
-    // --- setters --------------------------------------------------------------------------------------------------------------------
+    // --- setters --------------------------------------------------
 
     /**
      * [Not supported]
@@ -574,7 +575,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
         throw Message.getUnsupportedException();
     }
 
-    // --- other methods -------------------------------------------------------------------------------------------------
+    // --- other methods --------------------------------------------
 
     /**
      * [Not supported]
@@ -710,7 +711,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      */
 //#ifdef JDK16
 /*
-    public void setSQLXML(String parameterName, SQLXML xmlObject) throws SQLException {
+    public void setSQLXML(String parameterName, SQLXML xmlObject) 
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 */

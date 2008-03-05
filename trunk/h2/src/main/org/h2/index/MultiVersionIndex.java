@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -272,7 +273,9 @@ public class MultiVersionIndex implements Index {
     }
 
     void debug(String s, Session session, SearchRow row) throws SQLException {
-        // System.out.println(this + " " + s + " session:" + (session == null ? -1: session.getId()) + " " + (row == null ? "" : row.getValue(0).getString()));
+        // System.out.println(this + " " + s + " session:" + 
+        //     (session == null ? -1: session.getId()) + " " + 
+        //     (row == null ? "" : row.getValue(0).getString()));
     }
 
 }

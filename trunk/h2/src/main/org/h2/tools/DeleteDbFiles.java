@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -12,7 +13,8 @@ import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 
 /**
- * Delete the database files. The database must be closed before calling this tool.
+ * Delete the database files. The database must be closed before calling this
+ * tool.
  */
 public class DeleteDbFiles {
 

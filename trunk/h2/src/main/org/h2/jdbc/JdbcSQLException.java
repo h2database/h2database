@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -163,8 +164,9 @@ public class JdbcSQLException extends SQLException {
     }
 
     /**
-     * Returns the class name, the message, and in the server mode, the stack trace of the server
-     *
+     * Returns the class name, the message, and in the server mode, the stack
+     * trace of the server
+     * 
      * @return the string representation
      */
     public String toString() {

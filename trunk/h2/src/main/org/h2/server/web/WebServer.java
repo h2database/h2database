@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -39,8 +40,8 @@ import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
 
 /**
- * The web server is a simple standalone HTTP server that implements the H2 Console application.
- * It is not optimized for performance.
+ * The web server is a simple standalone HTTP server that implements the H2
+ * Console application. It is not optimized for performance.
  */
 public class WebServer implements Service {
 
@@ -82,18 +83,15 @@ public class WebServer implements Service {
         "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
     };
 
-/*
+    /*
     String[] list = Locale.getISOLanguages();
     for(int i=0; i<list.length; i++) System.out.print(list[i] + " ");
-    String lang = new java.util.Locale("hu").getDisplayLanguage(new java.util.Locale("hu"));
+    String lang = new java.util.Locale("hu").
+            getDisplayLanguage(new java.util.Locale("hu"));
         java.util.Locale.CHINESE.getDisplayLanguage(
         java.util.Locale.CHINESE);
        for(int i=0; i<lang.length(); i++)
          System.out.println(Integer.toHexString(lang.charAt(i))+" ");
-*/
-    /**
-     * Hungarian spec chars: &eacute;&#369;&aacute;&#337;&uacute;&ouml;&uuml;&oacute;&iacute;&Eacute;&Aacute;&#368;&#336;&Uacute;&Ouml;&Uuml;&Oacute;&Iacute;
-     * Or use PropertiesToUTF8
      */
 
     // private URLClassLoader urlClassLoader;
@@ -174,7 +172,8 @@ public class WebServer implements Service {
         session.put("ip", hostAddr);
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
-        // always read the english translation, to that untranslated text appears at least in english
+        // always read the english translation, 
+        // to that untranslated text appears at least in english
         readTranslations(session, DEFAULT_LANGUAGE);
         return getSession(newId);
     }
@@ -209,7 +208,8 @@ public class WebServer implements Service {
         }
 //            if(driverList != null) {
 //                try {
-//                    String[] drivers = StringUtils.arraySplit(driverList, ',', false);
+//                    String[] drivers = 
+//                        StringUtils.arraySplit(driverList, ',', false);
 //                    URL[] urls = new URL[drivers.length];
 //                    for(int i=0; i<drivers.length; i++) {
 //                        urls[i] = new URL(drivers[i]);
@@ -494,7 +494,8 @@ public class WebServer implements Service {
             return org.h2.Driver.load().connect(url, p);
         }
 //            try {
-//                Driver dr = (Driver) urlClassLoader.loadClass(driver).newInstance();
+//                Driver dr = (Driver) urlClassLoader.
+//                        loadClass(driver).newInstance();
 //                return dr.connect(url, p);
 //            } catch(ClassNotFoundException e2) {
 //                throw e2;

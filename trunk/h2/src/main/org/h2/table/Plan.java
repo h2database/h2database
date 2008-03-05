@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -13,7 +14,8 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.util.ObjectArray;
 
 /**
- * A possible query execution plan. The time required to execute a query depends on the order the tables are accessed.
+ * A possible query execution plan. The time required to execute a query depends
+ * on the order the tables are accessed.
  */
 public class Plan {
     private final TableFilter[] filters;

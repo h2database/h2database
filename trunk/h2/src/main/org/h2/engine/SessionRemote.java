@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -23,6 +24,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
@@ -389,11 +391,16 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public void cancel() {
-        // TODO open another remote connection and cancel this session using a unique id (like PostgreSQL)
+        // TODO open another remote connection and cancel this session 
+        // using a unique id (like PostgreSQL)
     }
 
     public boolean getLobFilesInDirectories() {
         return false;
+    }
+
+    public SmallLRUCache getLobFileListCache() {
+        return null;
     }
 
 }

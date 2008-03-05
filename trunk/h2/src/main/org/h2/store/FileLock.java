@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
@@ -28,8 +29,9 @@ import org.h2.util.RandomUtils;
 import org.h2.util.SortedProperties;
 
 /**
- * The file lock is used to lock a database so that only one process can write to it.
- * Usually a .lock.db file is used, but locking by creating a socket is supported as well.
+ * The file lock is used to lock a database so that only one process can write
+ * to it. Usually a .lock.db file is used, but locking by creating a socket is
+ * supported as well.
  */
 public class FileLock {
 
@@ -216,7 +218,8 @@ public class FileLock {
         method = SOCKET;
         properties = new SortedProperties();
         try {
-            // TODO documentation: if this returns 127.0.0.1, the computer is probably not networked
+            // TODO documentation: if this returns 127.0.0.1, 
+            // the computer is probably not networked
             ipAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             throw getException(e);

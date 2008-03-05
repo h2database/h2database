@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -16,8 +17,9 @@ import org.h2.table.Column;
 import org.h2.value.Value;
 
 /**
- * A index condition object is made for each condition that can potentially use an index.
- * This class does not extend expression, but in general there is one expression that maps to each index condition.
+ * A index condition object is made for each condition that can potentially use
+ * an index. This class does not extend expression, but in general there is one
+ * expression that maps to each index condition.
  */
 public class IndexCondition {
     public static final int EQUALITY = 1, START = 2, END = 4, RANGE = START | END, ALWAYS_FALSE = 8;

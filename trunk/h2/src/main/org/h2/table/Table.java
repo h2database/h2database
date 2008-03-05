@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -341,7 +342,8 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         database.removeMeta(session, getId());
-        // must delete sequences later (in case there is a power failure before removing the table object)
+        // must delete sequences later (in case there is a power failure 
+        // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
             Sequence sequence = (Sequence) sequences.get(0);
             sequences.remove(0);
@@ -542,7 +544,8 @@ public abstract class Table extends SchemaObjectBase {
         // self constraints are two entries in the list
 //        if(Database.CHECK) {
 //            if(list.indexOf(obj) >= 0) {
-//                throw Message.internal("object already in list: " + obj.getName());
+//                throw Message.internal(
+//                    "object already in list: " + obj.getName());
 //            }
 //        }
         list.add(obj);
@@ -550,7 +553,8 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public void fireBefore(Session session) throws SQLException {
-        // TODO trigger: for sql server compatibility, should send list of rows, not just 'the event'
+        // TODO trigger: for sql server compatibility, 
+        // should send list of rows, not just 'the event'
         fire(session, true);
     }
 
@@ -639,7 +643,8 @@ public abstract class Table extends SchemaObjectBase {
             if (index.canGetFirstOrLast()) {
                 IndexColumn idxCol = index.getIndexColumns()[0];
                 if ((idxCol.sortType & SortOrder.DESCENDING) != 0 && (idxCol.sortType & SortOrder.NULLS_FIRST) == 0) {
-                    // for descending sorted columns, if the NULLs are at the end, it does not work for some index types
+                    // for descending sorted columns, if the NULLs 
+                    // are at the end, it does not work for some index types
                     continue;
                 }
                 int idx = index.getColumnIndex(column);
@@ -672,9 +677,9 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * If the index is still required by a constraint, transfer the ownership to it.
-     * Otherwise, the index is removed.
-     *
+     * If the index is still required by a constraint, transfer the ownership to
+     * it. Otherwise, the index is removed.
+     * 
      * @param session the session
      * @param index the index that is no longer required
      */

@@ -384,6 +384,9 @@ function showList(s) {
 }
 
 function retrieveList(s) {
+    if (s.length > 2000) {
+        s = s.substring(s.length - 2000);
+    }
     sendAsyncRequest('autoCompleteList.do?jsessionid=${sessionId}&query=' + encodeURIComponent(s));
 }
 

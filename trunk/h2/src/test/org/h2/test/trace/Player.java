@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  */
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -50,12 +51,14 @@ public class Player {
     private HashMap objects = new HashMap();
 
     /**
-     * Execute a trace file using the command line. The log file name to execute (replayed) must be specified
-     * as the last parameter. The following optional command line parameters are supported:
+     * Execute a trace file using the command line. The log file name to execute
+     * (replayed) must be specified as the last parameter. The following
+     * optional command line parameters are supported:
      * <ul>
-     * <li><code>-log</code> to enable logging the executed statement to System.out
+     * <li><code>-log</code> to enable logging the executed statement to
+     * System.out
      * </ul>
-     *
+     * 
      * @param args the arguments of the application
      */
     public static void main(String[] args) throws Exception {
@@ -64,10 +67,11 @@ public class Player {
 
     /**
      * Execute a trace file.
-     *
+     * 
      * @param fileName
      * @param log print debug information
-     * @param checkResult if the result of each method should be compared against the result in the file
+     * @param checkResult if the result of each method should be compared
+     *            against the result in the file
      */
     public static void execute(String fileName, boolean log, boolean checkResult) throws IOException {
         new Player().runFile(fileName, log);

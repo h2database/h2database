@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
@@ -38,21 +39,21 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 
 /**
- * This class represents a file that is usually written to disk.
- * The two main files are .data.db and .index.db.
- * For each such file, a number of {@link Storage} objects exists.
- * The disk file is responsible for caching; each object contains a {@link Cache} object.
- * Changes in the file are logged in a {@link LogSystem} object.
- * Reading and writing to the file is delegated to the {@link FileStore} class.
+ * This class represents a file that is usually written to disk. The two main
+ * files are .data.db and .index.db. For each such file, a number of
+ * {@link Storage} objects exists. The disk file is responsible for caching;
+ * each object contains a {@link Cache} object. Changes in the file are logged
+ * in a {@link LogSystem} object. Reading and writing to the file is delegated
+ * to the {@link FileStore} class.
  * <p>
- * There are 'blocks' of 128 bytes (DiskFile.BLOCK_SIZE). Each objects own one or more pages;
- * each page size is 64 blocks (DiskFile.BLOCKS_PER_PAGE). That is 8 KB page size.
- * However pages are not read or written as one unit; only individual objects (multiple blocks at a time)
- * are read or written.
+ * There are 'blocks' of 128 bytes (DiskFile.BLOCK_SIZE). Each objects own one
+ * or more pages; each page size is 64 blocks (DiskFile.BLOCKS_PER_PAGE). That
+ * is 8 KB page size. However pages are not read or written as one unit; only
+ * individual objects (multiple blocks at a time) are read or written.
  * <p>
- * Currently there are no in-place updates. Each row occupies one or multiple blocks.
- * Row can occupy multiple pages. Rows are always contiguous (except LOBs, they are
- * stored in their own files).
+ * Currently there are no in-place updates. Each row occupies one or multiple
+ * blocks. Row can occupy multiple pages. Rows are always contiguous (except
+ * LOBs, they are stored in their own files).
  */
 public class DiskFile implements CacheWriter {
 
@@ -70,7 +71,8 @@ public class DiskFile implements CacheWriter {
     public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
     public static final int OFFSET = FileStore.HEADER_LENGTH;
     static final int FREE_PAGE = -1;
-    // TODO storage: header should probably be 4 KB or so (to match block size of operating system)
+    // TODO storage: header should probably be 4 KB or so 
+    // (to match block size of operating system)
     private Database database;
     private String fileName;
     private FileStore file;
@@ -410,7 +412,8 @@ public class DiskFile implements CacheWriter {
 //                if (writeRecord == null && writeIndex < list.size()) {
 //                    writeRecord = (Record) list.get(writeIndex++);
 //                }
-//                if (writeRecord != null && (deletePos < 0 || writeRecord.getPos() < deletePos)) {
+//                if (writeRecord != null && 
+//                       (deletePos < 0 || writeRecord.getPos() < deletePos)) {
 //                    writeBack(writeRecord);
 //                    writeRecord = null;
 //                } else if (deletePos < fileBlockCount && deletePos >= 0) {

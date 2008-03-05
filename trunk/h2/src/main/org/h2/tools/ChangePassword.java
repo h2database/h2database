@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -16,7 +17,8 @@ import org.h2.store.FileStore;
 import org.h2.util.FileUtils;
 
 /**
- * A tools to change, remove or set a file password of a database without opening it.
+ * A tools to change, remove or set a file password of a database without
+ * opening it.
  */
 public class ChangePassword {
 
@@ -122,7 +124,8 @@ public class ChangePassword {
         change.decrypt = getFileEncryptionKey(decryptPassword);
         change.encrypt = getFileEncryptionKey(encryptPassword);
 
-        // first, test only if the file can be renamed (to find errors with locked files early)
+        // first, test only if the file can be renamed 
+        // (to find errors with locked files early)
         ArrayList files = FileLister.getDatabaseFiles(dir, db, false);
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);
@@ -132,7 +135,8 @@ public class ChangePassword {
             FileUtils.rename(temp, fileName);
         }
         // if this worked, the operation will (hopefully) be successful
-        // TODO changePassword: this is a workaround! make the operation atomic (all files or none)
+        // TODO changePassword: this is a workaround! 
+        // make the operation atomic (all files or none)
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);
             change.process(fileName);

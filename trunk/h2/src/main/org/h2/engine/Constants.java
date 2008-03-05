@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -29,13 +30,13 @@ package org.h2.engine;
  *     build.html
  *     mainWeb.html
  *     download.html
- * - Maybe increase TCP_DRIVER_VERSION (but clients must be backwards compatible!)
+ * - Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
  * - Check code coverage
  * - No "  Message.get" (must be "throw Message.get")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
  *
- * - Change version(s) in performance.html; use latest versions of other databases
+ * - Change version(s) in performance.html; use latest versions of other dbs
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
  *
@@ -62,10 +63,11 @@ package org.h2.engine;
  * - Scan for viruses
  * - ant mavenDeployCentral
  * - Upload to SourceForge
- * - svn copy: .../svn/trunk .../svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
+ * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
+ * - http://en.wikipedia.org/wiki/H2_%28DBMS%29 (change version)
  */
 /**
  * Constants are fixed values that are used in the whole database code.
@@ -91,8 +93,12 @@ public class Constants {
 
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs
     public static final String START_URL = "jdbc:h2:";
-    public static final String URL_FORMAT = START_URL + "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
-    public static final String PRODUCT_NAME = "H2"; // must stay like that (http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682)
+    public static final String URL_FORMAT = START_URL + 
+        "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
+    
+    // must stay like that, see
+    // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682
+    public static final String PRODUCT_NAME = "H2"; 
     public static final String DRIVER_NAME = "H2 JDBC Driver";
     public static final int IO_BUFFER_SIZE = 4 * 1024;
     public static final int IO_BUFFER_SIZE_COMPRESS = 128 * 1024;
@@ -151,8 +157,9 @@ public class Constants {
     public static final int SELECTIVITY_ANALYZE_SAMPLE_ROWS = 10000;
     public static final boolean CONVERT_TO_LONG_ROUND = true;
 
-    // the cost is calculated on rowcount + this offset, to avoid using the wrong or no index
-    // if the table contains no rows _currently_ (when preparing the statement)
+    // the cost is calculated on rowcount + this offset, 
+    // to avoid using the wrong or no index if the table 
+    // contains no rows _currently_ (when preparing the statement)
     public static final int COST_ROW_OFFSET = 1000;
     public static final long FLUSH_INDEX_DELAY = 0;
     public static final int THROTTLE_DELAY = 50;

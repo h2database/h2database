@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
@@ -114,8 +115,10 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO NULL: see wikipedia, http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
-        // TODO test if all optimizations are switched off against all on (including performance)
+        // TODO NULL: see wikipedia, 
+        // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
+        // TODO test if all optimizations are switched off against all on 
+        // (including performance)
         left = left.optimize(session);
         right = right.optimize(session);
         int lc = left.getCost(), rc = right.getCost();
@@ -124,8 +127,10 @@ public class ConditionAndOr extends Condition {
             left = right;
             right = t;
         }
-        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to (A=1 AND (B=2 OR B=3))
-        // this optimization does not work in the following case, but NOT is optimized before:
+        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to 
+        // (A=1 AND (B=2 OR B=3))
+        // this optimization does not work in the following case, 
+        // but NOT is optimized before:
         // CREATE TABLE TEST(A INT, B INT);
         // INSERT INTO TEST VALUES(1, NULL);
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
@@ -233,6 +238,10 @@ public class ConditionAndOr extends Condition {
             }
         }
         return this;
+    }
+
+    public Expression getExpression(boolean left) {
+        return left ? this.left : right;
     }
 
 }

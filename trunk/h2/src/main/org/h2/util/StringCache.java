@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -27,7 +28,8 @@ public class StringCache {
 //        } else if (s.length() == 0) {
 //            return "";
 //        }
-//        if (!Constants.USE_OBJECT_CACHE || !ENABLED || s.length() > MAX_CACHE_SIZE / 10) {
+//        if (!Constants.USE_OBJECT_CACHE 
+//                || !ENABLED || s.length() > MAX_CACHE_SIZE / 10) {
 //            return s;
 //        }
 //        int hash = s.hashCode();
@@ -100,7 +102,8 @@ public class StringCache {
                 return cached;
             }
         }
-        // create a new object that is not shared (to avoid out of memory if it is a substring of a big String)
+        // create a new object that is not shared 
+        // (to avoid out of memory if it is a substring of a big String)
         s = new String(s); // NOPMD
         cache[index] = s;
         return s;

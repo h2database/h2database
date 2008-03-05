@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -74,43 +75,51 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-baseDir", "/temp/data",...
-     * By default, -tcp, -web, -browser and -pg are started.
-     * If there is a problem starting a service, the program terminates with an exit code of 1.
-     * Options are case sensitive.
-     * The following options are supported:
+     * The command line interface for this tool. The options must be split into
+     * strings like this: "-baseDir", "/temp/data",... By default, -tcp, -web,
+     * -browser and -pg are started. If there is a problem starting a service,
+     * the program terminates with an exit code of 1. Options are case
+     * sensitive. The following options are supported:
      * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-web (start the Web Server and H2 Console)
-     * </li><li>-tcp (start the TCP Server)
-     * </li><li>-tcpShutdown {url} (shutdown the running TCP Server, URL example: tcp://localhost:9094)
-     * </li><li>-pg (start the PG Server)
-     * </li><li>-browser (start a browser and open a page to connect to the Web Server)
-     * </li><li>-log {true|false} (enable or disable logging, for all servers)
-     * </li><li>-baseDir {directory} (sets the base directory for H2 databases, for all servers)
-     * </li><li>-ifExists {true|false} (only existing databases may be opened, for all servers)
-     * </li><li>-ftp (start the FTP Server)
-     * </li></ul>
+     * <li>-help or -? (print the list of options) </li>
+     * <li>-web (start the Web Server and H2 Console) </li>
+     * <li>-tcp (start the TCP Server) </li>
+     * <li>-tcpShutdown {url} (shutdown the running TCP Server, 
+     *     URL example: tcp://localhost:9094) </li>
+     * <li>-pg (start the PG Server) </li>
+     * <li>-browser (start a browser and open a page to connect to the 
+     *     Web Server) </li>
+     * <li>-log {true|false} (enable or disable logging, for all servers) </li>
+     * <li>-baseDir {directory} (sets the base directory for H2 databases, 
+     *     for all servers) </li>
+     * <li>-ifExists {true|false} (only existing databases may be opened, 
+     *     for all servers) </li>
+     * <li>-ftp (start the FTP Server) </li>
+     * </ul>
      * For each Server, additional options are available:
      * <ul>
-     * <li>-webPort {port} (the port of Web Server, default: 8082)
-     * </li><li>-webSSL {true|false} (if SSL should be used)
-     * </li><li>-webAllowOthers {true|false} (enable/disable remote connections)
-     * </li><li>-tcpPort {port} (the port of TCP Server, default: 9092)
-     * </li><li>-tcpSSL {true|false} (if SSL should be used)
-     * </li><li>-tcpAllowOthers {true|false} (enable/disable remote connections)
-     * </li><li>-tcpPassword {password} (the password for shutting down a TCP Server)
-     * </li><li>-tcpShutdownForce {true|false} (don't wait for other connections to close)
-     * </li><li>-pgPort {port} (the port of PG Server, default: 5435)
-     * </li><li>-pgAllowOthers {true|false} (enable/disable remote connections)
-     * </li><li>-ftpPort {port}
-     * </li><li>-ftpDir {directory}
-     * </li><li>-ftpRead  {readUserName}
-     * </li><li>-ftpWrite {writeUserName}
-     * </li><li>-ftpWritePassword {password}
-     * </li></ul>
-     *
+     * <li>-webPort {port} (the port of Web Server, default: 8082) </li>
+     * <li>-webSSL {true|false} (if SSL should be used) </li>
+     * <li>-webAllowOthers {true|false} (enable/disable remote connections)
+     * </li>
+     * <li>-tcpPort {port} (the port of TCP Server, default: 9092) </li>
+     * <li>-tcpSSL {true|false} (if SSL should be used) </li>
+     * <li>-tcpAllowOthers {true|false} (enable/disable remote connections)
+     * </li>
+     * <li>-tcpPassword {password} (the password for shutting down a TCP
+     * Server) </li>
+     * <li>-tcpShutdownForce {true|false} (don't wait for other connections to
+     * close) </li>
+     * <li>-pgPort {port} (the port of PG Server, default: 5435) </li>
+     * <li>-pgAllowOthers {true|false} (enable/disable remote connections)
+     * </li>
+     * <li>-ftpPort {port} </li>
+     * <li>-ftpDir {directory} </li>
+     * <li>-ftpRead {readUserName} </li>
+     * <li>-ftpWrite {writeUserName} </li>
+     * <li>-ftpWritePassword {password} </li>
+     * </ul>
+     * 
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -289,14 +298,17 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Shutdown a TCP server. If force is set to false, the server will not allow new connections,
-     * but not kill existing connections, instead it will stop if the last connection is closed.
-     * If force is set to true, existing connections are killed.
-     * After calling the method with force=false, it is not possible to call it again with
-     * force=true because new connections are not allowed.
-     * Example:
-     * <pre>Server.shutdownTcpServer("tcp://localhost:9094", password, true);</pre>
-     *
+     * Shutdown a TCP server. If force is set to false, the server will not
+     * allow new connections, but not kill existing connections, instead it will
+     * stop if the last connection is closed. If force is set to true, existing
+     * connections are killed. After calling the method with force=false, it is
+     * not possible to call it again with force=true because new connections are
+     * not allowed. Example:
+     * 
+     * <pre>
+     * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;, password, true);
+     * </pre>
+     * 
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
@@ -328,10 +340,13 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Create a new web server, but does not start it yet.
-     * Example:
-     * <pre>Server server = Server.createWebServer(new String[]{"-log", "true"}).start();</pre>
-     *
+     * Create a new web server, but does not start it yet. Example:
+     * 
+     * <pre>
+     * Server server = Server.createWebServer(
+     *     new String[] { &quot;-log&quot;, &quot;true&quot; }).start();
+     * </pre>
+     * 
      * @param args
      * @return the server
      */
@@ -343,10 +358,13 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Create a new ftp server, but does not start it yet.
-     * Example:
-     * <pre>Server server = Server.createFtpServer(new String[]{"-log", "true"}).start();</pre>
-     *
+     * Create a new ftp server, but does not start it yet. Example:
+     * 
+     * <pre>
+     * Server server = Server.createFtpServer(
+     *     new String[] { &quot;-log&quot;, &quot;true&quot; }).start();
+     * </pre>
+     * 
      * @param args
      * @return the server
      */
@@ -355,10 +373,13 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Create a new TCP server, but does not start it yet.
-     * Example:
-     * <pre>Server server = Server.createTcpServer(new String[]{"-tcpAllowOthers", "true"}).start();</pre>
-     *
+     * Create a new TCP server, but does not start it yet. Example:
+     * 
+     * <pre>
+     * Server server = Server.createTcpServer(
+     *     new String[] { &quot;-tcpAllowOthers&quot;, &quot;true&quot; }).start();
+     * </pre>
+     * 
      * @param args
      * @return the server
      */
@@ -369,7 +390,11 @@ public class Server implements Runnable, ShutdownHandler {
     /**
      * Create a new PG server, but does not start it yet.
      * Example:
-     * <pre>Server server = Server.createPgServer(new String[]{"-pgAllowOthers", "true"}).start();</pre>
+     * <pre>
+     * Server server = 
+     *     Server.createPgServer(new String[]{
+     *         "-pgAllowOthers", "true"}).start();
+     * </pre>
      *
      * @param args
      * @return the server

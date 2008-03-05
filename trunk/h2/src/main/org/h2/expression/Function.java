@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
@@ -1134,11 +1135,13 @@ public class Function extends Expression implements FunctionCall {
         return value;
     }
 
-//     private static long datediffRound(String part, Date d1, Date d2) throws SQLException {
+//     private static long datediffRound(String part, Date d1, Date d2) 
+//                throws SQLException {
 //        // diff (yy, 31.12.2004, 1.1.2005) = 0
 //        Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
 //        if (p == null) {
-//            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "part", part }, null);
+//            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, 
+//                new String[] { "part", part }, null);
 //        }
 //        int field = p.intValue();
 //        long t1 = d1.getTime(), t2 = d2.getTime();

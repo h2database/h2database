@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.log;
@@ -22,8 +23,9 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 
 /**
- * The transaction log system is responsible for the write ahead log mechanism used in this database.
- * A number of {@link LogFile} objects are used (one for each file).
+ * The transaction log system is responsible for the write ahead log mechanism
+ * used in this database. A number of {@link LogFile} objects are used (one for
+ * each file).
  */
 public class LogSystem {
 
@@ -37,7 +39,8 @@ public class LogSystem {
     private HashMap sessions = new HashMap();
     private DataPage rowBuff;
     private ObjectArray undo;
-    // TODO log file / deleteOldLogFilesAutomatically: make this a setting, so they can be backed up
+    // TODO log file / deleteOldLogFilesAutomatically: 
+    // make this a setting, so they can be backed up
     private boolean deleteOldLogFilesAutomatically = true;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private boolean readOnly;
@@ -80,7 +83,8 @@ public class LogSystem {
         }
         file.flush();
         if (containsInDoubtTransactions()) {
-            // if there are any in-doubt transactions (even if they are resolved), can't update or delete the log files
+            // if there are any in-doubt transactions 
+            // (even if they are resolved), can't update or delete the log files
             return;
         }
         Session[] sessions = database.getSessions();
@@ -150,7 +154,8 @@ public class LogSystem {
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile l = (LogFile) activeLogs.get(i);
                 try {
-                    // if there are any in-doubt transactions (even if they are resolved), can't delete the log files
+                    // if there are any in-doubt transactions 
+                    // (even if they are resolved), can't delete the log files
                     if (l.getFirstUncommittedPos() == LOG_WRITTEN && !containsInDoubtTransactions()) {
                         closeOldFile(l);
                     } else {
@@ -236,7 +241,8 @@ public class LogSystem {
                 l = LogFile.openIfLogFile(this, fileNamePrefix, s);
             } catch (SQLException e) {
                 database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
-                // this can happen if the system crashes just after creating a new file (before writing the header)
+                // this can happen if the system crashes just 
+                // after creating a new file (before writing the header)
                 // rename it, so that it doesn't get in the way the next time
                 FileUtils.delete(s + ".corrupt");
                 FileUtils.rename(s, s + ".corrupt");
@@ -308,7 +314,8 @@ public class LogSystem {
 
     void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
         SessionState state = getOrAddSessionState(sessionId);
-        // this is potentially a commit, so don't roll back the action before it (currently)
+        // this is potentially a commit, so 
+        // don't roll back the action before it (currently)
         setLastCommitForSession(sessionId, log.getId(), pos);
         state.inDoubtTransaction = new InDoubtTransaction(log, sessionId, pos, transaction, blocks);
     }

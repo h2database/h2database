@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -46,7 +47,8 @@ public class ValueLong extends Value {
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
             int sr = result == 0 ? 0 : (result < 0 ? -1 : 1);
             // if the operands have different signs overflow can not occur
-            // if the operands have the same sign, and the result has a different sign, then it is an overflow
+            // if the operands have the same sign, 
+            // and the result has a different sign, then it is an overflow
             // it can not be an overflow when one of the operands is 0
             if (sv != so || sr == so || sv == 0 || so == 0) {
                 return ValueLong.get(result);

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.tools.i18n;
@@ -138,7 +139,8 @@ public class PrepareTranslation {
             for (int j = 0; j < fileNames.size(); j++) {
                 String n = (String) fileNames.get(j);
                 if ("frame".equals(n)) {
-                    // don't translate 'frame.html' to 'frame_ja.html', otherwise we can't switch back to English
+                    // don't translate 'frame.html' to 'frame_ja.html', 
+                    // otherwise we can't switch back to English
                     continue;
                 }
                 html = StringUtils.replaceAll(html, n + ".html\"", n + "_" + language + ".html\"");
@@ -587,8 +589,9 @@ public class PrepareTranslation {
      */
     String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
         Thread.sleep(4000);
-        String url = "http://translate.google.com/translate_t?langpair=" + sourceLanguage + "|" + targetLanguage + "&text="
-                + URLEncoder.encode(text, "UTF-8");
+        String url = "http://translate.google.com/translate_t?langpair=" + 
+                sourceLanguage + "|" + targetLanguage + 
+                "&text=" + URLEncoder.encode(text, "UTF-8");
         HttpURLConnection conn = (HttpURLConnection) (new URL(url)).openConnection();
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; Java)");
         String result = IOUtils.readStringAndClose(IOUtils.getReader(conn.getInputStream()), -1);

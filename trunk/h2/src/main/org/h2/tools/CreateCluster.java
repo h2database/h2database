@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -13,8 +14,8 @@ import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 
 /**
- * Tool to create a database cluster.
- * This will copy a database to another location if required, and modify the cluster setting.
+ * Tool to create a database cluster. This will copy a database to another
+ * location if required, and modify the cluster setting.
  */
 public class CreateCluster {
 
@@ -25,15 +26,17 @@ public class CreateCluster {
     }
 
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-urlSource", "jdbc:h2:test",...
-     * Options are case sensitive. The following options are supported:
+     * The command line interface for this tool. The options must be split into
+     * strings like this: "-urlSource", "jdbc:h2:test",... Options are case
+     * sensitive. The following options are supported:
      * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-urlSource jdbc:h2:... (the database URL of the source database)
-     * </li><li>-urlTarget jdbc:h2:... (the database URL of the target database)
-     * </li></ul>
-     *
+     * <li>-help or -? (print the list of options) </li>
+     * <li>-urlSource jdbc:h2:... (the database URL of the source database)
+     * </li>
+     * <li>-urlTarget jdbc:h2:... (the database URL of the target database)
+     * </li>
+     * </ul>
+     * 
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -102,8 +105,10 @@ public class CreateCluster {
                 throw new SQLException("Target database must not yet exist. Please delete it first");
             }
 
-            // TODO cluster: need to open the database in exclusive mode, so that other applications
-            // cannot change the data while it is restoring the second database. But there is currently no exclusive mode.
+            // TODO cluster: need to open the database in exclusive mode, 
+            // so that other applications
+            // cannot change the data while it is restoring the second database. 
+            // But there is currently no exclusive mode.
 
             String scriptFile = "backup.sql";
             Script.execute(urlSource, user, password, scriptFile);

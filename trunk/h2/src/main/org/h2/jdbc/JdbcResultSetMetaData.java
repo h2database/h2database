@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -244,11 +245,12 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     }
 
     /**
-     * Checks if this is nullable column.
-     * Returns ResultSetMetaData.columnNullableUnknown if this is not a column of a table.
-     * Otherwise, it returns ResultSetMetaData.columnNoNulls if the column is not nullable, and
-     * ResultSetMetaData.columnNullable if it is nullable.
-     *
+     * Checks if this is nullable column. Returns
+     * ResultSetMetaData.columnNullableUnknown if this is not a column of a
+     * table. Otherwise, it returns ResultSetMetaData.columnNoNulls if the
+     * column is not nullable, and ResultSetMetaData.columnNullable if it is
+     * nullable.
+     * 
      * @param column the column index (1,2,...)
      * @return ResultSetMetaData.column*
      * @throws SQLException if the result set is closed or invalid

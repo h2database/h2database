@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
@@ -99,9 +100,12 @@ public class Update extends Prepared {
                     count++;
                 }
             }
-            // TODO self referencing referential integrity constraints don't work if update is multi-row and 'inversed' the condition!
-            // probably need multi-row triggers with 'deleted' and 'inserted' at the same time. anyway good for sql compatibility
-            // TODO update in-place (but if the position changes, we need to update all indexes) before row triggers
+            // TODO self referencing referential integrity constraints 
+            // don't work if update is multi-row and 'inversed' the condition!
+            // probably need multi-row triggers with 'deleted' and 'inserted' 
+            // at the same time. anyway good for sql compatibility
+            // TODO update in-place (but if the position changes, 
+            // we need to update all indexes) before row triggers
 
             // the cached row is already updated - we need the old values
             table.updateRows(this, session, rows);

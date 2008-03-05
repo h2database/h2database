@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
@@ -9,7 +10,8 @@ import org.h2.engine.Session;
 import org.h2.result.LocalResult;
 
 /**
- * This class represents a non-transaction statement, for example a CREATE or DROP.
+ * This class represents a non-transaction statement, for example a CREATE or
+ * DROP.
  */
 public abstract class DefineCommand extends Prepared {
 

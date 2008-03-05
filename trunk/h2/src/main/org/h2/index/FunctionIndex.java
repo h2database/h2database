@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -16,8 +17,8 @@ import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 
 /**
- * An index for a function that returns a result set.
- * This index can only scan through all rows, search is not supported.
+ * An index for a function that returns a result set. This index can only scan
+ * through all rows, search is not supported.
  */
 public class FunctionIndex extends BaseIndex {
 
@@ -41,7 +42,8 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        // TODO sometimes result.reset() would be enough (but not when parameters are used)
+        // TODO sometimes result.reset() would be enough (but not when
+        // parameters are used)
         result = functionTable.getResult(session);
         return new FunctionCursor(result);
     }

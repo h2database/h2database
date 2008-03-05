@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -578,9 +579,10 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Override the end-of-row marker for writing. The default is null.
-     * After writing the end-of-row marker, a line feed is written (\n or \r\n depending on the system settings).
-     *
+     * Override the end-of-row marker for writing. The default is null. After
+     * writing the end-of-row marker, a line feed is written (\n or \r\n
+     * depending on the system settings).
+     * 
      * @param rowSeparatorWrite the row separator
      */
     public void setRowSeparatorWrite(String rowSeparatorWrite) {
@@ -608,9 +610,9 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Set the escape character (used to escape the field delimiter). The default is " (a double quote).
-     * 0 means no escape character is used.
-     *
+     * Set the escape character (used to escape the field delimiter). The
+     * default is " (a double quote). 0 means no escape character is used.
+     * 
      * @param escapeCharacter the escape character
      */
     public void setEscapeCharacter(char escapeCharacter) {

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -20,9 +21,12 @@ import org.h2.value.Value;
  * An abstract b-tree page.
  */
 public abstract class BtreePage extends Record {
-    // TODO btree: make sure the indexed data is at most half this size! (and find a solution to work around this problem!)
-    // TODO memory: the btree page needs a lot of memory (in the cache) - probably better not use ObjectArray but array;
-    // not Row but ValueList / Value (for single key index), int array for row pos
+    // TODO btree: make sure the indexed data is at most half this size!
+    // (and find a solution to work around this problem!)
+    // TODO memory: the btree page needs a lot of memory (in the cache) -
+    // probably better not use ObjectArray but array;
+    // not Row but ValueList / Value (for single key index), int array for row
+    // pos
 
     protected static final int BLOCKS_PER_PAGE = 1024 / DiskFile.BLOCK_SIZE;
 
@@ -41,10 +45,11 @@ public abstract class BtreePage extends Record {
 
     /**
      * Remove a row from the page.
-     *
+     * 
      * @param session the session
      * @param row the row
-     * @return the new first row in the list; null if no change; the deleted row if not empty
+     * @return the new first row in the list; null if no change; the deleted row
+     *         if not empty
      */
     abstract SearchRow remove(Session session, Row row) throws SQLException;
 

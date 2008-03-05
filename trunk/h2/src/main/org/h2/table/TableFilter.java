@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -25,9 +26,9 @@ import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
- * A table filter represents a table that is used in a query. There is one such object whenever a table
- * (or view) is used in a query. For example the following query has 2 table filters:
- * SELECT * FROM TEST T1, TEST T2.
+ * A table filter represents a table that is used in a query. There is one such
+ * object whenever a table (or view) is used in a query. For example the
+ * following query has 2 table filters: SELECT * FROM TEST T1, TEST T2.
  */
 public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
@@ -44,7 +45,8 @@ public class TableFilter implements ColumnResolver {
     // conditions that can be used for direct index lookup (start or end)
     private final ObjectArray indexConditions = new ObjectArray();
 
-    // conditions that can't be used for index lookup, but for row filter for this table (ID=ID, NAME LIKE '%X%')
+    // conditions that can't be used for index lookup, 
+    // but for row filter for this table (ID=ID, NAME LIKE '%X%')
     private Expression filterCondition;
 
     // the complete join condition

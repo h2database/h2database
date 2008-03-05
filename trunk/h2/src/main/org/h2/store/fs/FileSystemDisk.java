@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store.fs;
@@ -28,7 +29,8 @@ import org.h2.util.StringUtils;
 public class FileSystemDisk extends FileSystem {
 
     private static final FileSystemDisk INSTANCE = new FileSystemDisk();
-    // TODO detection of 'case in sensitive filesystem' could maybe implemented using some other means
+    // TODO detection of 'case in sensitive filesystem' 
+    // could maybe implemented using some other means
     private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = (File.separatorChar == '\\');
 
     public static FileSystemDisk getInstance() {

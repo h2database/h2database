@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.mvcc;
@@ -52,19 +53,30 @@ public class TestMvcc1 extends TestBase {
         if (!config.mvcc) {
             return;
         }
-        // TODO Prio 1: make unit test work (remaining problem: optimization for select min/max)
-        // TODO Prio 1: document: exclusive table lock still used when altering tables, adding indexes, select ... for update; table level locks are checked
-        // TODO Prio 1: free up disk space (for deleted rows and old versions of updated rows) on commit
-        // TODO Prio 1: ScanIndex: never remove uncommitted data from cache (lost sessionId)
+        // TODO Prio 1: make unit test work (remaining problem: optimization for
+        //     select min/max)
+        // TODO Prio 1: document: exclusive table lock still used when altering
+        //     tables, adding indexes, select ... for update; table level locks are
+        //     checked
+        // TODO Prio 1: free up disk space (for deleted rows and old versions of
+        //     updated rows) on commit
+        // TODO Prio 1: ScanIndex: never remove uncommitted data from cache
+        //     (lost sessionId)
         // TODO Prio 1: Test with Hibernate
-        // TODO Prio 2: if MVCC is used, rows of transactions need to fit in memory
-        // TODO Prio 2: write the log only when committed; remove restriction at Record.canRemove
-        // TODO Prio 2: getRowCount: different row count for different indexes (MultiVersionIndex)
-        // TODO Prio 2: getRowCount: different row count for different sessions: TableLink (use different connections?)
+        // TODO Prio 2: if MVCC is used, rows of transactions need to fit in
+        //     memory
+        // TODO Prio 2: write the log only when committed; remove restriction at
+        //     Record.canRemove
+        // TODO Prio 2: getRowCount: different row count for different indexes
+        //     (MultiVersionIndex)
+        // TODO Prio 2: getRowCount: different row count for different sessions:
+        //     TableLink (use different connections?)
         // TODO Prio 2: getFirst / getLast in MultiVersionIndex
-        // TODO Prio 2: snapshot isolation (currently read-committed, not repeatable read)
+        // TODO Prio 2: snapshot isolation (currently read-committed, not
+        //     repeatable read)
 
-        // TODO test: one thread appends, the other selects new data (select * from test where id > ?) and deletes
+        // TODO test: one thread appends, the other 
+        //     selects new data (select * from test where id > ?) and deletes
 
         DeleteDbFiles.execute(null, "test", true);
         Class.forName("org.h2.Driver");
@@ -75,7 +87,8 @@ public class TestMvcc1 extends TestBase {
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
 
-        // it should not be possible to drop a table when an uncommitted transaction changed something
+        // it should not be possible to drop a table 
+        // when an uncommitted transaction changed something
         s1.execute("create table test(id int primary key)");
         s1.execute("insert into test values(1)");
         try {

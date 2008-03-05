@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.samples;
@@ -74,10 +75,10 @@ public class FunctionMultiReturn {
     }
 
     /**
-     * Convert polar coordinates to cartesian coordinates.
-     * The function may be called twice, once to retrieve the result columns (with null parameters),
+     * Convert polar coordinates to cartesian coordinates. The function may be
+     * called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
-     *
+     * 
      * @param r the distance from the point 0/0
      * @param alpha the angle
      * @return a result set with two columns: x and y
@@ -95,10 +96,10 @@ public class FunctionMultiReturn {
     }
 
     /**
-     * Convert polar coordinates to cartesian coordinates.
-     * The function may be called twice, once to retrieve the result columns (with null parameters),
+     * Convert polar coordinates to cartesian coordinates. The function may be
+     * called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
-     *
+     * 
      * @param r the distance from the point 0/0
      * @param alpha the angle
      * @return an array two values: x and y
@@ -110,10 +111,10 @@ public class FunctionMultiReturn {
     }
 
     /**
-     * Convert a set of polar coordinates to cartesian coordinates.
-     * The function may be called twice, once to retrieve the result columns (with null parameters),
-     * and the second time to return the data.
-     *
+     * Convert a set of polar coordinates to cartesian coordinates. The function
+     * may be called twice, once to retrieve the result columns (with null
+     * parameters), and the second time to return the data.
+     * 
      * @param conn the connection
      * @param query the query
      * @return a result set with the coordinates

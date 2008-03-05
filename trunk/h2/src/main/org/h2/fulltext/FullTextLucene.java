@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.fulltext;
@@ -30,6 +31,10 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
 import org.h2.api.Trigger;
+import org.h2.command.Parser;
+import org.h2.engine.Session;
+import org.h2.expression.ExpressionColumn;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
@@ -39,7 +44,7 @@ import org.h2.util.StringUtils;
 /**
  * This class implements the full text search based on Apache Lucene.
  */
-public class FullTextLucene
+public class FullTextLucene extends FullText
 //#ifdef JDK14
 implements Trigger
 //#endif
@@ -62,8 +67,9 @@ implements Trigger
 //#endif
 
     /**
-     * Create a new full text index for a table and column list. Each table may only have one index at any time.
-     *
+     * Create a new full text index for a table and column list. Each table may
+     * only have one index at any time.
+     * 
      * @param conn the connection
      * @param schema the schema name of the table
      * @param table the table name
@@ -118,22 +124,25 @@ implements Trigger
 //#endif
 
     /**
-     * Initializes full text search functionality for this database. This adds the following Java functions to the
-     * database:
+     * Initializes full text search functionality for this database. This adds
+     * the following Java functions to the database:
      * <ul>
-     * <li>FTL_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-     * </li><li>FTL_SEARCH(queryString, limitInt, offsetInt): result set
-     * </li><li>FTL_REINDEX()
-     * </li><li>FTL_DROP_ALL()
-     * </li></ul>
-     * It also adds a schema FTL to the database where bookkeeping information is stored. This function may be
-     * called from a Java application, or by using the SQL statements:
-     *
+     * <li>FTL_CREATE_INDEX(schemaNameString, tableNameString,
+     * columnListString) </li>
+     * <li>FTL_SEARCH(queryString, limitInt, offsetInt): result set </li>
+     * <li>FTL_REINDEX() </li>
+     * <li>FTL_DROP_ALL() </li>
+     * </ul>
+     * It also adds a schema FTL to the database where bookkeeping information
+     * is stored. This function may be called from a Java application, or by
+     * using the SQL statements:
+     * 
      * <pre>
-     *  CREATE ALIAS IF NOT EXISTS FTL_INIT FOR &quot;org.h2.fulltext.FullTextLucene.init&quot;;
+     *  CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 
+     *      &quot;org.h2.fulltext.FullTextLucene.init&quot;;
      *  CALL FTL_INIT();
      * </pre>
-     *
+     * 
      * @param conn
      */
 //#ifdef JDK14
@@ -143,6 +152,7 @@ implements Trigger
         stat.execute("CREATE TABLE IF NOT EXISTS "+SCHEMA+".INDEXES(SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, PRIMARY KEY(SCHEMA, TABLE))");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR \"" + FullTextLucene.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR \"" + FullTextLucene.class.getName() + ".search\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" + FullTextLucene.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
     }
@@ -219,8 +229,18 @@ implements Trigger
 //#endif
 
     /**
-     * Searches from the full text index for this database.
-     *
+     * Searches from the full text index for this database. The result contains
+     * the primary key data as an array. The returned result set has the
+     * following columns:
+     * <ul>
+     * <li>SCHEMA (varchar): The schema name. Example: PUBLIC </li>
+     * <li>TABLE (varchar): The table name. Example: TEST </li>
+     * <li>COLUMNS (array of varchar): Comma separated list of quoted column
+     * names. The column names are quoted if necessary. Example: (ID) </li>
+     * <li>KEYS (array of values): Comma separated list of values. Example: (1)
+     * </li>
+     * </ul>
+     * 
      * @param conn the connection
      * @param text the search query
      * @param limit the maximum number of rows or 0 for no limit
@@ -228,12 +248,35 @@ implements Trigger
      * @return the result set
      */
 //#ifdef JDK14
+    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
+        return search(conn, text, limit, offset, true);
+    }
+//#endif
+    
+    /**
+     * Searches from the full text index for this database.
+     * The returned result set has the following column:
+     * <ul><li>QUERY (varchar): The query to use to get the data.
+     * The query does not include 'SELECT * FROM '. Example:
+     * PUBLIC.TEST WHERE ID = 1
+     * </li></ul>
+     *
+     * @param conn the connection
+     * @param text the search query
+     * @param limit the maximum number of rows or 0 for no limit
+     * @param offset the offset or 0 for no offset
+     * @return the result set
+     */    
+//#ifdef JDK14
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn(FIELD_QUERY, Types.VARCHAR, 0, 0);
-        if (text == null) {
+        return search(conn, text, limit, offset, false);
+    }
+    
+    private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+        SimpleResultSet result = createResultSet(data);
+        if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
-            return rs;
+            return result;
         }
         String path = getIndexPath(conn);
         try {
@@ -252,14 +295,34 @@ implements Trigger
             for (int i = 0; i < limit && i + offset < max; i++) {
                 Document doc = hits.doc(i + offset);
                 String q = doc.get(FIELD_QUERY);
-                rs.addRow(new Object[] { q });
+                if (data) {
+                    int idx = q.indexOf(" WHERE ");
+                    JdbcConnection c = (JdbcConnection) conn;
+                    Session session = (Session) c.getSession();
+                    Parser p = new Parser(session);
+                    String tab = q.substring(0, idx);
+                    ExpressionColumn expr = (ExpressionColumn) p.parseExpression(tab);
+                    String schemaName = expr.getOriginalAliasName();
+                    String tableName = expr.getColumnName();
+                    q = q.substring(idx + " WHERE ".length());
+                    Object[][] columnData = parseKey(conn, q);
+                    Object[] row = new Object[] {  
+                        schemaName,
+                        tableName,
+                        columnData[0],
+                        columnData[1]
+                    };
+                    result.addRow(row);
+                } else {
+                    result.addRow(new Object[] { q });
+                }
             }
             // TODO keep it open if possible
             reader.close();
         } catch (Exception e) {
             throw convertException(e);
         }
-        return rs;
+        return result;
     }
 
     private static void removeAllTriggers(Connection conn) throws SQLException {

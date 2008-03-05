@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -63,30 +64,34 @@ public class ValueResultSet extends Value {
         return Integer.MAX_VALUE;
     }
 
-    public String getString() throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        buff.append("(");
-        result.beforeFirst();
-        ResultSetMetaData meta = result.getMetaData();
-        int columnCount = meta.getColumnCount();
-        for (int i = 0; result.next(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append('(');
-            for (int j = 0; j < columnCount; j++) {
-                if (j > 0) {
+    public String getString() {
+        try {
+            StringBuffer buff = new StringBuffer();
+            buff.append("(");
+            result.beforeFirst();
+            ResultSetMetaData meta = result.getMetaData();
+            int columnCount = meta.getColumnCount();
+            for (int i = 0; result.next(); i++) {
+                if (i > 0) {
                     buff.append(", ");
                 }
-                int t = DataType.convertSQLTypeToValueType(meta.getColumnType(j + 1));
-                Value v = DataType.readValue(null, result, j+1, t);
-                buff.append(v.getString());
+                buff.append('(');
+                for (int j = 0; j < columnCount; j++) {
+                    if (j > 0) {
+                        buff.append(", ");
+                    }
+                    int t = DataType.convertSQLTypeToValueType(meta.getColumnType(j + 1));
+                    Value v = DataType.readValue(null, result, j+1, t);
+                    buff.append(v.getString());
+                }
+                buff.append(')');
             }
-            buff.append(')');
+            buff.append(")");
+            result.beforeFirst();
+            return buff.toString();
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
         }
-        buff.append(")");
-        result.beforeFirst();
-        return buff.toString();
     }
 
     protected int compareSecure(Value v, CompareMode mode) throws SQLException {
@@ -101,7 +106,7 @@ public class ValueResultSet extends Value {
         return 0;
     }
 
-    public Object getObject() throws SQLException {
+    public Object getObject() {
         return result;
     }
 

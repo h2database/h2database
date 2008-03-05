@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -38,11 +39,13 @@ public abstract class DbObjectBase implements DbObject {
     private boolean temporary;
 
     /**
-     * Build a SQL statement to re-create the object, or to create a copy of the object
-     * with a different name or referencing a different table
-     *
-     * @param table the new table name
-     * @param quotedName the new quoted name
+     * Build a SQL statement to re-create the object, or to create a copy of the
+     * object with a different name or referencing a different table
+     * 
+     * @param table
+     *            the new table name
+     * @param quotedName
+     *            the new quoted name
      * @return the SQL statement
      */
     public abstract String getCreateSQLForCopy(Table table, String quotedName);
@@ -69,8 +72,9 @@ public abstract class DbObjectBase implements DbObject {
     public abstract int getType();
 
     /**
-     * Remove all dependent objects and free all resources (files, blocks in files) of this object.
-     *
+     * Remove all dependent objects and free all resources (files, blocks in
+     * files) of this object.
+     * 
      * @param session the session
      */
     public abstract void removeChildrenAndResources(Session session) throws SQLException;

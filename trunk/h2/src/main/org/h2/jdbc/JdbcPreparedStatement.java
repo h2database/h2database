@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -67,9 +68,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private ObjectArray batchParameters;
 
     /**
-     * Executes a query (select statement) and returns the result set. If another result set exists for this statement,
-     * this will be closed (even if this statement fails).
-     *
+     * Executes a query (select statement) and returns the result set. If
+     * another result set exists for this statement, this will be closed (even
+     * if this statement fails).
+     * 
      * @return the result set
      * @throws SQLException if this object is closed or invalid
      */
@@ -99,14 +101,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Executes a statement (insert, update, delete, create, drop, commit, rollback) and returns the update count. If
-     * another result set exists for this statement, this will be closed (even if this statement fails).
-     *
-     * If the statement is a create or drop and does not throw an exception, the current transaction (if any) is
-     * committed after executing the statement. If auto commit is on, this statement will be committed.
-     *
-     * @return the update count (number of row affected by an insert, update or delete, or 0 if no rows or the statement
-     *         was a create, drop, commit or rollback)
+     * Executes a statement (insert, update, delete, create, drop, commit,
+     * rollback) and returns the update count. If another result set exists for
+     * this statement, this will be closed (even if this statement fails).
+     * 
+     * If the statement is a create or drop and does not throw an exception, the
+     * current transaction (if any) is committed after executing the statement.
+     * If auto commit is on, this statement will be committed.
+     * 
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
      * @throws SQLException if this object is closed or invalid
      */
     public int executeUpdate() throws SQLException {
@@ -133,9 +138,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Executes an arbitrary statement. If another result set exists for this statement, this will be closed (even if
-     * this statement fails). If auto commit is on, and the statement is not a select, this statement will be committed.
-     *
+     * Executes an arbitrary statement. If another result set exists for this
+     * statement, this will be closed (even if this statement fails). If auto
+     * commit is on, and the statement is not a select, this statement will be
+     * committed.
+     * 
      * @return true if a result set is available, false if not
      * @throws SQLException if this object is closed or invalid
      */
@@ -402,9 +409,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the value of a parameter. The object is converted, if required, to the specified data type before sending to
-     * the database.
-     *
+     * Sets the value of a parameter. The object is converted, if required, to
+     * the specified data type before sending to the database.
+     * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed
      * @param targetSqlType the type as defined in java.sql.Types
@@ -428,9 +435,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the value of a parameter. The object is converted, if required, to the specified data type before sending to
-     * the database.
-     *
+     * Sets the value of a parameter. The object is converted, if required, to
+     * the specified data type before sending to the database.
+     * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed
      * @param targetSqlType the type as defined in java.sql.Types
@@ -571,8 +578,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the date using a specified timezone. The value will be converted to the local timezone.
-     *
+     * Sets the date using a specified timezone. The value will be converted to
+     * the local timezone.
+     * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -594,8 +602,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the time using a specified timezone. The value will be converted to the local timezone.
-     *
+     * Sets the time using a specified timezone. The value will be converted to
+     * the local timezone.
+     * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -617,8 +626,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the timestamp using a specified timezone. The value will be converted to the local timezone.
-     *
+     * Sets the timestamp using a specified timezone. The value will be
+     * converted to the local timezone.
+     * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -794,7 +804,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (debug()) {
                 debugCode("setBytes("+parameterIndex+", "+quoteBytes(x)+");");
             }
-            // TODO clone the byte array (each array! maybe other objects) by default (maybe use a setting?)
+            // TODO clone the byte array (each array! maybe other objects) 
+            // by default (maybe use a setting?)
             Value v = x == null ? (Value) ValueNull.INSTANCE : ValueBytes.get(x);
             setParameter(parameterIndex, v);
         } catch (Throwable e) {
@@ -949,9 +960,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Gets the result set metadata of the query returned when the statement is executed.
-     * If this is not a query, this method returns null.
-     *
+     * Gets the result set metadata of the query returned when the statement is
+     * executed. If this is not a query, this method returns null.
+     * 
      * @return the meta data or null if this is not a query
      * @throws SQLException if this object is closed
      */

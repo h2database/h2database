@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -206,9 +207,8 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateLong("L", Long.MAX_VALUE);
         rs.updateObject("O_I", new Integer(10));
         rs.updateShort("SH", Short.MIN_VALUE);
-        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0); // auml
-                                                                                    // ouml
-                                                                                    // uuml
+        // auml, ouml, uuml
+        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0); 
         rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }), 0);
         rs.insertRow();
 

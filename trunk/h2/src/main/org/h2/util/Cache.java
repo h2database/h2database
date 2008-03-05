@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -33,9 +34,9 @@ public interface Cache {
     CacheObject get(int pos);
 
     /**
-     * Add an element to the cache. Other items may fall out of the cache because of this.
-     * It is not allowed to add the same record twice.
-     *
+     * Add an element to the cache. Other items may fall out of the cache
+     * because of this. It is not allowed to add the same record twice.
+     * 
      * @param r the object
      */
     void put(CacheObject r) throws SQLException;

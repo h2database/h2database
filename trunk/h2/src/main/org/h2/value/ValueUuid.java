@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -15,8 +16,12 @@ import org.h2.util.StringUtils;
  * Implementation of the UUID data type.
  */
 public class ValueUuid extends Value {
-    public static final int PRECISION = 16; // number of bytes
-    public static final int DISPLAY_SIZE = 36; // cd38d882-7ada-4589-b5fb-7da0ca559d9a
+    // number of bytes
+    public static final int PRECISION = 16; 
+    
+    // cd38d882-7ada-4589-b5fb-7da0ca559d9a
+    public static final int DISPLAY_SIZE = 36; 
+    
     private final long high, low;
 
     private ValueUuid(long high, long low) {

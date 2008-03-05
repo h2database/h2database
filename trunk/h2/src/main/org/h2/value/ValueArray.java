@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -49,7 +50,7 @@ public class ValueArray extends Value {
         return 0;
     }
 
-    public String getString() throws SQLException {
+    public String getString() {
         StringBuffer buff = new StringBuffer();
         buff.append('(');
         for (int i = 0; i < values.length; i++) {
@@ -81,7 +82,7 @@ public class ValueArray extends Value {
         return l > ol ? 1 : l == ol ? 0 : -1;
     }
 
-    public Object getObject() throws SQLException {
+    public Object getObject() {
         Object[] list = new Object[values.length];
         for (int i = 0; i < values.length; i++) {
             list[i] = values[i].getObject();

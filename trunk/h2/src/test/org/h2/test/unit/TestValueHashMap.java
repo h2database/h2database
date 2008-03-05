@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -14,6 +15,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.ObjectArray;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -138,6 +140,10 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     public boolean getLobFilesInDirectories() {
         return SysProperties.LOB_FILES_IN_DIRECTORIES;
+    }
+
+    public SmallLRUCache getLobFileListCache() {
+        return null;
     }
 
 }

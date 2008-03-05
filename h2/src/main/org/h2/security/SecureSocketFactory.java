@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.security;
@@ -115,9 +116,12 @@ public class SecureSocketFactory {
 
     public static KeyStore getKeyStore(String password) throws IOException {
         try {
-            // The following source code can be re-generated when you have a keystore file.
-            // This code is (hopefully) more Java version independent than using keystores directly.
-            // See also: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561 (1.4.2 cannot read keystore written with 1.4.1)
+            // The following source code can be re-generated 
+            // if you have a keystore file.
+            // This code is (hopefully) more Java version independent 
+            // than using keystores directly. See also: 
+            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561 
+            // (1.4.2 cannot read keystore written with 1.4.1)
             // --- generated code start ---
 
             KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());

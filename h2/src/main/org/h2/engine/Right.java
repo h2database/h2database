@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -11,7 +12,8 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 
 /**
- * An access right. Rights are regular database objects, but have generated names.
+ * An access right. Rights are regular database objects, but have generated
+ * names.
  */
 public class Right extends DbObjectBase {
 

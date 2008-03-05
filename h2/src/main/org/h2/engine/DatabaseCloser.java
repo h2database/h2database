@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -7,7 +8,8 @@ package org.h2.engine;
 import java.lang.ref.WeakReference;
 
 /**
- * This class is responsible to close a database if the application did not close a connection.
+ * This class is responsible to close a database if the application did not
+ * close a connection.
  */
 public class DatabaseCloser extends Thread {
 

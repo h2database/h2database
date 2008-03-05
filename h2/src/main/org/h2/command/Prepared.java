@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
@@ -42,8 +43,9 @@ public abstract class Prepared {
     protected ObjectArray parameters;
 
     /**
-     * If the query should be prepared before each execution.
-     * This is set for queries with LIKE ?, because the query plan depends on the parameter value.
+     * If the query should be prepared before each execution. This is set for
+     * queries with LIKE ?, because the query plan depends on the parameter
+     * value.
      */
     protected boolean prepareAlways;
 
@@ -102,8 +104,9 @@ public abstract class Prepared {
     }
 
     /**
-     * Get the meta data modification id of the database when this statement was compiled.
-     *
+     * Get the meta data modification id of the database when this statement was
+     * compiled.
+     * 
      * @return the meta data modification id
      */
     long getModificationMetaId() {

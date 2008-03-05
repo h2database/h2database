@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.message;
@@ -19,12 +20,11 @@ import org.h2.util.FileUtils;
 import org.h2.util.SmallLRUCache;
 
 /**
- * The trace mechanism is the logging facility of this database.
- * There is usually one trace system per database.
- * It is called 'trace' because the term 'log' is already used in the
- * database domain and means 'transaction log'.
- * It is possible to write after close was called, but that means for each write the
- * log file will be opened and closed again (which is slower).
+ * The trace mechanism is the logging facility of this database. There is
+ * usually one trace system per database. It is called 'trace' because the term
+ * 'log' is already used in the database domain and means 'transaction log'. It
+ * is possible to write after close was called, but that means for each write
+ * the log file will be opened and closed again (which is slower).
  */
 public class TraceSystem {
     public static final int OFF = 0, ERROR = 1, INFO = 2, DEBUG = 3;

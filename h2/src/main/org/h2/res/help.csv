@@ -1615,6 +1615,7 @@ TIMESTAMP
 ","
 Represents a byte array. For very long arrays, use BLOB.
 There is no maximum precision. The maximum size is the memory available.
+The whole object is kept in memory when using this data type.
 For large text data BLOB should be used.
 ","
 BINARY(1000)
@@ -1672,6 +1673,7 @@ CHAR(10)
 [( precisionInt )]
 ","
 Like BINARY, but intended for very large values.
+Unlike when using BINARY, large objects are not kept fully in-memory.
 Use PreparedStatement.setBinaryStream to store values.
 ","
 BLOB
@@ -1682,6 +1684,7 @@ BLOB
 [( precisionInt )]
 ","
 Like VARCHAR, but intended for very large values.
+Unlike when using VARCHAR, large objects are not kept fully in-memory.
 Use PreparedStatement.setCharacterStream to store values.
 ","
 CLOB

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -25,7 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.h2.command.Parser;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -46,16 +46,17 @@ import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
+import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
- * Dumps the contents of a database file to a human readable text file.
- * This text file can be used to recover most of the data.
- * This tool does not open the database and can be used even if the database files are corrupted.
- * A database can get corrupted if there is a bug in the database engine or file system software,
- * or if an application writes into the database file that doesn't understand the the file format,
- * or if there is a hardware problem.
+ * Dumps the contents of a database file to a human readable text file. This
+ * text file can be used to recover most of the data. This tool does not open
+ * the database and can be used even if the database files are corrupted. A
+ * database can get corrupted if there is a bug in the database engine or file
+ * system software, or if an application writes into the database file that
+ * doesn't understand the the file format, or if there is a hardware problem.
  */
 public class Recover implements DataHandler {
 
@@ -958,6 +959,13 @@ public class Recover implements DataHandler {
      */
     public boolean getLobFilesInDirectories() {
         return lobFilesInDirectories;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public SmallLRUCache getLobFileListCache() {
+        return null;
     }
 
 }

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -15,18 +16,12 @@ import java.sql.Date;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-//#ifdef JDK16
-/*
-import java.sql.NClob;
-import java.sql.RowId;
-import java.sql.SQLXML;
-*/
-//#endif
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
@@ -66,6 +61,82 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
+     * A simple array implementation,
+     * backed by an object array
+     */
+    private static class SimpleArray implements Array {
+        
+        private Object[] value;
+        
+        private SimpleArray(Object[] value) {
+            this.value = value;
+        }
+
+        /**
+         * Get the object array.
+         * 
+         * @return the object array
+         */
+        public Object getArray() throws SQLException {
+            return value;
+        }
+
+        /** INTERNAL */
+        public Object getArray(Map map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** INTERNAL */
+        public Object getArray(long index, int count) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** INTERNAL */
+        public Object getArray(long index, int count, Map map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** 
+         * Get the base type of this array.
+         * 
+         * @return Types.NULL
+         */
+        public int getBaseType() throws SQLException {
+            return Types.NULL;
+        }
+
+        /** 
+         * Get the base type name of this array.
+         * 
+         * @return "NULL"
+         */
+        public String getBaseTypeName() throws SQLException {
+            return "NULL";
+        }
+
+        /** INTERNAL */
+        public ResultSet getResultSet() throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** INTERNAL */
+        public ResultSet getResultSet(Map map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** INTERNAL */
+        public ResultSet getResultSet(long index, int count) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /** INTERNAL */
+        public ResultSet getResultSet(long index, int count, Map map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+    }
+
+    /**
      * This constructor is used if the result set is later populated with addRow.
      */
     public SimpleResultSet() {
@@ -73,9 +144,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * This constructor is used if the result set should retrieve the rows using the specified
-     * row source object.
-     *
+     * This constructor is used if the result set should retrieve the rows using
+     * the specified row source object.
+     * 
      * @param source the row source
      */
     public SimpleResultSet(SimpleRowSource source) {
@@ -201,8 +272,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Moves the current position to before the first row, that means resets the result set.
-     *
+     * Moves the current position to before the first row, that means resets the
+     * result set.
+     * 
      * @throws SQLException is this method is not supported
      */
     public void beforeFirst() throws SQLException {
@@ -222,7 +294,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an byte.
+     * Returns the value as a byte.
      *
      * @return the value
      */
@@ -235,7 +307,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an double.
+     * Returns the value as an double.
      *
      * @return the value
      */
@@ -248,7 +320,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a float.
+     * Returns the value as a float.
      *
      * @return the value
      */
@@ -261,7 +333,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an int.
+     * Returns the value as an int.
      *
      * @return the value
      */
@@ -274,7 +346,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a long.
+     * Returns the value as a long.
      *
      * @return the value
      */
@@ -287,7 +359,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a short.
+     * Returns the value as a short.
      *
      * @return the value
      */
@@ -300,7 +372,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a boolean.
+     * Returns the value as a boolean.
      *
      * @return the value
      */
@@ -313,7 +385,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a byte array.
+     * Returns the value as a byte array.
      *
      * @return the value
      */
@@ -322,7 +394,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an Object.
+     * Returns the value as an Object.
      *
      * @return the value
      */
@@ -331,7 +403,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a String.
+     * Returns the value as a String.
      *
      * @return the value
      */
@@ -341,7 +413,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a byte.
+     * Returns the value as a byte.
      *
      * @return the value
      */
@@ -350,7 +422,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a double.
+     * Returns the value as a double.
      *
      * @return the value
      */
@@ -359,7 +431,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a float.
+     * Returns the value as a float.
      *
      * @return the value
      */
@@ -368,11 +440,13 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Searches for a specific column in the result set. A case-insensitive search is made.
-     *
+     * Searches for a specific column in the result set. A case-insensitive
+     * search is made.
+     * 
      * @param columnName the name of the column label
      * @return the column index (1,2,...)
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     public int findColumn(String columnName) throws SQLException {
         for (int i = 0; columnName != null && columns != null && i < columns.size(); i++) {
@@ -384,7 +458,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an int.
+     * Returns the value as an int.
      *
      * @return the value
      */
@@ -393,7 +467,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a long.
+     * Returns the value as a long.
      *
      * @return the value
      */
@@ -402,7 +476,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a short.
+     * Returns the value as a short.
      *
      * @return the value
      */
@@ -411,7 +485,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a boolean.
+     * Returns the value as a boolean.
      *
      * @return the value
      */
@@ -420,7 +494,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a byte array.
+     * Returns the value as a byte array.
      *
      * @return the value
      */
@@ -429,7 +503,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a java.math.BigDecimal.
+     * Returns the value as a java.math.BigDecimal.
      *
      * @return the value
      */
@@ -442,7 +516,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an java.sql.Date.
+     * Returns the value as an java.sql.Date.
      *
      * @return the value
      */
@@ -478,7 +552,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an java.sql.Time.
+     * Returns the value as an java.sql.Time.
      *
      * @return the value
      */
@@ -487,16 +561,25 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as an java.sql.Timestamp.
+     * Returns the value as an java.sql.Timestamp.
      *
      * @return the value
      */
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
         return (Timestamp) get(columnIndex);
     }
+    
+    /**
+     * Returns the value as a java.sql.Array.
+     *
+     * @return the value
+     */
+    public Array getArray(int columnIndex) throws SQLException {
+        return new SimpleArray((Object[]) get(columnIndex));
+    }
 
     /**
-     * Returns value as an Object.
+     * Returns the value as an Object.
      *
      * @return the value
      */
@@ -505,7 +588,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a String.
+     * Returns the value as a String.
      *
      * @return the value
      */
@@ -514,7 +597,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a java.math.BigDecimal.
+     * Returns the value as a java.math.BigDecimal.
      *
      * @return the value
      */
@@ -523,7 +606,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a java.sql.Date.
+     * Returns the value as a java.sql.Date.
      *
      * @return the value
      */
@@ -532,7 +615,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a java.sql.Time.
+     * Returns the value as a java.sql.Time.
      *
      * @return the value
      */
@@ -541,14 +624,24 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns value as a java.sql.Timestamp.
+     * Returns the value as a java.sql.Timestamp.
      *
      * @return the value
      */
     public Timestamp getTimestamp(String columnName) throws SQLException {
         return getTimestamp(findColumn(columnName));
     }
-
+    
+    /**
+     * Returns the value as a java.sql.Array.
+     *
+     * @return the value
+     */
+    public Array getArray(String columnName) throws SQLException {
+        return getArray(findColumn(columnName));
+    }
+    
+    
     // ---- result set meta data ---------------------------------------------
 
     /**
@@ -1017,11 +1110,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /** INTERNAL */
-    public Array getArray(int i) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /** INTERNAL */
     public void updateArray(int columnIndex, Array x) throws SQLException {
         throw getUnsupportedException();
     }
@@ -1142,11 +1230,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /** INTERNAL */
-    public Array getArray(String colName) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /** INTERNAL */
     public void updateArray(String columnName, Array x) throws SQLException {
         throw getUnsupportedException();
     }
@@ -1233,7 +1316,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     // --- private -----------------------------
 
-    private SQLException getUnsupportedException() {
+    private static SQLException getUnsupportedException() {
         return new SQLException("Feature not supported", "HYC00");
     }
 
@@ -1382,7 +1465,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** INTERNAL */
 //#ifdef JDK16
 /*
-    public void updateSQLXML(int columnIndex, SQLXML xmlObject) throws SQLException {
+    public void updateSQLXML(int columnIndex, SQLXML xmlObject) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 */
@@ -1391,7 +1475,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** INTERNAL */
 //#ifdef JDK16
 /*
-    public void updateSQLXML(String columnName, SQLXML xmlObject) throws SQLException {
+    public void updateSQLXML(String columnName, SQLXML xmlObject) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 */

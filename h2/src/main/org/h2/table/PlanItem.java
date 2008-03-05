@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -7,7 +8,8 @@ package org.h2.table;
 import org.h2.index.Index;
 
 /**
- * The plan item describes the index to be used, and the estimated cost when using it.
+ * The plan item describes the index to be used, and the estimated cost when
+ * using it.
  */
 public class PlanItem {
     public double cost;

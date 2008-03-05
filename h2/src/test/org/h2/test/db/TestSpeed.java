@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -100,20 +101,7 @@ public class TestSpeed extends TestBase {
             prep.setInt(1, i);
             prep.setString(2,
                     "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
-            // prep.setString(2,
-            // "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd");
             prep.execute();
-            // System.out.println("i="+i);
-            // stat.execute("INSERT INTO TEST VALUES("+i+",
-            // 'abchelloasdfaldsjflajdflajdslfaajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd"+i+"')");
-            // ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE
-            // ID="+i);
-            // if(!rs.next()) {
-            // throw new Error("hey! i="+i);
-            // }
-            // if(rs.next()) {
-            // throw new Error("hey! i="+i);
-            // }
         }
 
         // System.exit(0);
@@ -127,7 +115,8 @@ public class TestSpeed extends TestBase {
         // if(config.log) {
         // System.gc();
         // System.gc();
-        // log("mem="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/1024);
+        // log("mem="+(Runtime.getRuntime().totalMemory() - 
+        //     Runtime.getRuntime().freeMemory())/1024);
         // }
 
         // conn.close();

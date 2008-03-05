@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.samples;
@@ -18,7 +19,8 @@ import org.h2.util.StringUtils;
 
 /**
  * The newsfeed application uses XML functions to create an RSS and Atom feed
- * from a simple SQL script. A textual representation of the data is created as well.
+ * from a simple SQL script. A textual representation of the data is created as
+ * well.
  */
 public class Newsfeed {
 

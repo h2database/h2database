@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbcx;
@@ -33,8 +34,9 @@ import org.h2.message.Message;
 //#endif
 
 /**
- * A data source for H2 database connections. It is a factory for XAConnection and Connection objects.
- * This class is usually registered in a JNDI naming service.
+ * A data source for H2 database connections. It is a factory for XAConnection
+ * and Connection objects. This class is usually registered in a JNDI naming
+ * service.
  */
 public class JdbcDataSource extends TraceObject
 //#ifdef JDK14
@@ -127,8 +129,9 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     }
 
     /**
-     * Open a new connection using the current URL and the specified user name and password.
-     *
+     * Open a new connection using the current URL and the specified user name
+     * and password.
+     * 
      * @param user the user name
      * @param password the password
      * @return the connection
@@ -238,8 +241,9 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 //#endif
 
     /**
-     * Open a new XA connection using the current URL and the specified user name and password.
-     *
+     * Open a new XA connection using the current URL and the specified user
+     * name and password.
+     * 
      * @param user the user name
      * @param password the password
      * @return the connection
@@ -265,8 +269,9 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 //#endif
 
     /**
-     * Open a new XA connection using the current URL and the specified user name and password.
-     *
+     * Open a new XA connection using the current URL and the specified user
+     * name and password.
+     * 
      * @param user the user name
      * @param password the password
      * @return the connection

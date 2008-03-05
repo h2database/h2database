@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -55,6 +56,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
 import org.h2.util.ObjectArray;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -150,6 +152,7 @@ public class Database implements DataHandler {
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
+    private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -587,7 +590,8 @@ public class Database implements DataHandler {
                 }
             }
         } while (recompileSuccessful);
-        // when opening a database, views are initialized before indexes, so they may not have the optimal plan yet
+        // when opening a database, views are initialized before indexes, 
+        // so they may not have the optimal plan yet
         // this is not a problem, it is just nice to see the newest plan
         ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
         for (int i = 0; i < list.size(); i++) {
@@ -1713,6 +1717,10 @@ public class Database implements DataHandler {
 
     public boolean getLobFilesInDirectories() {
         return lobFilesInDirectories;
+    }
+
+    public SmallLRUCache getLobFileListCache() {
+        return lobFileListCache;
     }
 
 }

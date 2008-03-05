@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.samples;
@@ -49,16 +50,18 @@ public class TriggerSample {
 
         /**
          * Initializes the trigger.
-         *
+         * 
          * @param conn a connection to the database
          * @param schemaName the name of the schema
-         * @param triggerName the name of the trigger used in the CREATE TRIGGER statement
+         * @param triggerName the name of the trigger used in the CREATE TRIGGER
+         *            statement
          * @param tableName the name of the table
-         * @param before whether the fire method is called before or after the operation is performed
+         * @param before whether the fire method is called before or after the
+         *            operation is performed
          * @param type the operation type: INSERT, UPDATE, or DELETE
          */
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
-            // System.out.println("Initializing trigger " + triggerName + " for table " + tableName);
+            // Initializing trigger
         }
 
         /**

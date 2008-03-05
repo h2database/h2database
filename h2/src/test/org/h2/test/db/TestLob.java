@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -131,7 +132,8 @@ public class TestLob extends TestBase {
             }
             in.close();
             if (len > 0) {
-                // in Linux, it seems it is still possible to read in files even if they are deleted
+                // in Linux, it seems it is still possible to read in files 
+                // even if they are deleted
                 if (System.getProperty("os.name").indexOf("Windows") > 0) {
                     error("Error expected; len=" + len);
                 }

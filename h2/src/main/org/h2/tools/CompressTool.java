@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -58,7 +59,8 @@ public class CompressTool {
     }
     
     /**
-     * Compressed the data using the specified algorithm. If no algorithm is supplied, LZF is used
+     * Compressed the data using the specified algorithm. If no algorithm is
+     * supplied, LZF is used
      * 
      * @param in the byte array with the original data
      * @param algorithm the algorithm (LZF, DEFLATE)

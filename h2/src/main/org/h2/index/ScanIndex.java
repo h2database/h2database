@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -26,9 +27,10 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
- * The scan index is not really an 'index' in the strict sense, because it can not be used for direct lookup.
- * It can only be used to iterate over all rows of a table.
- * Each regular table has one such object, even if no primary key or indexes are defined.
+ * The scan index is not really an 'index' in the strict sense, because it can
+ * not be used for direct lookup. It can only be used to iterate over all rows
+ * of a table. Each regular table has one such object, even if no primary key or
+ * indexes are defined.
  */
 public class ScanIndex extends BaseIndex {
     private int firstFree = -1;

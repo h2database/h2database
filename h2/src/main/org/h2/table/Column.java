@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -68,6 +69,26 @@ public class Column {
 
     public Column(String name, int type) {
         this(name, type, -1, -1, -1);
+    }
+    
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        } else if (!(o instanceof Column)) {
+            return false;
+        }
+        Column other = (Column) o;
+        if (table == null || other.table == null || name == null || other.name == null) {
+            return false;
+        }
+        return table == other.table && name.equals(other.name);
+    }
+    
+    public int hashCode() {
+        if (table == null || name == null) {
+            return 0;
+        }
+        return table.getId() ^ name.hashCode();
     }
 
     public Column(String name, int type, long precision, int scale, int displaySize) {
@@ -403,9 +424,9 @@ public class Column {
     }
 
     /**
-     * Get the selectivity of the column.
-     * Selectivity 100 means values are unique, 10 means every distinct value appears 10 times on average.
-     *
+     * Get the selectivity of the column. Selectivity 100 means values are
+     * unique, 10 means every distinct value appears 10 times on average.
+     * 
      * @return the selectivity
      */
     public int getSelectivity() {

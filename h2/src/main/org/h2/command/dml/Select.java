@@ -1,10 +1,12 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.constant.ErrorCode;
@@ -41,12 +43,15 @@ import org.h2.value.ValueNull;
 /**
  * This class represents a simple SELECT statement.
  *
- * For each select statement:
- * visibleColumnCount <= distinctColumnCount <= expressionCount.
- * Sortable count could include ORDER BY expressions that are not in the select list.
- * Expression count could include GROUP BY expressions.
+ * For each select statement, 
+ * visibleColumnCount &lt;= distinctColumnCount &lt;= expressionCount.
+ * The expression list count could include ORDER BY and GROUP BY expressions 
+ * that are not in the select list.
  *
  * The call sequence is init(), mapColumns() if it's a subquery, prepare().
+ * 
+ * @author Thomas Mueller
+ * @author Joel Turkel (Group sorted query)
  */
 public class Select extends Query {
     private TableFilter topTableFilter;
@@ -63,7 +68,7 @@ public class Select extends Query {
     private boolean distinct;
     private HashMap currentGroup;
     private int havingIndex;
-    private boolean isGroupQuery;
+    private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate;
     private double cost;
     private boolean isQuickQuery, isDistinctQuery;
@@ -76,12 +81,14 @@ public class Select extends Query {
     }
 
     public void addTableFilter(TableFilter filter, boolean isTop) {
-        // TODO compatibility: it seems oracle doesn't check on duplicate aliases; do other databases check it?
-//        String alias = filter.getAlias();
-//        if(filterNames.contains(alias)) {
-//            throw Message.getSQLException(ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
-//        }
-//        filterNames.add(alias);
+        // TODO compatibility: it seems oracle doesn't check on 
+        // duplicate aliases; do other databases check it?
+        // String alias = filter.getAlias();
+        // if(filterNames.contains(alias)) {
+        //     throw Message.getSQLException(
+        //         ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
+        // }
+        // filterNames.add(alias);
         filters.add(filter);
         if (isTop) {
             topFilters.add(filter);
@@ -118,6 +125,129 @@ public class Select extends Query {
         } else {
             condition = new ConditionAndOr(ConditionAndOr.AND, cond, condition);
         }
+    }
+
+    private void queryGroupSorted(int columnCount, LocalResult result) throws SQLException {
+        int rowNumber = 0;
+        setCurrentRowNumber(0);
+        Value[] previousKeyValues = null;
+        while (topTableFilter.next()) {
+            checkCancelled();
+            setCurrentRowNumber(rowNumber + 1);
+            if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+                rowNumber++;
+                Value[] keyValues = new Value[groupIndex.length];
+                // update group
+                for (int i = 0; i < groupIndex.length; i++) {
+                    int idx = groupIndex[i];
+                    Expression expr = (Expression) expressions.get(idx);
+                    keyValues[i] = expr.getValue(session);
+                }
+
+                if (previousKeyValues == null) {
+                    previousKeyValues = keyValues;
+                    currentGroup = new HashMap();
+                } else if (!Arrays.equals(previousKeyValues, keyValues)) {
+                    addGroupSortedRow(previousKeyValues, columnCount, result);
+                    previousKeyValues = keyValues;
+                    currentGroup = new HashMap();
+                }
+
+                for (int i = 0; i < columnCount; i++) {
+                    if (groupByExpression == null || !groupByExpression[i]) {
+                        Expression expr = (Expression) expressions.get(i);
+                        expr.updateAggregate(session);
+                    }
+                }
+            }
+        }
+        if (previousKeyValues != null) {
+            addGroupSortedRow(previousKeyValues, columnCount, result);
+        }
+    }
+
+    private void addGroupSortedRow(Value[] keyValues, int columnCount, LocalResult result) throws SQLException {
+        Value[] row = new Value[columnCount];
+        for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
+            row[groupIndex[j]] = keyValues[j];
+        }
+        for (int j = 0; j < columnCount; j++) {
+            if (groupByExpression != null && groupByExpression[j]) {
+                continue;
+            }
+            Expression expr = (Expression) expressions.get(j);
+            row[j] = expr.getValue(session);
+        }
+        if (havingIndex > 0) {
+            Value v = row[havingIndex];
+            if (v == ValueNull.INSTANCE) {
+                return;
+            }
+            if (!Boolean.TRUE.equals(v.getBoolean())) {
+                return;
+            }
+        }
+        if (columnCount != distinctColumnCount) {
+            // remove columns so that 'distinct' can filter duplicate rows
+            Value[] r2 = new Value[distinctColumnCount];
+            System.arraycopy(row, 0, r2, 0, distinctColumnCount);
+            row = r2;
+        }
+        result.addRow(row);
+    }
+
+    private Index getGroupSortedIndex() {
+        if (groupIndex == null || groupByExpression == null) {
+            return null;
+        }
+        ObjectArray indexes = topTableFilter.getTable().getIndexes();
+        for (int i = 0; indexes != null && i < indexes.size(); i++) {
+            Index index = (Index) indexes.get(i);
+            if (index.getIndexType().isScan()) {
+                continue;
+            }
+            if (isGroupSortedIndex(index)) {
+                return index;
+            }
+        }
+        return null;
+    }
+
+    private boolean isGroupSortedIndex(Index index) {
+        Column[] indexColumns = index.getColumns();
+        outerLoop: 
+        for (int i = 0; i < expressions.size(); i++) {
+            if (!groupByExpression[i]) {
+                continue;
+            }
+            Expression expr = (Expression) expressions.get(i);
+            if (!(expr instanceof ExpressionColumn)) {
+                return false;
+            }
+            ExpressionColumn exprCol = (ExpressionColumn) expr;
+            for (int j = 0; j < indexColumns.length; ++j) {
+                if (indexColumns[j].equals(exprCol.getColumn())) {
+                    continue outerLoop;
+                }
+            }
+            // We didn't find a matching index column for the group by
+            // expression
+            return false;
+        }
+        return true;
+    }
+
+    private int getGroupByExpressionCount() {
+        if (groupByExpression == null) {
+            return 0;
+        }
+        int count = 0;
+        for (int i = 0; i < groupByExpression.length; i++) {
+            if (groupByExpression[i]) {
+                ++count;
+            }
+        }
+        return count;
     }
 
     private void queryGroup(int columnCount, LocalResult result) throws SQLException {
@@ -200,11 +330,11 @@ public class Select extends Query {
     }
 
     /**
-     * Get the index that matches the ORDER BY list, if one exists.
-     * This is to avoid running a separate ORDER BY if an index can be used.
-     * This is specially important for large result sets, if only the first few rows are important
-     * (LIMIT is used)
-     *
+     * Get the index that matches the ORDER BY list, if one exists. This is to
+     * avoid running a separate ORDER BY if an index can be used. This is
+     * specially important for large result sets, if only the first few rows are
+     * important (LIMIT is used)
+     * 
      * @return the index if one is found
      */
     private Index getSortIndex() throws SQLException {
@@ -264,7 +394,8 @@ public class Select extends Query {
                     break;
                 }
                 if (idxCol.sortType != sortTypes[j]) {
-                    // TODO NULL FIRST for ascending and NULLS LAST for descending would actually match the default
+                    // TODO NULL FIRST for ascending and NULLS LAST 
+                    // for descending would actually match the default
                     ok = false;
                     break;
                 }
@@ -278,7 +409,8 @@ public class Select extends Query {
 
     private void queryDistinct(int columnCount, LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
-            // limitRows must be long, otherwise we get an int overflow if limitRows is at or near Integer.MAX_VALUE
+            // limitRows must be long, otherwise we get an int overflow 
+            // if limitRows is at or near Integer.MAX_VALUE
             limitRows += offset.getValue(session).getInt();
         }
         int rowNumber = 0;
@@ -314,7 +446,8 @@ public class Select extends Query {
 
     private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
-            // limitRows must be long, otherwise we get an int overflow if limitRows is at or near Integer.MAX_VALUE
+            // limitRows must be long, otherwise we get an int overflow 
+            // if limitRows is at or near Integer.MAX_VALUE
             limitRows += offset.getValue(session).getInt();
         }
         int rowNumber = 0;
@@ -379,7 +512,11 @@ public class Select extends Query {
         if (isQuickQuery) {
             queryQuick(columnCount, result);
         } else if (isGroupQuery) {
-            queryGroup(columnCount, result);
+            if (isGroupSortedQuery) {
+                queryGroupSorted(columnCount, result);
+            } else {
+                queryGroup(columnCount, result);
+            }
         } else if (isDistinctQuery) {
             queryDistinct(columnCount, result, limitRows);
         } else {
@@ -581,6 +718,14 @@ public class Select extends Query {
                 }
             }
         }
+        if (SysProperties.OPTIMIZE_GROUP_SORTED && !isQuickQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
+            Index index = getGroupSortedIndex();
+            Index current = topTableFilter.getIndex();
+            if (index != null && (current.getIndexType().isScan() || current == index)) {
+                topTableFilter.setIndex(index);
+                isGroupSortedQuery = true;
+            }
+        }
         isPrepared = true;
     }
 
@@ -635,7 +780,8 @@ public class Select extends Query {
                     addCondition(on);
                 }
             }
-            // this is only important for subqueries, so they know the result columns are evaluatable
+            // this is only important for subqueries, so they know 
+            // the result columns are evaluatable
             for (int i = 0; i < expressions.size(); i++) {
                 Expression e = (Expression) expressions.get(i);
                 e.setEvaluatable(f, true);
@@ -721,6 +867,13 @@ public class Select extends Query {
         }
         if (isDistinctQuery) {
             buff.append("\n/* distinct */");
+        }
+        if (isGroupQuery) {
+            if (isGroupSortedQuery) {
+                buff.append("\n/* group sorted */");
+            } else {
+                buff.append("\n/* group */");
+            }
         }
         return buff.toString();
     }

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -25,7 +26,6 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -33,7 +33,8 @@ import org.h2.util.StringUtils;
  * Implementation of the BLOB and CLOB data types.
  */
 public class ValueLob extends Value {
-    // TODO lob: concatenate function for blob and clob (to create a large blob from pieces)
+    // TODO lob: concatenate function for blob and clob 
+    // (to create a large blob from pieces)
     // and a getpart function (to get it in pieces) and make sure a file is created!
 
     public static final int TABLE_ID_SESSION = -1;
@@ -49,6 +50,12 @@ public class ValueLob extends Value {
     private int hash;
     private boolean compression;
     private FileStore tempFile;
+
+    /**
+     * This counter is used to calculate the next directory to store lobs.
+     * It is better than using a random number because less directories are created.
+     */
+    private static int dirCounter;
 
     private ValueLob(int type, DataHandler handler, String fileName, int tableId, int objectId, boolean linked,
             long precision, boolean compression) {
@@ -198,11 +205,7 @@ public class ValueLob extends Value {
         int objectId = 0;
         while (true) {
             String dir = getFileNamePrefix(path, objectId);
-
-            int test;
             String[] list = getFileList(handler, dir);
-//            String[] list = FileUtils.listFiles(dir);
-
             int fileCount = 0;
             boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
             for (int i = 0; i < list.length; i++) {
@@ -238,17 +241,17 @@ public class ValueLob extends Value {
             } else {
                 if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
                     // this directory path is full: start from zero
-                    // (this can happen only theoretically, for example if the random number generator is broken)
+                    // (this can happen only theoretically, 
+                    // for example if the random number generator is broken)
                     objectId = 0;
                 } else {
+                    // calculate the directory
                     // start with 1 (otherwise we don't know the number of directories)
-
-                    int testHack;
-//                    int dirId = RandomUtils.nextInt(SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
-//                    int dirId = 1 + ((objectId / (SysProperties.LOB_FILES_PER_DIRECTORY-1)) % (SysProperties.LOB_FILES_PER_DIRECTORY - 1));
-                    int dirId = 1 + (counter++ / (SysProperties.LOB_FILES_PER_DIRECTORY-1));
-
-
+                    // it doesn't really matter what directory is used, it might as well be random
+                    // (but that would generate more directories):
+                    // int dirId = RandomUtils.nextInt(
+                    //         SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
+                    int dirId = (dirCounter++ / (SysProperties.LOB_FILES_PER_DIRECTORY - 1)) + 1;
                     objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
                     objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
                 }
@@ -257,27 +260,30 @@ public class ValueLob extends Value {
         return objectId;
     }
 
-    private static int counter;
-
-    private static final SmallLRUCache FILE_LIST_CACHE = new SmallLRUCache(128);
-
     private void invalidateFileList(DataHandler handler, String dir) {
-        int test;
-        synchronized (FILE_LIST_CACHE) {
-            FILE_LIST_CACHE.remove(dir);
+        SmallLRUCache cache = handler.getLobFileListCache();
+        if (cache != null) {
+            synchronized (cache) {
+                cache.remove(dir);
+            }
         }
     }
 
     private String[] getFileList(DataHandler handler, String dir) throws SQLException {
-        int test;
-        synchronized (FILE_LIST_CACHE) {
-            String[] list = (String[]) FILE_LIST_CACHE.get(dir);
-            if (list == null) {
-                list = FileUtils.listFiles(dir);
-                FILE_LIST_CACHE.put(dir, list);
+        SmallLRUCache cache = handler.getLobFileListCache();
+        String[] list;
+        if (cache == null) {
+            list = FileUtils.listFiles(dir);
+        } else {
+            synchronized (cache) {
+                list = (String[]) cache.get(dir);
+                if (list == null) {
+                    list = FileUtils.listFiles(dir);
+                    cache.put(dir, list);
+                }
             }
-            return list;
         }
+        return list;
     }
 
     public static ValueLob createBlob(InputStream in, long length, DataHandler handler) throws SQLException {
@@ -454,7 +460,7 @@ public class ValueLob extends Value {
         return precision;
     }
 
-    public String getString() throws SQLException {
+    public String getString() {
         int len = precision > Integer.MAX_VALUE || precision == 0 ? Integer.MAX_VALUE : (int) precision;
         try {
             if (type == Value.CLOB) {
@@ -472,7 +478,7 @@ public class ValueLob extends Value {
                 return ByteUtils.convertBytesToString(buff);
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw Message.convertToInternal(Message.convertIOException(e, fileName));
         }
     }
 
@@ -518,7 +524,7 @@ public class ValueLob extends Value {
         }
     }
 
-    public Object getObject() throws SQLException {
+    public Object getObject() {
         if (type == Value.CLOB) {
             return getReader();
         } else {
@@ -526,18 +532,26 @@ public class ValueLob extends Value {
         }
     }
 
-    public Reader getReader() throws SQLException {
-        return IOUtils.getReader(getInputStream());
+    public Reader getReader() {
+        try {
+            return IOUtils.getReader(getInputStream());
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
+        }
     }
 
-    public InputStream getInputStream() throws SQLException {
-        if (fileName == null) {
-            return new ByteArrayInputStream(small);
+    public InputStream getInputStream() {
+        try {
+            if (fileName == null) {
+                return new ByteArrayInputStream(small);
+            }
+            FileStore store = handler.openFile(fileName, "r", true);
+            boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+            return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose),
+                    Constants.IO_BUFFER_SIZE);
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
         }
-        FileStore store = handler.openFile(fileName, "r", true);
-        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
-        return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose),
-                Constants.IO_BUFFER_SIZE);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
@@ -590,9 +604,7 @@ public class ValueLob extends Value {
         try {
             return compareSecure((Value) other, null) == 0;
         } catch (SQLException e) {
-            // TODO exceptions: improve concept, maybe remove throws
-            // SQLException almost everywhere
-            throw Message.getInternalError("compare", e);
+            throw Message.convertToInternal(e);
         }
     }
 

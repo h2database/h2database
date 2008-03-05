@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.tools.code;
@@ -9,12 +10,14 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * This tool checks that for each .java file there is a package.html file,
- * and that for each .java file there is at least one (class level) javadoc comment.
+ * This tool checks that for each .java file there is a package.html file, 
+ * that for each .java file there is at least one (class level) javadoc comment,
+ * and that lines with comments are not too long.
  */
 public class CheckJavadoc {
 
-    private boolean hasError;
+    private int errorCount;
+    private static final int MAX_COMMENT_LINE_SIZE = 80;
 
     public static void main(String[] args) throws Exception {
         new CheckJavadoc().run();
@@ -23,8 +26,8 @@ public class CheckJavadoc {
     void run() throws Exception {
         String baseDir = "src";
         check(new File(baseDir));
-        if (hasError) {
-            throw new Exception("Errors found");
+        if (errorCount > 0) {
+            throw new Exception(errorCount + " errors found");
         }
     }
 
@@ -46,7 +49,7 @@ public class CheckJavadoc {
             }
             if (foundJava && !foundPackageHtml) {
                 System.out.println("No package.html file, but a Java file found at: " + file.getAbsolutePath());
-                hasError = true;
+                errorCount++;
             }
         } else {
             if (name.endsWith(".java")) {
@@ -68,12 +71,43 @@ public class CheckJavadoc {
         int comment = text.indexOf("/**");
         if (comment < 0) {
             System.out.println("No Javadoc comment: " + file.getAbsolutePath());
-            hasError = true;
+            errorCount++;
         }
         int open = text.indexOf('{');
         if (open < 0 || open < comment) {
-            System.out.println("No '{' or '{' before the first Javadoc comment: " + file.getAbsolutePath());
-            hasError = true;
+            System.out.println("No '{' or '{' before the first Javadoc comment: " + 
+                    file.getAbsolutePath());
+            errorCount++;
+        }
+        int pos = 0;
+        int lineNumber = 1;
+        boolean inComment = false;
+        while (true) {
+            int next = text.indexOf("\n", pos);
+            if (next < 0) {
+                break;
+            }
+            String line = text.substring(pos, next).trim();
+            if (line.startsWith("/*")) {
+                inComment = true;
+            }
+            if (inComment) {
+                if (line.length() > MAX_COMMENT_LINE_SIZE) {
+                    System.out.println("Long line : " + file.getAbsolutePath()
+                            + " (" + file.getName() + ":" + lineNumber + ")");
+                    errorCount++;
+                }                
+                if (line.endsWith("*/")) {
+                    inComment = false;
+                }
+            }
+            if (!inComment && line.startsWith("//") && line.length() > MAX_COMMENT_LINE_SIZE) {
+                System.out.println("Long line: " + file.getAbsolutePath()
+                        + " (" + file.getName() + ":" + lineNumber + ")");
+                errorCount++;
+            }
+            lineNumber++;
+            pos = next + 1;
         }
     }
 

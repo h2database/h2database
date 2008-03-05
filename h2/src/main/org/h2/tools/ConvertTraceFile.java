@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -25,16 +26,16 @@ public class ConvertTraceFile {
     }
 
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-traceFile", "test.trace.db",...
-     * Options are case sensitive. The following options are supported:
+     * The command line interface for this tool. The options must be split into
+     * strings like this: "-traceFile", "test.trace.db",... Options are case
+     * sensitive. The following options are supported:
      * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-traceFile filename (the default is test.trace.db)
-     * </li><li>-script filename (the default is test.sql)
-     * </li><li>-javaClass className (the default is Test)
-     * </li></ul>
-     *
+     * <li>-help or -? (print the list of options) </li>
+     * <li>-traceFile filename (the default is test.trace.db) </li>
+     * <li>-script filename (the default is test.sql) </li>
+     * <li>-javaClass className (the default is Test) </li>
+     * </ul>
+     * 
      * @param args the command line arguments
      * @throws Exception
      */

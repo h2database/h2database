@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.bench;
@@ -9,9 +10,9 @@ import java.sql.PreparedStatement;
 import java.util.Random;
 
 /**
- * This test is similar to the TPC-A test of the Transaction Processing Council (TPC).
- * However, only one connection and one thread is used.
- *<p>
+ * This test is similar to the TPC-A test of the Transaction Processing Council
+ * (TPC). However, only one connection and one thread is used.
+ * <p>
  * See also: http://www.tpc.org/tpca/spec/tpca_current.pdf
  */
 public class BenchA implements Bench {
@@ -156,7 +157,8 @@ public class BenchA implements Bench {
             insertHistory.setInt(2, teller);
             insertHistory.setInt(3, branch);
             insertHistory.setBigDecimal(4, delta);
-            // TODO convert: should be able to convert date to timestamp (by using 0 for remaining fields)
+            // TODO convert: should be able to convert date to timestamp 
+            // (by using 0 for remaining fields)
             // insertHistory.setDate(5, new java.sql.Date(current));
             insertHistory.setTimestamp(5, new java.sql.Timestamp(current));
             insertHistory.setString(6, BenchA.FILLER);

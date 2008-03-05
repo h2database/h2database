@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
@@ -15,14 +16,13 @@ import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 
 /**
- * This class represents an persistent container that stores data of a table or an index.
- * An object contains a list of records, see {@link Record}.
- * For each storage there is a {@link RecordReader} object that knows how to
- * convert records into a byte array and vice versa.
- * The data is stored in a {@link DiskFile}. A storage occupies a number of pages
- * in a file.
- *
+ * This class represents an persistent container that stores data of a table or
+ * an index. An object contains a list of records, see {@link Record}. For each
+ * storage there is a {@link RecordReader} object that knows how to convert
+ * records into a byte array and vice versa. The data is stored in a
+ * {@link DiskFile}. A storage occupies a number of pages in a file.
  * File format:
+ * 
  * <pre>
  * int block size
  * int storage id
@@ -174,7 +174,8 @@ public class Storage {
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);
                     if (used.get(px)) {
-                        // sometime there may stay some entries in the freeList that are not free (free 2, free 1, allocate 1+2)
+                        // sometime there may stay some entries in the freeList 
+                        // that are not free (free 2, free 1, allocate 1+2)
                         // these entries are removed right here
                         freeList.remove(i--);
                     } else {

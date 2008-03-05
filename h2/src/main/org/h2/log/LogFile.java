@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.log;
@@ -36,7 +37,8 @@ import org.h2.util.ObjectArray;
  * Record format:
  * <pre>
  * int block size
- * byte 'D' (delete) / 'I' (insert) / 'C' (commit) / 'R' (rollback) / 'P' (prepare commit) / 'T' (truncate)
+ * byte 'D' (delete) / 'I' (insert) / 'C' (commit) / 
+ *      'R' (rollback) / 'P' (prepare commit) / 'T' (truncate)
  * int session
  * [delete/insert only:]
  * int storage
@@ -134,7 +136,8 @@ public class LogFile {
         buff.fill(size);
         buff.setInt(0, blockCount);
         buff.updateChecksum();
-        // IOLogger.getInstance().logWrite(this.fileName, file.getFilePointer(), buff.length());
+        // IOLogger.getInstance().logWrite(this.fileName, 
+        //     file.getFilePointer(), buff.length());
         if (rec != null) {
             unwritten.add(rec);
         }

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.constant;
@@ -57,13 +58,12 @@ public class ErrorCode {
 
     // 21: cardinality violation
     /**
-     * The error with code <code>21002</code> is thrown when
-     * the number of columns does not match.
-     * Possible reasons are: for an INSERT or MERGE statement, the column count does not match
-     * the table or the column list specified. For a SELECT UNION statement, both queries
-     * return a different number of columns. For a constraint, the number of referenced and referencing
-     * columns does not match.
-     * Example:
+     * The error with code <code>21002</code> is thrown when the number of
+     * columns does not match. Possible reasons are: for an INSERT or MERGE
+     * statement, the column count does not match the table or the column list
+     * specified. For a SELECT UNION statement, both queries return a different
+     * number of columns. For a constraint, the number of referenced and
+     * referencing columns does not match. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * INSERT INTO TEST VALUES('Hello');
@@ -73,9 +73,8 @@ public class ErrorCode {
 
     // 22: data exception
     /**
-     * The error with code <code>22003</code> is thrown when
-     * a value is out of range when converting to another data type.
-     * Example:
+     * The error with code <code>22003</code> is thrown when a value is out of
+     * range when converting to another data type. Example:
      * <pre>
      * CALL CAST(1000000 AS TINYINT);
      * </pre>
@@ -83,9 +82,8 @@ public class ErrorCode {
     public static final int NUMERIC_VALUE_OUT_OF_RANGE = 22003;
 
     /**
-     * The error with code <code>22012</code> is thrown when
-     * trying to divide a value by zero.
-     * Example:
+     * The error with code <code>22012</code> is thrown when trying to divide
+     * a value by zero. Example:
      * <pre>
      * CALL 1/0;
      * </pre>
@@ -93,9 +91,8 @@ public class ErrorCode {
     public static final int DIVISION_BY_ZERO_1 = 22012;
 
     /**
-     * The error with code <code>22025</code> is thrown when
-     * using an invalid escape character sequence for LIKE or REGEXP.
-     * Example:
+     * The error with code <code>22025</code> is thrown when using an invalid
+     * escape character sequence for LIKE or REGEXP. Example:
      * <pre>
      * CALL 'Hello' LIKE '1+' ESCAPE '+';
      * </pre>
@@ -104,20 +101,18 @@ public class ErrorCode {
 
     // 23: integrity constraint violation
     /**
-     * The error with code <code>23000</code> is thrown when
-     * a check constraint is violated.
-     * Example:
+     * The error with code <code>23000</code> is thrown when a check
+     * constraint is violated. Example:
      * <pre>
-     * CREATE TABLE TEST(ID INT CHECK ID>0);
+     * CREATE TABLE TEST(ID INT CHECK ID&gt;0);
      * INSERT INTO TEST VALUES(0);
      * </pre>
      */
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23000;
 
     /**
-     * The error with code <code>23001</code> is thrown when
-     * trying to insert a row that would violate a unique index or primary key.
-     * Example:
+     * The error with code <code>23001</code> is thrown when trying to insert
+     * a row that would violate a unique index or primary key. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT PRIMARY KEY);
      * INSERT INTO TEST VALUES(1);
@@ -127,10 +122,9 @@ public class ErrorCode {
     public static final int DUPLICATE_KEY_1 = 23001;
 
     /**
-     * The error with code <code>23002</code> is thrown when
-     * trying to insert or update a row that would violate a referential constraint,
-     * because the referenced row does not exist.
-     * Example:
+     * The error with code <code>23002</code> is thrown when trying to insert
+     * or update a row that would violate a referential constraint, because the
+     * referenced row does not exist. Example:
      * <pre>
      * CREATE TABLE PARENT(ID INT);
      * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
@@ -140,10 +134,9 @@ public class ErrorCode {
     public static final int REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1 = 23002;
 
     /**
-     * The error with code <code>23003</code> is thrown when
-     * trying to delete or update a row when this would violate a referential constraint,
-     * because there is a child row that would become an orphan.
-     * Example:
+     * The error with code <code>23003</code> is thrown when trying to delete
+     * or update a row when this would violate a referential constraint, because
+     * there is a child row that would become an orphan. Example:
      * <pre>
      * CREATE TABLE PARENT(ID INT);
      * CREATE TABLE CHILD(P_ID INT REFERENCES PARENT(ID));
@@ -225,8 +218,8 @@ public class ErrorCode {
     public static final int INDEX_NOT_FOUND_1 = 42112;
 
     /**
-     * The error with code <code>42121</code> is thrown when
-     * trying to create a table or insert into a table and use the same column name twice.
+     * The error with code <code>42121</code> is thrown when trying to create
+     * a table or insert into a table and use the same column name twice.
      * Example:
      * <pre>
      * CREATE TABLE TEST(ID INT, ID INT);
@@ -497,9 +490,11 @@ public class ErrorCode {
      * application should close the connection. This exception only appears in
      * the .trace.db file. Example:
      * <pre>
-     * Connection conn = DriverManager.getConnection(&quot;jdbc:h2:&tilde;/test&quot;);
+     * Connection conn;
+     * conn = DriverManager.getConnection(&quot;jdbc:h2:&tilde;/test&quot;);
      * conn = null;
-     * The connection was not closed by the application and is garbage collected
+     * The connection was not closed by the application and is 
+     * garbage collected
      * </pre>
      * Correct:
      * <pre>
@@ -519,20 +514,17 @@ public class ErrorCode {
     public static final int CANNOT_DROP_CURRENT_USER = 90019;
 
     /**
-     * The error with code <code>90020</code> is thrown when
-     * trying to open a database in embedded mode if this database
-     * is already in use in another process (or in a different class loader).
-     * Multiple connections to the same database are supported in the following
-     * cases:
-     * <ul>
-     * <li>In embedded mode (URL of the form jdbc:h2:~/test) if all connections
-     * are opened within the same process and class loader.
-     * </li><li>In server and cluster mode (URL of the form jdbc:h2:tcp://localhost/test)
-     * using remote connections.
+     * The error with code <code>90020</code> is thrown when trying to open a
+     * database in embedded mode if this database is already in use in another
+     * process (or in a different class loader). Multiple connections to the
+     * same database are supported in the following cases:
+     * <ul><li>In embedded mode (URL of the form jdbc:h2:~/test) if all 
+     * connections are opened within the same process and class loader. 
+     * </li><li>In server and cluster mode (URL of the form
+     * jdbc:h2:tcp://localhost/test) using remote connections. 
      * </li></ul>
-     * The mixed mode is also supported.
-     * This mode requires to start a server in the same process where
-     * the database is open in embedded mode.
+     * The mixed mode is also supported. This mode requires to start a server 
+     * in the same process where the database is open in embedded mode.
      */
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
 
@@ -808,23 +800,23 @@ public class ErrorCode {
     public static final int FILE_ENCRYPTION_ERROR_1 = 90049;
 
     /**
-     * The error with code <code>90050</code> is thrown when
-     * trying to open an encrypted database, but not separating the file password
-     * from the user password. The file password is specified in the password field,
-     * before the user password. A single space needs to be added between the
-     * file password and the user password; the file password itself may not contain spaces.
-     * File passwords (as well as user passwords) are case sensitive.
+     * The error with code <code>90050</code> is thrown when trying to open an
+     * encrypted database, but not separating the file password from the user
+     * password. The file password is specified in the password field, before
+     * the user password. A single space needs to be added between the file
+     * password and the user password; the file password itself may not contain
+     * spaces. File passwords (as well as user passwords) are case sensitive.
      * Example:
      * <pre>
-     * String url = "jdbc:h2:~/test;CIPHER=AES";
-     * String passwords = "filePasswordUserPassword";
-     * DriverManager.getConnection(url, "sa", pwds);
+     * String url = &quot;jdbc:h2:&tilde;/test;CIPHER=AES&quot;;
+     * String passwords = &quot;filePasswordUserPassword&quot;;
+     * DriverManager.getConnection(url, &quot;sa&quot;, pwds);
      * </pre>
      * Correct:
      * <pre>
-     * String url = "jdbc:h2:~/test;CIPHER=AES";
-     * String passwords = "filePassword userPassword";
-     * DriverManager.getConnection(url, "sa", pwds);
+     * String url = &quot;jdbc:h2:&tilde;/test;CIPHER=AES&quot;;
+     * String passwords = &quot;filePassword userPassword&quot;;
+     * DriverManager.getConnection(url, &quot;sa&quot;, pwds);
      * </pre>
      */
     public static final int WRONG_PASSWORD_FORMAT = 90050;
@@ -1011,9 +1003,10 @@ public class ErrorCode {
     public static final int CONNECTION_BROKEN = 90067;
 
     /**
-     * The error with code <code>90068</code> is thrown when
-     * the given expression that is used in the ORDER BY is not in the result list.
-     * This is required for distinct queries, otherwise the result would be ambiguous.
+     * The error with code <code>90068</code> is thrown when the given
+     * expression that is used in the ORDER BY is not in the result list. This
+     * is required for distinct queries, otherwise the result would be
+     * ambiguous.
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
      * INSERT INTO TEST VALUES(2, 'Hello'), (1, 'Hello');
@@ -1201,8 +1194,9 @@ public class ErrorCode {
     public static final int CANNOT_DROP_LAST_COLUMN = 90084;
 
     /**
-     * The error with code <code>90085</code> is thrown when
-     * trying to manually drop an index that was generated by the system because of a unique constraint.
+     * The error with code <code>90085</code> is thrown when trying to
+     * manually drop an index that was generated by the system because of a
+     * unique constraint.
      * <pre>
      * CREATE TABLE TEST(ID INT, CONSTRAINT UID UNIQUE(ID));
      * DROP INDEX UID_INDEX_0;
@@ -1344,18 +1338,17 @@ public class ErrorCode {
     public static final int DATABASE_IS_READ_ONLY = 90097;
 
     /**
-     * The error with code <code>90098</code> is thrown when
-     * the self-destruction counter has reached zero.
-     * This counter is only used for recovery testing, and not set in normal operation.
+     * The error with code <code>90098</code> is thrown when the
+     * self-destruction counter has reached zero. This counter is only used for
+     * recovery testing, and not set in normal operation.
      */
     public static final int SIMULATED_POWER_OFF = 90098;
 
     /**
-     * The error with code <code>90099</code> is thrown when
-     * an error occured trying to initialize the database event listener.
-     * Example:
+     * The error with code <code>90099</code> is thrown when an error occured
+     * trying to initialize the database event listener. Example:
      * <pre>
-     * jdbc:h2:~/test;DATABASE_EVENT_LISTENER='java.lang.String'
+     * jdbc:h2:&tilde;/test;DATABASE_EVENT_LISTENER='java.lang.String'
      * </pre>
      */
     public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER_2 = 90099;
@@ -1472,10 +1465,10 @@ public class ErrorCode {
     public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
 
     /**
-     * The error with code <code>90112</code> is thrown when
-     * a row was deleted twice while locking was disabled.
-     * This is an intern exception that should never be thrown to the application,
-     * because such deleted should be detected and the resulting exception ignored inside the database engine.
+     * The error with code <code>90112</code> is thrown when a row was deleted
+     * twice while locking was disabled. This is an intern exception that should
+     * never be thrown to the application, because such deleted should be
+     * detected and the resulting exception ignored inside the database engine.
      * <pre>
      * Row not found when trying to delete from index UID_INDEX_0
      * </pre>
@@ -1536,8 +1529,9 @@ public class ErrorCode {
      * </pre>
      * Or, when starting the server from an application, use:
      * <pre>
-     * Server server = Server.createTcpServer(new String[] { "-tcpAllowOthers", "true" });
-        server.start();
+     * Server server = Server.createTcpServer(new String[] { 
+     *          "-tcpAllowOthers", "true" });
+     * server.start();
      * </pre>
      */
     public static final int REMOTE_CONNECTION_NOT_ALLOWED = 90117;

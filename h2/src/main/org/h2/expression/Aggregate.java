@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
@@ -202,7 +203,7 @@ public class Aggregate extends Expression {
                                 Value[] a2 = ((ValueArray) o2).getList();
                                 return sort.compare(a1, a2);
                             } catch (SQLException e) {
-                                throw Message.getInternalError("sort", e);
+                                throw Message.convertToInternal(e);
                             }
                         }
                     });

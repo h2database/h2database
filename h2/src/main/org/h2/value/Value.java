@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -90,14 +91,14 @@ public abstract class Value {
      *
      * @return the string
      */
-    public abstract String getString() throws SQLException;
+    public abstract String getString();
 
     /**
      * Get the value as an object.
      *
      * @return the object
      */
-    public abstract Object getObject() throws SQLException;
+    public abstract Object getObject();
 
     /**
      * Set the value as a parameter in a prepared statement.
@@ -109,10 +110,11 @@ public abstract class Value {
 
     /**
      * Compare the value with another value of the same type.
-     *
+     * 
      * @param v the other value
      * @param mode the compare mode
-     * @return 0 if both values are equal, -1 if the other value is smaller, and 1 otherwise
+     * @return 0 if both values are equal, -1 if the other value is smaller, and
+     *         1 otherwise
      */
     protected abstract int compareSecure(Value v, CompareMode mode) throws SQLException;
 

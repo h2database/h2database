@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.samples;
@@ -27,7 +28,8 @@ public class SecurePassword {
         // This is the normal, but 'unsafe' way to connect:
         // the password may reside in the main memory for an undefined time,
         // or even written to disk (swap file):
-        // Connection conn = DriverManager.getConnection(url, user, new String(password));
+        // Connection conn = 
+        //     DriverManager.getConnection(url, user, new String(password));
 
         // This is the most safe way to connect: the password is overwritten after use
         Properties prop = new Properties();
@@ -35,9 +37,9 @@ public class SecurePassword {
         prop.put("password", password);
         Connection conn = DriverManager.getConnection(url, prop);
 
-        // For security reasons, account passwords should not be stored directly in a database.
-        // Instead, only the hash should be stored. Also, PreparedStatements must be used
-        // to avoid SQL injection:
+        // For security reasons, account passwords should not be stored directly
+        // in a database. Instead, only the hash should be stored. Also,
+        // PreparedStatements must be used to avoid SQL injection:
         Statement stat = conn.createStatement();
         stat.execute(
                 "drop table account if exists");

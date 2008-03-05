@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -70,11 +71,10 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the value as a Java array. 
-     * A subset of the array is returned, starting from the index (1 meaning the first element) 
-     * and up to the given object count.
-     * This method always returns an Object[].
-     *
+     * Returns the value as a Java array. A subset of the array is returned,
+     * starting from the index (1 meaning the first element) and up to the given
+     * object count. This method always returns an Object[].
+     * 
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the Object array
@@ -90,11 +90,10 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the value as a Java array. 
-     * A subset of the array is returned, starting from the index (1 meaning the first element) 
-     * and up to the given object count.
-     * This method always returns an Object[].
-     *
+     * Returns the value as a Java array. A subset of the array is returned,
+     * starting from the index (1 meaning the first element) and up to the given
+     * object count. This method always returns an Object[].
+     * 
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported
@@ -112,9 +111,9 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the base type of the array. 
-     * This database does support mixed type arrays and therefore there is no base type.
-     *
+     * Returns the base type of the array. This database does support mixed type
+     * arrays and therefore there is no base type.
+     * 
      * @return Types.NULL
      */
     public int getBaseType() throws SQLException {
@@ -128,9 +127,9 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the base type name of the array. 
-     * This database does support mixed type arrays and therefore there is no base type.
-     *
+     * Returns the base type name of the array. This database does support mixed
+     * type arrays and therefore there is no base type.
+     * 
      * @return "NULL"
      */
     public String getBaseTypeName() throws SQLException {
@@ -145,8 +144,9 @@ public class JdbcArray extends TraceObject implements Array {
 
     /**
      * Returns the value as a result set. 
-     * The first column contains the index (starting with 1) and the second column the value.
-     *
+     * The first column contains the index
+     * (starting with 1) and the second column the value.
+     * 
      * @return the result set
      */
     public ResultSet getResultSet() throws SQLException {
@@ -160,9 +160,9 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the value as a result set. 
-     * The first column contains the index (starting with 1) and the second column the value.
-     *
+     * Returns the value as a result set. The first column contains the index
+     * (starting with 1) and the second column the value.
+     * 
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
      */
@@ -178,11 +178,11 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the value as a result set. 
-     * The first column contains the index (starting with 1) and the second column the value.
-     * A subset of the array is returned, starting from the index (1 meaning the first element) 
-     * and up to the given object count.
-     *
+     * Returns the value as a result set. The first column contains the index
+     * (starting with 1) and the second column the value. A subset of the array
+     * is returned, starting from the index (1 meaning the first element) and 
+     * up to the given object count.
+     * 
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the result set
@@ -199,10 +199,11 @@ public class JdbcArray extends TraceObject implements Array {
 
     /**
      * Returns the value as a result set. 
-     * The first column contains the index (starting with 1) and the second column the value.
-     * A subset of the array is returned, starting from the index (1 meaning the first element) 
-     * and up to the given object count.
-     *
+     * The first column contains the index
+     * (starting with 1) and the second column the value. 
+     * A subset of the array is returned, starting from the index 
+     * (1 meaning the first element) and up to the given object count.
+     * 
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported

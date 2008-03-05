@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -120,11 +121,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Creates a statement with the specified result set type, concurrency, and holdability.
-     *
+     * Creates a statement with the specified result set type, concurrency, and
+     * holdability.
+     * 
      * @return the statement
-     * @throws SQLException
-     *             if the connection is closed or the result set type,
+     * @throws SQLException if the connection is closed or the result set type,
      *             concurrency, or holdability are not supported
      */
     public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
@@ -204,6 +205,13 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     public void setJdbcConnectionListener(JdbcConnectionListener listener) {
         this.listener = listener;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public SessionInterface getSession() {
+        return session;
     }
 
     /**
@@ -521,14 +529,15 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Changes the current transaction isolation level. Calling this method will
-     * commit an open transaction, even if the new level is the same as the
-     * old one, except if the level is not supported.
-     *
+     * commit an open transaction, even if the new level is the same as the old
+     * one, except if the level is not supported.
+     * 
      * @param level the new transaction isolation level,
      *            Connection.TRANSACTION_READ_UNCOMMITTED,
      *            Connection.TRANSACTION_READ_COMMITTED, or
      *            Connection.TRANSACTION_SERIALIZABLE
-     * @throws SQLException if the connection is closed or the isolation level is not supported
+     * @throws SQLException if the connection is closed or the isolation level
+     *             is not supported
      */
     public void setTransactionIsolation(int level) throws SQLException {
         try {
@@ -686,7 +695,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * [Partially supported] Sets the type map. This is only supported if the map is empty or null.
+     * [Partially supported] Sets the type map. This is only supported if the
+     * map is empty or null.
      */
     public void setTypeMap(Map map) throws SQLException {
         try {
@@ -856,11 +866,12 @@ public class JdbcConnection extends TraceObject implements Connection {
 //#endif
 
     /**
-     * Creates a prepared statement with the specified result set type, concurrency, and holdability.
-     *
+     * Creates a prepared statement with the specified result set type,
+     * concurrency, and holdability.
+     * 
      * @return the prepared statement
-     * @throws SQLException
-     *             if the connection is closed or the result set type, concurrency, or holdability are not supported
+     * @throws SQLException if the connection is closed or the result set type,
+     *             concurrency, or holdability are not supported
      */
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
         try {
@@ -1187,15 +1198,18 @@ public class JdbcConnection extends TraceObject implements Connection {
     private void checkTypeAndConcurrency(int resultSetType, int resultSetConcurrency) throws SQLException {
         // TODO compatibility / correctness: OpenOffice uses TYPE_SCROLL_SENSITIVE
 //        if (resultSetType == ResultSet.TYPE_SCROLL_SENSITIVE) {
-//            throw Message.getInvalidValueException("" + resultSetType, "resultSetType");
+//            throw Message.getInvalidValueException(
+//                "" + resultSetType, "resultSetType");
 //        }
 //        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
-//            throw Message.getInvalidValueException("" + resultSetConcurrency, "resultSetConcurrency");
+//            throw Message.getInvalidValueException(
+//                "" + resultSetConcurrency, "resultSetConcurrency");
 //        }
     }
 
     private void checkHoldability(int resultSetHoldability) throws SQLException {
-        // TODO compatibility / correctness: DBPool uses ResultSet.HOLD_CURSORS_OVER_COMMIT
+        // TODO compatibility / correctness: DBPool uses 
+        // ResultSet.HOLD_CURSORS_OVER_COMMIT
 //#ifdef JDK14
         if (resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT
                 && resultSetHoldability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
@@ -1344,7 +1358,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 //#ifdef JDK16
 /*
-    public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+    public Array createArrayOf(String typeName, Object[] elements) 
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
@@ -1355,7 +1370,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 //#ifdef JDK16
 /*
-    public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+    public Struct createStruct(String typeName, Object[] attributes) 
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 */
@@ -1384,7 +1400,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 //#ifdef JDK16
 /*
-    public void setClientInfo(String name, String value) throws SQLClientInfoException {
+    public void setClientInfo(String name, String value) 
+            throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
 */

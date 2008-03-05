@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -12,10 +13,10 @@ import org.h2.util.DateTimeUtils;
 import org.h2.value.Value;
 
 /**
- * Tests the data parsing.
- * The problem is that some dates are not allowed because of the summer time change.
- * Most countries change at 2 o'clock in the morning to 3 o'clock, but some
- * (for example Chile) change at midnight. Non-lenient parsing would not work in this case.
+ * Tests the data parsing. The problem is that some dates are not allowed
+ * because of the summer time change. Most countries change at 2 o'clock in the
+ * morning to 3 o'clock, but some (for example Chile) change at midnight.
+ * Non-lenient parsing would not work in this case.
  */
 public class TestDate extends TestBase {
 

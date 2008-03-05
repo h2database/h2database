@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -90,7 +91,8 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 //                throw Message.internal("bucket=" + i + " is empty");
 //            }
 //            if (bucket.getRecordSize() > RECORDS_PER_BUCKET) {
-//                throw Message.internal("bucket=" + i + " records=" + bucket.getRecordSize());
+//                throw Message.internal(
+//                    "bucket=" + i + " records=" + bucket.getRecordSize());
 //            }
 //            records += bucket.getRecordSize();
 //            if (bucket.getNextBucket() != -1) {
@@ -129,7 +131,8 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
 //                    LinearHashEntry r = bucket.getRecord(j);
 //                    buff.append(r.key.toString());
 //                    if (r.home != i && r.home != f) {
-//                        throw new Exception("MULTIPLE LINKS TO! " + buff.toString());
+//                        throw new Exception(
+//                            "MULTIPLE LINKS TO! " + buff.toString());
 //                    }
 //                }
 //                buff.append("} ");
@@ -185,7 +188,9 @@ public class LinearHashIndex extends BaseIndex implements RecordReader {
                 break;
             }
 
-            // it's possible that the bucket was removed from the cache (if searching for a bucket with space scanned many buckets)
+            // it's possible that the bucket was removed from 
+            // the cache (if searching for a bucket with space 
+            // scanned many buckets)
             bucket = getBucket(session, index);
 
             bucket.setNext(session, free);

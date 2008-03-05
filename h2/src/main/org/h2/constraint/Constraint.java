@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.constraint;
@@ -103,17 +104,17 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     public abstract boolean isBefore();
 
     /**
-     * Get a short description of the constraint. This includes the constraint name (if set),
-     * and the constraint expression.
-     *
+     * Get a short description of the constraint. This includes the constraint
+     * name (if set), and the constraint expression.
+     * 
      * @return the description
      */
     public abstract String getShortDescription();
 
     /**
-     * Check the existing data. This method is called if the constraint is added after
-     * data has been inserted into the table.
-     *
+     * Check the existing data. This method is called if the constraint is added
+     * after data has been inserted into the table.
+     * 
      * @param session the session
      */
     public abstract void checkExistingData(Session session) throws SQLException;

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth.sql;
@@ -17,7 +18,7 @@ import org.h2.util.RandomUtils;
 public class TestSynth extends TestBase {
 
     //  TODO hsqldb: call 1||null should return 1 but returns null
-    //  TODO hsqldb: call mod(1) should return invalid parameter count but returns null
+    //  TODO hsqldb: call mod(1) should return invalid parameter count
 
     static final int H2 = 0, H2_MEM = 1, HSQLDB = 2, MYSQL = 3, POSTGRESQL = 4;
 
@@ -213,10 +214,6 @@ public class TestSynth extends TestBase {
         DbConnection db = new DbConnection(this, className, url, user, password, databases.size(), useSentinel);
         databases.add(db);
     }
-
-    // java -cp
-    // .;..\..\java\mysql.jar;..\..\java\ldbc.jar;..\..\java\postgresql-8.0-311.jdbc3.jar
-    // org.h2.test.TestAll
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.log;
@@ -21,7 +22,8 @@ import org.h2.util.ObjectArray;
 public class UndoLog {
     private Session session;
     private Database database;
-    // TODO undo log entry: a chain would probably be faster & use less memory than an array
+    // TODO undo log entry: a chain would probably be faster 
+    //  and use less memory than an array
     private ObjectArray records = new ObjectArray();
     private FileStore file;
     private DataPage rowBuff;

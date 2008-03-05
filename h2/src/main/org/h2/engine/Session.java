@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -39,8 +40,9 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
- * A session represents a database connection. When using the server mode,
- * this object resides on the server side and communicates with a RemoteSession on the client side.
+ * A session represents a database connection. When using the server mode, this
+ * object resides on the server side and communicates with a RemoteSession on
+ * the client side.
  */
 public class Session implements SessionInterface {
 

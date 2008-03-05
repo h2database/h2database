@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.message;
@@ -38,7 +39,8 @@ public class Message {
             String language = Locale.getDefault().getLanguage();
             if (!"en".equals(language)) {
                 byte[] translations = Resources.get("/org/h2/res/_messages_"+language+".properties");
-                // message: translated message + english (otherwise certain applications don't work)
+                // message: translated message + english 
+                // (otherwise certain applications don't work)
                 if (translations != null) {
                     Properties p = new Properties();
                     p.load(new ByteArrayInputStream(translations));

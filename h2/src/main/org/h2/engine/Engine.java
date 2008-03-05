@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -21,7 +22,8 @@ import org.h2.util.StringUtils;
  * This is a singleton class.
  */
 public class Engine {
-    // TODO use a 'engine'/'master' database to allow shut down the server, view & kill sessions and so on
+    // TODO use a 'engine'/'master' database to allow shut down the server, 
+    // view & kill sessions and so on
 
     private static final Engine INSTANCE = new Engine();
     private final HashMap databases = new HashMap();
@@ -35,7 +37,8 @@ public class Engine {
     }
 
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
-        // may not remove properties here, otherwise they are lost if it is required to call it twice
+        // may not remove properties here, otherwise they are lost 
+        // if it is required to call it twice
         String name = ci.getName();
         Database database;
         if (ci.isUnnamed()) {
@@ -52,7 +55,8 @@ public class Engine {
             database = new Database(name, ci, cipher);
             opened = true;
             if (database.getAllUsers().size() == 0) {
-                // users is the last thing we add, so if no user is around, the database is not initialized correctly
+                // users is the last thing we add, so if no user is around, 
+                // the database is not initialized correctly
                 user = new User(database, database.allocateObjectId(false, true), ci.getUserName(), false);
                 user.setAdmin(true);
                 user.setUserPasswordHash(ci.getUserPasswordHash());

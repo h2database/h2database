@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
  * Initial Developer: H2 Group
  */
 package org.h2.samples;
@@ -14,10 +15,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * SQL Injection is a common security vulnerability for applications that use database.
- * It is one of the most common security vulnerabilities for web applications today.
- * This sample application shows how SQL injection works, and how to protect
- * the application from it.
+ * SQL Injection is a common security vulnerability for applications that use
+ * database. It is one of the most common security vulnerabilities for web
+ * applications today. This sample application shows how SQL injection works,
+ * and how to protect the application from it.
  */
 public class SQLInjection {
 

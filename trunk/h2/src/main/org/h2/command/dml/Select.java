@@ -871,8 +871,6 @@ public class Select extends Query {
         if (isGroupQuery) {
             if (isGroupSortedQuery) {
                 buff.append("\n/* group sorted */");
-            } else {
-                buff.append("\n/* group */");
             }
         }
         return buff.toString();

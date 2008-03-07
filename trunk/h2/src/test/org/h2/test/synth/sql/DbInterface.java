@@ -34,6 +34,15 @@ public interface DbInterface {
 
     Result delete(Table table, String condition) throws SQLException;
 
+    /**
+     * Update the given table with the new values.
+     * 
+     * @param table the table 
+     * @param columns the columns to update
+     * @param values the new values
+     * @param condition the condition
+     * @return the result of the update
+     */
     Result update(Table table, Column[] columns, Value[] values, String condition) throws SQLException;
 
     void setAutoCommit(boolean b) throws SQLException;

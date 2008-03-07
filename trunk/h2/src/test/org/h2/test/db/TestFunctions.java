@@ -306,6 +306,19 @@ public class TestFunctions extends TestBase {
         return statement.executeQuery();
     }
 
+    /**
+     * Test method to create a simple result set.
+     * 
+     * @param count the number of rows
+     * @param ip an int
+     * @param bp a boolean
+     * @param fp a float
+     * @param dp a double
+     * @param lp a long
+     * @param byParam a byte
+     * @param sp a short
+     * @return a result set
+     */
     public static ResultSet simpleResultSet(Integer count, int ip, boolean bp, float fp, double dp, long lp,
             byte byParam, short sp) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();

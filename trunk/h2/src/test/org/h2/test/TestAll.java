@@ -167,6 +167,13 @@ explain SELECT type, max(name) FROM TEST group by type;
 SELECT type, max(name) FROM TEST group by type;
 
 
+test with:
+- large varchar columns (40 KB)
+- not closing the database
+
+
+
+
 read uncommitted and multi-threaded mode at the same time is dangerous
 
 add @author

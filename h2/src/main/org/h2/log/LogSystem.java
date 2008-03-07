@@ -365,6 +365,15 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Add a truncate entry.
+     * 
+     * @param session the session
+     * @param file the disk file
+     * @param storageId the storage id
+     * @param recordId the id of the first record
+     * @param blockCount the number of blocks
+     */
     public void addTruncate(Session session, DiskFile file, int storageId, int recordId, int blockCount)
             throws SQLException {
         if (database == null) {

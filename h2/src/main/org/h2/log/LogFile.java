@@ -530,7 +530,7 @@ public class LogFile {
         }
     }
 
-    public void updatePreparedCommit(boolean commit, int pos, int sessionId, int blocks) throws SQLException {
+    void updatePreparedCommit(boolean commit, int pos, int sessionId, int blocks) throws SQLException {
         synchronized (database) {
             int posNow = getBlock();
             DataPage buff = rowBuff;

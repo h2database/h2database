@@ -293,11 +293,35 @@ public class Schema extends DbObjectBase {
         freeUniqueName(objName);
     }
 
-    public TableData createTable(String tempName, int id, ObjectArray newColumns, boolean persistent, boolean clustered)
+    /**
+     * Add a {@link TableData} to the schema.
+     * 
+     * @param tableName the table name
+     * @param id the object id
+     * @param columns the column list
+     * @param persistent if the table should be persistent
+     * @param clustered if a clustered table should be created
+     * @return the created {@link TableData} object
+     */
+    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistent, boolean clustered)
             throws SQLException {
-        return new TableData(this, tempName, id, newColumns, persistent, clustered);
+        return new TableData(this, tableName, id, columns, persistent, clustered);
     }
 
+    /**
+     * Add a {@link TableLink} to the schema.
+     * 
+     * @param id the object id
+     * @param tableName the table name of the alias
+     * @param driver the driver class name
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param originalTable the table name of the target table
+     * @param emitUpdates if updates should be emitted instead of delete/insert
+     * @param force create the object even if the database can not be accessed
+     * @return the {@link TableLink} object
+     */
     public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password,
             String originalTable, boolean emitUpdates, boolean force) throws SQLException {
         return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);

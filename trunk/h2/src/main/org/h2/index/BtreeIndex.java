@@ -221,7 +221,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return find(session, first, false, last);
     }
 
-    public Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) throws SQLException {
+    private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) throws SQLException {
         if (SysProperties.CHECK && storage == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }

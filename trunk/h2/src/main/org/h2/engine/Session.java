@@ -358,6 +358,13 @@ public class Session implements SessionInterface {
         locks.add(table);
     }
 
+    /**
+     * Add an undo log entry to this session.
+     * 
+     * @param table the table
+     * @param type the operation type (see {@link UndoLogRecord})
+     * @param row the row
+     */
     public void log(Table table, short type, Row row) throws SQLException {
         log(new UndoLogRecord(table, type, row));
     }

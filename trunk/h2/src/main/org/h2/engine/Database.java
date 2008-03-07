@@ -1088,6 +1088,13 @@ public class Database implements DataHandler {
         addMeta(session, obj);
     }
 
+    /**
+     * Rename a schema object.
+     * 
+     * @param session the session
+     * @param obj the object
+     * @param newName the new name
+     */
     public synchronized void renameSchemaObject(Session session, SchemaObject obj, String newName) throws SQLException {
         obj.getSchema().rename(obj, newName);
         updateWithChildren(session, obj);
@@ -1109,6 +1116,13 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Rename a database object.
+     * 
+     * @param session the session
+     * @param obj the object
+     * @param newName the new name
+     */
     public synchronized void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
@@ -1177,6 +1191,14 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Get or create the specified storage object.
+     * 
+     * @param reader the record reader
+     * @param id the object id
+     * @param dataFile true if the data is in the data file
+     * @return the storage
+     */
     public Storage getStorage(RecordReader reader, int id, boolean dataFile) {
         DiskFile file;
         if (dataFile) {
@@ -1421,6 +1443,16 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Set the progress of a long running operation.
+     * This method calls the {@link DatabaseEventListener} if one is registered.
+     * 
+     * @param state the {@link DatabaseEventListener} state
+     * @param name the object name
+     * @param x the current position
+     * @param max the highest value
+     */
+    
     public void setProgress(int state, String name, int x, int max) {
         if (eventListener != null) {
             try {

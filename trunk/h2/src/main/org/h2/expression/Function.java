@@ -379,7 +379,7 @@ public class Function extends Expression implements FunctionCall {
         return null;
     }
 
-    public Value getSimpleValue(Session session, Value v0, Expression[] args) throws SQLException {
+    private Value getSimpleValue(Session session, Value v0, Expression[] args) throws SQLException {
         Value result;
         switch (info.type) {
         case ABS:
@@ -1558,6 +1558,14 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    /**
+     * Set the result data type of this function.
+     * 
+     * @param dataType the data type
+     * @param precision the precision
+     * @param scale the scale
+     * @param displaySize the display size
+     */
     public void setDataType(int dataType, long precision, int scale, int displaySize) {
         this.dataType = dataType;
         this.precision = precision;

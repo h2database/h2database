@@ -94,6 +94,13 @@ public abstract class RightOwner extends DbObjectBase {
         }
     }
 
+    /**
+     * Grant a role to this object.
+     * 
+     * @param session the session
+     * @param role the role
+     * @param right the right to grant
+     */
     public void grantRole(Session session, Role role, Right right) {
         if (grantedRoles == null) {
             grantedRoles = new HashMap();

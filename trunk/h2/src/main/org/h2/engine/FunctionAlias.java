@@ -153,6 +153,14 @@ public class FunctionAlias extends DbObjectBase {
         return getValue(session, args, false);
     }
 
+    /**
+     * Call the user defined function and return the value.
+     * 
+     * @param session the session
+     * @param args the argument list
+     * @param columnList true if the function should only return the column list
+     * @return the value
+     */
     public synchronized Value getValue(Session session, Expression[] args, boolean columnList) throws SQLException {
         load();
         Class[] paramClasses = javaMethod.getParameterTypes();

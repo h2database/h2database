@@ -93,7 +93,7 @@ public class TableFunction extends Function implements FunctionCall {
         columns.toArray(columnList);
     }
 
-    public ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
+    private ValueResultSet getTable(Session session, Expression[] args, boolean onlyColumnList, boolean distinct) throws SQLException {
         int len = columnList.length;
         Expression[] header = new Expression[len];
         Database db = session.getDatabase();

@@ -70,10 +70,27 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
+    /**
+     * Create the SQL statement of this object so a copy of the table can be made.
+     * 
+     * @param table the table to create the object for
+     * @param quotedName the name of this object (quoted if necessary)
+     * @return the SQL statement
+     */
     public String getCreateSQLForCopy(Table table, String quotedName) {
         return getCreateSQLForCopy(table, refTable, quotedName, true);
     }
 
+    int test;
+    /**
+     * Create the SQL statement of this object so a copy of the table can be made.
+     * 
+     * @param table the table to create the object for
+     * @param refTable the referenced table
+     * @param quotedName the name of this object (quoted if necessary)
+     * @param internalIndex add the index name to the statement
+     * @return the SQL statement
+     */
     public String getCreateSQLForCopy(Table table, Table refTable, String quotedName, boolean internalIndex) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");

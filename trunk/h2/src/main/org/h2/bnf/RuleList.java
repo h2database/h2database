@@ -77,7 +77,7 @@ public class RuleList implements Rule {
     public String name() {
         return null;
     }
-
+    
     public Rule last() {
         return get(list.size() - 1);
     }

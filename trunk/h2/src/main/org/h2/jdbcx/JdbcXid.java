@@ -82,7 +82,7 @@ implements Xid
         return branchQualifier;
     }
 
-    /** 
+    /**
      * The global transaction identifier.
      * 
      * @return the transaction id

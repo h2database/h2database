@@ -188,6 +188,12 @@ public class Parser {
         database = session.getDatabase();
     }
 
+    /**
+     * Parse the statement and prepare it for execution.
+     * 
+     * @param sql the SQL statement to parse
+     * @return the prepared object
+     */
     public Prepared prepare(String sql) throws SQLException {
         try {
             Prepared p = parse(sql);
@@ -198,6 +204,12 @@ public class Parser {
         }
     }
 
+    /**
+     * Parse the statement, but don't prepare it for execution.
+     * 
+     * @param sql the SQL statement to parse
+     * @return the prepared object
+     */
     public Prepared parseOnly(String sql) throws SQLException {
         try {
             return parse(sql);
@@ -206,6 +218,12 @@ public class Parser {
         }
     }
 
+    /**
+     * Parse a statement or a list of statements, and prepare it for execution.
+     * 
+     * @param sql the SQL statement to parse
+     * @return the command object
+     */
     public Command prepareCommand(String sql) throws SQLException {
         try {
             Prepared p = parse(sql);
@@ -2883,6 +2901,12 @@ public class Parser {
         return getSaveTokenType(s);
     }
 
+    /**
+     * Checks if this string is a SQL keyword.
+     * 
+     * @param s the token to check
+     * @return true if it is a keyword
+     */
     public static boolean isKeyword(String s) {
         if (s == null || s.length() == 0) {
             return false;
@@ -4444,6 +4468,12 @@ public class Parser {
         }
     }
 
+    /**
+     * Add double quotes around an identifier if required.
+     * 
+     * @param s the identifier
+     * @return the quoted identifier
+     */
     public static String quoteIdentifier(String s) {
         if (s == null || s.length() == 0) {
             return "\"\"";
@@ -4469,6 +4499,13 @@ public class Parser {
         this.rightsChecked = rightsChecked;
     }
 
+    /**
+     * Parse a SQL code snippet that represents an expression.
+     * 
+     * @param sql the code snippet
+     * @return the expression object
+     * @throws SQLException if the code snipped could not be parsed
+     */
     public Expression parseExpression(String sql) throws SQLException {
         parameters = new ObjectArray();
         initialize(sql);

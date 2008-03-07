@@ -72,6 +72,12 @@ public class SetTypes {
         types.set(type, name);
     }
 
+    /**
+     * Get the set type number.
+     * 
+     * @param name the set type name
+     * @return the number
+     */
     public static int getType(String name) {
         for (int i = 0; i < types.size(); i++) {
             if (name.equals(types.get(i))) {
@@ -85,6 +91,12 @@ public class SetTypes {
         return types;
     }
 
+    /**
+     * Get the set type name.
+     * 
+     * @param type the type number
+     * @return the name
+     */
     public static String getTypeName(int type) {
         return (String) types.get(type);
     }

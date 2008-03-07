@@ -64,9 +64,11 @@ public class IOUtils {
 
     public static long copyAndClose(InputStream in, OutputStream out) throws IOException {
         try {
-            return copyAndCloseInput(in, out);
-        } finally {
+            long len = copyAndCloseInput(in, out);
             out.close();
+            return len;
+        } finally {
+            closeSilently(out);
         }
     }
 
@@ -74,7 +76,7 @@ public class IOUtils {
         try {
             return copy(in, out);
         } finally {
-            in.close();
+            closeSilently(in);
         }
     }
 

@@ -32,8 +32,13 @@ import com.sun.javadoc.Type;
 public class Doclet {
 
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
+    private int errorCount;
 
     public static boolean start(RootDoc root) throws IOException {
+        return new Doclet().startDoc(root);
+    }
+    
+    public boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
         String destDir = System.getProperty("h2.destDir", "docs/javadoc");
@@ -46,6 +51,9 @@ public class Doclet {
             ClassDoc clazz = classes[i];
             processClass(destDir, clazz);
         }
+        if (errorCount > 0) {
+            throw new IOException("FAILED: " + errorCount + " errors found");
+        }
         return true;
     }
 
@@ -56,7 +64,7 @@ public class Doclet {
         return name;
     }
 
-    private static void processClass(String destDir, ClassDoc clazz) throws IOException {
+    private void processClass(String destDir, ClassDoc clazz) throws IOException {
         String packageName = clazz.containingPackage().name();
         String dir = destDir + "/" + packageName.replace('.', '/');
         (new File(dir)).mkdirs();
@@ -141,7 +149,8 @@ public class Doclet {
             String name = field.name();
             String text = field.commentText();
             if (text == null || text.trim().length() == 0) {
-                throw new Error("undocumented field? " + clazz.name() + "." + name + " " + field);
+                System.out.println("Undocumented field? " + clazz.name() + "." + name + " " + field);
+                errorCount++;
             }
             if (text.startsWith("INTERNAL")) {
                 continue;
@@ -290,15 +299,16 @@ public class Doclet {
         out.close();
     }
 
-    private static String getFieldLink(String text, String constant, ClassDoc clazz, String name) {
+    private String getFieldLink(String text, String constant, ClassDoc clazz, String name) {
         String link = constant != null ? constant : name.toLowerCase();
         int linkStart = text.indexOf("<code>");
         if (linkStart >= 0) {
             int linkEnd = text.indexOf("</code>", linkStart);
             link = text.substring(linkStart + "<code>".length(), linkEnd);
             if (constant != null && !constant.equals(link)) {
-                throw new Error("wrong code tag? " + clazz.name() + "." + name +
+                System.out.println("Wrong code tag? " + clazz.name() + "." + name +
                         " code: " + link + " constant: " + constant);
+                errorCount++;
             }
         }
         if (Character.isDigit(link.charAt(0))) {
@@ -322,26 +332,67 @@ public class Doclet {
         return false;
     }
 
-    private static boolean skipMethod(MethodDoc method) {
+    private boolean skipMethod(MethodDoc method) {
         ClassDoc clazz = method.containingClass();
-         if (INTERFACES_ONLY && (!clazz.isAbstract() || !method.isAbstract()) && !clazz.isInterface()) {
+        boolean isInterface = clazz.isInterface() || (clazz.isAbstract() && method.isAbstract());
+         if (INTERFACES_ONLY && !isInterface) {
              return true;
          }
         String name = method.name();
         if (!method.isPublic() || name.equals("finalize")) {
             return true;
         }
-        if (method.getRawCommentText().startsWith("@deprecated INTERNAL")) {
+        if (method.getRawCommentText().trim().startsWith("@deprecated INTERNAL")) {
             return true;
         }
         String firstSentence = getFirstSentence(method.firstSentenceTags());
-        if (firstSentence == null || firstSentence.trim().length() == 0) {
-            throw new Error("undocumented method? " + clazz.name() + "." + name + " "
-                    + method.getRawCommentText());
-        }
-        if (firstSentence.startsWith("INTERNAL")) {
+        String raw = method.getRawCommentText();
+        if (firstSentence != null && firstSentence.startsWith("INTERNAL")) {
             return true;
+        }        
+        if ((firstSentence == null || firstSentence.trim().length() == 0) && raw.indexOf("{@inheritDoc}") < 0) {
+            if (!doesOverride(method)) {
+                boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
+                setterOrGetter |= name.startsWith("get") && method.parameters().length == 0;
+                if (isInterface || !setterOrGetter) {
+                    System.out.println("Undocumented method? " + " (" + clazz.name() + ".java:" + method.position().line() +") " + name + " " + raw);
+                    errorCount++;
+                    return true;
+                }
+            }
         }
+        return false;
+    }
+    
+    private boolean doesOverride(MethodDoc method) {
+        ClassDoc clazz = method.containingClass();
+int test;        
+//System.out.println(clazz.name() + ". " + method.name());        
+        ClassDoc[] ifs = clazz.interfaces();
+        int pc = method.parameters().length;
+        String name = method.name();
+        for (int i = 0;; i++) {
+            ClassDoc c;
+            if (i < ifs.length) {
+                c = ifs[i];
+            } else {
+                clazz = clazz.superclass();
+                if (clazz == null) {
+                    break;
+                }
+                c = clazz;
+            }
+            MethodDoc[] ms = c.methods();
+            for (int j = 0; j < ms.length; j++) {
+                MethodDoc m = ms[j];
+//System.out.println("  " + c.name() + ". " + m);        
+                if (m.name().equals(name) && m.parameters().length == pc) {
+//System.out.println("    true");        
+                    return true;
+                }
+            }
+        }
+//System.out.println("    false");        
         return false;
     }
 

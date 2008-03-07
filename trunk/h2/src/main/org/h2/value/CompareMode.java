@@ -115,13 +115,10 @@ public class CompareMode {
     }
 
     /**
-     * Get the collation name
+     * Get the collation name.
      * 
-     * @param a the first string
-     * @param b the second string
-     * @param ignoreCase true if a case-insensitive comparison should be made
-     * @return -1 if the first string is 'smaller', 1 if the second string is
-     *         smaller, and 0 if they are equal
+     * @param l the locale
+     * @return the name of the collation
      */
     public static String getName(Locale l) {
         Locale english = Locale.ENGLISH;

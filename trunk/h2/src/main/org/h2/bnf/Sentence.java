@@ -15,6 +15,11 @@ import org.h2.server.web.DbTableOrView;
  * Used for autocomplete.
  */
 public class Sentence {
+    
+    /**
+     * The possible choices of the item depend on the context.
+     * For example the item represents a table name of the current database.
+     */
     public static final int CONTEXT = 0;
     static final int KEYWORD = 1;
     static final int FUNCTION = 2;

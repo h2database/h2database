@@ -259,6 +259,7 @@ public class FileSystemDisk extends FileSystem {
                 }
                 out.write(buffer, 0, len);
             }
+            out.close();
         } catch (IOException e) {
             throw Message.convertIOException(e, "original: " + original + " copy: " + copy);
         } finally {

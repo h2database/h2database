@@ -70,6 +70,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
     }
 
+    /**
+     * Try to execute the statement.
+     * 
+     * @return the update count
+     */
     public int tryUpdate() throws SQLException {
         session.commit(true);
         Database db = session.getDatabase();
@@ -350,6 +355,12 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return indexColumns;
     }
 
+    /**
+     * Set the referenced table.
+     * 
+     * @param refSchema the schema
+     * @param ref the table name
+     */
     public void setRefTableName(Schema refSchema, String ref) {
         this.refSchema = refSchema;
         this.refTableName = ref;

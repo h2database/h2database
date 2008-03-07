@@ -81,22 +81,28 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
             return value;
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public Object getArray(Map map) throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public Object getArray(long index, int count) throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public Object getArray(long index, int count, Map map) throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** 
+        /**
          * Get the base type of this array.
          * 
          * @return Types.NULL
@@ -105,7 +111,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
             return Types.NULL;
         }
 
-        /** 
+        /**
          * Get the base type name of this array.
          * 
          * @return "NULL"
@@ -114,22 +120,30 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
             return "NULL";
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public ResultSet getResultSet() throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public ResultSet getResultSet(Map map) throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public ResultSet getResultSet(long index, int count) throws SQLException {
             throw getUnsupportedException();
         }
 
-        /** INTERNAL */
+        /**
+         * INTERNAL 
+         */
         public ResultSet getResultSet(long index, int count, Map map) throws SQLException {
             throw getUnsupportedException();
         }
@@ -835,481 +849,673 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     // ---- unsupported / result set ---------------------------------------------
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void clearWarnings() throws SQLException {
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void afterLast() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void cancelRowUpdates() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNull(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void deleteRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void insertRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void moveToCurrentRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void moveToInsertRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void refreshRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateRow() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean first() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean isAfterLast() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean isBeforeFirst() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean isFirst() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean isLast() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean last() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean previous() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean rowDeleted() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean rowInserted() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean rowUpdated() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void setFetchDirection(int direction) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void setFetchSize(int rows) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNull(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean absolute(int row) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public boolean relative(int rows) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateByte(int columnIndex, byte x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateDouble(int columnIndex, double x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateFloat(int columnIndex, float x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateInt(int columnIndex, int x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateLong(int columnIndex, long x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateShort(int columnIndex, short x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBoolean(int columnIndex, boolean x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBytes(int columnIndex, byte[] x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public InputStream getAsciiStream(int columnIndex) throws SQLException {
         return null;
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public InputStream getBinaryStream(int columnIndex) throws SQLException {
         return null;
     }
 
-    /** @deprecated INTERNAL */
+    /** 
+     * @deprecated INTERNAL 
+     */
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         return null;
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Reader getCharacterStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateObject(int columnIndex, Object x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public String getCursorName() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateString(int columnIndex, String x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateByte(String columnName, byte x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateDouble(String columnName, double x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateFloat(String columnName, float x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateInt(String columnName, int x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateLong(String columnName, long x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateShort(String columnName, short x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBoolean(String columnName, boolean x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBytes(String columnName, byte[] x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** @deprecated INTERNAL */
+    /** 
+     * @deprecated INTERNAL 
+     */
     public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public URL getURL(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateArray(int columnIndex, Array x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Blob getBlob(int i) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(int columnIndex, Blob x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Clob getClob(int i) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(int columnIndex, Clob x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateDate(int columnIndex, Date x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Ref getRef(int i) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateRef(int columnIndex, Ref x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateTime(int columnIndex, Time x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public InputStream getAsciiStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public InputStream getBinaryStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** @deprecated INTERNAL */
+    /** 
+     * @deprecated INTERNAL 
+     */
     public InputStream getUnicodeStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(String columnName, InputStream x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(String columnName, InputStream x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Reader getCharacterStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(String columnName, Reader reader, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateObject(String columnName, Object x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateObject(String columnName, Object x, int scale) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Object getObject(int i, Map map) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateString(String columnName, String x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** @deprecated INTERNAL */
+    /** 
+     * @deprecated INTERNAL 
+     */
     public BigDecimal getBigDecimal(String columnName, int scale) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBigDecimal(String columnName, BigDecimal x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public URL getURL(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateArray(String columnName, Array x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Blob getBlob(String colName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(String columnName, Blob x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Clob getClob(String colName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(String columnName, Clob x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateDate(String columnName, Date x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Date getDate(int columnIndex, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Ref getRef(String colName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateRef(String columnName, Ref x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateTime(String columnName, Time x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Time getTime(int columnIndex, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateTimestamp(String columnName, Timestamp x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Object getObject(String colName, Map map) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Date getDate(String columnName, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Time getTime(String columnName, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Timestamp getTimestamp(String columnName, Calendar cal) throws SQLException {
         throw getUnsupportedException();
     }
@@ -1342,7 +1548,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return (Column) columns.get(i);
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public RowId getRowId(int columnIndex) throws SQLException {
@@ -1351,7 +1559,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public RowId getRowId(String columnName) throws SQLException {
@@ -1360,7 +1570,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
@@ -1369,7 +1581,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateRowId(String columnName, RowId x) throws SQLException {
@@ -1398,17 +1612,23 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return rows == null;
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNString(int columnIndex, String nString) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNString(String columnName, String nString) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
@@ -1417,7 +1637,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateNClob(String columnName, NClob nClob) throws SQLException {
@@ -1426,7 +1648,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public NClob getNClob(int columnIndex) throws SQLException {
@@ -1435,7 +1659,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public NClob getNClob(String columnName) throws SQLException {
@@ -1444,7 +1670,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
@@ -1453,7 +1681,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public SQLXML getSQLXML(String columnName) throws SQLException {
@@ -1462,7 +1692,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) 
@@ -1472,7 +1704,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public void updateSQLXML(String columnName, SQLXML xmlObject) 
@@ -1482,37 +1716,51 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public String getNString(int columnIndex) throws SQLException {
         return getString(columnIndex);
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public String getNString(String columnName) throws SQLException {
         return getString(columnName);
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Reader getNCharacterStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public Reader getNCharacterStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(String columnName, Reader x, int length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -1521,7 +1769,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
 //#ifdef JDK16
 /*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
@@ -1530,142 +1780,198 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 */
 //#endif
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateAsciiStream(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(int columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBinaryStream(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(int columnIndex, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateBlob(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateCharacterStream(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateClob(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNCharacterStream(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNClob(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNClob(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
 
-    /** INTERNAL */
+    /** 
+     * INTERNAL 
+     */
     public void updateNClob(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }

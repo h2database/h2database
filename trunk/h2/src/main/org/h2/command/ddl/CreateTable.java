@@ -59,6 +59,11 @@ public class CreateTable extends SchemaCommand {
         this.tableName = tableName;
     }
 
+    /**
+     * Add a column to this table.
+     * 
+     * @param column the column to add
+     */
     public void addColumn(Column column) {
         if (columns == null) {
             columns = new ObjectArray();
@@ -66,6 +71,12 @@ public class CreateTable extends SchemaCommand {
         columns.add(column);
     }
 
+    /**
+     * Add a constraint statement to this statement.
+     * The primary key definition is one possible constraint statement.
+     * 
+     * @param command the statement to add
+     */
     public void addConstraintCommand(Prepared command) throws SQLException {
         if (command instanceof CreateIndex) {
             constraintCommands.add(command);
@@ -236,10 +247,16 @@ public class CreateTable extends SchemaCommand {
         this.globalTemporary = globalTemporary;
     }
 
+    /**
+     * This temporary table is dropped on commit.
+     */
     public void setOnCommitDrop() {
         this.onCommitDrop = true;
     }
 
+    /**
+     * This temporary table is truncated on commit.
+     */
     public void setOnCommitTruncate() {
         this.onCommitTruncate = true;
     }

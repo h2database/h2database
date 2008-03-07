@@ -134,7 +134,14 @@ public class Bnf {
         addFixedRule("@digit@", RuleFixed.DIGIT);
     }
 
-    public String getSyntax(String rule, String syntax) {
+    /**
+     * Get the HTML documentation for a given syntax.
+     * 
+     * @param rule the rule (topic)
+     * @param syntax the BNF syntax
+     * @return the HTML formatted text
+     */
+    public String getSyntaxHtml(String rule, String syntax) {
         StringTokenizer tokenizer = new StringTokenizer(syntax, SEPARATORS, true);
         StringBuffer buff = new StringBuffer();
         while (tokenizer.hasMoreTokens()) {
@@ -269,6 +276,18 @@ public class Bnf {
         return (String[]) list.toArray(new String[0]);
     }
 
+    /**
+     * Get the list of tokens that can follow.
+     * This is the main autocomplete method.
+     * The returned map for the query 'S' may look like this:
+     * <pre>
+     * key: 1#SELECT, value: ELECT
+     * key: 1#SET, value: ET
+     * </pre>
+     * 
+     * @param query the start of the statement
+     * @return the map of possible token types / tokens
+     */
     public HashMap getNextTokenList(String query) {
         HashMap next = new HashMap();
         Sentence sentence = new Sentence();
@@ -285,6 +304,10 @@ public class Bnf {
         return next;
     }
 
+    /**
+     * Cross-link all statements with each other.
+     * This method is called after updating the topics.
+     */
     public void linkStatements() {
         for (Iterator it = ruleMap.values().iterator(); it.hasNext();) {
             RuleHead r = (RuleHead) it.next();
@@ -292,6 +315,13 @@ public class Bnf {
         }
     }
 
+    /**
+     * Update a topic with a context specific rule.
+     * This is used for autocomplete support.
+     * 
+     * @param topic the topic
+     * @param rule the database context rule
+     */
     public void updateTopic(String topic, DbContextRule rule) {
         topic = StringUtils.toLowerEnglish(topic);
         RuleHead head = (RuleHead) ruleMap.get(topic);
@@ -304,6 +334,11 @@ public class Bnf {
         }
     }
 
+    /**
+     * Get the list of possible statements.
+     * 
+     * @return the list of statements
+     */
     public ArrayList getStatements() {
         return statements;
     }

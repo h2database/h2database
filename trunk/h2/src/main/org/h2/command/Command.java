@@ -87,10 +87,23 @@ public abstract class Command implements CommandInterface {
         trace = session.getDatabase().getTrace(Trace.COMMAND);
     }
 
+    /**
+     * Execute an updating statement, if this is possible.
+     * 
+     * @return the update count
+     * @throws SQLException if the command is not an updating statement
+     */
     public int update() throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
+    /**
+     * Execute a query statement, if this is possible.
+     * 
+     * @param maxrows the maximum number of rows returned
+     * @return the local result set
+     * @throws SQLException if the command is not a query
+     */
     public LocalResult query(int maxrows) throws SQLException {
         throw Message.getSQLException(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
@@ -107,6 +120,13 @@ public abstract class Command implements CommandInterface {
         return executeQueryLocal(maxrows);
     }
 
+    /**
+     * Execute a query and return a local result set.
+     * This method prepares everything and calls {@link query} finally.
+     * 
+     * @param maxrows the maximum number of rows to return
+     * @return the local result set
+     */
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
@@ -131,6 +151,11 @@ public abstract class Command implements CommandInterface {
         startTime = System.currentTimeMillis();
     }
 
+    /**
+     * Check if this command has been cancelled, and throw an exception if yes.
+     * 
+     * @throws SQLException if the statement has been cancelled
+     */
     public void checkCancelled() throws SQLException {
         if (cancel) {
             cancel = false;

@@ -48,6 +48,12 @@ public class Update extends Prepared {
         this.condition = condition;
     }
 
+    /**
+     * Add an assignment of the form column = expression.
+     * 
+     * @param column the column
+     * @param expression the expression
+     */
     public void setAssignment(Column column, Expression expression)
             throws SQLException {
         int id = column.getColumnId();

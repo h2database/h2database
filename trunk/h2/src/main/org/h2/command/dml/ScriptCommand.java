@@ -336,7 +336,9 @@ public class ScriptCommand extends ScriptBase {
                 Comment comment = (Comment) comments.get(i);
                 add(comment.getCreateSQL(), false);
             }
-            closeIO();
+            if (out != null) {
+                out.close();
+            }
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         } finally {

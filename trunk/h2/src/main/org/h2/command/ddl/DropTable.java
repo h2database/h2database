@@ -30,6 +30,11 @@ public class DropTable extends SchemaCommand {
         super(session, schema);
     }
 
+    /**
+     * Chain another drop table statement to this statement.
+     * 
+     * @param next the statement to add
+     */
     public void addNextDropTable(DropTable next) {
         if (this.next == null) {
             this.next = next;

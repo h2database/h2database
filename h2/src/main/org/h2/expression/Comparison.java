@@ -176,7 +176,7 @@ public class Comparison extends Condition {
         return ValueBoolean.get(result);
     }
 
-    public static boolean compareNotNull(Database database, Value l, Value r, int compareType) throws SQLException {
+    static boolean compareNotNull(Database database, Value l, Value r, int compareType) throws SQLException {
         boolean result;
         switch (compareType) {
         case EQUAL:

@@ -259,6 +259,14 @@ public class CompareLike extends Condition {
         return si == sLen;
     }
 
+    /**
+     * Test if the value matches the pattern.
+     * 
+     * @param pattern the pattern
+     * @param value the value
+     * @param escape the escape character
+     * @return true if the value matches
+     */
     public boolean test(String pattern, String value, char escape) throws SQLException {
         initPattern(pattern, escape);
         return compareAt(value, 0, 0, value.length());

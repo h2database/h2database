@@ -135,6 +135,12 @@ public class BackupCommand extends Prepared {
         return true;
     }
 
+    /**
+     * Fix the file name, replacing backslash with slash.
+     * 
+     * @param f the file name
+     * @return the corrected file name
+     */
     public static String correctFileName(String f) {
         f = f.replace('\\', '/');
         if (f.startsWith("/")) {

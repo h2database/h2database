@@ -181,7 +181,7 @@ public abstract class Query extends Prepared {
         return true;
     }
 
-    public final boolean sameResultAsLast(Session session, Value[] params, Value[] lastParams, long lastEvaluated)
+    private boolean sameResultAsLast(Session session, Value[] params, Value[] lastParams, long lastEvaluated)
             throws SQLException {
         Database db = session.getDatabase();
         for (int i = 0; i < params.length; i++) {
@@ -320,10 +320,17 @@ public abstract class Query extends Prepared {
         }
     }
 
-    public SortOrder prepareOrder(ObjectArray expressions, ObjectArray orderList) throws SQLException {
+    /**
+     * Create a {@link SortOrder} object given the list of {@link SelectOrderBy} objects.
+     * The expression list is extended if necessary.
+     * 
+     * @param orderList a list of {@link SelectOrderBy} elements
+     * @param expressionCount the number of columns in the query
+     * @return the {@link SortOrder} object
+     */
+    public SortOrder prepareOrder(ObjectArray orderList, int expressionCount) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
-        int originalLength = expressions.size();
         for (int i = 0; i < orderList.size(); i++) {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);
             int idx;
@@ -343,7 +350,7 @@ public abstract class Query extends Prepared {
                     idx = -idx;
                 }
                 idx -= 1;
-                if (idx < 0 || idx >= originalLength) {
+                if (idx < 0 || idx >= expressionCount) {
                     throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT, "" + (idx + 1));
                 }
             }
@@ -388,6 +395,12 @@ public abstract class Query extends Prepared {
         return visitor.getMaxDataModificationId();
     }
 
+    /**
+     * Visit all expressions and subqueries in this query using the visitor pattern.
+     * 
+     * @param expressionVisitorType the visitor type
+     * @return true if no component returned false
+     */
     public final boolean isEverything(int expressionVisitorType) {
         ExpressionVisitor visitor = ExpressionVisitor.get(expressionVisitorType);
         return isEverything(visitor);

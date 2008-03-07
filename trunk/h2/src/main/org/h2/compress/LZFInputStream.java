@@ -105,7 +105,7 @@ public class LZFInputStream extends InputStream {
         return read == 0 ? -1 : read;
     }
 
-    public int readBlock(byte[] b, int off, int len) throws IOException {
+    private int readBlock(byte[] b, int off, int len) throws IOException {
         fillBuffer();
         if (pos >= bufferLength) {
             return -1;

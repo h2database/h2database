@@ -216,11 +216,11 @@ public class SelectUnion extends Query {
         }
         if (orderList != null) {
             initOrder(expressions, null, orderList, getColumnCount(), true);
-            sort = prepareOrder(expressions, orderList);
+            sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
     }
-
+    
     public double getCost() {
         return left.getCost() + right.getCost();
     }

@@ -104,6 +104,17 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Create a LOB value with the given parameters.
+     * 
+     * @param type the data type
+     * @param handler the file handler
+     * @param tableId the table object id
+     * @param objectId the object id
+     * @param precision the precision (length in elements)
+     * @param compression if compression is used
+     * @return the value object
+     */
     public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) {
         String fileName = getFileName(handler, tableId, objectId);
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);

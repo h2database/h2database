@@ -77,6 +77,15 @@ public class JdbcUtils {
     }
 //#endif
 
+    /**
+     * Create a new database connection with the given settings.
+     * 
+     * @param driver the driver class name
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @return the database connection
+     */
     public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
         Properties prop = new Properties();
         prop.setProperty("user", user);

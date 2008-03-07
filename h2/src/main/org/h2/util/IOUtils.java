@@ -190,6 +190,15 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Read the given number of bytes to the buffer.
+     * 
+     * @param in the input stream
+     * @param buffer the output buffer
+     * @param off the offset in the buffer
+     * @param max the number of bytes to read at most
+     * @return the number of bytes read
+     */
     public static int readFully(InputStream in, byte[] buffer, int off, int max) throws IOException {
         int len = Math.min(max, buffer.length);
         int result = 0;

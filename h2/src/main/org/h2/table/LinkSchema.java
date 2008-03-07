@@ -19,6 +19,19 @@ import org.h2.util.StringUtils;
  * A utility class to create table links for a whole schema.
  */
 public class LinkSchema {
+    
+    /**
+     * Link all tables of a schema to the database.
+     * 
+     * @param conn the connection to the database where the links are to be created
+     * @param targetSchema the schema name where the objects should be created
+     * @param driver the driver class name of the linked database
+     * @param url the database URL of the linked database
+     * @param user the user name
+     * @param password the password
+     * @param sourceSchema the schema where the existing tables are
+     * @return a result set with the created tables
+     */
     public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user,
             String password, String sourceSchema) throws SQLException {
         Connection c2 = null;

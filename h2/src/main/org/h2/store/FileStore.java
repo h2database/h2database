@@ -39,15 +39,47 @@ public class FileStore {
     private boolean checkedWriting = true;
     private boolean synchronousMode;
     private String mode;
-
+    
+    /**
+     * Open a non encrypted file store with the given settings.
+     * 
+     * @param handler the data handler
+     * @param name the file name
+     * @param mode the access mode (r, rw, rws, rwd)
+     * @param magic the file header magic bytes
+     * @return the created object
+     */    
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         return open(handler, name, mode, magic, null, null, 0);
     }
 
+    /**
+     * Open an encrypted file store with the given settings.
+     * 
+     * @param handler the data handler
+     * @param name the file name
+     * @param mode the access mode (r, rw, rws, rwd)
+     * @param magic the file header magic bytes
+     * @param cipher the name of the cipher algorithm
+     * @param key the encryption key
+     * @return the created object
+     */
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key) throws SQLException {
         return open(handler, name, mode, magic, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
     }
 
+    /**
+     * Open an encrypted file store with the given settings.
+     * 
+     * @param handler the data handler
+     * @param name the file name
+     * @param mode the access mode (r, rw, rws, rwd)
+     * @param magic the file header magic bytes
+     * @param cipher the name of the cipher algorithm
+     * @param key the encryption key
+     * @param keyIterations the number of iterations the key should be hashed
+     * @return the created object
+     */
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher,
             byte[] key, int keyIterations) throws SQLException {
         FileStore store;

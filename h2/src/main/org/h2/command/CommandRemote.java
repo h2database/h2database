@@ -219,6 +219,10 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    /**
+     * Cancel this current statement.
+     * This method is not yet implemented for this class.
+     */
     public void cancel() {
         // TODO server: support cancel
     }

@@ -24,6 +24,10 @@ import org.h2.util.StringUtils;
 
 /**
  * CSVREAD and CSVWRITE tests.
+ * 
+ * @author Thomas Mueller
+ * @author Sylvain Cuaz (testNull)
+ * 
  */
 public class TestCsv extends TestBase {
 
@@ -40,8 +44,6 @@ public class TestCsv extends TestBase {
 
     /**
      * Test custom NULL string.
-     *
-     * @author Sylvain Cuaz, Thomas Mueller
      */
     public void testNull() throws Exception {
         deleteDb("csv");

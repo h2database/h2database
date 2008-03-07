@@ -78,6 +78,12 @@ public class SelectUnion extends Query {
         return result;
     }
 
+    /**
+     * Execute the query without using the cache.
+     * 
+     * @param maxrows the maximum number of rows to return
+     * @return the result
+     */
     public LocalResult queryWithoutCache(int maxrows) throws SQLException {
         if (maxrows != 0) {
             if (limit != null) {

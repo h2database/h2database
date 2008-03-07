@@ -53,8 +53,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     private String cipher;
     private byte[] key;
     private FileStore store;
-    private OutputStream outStream;
-    private InputStream inStream;
     private String compressionAlgorithm;
 
     public ScriptBase(Session session) {
@@ -110,8 +108,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             // always use a big buffer, otherwise end-of-block is written a lot
             out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
         } else {
-            outStream = FileUtils.openFileOutputStream(fileName, false);
-            out = new BufferedOutputStream(outStream, Constants.IO_BUFFER_SIZE);
+            OutputStream o = FileUtils.openFileOutputStream(fileName, false);
+            out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
             out = CompressTool.wrapOutputStream(out, compressionAlgorithm, Constants.SCRIPT_SQL);
         }
     }
@@ -124,6 +122,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             initStore();
             in = new FileStoreInputStream(store, this, compressionAlgorithm != null, false);
         } else {
+            InputStream inStream;
             try {
                 inStream = FileUtils.openFileInputStream(fileName);
             } catch (IOException e) {
@@ -146,10 +145,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             store.closeSilently();
             store = null;
         }
-        IOUtils.closeSilently(inStream);
-        inStream = null;
-        IOUtils.closeSilently(outStream);
-        outStream = null;
     }
 
     public boolean needRecompile() {

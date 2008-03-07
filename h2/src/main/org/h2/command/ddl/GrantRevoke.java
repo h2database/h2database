@@ -41,10 +41,20 @@ public class GrantRevoke extends DefineCommand {
         this.operationType = operationType;
     }
 
+    /**
+     * Add the specified right bit to the rights bitmap.
+     * 
+     * @param right the right bit
+     */
     public void addRight(int right) {
         this.rightMask |= right;
     }
 
+    /**
+     * Add the specified role to the list of roles.
+     * 
+     * @param roleName the role
+     */
     public void addRoleName(String roleName) {
         if (roleNames == null) {
             roleNames = new ObjectArray();
@@ -163,6 +173,11 @@ public class GrantRevoke extends DefineCommand {
         return false;
     }
 
+    /**
+     * Add the specified table to the list of tables.
+     * 
+     * @param table the table
+     */
     public void addTable(Table table) {
         tables.add(table);
     }

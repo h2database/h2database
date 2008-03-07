@@ -352,6 +352,7 @@ public class Recover implements DataHandler {
                 out.write(buffer, 0, l);
                 size += l;
             }
+            out.close();
         } catch (Throwable e) {
             // this is usually not a problem, because we try both compressed and
             // uncompressed
@@ -544,6 +545,7 @@ public class Recover implements DataHandler {
                     }
                 }
             }
+            writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {
@@ -663,6 +665,7 @@ public class Recover implements DataHandler {
                 }
                 writer.println("// [" + block + "] page:" + page + " blocks:" + blockCount + " storage:" + storageId);
             }
+            writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {
@@ -833,6 +836,7 @@ public class Recover implements DataHandler {
             }
             writer.println("DROP ALIAS READ_CLOB;");
             writer.println("DROP ALIAS READ_BLOB;");
+            writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {

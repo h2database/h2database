@@ -4169,7 +4169,7 @@ Welcome to H2, the free SQL database. The main feature of H2 are:
 Very fast, free for everybody, source code is included
 
 @mainWeb_1003_li
-Written Java; can be compiled with GCJ (Linux)
+Written in Java; can be compiled with GCJ (Linux)
 
 @mainWeb_1004_li
 Embedded, Server and Cluster modes

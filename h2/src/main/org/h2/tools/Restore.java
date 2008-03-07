@@ -161,6 +161,7 @@ public class Restore {
                     try {
                         out = FileUtils.openFileOutputStream(directory + File.separator + fileName, false);
                         IOUtils.copy(zipIn, out);
+                        out.close();
                     } finally {
                         IOUtils.closeSilently(out);
                     }

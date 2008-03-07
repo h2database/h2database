@@ -83,6 +83,7 @@ public class Csv implements SimpleRowSource {
                 writeRow(row);
                 rows++;
             }
+            writer.close();
             return rows;
         } catch (IOException e) {
             throw Message.convertIOException(e, null);

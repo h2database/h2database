@@ -24,23 +24,14 @@ public abstract class DefineCommand extends Prepared {
         super(session);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean isTransactional() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean isReadOnly() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public LocalResult queryMeta() {
         return null;
     }

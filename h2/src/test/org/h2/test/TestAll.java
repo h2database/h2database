@@ -166,8 +166,10 @@ create index idx_type on test(type);
 explain SELECT type, max(name) FROM TEST group by type;
 SELECT type, max(name) FROM TEST group by type;
 
+
 read uncommitted and multi-threaded mode at the same time is dangerous
 
+add @author
 
 CREATE TABLE in a before trigger results in an internal error.
 
@@ -212,6 +214,7 @@ New experimental optimization for GROUP BY queries if an index can be used
 
 Roadmap:
 Use ant 'get' to download dependencies
+Index usage for UPDATE ... WHERE .. IN (SELECT...)
 
 
 */

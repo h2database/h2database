@@ -26,7 +26,16 @@ import org.h2.util.ObjectArray;
  */
 public class GrantRevoke extends DefineCommand {
 
-    public static final int GRANT = 0, REVOKE = 1;
+    /**
+     * The operation type to grant a right.
+     */
+    public static final int GRANT = 0;
+    
+    /**
+     * The operation type to revoke a right.
+     */
+    public static final int REVOKE = 1;
+    
     private ObjectArray roleNames;
     private int operationType;
     private int rightMask;

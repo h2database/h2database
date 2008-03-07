@@ -77,10 +77,10 @@ public interface DatabaseEventListener extends EventListener {
      * This method is called for long running events, such as recovering,
      * scanning a file or building an index.
      * 
-     * @param state - the state
-     * @param name - the object name
-     * @param x - the current position
-     * @param max - the highest value
+     * @param state the state
+     * @param name the object name
+     * @param x the current position
+     * @param max the highest value
      */
     void setProgress(int state, String name, int x, int max);
 

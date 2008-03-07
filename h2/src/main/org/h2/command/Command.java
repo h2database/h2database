@@ -122,7 +122,7 @@ public abstract class Command implements CommandInterface {
 
     /**
      * Execute a query and return a local result set.
-     * This method prepares everything and calls {@link query} finally.
+     * This method prepares everything and calls {@link #query(int)} finally.
      * 
      * @param maxrows the maximum number of rows to return
      * @return the local result set

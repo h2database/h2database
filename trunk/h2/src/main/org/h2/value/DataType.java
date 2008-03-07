@@ -326,6 +326,15 @@ public class DataType {
         return types;
     }
 
+    /**
+     * Read a value from the given result set.
+     * 
+     * @param session the session
+     * @param rs the result set
+     * @param columnIndex the column index (1 based)
+     * @param type the data type
+     * @return the value
+     */
     public static Value readValue(SessionInterface session, ResultSet rs, int columnIndex, int type) throws SQLException {
         Value v;
         switch(type) {
@@ -746,6 +755,15 @@ public class DataType {
         }
     }
 
+    /**
+     * Convert a value to the specified class.
+     * 
+     * @param session the session
+     * @param conn the database connection
+     * @param v the value
+     * @param paramClass the target class
+     * @return the converted object
+     */
     public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
             throws SQLException {
         if (paramClass == java.sql.Blob.class) {

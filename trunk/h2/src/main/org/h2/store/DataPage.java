@@ -414,12 +414,12 @@ public abstract class DataPage {
     }
 
     public Value readValue() throws SQLException {
-        int type = data[pos++];
-        if (type == '-') {
+        int dataType = data[pos++];
+        if (dataType == '-') {
             return ValueNull.INSTANCE;
         }
-        type = (type - 'a');
-        switch (type) {
+        dataType = (dataType - 'a');
+        switch (dataType) {
         case Value.BOOLEAN:
             return ValueBoolean.get(readInt() == 1);
         case Value.BYTE:
@@ -472,7 +472,7 @@ public abstract class DataPage {
             if (smallLen >= 0) {
                 byte[] small = new byte[smallLen];
                 read(small, 0, smallLen);
-                return ValueLob.createSmallLob(type, small);
+                return ValueLob.createSmallLob(dataType, small);
             } else {
                 int tableId = readInt();
                 int objectId = readInt();
@@ -483,7 +483,7 @@ public abstract class DataPage {
                     precision = readLong();
                     compression = readByte() == 1;
                 }
-                ValueLob lob = ValueLob.open(type, handler, tableId, objectId, precision, compression);
+                ValueLob lob = ValueLob.open(dataType, handler, tableId, objectId, precision, compression);
                 if (smallLen == -3) {
                     lob.setFileName(readString());
                 }
@@ -499,7 +499,7 @@ public abstract class DataPage {
             return ValueArray.get(list);
         }
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.getInternalError("type=" + dataType);
         }
     }
 

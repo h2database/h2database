@@ -38,6 +38,16 @@ public class MathUtils {
         return (int) i;
     }
 
+    /**
+     * Increase the value by about 50%. The method is used to increase the file size
+     * in larger steps.
+     * 
+     * @param start the smallest possible returned value
+     * @param min the current value
+     * @param blockSize the block size
+     * @param maxIncrease the maximum increment
+     * @return the new value
+     */
     public static long scaleUp50Percent(long start, long min, long blockSize, long maxIncrease) {
         long len;
         if (min > maxIncrease * 2) {

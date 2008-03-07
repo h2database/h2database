@@ -636,6 +636,15 @@ public class StringUtils {
         return sql;
     }
 
+    /**
+     * Pad a string. This method is used for the SQL function RPAD and LPAD.
+     * 
+     * @param string the original string
+     * @param n the target length
+     * @param padding the padding string
+     * @param right true if the padding should be appended at the end
+     * @return the padded string
+     */
     public static String pad(String string, int n, String padding, boolean right) {
         if (n < 0) {
             n = 0;

@@ -938,6 +938,14 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Add a redo-log entry to the redo buffer.
+     * 
+     * @param storage the storage
+     * @param recordId the record id of the entry
+     * @param blockCount the number of blocks
+     * @param rec the record
+     */
     public void addRedoLog(Storage storage, int recordId, int blockCount, DataPage rec) throws SQLException {
         synchronized (database) {
             byte[] data = null;

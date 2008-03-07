@@ -32,6 +32,12 @@ public class ExecuteProcedure extends Prepared {
         this.procedure = procedure;
     }
 
+    /**
+     * Set the expression at the given index.
+     * 
+     * @param index the index (0 based)
+     * @param expr the expression
+     */
     public void setExpression(int index, Expression expr) throws SQLException {
         expressions.add(index, expr);
     }

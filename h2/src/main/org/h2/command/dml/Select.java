@@ -80,6 +80,12 @@ public class Select extends Query {
         super(session);
     }
 
+    /**
+     * Add a table to the query.
+     * 
+     * @param filter the table to add
+     * @param isTop if the table can be the first table in the query plan
+     */
     public void addTableFilter(TableFilter filter, boolean isTop) {
         // TODO compatibility: it seems oracle doesn't check on 
         // duplicate aliases; do other databases check it?
@@ -119,6 +125,11 @@ public class Select extends Query {
         orderList = order;
     }
 
+    /**
+     * Add a condition to the list of conditions.
+     * 
+     * @param cond the condition to add
+     */
     public void addCondition(Expression cond) {
         if (condition == null) {
             condition = cond;
@@ -658,7 +669,7 @@ public class Select extends Query {
             throw Message.getInternalError("not initialized");
         }
         if (orderList != null) {
-            sort = prepareOrder(expressions, orderList);
+            sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
         for (int i = 0; i < expressions.size(); i++) {

@@ -20,12 +20,19 @@ import org.h2.table.Table;
  */
 public class AlterTableSet  extends SchemaCommand {
 
+    /**
+     * Enable the referential integrity.
+     */
+    public static final int REFERENTIAL_INTEGRITY_TRUE = 0;
+    
+    /**
+     * Disable the referential integrity.
+     */
+    public static final int REFERENTIAL_INTEGRITY_FALSE = 1;
+
     private String tableName;
     private final int type;
     private boolean checkExisting;
-
-    public static final int REFERENTIAL_INTEGRITY_TRUE = 4;
-    public static final int REFERENTIAL_INTEGRITY_FALSE = 5;
 
     public AlterTableSet(Session session, Schema schema, int type) {
         super(session, schema);

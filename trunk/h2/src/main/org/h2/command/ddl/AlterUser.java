@@ -23,7 +23,21 @@ import org.h2.util.ByteUtils;
  */
 public class AlterUser extends DefineCommand {
 
-    public static final int SET_PASSWORD = 0, RENAME = 1, ADMIN = 2;
+    /**
+     * The command type to set the password.
+     */
+    public static final int SET_PASSWORD = 0;
+    
+    /**
+     * The command type to rename the user.
+     */
+    public static final int RENAME = 1;
+    
+    /**
+     * The command type to change the admin flag.
+     */
+    public static final int ADMIN = 2;
+    
     private int type;
     private User user;
     private String newName;

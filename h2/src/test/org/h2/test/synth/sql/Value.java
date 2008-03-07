@@ -183,7 +183,7 @@ public class Value {
         return new Value(config, type, data);
     }
 
-    public static Value getRandom(TestSynth config, int type, int precision, int scale, boolean mayBeNull) {
+    static Value getRandom(TestSynth config, int type, int precision, int scale, boolean mayBeNull) {
         Object data;
         if (mayBeNull && config.random().getBoolean(20)) {
             return new Value(config, type, null);

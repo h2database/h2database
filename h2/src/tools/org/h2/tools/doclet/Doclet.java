@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 
 import org.h2.util.StringUtils;
 
@@ -33,6 +34,7 @@ public class Doclet {
 
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
     private int errorCount;
+    private HashSet errors = new HashSet();
 
     public static boolean start(RootDoc root) throws IOException {
         return new Doclet().startDoc(root);
@@ -149,8 +151,7 @@ public class Doclet {
             String name = field.name();
             String text = field.commentText();
             if (text == null || text.trim().length() == 0) {
-                System.out.println("Undocumented field? " + clazz.name() + "." + name + " " + field);
-                errorCount++;
+                addError("Undocumented field (" + clazz.name() + ".java:" + field.position().line() + ") " + name);
             }
             if (text.startsWith("INTERNAL")) {
                 continue;
@@ -355,8 +356,7 @@ public class Doclet {
                 boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
                 setterOrGetter |= name.startsWith("get") && method.parameters().length == 0;
                 if (isInterface || !setterOrGetter) {
-                    System.out.println("Undocumented method? " + " (" + clazz.name() + ".java:" + method.position().line() +") " + name + " " + raw);
-                    errorCount++;
+                    addError("Undocumented method " + " (" + clazz.name() + ".java:" + method.position().line() +") " + clazz + "." + name + " " + raw);
                     return true;
                 }
             }
@@ -364,10 +364,15 @@ public class Doclet {
         return false;
     }
     
+    private void addError(String s) {
+        if (errors.add(s)) {
+            System.out.println(s);
+            errorCount++;
+        }
+    }
+    
     private boolean doesOverride(MethodDoc method) {
         ClassDoc clazz = method.containingClass();
-int test;        
-//System.out.println(clazz.name() + ". " + method.name());        
         ClassDoc[] ifs = clazz.interfaces();
         int pc = method.parameters().length;
         String name = method.name();
@@ -385,14 +390,11 @@ int test;
             MethodDoc[] ms = c.methods();
             for (int j = 0; j < ms.length; j++) {
                 MethodDoc m = ms[j];
-//System.out.println("  " + c.name() + ". " + m);        
                 if (m.name().equals(name) && m.parameters().length == pc) {
-//System.out.println("    true");        
                     return true;
                 }
             }
         }
-//System.out.println("    false");        
         return false;
     }
 

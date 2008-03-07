@@ -31,7 +31,7 @@ public class TestSecurity extends TestBase {
         byte[] result = sha.getHash(data);
         return ByteUtils.convertBytesToString(result);
     }
-
+    
     private void testOneSHA(SHA256 sha) throws Exception {
         if (!getHashString(sha, new byte[] {}).equals(
                 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")) {
@@ -48,6 +48,22 @@ public class TestSecurity extends TestBase {
                 "175ee69b02ba9b58e2b0a5fd13819cea573f3940a94f825128cf4209beabb4e8")) {
             throw new Exception("x");
         }
+        check("", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855");
+        check("a", "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
+        check("abc", "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
+        check("message digest", "F7846F55CF23E14EEBEAB5B4E1550CAD5B509E3348FBC4EFA3A1413D393CB650");
+        check("abcdefghijklmnopqrstuvwxyz", "71C480DF93D6AE2F1EFAD1447C66C9525E316218CF51FC8D9ED832F2DAF18B73");
+        check("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1");
+        check("12345678901234567890123456789012345678901234567890123456789012345678901234567890", "F371BC4A311F2B009EEF952DD83CA80E2B60026C8E935592D0F9C308453C813E");
+        StringBuffer buff = new StringBuffer(1000000);
+        buff.append('a');
+        check(buff.toString(), "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
+    }
+    
+    void checkSHA256(String message, String expected) throws Exception {
+        SHA256 sha = new SHA256();
+        String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes())).toUpperCase();
+        check(expected, hash);
     }
 
     public void testXTEA() throws Exception {

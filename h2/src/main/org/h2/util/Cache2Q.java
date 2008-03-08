@@ -14,7 +14,7 @@ import org.h2.message.Message;
 /**
  * A cache implementation based on the 2Q algorithm.
  * For about the algorithm, see
- * http://www.vldb.org/conf/1994/P439.PDF.
+ * http://www.vldb.org/conf/1994/P439.PDF .
  * In this implementation, items are moved from 'in'
  * queue and move to the 'main' queue if the are referenced again.
  */

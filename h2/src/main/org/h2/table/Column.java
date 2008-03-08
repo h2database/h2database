@@ -272,12 +272,14 @@ public class Column {
     }
 
     /**
-     * Convert the auto-increment flag to a sequence that is linked with this table.
+     * Convert the auto-increment flag to a sequence that is linked with this
+     * table.
      * 
      * @param session the session
      * @param schema the schema where the sequence should be generated
      * @param id the object id
-     * @param temporary true if the sequence is temporary and does not need to be stored
+     * @param temporary true if the sequence is temporary and does not need to
+     *            be stored
      */
     public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary)
             throws SQLException {

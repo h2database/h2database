@@ -556,7 +556,7 @@ FileDescriptor.sync() ドキュメンテーションには、これは強制的�
 FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
 
 @advanced_1185_p
-デフォルトでは、MySQLはそれぞれのコミットごとに fsync を呼びます。それらのメソッドのうちひとつを使用している時、 毎秒およそ60件だけが実行され、使用されているハードドライブのRPM速度と一貫性があります。 残念ながら、FileDescriptor.sync() または FileChannel.force() を呼んだ時でさえも データは常にハードドライブに存続するとは限りません。なぜなら、多くのハードドライブは fsync() に従わないからです: http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252 内の"Your Hard Drive Lies to You" をご覧下さい。Mac OS X では、fsync はハードドライブバッファーをフラッシュしません: http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html そのため状況は混乱していて、 問題があることをテストは証明しています。
+#By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X fsync does not flush hard drive buffers, see <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
 
 @advanced_1186_p
 ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
@@ -1519,7 +1519,7 @@ Centralリポジトリの利用
 #After deleting data, empty space in the database files was not efficiently reused (but it was reused when opening the database). This has been fixed.
 
 @changelog_1188_li
-#About 230 bytes per database was leaked. This is a problem for applications opening and closing many thousand databases. The main problem: a shutdown hook was added but never removed. Fixed. In JDK 1.4, there is an additionally problem, see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4197876. A workaround has been implemented.
+#About 230 bytes per database was leaked. This is a problem for applications opening and closing many thousand databases. The main problem: a shutdown hook was added but never removed. Fixed.  In JDK 1.4, there is <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4197876">an additionally problem</a> .  A workaround has been implemented.
 
 @changelog_1189_li
 #Optimization for COLUMN IN(.., NULL) if the column does not allow NULL values.
@@ -3499,7 +3499,7 @@ Sourceファイル
 #You don't need to provide the source code of H2 if you did not modify anything.
 
 @license_1008_p
-#However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB, when a company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was, in fact, just HSQLDB. At this time, it seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and look for old web pages of http://www.bungisoft.com.
+#However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB, when a company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was, in fact, just HSQLDB. At this time, it seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and look for old web pages of http://www.bungisoft.com .
 
 @license_1009_p
 #About porting the source code to another language (for example C# or C++): Converted source code (even if done manually) stays under the same copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code.
@@ -3958,207 +3958,213 @@ Sourceファイル
 #High-Availability JDBC: A JDBC proxy that provides light-weight, transparent, fault tolerant clustering capability to any underlying JDBC driver.
 
 @links_1045_a
-#Hibernate
+#HenPlus
 
 @links_1046_p
-#Relational persistence for idiomatic Java (O-R mapping tool).
+#HenPlus is a SQL shell written in Java.
 
 @links_1047_a
-#Hibicius
+#Hibernate
 
 @links_1048_p
-#Online Banking Client for the HBCI protocol
+#Relational persistence for idiomatic Java (O-R mapping tool).
 
 @links_1049_a
-#H2 Spatial
+#Hibicius
 
 @links_1050_p
-#A project to add spatial functions to H2 database.
+#Online Banking Client for the HBCI protocol
 
 @links_1051_a
-#JAMWiki
+#H2 Spatial
 
 @links_1052_p
-#Java-based Wiki engine.
+#A project to add spatial functions to H2 database.
 
 @links_1053_a
-#Jala
+#JAMWiki
 
 @links_1054_p
-#Open source collection of JavaScript modules
+#Java-based Wiki engine.
 
 @links_1055_a
-#JavaPlayer
+#Jala
 
 @links_1056_p
-#Pure Java MP3 player.
+#Open source collection of JavaScript modules
 
 @links_1057_a
-#JMatter
+#JavaPlayer
 
 @links_1058_p
-#Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
+#Pure Java MP3 player.
 
 @links_1059_a
-#JPOX
+#JMatter
 
 @links_1060_p
-#Java persistent objects.
+#Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
 
 @links_1061_a
-#Liftweb
+#JPOX
 
 @links_1062_p
-#A Scala-based, secure, developer friendly web framework
+#Java persistent objects.
 
 @links_1063_a
-#LiquiBase
+#Liftweb
 
 @links_1064_p
-#A tool to manage database changes and refactorings.
+#A Scala-based, secure, developer friendly web framework
 
 @links_1065_a
-#Luntbuild
+#LiquiBase
 
 @links_1066_p
-#Build automation and management tool.
+#A tool to manage database changes and refactorings.
 
 @links_1067_a
-#Mr. Persister
+#Luntbuild
 
 @links_1068_p
-#Simple, small and fast object relational mapping.
+#Build automation and management tool.
 
 @links_1069_a
-#Myna Application Server
+#Mr. Persister
 
 @links_1070_p
-#Java web app that provides dynamic web content and Java libraries access from JavaScript.
+#Simple, small and fast object relational mapping.
 
 @links_1071_a
-#MyTunesRss
+#Myna Application Server
 
 @links_1072_p
-#MyTunesRSS lets you listen to your music wherever you are.
+#Java web app that provides dynamic web content and Java libraries access from JavaScript.
 
 @links_1073_a
-#NCGC CurveFit
+#MyTunesRss
 
 @links_1074_p
-#From: NIH Chemical Genomics Center, National Institutes of Health, USA. An open source application in the life sciences research field. This application handles chemical structures and biological responses of thousands of compounds with the potential to handle million+ compounds. It utilizes an embedded H2 database to enable flexible query/retrieval of all data including advanced chemical substructure and similarity searching. The application highlights an automated curve fitting and classification algorithm that outperforms commercial packages in the field. Commercial alternatives are typically small desktop software that handle a few dose response curves at a time. A couple of commercial packages that do handle several thousand curves are very expensive tools (&gt;60k USD) that require manual curation of analysis by the user; require a license to Oracle; lack advanced query/retrieval; and the ability to handle chemical structures.
+#MyTunesRSS lets you listen to your music wherever you are.
 
 @links_1075_a
-#Orion
+#NCGC CurveFit
 
 @links_1076_p
-#J2EE Application Server.
+#From: NIH Chemical Genomics Center, National Institutes of Health, USA. An open source application in the life sciences research field. This application handles chemical structures and biological responses of thousands of compounds with the potential to handle million+ compounds. It utilizes an embedded H2 database to enable flexible query/retrieval of all data including advanced chemical substructure and similarity searching. The application highlights an automated curve fitting and classification algorithm that outperforms commercial packages in the field. Commercial alternatives are typically small desktop software that handle a few dose response curves at a time. A couple of commercial packages that do handle several thousand curves are very expensive tools (&gt;60k USD) that require manual curation of analysis by the user; require a license to Oracle; lack advanced query/retrieval; and the ability to handle chemical structures.
 
 @links_1077_a
-#PolePosition
+#Orion
 
 @links_1078_p
-#Open source database benchmark.
+#J2EE Application Server.
 
 @links_1079_a
-#Scriptella
+#PolePosition
 
 @links_1080_p
-#ETL (Extract-Transform-Load) and script execution tool.
+#Open source database benchmark.
 
 @links_1081_a
-#Sesar
+#Scriptella
 
 @links_1082_p
-#Dependency Injection Container with Aspect Oriented Programming
+#ETL (Extract-Transform-Load) and script execution tool.
 
 @links_1083_a
-#SemmleCode
+#Sesar
 
 @links_1084_p
-#Eclipse plugin to help you improve software quality.
+#Dependency Injection Container with Aspect Oriented Programming
 
 @links_1085_a
-#Shellbook
+#SemmleCode
 
 @links_1086_p
-#Desktop publishing application.
+#Eclipse plugin to help you improve software quality.
 
 @links_1087_a
-#Signsoft intelliBO
+#Shellbook
 
 @links_1088_p
-#Persistence middleware supporting the JDO specification.
+#Desktop publishing application.
 
 @links_1089_a
-#SmartFoxServer
+#Signsoft intelliBO
 
 @links_1090_p
-#Platform for developing multiuser applications and games with Macromedia Flash.
+#Persistence middleware supporting the JDO specification.
 
 @links_1091_a
-#SQL Developer
+#SmartFoxServer
 
 @links_1092_p
-#Universal Database Frontend.
+#Platform for developing multiuser applications and games with Macromedia Flash.
 
 @links_1093_a
-#SQL Workbench/J
+#SQL Developer
 
 @links_1094_p
-#Free DBMS-independent SQL tool.
+#Universal Database Frontend.
 
 @links_1095_a
-#SQuirreL SQL Client
+#SQL Workbench/J
 
 @links_1096_p
-#Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
+#Free DBMS-independent SQL tool.
 
 @links_1097_a
-#SQuirreL DB Copy Plugin
+#SQuirreL SQL Client
 
 @links_1098_p
-#Tool to copy data from one database to another.
+#Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
 
 @links_1099_a
-#StorYBook
+#SQuirreL DB Copy Plugin
 
 @links_1100_p
-#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
+#Tool to copy data from one database to another.
 
 @links_1101_a
-#StreamCruncher
+#StorYBook
 
 @links_1102_p
-#Event (stream) processing kernel.
+#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
 
 @links_1103_a
-#Tamava
+#StreamCruncher
 
 @links_1104_p
-#Newsgroups Reader.
+#Event (stream) processing kernel.
 
 @links_1105_a
-#Tune Backup
+#Tamava
 
 @links_1106_p
-#Easy-to-use backup solution for your iTunes library.
+#Newsgroups Reader.
 
 @links_1107_a
-#Web of Web
+#Tune Backup
 
 @links_1108_p
-#Collaborative and realtime interactive media platform for the web.
+#Easy-to-use backup solution for your iTunes library.
 
 @links_1109_a
-#Werkzeugkasten
+#Web of Web
 
 @links_1110_p
-#Minimum Java Toolset.
+#Collaborative and realtime interactive media platform for the web.
 
 @links_1111_a
-#Volunteer database
+#Werkzeugkasten
 
 @links_1112_p
+#Minimum Java Toolset.
+
+@links_1113_a
+#Volunteer database
+
+@links_1114_p
 #A database front end to register volunteers, partnership and donation for a Non Profit organization.
 
 @mainWeb_1000_h1
@@ -5531,7 +5537,7 @@ Windows インストーラーを使用してソフトウェアをインストー
 コンソールウィンドウが 開きます:
 
 @quickstartText_1017_p
-新しいブラウザで URL http://localhost:8082/ にアクセスして下さい。 ファイアーウォールによるセキュリティ警告を設定することができます。外部ネットワークから あなたのマシンのデータベースにアクセスされたくないのであれば、ファイアーウォールが他の接続を遮断します。 ローカル接続のみ必要です。
+#Also, a new browser page should open with the URL <a href="http://localhost:8082">http://localhost:8082</a> . You may get a security warning from the firewall. If you don't want other computers in the network to access the database on your machine, you can let the firewall block these connections. Only local connections are required at this time.
 
 @quickstartText_1018_h4
 ログイン
@@ -6206,7 +6212,7 @@ SQLコマンドがコマンドエリアに表示されます。
 #Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 
 @roadmap_1210_li
-#Feature matrix like here: http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp.
+#Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a> .
 
 @roadmap_1211_li
 #Updatable result set on table without primary key or unique index
@@ -6895,7 +6901,7 @@ Javaをテストする
 ブラウザを使用してサーバーに接続
 
 @tutorial_1044_p
-サーバーの接続に成功したら、webブラウザを使用してサーバーに接続することができます。ブラウザにはJavaScript、フレーム、カスケードスタイルシート (css)のサポートが必要です。もし同じコンピューターのブラウザでサーバーを起動したら、 http://localhost:8082 へアクセスしてください。他のコンピューターからアプリケーションに接続したい場合は、 サーバーのIPアドレスを用意することが必要です。 例: http://192.168.0.2:8082 サーバー側でSSLを使用したい場合は、URLをHTTPSから始めます。
+#If the server started successfully, you can connect to it using a web browser. The browser needs to support JavaScript, frames and cascading stylesheets (css). If you started the server on the same computer as the browser, go to http://localhost:8082 in the browser. If you want to connect to the application from another computer, you need to provide the IP address of the server, for example: <a href="http://192.168.0.2:8082">http://192.168.0.2:8082</a> . If you enabled SSL on the server side, the URL needs to start with HTTPS.
 
 @tutorial_1045_h3
 複数の同時セッション

@@ -159,6 +159,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+scheduler: what if invoke takes more than...
+scheduler: log at startup next 5
+
 drop table test;
 create table test(id int primary key, type int, name varchar);
 create index idx_type on test(type);
@@ -170,9 +173,6 @@ SELECT type, max(name) FROM TEST group by type;
 test with:
 - large varchar columns (40 KB)
 - not closing the database
-
-
-
 
 read uncommitted and multi-threaded mode at the same time is dangerous
 

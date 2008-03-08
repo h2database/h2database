@@ -191,13 +191,14 @@ public class PgServer implements Service {
     }
 
     /**
-     * The Java implementation of the PostgreSQL function pg_get_indexdef.
-     * The method is used to get CREATE INDEX command for an index,
-     * or the column definition of one column in the index.
+     * The Java implementation of the PostgreSQL function pg_get_indexdef. The
+     * method is used to get CREATE INDEX command for an index, or the column
+     * definition of one column in the index.
      * 
      * @param conn the connection
      * @param indexId the index id
-     * @param ordinalPosition the ordinal position (null if the SQL statement should be returned)
+     * @param ordinalPosition the ordinal position (null if the SQL statement
+     *            should be returned)
      * @param pretty this flag is ignored
      * @return the SQL statement or the column name
      */

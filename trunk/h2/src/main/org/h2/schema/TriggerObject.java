@@ -106,7 +106,8 @@ public class TriggerObject extends SchemaObjectBase {
      * @param session the session
      * @param oldRow the old row
      * @param newRow the new row
-     * @param beforeAction true if this method is called before the operation is applied
+     * @param beforeAction true if this method is called before the operation is
+     *            applied
      */
     public void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
         if (!rowBased || before != beforeAction) {

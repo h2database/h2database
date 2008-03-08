@@ -560,9 +560,10 @@ By default, MySQL calls fsync for each commit. When using one of those methods, 
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
 Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(),
 data is not always persisted to the hard drive, because most hard drives do not obey
-fsync(): see 'Your Hard Drive Lies to You' at http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252.
-In Mac OS X fsync does not flush hard drive buffers:
-http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html.
+fsync(): see 
+<a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
+In Mac OS X fsync does not flush hard drive buffers, see
+<a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
 So the situation is confusing, and tests prove there is a problem.
 </p>
 <p>

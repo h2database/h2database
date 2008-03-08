@@ -22,6 +22,7 @@ import org.h2.util.IOUtils;
  * The spell checker makes sure that each word used in the source code
  * is spelled correctly, by comparing the words with a word list.
  * Camel case and uppercase words are checked as well.
+ * HTTP links are not checked; however they may not end with a dot.
  */
 public class SpellChecker {
 
@@ -29,7 +30,7 @@ public class SpellChecker {
     private HashSet used = new HashSet();
     private HashMap unknown = new HashMap();
     private boolean debug;
-    private boolean printDictionary;
+    private boolean printDictionary = true;
     private boolean addToDictionary;
     private static final String[] SUFFIX = new String[] { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
             "csv", "xml", "js", "Driver", "properties", "task", "php", "" };
@@ -37,6 +38,7 @@ public class SpellChecker {
             "bz2", "rc", "layout", "res", "dll", "jar" };
     private static final String PREFIX_IGNORE = "abc";
     private static final String IGNORE_FILE = "mainWeb.html";
+    private int errorCount;
 
     public static void main(String[] args) throws IOException {
         String dir = "src";
@@ -44,6 +46,7 @@ public class SpellChecker {
     }
 
     private void run(String dictionary, String dir) throws IOException {
+        System.out.println("SpellChecker...");
         process(new File(dir + "/" + dictionary));
         process(new File(dir));
         if (printDictionary) {
@@ -73,10 +76,13 @@ public class SpellChecker {
                 String s = (String) it.next();
                 // int count = ((Integer) unknown.get(s)).intValue();
                 System.out.print(s + " ");
+                errorCount++;
             }
             System.out.println();
             System.out.println();
-            throw new IOException("spell check failed");
+        }
+        if (errorCount > 0) {
+            throw new IOException(errorCount + " error found");
         }
     }
 
@@ -144,6 +150,7 @@ public class SpellChecker {
 
     private void scan(String fileName, String text) {
         HashSet notFound = new HashSet();
+        text = removeLinks(fileName, text);
         StringTokenizer tokenizer = new StringTokenizer(text, "\r\n \t+\"*%&/()='[]{},.-;:_<>\\!?$@#|~^`");
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
@@ -170,6 +177,36 @@ public class SpellChecker {
             }
             System.out.println();
         }
+    }
+
+    private String removeLinks(String fileName, String text) {
+        StringBuffer buff = new StringBuffer(text.length());
+        int pos = 0, last = 0;
+        while (true) {
+            pos = text.indexOf("http://", pos);
+            if (pos < 0) {
+                break;
+            }
+            int start = pos;
+            buff.append(text.substring(last, start));
+            pos += "http://".length();
+            while (true) {
+                char c = text.charAt(pos);
+                if (!Character.isJavaIdentifierPart(c) && ".#/?&=%+_-:".indexOf(c) < 0) {
+                    break;
+                }
+                pos++;
+            }
+            String link = text.substring(start, pos);
+            if (link.endsWith(".")) {
+                System.out.println("Link ending with dot in " + fileName + ": " + link);
+                errorCount++;
+            }
+            last = pos;
+        }
+        buff.append(text.substring(last));
+        String changed = buff.toString();
+        return changed;
     }
 
     private void scanCombinedToken(HashSet notFound, String token) {

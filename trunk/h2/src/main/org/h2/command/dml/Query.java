@@ -321,8 +321,8 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Create a {@link SortOrder} object given the list of {@link SelectOrderBy} objects.
-     * The expression list is extended if necessary.
+     * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
+     * objects. The expression list is extended if necessary.
      * 
      * @param orderList a list of {@link SelectOrderBy} elements
      * @param expressionCount the number of columns in the query

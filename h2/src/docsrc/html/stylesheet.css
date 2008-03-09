@@ -4,17 +4,17 @@
  */
 
 td, input, select, textarea, body, code, pre, td, th {
-    font: 8pt/130% Tahoma, Arial, Helvetica, sans-serif;
+    font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
     font-weight: normal;
 }
 
 h1, h2, h3, h4, h5 {
-    font: 8pt Arial, Helvetica, sans-serif;
+    font: 9pt Arial, Helvetica, sans-serif;
     font-weight: bold;
 }
 
 td, input, select, textarea, body, code, pre {
-    font-size: 8pt;
+    font-size: 9pt;
 }
 
 pre {
@@ -147,7 +147,7 @@ td.searchKeyword a:hover {
 
 td.searchLink {
     border: 0px;
-    padding: 0px 0px 0px 42px;
+    padding: 0px 0px 0px 32px;
     text-indent: -16px;
 }
 

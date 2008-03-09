@@ -64,6 +64,16 @@ public class SysProperties {
     public static final String USER_HOME = getStringSetting("user.home", "");
 
     /**
+     * System property <code>h2.aliasColumnName</code> (default: false).<br />
+     * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
+     * real table and column name in ResultSetMetaData.getTableName() and
+     * getColumnName(). This is disabled by default for compatibility with other
+     * databases (HSQLDB, Apache Derby, PostgreSQL, some version of MySQL).
+     */
+    // TODO change in version 1.1
+    public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
+
+    /**
      * System property <code>h2.allowBigDecimalExtensions</code> (default:
      * false).<br />
      * When enabled, classes that extend BigDecimal are supported in

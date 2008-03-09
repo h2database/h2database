@@ -53,7 +53,7 @@ public class MergeDocs {
         // String end = "</body>";
 
         String start = "<div class=\"contentDiv\"";
-        String end = "</div></td></tr></table></body></html>";
+        String end = "</div></td></tr></table><!-- analytics --></body></html>";
 
         int idx = text.indexOf(end);
         text = text.substring(0, idx);

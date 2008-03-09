@@ -35,7 +35,7 @@ public class LinkChecker {
     private HashMap links = new HashMap();
 
     private void run(String[] args) throws Exception {
-        String dir = "src/docsrc";
+        String dir = "docs";
         for (int i = 0; i < args.length; i++) {
             if ("-dir".equals(args[i])) {
                 dir = args[++i];

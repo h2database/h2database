@@ -159,16 +159,14 @@ java org.h2.test.TestAll timer
 
 /*
 
+CREATE TABLE in a before trigger results in an internal error.
+
+merge query and result frames
+auto-complete in-place
+
 scheduler: what if invoke takes more than...
 scheduler: log at startup next 5
-
-drop table test;
-create table test(id int primary key, type int, name varchar);
-create index idx_type on test(type);
-@LOOP 10000 insert into test values(?, mod(?, 100), 'Hello ' || ?);
-explain SELECT type, max(name) FROM TEST group by type;
-SELECT type, max(name) FROM TEST group by type;
-
+scheduler: add an a cron functionality
 
 test with:
 - large varchar columns (40 KB)
@@ -178,24 +176,13 @@ read uncommitted and multi-threaded mode at the same time is dangerous
 
 add @author
 
-CREATE TABLE in a before trigger results in an internal error.
-
-should be transactional:
-ALTER TABLE test ALTER COLUMN id RESTART WITH ?
-ALTER SEQUENCE sequenceName RESTART WITH ? INCREMENT BY ?
-
 console autocomplete with pos
-
-sparse files
 
 remove old in use, links
 
-multi-threaded kernel fulltext
+test multi-threaded kernel fulltext
 
 fix or disable the linear hash index
-
-delete old ipowerb content
-link to new changelog and roadmap, remove pages from google groups
 
 Can sometimes not delete log file? need test case
 
@@ -203,25 +190,7 @@ Add where required // TODO: change in version 1.1
 
 History:
 
-I'm trying to use h2database embedded with AES encryption.  It all
-seems to work fine UNLESS the wrong decryption password id specified
-in the connection ( DriverManager.getConnection(url, prop) ).  If this
-happens, I get dot corrupt (.corrupt) files created.
-After several failed attempts (total
-across a database's lifespan), FILE_RENAME_FAILED_2 errors start occur
-until I delete the .corrupt files.
-Improved performance when using lob files in directories 
-    (however this is still disabled by default)
-H2 Console: autocomplete didn't work with very large scripts. Fixed.
-Fulltext search: new method SEARCH_DATA that returns the column 
-    names and primary keys as arrays.
-New experimental optimization for GROUP BY queries if an index can be used 
-     that matches the group by columns. To enable this optimization, set the system
-     property h2.optimizeGroupSorted to true.
-
 Roadmap:
-Use ant 'get' to download dependencies
-Index usage for UPDATE ... WHERE .. IN (SELECT...)
 
 
 */

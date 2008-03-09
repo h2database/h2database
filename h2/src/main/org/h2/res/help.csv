@@ -137,6 +137,10 @@ ALTER SEQUENCE sequenceName
 [INCREMENT BY long]
 ","
 Changes the next value and / or the increment of a sequence.
+This command can be used inside a transaction, 
+that means it does not commit the current transaction;
+however the new value is by other transactions immediately,
+and rolling back this command has no effect.
 ","
 ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
@@ -188,6 +192,7 @@ RESTART WITH long
 ","
 Changes the next value of an auto increment column.
 The column must be an auto increment column.
+The same transactional rules as for ALTER SEQUENCE apply.
 ","
 ALTER TABLE TEST ALTER COLUMN ID RESTART WITH 10000
 "

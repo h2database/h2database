@@ -15,7 +15,23 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
+<li>ALTER SEQUENCE and ALTER TABLE ALTER COLUMN RESTART can now be used inside a transaction.
+</li><li>New system property h2.aliasColumnName. When enabled, aliased columns 
+    (as in SELECT ID AS I FROM TEST) return the real table and column name in 
+    ResultSetMetaData.getTableName() and getColumnName(). This is disabled by 
+    default for compatibility with other databases (HSQLDB, Apache Derby, PostgreSQL, 
+    some version of MySQL). In version 1.1 this setting will be enabled.
+</li><li>When using encrypted databases, and using the wrong file password,
+    the log file was renamed if the database was not already open. Fixed.
+</li><li>Improved performance when using lob files in directories 
+    (however this is still disabled by default)
+</li><li>H2 Console: autocomplete didn't work with very large scripts. Fixed.
+</li><li>Fulltext search: new method SEARCH_DATA that returns the column 
+    names and primary keys as arrays.
+</li><li>New experimental optimization for GROUP BY queries if an index can be used 
+     that matches the group by columns. To enable this optimization, set the system
+     property h2.optimizeGroupSorted to true.
+</li><li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
     with uncommitted changes in the same session.
 </li><li>H2 Console: remote connections were very slow because getHostName/getRemoteHost was used.
     Fixed (now using getHostAddress/getRemoteAddr.
@@ -317,4 +333,4 @@ Change Log
 </li><li>Function tables did not work with views and EXPLAIN. Fixed.
 </li></ul>
 
-</div></td></tr></table></body></html>
+</div></td></tr></table><!-- analytics --></body></html>

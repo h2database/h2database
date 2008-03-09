@@ -13,7 +13,6 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
-import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;
 import org.h2.command.ddl.AlterTableAlterColumn;
 import org.h2.command.ddl.AlterTableDropConstraint;
@@ -53,6 +52,7 @@ import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
+import org.h2.command.dml.AlterSequence;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
@@ -3664,9 +3664,10 @@ public class Parser {
     }
 
     private AlterSequence parseAlterSequence() throws SQLException {
-        AlterSequence command = new AlterSequence(session);
         String sequenceName = readIdentifierWithSchema();
-        command.setSequence(getSchema().getSequence(sequenceName));
+        Sequence sequence = getSchema().getSequence(sequenceName);
+        AlterSequence command = new AlterSequence(session, sequence.getSchema());
+        command.setSequence(sequence);
         if (readIf("RESTART")) {
             read("WITH");
             command.setStartWith(readExpression());
@@ -4142,10 +4143,8 @@ public class Parser {
             } else if (readIf("RESTART")) {
                 readIf("WITH");
                 Expression start = readExpression();
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
-                command.setTable(table);
-                command.setType(AlterTableAlterColumn.RESTART);
-                command.setOldColumn(column);
+                AlterSequence command = new AlterSequence(session, table.getSchema());
+                command.setColumn(column);
                 command.setStartWith(start);
                 return command;
             } else if (readIf("SELECTIVITY")) {
@@ -4153,7 +4152,7 @@ public class Parser {
                 command.setTable(table);
                 command.setType(AlterTableAlterColumn.SELECTIVITY);
                 command.setOldColumn(column);
-                command.setStartWith(readExpression());
+                command.setSelectivity(readExpression());
                 return command;
             } else {
                 Column newColumn = parseColumnForTable(columnName);

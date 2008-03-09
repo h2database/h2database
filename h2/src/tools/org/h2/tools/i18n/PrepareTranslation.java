@@ -43,6 +43,7 @@ public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
     private static final String DELETED_PREFIX = "~";
     private static final boolean AUTO_TRANSLATE = false;
+    private static final String[] EXCLUDE = { "datatypes.html", "functions.html", "grammar.html" };
 
     public static void main(String[] args) throws Exception {
         new PrepareTranslation().run(args);
@@ -158,6 +159,15 @@ public class PrepareTranslation {
             writer.close();
         }
     }
+    
+    private static boolean exclude(String fileName) {
+        for (int i = 0; i < EXCLUDE.length; i++) {
+            if (fileName.endsWith(EXCLUDE[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static void extractFromHtml(String dir, String target, String language) throws Exception {
         File[] list = new File(dir).listFiles();
@@ -165,6 +175,9 @@ public class PrepareTranslation {
             File f = list[i];
             String name = f.getName();
             if (!name.endsWith(".html")) {
+                continue;
+            }
+            if (exclude(name)) {
                 continue;
             }
             // remove '.html'

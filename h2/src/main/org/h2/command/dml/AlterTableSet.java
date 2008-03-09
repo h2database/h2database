@@ -6,11 +6,11 @@
 package org.h2.command.dml;
 
 import java.sql.SQLException;
+
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.result.LocalResult;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 
@@ -18,7 +18,7 @@ import org.h2.table.Table;
  * This class represents the statement
  * ALTER TABLE SET
  */
-public class AlterTableSet  extends SchemaCommand {
+public class AlterTableSet extends SchemaCommand {
 
     /**
      * Enable the referential integrity.
@@ -68,7 +68,4 @@ public class AlterTableSet  extends SchemaCommand {
         return 0;
     }
 
-    public LocalResult queryMeta() {
-        return null;
-    }
 }

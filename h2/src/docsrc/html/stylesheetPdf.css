@@ -4,17 +4,17 @@
  */
  
 td, input, select, textarea, body, code, pre, td, th {
-    font: 8pt Tahoma, Arial, Helvetica, sans-serif;
+    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
     font-weight: normal;
 }
 
 h1, h2, h3, h4, h5 {
-    font: 8pt Arial, Helvetica, sans-serif;
+    font: 9pt Arial, Helvetica, sans-serif;
     font-weight: bold;
 }
 
 td, input, select, textarea, body, code, pre {
-    font-size: 8pt;
+    font-size: 9pt;
 }
 
 pre {
@@ -61,7 +61,7 @@ table {
 }
 
 th {
-    font-size: 8pt;
+    font-size: 9pt;
     font-weight: normal;
     text-align: left;
     background-color: #ece9d8;
@@ -71,7 +71,7 @@ th {
 
 td {
     background-color: #ffffff;
-    font-size: 8pt;
+    font-size: 9pt;
     text-align: left;
     vertical-align: top;
     border: 1px solid #aca899;

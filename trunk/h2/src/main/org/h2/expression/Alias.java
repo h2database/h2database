@@ -8,6 +8,7 @@ package org.h2.expression;
 import java.sql.SQLException;
 
 import org.h2.command.Parser;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -89,6 +90,22 @@ public class Alias extends Expression {
 
     public int getCost() {
         return expr.getCost();
+    }
+    
+    public String getTableName() {
+        if (SysProperties.ALIAS_COLUMN_NAME) {
+            return expr.getTableName();
+        } else {
+            return super.getTableName();
+        }
+    }
+
+    public String getColumnName() {
+        if (SysProperties.ALIAS_COLUMN_NAME) {
+            return expr.getColumnName();
+        } else {
+            return super.getColumnName();
+        }
     }
 
 }

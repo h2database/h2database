@@ -40,15 +40,15 @@ import org.h2.util.ObjectArray;
  */
 public class AlterTableAlterColumn extends SchemaCommand {
 
-    public static final int NOT_NULL = 0, NULL = 1, DEFAULT = 2, RESTART = 3, CHANGE_TYPE = 4;
-    public static final int ADD = 5, DROP = 6, SELECTIVITY = 7;
+    public static final int NOT_NULL = 0, NULL = 1, DEFAULT = 2, CHANGE_TYPE = 3;
+    public static final int ADD = 4, DROP = 5, SELECTIVITY = 6;
 
     private Table table;
     private Column oldColumn;
     private Column newColumn;
     private int type;
     private Expression defaultExpression;
-    private Expression newStart;
+    private Expression newSelectivity;
     private String addBefore;
 
     public AlterTableAlterColumn(Session session, Schema schema) {
@@ -102,15 +102,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
             db.update(session, table);
             break;
         }
-        case RESTART: {
-            if (sequence == null) {
-                throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, oldColumn.getSQL());
-            }
-            long value = newStart.optimize(session).getValue(session).getLong();
-            sequence.setStartValue(value);
-            db.update(session, sequence);
-            break;
-        }
         case CHANGE_TYPE: {
             // TODO document data type change problems when used with
             // autoincrement columns.
@@ -145,7 +136,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case SELECTIVITY: {
-            int value = newStart.optimize(session).getValue(session).getInt();
+            int value = newSelectivity.optimize(session).getValue(session).getInt();
             oldColumn.setSelectivity(value);
             db.update(session, table);
             break;
@@ -403,8 +394,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.type = type;
     }
 
-    public void setStartWith(Expression start) {
-        newStart = start;
+    public void setSelectivity(Expression selectivity) {
+        newSelectivity = selectivity;
     }
 
     public void setDefaultExpression(Expression defaultExpression) {

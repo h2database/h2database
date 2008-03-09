@@ -30,7 +30,7 @@ public class SpellChecker {
     private HashSet used = new HashSet();
     private HashMap unknown = new HashMap();
     private boolean debug;
-    private boolean printDictionary = true;
+    private boolean printDictionary = false;
     private boolean addToDictionary;
     private static final String[] SUFFIX = new String[] { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
             "csv", "xml", "js", "Driver", "properties", "task", "php", "" };
@@ -46,7 +46,6 @@ public class SpellChecker {
     }
 
     private void run(String dictionary, String dir) throws IOException {
-        System.out.println("SpellChecker...");
         process(new File(dir + "/" + dictionary));
         process(new File(dir));
         if (printDictionary) {

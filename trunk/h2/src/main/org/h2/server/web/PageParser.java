@@ -72,21 +72,23 @@ public class PageParser {
             char c = p.charAt(i);
             switch (c) {
             case '<': {
-                if (p.charAt(i + 1) == '%') {
-                    if (p.charAt(i + 2) == '@') {
-                        i += 3;
-                        pos = i;
-                        read("include");
-                        String file = readParam("file");
-                        read("%>");
-                        String s = server.getTextFile(file);
-                        append(s);
-                        i = pos;
-                    } else {
-                        buff.append(c);
-                    }
-                    break;
-                } else if (p.charAt(i + 3) == ':' && p.charAt(i + 1) == '/') {
+//                if (p.charAt(i + 1) == '%') {
+//                    // TODO <%@include %>: never used
+//                    if (p.charAt(i + 2) == '@') {
+//                        i += 3;
+//                        pos = i;
+//                        read("include");
+//                        String file = readParam("file");
+//                        read("%>");
+//                        String s = server.getTextFile(file);
+//                        append(s);
+//                        i = pos;
+//                    } else {
+//                        buff.append(c);
+//                    }
+//                    break;
+//                } else 
+                if (p.charAt(i + 3) == ':' && p.charAt(i + 1) == '/') {
                     // end tag
                     pos = i;
                     return;

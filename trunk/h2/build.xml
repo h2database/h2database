@@ -161,21 +161,15 @@
 	<target name="docs" depends="clean, javadoc, compile">
 		<copy todir="docs">
 			<fileset dir="src/docsrc" includes="index.html"/>
-			<fileset dir="src/docsrc" includes="html/**/*" excludes="**/*.jsp" />
 		</copy>
 		<java classname="org.h2.tools.code.CheckJavadoc" classpath="bin"/>
 		<java classname="org.h2.tools.code.CheckTextFiles" classpath="bin"/>
-		<java classname="org.h2.tools.doc.GenerateDoc" classpath="bin">
-			<arg line="-in src/docsrc/html -out docs/html"/>
-		</java>
+		<java classname="org.h2.tools.doc.GenerateDoc" classpath="bin"/>
 		<java classname="org.h2.tools.i18n.PrepareTranslation" classpath="bin"/>
-		<java classname="org.h2.tools.indexer.Indexer" classpath="bin">
-			<arg line="-dir docs -destDir docs/html"/>
-		</java>
-		<java classname="org.h2.tools.doc.MergeDocs" classpath="bin" />
-		<java classname="org.h2.tools.doc.LinkChecker" classpath="bin">
-			<arg line="-dir docs"/>
-		</java>
+		<java classname="org.h2.tools.indexer.Indexer" classpath="bin"/>
+		<java classname="org.h2.tools.doc.MergeDocs" classpath="bin"/>
+		<java classname="org.h2.tools.doc.WebSite" classpath="bin"/>
+		<java classname="org.h2.tools.doc.LinkChecker" classpath="bin"/>
 		<java classname="org.h2.tools.doc.XMLChecker" classpath="bin"/>
 		<java classname="org.h2.tools.doc.SpellChecker" classpath="bin"/>
 	</target>

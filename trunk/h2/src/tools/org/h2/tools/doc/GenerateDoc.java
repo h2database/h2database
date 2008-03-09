@@ -68,19 +68,38 @@ public class GenerateDoc {
         map("functionsAll",
                 "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
         map("dataTypes", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Data Types%' ORDER BY SECTION, ID");
-        process("grammar");
-        process("functions");
-        process("datatypes");
+        processAll("");
         conn.close();
     }
+    
+    void processAll(String dir) throws Exception {
+        if (dir.endsWith(".svn")) {
+            return;
+        }
+        File[] list = new File(inDir + "/" + dir).listFiles();
+        for (int i = 0; i < list.length; i++) {
+            File file = list[i];
+            if (file.isDirectory()) {
+                processAll(dir + file.getName());
+            } else {
+                process(dir, file.getName());
+            }
+        }
+    }
 
-    void process(String fileName) throws Exception {
-        FileOutputStream out = new FileOutputStream(outDir + "/" + fileName + ".html");
-        FileInputStream in = new FileInputStream(inDir + "/" + fileName + ".jsp");
+    void process(String dir, String fileName) throws Exception {
+        String inFile = inDir + "/" + dir + "/" + fileName;
+        String outFile = outDir + "/" + dir + "/" + fileName;
+        new File(outFile).getParentFile().mkdirs();
+        FileOutputStream out = new FileOutputStream(outFile);
+        FileInputStream in = new FileInputStream(inFile);
         byte[] bytes = IOUtils.readBytesAndClose(in, 0);
-        String page = new String(bytes);
-        page = PageParser.parse(null, page, session);
-        out.write(page.getBytes());
+        if (fileName.endsWith(".html")) {
+            String page = new String(bytes);
+            page = PageParser.parse(null, page, session);
+            bytes = page.getBytes();
+        }
+        out.write(bytes);
         out.close();
     }
 

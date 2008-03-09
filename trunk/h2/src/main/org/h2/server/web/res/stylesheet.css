@@ -4,8 +4,7 @@
  */
  
 td, input, select, textarea, body, code, pre {
-    font-family: Tahoma, helvetica, sans-serif;
-    font-size: 8pt;
+    font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
 }
 
 body {
@@ -91,7 +90,7 @@ th.login {
 
 td.login {
     background-color: #ece9d8;
-    font-size: 8pt;
+    font-size: 9pt;
     padding: 5px 10px;
     text-align: left;
     border: 0px;
@@ -128,7 +127,7 @@ table.empty {
 td.empty {
     background-color: #ffffff;
     border: 0px;
-    font-size: 8pt;
+    font-size: 9pt;
     padding: 5px 10px;
     text-align: left;
 }
@@ -148,7 +147,7 @@ table {
 }
 
 th {
-    font-size: 8pt;
+    font-size: 9pt;
     font-weight: normal;
     text-align: left;
     background-color: #ece9d8;
@@ -158,7 +157,7 @@ th {
 
 td {
     background-color: #ffffff;
-    font-size: 8pt;
+    font-size: 9pt;
     padding: 2px;
     text-align: left;
     vertical-align:top;

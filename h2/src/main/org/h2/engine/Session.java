@@ -85,8 +85,15 @@ public class Session implements SessionInterface {
     private HashSet temporaryResults;
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
     private int lastUncommittedDelete;
+    private boolean commitOrRollbackDisabled;
 
     public Session() {
+    }
+    
+    public boolean setCommitOrRollbackDisabled(boolean x) {
+        boolean old = commitOrRollbackDisabled;
+        commitOrRollbackDisabled = x;
+        return old;
     }
 
     private void initVariables() {
@@ -238,6 +245,7 @@ public class Session implements SessionInterface {
     }
 
     public void commit(boolean ddl) throws SQLException {
+        checkCommitRollback();
         lastUncommittedDelete = 0;
         currentTransactionName = null;
         if (containsUncommitted()) {
@@ -284,8 +292,15 @@ public class Session implements SessionInterface {
         }
         unlockAll();
     }
+    
+    private void checkCommitRollback() throws SQLException {
+        if (commitOrRollbackDisabled && locks.size() > 0) {
+            throw Message.getSQLException(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
+        }
+    }
 
     public void rollback() throws SQLException {
+        checkCommitRollback();
         currentTransactionName = null;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
@@ -491,6 +506,7 @@ public class Session implements SessionInterface {
     }
 
     public void rollbackToSavepoint(String name) throws SQLException {
+        checkCommitRollback();        
         if (savepoints == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }

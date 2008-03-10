@@ -159,10 +159,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-CREATE TABLE in a before trigger results in an internal error.
+add link to new in use, links
 
 merge query and result frames
-auto-complete in-place
+in-place auto-complete 
 
 scheduler: what if invoke takes more than...
 scheduler: log at startup next 5
@@ -176,10 +176,6 @@ read uncommitted and multi-threaded mode at the same time is dangerous
 
 add @author
 
-console autocomplete with pos
-
-remove old in use, links
-
 test multi-threaded kernel fulltext
 
 fix or disable the linear hash index
@@ -189,6 +185,10 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
+Improved support for IKVM.
+A error is now thrown when trying to call a method
+    inside a trigger that implicitly commits the current transaction,
+    if an object is locked.
 
 Roadmap:
 

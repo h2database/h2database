@@ -131,13 +131,38 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             if (!newRow[1].toString().endsWith("-updated")) {
                 throw new Error("supposed to be updated");
             }
+            checkCommit(conn);
         } else if (triggerName.startsWith("UPD_BEFORE")) {
             newRow[1] = newRow[1] + "-updated2";
         } else if (triggerName.startsWith("UPD_AFTER")) {
             if (!newRow[1].toString().endsWith("-updated2")) {
                 throw new Error("supposed to be updated2");
             }
+            checkCommit(conn);
         }
+    }
+    
+    private void checkCommit(Connection conn) {
+        try {
+            conn.commit();
+            throw new Error("Commit must not work here");
+        } catch (SQLException e) {
+            try {
+                checkNotGeneralException(e);
+            } catch (Exception e2) {
+                throw new Error("Unexpected: " + e.toString());
+            }
+        }
+        try {
+            conn.createStatement().execute("CREATE TABLE X(ID INT)");
+            throw new Error("CREATE TABLE WORKED, but implicitly commits");
+        } catch (SQLException e) {
+            try {
+                checkNotGeneralException(e);
+            } catch (Exception e2) {
+                throw new Error("Unexpected: " + e.toString());
+            }
+        }        
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {

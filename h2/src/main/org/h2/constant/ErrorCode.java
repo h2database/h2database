@@ -913,6 +913,15 @@ public class ErrorCode {
     public static final int CONSTRAINT_NOT_FOUND_1 = 90057;
 
     /**
+     * The error with code <code>90058</code> is thrown when trying to call
+     * commit or rollback inside a trigger, or when trying to call a method
+     * inside a trigger that implicitly commits the current transaction, if an
+     * object is locked. This is not because it would release the lock too
+     * early.
+     */
+    public static final int COMMIT_ROLLBACK_NOT_ALLOWED = 90058;
+
+    /**
      * The error with code <code>90059</code> is thrown when
      * a query contains a column that could belong to multiple tables.
      * Example:
@@ -1753,7 +1762,7 @@ public class ErrorCode {
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
-    // next is 90058, 90108
+    // next is 90108
 
     /**
      * INTERNAL

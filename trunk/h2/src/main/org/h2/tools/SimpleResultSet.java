@@ -13,11 +13,14 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
+import java.sql.NClob;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -147,6 +150,12 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         public ResultSet getResultSet(long index, int count, Map map) throws SQLException {
             throw getUnsupportedException();
         }
+
+        /**
+         * INTERNAL 
+         */
+		public void free() throws SQLException {
+		}
 
     }
 
@@ -1552,44 +1561,36 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public RowId getRowId(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public RowId getRowId(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateRowId(String columnName, RowId x) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /**
@@ -1630,90 +1631,74 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateNClob(String columnName, NClob nClob) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public NClob getNClob(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public NClob getNClob(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public SQLXML getSQLXML(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) 
             throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public void updateSQLXML(String columnName, SQLXML xmlObject) 
             throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
@@ -1762,22 +1747,18 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 
      * INTERNAL 
      */
 //#ifdef JDK16
-/*
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw getUnsupportedException();
     }
-*/
 //#endif
 
     /** 

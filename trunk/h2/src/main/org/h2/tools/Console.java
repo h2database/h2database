@@ -56,6 +56,7 @@ ShutdownHandler {
     private Font font;
     private Image icon16, icon24;
     private Frame frame;
+    private Button startBrowser;
 //#endif
     private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg;
@@ -302,7 +303,7 @@ ShutdownHandler {
         }
         mainPanel.add(text, constraintsTextField);
 
-        Button startBrowser = new Button("Start Browser");
+        startBrowser = new Button("Start Browser");
         startBrowser.setFocusable(false);
         startBrowser.setActionCommand("console");
         startBrowser.addActionListener(this);
@@ -317,10 +318,9 @@ ShutdownHandler {
         try {
             frame.setVisible(true);
         } catch (Throwable t) {
+            // ignore
             // some systems don't support this method, for example IKVM
             // however it still works
-            // ignore
-            System.out.println("URL: " + web.getURL());
         }
     }
 
@@ -343,6 +343,9 @@ ShutdownHandler {
             startBrowser();
         } else if ("status".equals(command)) {
             showWindow(false);
+        } else if (startBrowser == e.getSource()) {
+            // for some reason, IKVM ignores setActionCommand
+            startBrowser();
         }
     }
 //#endif

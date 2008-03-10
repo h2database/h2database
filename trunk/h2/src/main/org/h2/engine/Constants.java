@@ -11,7 +11,7 @@ package org.h2.engine;
  * - Test with Hibernate
  * - Run FindBugs
  * - ant jarClient, check jar file size
- *
+ * - ant jar, test with IKVM
  * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0

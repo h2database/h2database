@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -39,10 +40,11 @@ public class LocalResult implements ResultInterface {
     private ValueHashMap distinctRows;
     private Value[] currentRow;
     private int offset, limit;
-    private ResultDiskBuffer disk;
+    private ResultExternal disk;
     private int diskOffset;
     private boolean isUpdateCount;
     private int updateCount;
+    private boolean distinct;
 
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
         ObjectArray cols = getExpressionColumns(session, rs);
@@ -97,6 +99,7 @@ public class LocalResult implements ResultInterface {
         copy.rows = this.rows;
         copy.sort = this.sort;
         copy.distinctRows = this.distinctRows;
+        copy.distinct = distinct;
         copy.currentRow = null;
         copy.offset = 0;
         copy.limit = 0;
@@ -143,26 +146,33 @@ public class LocalResult implements ResultInterface {
     }
 
     public void setDistinct() {
-        // TODO big result sets: how to buffer distinct result sets?
-        // maybe remove duplicates when sorting each block, and when merging
+        distinct = true;
         distinctRows = new ValueHashMap(session.getDatabase());
     }
 
     public void removeDistinct(Value[] values) throws SQLException {
-        if (distinctRows == null) {
+        if (!distinct) {
             throw Message.getInternalError();
         }
-        ValueArray array = ValueArray.get(values);
-        distinctRows.remove(array);
-        rowCount = distinctRows.size();
+        if (distinctRows != null) {
+            ValueArray array = ValueArray.get(values);
+            distinctRows.remove(array);
+            rowCount = distinctRows.size();
+        } else {
+            rowCount = disk.removeRow(values);
+        }
     }
 
     public boolean containsDistinct(Value[] values) throws SQLException {
-        if (distinctRows == null) {
+        if (!distinct) {
             throw Message.getInternalError();
         }
-        ValueArray array = ValueArray.get(values);
-        return distinctRows.get(array) != null;
+        if (distinctRows != null) {
+            ValueArray array = ValueArray.get(values);
+            return distinctRows.get(array) != null;
+        } else {
+            return disk.contains(values);
+        }
     }
 
     public void reset() throws SQLException {
@@ -202,17 +212,26 @@ public class LocalResult implements ResultInterface {
     }
 
     public void addRow(Value[] values) throws SQLException {
-        if (distinctRows != null) {
-            ValueArray array = ValueArray.get(values);
-            distinctRows.put(array, values);
-            rowCount = distinctRows.size();
+        if (distinct) {
+            if (distinctRows != null) {
+                ValueArray array = ValueArray.get(values);
+                distinctRows.put(array, values);
+                rowCount = distinctRows.size();
+                if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT) {
+                    disk = new ResultDiskBuffer(session, sort, values.length);
+                    disk.addRows(distinctRows.values());
+                    distinctRows = null;
+                }
+            } else {
+                rowCount = disk.addRow(values);
+            }
             return;
         }
         rows.add(values);
         rowCount++;
         if (rows.size() > maxMemoryRows && session.getDatabase().isPersistent()) {
             if (disk == null) {
-                disk = new ResultDiskBuffer(session, sort, values.length);
+                disk = new ResultTempTable(session, sort, values.length);
             }
             addRowsToDisk();
         }
@@ -228,9 +247,11 @@ public class LocalResult implements ResultInterface {
     }
 
     public void done() throws SQLException {
-        if (distinctRows != null) {
-            rows = distinctRows.values();
-            distinctRows = null;
+        if (distinct) {
+            if (distinctRows != null) {
+                rows = distinctRows.values();
+                distinctRows = null;
+            }
         }
         if (disk != null) {
             addRowsToDisk();

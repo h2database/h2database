@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.security.SecureClassLoader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -1558,6 +1559,11 @@ class WebThread extends Thread implements DatabaseEventListener {
                     buff.append("${text.result.noRunningStatement}");
                 }
                 return buff.toString();
+            } else if (sql.startsWith("@PARAMETER_META")) {
+                sql = sql.substring("@PARAMETER_META".length()).trim();
+                PreparedStatement prep = conn.prepareStatement(sql);
+                buff.append(getParameterResultSet(prep.getParameterMetaData()));
+                return buff.toString();
             } else if (sql.startsWith("@META")) {
                 metadata = true;
                 sql = sql.substring("@META".length()).trim();
@@ -1739,7 +1745,33 @@ class WebThread extends Thread implements DatabaseEventListener {
             buff.append(PageParser.escapeHtml(sql));
             buff.append("</td></tr>");
         }
-        buff.append("</t>");
+        buff.append("</table>");
+        return buff.toString();
+    }
+    
+    private String getParameterResultSet(ParameterMetaData meta) throws SQLException {
+        StringBuffer buff = new StringBuffer();
+        if (meta == null) {
+            return "No parameter meta data";
+        }
+        buff.append("<table cellspacing=0 cellpadding=0>");
+        buff.append("<tr><th>className</th><th>mode</th><th>type</th>");
+        buff.append("<th>typeName</th><th>precision</th><th>scale</th></tr>");
+        for (int i = 0; i < meta.getParameterCount(); i++) {
+            buff.append("</tr><td>");
+            buff.append(meta.getParameterClassName(i + 1));
+            buff.append("</td><td>");
+            buff.append(meta.getParameterMode(i + 1));
+            buff.append("</td><td>");
+            buff.append(meta.getParameterType(i + 1));
+            buff.append("</td><td>");
+            buff.append(meta.getParameterTypeName(i + 1));
+            buff.append("</td><td>");
+            buff.append(meta.getPrecision(i + 1));
+            buff.append("</td><td>");
+            buff.append(meta.getScale(i + 1));
+            buff.append("</td></tr>");
+        }
         buff.append("</table>");
         return buff.toString();
     }

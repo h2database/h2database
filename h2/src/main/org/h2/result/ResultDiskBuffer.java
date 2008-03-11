@@ -12,6 +12,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.Message;
 import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.util.ObjectArray;
@@ -20,7 +21,7 @@ import org.h2.value.Value;
 /**
  * This class implements the disk buffer for the LocalResult class.
  */
-class ResultDiskBuffer {
+class ResultDiskBuffer implements ResultExternal {
 
     private static final int READ_AHEAD = 128;
 
@@ -202,6 +203,18 @@ class ResultDiskBuffer {
             file.closeAndDeleteSilently();
             file = null;
         }
+    }
+    
+    public int removeRow(Value[] values) {
+        throw Message.getInternalError();
+    }
+
+    public boolean contains(Value[] values) throws SQLException {
+        throw Message.getInternalError();
+    }
+    
+    public int addRow(Value[] values) {
+        throw Message.getInternalError();
     }
 
 }

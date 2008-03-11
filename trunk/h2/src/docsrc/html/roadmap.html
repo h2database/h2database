@@ -54,6 +54,7 @@ Roadmap
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Better space re-use in the files after deleting data (shrink the files)
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
+</li><li>ParameterMetaData should return correct data type where possible (INSERT, UPDATE; supported by PostgreSQL, Derby, HSQLDB)
 </li><li>Full outer joins
 </li><li>Procedural language / script language (Javascript)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -307,7 +308,6 @@ Roadmap
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>Trace: write dangerous operations (set log 0,...) in every case (including when opening the database)
-</li><li>ParameterMetaData should return correct data type where possible (INSERT for example)
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Linked tables that point to the same database should share the connection
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
@@ -387,6 +387,7 @@ Roadmap
 </li><li>Support NOCACHE table option (Oracle)
 </li><li>Use ant 'get' to download dependencies
 </li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
+</li><li>The RunScript tool should support interactive mode (reading from system in). Password using a second thread.
 </li></ul>
 
 <h2>Not Planned</h2>

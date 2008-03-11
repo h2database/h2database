@@ -211,6 +211,15 @@ public class SysProperties {
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
 
     /**
+     * System property <code>h2.maxMemoryRowsDistinct</code> (default:
+     * Integer.MAX_VALUE).<br />
+     * The maximum number of rows kept in-memory for SELECT DISTINCT queries. If
+     * more than this number of rows are in a result set, a temporary table is
+     * used.
+     */
+    public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", Integer.MAX_VALUE);
+
+    /**
      * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />
      * The maximum timeout of a query. The default is 0, meaning no limit.
      */

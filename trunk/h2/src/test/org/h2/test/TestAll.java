@@ -159,7 +159,31 @@ java org.h2.test.TestAll timer
 
 /*
 
+out of memory problem:
+drop all objects;
+CREATE TABLE firsttable (id  number(8) primary key, name varchar(200) not null);
+CREATE TABLE secondtable (field1 number(10) not null, field2 number(8));
+@LOOP 100000 insert into secondtable values(?, ?);
+create index idx_number1 on secondtable(field1);
+java -Xmx1024m -cp bin/h2.jar org.h2.tools.Server -log true
+jdbc:h2:/home/bigjocker/workspace/mydb/mydb-h2;CACHE_SIZE=10000
+The table 'secondtable' contains a little over 100.000.000 records.
+
+
+disk based select distinct; order by
+set max_memory_rows 10;
+select distinct x from system_range(1, 200000);
+set max_memory_rows 10000;
+
+
+newsletter.sql
+
+BlobTestCase2
+H2BlobWriteTester
+
 add link to new in use, links
+
+Add google site search to web page
 
 merge query and result frames
 in-place auto-complete 

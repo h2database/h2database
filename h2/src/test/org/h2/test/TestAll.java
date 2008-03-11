@@ -160,6 +160,7 @@ java org.h2.test.TestAll timer
 /*
 
 out of memory problem:
+-XX:+HeapDumpOnOutOfMemoryError
 drop all objects;
 CREATE TABLE firsttable (id  number(8) primary key, name varchar(200) not null);
 CREATE TABLE secondtable (field1 number(10) not null, field2 number(8));

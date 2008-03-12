@@ -90,7 +90,10 @@ public class Update extends Prepared {
                             newValue = oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.DEFAULT) {
                             Column column = table.getColumn(i);
-                            newValue = column.getDefaultExpression().getValue(session).convertTo(column.getType());
+                            Expression defaultExpr = column.getDefaultExpression();
+                            Value v = defaultExpr.getValue(session);
+                            int type = column.getType();
+                            newValue = v.convertTo(type);
                         } else {
                             Column column = table.getColumn(i);
                             newValue = newExpr.getValue(session).convertTo(column.getType());

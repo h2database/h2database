@@ -218,7 +218,7 @@ public class LocalResult implements ResultInterface {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT) {
-                    disk = new ResultDiskBuffer(session, sort, values.length);
+                    disk = new ResultTempTable(session, sort, values.length);
                     disk.addRows(distinctRows.values());
                     distinctRows = null;
                 }
@@ -231,7 +231,7 @@ public class LocalResult implements ResultInterface {
         rowCount++;
         if (rows.size() > maxMemoryRows && session.getDatabase().isPersistent()) {
             if (disk == null) {
-                disk = new ResultTempTable(session, sort, values.length);
+                disk = new ResultDiskBuffer(session, sort, values.length);
             }
             addRowsToDisk();
         }
@@ -251,6 +251,31 @@ public class LocalResult implements ResultInterface {
             if (distinctRows != null) {
                 rows = distinctRows.values();
                 distinctRows = null;
+            } else {
+                if (disk != null && sort != null) {
+                    // external sort
+                    ResultExternal temp = disk;
+                    disk = null;
+                    temp.reset();
+                    rows = new ObjectArray();
+                    // TODO use offset directly if possible
+                    while (true) {
+                        Value[] list = temp.next();
+                        if (list == null) {
+                            break;
+                        }
+                        if (disk == null) {
+                            disk = new ResultDiskBuffer(session, sort, list.length);
+                        }
+                        rows.add(list);
+                        if (rows.size() > maxMemoryRows) {
+                            disk.addRows(rows);
+                            rows.clear();
+                        }
+                    }
+                    temp.close();
+                    // the remaining data in rows is written in the following lines
+                }
             }
         }
         if (disk != null) {

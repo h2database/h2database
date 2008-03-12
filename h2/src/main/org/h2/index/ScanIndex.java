@@ -104,7 +104,9 @@ public class ScanIndex extends BaseIndex {
                 for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     Value v2 = v.link(database, getId());
-                    session.unlinkAtCommitStop(v2);
+                    if (v2.isLinked()) {
+                        session.unlinkAtCommitStop(v2);
+                    }
                     if (v != v2) {
                         row.setValue(i, v2);
                     }

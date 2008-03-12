@@ -31,9 +31,10 @@ public class TestJoin extends TestBase {
     private StringBuffer buff;
 
     public void test() throws Exception {
-        baseDir = "dataJoin";
+        String old = baseDir;
+        baseDir = TestBase.getTestDir("join");
         testJoin();
-        baseDir = "data";
+        baseDir = old;
     }
 
     private void testJoin() throws Exception {

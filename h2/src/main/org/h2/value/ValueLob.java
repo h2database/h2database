@@ -519,7 +519,7 @@ public class ValueLob extends Value {
             try {
                 hash = ByteUtils.getByteArrayHash(getBytes());
             } catch (SQLException e) {
-                // TODO hash code for lob: should not ignore exception
+                throw Message.convertToInternal(e);
             }
         }
         return hash;
@@ -607,7 +607,6 @@ public class ValueLob extends Value {
     }
 
     public int getDisplaySize() {
-        // TODO display size of lob?
         return MathUtils.convertLongToInt(getPrecision());
     }
 

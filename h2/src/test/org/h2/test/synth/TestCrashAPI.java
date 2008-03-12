@@ -389,7 +389,7 @@ public class TestCrashAPI extends TestBase {
         if (config.mvcc || config.networked || config.logMode == 0) {
             return this;
         }
-        baseDir = "dataCrash";
+        baseDir = TestBase.getTestDir("crash");
         startServerIfRequired();
         TestScript script = new TestScript();
         ArrayList add = script.getAllStatements(config, "org/h2/test/test.in.txt");

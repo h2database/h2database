@@ -35,6 +35,7 @@ public class TempFileDeleter {
             if (SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
                 throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
             }
+            fileName = f2;
         }
         if (fileName != null && FileUtils.exists(fileName)) {
             try {
@@ -43,7 +44,6 @@ public class TempFileDeleter {
             } catch (Exception e) {
                 // TODO log such errors?
             }
-            deleteUnused();
         }
     }
 

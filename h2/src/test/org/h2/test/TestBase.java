@@ -30,7 +30,11 @@ import org.h2.tools.DeleteDbFiles;
  */
 public abstract class TestBase {
 
-    protected static String baseDir = "data";
+    public static String getTestDir(String name) {
+        return System.getProperty("java.io.tmpdir") + "/dbtest-" + name;
+    }
+    
+    protected static String baseDir = System.getProperty("java.io.tmpdir") + "/dbtest";
 
     protected TestAll config;
     private long start;

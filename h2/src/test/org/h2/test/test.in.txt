@@ -6744,6 +6744,23 @@ SELECT DISTINCT NAME FROM TEST;
 > null
 > rows: 5
 
+SELECT DISTINCT NAME FROM TEST ORDER BY NAME DESC NULLS LAST;
+> NAME
+> --------
+> Oranges
+> Cherries
+> Bananas
+> Apples
+> null
+> rows (ordered): 5
+
+SELECT DISTINCT NAME FROM TEST ORDER BY NAME DESC NULLS LAST LIMIT 2 OFFSET 1;
+> NAME
+> --------
+> Cherries
+> Bananas
+> rows (ordered): 2
+
 SELECT NAME, COUNT(*), SUM(VALUE), MAX(VALUE), MIN(VALUE), AVG(VALUE), COUNT(DISTINCT VALUE) FROM TEST GROUP BY NAME;
 > NAME     COUNT(*) SUM(VALUE) MAX(VALUE) MIN(VALUE) AVG(VALUE)                    COUNT(DISTINCT VALUE)
 > -------- -------- ---------- ---------- ---------- ----------------------------- ---------------------

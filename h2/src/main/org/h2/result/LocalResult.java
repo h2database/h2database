@@ -217,7 +217,7 @@ public class LocalResult implements ResultInterface {
                 ValueArray array = ValueArray.get(values);
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
-                if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT) {
+                if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT && session.getDatabase().isPersistent()) {
                     disk = new ResultTempTable(session, sort, values.length);
                     disk.addRows(distinctRows.values());
                     distinctRows = null;

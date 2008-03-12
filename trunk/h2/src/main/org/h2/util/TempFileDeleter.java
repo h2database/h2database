@@ -40,7 +40,7 @@ public class TempFileDeleter {
         if (fileName != null && FileUtils.exists(fileName)) {
             try {
                 FileUtils.trace("TempFileDeleter.deleteFile", fileName, null);
-                FileUtils.delete(fileName);
+                FileUtils.tryDelete(fileName);
             } catch (Exception e) {
                 // TODO log such errors?
             }

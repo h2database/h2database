@@ -34,10 +34,10 @@ public abstract class TestBase {
     private static final String BASE_TEST_DIR = "data";
     
     public static String getTestDir(String name) {
-        return BASE_TEST_DIR + "/test-" + name;
+        return BASE_TEST_DIR + "/test" + name;
     }
     
-    protected static String baseDir = BASE_TEST_DIR + "/test";
+    protected static String baseDir = getTestDir("");
 
     protected TestAll config;
     private long start;
@@ -47,6 +47,7 @@ public abstract class TestBase {
     }
 
     public TestBase init(TestAll conf) throws Exception {
+        baseDir = getTestDir("");
         this.config = conf;
         return this;
     }

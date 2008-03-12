@@ -211,6 +211,7 @@ public class TestTools extends TestBase {
     }
 
     private void testRemove() throws Exception {
+        deleteDb("toolsRemove");
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + baseDir + "/toolsRemove";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
@@ -237,6 +238,7 @@ public class TestTools extends TestBase {
     }
 
     private void testRecover() throws Exception {
+        deleteDb("toolsRecover");
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:" + baseDir + "/toolsRecover";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");

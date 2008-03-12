@@ -56,7 +56,7 @@ public class TestFileSystem extends TestBase {
         stat.execute("backup to '" + baseDir + "/fsJar.zip'");
         conn.close();
 
-        deleteDb(baseDir + "/fsJar");
+        deleteDb("fsJar");
         FileSystem fs = FileSystem.getInstance("zip:" + baseDir + "/fsJar.zip");
         String[] files = fs.listFiles("zip:" + baseDir + "/fsJar.zip");
         for (int i = 0; i < files.length; i++) {

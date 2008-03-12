@@ -217,7 +217,9 @@ public class SysProperties {
      * more than this number of rows are in a result set, a temporary table is
      * used.
      */
-    public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", Integer.MAX_VALUE);
+private int testing;    
+//    public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", Integer.MAX_VALUE);
+public static final int MAX_MEMORY_ROWS_DISTINCT = getIntSetting("h2.maxMemoryRowsDistinct", 1);
 
     /**
      * System property <code>h2.maxQueryTimeout</code> (default: 0).<br />

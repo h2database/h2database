@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.util.TempFileDeleter;
 
 /**
  * Represents a transactional statement.
@@ -66,6 +67,7 @@ public class TransactionCommand extends Prepared {
         case CHECKPOINT:
             session.getUser().checkAdmin();
             session.getDatabase().getLog().checkpoint();
+            TempFileDeleter.deleteUnused();
             break;
         case SAVEPOINT:
             session.addSavepoint(savepointName);

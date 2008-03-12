@@ -217,7 +217,7 @@ public class TestSynth extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        baseDir = "dataSynth";
+        baseDir = TestBase.getTestDir("synth");
         deleteDb("synth");
         databases = new ArrayList();
 

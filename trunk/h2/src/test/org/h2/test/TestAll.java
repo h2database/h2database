@@ -159,6 +159,34 @@ java org.h2.test.TestAll timer
 
 /*
 
+disk based select distinct; order by:
+
+DROP TABLE TEST;
+
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), VALUE DECIMAL(10,2));
+
+INSERT INTO TEST VALUES(1,'Apples',1.20), 
+(2,'Oranges',2.05),
+(3,'Cherries',5.10),
+(4,'Apples',1.50),
+(5,'Apples',1.10),
+(6,'Oranges',1.80),
+(7,'Bananas',2.50),
+(8,NULL,3.10),
+(9,NULL,-10.0);
+
+SELECT DISTINCT NAME FROM TEST;
+
+select distinct x from system_range(1, 200000);
+
+CREATE TABLE p(d DATE);
+INSERT INTO p VALUES('0000-01-01');
+INSERT INTO p VALUES('0001-01-01');
+
+check that test data in temp directories
+
+add jdbcx to Javadocs
+
 out of memory problem:
 java -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m -cp bin/h2.jar org.h2.tools.Server -log true
 jdbc:h2:test;CACHE_SIZE=10000
@@ -169,16 +197,10 @@ CREATE TABLE secondtable (field1 number(10) not null, field2 number(8));
 create index idx_number1 on secondtable(field1);
 The table 'secondtable' contains a little over 100.000.000 records.
 
-disk based select distinct; order by
-set max_memory_rows 10;
-select distinct x from system_range(1, 200000);
-set max_memory_rows 10000;
-
+Read HenPlus features
+http://henplus.sourceforge.net/
 
 newsletter.sql
-
-BlobTestCase2
-H2BlobWriteTester
 
 add link to new in use, links
 
@@ -208,10 +230,13 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
+Very large SELECT DISTINCT and UNION EXCEPT queries are now supported.
 Improved support for IKVM.
 A error is now thrown when trying to call a method
     inside a trigger that implicitly commits the current transaction,
     if an object is locked.
+Unused LOB files were deleted much too late. 
+    Now they are deleted if no longer referenced in memory.
 
 Roadmap:
 

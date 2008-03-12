@@ -9,9 +9,11 @@ import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
+import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -19,7 +21,6 @@ import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueUuid;
 
 /**
  * This class implements the temp table buffer for the LocalResult class.
@@ -35,13 +36,13 @@ public class ResultTempTable implements ResultExternal {
     public ResultTempTable(Session session, SortOrder sort, int columnCount) throws SQLException {
         this.session = session;
         this.sort = sort;
-        String tableName = "TEMP_" + ValueUuid.getNewRandom().toString();
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         Column column = new Column(COLUMN_NAME, Value.ARRAY);
         column.setNullable(false);
         ObjectArray columns = new ObjectArray();
         columns.add(column);
         int tableId = session.getDatabase().allocateObjectId(true, true);
+        String tableName = "TEMP_RESULT_SET_" + tableId;
         table = schema.createTable(tableName, tableId, columns, false, false);
         int indexId = session.getDatabase().allocateObjectId(true, true);
         IndexColumn indexColumn = new IndexColumn();
@@ -50,30 +51,33 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
-        index = table.addIndex(session, tableName, indexId, indexCols, indexType, Index.EMPTY_HEAD, null);
+        index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+        table.getIndexes().add(index);
     }
     
     public int  removeRow(Value[] values) throws SQLException {
-        ValueArray data = ValueArray.get(values);
-        Row row = new Row(new Value[]{data}, data.getMemory());
-        table.removeRow(session, row);
+        Row row = convertToRow(values);
+        Cursor cursor = find(row);
+        if (cursor != null) {
+            row = cursor.get();
+            table.removeRow(session, row);
+        }
         return (int) table.getRowCount(session);
     }
     
     public boolean contains(Value[] values) throws SQLException {
-        ValueArray data = ValueArray.get(values);
-        Row row = new Row(new Value[]{data}, data.getMemory());
-        Cursor cursor = index.find(session, row, row);
-        return cursor.next();
+        return find(convertToRow(values)) != null;
     }
     
     public int addRow(Value[] values) throws SQLException {
-        ValueArray data = ValueArray.get(values);
-        Row row = new Row(new Value[]{data}, data.getMemory());
-        table.addRow(session, row);
+        Row row = convertToRow(values);
+        Cursor cursor = find(row);
+        if (cursor == null) {
+            table.addRow(session, row);
+        }
         return (int) table.getRowCount(session);
     }
-
+    
     public void addRows(ObjectArray rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
@@ -85,13 +89,17 @@ public class ResultTempTable implements ResultExternal {
     }
 
     public void close() {
-        int todo;
         try {
-            index.remove(session);
-            table.removeChildrenAndResources(session);
+            if (table != null) {
+                index.remove(session);
+                ObjectArray indexes = table.getIndexes();
+                indexes.remove(indexes.indexOf(index));
+                table.removeChildrenAndResources(session);
+            }
         } catch (SQLException e) {
-            int test;
-            e.printStackTrace();
+            throw Message.getInternalError();
+        } finally {
+            table = null;
         }
     }
 
@@ -110,5 +118,23 @@ public class ResultTempTable implements ResultExternal {
     public void reset() throws SQLException {
         cursor = index.find(session, null, null);
     }
+    
+    private Row convertToRow(Value[] values) {
+        ValueArray data = ValueArray.get(values);
+        return new Row(new Value[]{data}, data.getMemory());
+    }    
+    
+    private Cursor find(Row row) throws SQLException {
+        Cursor cursor = index.find(session, row, row);
+        while (cursor.next()) {
+            SearchRow found;
+            found = cursor.getSearchRow();
+            if (found.getValue(0).equals(row.getValue(0))) {
+                return cursor;
+            }
+        }
+        return null;
+    }
+    
 }
 

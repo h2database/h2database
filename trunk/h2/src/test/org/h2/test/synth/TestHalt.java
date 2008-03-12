@@ -38,7 +38,7 @@ public abstract class TestHalt extends TestBase {
     private int errorId;
     private int sequenceId;
     private static final String DATABASE_NAME = "halt";
-    static final String DIR = "dataHalt";
+    static final String DIR = TestBase.getTestDir("halt");
     private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
 
     abstract void testInit() throws Exception;

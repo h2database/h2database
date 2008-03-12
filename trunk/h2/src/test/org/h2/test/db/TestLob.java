@@ -19,9 +19,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
 
 import org.h2.constant.SysProperties;
+import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -35,6 +37,7 @@ public class TestLob extends TestBase {
         if (config.memory) {
             return;
         }
+        testLobDelete();
         testLobVariable();
         testLobDrop();
         testLobNoClose();
@@ -54,6 +57,37 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+    
+    private void testLobDelete() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = reconnect(null);
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
+        stat.execute("INSERT INTO TEST SELECT X, SPACE(10000) FROM SYSTEM_RANGE(1, 10)");
+        ArrayList list = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        stat.execute("UPDATE TEST SET DATA = SPACE(5000)");
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+        }
+        stat.execute("CHECKPOINT");
+        ArrayList list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        if (list2.size() >= list.size() + 2) {
+            error("Expected not many more files, got " + list2.size() + " was " + list.size());
+        }
+        stat.execute("DELETE FROM TEST");
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+        }
+        stat.execute("CHECKPOINT");
+        ArrayList list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        if (list3.size() >= list.size()) {
+            error("Expected less files, got " + list2.size() + " was " + list.size());
+        }
+        conn.close();
     }
 
     private void testLobVariable() throws Exception {

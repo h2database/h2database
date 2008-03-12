@@ -30,7 +30,7 @@ public class TestBtreeIndex extends TestBase {
     }
 
     public void testCase(int seed) throws Exception {
-        baseDir = "dataIndex";
+        baseDir = TestBase.getTestDir("index");
         testOne(seed);
         baseDir = "data";
     }

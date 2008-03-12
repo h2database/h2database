@@ -68,7 +68,7 @@ public class Session implements SessionInterface {
     private String currentSchemaName;
     private String[] schemaSearchPath;
     private String traceModuleName;
-    private HashSet unlinkSet;
+    private HashMap unlinkMap;
     private int tempViewIndex;
     private HashMap procedures;
     private static int nextSerialId;
@@ -279,16 +279,16 @@ public class Session implements SessionInterface {
                 autoCommitAtTransactionEnd = false;
             }
         }
-        if (unlinkSet != null && unlinkSet.size() > 0) {
+        if (unlinkMap != null && unlinkMap.size() > 0) {
             // need to flush the log file, because we can't unlink lobs if the
             // commit record is not written
             logSystem.flush();
-            Iterator it = unlinkSet.iterator();
+            Iterator it = unlinkMap.values().iterator();
             while (it.hasNext()) {
                 Value v = (Value) it.next();
                 v.unlink();
             }
-            unlinkSet = null;
+            unlinkMap = null;
         }
         unlockAll();
     }
@@ -635,15 +635,15 @@ public class Session implements SessionInterface {
     }
 
     public void unlinkAtCommit(Value v) {
-        if (unlinkSet == null) {
-            unlinkSet = new HashSet();
+        if (unlinkMap == null) {
+            unlinkMap = new HashMap();
         }
-        unlinkSet.add(v);
+        unlinkMap.put(v.toString(), v);
     }
 
     public void unlinkAtCommitStop(Value v) {
-        if (unlinkSet != null) {
-            unlinkSet.remove(v);
+        if (unlinkMap != null) {
+            unlinkMap.remove(v.toString());
         }
     }
 

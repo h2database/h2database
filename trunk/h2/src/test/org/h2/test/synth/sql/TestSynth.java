@@ -217,6 +217,7 @@ public class TestSynth extends TestBase {
 
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
+        String old = baseDir;
         baseDir = TestBase.getTestDir("synth");
         deleteDb("synth");
         databases = new ArrayList();
@@ -261,12 +262,13 @@ public class TestSynth extends TestBase {
         // original (0):
         // System.exit(0);
 
-        baseDir = "data";
+        baseDir = old;
         return this;
     }
 
     public void testCase(int i) throws Exception {
-        baseDir = "dataCrash";
+        String old = baseDir;
+        baseDir = TestBase.getTestDir("synth");
         deleteDb(baseDir, DIR + "/synth");
         try {
             printTime("TestSynth " + i);
@@ -275,7 +277,7 @@ public class TestSynth extends TestBase {
             TestBase.logError("error", e);
             System.exit(0);
         }
-        baseDir = "data";
+        baseDir = old;
     }
 
     public void test() throws Exception {

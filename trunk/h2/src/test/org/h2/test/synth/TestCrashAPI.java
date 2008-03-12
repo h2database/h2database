@@ -401,12 +401,13 @@ public class TestCrashAPI extends TestBase {
 
     public void testCase(int i) throws Exception {
         int old = SysProperties.getMaxQueryTimeout();
+        String oldBaseDir = baseDir;
         try {
             System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + 10000);
-            baseDir = "dataCrash";
+            baseDir = TestBase.getTestDir("crash");
             testOne(i);
         } finally {
-            baseDir = "data";
+            baseDir = oldBaseDir;
             System.setProperty(SysProperties.H2_MAX_QUERY_TIMEOUT, "" + old);
         }
     }

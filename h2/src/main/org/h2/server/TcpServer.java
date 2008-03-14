@@ -246,11 +246,13 @@ public class TcpServer implements Service {
         ArrayList list = new ArrayList(running);
         for (int i = 0; i < list.size(); i++) {
             TcpServerThread c = (TcpServerThread) list.get(i);
-            c.close();
-            try {
-                c.getThread().join(100);
-            } catch (Exception e) {
-                TraceSystem.traceThrowable(e);
+            if (c != null) {
+                c.close();
+                try {
+                    c.getThread().join(100);
+                } catch (Exception e) {
+                    TraceSystem.traceThrowable(e);
+                }
             }
         }
     }

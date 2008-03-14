@@ -81,7 +81,6 @@ public class ConstraintReferential extends Constraint {
         return getCreateSQLForCopy(table, refTable, quotedName, true);
     }
 
-    int test;
     /**
      * Create the SQL statement of this object so a copy of the table can be made.
      * 

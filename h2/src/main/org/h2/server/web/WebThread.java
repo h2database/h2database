@@ -1224,7 +1224,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
             String error = buff.toString().trim();
             if (error.length() > 0) {
-                throw new Exception("Error compiling: " + error.toString());
+                throw new Exception("Error compiling: " + error);
             }
             byte[] data = new byte[(int) classFile.length()];
             DataInputStream in = new DataInputStream(new FileInputStream(classFile));

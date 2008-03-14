@@ -612,7 +612,7 @@ public class ValueLob extends Value {
 
     public boolean equals(Object other) {
         try {
-            return compareSecure((Value) other, null) == 0;
+            return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
         } catch (SQLException e) {
             throw Message.convertToInternal(e);
         }

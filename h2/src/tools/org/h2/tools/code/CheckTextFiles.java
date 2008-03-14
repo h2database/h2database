@@ -22,7 +22,7 @@ public class CheckTextFiles {
     }
 
     String[] suffixCheck = new String[] { "html", "jsp", "js", "css", "bat", "nsi", "java", "txt", "properties", "sql",
-            "xml", "csv", "Driver", "php" };
+            "xml", "csv", "Driver" };
     String[] suffixIgnore = new String[] { "gif", "png", "odg", "ico", "sxd", "layout", "res", "win", "jar", "task" };
     boolean failOnError;
     boolean allowTab, allowCR = true, allowTrailingSpaces = true;

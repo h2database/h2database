@@ -151,7 +151,16 @@ public class RowList {
         int storageId = buff.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            values[i] = buff.readValue();
+            Value v = buff.readValue();
+            if (v.isLinked()) {
+                ValueLob lob = (ValueLob) v;
+                // the table id is 0 if it was linked when writing 
+                // a temporary entry
+                if (lob.getTableId() == 0) {
+                    session.unlinkAtCommit(v);
+                }
+            }
+            values[i] = v;
         }
         if (pos != 0) {
             CacheObject found = cache.find(pos);

@@ -10,6 +10,49 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(38,
+'New version available: 1.0.68 (2008-03-14)', '2008-03-14 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Faster text comparison when using a collator.
+</li><li>CSVWRITE now supports a ''null string'' to parse NULL.
+</li><li>UPDATE SET column=DEFAULT is now supported.
+</li><li>Large SELECT DISTINCT and UNION queries are now supported
+    (this is disabled by default).
+</li><li>Committing inside a trigger is not allowed any more.
+    </li><li>ALTER SEQUENCE can now be used inside a transaction.
+</li><li>New system property h2.aliasColumnName. When enabled, aliased columns 
+    return the real table and column name in ResultSetMetaData calls.
+</li><li>Improved performance when using lob files in directories 
+    (however this is still disabled by default)
+</li><li>Fulltext search: new method SEARCH_DATA.
+</li><li>New experimental optimization for GROUP BY queries.
+</li><li>Better browser starting for the H2 Console on Linux.
+</li><li>Improved support for IKVM.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>With MVCC=TRUE, duplicate rows could appear in the result set.
+</li><li>Queries with many outer join tables were very slow.
+</li><li>Unused LOB files were deleted much too late. 
+</li><li>H2 Console: remote connections were very slow.
+</li><li>H2 Console: autocomplete didn''t work with very large scripts.
+</li><li>H2 Console: improved compatibility with Safari (Safari requires keep-alive)
+</li><li>Random: the process didn''t stop if generateSeed was very slow.
+</li><li>SELECT UNION with a different number of ORDER BY columns didn''t work.
+</li><li>When using a view, the column precision was wrong sometimes.
+</li><li>Some long running queries could not be cancelled.
+</li><li>When using encrypted databases, and using the wrong file password,
+    the log file was renamed sometimes.
+</li></ul>
+For details, see the ''Change Log'' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the ''Roadmap'' page at
+http://www.h2database.com/html/roadmap.html
+');
+
 INSERT INTO ITEM VALUES(37,
 'New version available: 1.0.67 (2008-02-22)', '2008-02-22 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -300,43 +343,6 @@ INSERT INTO ITEM VALUES(29,
 For future plans, see the new ''Roadmap'' page on the web site.
 ');
 
-INSERT INTO ITEM VALUES(28,
-'New version available: 1.0.58 (2007-09-15)', '2007-09-15 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Empty space in the database files is now better reused
-</li><li>The database file sizes now increased in smaller blocks
-</li><li>Optimization for independent subqueries
-</li><li>Improved explain plan 
-</li><li>Maven 2: new version are now automatically synced
-</li><li>The version (build) number is now included in the manifest file.
-</li><li>The default value for MAX_MEMORY_UNDO is now 100000
-</li><li>Improved MultiDimension tool (for spatial queries)
-</li><li>New method DatabaseEventListener.opened
-</li><li>Optimization for COLUMN IN(.., NULL)
-</li><li>Oracle compatibility for SYSDATE and CHR
-</li><li>System.exit is no longer called by the WebServer
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>About 230 bytes per database was leaked
-</li><li>Using spaces in column and table aliases did not always work
-</li><li>In some systems, SecureRandom.generateSeed is very slow
-</li><li>Console: better support for Internet Explorer
-</li><li>A database can now be opened even if user class is missing
-</li><li>User defined functions may not overload built-in functions
-</li><li>Adding a foreign key failed when the reference contained NULL
-</li><li>For PgServer, character encoding other than UTF-8 did not work
-</li><li>When using IFNULL, NULLIF, COALESCE, LEAST, or GREATEST, 
-    and the first parameter was ?, an exception was thrown
-</li><li>When comparing TINYINT or SMALLINT columns, the index was not used
-</li><li>The documentation indexer does no longer index Japanese pages
-</li><li>Using a function in a GROUP BY expression did not always work
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
-');
-
 SELECT 'newsfeed-rss.xml' FILE,
     XMLSTARTDOC() ||
     XMLNODE('rss', XMLATTR('version', '2.0'),
@@ -378,4 +384,4 @@ SELECT 'newsfeed-atom.xml' FILE,
     ) CONTENT
 FROM CHANNEL C, ITEM I
 UNION
-SELECT '-newsletter-' FILE, I.DESC CONTENT FROM ITEM I WHERE I.ID = (SELECT MAX(ID) FROM ITEM)
+SELECT 'newsletter.txt' FILE, I.DESC CONTENT FROM ITEM I WHERE I.ID = (SELECT MAX(ID) FROM ITEM)

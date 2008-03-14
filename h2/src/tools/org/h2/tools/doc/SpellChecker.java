@@ -33,7 +33,7 @@ public class SpellChecker {
     private boolean printDictionary = false;
     private boolean addToDictionary;
     private static final String[] SUFFIX = new String[] { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
-            "csv", "xml", "js", "Driver", "properties", "task", "php", "" };
+            "csv", "xml", "js", "Driver", "properties", "task", "" };
     private static final String[] IGNORE = new String[] { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
             "bz2", "rc", "layout", "res", "dll", "jar" };
     private static final String PREFIX_IGNORE = "abc";

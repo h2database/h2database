@@ -25,16 +25,18 @@ public class MergeDocs {
     }
 
     private void run(String[] args) throws Exception {
+        // the order of pages is important here
         String[] pages = { "quickstartText.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
-                "history.html", "faq.html", "license.html" };
+                "history.html", "faq.html", "license.html" };    
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < pages.length; i++) {
-            String text = getContent(pages[i]);
+            String fileName = pages[i];
+            String text = getContent(fileName);
             for (int j = 0; j < pages.length; j++) {
                 text = StringUtils.replaceAll(text, pages[j] + "#", "#");
             }
-            text = removeHeaderFooter(text);
+            text = removeHeaderFooter(fileName, text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -48,7 +50,7 @@ public class MergeDocs {
         writer.close();
     }
 
-    private String removeHeaderFooter(String text) {
+    private String removeHeaderFooter(String fileName, String text) {
         // String start = "<body";
         // String end = "</body>";
 
@@ -56,6 +58,9 @@ public class MergeDocs {
         String end = "</div></td></tr></table><!-- analytics --></body></html>";
 
         int idx = text.indexOf(end);
+        if (idx < 0) {
+            throw new Error("Footer not found in file " + fileName);
+        }
         text = text.substring(0, idx);
         idx = text.indexOf(start);
         idx = text.indexOf('>', idx);

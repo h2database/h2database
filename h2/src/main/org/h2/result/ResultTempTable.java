@@ -97,7 +97,7 @@ public class ResultTempTable implements ResultExternal {
                 table.removeChildrenAndResources(session);
             }
         } catch (SQLException e) {
-            throw Message.getInternalError();
+            throw Message.convertToInternal(e);
         } finally {
             table = null;
         }

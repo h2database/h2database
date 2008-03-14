@@ -19,9 +19,13 @@ import org.h2.message.TraceSystem;
 /**
  * The database driver. An application should not use this class directly. The
  * only thing the application needs to do is load the driver. This can be done
- * using Class.forName:
+ * using Class.forName. To load the driver and open a database connection, use
+ * the following code:
+ * 
  * <pre>
  * Class.forName(&quot;org.h2.Driver&quot;);
+ * Connection conn = DriverManager.getConnection(
+ *      &quot;jdbc:h2:&tilde;/test&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * </pre>
  */
 public class Driver implements java.sql.Driver {

@@ -75,7 +75,7 @@ public class TestLob extends TestBase {
         }
         stat.execute("CHECKPOINT");
         ArrayList list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
-        if (list2.size() >= list.size() + 2) {
+        if (list2.size() >= list.size() + 5) {
             error("Expected not many more files, got " + list2.size() + " was " + list.size());
         }
         stat.execute("DELETE FROM TEST");

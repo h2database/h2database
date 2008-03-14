@@ -37,6 +37,9 @@ select * from test;
 > 3 null
 > rows: 3
 
+update test set a=default;
+> update count: 3
+
 drop table test;
 > ok
 

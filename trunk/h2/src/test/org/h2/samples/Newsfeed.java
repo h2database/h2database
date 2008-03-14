@@ -25,6 +25,7 @@ import org.h2.util.StringUtils;
 public class Newsfeed {
 
     public static void main(String[] args) throws Exception {
+        String targetDir = args.length == 0 ? "." : args[0];
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         InputStream in = Newsfeed.class.getResourceAsStream("newsfeed.sql");
@@ -32,15 +33,14 @@ public class Newsfeed {
         while (rs.next()) {
             String file = rs.getString("FILE");
             String content = rs.getString("CONTENT");
-            if (file.equals("-newsletter-")) {
-                System.out.println(convertHtml2Text(content));
-            } else {
-                FileOutputStream out = new FileOutputStream(file);
-                Writer writer = new OutputStreamWriter(out, "UTF-8");
-                writer.write(content);
-                writer.close();
-                out.close();
-            }
+            if (file.endsWith(".txt")) {
+                content = convertHtml2Text(content);
+            }            
+            FileOutputStream out = new FileOutputStream(targetDir + "/" + file);
+            Writer writer = new OutputStreamWriter(out, "UTF-8");
+            writer.write(content);
+            writer.close();
+            out.close();
         }
         conn.close();
     }

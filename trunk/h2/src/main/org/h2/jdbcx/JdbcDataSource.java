@@ -36,7 +36,35 @@ import org.h2.message.Message;
 /**
  * A data source for H2 database connections. It is a factory for XAConnection
  * and Connection objects. This class is usually registered in a JNDI naming
- * service.
+ * service. To create a data source object and register it with a JNDI service,
+ * use the following code:
+ * 
+ * <pre>
+ * import org.h2.jdbcx.JdbcDataSource;
+ * import javax.naming.Context;
+ * import javax.naming.InitialContext;
+ * JdbcDataSource ds = new JdbcDataSource();
+ * ds.setURL(&quot;jdbc:h2:&tilde;/test&quot;);
+ * ds.setUser(&quot;sa&quot;);
+ * ds.setPassword(&quot;sa&quot;);
+ * Context ctx = new InitialContext();
+ * ctx.bind(&quot;jdbc/dsName&quot;, ds);
+ * </pre>
+ * 
+ * To use a data source that is already registered, use the following code:
+ * 
+ * <pre>
+ * import java.sql.Connection;
+ * import javax.sql.DataSource;
+ * import javax.naming.Context;
+ * import javax.naming.InitialContext;
+ * Context ctx = new InitialContext();
+ * DataSource ds = (DataSource) ctx.lookup(&quot;jdbc/dsName&quot;);
+ * Connection conn = ds.getConnection();
+ * </pre>
+ * 
+ * In this example the user name and password are serialized as
+ * well; this may be a security problem in some cases.
  */
 public class JdbcDataSource extends TraceObject
 //#ifdef JDK14
@@ -58,7 +86,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     }
 
     /**
-     * Public constructor.
+     * The public constructor.
      */
     public JdbcDataSource() {
         initFactory();

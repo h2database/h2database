@@ -15,7 +15,15 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>ALTER SEQUENCE and ALTER TABLE ALTER COLUMN RESTART can now be used inside a transaction.
+<li>Very large SELECT DISTINCT and UNION EXCEPT queries are now supported,
+    however this feature is disabled by default. To enable it, set 
+    the system property h2.maxMemoryRowsDistinct to a lower value, for example 10000.
+</li><li>A error is now thrown when trying to call a method
+    inside a trigger that implicitly commits the current transaction,
+    if an object is locked.
+</li><li>Unused LOB files were deleted much too late. 
+    Now they are deleted if no longer referenced in memory.
+</li><li>ALTER SEQUENCE and ALTER TABLE ALTER COLUMN RESTART can now be used inside a transaction.
 </li><li>New system property h2.aliasColumnName. When enabled, aliased columns 
     (as in SELECT ID AS I FROM TEST) return the real table and column name in 
     ResultSetMetaData.getTableName() and getColumnName(). This is disabled by 
@@ -43,7 +51,7 @@ Change Log
     way (SecureRandom.generateSeed) was very slow. Now using a daemon thread
     to avoid this problem.
 </li><li>SELECT UNION with a different number of ORDER BY columns did throw an ArrayIndexOutOfBoundsException.
-</li><li>When using view, the precision of column was changed to the default scale for some data types.
+</li><li>When using a view, the column precision was changed to the default scale for some data types.
 </li><li>CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
 </li><li>Some long running queries could not be cancelled.
 </li><li>Queries with many outer join tables were very slow. Fixed.

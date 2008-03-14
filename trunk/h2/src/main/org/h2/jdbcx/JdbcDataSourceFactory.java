@@ -20,7 +20,8 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 
 /**
- * This class is used to create new JdbcDataSource objects.
+ * This class is used to create new DataSource objects.
+ * An application should not use this class directly. 
  */
 public class JdbcDataSourceFactory 
 //#ifdef JDK14

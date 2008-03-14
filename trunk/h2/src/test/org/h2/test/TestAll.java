@@ -159,12 +159,13 @@ java org.h2.test.TestAll timer
 
 /*
 
-disk based select distinct; order by:
+Allow to set all passwords as parameters
+Remove Parser.readString()
 
+more tests with disk based select distinct; order by:
+select distinct x from system_range(1, 200000);
 DROP TABLE TEST;
-
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), VALUE DECIMAL(10,2));
-
 INSERT INTO TEST VALUES(1,'Apples',1.20), 
 (2,'Oranges',2.05),
 (3,'Cherries',5.10),
@@ -174,35 +175,37 @@ INSERT INTO TEST VALUES(1,'Apples',1.20),
 (7,'Bananas',2.50),
 (8,NULL,3.10),
 (9,NULL,-10.0);
-
 SELECT DISTINCT NAME FROM TEST;
-
-select distinct x from system_range(1, 200000);
 
 CREATE TABLE p(d DATE);
 INSERT INTO p VALUES('0000-01-01');
 INSERT INTO p VALUES('0001-01-01');
 
-check that test data in temp directories
-
-add jdbcx to Javadocs
-
 out of memory problem:
-java -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m -cp bin/h2.jar org.h2.tools.Server -log true
+java -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m 
+    -cp bin/h2.jar org.h2.tools.Server -log true
 jdbc:h2:test;CACHE_SIZE=10000
 drop all objects;
-CREATE TABLE firsttable (id  number(8) primary key, name varchar(200) not null);
-CREATE TABLE secondtable (field1 number(10) not null, field2 number(8));
-@LOOP 1000000 insert into secondtable values(?, ?);
-create index idx_number1 on secondtable(field1);
-The table 'secondtable' contains a little over 100.000.000 records.
+CREATE TABLE test (field1 number(10) not null, field2 number(8));
+@LOOP 1000000 insert into test values(?, ?);
+create index idx_number1 on test(field1);
+The table 'test' contains a little over 100.000.000 records.
 
 Read HenPlus features
 http://henplus.sourceforge.net/
 
-newsletter.sql
+better document DataSource usage in an own section in the Tutorial. 
+Including Pooling if possible
+link to or include 
+http://www.source-code.biz/snippets/java/8.htm
+
+add regular javadocs to the homepage
+
+the database should be kept open for a longer time when using the server mode
 
 add link to new in use, links
+
+Javadocs: for each tool, add a copy & paste sample in the class level
 
 Add google site search to web page
 
@@ -230,13 +233,6 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
-Very large SELECT DISTINCT and UNION EXCEPT queries are now supported.
-Improved support for IKVM.
-A error is now thrown when trying to call a method
-    inside a trigger that implicitly commits the current transaction,
-    if an object is locked.
-Unused LOB files were deleted much too late. 
-    Now they are deleted if no longer referenced in memory.
 
 Roadmap:
 

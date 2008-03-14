@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.h2.samples.Newsfeed;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -17,6 +18,7 @@ import org.h2.util.StringUtils;
  * Create the web site, mainly by copying the regular docs. A few items are
  * different in the web site, for example it calls web site analytics.
  * Also, the main entry point page is different.
+ * The newsfeeds are generated here as well.
  */
 public class WebSite {
 
@@ -25,7 +27,7 @@ public class WebSite {
     
     private static final String ANALYTICS_TAG = "<!-- analytics -->";
     private static final String ANALYTICS_SCRIPT = 
-        "<script src='http://www.google-analytics.com/ga.js' type=\"text/javascript\" />\n" +
+        "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
 
     public static void main(String[] args) throws Exception {
@@ -35,6 +37,7 @@ public class WebSite {
     private void run() throws Exception {
         deleteRecursive(new File(targetDir));
         copy(new File(sourceDir), new File(targetDir));
+        Newsfeed.main(new String[] {"dataWeb/html"});
     }
 
     private void deleteRecursive(File dir) {

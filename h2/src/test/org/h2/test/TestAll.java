@@ -159,6 +159,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+new TestCrashAPI().init(test).testCase(2046453618); 
+
 Allow to set all passwords as parameters
 Remove Parser.readString()
 

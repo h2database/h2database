@@ -11,7 +11,7 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
 INSERT INTO ITEM VALUES(38,
-'New version available: 1.0.68 (2008-03-14)', '2008-03-14 12:00:00',
+'New version available: 1.0.68 (2008-03-15)', '2008-03-15 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
 (You may have to click ''Refresh'').
 <br />

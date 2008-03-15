@@ -75,7 +75,7 @@ package org.h2.engine;
 public class Constants {
 
     public static final int BUILD_ID = 68;
-    private static final String BUILD = "2008-03-14";
+    private static final String BUILD = "2008-03-15";
 
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;

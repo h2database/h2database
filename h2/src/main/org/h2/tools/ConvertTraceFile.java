@@ -48,13 +48,18 @@ public class ConvertTraceFile {
         String javaClass = "Test";
         String script = "test.sql";
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-traceFile")) {
+            String arg = args[i];
+            if (arg.equals("-traceFile")) {
                 traceFile = args[++i];
-            } else if (args[i].equals("-javaClass")) {
+            } else if (arg.equals("-javaClass")) {
                 javaClass = args[++i];
-            } else if (args[i].equals("-script")) {
+            } else if (arg.equals("-script")) {
                 script = args[++i];
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

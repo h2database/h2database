@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.HashMap;
 
+import org.h2.util.JdbcDriverLoader;
+
 /**
  * A simple wrapper around the JDBC API.
  * Currently used for testing.
@@ -23,34 +25,13 @@ import java.util.HashMap;
  */
 public class Db {
 
-    private static final String[] DRIVERS = {
-        "jdbc:h2:", "org.h2.Driver",
-        "jdbc:firebirdsql:", "org.firebirdsql.jdbc.FBDriver",
-        "jdbc:db2:", "COM.ibm.db2.jdbc.net.DB2Driver",
-        "jdbc:oracle:", "oracle.jdbc.driver.OracleDriver",
-        "jdbc:microsoft:", "com.microsoft.jdbc.sqlserver.SQLServerDriver",
-        "jdbc:sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-        "jdbc:postgresql:", "org.postgresql.Driver",
-        "jdbc:mysql:", "com.mysql.jdbc.Driver",
-        "jdbc:derby://", "org.apache.derby.jdbc.ClientDriver",
-        "jdbc:derby:", "org.apache.derby.jdbc.EmbeddedDriver",
-        "jdbc:hsqldb:", "org.hsqldb.jdbcDriver"
-    };
-
     private Connection conn;
     private Statement stat;
     private HashMap prepared = new HashMap();
-    private long start;
 
     public static Db open(String url, String user, String password) {
         try {
-            for (int i = 0; i < DRIVERS.length; i += 2) {
-                String prefix = DRIVERS[i];
-                if (url.startsWith(prefix)) {
-                    Class.forName(DRIVERS[i + 1]);
-                    break;
-                }
-            }
+            JdbcDriverLoader.load(url);
             return new Db(DriverManager.getConnection(url, user, password));
         } catch (Exception e) {
             throw convert(e);
@@ -152,11 +133,4 @@ public class Db {
         return new Error("Error: " + e.toString(), e);
     }
 
-    public void startTime() {
-        start = System.currentTimeMillis();
-    }
-
-    public void printTime(String s) {
-        System.out.println(s + ": " + (System.currentTimeMillis() - start));
-    }
 }

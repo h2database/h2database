@@ -51,17 +51,22 @@ public class CreateCluster {
         String password = "";
         String serverlist = null;
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-urlSource")) {
+            String arg = args[i];
+            if (arg.equals("-urlSource")) {
                 urlSource = args[++i];
-            } else if (args[i].equals("-urlTarget")) {
+            } else if (arg.equals("-urlTarget")) {
                 urlTarget = args[++i];
-            } else if (args[i].equals("-user")) {
+            } else if (arg.equals("-user")) {
                 user = args[++i];
-            } else if (args[i].equals("-password")) {
+            } else if (arg.equals("-password")) {
                 password = args[++i];
-            } else if (args[i].equals("-serverlist")) {
+            } else if (arg.equals("-serverlist")) {
                 serverlist = args[++i];
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

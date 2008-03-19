@@ -94,8 +94,10 @@ public class JdbcUtils {
     }
 
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
-        if (!StringUtils.isNullOrEmpty(driver)) {
-            try {
+        try {
+            if (StringUtils.isNullOrEmpty(driver)) {
+                JdbcDriverLoader.load(url);
+            } else {
                 Class d = ClassUtils.loadUserClass(driver);
                 if (java.sql.Driver.class.isAssignableFrom(d)) {
                     return DriverManager.getConnection(url, prop);
@@ -124,11 +126,11 @@ public class JdbcUtils {
                     // Don't know, but maybe it loaded a JDBC Driver
                     return DriverManager.getConnection(url, prop);
                  }
-            } catch (ClassNotFoundException e) {
-                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
-            } catch (NoClassDefFoundError e) {
-                throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
             }
+        } catch (ClassNotFoundException e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
+        } catch (NoClassDefFoundError e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
         }
         return DriverManager.getConnection(url, prop);
     }

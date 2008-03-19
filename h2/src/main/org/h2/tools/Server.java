@@ -32,7 +32,7 @@ public class Server implements Runnable, ShutdownHandler {
 
     private void showUsage(String a, PrintStream out) {
         if (a != null) {
-            out.println("Unknown option: " + a);
+            out.println("Unsupported option: " + a);
             out.println();
         }
         out.println("java "+getClass().getName() + " [options]");
@@ -141,93 +141,94 @@ public class Server implements Runnable, ShutdownHandler {
         String tcpShutdownServer = "";
         boolean startDefaultServers = true;
         for (int i = 0; args != null && i < args.length; i++) {
-            String a = args[i];
-            if (a == null) {
+            String arg = args[i];
+            if (arg == null) {
                 continue;
-            } else if ("-?".equals(a) || "-help".equals(a)) {
+            } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 showUsage(null, out);
                 return EXIT_ERROR;
-            } else if (a.startsWith("-web")) {
-                if ("-web".equals(a)) {
+            } else if (arg.startsWith("-web")) {
+                if ("-web".equals(arg)) {
                     startDefaultServers = false;
                     webStart = true;
-                } else if ("-webAllowOthers".equals(a)) {
+                } else if ("-webAllowOthers".equals(arg)) {
                     i++;
-                } else if ("-webPort".equals(a)) {
+                } else if ("-webPort".equals(arg)) {
                     i++;
-                } else if ("-webScript".equals(a)) {
+                } else if ("-webScript".equals(arg)) {
                     i++;
-                } else if ("-webSSL".equals(a)) {
+                } else if ("-webSSL".equals(arg)) {
                     i++;
                 } else {
-                    showUsage(a, out);
+                    showUsage(arg, out);
                     return EXIT_ERROR;
                 }
-            } else if ("-browser".equals(a)) {
+            } else if ("-browser".equals(arg)) {
                 startDefaultServers = false;
                 browserStart = true;
-            } else if (a.startsWith("-tcp")) {
-                if ("-tcp".equals(a)) {
+            } else if (arg.startsWith("-tcp")) {
+                if ("-tcp".equals(arg)) {
                     startDefaultServers = false;
                     tcpStart = true;
-                } else if ("-tcpAllowOthers".equals(a)) {
+                } else if ("-tcpAllowOthers".equals(arg)) {
                     i++;
-                } else if ("-tcpPort".equals(a)) {
+                } else if ("-tcpPort".equals(arg)) {
                     i++;
-                } else if ("-tcpSSL".equals(a)) {
+                } else if ("-tcpSSL".equals(arg)) {
                     i++;
-                } else if ("-tcpPassword".equals(a)) {
+                } else if ("-tcpPassword".equals(arg)) {
                     tcpPassword = args[++i];
-                } else if ("-tcpShutdown".equals(a)) {
+                } else if ("-tcpShutdown".equals(arg)) {
                     startDefaultServers = false;
                     tcpShutdown = true;
                     tcpShutdownServer = args[++i];
-                } else if ("-tcpShutdownForce".equals(a)) {
+                } else if ("-tcpShutdownForce".equals(arg)) {
                     tcpShutdownForce = Boolean.valueOf(args[++i]).booleanValue();
                 } else {
-                    showUsage(a, out);
+                    showUsage(arg, out);
                     return EXIT_ERROR;
                 }
-            } else if (a.startsWith("-pg")) {
-                if ("-pg".equals(a)) {
+            } else if (arg.startsWith("-pg")) {
+                if ("-pg".equals(arg)) {
                     startDefaultServers = false;
                     pgStart = true;
-                } else if ("-pgAllowOthers".equals(a)) {
+                } else if ("-pgAllowOthers".equals(arg)) {
                     i++;
-                } else if ("-pgPort".equals(a)) {
+                } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
-                    showUsage(a, out);
+                    showUsage(arg, out);
                     return EXIT_ERROR;
                 }
-            } else if (a.startsWith("-ftp")) {
-                if ("-ftp".equals(a)) {
+            } else if (arg.startsWith("-ftp")) {
+                if ("-ftp".equals(arg)) {
                     startDefaultServers = false;
                     ftpStart = true;
-                } else if ("-ftpPort".equals(a)) {
+                } else if ("-ftpPort".equals(arg)) {
                     i++;
-                } else if ("-ftpDir".equals(a)) {
+                } else if ("-ftpDir".equals(arg)) {
                     i++;
-                } else if ("-ftpRead".equals(a)) {
+                } else if ("-ftpRead".equals(arg)) {
                     i++;
-                } else if ("-ftpWrite".equals(a)) {
+                } else if ("-ftpWrite".equals(arg)) {
                     i++;
-                } else if ("-ftpWritePassword".equals(a)) {
+                } else if ("-ftpWritePassword".equals(arg)) {
                     i++;
-                } else if ("-ftpTask".equals(a)) {
+                } else if ("-ftpTask".equals(arg)) {
                     i++;
                 } else {
-                    showUsage(a, out);
+                    showUsage(arg, out);
                     return EXIT_ERROR;
                 }
-            } else if (a.startsWith("-log")) {
+            } else if (arg.startsWith("-log")) {
                 i++;
-            } else if ("-baseDir".equals(a)) {
+            } else if ("-baseDir".equals(arg)) {
                 i++;
-            } else if ("-ifExists".equals(a)) {
+            } else if ("-ifExists".equals(arg)) {
                 i++;
             } else {
-                showUsage(a, out);
+                out.println("Unsupported option: " + arg);
+                showUsage(arg, out);
                 return EXIT_ERROR;
             }
         }

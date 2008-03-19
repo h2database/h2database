@@ -98,16 +98,21 @@ public class Recover implements DataHandler {
         String db = null;
         boolean removePassword = false;
         for (int i = 0; args != null && i < args.length; i++) {
-            if ("-dir".equals(args[i])) {
+            String arg = args[i];
+            if ("-dir".equals(arg)) {
                 dir = args[++i];
-            } else if ("-db".equals(args[i])) {
+            } else if ("-db".equals(arg)) {
                 db = args[++i];
-            } else if ("-removePassword".equals(args[i])) {
+            } else if ("-removePassword".equals(arg)) {
                 removePassword = true;
                 log = true;
-            } else if ("-log".equals(args[i])) {
+            } else if ("-log".equals(arg)) {
                 log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

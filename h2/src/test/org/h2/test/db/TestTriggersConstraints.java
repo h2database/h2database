@@ -33,8 +33,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create table test(id int primary key, parent int)");
-        stat
-                .execute("alter table test add constraint test_parent_id foreign key(parent) references test (id) on delete cascade");
+        stat.execute("alter table test add constraint test_parent_id foreign key(parent) references test (id) on delete cascade");
         stat.execute("insert into test select x, x/2 from system_range(0, 100)");
         stat.execute("delete from test");
         checkSingleValue(stat, "select count(*) from test", 0);

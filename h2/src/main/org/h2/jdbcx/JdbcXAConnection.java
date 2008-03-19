@@ -123,7 +123,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void addConnectionEventListener(ConnectionEventListener listener) {
-        debugCode("addConnectionEventListener(listener)");
+        debugCode("addConnectionEventListener(listener);");
         listeners.add(listener);
         if (conn != null) {
             conn.setJdbcConnectionListener(this);
@@ -138,7 +138,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void removeConnectionEventListener(ConnectionEventListener listener) {
-        debugCode("removeConnectionEventListener(listener)");
+        debugCode("removeConnectionEventListener(listener);");
         listeners.remove(listener);
     }
 //#endif
@@ -148,7 +148,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
-        debugCode("fatalErrorOccurred(conn, e)");
+        debugCode("fatalErrorOccurred(conn, e);");
         for (int i = 0; i < listeners.size(); i++) {
             ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
             ConnectionEvent event = new ConnectionEvent(this, e);
@@ -163,7 +163,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void closed(JdbcConnection conn) {
-        debugCode("closed(conn)");
+        debugCode("closed(conn);");
         for (int i = 0; i < listeners.size(); i++) {
             ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
             ConnectionEvent event = new ConnectionEvent(this);
@@ -205,7 +205,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public boolean isSameRM(XAResource xares) throws XAException {
-        debugCode("isSameRM(xares)");
+        debugCode("isSameRM(xares);");
         return xares == this;
     }
 //#endif
@@ -253,7 +253,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public int prepare(Xid xid) throws XAException {
-        debugCode("prepare("+quoteXid(xid)+")");
+        if (debug()) {
+            debugCode("prepare("+quoteXid(xid)+");");
+        }
         checkOpen();
         if (!currentTransaction.equals(xid)) {
             getTrace().debug("throw XAException.XAER_INVAL");
@@ -282,7 +284,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void forget(Xid xid) throws XAException {
-        debugCode("forget("+quoteXid(xid)+")");
+        if (debug()) {
+            debugCode("forget("+quoteXid(xid)+");");
+        }
     }
 //#endif
 
@@ -293,7 +297,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void rollback(Xid xid) throws XAException {
-        debugCode("rollback("+quoteXid(xid)+")");
+        if (debug()) {
+            debugCode("rollback("+quoteXid(xid)+");");
+        }
         try {
             conn.rollback();
         } catch (SQLException e) {
@@ -312,7 +318,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void end(Xid xid, int flags) throws XAException {
-        debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+")");
+        if (debug()) {
+            debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+");");
+        }
         // TODO transaction end: implement this method
         if (flags == TMSUSPEND) {
             return;
@@ -332,7 +340,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void start(Xid xid, int flags) throws XAException {
-        debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+")");
+        if (debug()) {
+            debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+");");
+        }
         if (flags == TMRESUME) {
             return;
         }
@@ -358,7 +368,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //#ifdef JDK14
     public void commit(Xid xid, boolean onePhase) throws XAException {
-        debugCode("commit("+quoteXid(xid)+", "+onePhase+")");
+        if (debug()) {
+            debugCode("commit("+quoteXid(xid)+", "+onePhase+");");
+        }
         Statement stat = null;
         try {
             if (onePhase) {
@@ -430,7 +442,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
     }
 
     private XAException convertException(SQLException e) {
-        getTrace().debug("throw XAException("+e.getMessage()+")");
+        if (debug()) {
+            getTrace().debug("throw XAException("+e.getMessage()+");");
+        }
         return new XAException(e.getMessage());
     }
 

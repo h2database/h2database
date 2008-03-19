@@ -14,8 +14,8 @@ public abstract class SchemaObjectBase extends DbObjectBase implements SchemaObj
 
     private Schema schema;
 
-    protected SchemaObjectBase(Schema schema, int id, String name, String traceModule) {
-        super(schema.getDatabase(), id, name, traceModule);
+    protected void initSchemaObjectBase(Schema schema, int id, String name, String traceModule) {
+        initDbObjectBase(schema.getDatabase(), id, name, traceModule);
         this.schema = schema;
     }
 

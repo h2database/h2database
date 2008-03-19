@@ -25,7 +25,7 @@ public class Constant extends SchemaObjectBase {
     private ValueExpression expression;
 
     public Constant(Schema schema, int id, String name) {
-        super(schema, id, name, Trace.SCHEMA);
+        initSchemaObjectBase(schema, id, name, Trace.SCHEMA);
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {

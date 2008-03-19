@@ -27,7 +27,7 @@ public class Sequence extends SchemaObjectBase {
     private boolean belongsToTable;
 
     public Sequence(Schema schema, int id, String name, boolean belongsToTable) {
-        super(schema, id, name, Trace.SEQUENCE);
+        initSchemaObjectBase(schema, id, name, Trace.SEQUENCE);
         this.belongsToTable = belongsToTable;
     }
 

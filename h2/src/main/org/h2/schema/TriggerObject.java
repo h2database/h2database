@@ -39,7 +39,7 @@ public class TriggerObject extends SchemaObjectBase {
     private Trigger triggerCallback;
 
     public TriggerObject(Schema schema, int id, String name, Table table) {
-        super(schema, id, name, Trace.TRIGGER);
+        initSchemaObjectBase(schema, id, name, Trace.TRIGGER);
         this.table = table;
         setTemporary(table.getTemporary());
     }

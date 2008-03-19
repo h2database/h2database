@@ -21,7 +21,6 @@ import org.h2.index.Cursor;
 import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.LinearHashIndex;
 import org.h2.index.MultiVersionIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
@@ -157,11 +156,7 @@ public class TableData extends Table implements RecordReader {
         }
         Index index;
         if (isPersistent() && indexType.isPersistent()) {
-            if (indexType.isHash()) {
-                index = new LinearHashIndex(session, this, indexId, indexName, cols, indexType);
-            } else {
-                index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
-            }
+            index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
         } else {
             if (indexType.isHash()) {
                 index = new HashIndex(this, indexId, indexName, cols, indexType);

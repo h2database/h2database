@@ -66,19 +66,24 @@ public class ChangePassword {
         String db = null;
         boolean quiet = false;
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-dir")) {
+            String arg = args[i];
+            if (arg.equals("-dir")) {
                 dir = args[++i];
-            } else if (args[i].equals("-cipher")) {
+            } else if (arg.equals("-cipher")) {
                 cipher = args[++i];
-            } else if (args[i].equals("-db")) {
+            } else if (arg.equals("-db")) {
                 db = args[++i];
-            } else if (args[i].equals("-decrypt")) {
+            } else if (arg.equals("-decrypt")) {
                 decryptPassword = args[++i].toCharArray();
-            } else if (args[i].equals("-encrypt")) {
+            } else if (arg.equals("-encrypt")) {
                 encryptPassword = args[++i].toCharArray();
-            } else if (args[i].equals("-quiet")) {
+            } else if (arg.equals("-quiet")) {
                 quiet = true;
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

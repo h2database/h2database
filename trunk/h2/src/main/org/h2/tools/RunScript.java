@@ -78,26 +78,27 @@ public class RunScript {
         boolean continueOnError = false;
         boolean showTime = false;
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-url")) {
+            String arg = args[i];
+            if (arg.equals("-url")) {
                 url = args[++i];
-            } else if (args[i].equals("-user")) {
+            } else if (arg.equals("-user")) {
                 user = args[++i];
-            } else if (args[i].equals("-password")) {
+            } else if (arg.equals("-password")) {
                 password = args[++i];
-            } else if (args[i].equals("-continueOnError")) {
+            } else if (arg.equals("-continueOnError")) {
                 continueOnError = true;
-            } else if (args[i].equals("-script")) {
+            } else if (arg.equals("-script")) {
                 script = args[++i];
-            } else if (args[i].equals("-time")) {
+            } else if (arg.equals("-time")) {
                 showTime = true;
-            } else if (args[i].equals("-driver")) {
+            } else if (arg.equals("-driver")) {
                 String driver = args[++i];
                 try {
                     ClassUtils.loadUserClass(driver);
                 } catch (ClassNotFoundException e) {
                     throw Message.convert(e);
                 }
-            } else if (args[i].equals("-options")) {
+            } else if (arg.equals("-options")) {
                 StringBuffer buff = new StringBuffer();
                 i++;
                 for (; i < args.length; i++) {
@@ -105,7 +106,11 @@ public class RunScript {
                     buff.append(args[i]);
                 }
                 options = buff.toString();
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

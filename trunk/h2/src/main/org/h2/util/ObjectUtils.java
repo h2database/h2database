@@ -20,6 +20,7 @@ import org.h2.message.Message;
 public class ObjectUtils {
 
     public static Integer getInteger(int x) {
+        // actually this method is available in JDK15
 //#ifdef JDK16
 /*
         if(true)

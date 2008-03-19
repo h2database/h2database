@@ -32,14 +32,14 @@ public class TestSampleApps extends TestBase {
         testApp(org.h2.samples.TriggerSample.class, null, "The sum is 20.00");
 
         // tools
-        testApp(org.h2.tools.ChangePassword.class, new String[] { "-?" },
+        testApp(org.h2.tools.ChangePassword.class, new String[] { "-help" },
                 "java org.h2.tools.ChangePassword [-dir <dir>] "
                         + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
                         + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
         testApp(org.h2.tools.ChangePassword.class, null, "java org.h2.tools.ChangePassword [-dir <dir>] "
                 + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
                 + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
-        testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-?" },
+        testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-help" },
                 "java org.h2.tools.DeleteDbFiles [-dir <dir>] [-db <database>] [-quiet]\n"
                 + "See also http://h2database.com/javadoc/org/h2/tools/DeleteDbFiles.html");
     }

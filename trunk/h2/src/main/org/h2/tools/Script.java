@@ -56,15 +56,16 @@ public class Script {
         String file = "backup.sql";
         String options1 = null, options2 = null;
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-url")) {
+            String arg = args[i];
+            if (arg.equals("-url")) {
                 url = args[++i];
-            } else if (args[i].equals("-user")) {
+            } else if (arg.equals("-user")) {
                 user = args[++i];
-            } else if (args[i].equals("-password")) {
+            } else if (arg.equals("-password")) {
                 password = args[++i];
-            } else if (args[i].equals("-script")) {
+            } else if (arg.equals("-script")) {
                 file = args[++i];
-            } else if (args[i].equals("-options")) {
+            } else if (arg.equals("-options")) {
                 StringBuffer buff1 = new StringBuffer();
                 StringBuffer buff2 = new StringBuffer();
                 i++;
@@ -81,7 +82,11 @@ public class Script {
                 }
                 options1 = buff1.toString();
                 options2 = buff2.toString();
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

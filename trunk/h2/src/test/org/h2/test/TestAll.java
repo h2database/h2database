@@ -156,18 +156,39 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-
+        
 /*
 
-new TestCrashAPI().init(test).testCase(2046453618); 
+write to system table before adding to internal data structures
+//new TestCrashAPI().init(test).testCase(2046453618); 
 
-Allow to set all passwords as parameters
-Remove Parser.readString()
+MiniConnectionPoolManager
+
+Hi,
+Thanks a lot for your help! I can now also reproduce this problem. It only happens when using LOG=2, 
+and deleting or updating all rows of a table. There is a workaround (beside not using LOG=1):
+System.setProperty("h2.reuseSpaceQuickly", "false");
+or java -Dh2.reuseSpaceQuickly=false
+I will fix this for the next release.
+Regards,
+Thomas
+
+--------------
+
+scheduler: what if invoke takes more than...
+scheduler: log at startup next 5
+scheduler: add an a cron functionality
+
+performance of drop table / index is slow 
+(when deleting a lot of rows randomly?)
+
+use a default delay of 1 second before closing a database.
 
 more tests with disk based select distinct; order by:
 select distinct x from system_range(1, 200000);
 DROP TABLE TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), VALUE DECIMAL(10,2));
+CREATE TABLE TEST(ID INT PRIMARY KEY, 
+NAME VARCHAR(255), VALUE DECIMAL(10,2));
 INSERT INTO TEST VALUES(1,'Apples',1.20), 
 (2,'Oranges',2.05),
 (3,'Cherries',5.10),
@@ -183,6 +204,8 @@ CREATE TABLE p(d DATE);
 INSERT INTO p VALUES('0000-01-01');
 INSERT INTO p VALUES('0001-01-01');
 
+C:\temp\db\diff.patch
+
 out of memory problem:
 java -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m 
     -cp bin/h2.jar org.h2.tools.Server -log true
@@ -193,30 +216,8 @@ CREATE TABLE test (field1 number(10) not null, field2 number(8));
 create index idx_number1 on test(field1);
 The table 'test' contains a little over 100.000.000 records.
 
-Read HenPlus features
-http://henplus.sourceforge.net/
-
-better document DataSource usage in an own section in the Tutorial. 
-Including Pooling if possible
-link to or include 
-http://www.source-code.biz/snippets/java/8.htm
-
-add regular javadocs to the homepage
-
-the database should be kept open for a longer time when using the server mode
-
-add link to new in use, links
-
-Javadocs: for each tool, add a copy & paste sample in the class level
-
-Add google site search to web page
-
 merge query and result frames
 in-place auto-complete 
-
-scheduler: what if invoke takes more than...
-scheduler: log at startup next 5
-scheduler: add an a cron functionality
 
 test with:
 - large varchar columns (40 KB)
@@ -224,20 +225,38 @@ test with:
 
 read uncommitted and multi-threaded mode at the same time is dangerous
 
-add @author
-
 test multi-threaded kernel fulltext
-
-fix or disable the linear hash index
 
 Can sometimes not delete log file? need test case
 
 Add where required // TODO: change in version 1.1
 
 History:
+A first (experimental) implementation of a Shell tools is now included (org.h2.tools.Shell).
+Performance was very slow when using LOG=2 and deleting or 
+    updating all rows of a table in a loop. Fixed.
+ALTER TABLE or CREATE TABLE now support parameters for the password field.
+The linear hash has been removed. It was always slower than the b-tree index, 
+    and there were some bugs that would be hard to fix.
+TRACE_LEVEL_ settings are no longer persistent. This was a problem 
+    when database initialization code caused a lot of logging.
+Fulltext search (native implementation): The words table is no longer 
+    an in-memory table because this caused memory problems in some cases.
+It was possible to create a role with the name as an existing user 
+    (but not vice versa). This is not allowed any more.
 
 Roadmap:
+SET LOG_SYSTEM {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
+Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 
+console features:
+- reset?
+- use StringBuffer to append (copy and paste problems)
+- password mask option
+- result set: two modes (list and table)
+- Show Tables of MySQL and Show Fields (also ij)
+
+(not required for H2) > not required for most databases
 
 */
 

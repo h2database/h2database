@@ -54,15 +54,20 @@ public class Restore {
         String db = null;
         boolean quiet = false;
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-dir")) {
+            String arg = args[i];
+            if (arg.equals("-dir")) {
                 dir = args[++i];
-            } else if (args[i].equals("-file")) {
+            } else if (arg.equals("-file")) {
                 zipFileName = args[++i];
-            } else if (args[i].equals("-db")) {
+            } else if (arg.equals("-db")) {
                 db = args[++i];
-            } else if (args[i].equals("-quiet")) {
+            } else if (arg.equals("-quiet")) {
                 quiet = true;
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
+                System.out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }

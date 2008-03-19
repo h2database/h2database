@@ -72,7 +72,7 @@ public class TestTools extends TestBase {
 
         result = runServer(new String[]{"-xy"}, 1);
         check(result.indexOf("[options]") >= 0);
-        check(result.indexOf("Unknown option") >= 0);
+        check(result.indexOf("Unsupported option") >= 0);
         result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "false", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
         check(result.indexOf("tcp://") >= 0);
         check(result.indexOf(":9001") >= 0);

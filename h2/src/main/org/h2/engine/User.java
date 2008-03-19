@@ -44,6 +44,12 @@ public class User extends RightOwner {
         return admin;
     }
 
+    /**
+     * Set the salt and hash of the password for this user.
+     * 
+     * @param salt the salt
+     * @param hash the password hash
+     */
     public void setSaltAndHash(byte[] salt, byte[] hash) {
         this.salt = salt;
         this.passwordHash = hash;
@@ -69,6 +75,13 @@ public class User extends RightOwner {
         return null;
     }
 
+    /**
+     * Checks that this user has the given rights for this database object.
+     * 
+     * @param table the database object
+     * @param rightMask the rights required
+     * @throws SQLException if this user does not have the required rights
+     */
     public void checkRight(Table table, int rightMask) throws SQLException {
         if (rightMask != Right.SELECT && !systemUser) {
             database.checkWritingAllowed();
@@ -101,6 +114,14 @@ public class User extends RightOwner {
         }
     }
 
+    /**
+     * Get the CREATE SQL statement for this object.
+     * 
+     * @param password true if the password (actually the salt and hash) should
+     *            be returned
+     * @param ifNotExists true if IF NOT EXISTS should be used
+     * @return the SQL statement
+     */
     public String getCreateSQL(boolean password, boolean ifNotExists) {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE USER ");
@@ -127,9 +148,21 @@ public class User extends RightOwner {
         return buff.toString();
     }
 
-    public void checkUserPasswordHash(byte[] buff, SQLException onError) throws SQLException {
+    /**
+     * Check the password of this user. If the password is wrong, this method
+     * waits a short amount of time (to make S attacks harder) and then throws
+     * the exception that is passed. There is only one exception both for wrong
+     * user and for wrong password, to make it harder to get the list of user
+     * names.
+     * 
+     * @param userPasswordHash the password data (the user password hash)
+     * @param onError the exception that should be thrown if the password does
+     *            not match
+     * @throws SQLException if the password does not match
+     */
+    public void checkUserPasswordHash(byte[] userPasswordHash, SQLException onError) throws SQLException {
         SHA256 sha = new SHA256();
-        byte[] hash = sha.getHashWithSalt(buff, salt);
+        byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
         if (!ByteUtils.compareSecure(hash, passwordHash)) {
             try {
                 Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
@@ -140,6 +173,12 @@ public class User extends RightOwner {
         }
     }
 
+    /**
+     * Check if this user has admin rights. An exception is thrown if he does
+     * not have them.
+     * 
+     * @throws SQLException if this user is not an admin
+     */
     public void checkAdmin() throws SQLException {
         if (!admin) {
             throw Message.getSQLException(ErrorCode.ADMIN_RIGHTS_REQUIRED);
@@ -188,7 +227,13 @@ public class User extends RightOwner {
         // ok
     }
 
-    public void checkNoSchemas() throws SQLException {
+    /**
+     * Check that this user does not own any schema. An exception is thrown if he 
+     * owns one or more schemas.
+     * 
+     * @throws SQLException if this user owns a schema
+     */
+    public void checkOwnsNoSchemas() throws SQLException {
         ObjectArray schemas = database.getAllSchemas();
         for (int i = 0; i < schemas.size(); i++) {
             Schema s = (Schema) schemas.get(i);

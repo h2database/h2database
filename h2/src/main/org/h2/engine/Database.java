@@ -550,8 +550,6 @@ public class Database implements DataHandler {
         starting = false;
         addDefaultSetting(systemSession, SetTypes.DEFAULT_LOCK_TIMEOUT, null, Constants.INITIAL_LOCK_TIMEOUT);
         addDefaultSetting(systemSession, SetTypes.DEFAULT_TABLE_TYPE, null, Constants.DEFAULT_TABLE_TYPE);
-        addDefaultSetting(systemSession, SetTypes.TRACE_LEVEL_FILE, null, traceSystem.getLevelFile());
-        addDefaultSetting(systemSession, SetTypes.TRACE_LEVEL_SYSTEM_OUT, null, traceSystem.getLevelSystemOut());
         addDefaultSetting(systemSession, SetTypes.CACHE_SIZE, null, SysProperties.CACHE_SIZE_DEFAULT);
         addDefaultSetting(systemSession, SetTypes.CLUSTER, Constants.CLUSTERING_DISABLED, 0);
         addDefaultSetting(systemSession, SetTypes.WRITE_DELAY, null, Constants.DEFAULT_WRITE_DELAY);
@@ -781,6 +779,18 @@ public class Database implements DataHandler {
         return (UserDataType) userDataTypes.get(name);
     }
 
+    /**
+     * Get the user with the given name. If there is no such user, this method
+     * waits a short amount of time (to make rainbow table attacks harder) and
+     * then throws the exception that is passed. There is only one exception
+     * both for wrong user and for wrong password, to make it harder to get the
+     * list of user names.
+     * 
+     * @param name the user name
+     * @param notFound the exception that should be thrown if the user does not
+     *            exist
+     * @throws SQLException if the user does not exist
+     */
     public User getUser(String name, SQLException notFound) throws SQLException {
         User user = (User) users.get(name);
         if (user == null) {

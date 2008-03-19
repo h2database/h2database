@@ -35,7 +35,26 @@ import org.h2.util.ObjectArray;
  */
 public class AlterTableAddConstraint extends SchemaCommand {
 
-    public static final int CHECK = 0, UNIQUE = 1, REFERENTIAL = 2, PRIMARY_KEY = 3;
+    /**
+     * The type of a ALTER TABLE ADD CHECK statement.
+     */
+    public static final int CHECK = 0;
+    
+    /**
+     * The type of a ALTER TABLE ADD UNIQUE statement.
+     */
+    public static final int UNIQUE = 1;
+    
+    /**
+     * The type of a ALTER TABLE ADD FOREIGN KEY statement.
+     */
+    public static final int REFERENTIAL = 2;
+    
+    /**
+     * The type of a ALTER TABLE ADD PRIMARY KEY statement.
+     */
+    public static final int PRIMARY_KEY = 3;
+    
     private int type;
     private String constraintName;
     private String tableName;

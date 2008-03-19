@@ -25,7 +25,7 @@ public class RangeIndex extends BaseIndex {
     private long min, max;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns, long min, long max) {
-        super(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
+        initBaseIndex(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
         this.min = min;
         this.max = max;
     }

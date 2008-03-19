@@ -120,7 +120,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     public abstract void checkExistingData(Session session) throws SQLException;
 
     public Constraint(Schema schema, int id, String name, Table table) {
-        super(schema, id, name, Trace.CONSTRAINT);
+        initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.getTemporary());
     }

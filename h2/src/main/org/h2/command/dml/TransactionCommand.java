@@ -19,19 +19,75 @@ import org.h2.util.TempFileDeleter;
  * Represents a transactional statement.
  */
 public class TransactionCommand extends Prepared {
+    
+    /**
+     * The type of a SET AUTOCOMMIT TRUE statement.
+     */
     public static final int AUTOCOMMIT_TRUE = 1;
+    
+    /**
+     * The type of a SET AUTOCOMMIT FALSE statement.
+     */
     public static final int AUTOCOMMIT_FALSE = 2;
+    
+    /**
+     * The type of a COMMIT statement.
+     */
     public static final int COMMIT = 3;
+    
+    /**
+     * The type of a ROLLBACK statement.
+     */
     public static final int ROLLBACK = 4;
+    
+    /**
+     * The type of a CHECKPOINT statement.
+     */
     public static final int CHECKPOINT = 5;
+    
+    /**
+     * The type of a SAVEPOINT statement.
+     */
     public static final int SAVEPOINT = 6;
+
+    /**
+     * The type of a ROLLBACK TO SAVEPOINT statement.
+     */
     public static final int ROLLBACK_TO_SAVEPOINT = 7;
+    
+    /**
+     * The type of a CHECKPOINT SYNC statement.
+     */
     public static final int CHECKPOINT_SYNC = 8;
+    
+    /**
+     * The type of a PREPARE COMMIT statement.
+     */
     public static final int PREPARE_COMMIT = 9;
+    
+    /**
+     * The type of a COMMIT TRANSACTION statement.
+     */
     public static final int COMMIT_TRANSACTION = 10;
+    
+    /**
+     * The type of a ROLLBACK TRANSACTION statement.
+     */
     public static final int ROLLBACK_TRANSACTION = 11;
+    
+    /**
+     * The type of a SHUTDOWN statement.
+     */
     public static final int SHUTDOWN = 12;
+    
+    /**
+     * The type of a SHUTDOWN IMMEDIATELY statement.
+     */
     public static final int SHUTDOWN_IMMEDIATELY = 13;
+    
+    /**
+     * The type of a BEGIN {WORK|TRANSACTION} statement.
+     */
     public static final int BEGIN = 14;
 
     private int type;

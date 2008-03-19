@@ -478,7 +478,7 @@ public class Parser {
     private Prepared parseBackup() throws SQLException {
         BackupCommand command = new BackupCommand(session);
         read("TO");
-        command.setFileName(readString());
+        command.setFileName(readExpression());
         return command;
     }
 
@@ -3514,15 +3514,15 @@ public class Parser {
         command.setUserName(readUniqueIdentifier());
         command.setComment(readCommentIf());
         if (readIf("PASSWORD")) {
-            command.setPassword(readString());
+            command.setPassword(readExpression());
         } else if (readIf("SALT")) {
-            command.setSalt(readString());
+            command.setSalt(readExpression());
             read("HASH");
-            command.setHash(readString());
+            command.setHash(readExpression());
         } else if (readIf("IDENTIFIED")) {
             read("BY");
             // uppercase if not quoted
-            command.setPassword(readColumnIdentifier());
+            command.setPassword(ValueExpression.get(ValueString.get(readColumnIdentifier())));
         } else {
             throw getSyntaxError();
         }
@@ -3686,11 +3686,11 @@ public class Parser {
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(database.getUser(userName));
             if (readIf("PASSWORD")) {
-                command.setPassword(readString());
+                command.setPassword(readExpression());
             } else if (readIf("SALT")) {
-                command.setSalt(readString());
+                command.setSalt(readExpression());
                 read("HASH");
-                command.setHash(readString());
+                command.setHash(readExpression());
             } else {
                 throw getSyntaxError();
             }
@@ -3761,16 +3761,16 @@ public class Parser {
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
-            command.setPassword(readString());
+            command.setPassword(readExpression());
             return command;
         } else if (readIf("SALT")) {
             readIfEqualOrTo();
             AlterUser command = new AlterUser(session);
             command.setType(AlterUser.SET_PASSWORD);
             command.setUser(session.getUser());
-            command.setSalt(readString());
+            command.setSalt(readExpression());
             read("HASH");
-            command.setHash(readString());
+            command.setHash(readExpression());
             return command;
         } else if (readIf("MODE")) {
             readIfEqualOrTo();
@@ -3942,7 +3942,7 @@ public class Parser {
     private RunScriptCommand parseRunScript() throws SQLException {
         RunScriptCommand command = new RunScriptCommand(session);
         read("FROM");
-        command.setFileName(readString());
+        command.setFile(readExpression());
         if (readIf("COMPRESSION")) {
             command.setCompressionAlgorithm(readUniqueIdentifier());
         }
@@ -3986,7 +3986,7 @@ public class Parser {
         command.setDrop(dropTables);
         command.setSimple(simple);
         if (readIf("TO")) {
-            command.setFileName(readString());
+            command.setFile(readExpression());
             if (readIf("COMPRESSION")) {
                 command.setCompressionAlgorithm(readUniqueIdentifier());
             }

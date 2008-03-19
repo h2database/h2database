@@ -33,7 +33,7 @@ public abstract class RightOwner extends DbObjectBase {
     private HashMap grantedRights;
 
     protected RightOwner(Database database, int id, String name, String traceModule) {
-        super(database, id, name, traceModule);
+        initDbObjectBase(database, id, name, traceModule);
     }
 
     public boolean isRoleGranted(Role grantedRole) {

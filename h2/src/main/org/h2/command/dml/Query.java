@@ -59,7 +59,7 @@ public abstract class Query extends Prepared {
      * @param limit the limit as specified in the JDBC method call
      * @return the result
      */
-    abstract LocalResult queryWithoutCache(int limit) throws SQLException;
+    protected abstract LocalResult queryWithoutCache(int limit) throws SQLException;
 
     /**
      * Initialize the query.

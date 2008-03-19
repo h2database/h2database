@@ -38,6 +38,14 @@ public abstract class DbObjectBase implements DbObject {
     private long modificationId;
     private boolean temporary;
 
+    protected void initDbObjectBase(Database database, int id, String name, String traceModule) {
+        this.database = database;
+        this.trace = database.getTrace(traceModule);
+        this.id = id;
+        this.objectName = name;
+        this.modificationId = database.getModificationMetaId();
+    }
+
     /**
      * Build a SQL statement to re-create the object, or to create a copy of the
      * object with a different name or referencing a different table
@@ -83,14 +91,6 @@ public abstract class DbObjectBase implements DbObject {
      * Check if this object can be renamed. System objects may not be renamed.
      */
     public abstract void checkRename() throws SQLException;
-
-    protected DbObjectBase(Database database, int id, String name, String traceModule) {
-        this.database = database;
-        this.trace = database.getTrace(traceModule);
-        this.id = id;
-        this.objectName = name;
-        this.modificationId = database.getModificationMetaId();
-    }
 
     public void setModified() {
         this.modificationId = database == null ? -1 : database.getNextModificationMetaId();

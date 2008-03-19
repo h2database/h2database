@@ -12,17 +12,185 @@ import org.h2.util.ObjectArray;
  */
 public class SetTypes {
 
-    public static final int IGNORECASE = 1, MAX_LOG_SIZE = 2, MODE = 3, READONLY = 4, LOCK_TIMEOUT = 5;
-    public static final int DEFAULT_LOCK_TIMEOUT = 6, DEFAULT_TABLE_TYPE = 7;
+    /**
+     * The type of a SET IGNORECASE statement.
+     */
+    public static final int IGNORECASE = 1;
+
+    /**
+     * The type of a SET MAX_LOG_SIZE statement.
+     */
+    public static final int MAX_LOG_SIZE = 2;
+
+    /**
+     * The type of a SET MODE statement.
+     */
+    public static final int MODE = 3;
+    
+    /**
+     * The type of a SET READONLY statement.
+     */
+    public static final int READONLY = 4;
+    
+    /**
+     * The type of a SET LOCK_TIMEOUT statement.
+     */
+    public static final int LOCK_TIMEOUT = 5;
+    
+    /**
+     * The type of a SET DEFAULT_LOCK_TIMEOUT statement.
+     */
+    public static final int DEFAULT_LOCK_TIMEOUT = 6;
+    
+    /**
+     * The type of a SET DEFAULT_TABLE_TYPE statement.
+     */
+    public static final int DEFAULT_TABLE_TYPE = 7;
+    
+    /**
+     * The type of a SET CACHE_SIZE statement.
+     */
     public static final int CACHE_SIZE = 8;
-    public static final int TRACE_LEVEL_SYSTEM_OUT = 9, TRACE_LEVEL_FILE = 10, TRACE_MAX_FILE_SIZE = 11;
-    public static final int COLLATION = 12, CLUSTER = 13, WRITE_DELAY = 14, DATABASE_EVENT_LISTENER = 15;
-    public static final int MAX_MEMORY_ROWS = 16, LOCK_MODE = 17, DB_CLOSE_DELAY = 18;
-    public static final int LOG = 19, THROTTLE = 20, MAX_MEMORY_UNDO = 21, MAX_LENGTH_INPLACE_LOB = 22;
-    public static final int COMPRESS_LOB = 23, ALLOW_LITERALS = 24, MULTI_THREADED = 25, SCHEMA = 26;
-    public static final int OPTIMIZE_REUSE_RESULTS = 27, SCHEMA_SEARCH_PATH = 28, UNDO_LOG = 29;
-    public static final int REFERENTIAL_INTEGRITY = 30, MVCC = 31, MAX_OPERATION_MEMORY = 32, EXCLUSIVE = 33;
-    public static final int CREATE_BUILD = 34, VARIABLE = 35, QUERY_TIMEOUT = 36;
+    
+    /**
+     * The type of a SET TRACE_LEVEL_SYSTEM_OUT statement.
+     */
+    public static final int TRACE_LEVEL_SYSTEM_OUT = 9;
+    
+    /**
+     * The type of a SET TRACE_LEVEL_FILE statement.
+     */
+    public static final int TRACE_LEVEL_FILE = 10;
+    
+    /**
+     * The type of a SET TRACE_MAX_FILE_SIZE statement.
+     */
+    public static final int TRACE_MAX_FILE_SIZE = 11;
+    
+    /**
+     * The type of a SET COLLATION  statement.
+     */
+    public static final int COLLATION = 12;
+    
+    /**
+     * The type of a SET CLUSTER statement.
+     */
+    public static final int CLUSTER = 13;
+    
+    /**
+     * The type of a SET WRITE_DELAY statement.
+     */
+    public static final int WRITE_DELAY = 14;
+    
+    /**
+     * The type of a SET DATABASE_EVENT_LISTENER statement.
+     */
+    public static final int DATABASE_EVENT_LISTENER = 15;
+    
+    /**
+     * The type of a SET MAX_MEMORY_ROWS statement.
+     */
+    public static final int MAX_MEMORY_ROWS = 16;
+    
+    /**
+     * The type of a SET LOCK_MODE statement.
+     */
+    public static final int LOCK_MODE = 17;
+    
+    /**
+     * The type of a SET DB_CLOSE_DELAY statement.
+     */
+    public static final int DB_CLOSE_DELAY = 18;
+    
+    /**
+     * The type of a SET LOG statement.
+     */
+    public static final int LOG = 19;
+    
+    /**
+     * The type of a SET THROTTLE statement.
+     */
+    public static final int THROTTLE = 20;
+    
+    /**
+     * The type of a SET MAX_MEMORY_UNDO statement.
+     */
+    public static final int MAX_MEMORY_UNDO = 21;
+    
+    /**
+     * The type of a SET MAX_LENGTH_INPLACE_LOB statement.
+     */
+    public static final int MAX_LENGTH_INPLACE_LOB = 22;
+    
+    /**
+     * The type of a SET COMPRESS_LOB statement.
+     */
+    public static final int COMPRESS_LOB = 23;
+    
+    /**
+     * The type of a SET ALLOW_LITERALS statement.
+     */
+    public static final int ALLOW_LITERALS = 24;
+    
+    /**
+     * The type of a SET MULTI_THREADED statement.
+     */
+    public static final int MULTI_THREADED = 25;
+    
+    /**
+     * The type of a SET SCHEMA statement.
+     */
+    public static final int SCHEMA = 26;
+    
+    /**
+     * The type of a SET OPTIMIZE_REUSE_RESULTS statement.
+     */
+    public static final int OPTIMIZE_REUSE_RESULTS = 27;
+    
+    /**
+     * The type of a SET SCHEMA_SEARCH_PATH statement.
+     */
+    public static final int SCHEMA_SEARCH_PATH = 28;
+    
+    /**
+     * The type of a SET UNDO_LOG statement.
+     */
+    public static final int UNDO_LOG = 29;
+    
+    /**
+     * The type of a SET REFERENTIAL_INTEGRITY statement.
+     */
+    public static final int REFERENTIAL_INTEGRITY = 30;
+    
+    /**
+     * The type of a SET MVCC statement.
+     */
+    public static final int MVCC = 31;
+    
+    /**
+     * The type of a SET MAX_OPERATION_MEMORY statement.
+     */
+    public static final int MAX_OPERATION_MEMORY = 32;
+    
+    /**
+     * The type of a SET EXCLUSIVE statement.
+     */
+    public static final int EXCLUSIVE = 33;
+    
+    /**
+     * The type of a SET CREATE_BUILD statement.
+     */
+    public static final int CREATE_BUILD = 34;
+    
+    /**
+     * The type of a SET \@VARIABLE statement.
+     */
+    public static final int VARIABLE = 35;
+    
+    /**
+     * The type of a SET QUERY_TIMEOUT statement.
+     */
+    public static final int QUERY_TIMEOUT = 36;
 
     private static ObjectArray types = new ObjectArray();
 

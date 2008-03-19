@@ -107,6 +107,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
         this.autoCommit = autoCommit;
     }
 
+    /**
+     * Calls COMMIT if the session is in cluster mode.
+     */
     public void autoCommitIfCluster() throws SQLException {
         if (autoCommit && transferList != null && transferList.size() > 1) {
             // server side auto commit is off because of race conditions
@@ -231,6 +234,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
         ci.executeUpdate();
     }
 
+    /**
+     * Remove a server from the list of cluster nodes and disables the cluster
+     * mode.
+     * 
+     * @param i the index of the server to remove
+     */
     public void removeServer(int i) throws SQLException {
         transferList.remove(i);
         checkClosed();
@@ -244,6 +253,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
+    /**
+     * Check if this session is closed and throws an exception if so.
+     * 
+     * @throws SQLException if the session is closed
+     */
     public void checkClosed() throws SQLException {
         if (isClosed()) {
             // TODO broken connection: try to reconnect automatically
@@ -283,6 +297,16 @@ public class SessionRemote implements SessionInterface, DataHandler {
         return nextId;
     }
 
+    /**
+     * Called to flush the output after data has been sent to the server and
+     * just before receiving data. This method also reads the status code from
+     * the server and throws any exception the server sent.
+     * 
+     * @param transfer the transfer object
+     * @throws SQLException if the server sent an exception
+     * @throws IOException if there is a communication problem between client
+     *             and server
+     */
     public void done(Transfer transfer) throws SQLException, IOException {
         transfer.flush();
         int status = transfer.readInt();
@@ -298,6 +322,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
+    /**
+     * Returns true if the connection is in cluster mode.
+     * 
+     * @return true if it is
+     */
     public boolean isClustered() {
         return transferList.size() > 1;
     }
@@ -306,6 +335,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
         return transferList == null || transferList.size() == 0;
     }
 
+    /**
+     * Write the operation to the trace system if debug trace is enabled.
+     * 
+     * @param operation the operation performed
+     * @param id the id of the operation
+     */
     public void traceOperation(String operation, int id) {
         if (trace.debug()) {
             trace.debug(operation + " " + id);

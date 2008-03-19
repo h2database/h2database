@@ -32,10 +32,14 @@ Tutorial
     Using OpenOffice Base</a><br />
 <a href="#web_start">
     Java Web Start / JNLP</a><br />
+<a href="#connection_pool">
+    Using a Connection Pool</a><br />
 <a href="#fulltext">
     Fulltext Search</a><br />
 <a href="#user_defined_variables">
     User Defined Variables</a><br />
+<a href="#date_time">
+    Date and Time</a><br />
 
 <br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
@@ -547,6 +551,19 @@ Example permission tags:
 </pre>
 </p>
 
+<br /><a name="connection_pool"></a>
+<h2>Using a Connection Pool</h2>
+<p>
+For many databases, opening a connection is slow, and it is a good idea to use a connection pool
+to re-use connections. For H2 however opening a connection usually is fast if the database is already
+open. Using a connection pool manager for H2 actually slows down the process a bit, except if
+file encryption is used (in this case opening a connection is about half as fast are using
+a connection pool). A simple connection pool is:
+<a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>.
+There are other, more complex connection pools available, for example 
+<a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a>.
+</p>
+
 <br /><a name="fulltext"></a>
 <h2>Fulltext Search</h2>
 <p>
@@ -640,6 +657,21 @@ SELECT X, SET(@TOTAL, IFNULL(@TOTAL, 1.) * X) F FROM SYSTEM_RANGE(1, 50);
 Variables that are not set evaluate to NULL. The data type of a user defined variable is the data type
 of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them.
 There are no restrictions on the assigned values, large objects (LOBs) are supported as well.
+</p>
+
+<br /><a name="date_time"></a>
+<h2>Date and Time</h2>
+<p>
+Date, time and timestamp values support ISO 8601 formatting, including timezone:
+<pre>
+CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
+</pre>
+If the timezone is not set, the value is parsed using the current timezone setting of the system. 
+Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). 
+If the database is opened using another system timezone, the date and time will change accordingly. 
+If you want to move a database from one timezone to the other and don't want this to happen, 
+you need to create a SQL script file using the SCRIPT command or Script tool, and then load 
+the database using the RUNSCRIPT command or the RunScript tool in the new timezone.
 </p>
 
 </div></td></tr></table><!-- analytics --></body></html>

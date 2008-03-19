@@ -55,6 +55,7 @@ Roadmap
 </li><li>Better space re-use in the files after deleting data (shrink the files)
 </li><li>Shrink the data file without closing the database (if the end of the file is empty)
 </li><li>ParameterMetaData should return correct data type where possible (INSERT, UPDATE; supported by PostgreSQL, Derby, HSQLDB)
+</li><li>Pluggable tracing system
 </li><li>Full outer joins
 </li><li>Procedural language / script language (Javascript)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -249,7 +250,7 @@ Roadmap
 </li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 </li><li>Support Sequoia (Continuent.org)
 </li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
-</li><li>Pluggable tracing system, ThreadPool, (AvalonDB / deebee / Paul Hammant)
+</li><li>Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
 </li><li>Recursive Queries (see details)
 </li><li>Use index on boolean flag (see details)
 </li><li>Add build for embedded database only
@@ -388,6 +389,11 @@ Roadmap
 </li><li>Use ant 'get' to download dependencies
 </li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
 </li><li>The RunScript tool should support interactive mode (reading from system in). Password using a second thread.
+</li><li>Add regular javadocs to the homepage.
+</li><li>The database should be kept open for a longer time when using the server mode.
+</li><li>Javadocs: for each tool, add a copy & paste sample in the class level.
+</li><li>Add google site search to web page.
+</li><li>Javadocs: add @author tags.
 </li></ul>
 
 <h2>Not Planned</h2>

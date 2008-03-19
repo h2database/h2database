@@ -38,7 +38,7 @@ public class ViewIndex extends BaseIndex {
     private Session session;
 
     public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
-        super(view, 0, null, null, IndexType.createNonUnique(false));
+        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
         this.recursive = recursive;
@@ -46,7 +46,7 @@ public class ViewIndex extends BaseIndex {
     }
 
     public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
-        super(view, 0, null, null, IndexType.createNonUnique(false));
+        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;
         this.recursive = index.recursive;

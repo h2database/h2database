@@ -18,6 +18,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
@@ -48,7 +49,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     /**
      * The file name (if set).
      */
-    protected String fileName;
+    private Expression file;
+    private String fileName;
 
     private String cipher;
     private byte[] key;
@@ -72,11 +74,19 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         key = sha.getKeyPasswordHash("script", password);
     }
 
-    public void setFileName(String fileName) {
-        if (fileName == null || fileName.trim().length() == 0) {
-            fileName = "script.sql";
+    public void setFile(Expression file) {
+        this.file = file;
+    }
+    
+    protected String getFileName() throws SQLException {
+        if (file != null) {
+            fileName = file == null ? null : file.getValue(session).getString();
+            if (fileName == null || fileName.trim().length() == 0) {
+                fileName = "script.sql";
+            }
+            fileName = SysProperties.scriptDirectory + fileName;
         }
-        this.fileName = SysProperties.scriptDirectory + fileName;
+        return fileName;
     }
 
     public boolean isTransactional() {
@@ -84,6 +94,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     protected void deleteStore() throws SQLException {
+        String fileName = getFileName();
         if (fileName != null) {
             FileUtils.delete(fileName);
         }
@@ -93,12 +104,14 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         byte[] magic = Database.getMagic(true);
         Database db = session.getDatabase();
         // script files are always in text format
+        String fileName = getFileName();        
         store = FileStore.open(db, fileName, "rw", magic, cipher, key);
         store.setCheckedWriting(false);
         store.init();
     }
 
     protected void openOutput() throws SQLException {
+        String fileName = getFileName();        
         if (fileName == null) {
             return;
         }
@@ -115,6 +128,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     protected void openInput() throws SQLException {
+        String fileName = getFileName();        
         if (fileName == null) {
             return;
         }

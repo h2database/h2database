@@ -26,7 +26,7 @@ public class FunctionIndex extends BaseIndex {
     private LocalResult result;
 
     public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns, FunctionCall function) {
-        super(functionTable, 0, null, columns, IndexType.createNonUnique(true));
+        initBaseIndex(functionTable, 0, null, columns, IndexType.createNonUnique(true));
         this.functionTable = functionTable;
     }
 

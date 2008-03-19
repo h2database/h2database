@@ -26,7 +26,7 @@ public class TreeIndex extends BaseIndex {
     private TableData tableData;
 
     public TreeIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
-        super(table, id, indexName, columns, indexType);
+        initBaseIndex(table, id, indexName, columns, indexType);
         tableData = table;
     }
 

@@ -22,7 +22,7 @@ public class UserAggregate extends DbObjectBase {
     private Class javaClass;
 
     public UserAggregate(Database db, int id, String name, String className, boolean force) throws SQLException {
-        super(db, id, name, Trace.FUNCTION);
+        initDbObjectBase(db, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
             getInstance();

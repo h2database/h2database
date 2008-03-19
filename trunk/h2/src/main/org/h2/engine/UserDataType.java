@@ -20,7 +20,7 @@ public class UserDataType extends DbObjectBase {
     private Column column;
 
     public UserDataType(Database database, int id, String name) {
-        super(database, id, name, Trace.DATABASE);
+        initDbObjectBase(database, id, name, Trace.DATABASE);
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {

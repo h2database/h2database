@@ -22,7 +22,7 @@ public class Comment extends DbObjectBase {
     private String commentText;
 
     public Comment(Database database, int id, DbObject obj) {
-        super(database, id,  getKey(obj), Trace.DATABASE);
+        initDbObjectBase(database, id,  getKey(obj), Trace.DATABASE);
         this.objectType = obj.getType();
         this.objectName = obj.getSQL();
     }

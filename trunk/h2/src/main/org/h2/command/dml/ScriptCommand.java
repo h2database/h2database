@@ -340,7 +340,7 @@ public class ScriptCommand extends ScriptBase {
                 out.close();
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
+            throw Message.convertIOException(e, getFileName());
         } finally {
             closeIO();
         }

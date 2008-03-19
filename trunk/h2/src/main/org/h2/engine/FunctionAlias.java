@@ -33,7 +33,7 @@ public class FunctionAlias extends DbObjectBase {
     private int dataType;
 
     public FunctionAlias(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
-        super(db, id, name, Trace.FUNCTION);
+        initDbObjectBase(db, id, name, Trace.FUNCTION);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
         if (lastDot < 0) {

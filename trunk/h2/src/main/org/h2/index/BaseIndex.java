@@ -37,6 +37,22 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected IndexType indexType;
     protected long rowCount;
 
+    public void initBaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
+        initSchemaObjectBase(table.getSchema(), id, name, Trace.INDEX);
+        this.indexType = indexType;
+        this.table = table;
+        if (indexColumns != null) {
+            this.indexColumns = indexColumns;
+            columns = new Column[indexColumns.length];
+            columnIds = new int[columns.length];
+            for (int i = 0; i < columns.length; i++) {
+                Column col = indexColumns[i].column;
+                columns[i] = col;
+                columnIds[i] = col.getColumnId();
+            }
+        }
+    }
+
     /**
      * Close this index.
      *
@@ -113,22 +129,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     public abstract boolean needRebuild();
 
-    public BaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
-        super(table.getSchema(), id, name, Trace.INDEX);
-        this.indexType = indexType;
-        this.table = table;
-        if (indexColumns != null) {
-            this.indexColumns = indexColumns;
-            columns = new Column[indexColumns.length];
-            columnIds = new int[columns.length];
-            for (int i = 0; i < columns.length; i++) {
-                Column col = indexColumns[i].column;
-                columns[i] = col;
-                columnIds[i] = col.getColumnId();
-            }
-        }
-    }
-
     public String getDropSQL() {
         return null;
     }
@@ -171,6 +171,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return 2;
     }
 
+    /**
+     * Calculate the cost for the given mask as if this index was a typical
+     * b-tree range index.
+     * 
+     * @param mask the search mask
+     * @param rowCount the number of rows in the index
+     * @return the calculated cost
+     */
     public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;

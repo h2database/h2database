@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
+import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
@@ -41,9 +42,9 @@ public class AlterUser extends DefineCommand {
     private int type;
     private User user;
     private String newName;
-    private byte[] userPasswordHash;
-    private byte[] salt;
-    private byte[] hash;
+    private Expression password;
+    private Expression salt;
+    private Expression hash;
     private boolean admin;
 
     public AlterUser(Session session) {
@@ -66,18 +67,24 @@ public class AlterUser extends DefineCommand {
         this.admin = admin;
     }
 
-    public void setSalt(String s) throws SQLException {
-        salt = ByteUtils.convertStringToBytes(s);
+    public void setSalt(Expression e) throws SQLException {
+        salt = e;
     }
 
-    public void setHash(String s) throws SQLException {
-        hash = ByteUtils.convertStringToBytes(s);
+    public void setHash(Expression e) throws SQLException {
+        hash = e;
     }
 
-    public void setPassword(String password) {
-        SHA256 sha = new SHA256();
-        String name = newName == null ? user.getName() : newName;
-        this.userPasswordHash = sha.getKeyPasswordHash(name, password.toCharArray());
+    public void setPassword(Expression password) {
+        this.password = password;
+    }
+    
+    private char[] getCharArray(Expression e) throws SQLException {
+        return e.getValue(session).getString().toCharArray();
+    }
+
+    private byte[] getByteArray(Expression e) throws SQLException {
+        return ByteUtils.convertStringToBytes(e.getValue(session).getString());
     }
 
     public int update() throws SQLException {
@@ -89,8 +96,12 @@ public class AlterUser extends DefineCommand {
                 session.getUser().checkAdmin();
             }
             if (hash != null && salt != null) {
-                user.setSaltAndHash(salt, hash);
+                user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
             } else {
+                String name = newName == null ? user.getName() : newName;
+                SHA256 sha = new SHA256();
+                char[] passwordChars = getCharArray(password);
+                byte[] userPasswordHash = sha.getKeyPasswordHash(name, passwordChars);
                 user.setUserPasswordHash(userPasswordHash);
             }
             break;
@@ -104,7 +115,7 @@ public class AlterUser extends DefineCommand {
         case ADMIN:
             session.getUser().checkAdmin();
             if (!admin) {
-                user.checkNoSchemas();
+                user.checkOwnsNoSchemas();
             }
             user.setAdmin(admin);
             break;

@@ -210,6 +210,10 @@ public abstract class Prepared {
     public String getSQL() {
         return sql;
     }
+    
+    protected int getCurrentObjectId() {
+        return objectId;
+    }
 
     protected int getObjectId(boolean needFresh, boolean dataFile) {
         Database db = session.getDatabase();

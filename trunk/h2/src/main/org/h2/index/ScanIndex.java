@@ -42,7 +42,7 @@ public class ScanIndex extends BaseIndex {
     private HashSet delta;
 
     public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) throws SQLException {
-        super(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = new HashMap();
         }

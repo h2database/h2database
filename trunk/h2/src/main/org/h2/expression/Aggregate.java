@@ -154,7 +154,7 @@ public class Aggregate extends Expression {
     }
 
     public Value getValue(Session session) throws SQLException {
-        if (select.isQuickQuery()) {
+        if (select.isQuickAggregateQuery()) {
             switch (type) {
             case COUNT_ALL:
                 Table table = select.getTopTableFilter().getTable();

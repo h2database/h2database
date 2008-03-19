@@ -40,8 +40,41 @@ import org.h2.util.ObjectArray;
  */
 public class AlterTableAlterColumn extends SchemaCommand {
 
-    public static final int NOT_NULL = 0, NULL = 1, DEFAULT = 2, CHANGE_TYPE = 3;
-    public static final int ADD = 4, DROP = 5, SELECTIVITY = 6;
+    /**
+     * The type of a ALTER TABLE ALTER COLUMN SET NOT NULL statement.
+     */
+    public static final int NOT_NULL = 0;
+    
+    /**
+     * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
+     */
+    public static final int NULL = 1;
+    
+    /**
+     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT statement.
+     */
+    public static final int DEFAULT = 2;
+    
+    /**
+     * The type of a ALTER TABLE ALTER COLUMN statement that changes the column
+     * data type.
+     */
+    public static final int CHANGE_TYPE = 3;
+    
+    /**
+     * The type of a ALTER TABLE ADD statement.
+     */
+    public static final int ADD = 4;
+    
+    /**
+     * The type of a ALTER TABLE DROP COLUMN statement.
+     */
+    public static final int DROP = 5;
+    
+    /**
+     * The type of a ALTER TABLE ALTER COLUMN SELECTIVITY statement.
+     */
+    public static final int SELECTIVITY = 6;
 
     private Table table;
     private Column oldColumn;

@@ -74,6 +74,8 @@ public interface Index extends SchemaObject {
 
     /**
      * Estimate the cost to search for rows given the search mask.
+     * There is one element per column in the search mask.
+     * For possible search masks, see IndexCondition.
      *
      * @param session the session
      * @param masks the search mask

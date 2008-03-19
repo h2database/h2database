@@ -71,7 +71,7 @@ public class Select extends Query {
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate;
     private double cost;
-    private boolean isQuickQuery, isDistinctQuery;
+    private boolean isQuickAggregateQuery, isDistinctQuery;
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
@@ -109,6 +109,9 @@ public class Select extends Query {
         this.expressions = expressions;
     }
 
+    /**
+     * Called if this query contains aggregate functions.
+     */
     public void setGroupQuery() {
         isGroupQuery = true;
     }
@@ -499,7 +502,7 @@ public class Select extends Query {
         return result;
     }
 
-    public LocalResult queryWithoutCache(int maxRows) throws SQLException {
+    protected LocalResult queryWithoutCache(int maxRows) throws SQLException {
         int limitRows = maxRows;
         if (limit != null) {
             int l = limit.getValue(session).getInt();
@@ -520,7 +523,7 @@ public class Select extends Query {
         topTableFilter.startQuery(session);
         topTableFilter.reset();
         topTableFilter.lock(session, isForUpdate, isForUpdate);
-        if (isQuickQuery) {
+        if (isQuickAggregateQuery) {
             queryQuick(columnCount, result);
         } else if (isGroupQuery) {
             if (isGroupSortedQuery) {
@@ -690,7 +693,7 @@ public class Select extends Query {
             if (condition == null) {
                 ExpressionVisitor optimizable = ExpressionVisitor.get(ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL);
                 optimizable.table = ((TableFilter) filters.get(0)).getTable();
-                isQuickQuery = isEverything(optimizable);
+                isQuickAggregateQuery = isEverything(optimizable);
             }
         }
         cost = preparePlan();
@@ -717,7 +720,7 @@ public class Select extends Query {
                 }
             }
         }
-        if (sort != null && !isQuickQuery && !isGroupQuery) {
+        if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
@@ -729,7 +732,7 @@ public class Select extends Query {
                 }
             }
         }
-        if (SysProperties.OPTIMIZE_GROUP_SORTED && !isQuickQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
+        if (SysProperties.OPTIMIZE_GROUP_SORTED && !isQuickAggregateQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
             if (index != null && (current.getIndexType().isScan() || current == index)) {
@@ -873,7 +876,7 @@ public class Select extends Query {
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }
-        if (isQuickQuery) {
+        if (isQuickAggregateQuery) {
             buff.append("\n/* direct lookup */");
         }
         if (isDistinctQuery) {
@@ -931,8 +934,15 @@ public class Select extends Query {
         }
     }
 
-    public boolean isQuickQuery() {
-        return isQuickQuery;
+    /**
+     * Check if this is an aggregate query with direct lookup, for example a
+     * query of the type SELECT COUNT(*) FROM TEST or 
+     * SELECT MAX(ID) FROM TEST.
+     * 
+     * @return true if a direct lookup is possible
+     */
+    public boolean isQuickAggregateQuery() {
+        return isQuickAggregateQuery;
     }
 
     public void addGlobalCondition(Parameter param, int columnId, int comparisonType) throws SQLException {

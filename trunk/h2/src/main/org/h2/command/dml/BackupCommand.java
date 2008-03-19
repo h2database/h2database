@@ -19,6 +19,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.log.LogFile;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
@@ -35,19 +36,20 @@ import org.h2.util.ObjectArray;
  */
 public class BackupCommand extends Prepared {
 
-    private String fileName;
+    private Expression fileName;
 
     public BackupCommand(Session session) {
         super(session);
     }
 
-    public void setFileName(String fileName) {
+    public void setFileName(Expression fileName) {
         this.fileName = fileName;
     }
 
     public int update() throws SQLException {
+        String name = fileName.getValue(session).getString();
         session.getUser().checkAdmin();
-        backupTo(fileName);
+        backupTo(name);
         return 0;
     }
 

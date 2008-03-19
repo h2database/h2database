@@ -64,6 +64,11 @@ public class Merge extends Prepared {
         this.query = query;
     }
 
+    /**
+     * Add a row to this merge statement.
+     * 
+     * @param expr the list of values
+     */
     public void addRow(Expression[] expr) {
         list.add(expr);
     }

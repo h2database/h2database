@@ -81,13 +81,21 @@ public class Set extends Prepared {
             break;
         case SetTypes.TRACE_LEVEL_SYSTEM_OUT:
             session.getUser().checkAdmin();
-            database.getTraceSystem().setLevelSystemOut(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
+            if (getCurrentObjectId() == 0) {
+                // don't set the property when opening the database
+                // this is for compatibility with older versions, because
+                // this setting was persistent
+                database.getTraceSystem().setLevelSystemOut(getIntValue());
+            }
             break;
         case SetTypes.TRACE_LEVEL_FILE:
             session.getUser().checkAdmin();
-            database.getTraceSystem().setLevelFile(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
+            if (getCurrentObjectId() == 0) {
+                // don't set the property when opening the database
+                // this is for compatibility with older versions, because
+                // this setting was persistent
+                database.getTraceSystem().setLevelFile(getIntValue());
+            }
             break;
         case SetTypes.TRACE_MAX_FILE_SIZE: {
             session.getUser().checkAdmin();

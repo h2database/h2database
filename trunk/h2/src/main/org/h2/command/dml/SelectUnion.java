@@ -31,7 +31,27 @@ import org.h2.value.ValueInt;
  * Represents a union SELECT statement.
  */
 public class SelectUnion extends Query {
-    public static final int UNION = 0, UNION_ALL = 1, EXCEPT = 2, INTERSECT = 3;
+
+    /**
+     * The type of a UNION statement.
+     */
+    public static final int UNION = 0;
+
+    /**
+     * The type of a UNION ALL statement.
+     */
+    public static final int UNION_ALL = 1;
+    
+    /**
+     * The type of an EXCEPT statement.
+     */
+    public static final int EXCEPT = 2;
+    
+    /**
+     * The type of an INTERSECT statement.
+     */
+    public static final int INTERSECT = 3;
+    
     private int unionType;
     private Query left, right;
     private ObjectArray expressions;
@@ -78,13 +98,7 @@ public class SelectUnion extends Query {
         return result;
     }
 
-    /**
-     * Execute the query without using the cache.
-     * 
-     * @param maxrows the maximum number of rows to return
-     * @return the result
-     */
-    public LocalResult queryWithoutCache(int maxrows) throws SQLException {
+    protected LocalResult queryWithoutCache(int maxrows) throws SQLException {
         if (maxrows != 0) {
             if (limit != null) {
                 maxrows = Math.min(limit.getValue(session).getInt(), maxrows);

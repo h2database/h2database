@@ -57,7 +57,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     public BtreeIndex(Session session, TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos) throws SQLException {
         // TODO we need to log index data
-        super(table, id, indexName, columns, indexType);
+        initBaseIndex(table, id, indexName, columns, indexType);
         this.tableData = table;
         Database db = table.getDatabase();
         storage = db.getStorage(this, id, false);

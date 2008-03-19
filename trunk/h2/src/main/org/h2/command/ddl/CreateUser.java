@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
+import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
@@ -23,9 +24,9 @@ public class CreateUser extends DefineCommand {
 
     private String userName;
     private boolean admin;
-    private byte[] userPasswordHash;
-    private byte[] salt;
-    private byte[] hash;
+    private Expression password;
+    private Expression salt;
+    private Expression hash;
     private boolean ifNotExists;
     private String comment;
 
@@ -41,15 +42,25 @@ public class CreateUser extends DefineCommand {
         this.userName = userName;
     }
 
-    public void setPassword(String password) {
-        SHA256 sha = new SHA256();
-        this.userPasswordHash = sha.getKeyPasswordHash(userName, password.toCharArray());
+    public void setPassword(Expression password) {
+        this.password = password;
+    }
+    
+    private char[] getCharArray(Expression e) throws SQLException {
+        return e.getValue(session).getString().toCharArray();
+    }
+
+    private byte[] getByteArray(Expression e) throws SQLException {
+        return ByteUtils.convertStringToBytes(e.getValue(session).getString());
     }
 
     public int update() throws SQLException {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
+        if (db.findRole(userName) != null) {
+            throw Message.getSQLException(ErrorCode.ROLE_ALREADY_EXISTS_1, userName);
+        }
         if (db.findUser(userName) != null) {
             if (ifNotExists) {
                 return 0;
@@ -61,20 +72,23 @@ public class CreateUser extends DefineCommand {
         user.setAdmin(admin);
         user.setComment(comment);
         if (hash != null && salt != null) {
-            user.setSaltAndHash(salt, hash);
+            user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
         } else {
+            SHA256 sha = new SHA256();
+            char[] passwordChars = getCharArray(password);
+            byte[] userPasswordHash = sha.getKeyPasswordHash(userName, passwordChars);
             user.setUserPasswordHash(userPasswordHash);
         }
         db.addDatabaseObject(session, user);
         return 0;
     }
 
-    public void setSalt(String s) throws SQLException {
-        salt = ByteUtils.convertStringToBytes(s);
+    public void setSalt(Expression e) throws SQLException {
+        salt = e;
     }
 
-    public void setHash(String s) throws SQLException {
-        hash = ByteUtils.convertStringToBytes(s);
+    public void setHash(Expression e) throws SQLException {
+        hash = e;
     }
 
     public void setAdmin(boolean b) {

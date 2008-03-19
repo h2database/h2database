@@ -165,12 +165,16 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * @return the connection
      */
     public Connection getConnection(String user, String password) throws SQLException {
-        debugCode("getConnection("+quote(user)+", "+quote(password)+");");
+        if (debug()) {
+            debugCode("getConnection("+quote(user)+", "+quote(password)+");");
+        }
         return getJdbcConnection(user, password);
     }
 
     private JdbcConnection getJdbcConnection(String user, String password) throws SQLException {
-        debugCode("getJdbcConnection("+quote(user)+", "+quote(password)+");");
+        if (debug()) {
+            debugCode("getJdbcConnection("+quote(user)+", "+quote(password)+");");
+        }
         Properties info = new Properties();
         info.setProperty("user", user);
         info.setProperty("password", password);
@@ -278,7 +282,9 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 //#ifdef JDK14
     public XAConnection getXAConnection(String user, String password) throws SQLException {
-        debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
+        if (debug()) {
+            debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
+        }
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
@@ -306,7 +312,9 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 //#ifdef JDK14
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
-        debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
+        if (debug()) {
+            debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
+        }
         return getXAConnection(user, password);
     }
 //#endif

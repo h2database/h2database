@@ -645,7 +645,6 @@ public class DiskFile implements CacheWriter {
         } else {
             if (SysProperties.REUSE_SPACE_QUICKLY) {
                 potentiallyFreePages.add(ObjectUtils.getInteger(page));
-                reuseSpace();
             }
         }
     }

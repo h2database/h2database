@@ -50,7 +50,7 @@ public class Schema extends DbObjectBase {
     private HashSet temporaryUniqueNames = new HashSet();
 
     public Schema(Database database, int id, String schemaName, User owner, boolean system) {
-        super(database, id, schemaName, Trace.SCHEMA);
+        initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
     }

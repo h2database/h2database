@@ -1109,7 +1109,7 @@ SET {TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT} int
 ","
 Sets the trace level for file the file or system out stream.
 Levels: 0=off, 1=error, 2=info, 3=debug.
-This setting is persistent.
+This setting is not persistent.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
 ","
@@ -1517,7 +1517,8 @@ A digit.
 "Data Types","INT Type","
 INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","
-Possible values: -2147483648 to 2147483647
+Possible values: -2147483648 to 2147483647.
+See also java.lang.Integer.
 ","
 INT
 "
@@ -1525,7 +1526,8 @@ INT
 "Data Types","BOOLEAN Type","
 BOOLEAN | BIT | BOOL
 ","
-Possible values: TRUE and FALSE
+Possible values: TRUE and FALSE.
+See also java.lang.Boolean.
 ","
 BOOLEAN
 "
@@ -1533,7 +1535,8 @@ BOOLEAN
 "Data Types","TINYINT Type","
 TINYINT
 ","
-Possible values are: -128 to 127
+Possible values are: -128 to 127.
+See also java.lang.Byte.
 ","
 TINYINT
 "
@@ -1541,7 +1544,8 @@ TINYINT
 "Data Types","SMALLINT Type","
 SMALLINT | INT2 | YEAR
 ","
-Possible values: -32768 to 32767
+Possible values: -32768 to 32767.
+See also java.lang.Short.
 ","
 SMALLINT
 "
@@ -1549,7 +1553,8 @@ SMALLINT
 "Data Types","BIGINT Type","
 BIGINT | INT8
 ","
-Possible values: -9223372036854775808 to 9223372036854775807
+Possible values: -9223372036854775808 to 9223372036854775807.
+See also java.lang.Long.
 ","
 BIGINT
 "
@@ -1558,7 +1563,8 @@ BIGINT
 IDENTITY
 ","
 Auto-Increment value.
-Possible values: -9223372036854775808 to 9223372036854775807
+Possible values: -9223372036854775808 to 9223372036854775807.
+See also java.lang.Long.
 ","
 IDENTITY
 "
@@ -1568,6 +1574,7 @@ IDENTITY
 ","
 Data type with fixed precision and scale.
 This data type is recommended for storing currency values.
+See also java.math.BigDecimal.
 ","
 DECIMAL(20, 2)
 "
@@ -1575,8 +1582,9 @@ DECIMAL(20, 2)
 "Data Types","DOUBLE Type","
 {DOUBLE [PRECISION] | FLOAT | FLOAT4 | FLOAT8}
 ","
-Floating point number (java.lang.Double).
+Floating point number.
 Should not be used to represent currency values, because of rounding problems.
+See also java.lang.Double.
 ","
 DOUBLE
 "
@@ -1584,8 +1592,9 @@ DOUBLE
 "Data Types","REAL Type","
 REAL
 ","
-Single precision floating point number (java.lang.Float).
+Single precision floating point number.
 Should not be used to represent currency values, because of rounding problems.
+See also java.lang.Float.
 ","
 REAL
 "
@@ -1594,6 +1603,7 @@ REAL
 TIME
 ","
 The format is hh:mm:ss.
+See also java.sql.Time.
 ","
 TIME
 "
@@ -1602,6 +1612,7 @@ TIME
 DATE
 ","
 The format is yyyy-MM-dd.
+See also java.sql.Date.
 ","
 DATE
 "
@@ -1610,6 +1621,7 @@ DATE
 {TIMESTAMP | DATETIME | SMALLDATETIME}
 ","
 The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+See also java.sql.Timestamp.
 ","
 TIMESTAMP
 "
@@ -1646,6 +1658,7 @@ VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available.
 For large text data CLOB should be used.
+See also java.lang.String.
 ","
 VARCHAR(255)
 "

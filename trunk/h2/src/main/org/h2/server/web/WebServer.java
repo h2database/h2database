@@ -76,11 +76,12 @@ public class WebServer implements Service {
         "Generic MS SQL Server 2005|com.microsoft.sqlserver.jdbc.SQLServerDriver|jdbc:sqlserver://localhost;DatabaseName=test|sa",
         "Generic PostgreSQL|org.postgresql.Driver|jdbc:postgresql:<db>|" ,
         "Generic MySQL|com.mysql.jdbc.Driver|jdbc:mysql://<host>:<port>/<db>|" ,
+        "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
         "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|jdbc:derby://localhost:1527/test;create=true|sa",
         "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|jdbc:derby:test;create=true|sa",
-        "Generic HSQLDB|org.hsqldb.jdbcDriver|jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
+        "Generic H2 (Server)|org.h2.Driver|jdbc:h2:tcp://localhost/~/test|sa",
         // this will be listed on top for new installations
-        "Generic H2|org.h2.Driver|jdbc:h2:~/test|sa",
+        "Generic H2 (Embedded)|org.h2.Driver|jdbc:h2:~/test|sa",
     };
 
     /*

@@ -59,7 +59,9 @@ implements ObjectFactory
      */
 //#ifdef JDK14
     public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment) throws Exception {
-        trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
+        if (trace.debug()) {
+            trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
+        }
         Reference ref = (Reference) obj;
         if (ref.getClassName().equals(JdbcDataSource.class.getName())) {
             JdbcDataSource dataSource = new JdbcDataSource();

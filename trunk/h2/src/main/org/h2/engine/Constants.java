@@ -68,6 +68,7 @@ package org.h2.engine;
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
  * - http://en.wikipedia.org/wiki/H2_%28DBMS%29 (change version)
+ * - http://www.heise.de/software/
  */
 /**
  * Constants are fixed values that are used in the whole database code.

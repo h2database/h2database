@@ -207,7 +207,7 @@ public abstract class Table extends SchemaObjectBase {
     public abstract long getRowCount(Session session) throws SQLException;
 
     public Table(Schema schema, int id, String name, boolean persistent) {
-        super(schema, id, name, Trace.TABLE);
+        initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistent = persistent;
     }
 
@@ -420,6 +420,8 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Get the best plan for the given search mask.
+     * 
      * @param masks - null means 'always false'
      */
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {

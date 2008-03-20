@@ -244,6 +244,7 @@ public class TestTools extends TestBase {
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
+        stat.execute("create table test2(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello', SECURE_RAND(2000), space(2000))");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
@@ -257,6 +258,8 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
         stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");
+        rs = stat.executeQuery("select * from test2");
+        checkFalse(rs.next());
         rs = stat.executeQuery("select * from test");
         rs.next();
         check(1, rs.getInt(1));

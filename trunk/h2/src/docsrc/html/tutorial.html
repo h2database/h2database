@@ -28,6 +28,8 @@ Tutorial
     CSV (Comma Separated Values) Support</a><br />
 <a href="#upgrade_backup_restore">
     Upgrade, Backup, and Restore</a><br />
+<a href="#command_line_tools">
+    Command Line Tools</a><br />
 <a href="#open_office">
     Using OpenOffice Base</a><br />
 <a href="#web_start">
@@ -492,6 +494,36 @@ The Backup tool (org.h2.tools.Backup) can not be used to create a online backup;
 the database must not be in use while running this program.
 </p>
 
+<br /><a name="command_line_tools"></a>
+<h2>Command Line Tools</h2>
+<p>
+This database comes with a number of command line tools. To get more information about a tool,
+start it with the parameter '-?', for example:
+</p>
+<pre>
+java -cp h2.jar org.h2.tools.Backup -?
+</pre>
+<p>
+The command line tools are:
+</p>
+<ul><li><b>Backup</b> creates a backup of a database.
+</li><li><b>ChangePassword</b> allows to change the file password of a database.
+</li><li><b>Console</b> starts the browser based H2 Console.
+</li><li><b>ConvertTraceFile</b> converts a .trace.db file to a Java application and SQL script.
+</li><li><b>CreateCluster</b> creates a cluster from a standalone database.
+</li><li><b>DeleteDbFiles</b> deletes all files belonging to a database.
+</li><li><b>Script</b> allows to convert a database to a SQL script for backup or migration.
+</li><li><b>Recover</b> helps recovering a corrupted database.
+</li><li><b>Restore</b> restores a backup of a database.
+</li><li><b>RunScript</b> runs a SQL script against a database.
+</li><li><b>Server</b> is used in the server mode to start a H2 server.
+</li><li><b>Shell</b> is a command line database tool. 
+</li></ul>
+<p>
+The tools can also be called from an application by calling the main or another public methods. 
+For details, see the Javadoc documentation.
+</p>
+
 <br /><a name="open_office"></a>
 <h2>Using OpenOffice Base</h2>
 <p>
@@ -557,11 +589,28 @@ Example permission tags:
 For many databases, opening a connection is slow, and it is a good idea to use a connection pool
 to re-use connections. For H2 however opening a connection usually is fast if the database is already
 open. Using a connection pool manager for H2 actually slows down the process a bit, except if
-file encryption is used (in this case opening a connection is about half as fast are using
-a connection pool). A simple connection pool is:
-<a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>.
-There are other, more complex connection pools available, for example 
-<a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a>.
+file encryption is used (in this case opening a connection is about half as fast as using
+a connection pool). A simple connection pool manager is included in H2. It is based on the
+<a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>
+from Christian d'Heureuse. There are other, more complex connection pools available, for example 
+<a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a>. The build-in
+connection pool manager is used as follows:
+<pre>
+// init
+JdbcDataSource ds = new JdbcDataSource();
+ds.setURL("jdbc:h2:~/test");
+ds.setUser("sa");
+ds.setPassword("sa");
+JdbcConnectionPoolManager man = new JdbcConnectionPoolManager(ds);
+
+// use
+Connection conn = man.getConnection();
+...
+conn.close();
+
+// dispose
+man.dispose();
+</pre>
 </p>
 
 <br /><a name="fulltext"></a>

@@ -13,13 +13,13 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console.
  */
 public class ConnectionInfo {
-    String name, driver, url, user;
+    public String name, driver, url, user;
     int lastAccess;
 
     ConnectionInfo() {
     }
 
-    ConnectionInfo(String data) {
+    public ConnectionInfo(String data) {
         String[] array = StringUtils.arraySplit(data, '|', false);
         name = get(array, 0);
         driver = get(array, 1);

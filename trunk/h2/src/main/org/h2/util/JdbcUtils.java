@@ -96,7 +96,7 @@ public class JdbcUtils {
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         try {
             if (StringUtils.isNullOrEmpty(driver)) {
-                JdbcDriverLoader.load(url);
+                JdbcDriverUtils.load(url);
             } else {
                 Class d = ClassUtils.loadUserClass(driver);
                 if (java.sql.Driver.class.isAssignableFrom(d)) {

@@ -47,8 +47,8 @@ public class RunScript {
      * <li>-user username </li>
      * <li>-password password </li>
      * <li>-script filename (default file name is backup.sql) </li>
-     * <li>-driver driver the JDBC driver class name (not required for H2)
-     * </li>
+     * <li>-driver driver the JDBC driver class name (not required for most
+     * databases) </li>
      * <li>-options to specify a list of options (only for H2 and only when
      * using the embedded mode) </li>
      * </ul>
@@ -120,16 +120,13 @@ public class RunScript {
             return;
         }
         long time = System.currentTimeMillis();
-        // for(int i=0; i<10; i++) {
-        // int test;
         if (options != null) {
             executeRunscript(url, user, password, script, options);
         } else {
             execute(url, user, password, script, null, continueOnError);
         }
-        // }
-        time = System.currentTimeMillis() - time;
         if (showTime) {
+            time = System.currentTimeMillis() - time;
             System.out.println("Done in " + time + " ms");
         }
     }

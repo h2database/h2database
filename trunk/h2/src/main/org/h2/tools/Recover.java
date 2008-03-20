@@ -833,7 +833,9 @@ public class Recover implements DataHandler {
                 Map.Entry entry = (Entry) it.next();
                 Integer objectId = (Integer) entry.getKey();
                 String name = (String) entry.getValue();
-                writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
+                if (objectIdSet.contains(objectId)) {
+                    writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
+                }
             }
             for (Iterator it = objectIdSet.iterator(); it.hasNext();) {
                 Integer objectId = (Integer) it.next();

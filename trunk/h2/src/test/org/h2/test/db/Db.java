@@ -12,7 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.HashMap;
 
-import org.h2.util.JdbcDriverLoader;
+import org.h2.util.JdbcDriverUtils;
 
 /**
  * A simple wrapper around the JDBC API.
@@ -31,7 +31,7 @@ public class Db {
 
     public static Db open(String url, String user, String password) {
         try {
-            JdbcDriverLoader.load(url);
+            JdbcDriverUtils.load(url);
             return new Db(DriverManager.getConnection(url, user, password));
         } catch (Exception e) {
             throw convert(e);

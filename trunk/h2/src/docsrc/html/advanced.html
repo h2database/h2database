@@ -32,6 +32,8 @@ Advanced Topics
     Run as Windows Service</a><br />
 <a href="#odbc_driver">
     ODBC Driver</a><br />
+<a href="#microsoft_dot_net">
+    Using H2 in Microsoft .NET</a><br />
 <a href="#acid">
     ACID</a><br />
 <a href="#durability_problems">
@@ -472,6 +474,29 @@ This may be a problem if an attacker can listen to the data transferred between 
 and the server, because the password is readable to the attacker.
 Also, it is currently not possible to use encrypted SSL connections.
 Therefore the ODBC driver should not be used where security is important.
+</p>
+
+<br /><a name="microsoft_dot_net"></a>
+<h2>Using H2 in Microsoft .NET</h2>
+<p>
+The database can be used from Microsoft .NET even without using Java, by using IKVM.NET:
+</p>
+<ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
+    Mono has not yet been tested.
+</li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
+</li><li>Copy the h2.jar file to ikvm/bin
+</li><li>Run the H2 Console using:
+    <code>ikvm -jar h2.jar</code>
+</li><li>Convert the H2 Console to an .exe file using:
+    <code>ikvmc -target:winexe h2.jar</code>.
+    You may ignore the warnings.
+</li><li>Create a .dll file using (change the version accordingly):
+    <code>ikvmc.exe -target:library -version:1.0.68.0 h2.jar</code>
+</li></ul>
+<p>
+If you want your C# application use H2, you need to add the h2.dll and the 
+IKVM.OpenJDK.ClassLibrary.dll to your C# solution. See also the short 
+<a href="http://groups.google.com/group/h2-database/browse_thread/thread/400bc5a9bc9de3fd">C# source code example</a>.
 </p>
 
 <br /><a name="acid"></a>

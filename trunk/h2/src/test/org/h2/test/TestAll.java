@@ -63,6 +63,7 @@ import org.h2.test.jdbc.TestStatement;
 import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
 import org.h2.test.jdbc.TestZloty;
+import org.h2.test.jdbcx.TestConnectionPool;
 import org.h2.test.jdbcx.TestDataSource;
 import org.h2.test.jdbcx.TestXA;
 import org.h2.test.jdbcx.TestXASimple;
@@ -164,15 +165,6 @@ write to system table before adding to internal data structures
 
 MiniConnectionPoolManager
 
-Hi,
-Thanks a lot for your help! I can now also reproduce this problem. It only happens when using LOG=2, 
-and deleting or updating all rows of a table. There is a workaround (beside not using LOG=1):
-System.setProperty("h2.reuseSpaceQuickly", "false");
-or java -Dh2.reuseSpaceQuickly=false
-I will fix this for the next release.
-Regards,
-Thomas
-
 --------------
 
 scheduler: what if invoke takes more than...
@@ -232,7 +224,8 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
-A first (experimental) implementation of a Shell tools is now included (org.h2.tools.Shell).
+A new Shell tools is now included (org.h2.tools.Shell) query a 
+    database from the command line.
 Performance was very slow when using LOG=2 and deleting or 
     updating all rows of a table in a loop. Fixed.
 ALTER TABLE or CREATE TABLE now support parameters for the password field.
@@ -244,19 +237,13 @@ Fulltext search (native implementation): The words table is no longer
     an in-memory table because this caused memory problems in some cases.
 It was possible to create a role with the name as an existing user 
     (but not vice versa). This is not allowed any more.
+The recovery tool didn't work correctly for tables without rows.
 
 Roadmap:
-SET LOG_SYSTEM {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
-Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
-
-console features:
-- reset?
-- use StringBuffer to append (copy and paste problems)
-- password mask option
-- result set: two modes (list and table)
-- Show Tables of MySQL and Show Fields (also ij)
-
-(not required for H2) > not required for most databases
+SET LOG_SYSTEM 
+{NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
+Fluent API for tools: Server.createTcpServer().
+    setPort(9081).setPassword(password).start();
 
 */
 
@@ -519,6 +506,7 @@ console features:
         new TestZloty().runTest(this);
 
         // jdbcx
+        new TestConnectionPool().runTest(this);
         new TestDataSource().runTest(this);
         new TestXA().runTest(this);
         new TestXASimple().runTest(this);

@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.code;
+package org.h2.build.code;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.doc;
+package org.h2.build.doc;
 
 import java.io.File;
 import java.io.FileReader;
@@ -42,7 +42,7 @@ public class SpellChecker {
 
     public static void main(String[] args) throws IOException {
         String dir = "src";
-        new SpellChecker().run("tools/org/h2/tools/doc/dictionary.txt", dir);
+        new SpellChecker().run("tools/org/h2/build/doc/dictionary.txt", dir);
     }
 
     private void run(String dictionary, String dir) throws IOException {

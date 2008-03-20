@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.doc;
+package org.h2.build.doc;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,7 +26,7 @@ public class MergeDocs {
 
     private void run(String[] args) throws Exception {
         // the order of pages is important here
-        String[] pages = { "quickstartText.html", "installation.html", "tutorial.html", "features.html",
+        String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
                 "history.html", "faq.html", "license.html" };    
         StringBuffer buff = new StringBuffer();

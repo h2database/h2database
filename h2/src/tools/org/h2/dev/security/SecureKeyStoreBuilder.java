@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.security;
+package org.h2.dev.security;
 
 import java.security.Key;
 import java.security.KeyStore;

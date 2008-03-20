@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.doclet;
+package org.h2.build.doclet;
 
 import java.io.BufferedWriter;
 import java.io.File;

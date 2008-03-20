@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.i18n;
+package org.h2.build.i18n;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -21,8 +21,8 @@ import java.io.RandomAccessFile;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import org.h2.tools.code.CheckTextFiles;
-import org.h2.tools.indexer.HtmlConverter;
+import org.h2.build.code.CheckTextFiles;
+import org.h2.build.indexer.HtmlConverter;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;

@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.doc;
+package org.h2.build.doc;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.indexer;
+package org.h2.build.indexer;
 
 import java.util.ArrayList;
 import java.util.Collections;

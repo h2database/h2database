@@ -3,7 +3,7 @@
  * (license2)
  * Initial Developer: H2 Group
  */
-package org.h2.tools.i18n;
+package org.h2.build.i18n;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,8 +27,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Map.Entry;
 
+import org.h2.build.doc.XMLParser;
 import org.h2.server.web.PageParser;
-import org.h2.tools.doc.XMLParser;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;

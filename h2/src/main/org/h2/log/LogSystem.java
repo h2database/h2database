@@ -389,9 +389,7 @@ public class LogSystem {
                 storageId = -storageId;
             }
             currentLog.addTruncate(session, storageId, recordId, blockCount);
-int test;            
-//            if (currentLog.getFileSize() > maxLogSize) {
-            if (currentLog.getFileSize()*100 > maxLogSize) {
+            if (currentLog.getFileSize() > maxLogSize) {
                 checkpoint();
             }
         }
@@ -415,9 +413,7 @@ int test;
             session.addLogPos(log, pos);
             record.setLastLog(log, pos);
             currentLog.add(session, storageId, record);
-int test;            
-//            if (currentLog.getFileSize() > maxLogSize) {
-            if (currentLog.getFileSize()*100 > maxLogSize) {
+            if (currentLog.getFileSize() > maxLogSize) {
                 checkpoint();
             }
         }

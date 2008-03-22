@@ -21,7 +21,7 @@ public class ConvertTraceFile {
 
     private void showUsage() {
         System.out.println("java "+getClass().getName()
-                + " [-traceFile <trace file name>] [-javaClass <java class name>] [-script <sql script file>]");
+                + " [-traceFile <trace file name>]\n [-javaClass <java class name>] [-script <sql script file>]");
         System.out.println("See also http://h2database.com/javadoc/org/h2/tools/ConvertTraceFile.html");
     }
 

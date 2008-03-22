@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,7 +90,7 @@ public class Database implements DataHandler {
     private final HashMap userDataTypes = new HashMap();
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
-    private final Set sessions = Collections.synchronizedSet(new HashSet());
+    private final Set userSessions = Collections.synchronizedSet(new HashSet());
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
@@ -808,12 +809,12 @@ public class Database implements DataHandler {
         return getUser(name, Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name));
     }
 
-    public synchronized Session createSession(User user) throws SQLException {
+    public synchronized Session createUserSession(User user) throws SQLException {
         if (exclusiveSession != null) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
         Session session = new Session(this, user, ++nextSessionId);
-        sessions.add(session);
+        userSessions.add(session);
         traceSystem.getTrace(Trace.SESSION).info("connecting #" + session.getId() + " to " + databaseName);
         if (delayedCloser != null) {
             delayedCloser.reset();
@@ -827,12 +828,12 @@ public class Database implements DataHandler {
             if (exclusiveSession == session) {
                 exclusiveSession = null;
             }
-            sessions.remove(session);
+            userSessions.remove(session);
             if (session != systemSession) {
                 traceSystem.getTrace(Trace.SESSION).info("disconnecting #" + session.getId());
             }
         }
-        if (sessions.size() == 0 && session != systemSession) {
+        if (userSessions.size() == 0 && session != systemSession) {
             if (closeDelay == 0) {
                 close(false);
             } else if (closeDelay < 0) {
@@ -851,13 +852,13 @@ public class Database implements DataHandler {
 
     synchronized void close(boolean fromShutdownHook) {
         closing = true;
-        if (sessions.size() > 0) {
+        if (userSessions.size() > 0) {
             if (!fromShutdownHook) {
                 return;
             }
             traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
-            Session[] all = new Session[sessions.size()];
-            sessions.toArray(all);
+            Session[] all = new Session[userSessions.size()];
+            userSessions.toArray(all);
             for (int i = 0; i < all.length; i++) {
                 Session s = all[i];
                 try {
@@ -878,7 +879,7 @@ public class Database implements DataHandler {
             // set it to null, to make sure it's called only once
             eventListener = null;
             e.closingDatabase();
-            if (sessions.size() > 0) {
+            if (userSessions.size() > 0) {
                 // if a connection was opened, we can't close the database
                 return;
             }
@@ -1086,10 +1087,14 @@ public class Database implements DataHandler {
         return log;
     }
 
-    public Session[] getSessions() {
-        Session[] list = new Session[sessions.size()];
-        sessions.toArray(list);
-        return list;
+    public Session[] getSessions(boolean includingSystemSession) {
+        ArrayList list = new ArrayList(userSessions);
+        if (includingSystemSession && systemSession != null) {
+            list.add(systemSession);
+        }
+        Session[] array = new Session[list.size()];
+        list.toArray(array);
+        return array;
     }
 
     public synchronized void update(Session session, DbObject obj) throws SQLException {
@@ -1403,6 +1408,8 @@ public class Database implements DataHandler {
 
     public void deleteLogFileLater(String fileName) throws SQLException {
         if (writer != null) {
+int test;            
+//FileUtils.rename(fileName, fileName + ".trace.db");            
             writer.deleteLogFileLater(fileName);
         } else {
             FileUtils.delete(fileName);
@@ -1700,7 +1707,7 @@ public class Database implements DataHandler {
     }
 
     public int getSessionCount() {
-        return sessions.size();
+        return userSessions.size();
     }
 
     public void setReferentialIntegrity(boolean b) {

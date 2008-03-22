@@ -366,7 +366,12 @@ public class FileSystemDisk extends FileSystem {
             trace("openRandomAccessFile", fileName, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();
-            f = new FileObjectDisk(fileName, mode);
+            try {
+                f = new FileObjectDisk(fileName, mode);
+            } catch (IOException e2) {
+                e2.initCause(e);
+                throw e2;
+            }
         }
         return f;
     }

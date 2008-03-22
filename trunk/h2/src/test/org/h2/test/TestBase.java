@@ -133,9 +133,16 @@ public abstract class TestBase {
         if (admin) {
             url += ";LOG=" + config.logMode;
         }
-        if (config.smallLog && admin) {
-            url += ";MAX_LOG_SIZE=1";
-        }
+        
+int test;        
+//        if (config.smallLog && admin) {
+//            url += ";MAX_LOG_SIZE=1";
+//        }
+if (admin) {
+    url += ";MAX_LOG_SIZE=1";
+}
+
+
         if (config.diskUndo && admin) {
             url += ";MAX_MEMORY_UNDO=3";
         }

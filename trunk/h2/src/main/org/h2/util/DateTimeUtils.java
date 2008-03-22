@@ -126,8 +126,8 @@ public class DateTimeUtils {
 
             int year = 1970, month = 1, day = 1;
             if (type != Value.TIME) {
-                // support +year
                 if (s.startsWith("+")) {
+                    // +year
                     s = s.substring(1);
                 }
                 // start at position 1 to support -year
@@ -233,6 +233,20 @@ public class DateTimeUtils {
             c.set(Calendar.MILLISECOND, nano / 1000000);
         }
         return c.getTime().getTime();
+    }
+
+    public static int getDatePart(java.util.Date d, int field) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        int value = c.get(field);
+        if (field == Calendar.MONTH) {
+            value++;
+        } else if (field == Calendar.YEAR) {
+            if (c.get(Calendar.ERA) == GregorianCalendar.BC) {
+                value = 1 - value;
+            }
+        }
+        return value;
     }
 
 }

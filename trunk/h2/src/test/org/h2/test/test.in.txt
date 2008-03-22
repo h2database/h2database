@@ -1,4 +1,21 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE TABLE p(d date);
+> ok
+
+INSERT INTO p VALUES('-1-01-01'), ('0-01-01'), ('0001-01-01');
+> update count: 3
+
+select d, year(d), extract(year from d), cast(d as timestamp) from p;
+> D          YEAR(D) EXTRACT(YEAR FROM D) CAST(D AS TIMESTAMP)
+> ---------- ------- -------------------- ---------------------
+> -1-01-01   -1      -1                   -1-01-01 00:00:00.0
+> 0-01-01    0       0                    0-01-01 00:00:00.0
+> 0001-01-01 1       1                    0001-01-01 00:00:00.0
+> rows: 3
+
+drop table p;
+> ok
+
 (SELECT X FROM DUAL ORDER BY X+2) UNION SELECT X FROM DUAL;
 > X
 > -

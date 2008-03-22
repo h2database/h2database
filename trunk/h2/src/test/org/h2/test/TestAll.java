@@ -157,13 +157,11 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
-        
+
 /*
 
-write to system table before adding to internal data structures
+should write (log) to system table before adding to internal data structures
 //new TestCrashAPI().init(test).testCase(2046453618); 
-
-MiniConnectionPoolManager
 
 --------------
 
@@ -171,10 +169,7 @@ scheduler: what if invoke takes more than...
 scheduler: log at startup next 5
 scheduler: add an a cron functionality
 
-performance of drop table / index is slow 
-(when deleting a lot of rows randomly?)
-
-use a default delay of 1 second before closing a database.
+document: read uncommitted and multi-threaded mode at the same time is dangerous
 
 more tests with disk based select distinct; order by:
 select distinct x from system_range(1, 200000);
@@ -191,10 +186,6 @@ INSERT INTO TEST VALUES(1,'Apples',1.20),
 (8,NULL,3.10),
 (9,NULL,-10.0);
 SELECT DISTINCT NAME FROM TEST;
-
-CREATE TABLE p(d DATE);
-INSERT INTO p VALUES('0000-01-01');
-INSERT INTO p VALUES('0001-01-01');
 
 C:\temp\db\diff.patch
 
@@ -215,8 +206,6 @@ test with:
 - large varchar columns (40 KB)
 - not closing the database
 
-read uncommitted and multi-threaded mode at the same time is dangerous
-
 test multi-threaded kernel fulltext
 
 Can sometimes not delete log file? need test case
@@ -224,6 +213,12 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
+When a log file switch occured in the middle of a sequence flush (sequences are only
+    flushed every 32 values by default), the sequence was lost. Fixed.
+When a log file switch occured just after a truncate table or drop table statement,
+    the database could not be started normally (RECOVER=1 was required). Fixed.
+There was a bug in the recovery code that would stop recovery sometimes when
+    there are multiple log files to recover.
 A new Shell tools is now included (org.h2.tools.Shell) query a 
     database from the command line.
 Performance was very slow when using LOG=2 and deleting or 
@@ -238,12 +233,18 @@ Fulltext search (native implementation): The words table is no longer
 It was possible to create a role with the name as an existing user 
     (but not vice versa). This is not allowed any more.
 The recovery tool didn't work correctly for tables without rows.
+For years below 1, the YEAR method didn't return the correct value,
+    and the conversion from date and timestamp to varchar was incorrect.
+CSVWRITE caused a NullPointerException when not specifying a nullString.
+
 
 Roadmap:
 SET LOG_SYSTEM 
 {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
 Fluent API for tools: Server.createTcpServer().
     setPort(9081).setPassword(password).start();
+MySQL compatiblity: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
+Use a default delay of 1 second before closing a database.
 
 */
 

@@ -1211,7 +1211,7 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            Session[] sessions = database.getSessions();
+            Session[] sessions = database.getSessions(false);
             boolean admin = session.getUser().getAdmin();
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
@@ -1229,7 +1229,7 @@ public class MetaTable extends Table {
             break;
         }
         case LOCKS: {
-            Session[] sessions = database.getSessions();
+            Session[] sessions = database.getSessions(false);
             boolean admin = session.getUser().getAdmin();
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];

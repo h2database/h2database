@@ -133,4 +133,20 @@ public class Db {
         return new Error("Error: " + e.toString(), e);
     }
 
+    public void setAutoCommit(boolean autoCommit) {
+        try {
+            conn.setAutoCommit(autoCommit);
+        } catch (Exception e) {
+            throw convert(e);
+        }
+    }
+
+    public void commit() {
+        try {
+            conn.commit();
+        } catch (Exception e) {
+            throw convert(e);
+        }
+    }
+
 }

@@ -1408,8 +1408,6 @@ public class Database implements DataHandler {
 
     public void deleteLogFileLater(String fileName) throws SQLException {
         if (writer != null) {
-int test;            
-//FileUtils.rename(fileName, fileName + ".trace.db");            
             writer.deleteLogFileLater(fileName);
         } else {
             FileUtils.delete(fileName);

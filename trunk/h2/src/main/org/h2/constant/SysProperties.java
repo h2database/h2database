@@ -480,9 +480,7 @@ public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpa
      * INTERNAL
      */
     public static int getLogFileDeleteDelay() {
-int test;        
         return getIntSetting(H2_LOG_DELETE_DELAY, 0);
-//return getIntSetting(H2_LOG_DELETE_DELAY, 1000);
     }
 
     /**

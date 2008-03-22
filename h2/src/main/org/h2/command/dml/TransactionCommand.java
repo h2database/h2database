@@ -161,7 +161,7 @@ public class TransactionCommand extends Prepared {
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();
-            Session[] sessions = db.getSessions();
+            Session[] sessions = db.getSessions(false);
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
                 synchronized (s) {

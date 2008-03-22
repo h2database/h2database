@@ -90,7 +90,7 @@ public class Engine {
                 }
             }
             checkClustering(ci, database);
-            Session session = database.createSession(user);
+            Session session = database.createUserSession(user);
             return session;
         }
     }

@@ -8,6 +8,7 @@ package org.h2.value;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Calendar;
 
 import org.h2.constant.ErrorCode;
 import org.h2.util.DateTimeUtils;
@@ -53,7 +54,17 @@ public class ValueDate extends Value {
     }
 
     public String getString() {
-        return value.toString();
+        String s = value.toString();
+        long time = value.getTime();
+        // special case: java.sql.Date doesn't format 
+        // years below year 1 (BC) correctly
+        if (time < ValueTimestamp.YEAR_ONE) {
+            int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
+            if (year < 1) {
+                s = year + s.substring(s.indexOf('-'));
+            }
+        }
+        return s;
     }
 
     public long getPrecision() {

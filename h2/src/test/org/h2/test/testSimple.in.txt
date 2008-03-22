@@ -228,7 +228,7 @@ drop schema b;
 select date '+0011-01-01';
 > 0011-01-01;
 select date'-0010-01-01';
-> 0011-01-01;
+> -10-01-01;
 select datediff('HOUR', timestamp '2007-01-06 10:00:00Z', '2007-01-06 10:00:00Z');
 > 0;
 select datediff('HOUR', timestamp '1234-05-06 10:00:00+01:00', '1234-05-06 10:00:00+02:00');

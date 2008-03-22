@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Calendar;
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
@@ -23,6 +24,13 @@ public class ValueTimestamp extends Value {
     public static final int DISPLAY_SIZE = 23; // 2001-01-01 23:59:59.000
     public static final int DEFAULT_SCALE = 10;
     private final Timestamp value;
+    
+    /**
+     * This is used to find out if a date is possibly BC. Because of timezone
+     * issues (the date is time zone specific), the second day is used. That
+     * means the value is not exact, but it does not need to be.
+     */
+    static final long YEAR_ONE = java.sql.Date.valueOf("0001-01-02").getTime();
 
     private ValueTimestamp(Timestamp value) {
         this.value = value;
@@ -55,7 +63,17 @@ public class ValueTimestamp extends Value {
     }
 
     public String getString() {
-        return value.toString();
+        String s = value.toString();
+        long time = value.getTime();
+        // special case: java.sql.Timestamp doesn't format 
+        // years below year 1 (BC) correctly
+        if (time < YEAR_ONE) {
+            int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
+            if (year < 1) {
+                s = year + s.substring(s.indexOf('-'));
+            }
+        }
+        return s;
     }
 
     public long getPrecision() {

@@ -163,9 +163,14 @@ public class WriterThread extends Thread {
         if (oldLogFile != null) {
             FileUtils.delete(oldLogFile);
         }
-        oldLogFile = fileName;
-        if (fileName != null) {
-            oldLogFileDelete = System.currentTimeMillis() + SysProperties.getLogFileDeleteDelay();
+        int delay = SysProperties.getLogFileDeleteDelay();
+        if (delay == 0 && fileName != null) {
+            FileUtils.delete(fileName);
+        } else {
+            oldLogFile = fileName;
+            if (fileName != null) {
+                oldLogFileDelete = System.currentTimeMillis() + delay;
+            }
         }
     }
 

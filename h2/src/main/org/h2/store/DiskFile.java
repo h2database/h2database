@@ -610,7 +610,7 @@ public class DiskFile implements CacheWriter {
     void reuseSpace() throws SQLException {
         if (SysProperties.REUSE_SPACE_QUICKLY) {
             if (potentiallyFreePages.size() >= SysProperties.REUSE_SPACE_AFTER) {
-                Session[] sessions = database.getSessions();
+                Session[] sessions = database.getSessions(true);
                 int oldest = 0;
                 for (int i = 0; i < sessions.length; i++) {
                     int deleteId = sessions[i].getLastUncommittedDelete();
@@ -904,9 +904,6 @@ public class DiskFile implements CacheWriter {
             pages.toArray(pagesCopy);
             for (int i = 0; i < pagesCopy.length; i++) {
                 int page = pagesCopy[i];
-                if (logChanges) {
-                    log.addTruncate(session, this, storageId, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
-                }
                 for (int j = 0; j < BLOCKS_PER_PAGE; j++) {
                     Record r = (Record) cache.find(page * BLOCKS_PER_PAGE + j);
                     if (r != null) {
@@ -915,6 +912,14 @@ public class DiskFile implements CacheWriter {
                 }
                 deleted.setRange(page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE, true);
                 setUnused(session, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
+                // the truncate entry must be written after changing the 
+                // in-memory structures (page owner, in-use bit set), because 
+                // the log file could change just after the truncate record
+                // and before the flags are reset - this would result in 
+                // incorrect in use bits written
+                if (logChanges) {
+                    log.addTruncate(session, this, storageId, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
+                }
             }
         }
     }

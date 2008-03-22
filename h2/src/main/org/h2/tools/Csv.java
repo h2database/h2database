@@ -261,7 +261,7 @@ public class Csv implements SimpleRowSource {
                 } else {
                     writer.write(s);
                 }
-            } else if (nullString.length() > 0) {
+            } else if (nullString != null && nullString.length() > 0) {
                 writer.write(nullString);
             }
         }

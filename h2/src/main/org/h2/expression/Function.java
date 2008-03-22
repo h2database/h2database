@@ -39,6 +39,7 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
@@ -565,22 +566,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case DAYOFMONTH:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
             break;
         case DAYOFWEEK:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_WEEK));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_WEEK));
             break;
         case DAYOFYEAR:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.HOUR_OF_DAY));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.HOUR_OF_DAY));
             break;
         case MINUTE:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
             break;
         case MONTHNAME: {
             synchronized (FORMAT_MONTHNAME) {
@@ -589,16 +590,16 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case QUARTER:
-            result = ValueInt.get((getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.SECOND));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.WEEK_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(getDatePart(v0.getTimestamp(), Calendar.YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.YEAR));
             break;
         case CURDATE:
         case CURRENT_DATE:
@@ -768,7 +769,7 @@ public class Function extends Expression implements FunctionCall {
 
     private boolean cancelStatement(Session session, int targetSessionId) throws SQLException {
         session.getUser().checkAdmin();
-        Session[] sessions = session.getDatabase().getSessions();
+        Session[] sessions = session.getDatabase().getSessions(false);
         for (int i = 0; i < sessions.length; i++) {
             Session s = sessions[i];
             if (s.getId() == targetSessionId) {
@@ -948,7 +949,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(getDatePart(v1.getTimestamp(), field));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v1.getTimestamp(), field));
             break;
         }
         case FORMATDATETIME: {
@@ -1124,60 +1125,6 @@ public class Function extends Expression implements FunctionCall {
         }
         return bytes;
     }
-
-    private static int getDatePart(Timestamp d, int field) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(d);
-        int value = c.get(field);
-        if (field == Calendar.MONTH) {
-            value++;
-        }
-        return value;
-    }
-
-//     private static long datediffRound(String part, Date d1, Date d2) 
-//                throws SQLException {
-//        // diff (yy, 31.12.2004, 1.1.2005) = 0
-//        Integer p = (Integer) datePart.get(StringUtils.toUpperEnglish(part));
-//        if (p == null) {
-//            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, 
-//                new String[] { "part", part }, null);
-//        }
-//        int field = p.intValue();
-//        long t1 = d1.getTime(), t2 = d2.getTime();
-//        switch (field) {
-//        case Calendar.MILLISECOND:
-//            return t2 - t1;
-//        case Calendar.SECOND:
-//            return (t2 - t1) / 1000;
-//        case Calendar.MINUTE:
-//            return (t2 - t1) / 1000 / 60;
-//        case Calendar.HOUR_OF_DAY:
-//            return (t2 - t1) / 1000 / 60 / 60;
-//        case Calendar.DATE:
-//            return (t2 - t1) / 1000 / 60 / 60 / 24;
-//        }
-//        Calendar g1 = Calendar.getInstance();
-//        g1.setTimeInMillis(t1);
-//        int year1 = g1.get(Calendar.YEAR);
-//        Calendar g2 = Calendar.getInstance();
-//        g2.setTimeInMillis(t2);
-//        int year2 = g2.get(Calendar.YEAR);
-//        int result = year2 - year1;
-//        if (field == Calendar.MONTH) {
-//            int month1 = g1.get(Calendar.MONTH);
-//            int month2 = g2.get(Calendar.MONTH);
-//            result = 12 * result + (month2 - month1);
-//            g2.set(Calendar.MONTH, month1);
-//        }
-//        g2.set(Calendar.YEAR, year1);
-//        if (result > 0 && g1.after(g2)) {
-//            result--;
-//        } else if (result < 0 && g1.before(g2)) {
-//            result++;
-//        }
-//        return result;
-//    }
 
     private static int getDatePart(String part) throws SQLException {
         Integer p = (Integer) DATE_PART.get(StringUtils.toUpperEnglish(part));

@@ -119,6 +119,9 @@ public class TestCsv extends TestBase {
     }
 
     private String randomData(Random random) {
+        if (random.nextInt(10) == 1) {
+            return null;
+        }
         int len = random.nextInt(5);
         StringBuffer buff = new StringBuffer();
         String chars = "\\\'\",\r\n\t ;.-123456|#";

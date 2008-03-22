@@ -87,7 +87,7 @@ public class LogSystem {
             // (even if they are resolved), can't update or delete the log files
             return;
         }
-        Session[] sessions = database.getSessions();
+        Session[] sessions = database.getSessions(true);
         int firstUncommittedLog = currentLog.getId();
         int firstUncommittedPos = currentLog.getPos();
         for (int i = 0; i < sessions.length; i++) {
@@ -111,6 +111,7 @@ public class LogSystem {
                 } else {
                     l.setFirstUncommittedPos(firstUncommittedPos);
                 }
+
             }
         }
         for (int i = 0; i < activeLogs.size(); i++) {
@@ -193,9 +194,9 @@ public class LogSystem {
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile log = (LogFile) activeLogs.get(i);
                 log.redoAllGoEnd();
+                database.getDataFile().flushRedoLog();
+                database.getIndexFile().flushRedoLog();
             }
-            database.getDataFile().flushRedoLog();
-            database.getIndexFile().flushRedoLog();
             int end = currentLog.getPos();
             Object[] states = sessions.values().toArray();
             inDoubtTransactions = new ObjectArray();
@@ -388,7 +389,9 @@ public class LogSystem {
                 storageId = -storageId;
             }
             currentLog.addTruncate(session, storageId, recordId, blockCount);
-            if (currentLog.getFileSize() > maxLogSize) {
+int test;            
+//            if (currentLog.getFileSize() > maxLogSize) {
+            if (currentLog.getFileSize()*100 > maxLogSize) {
                 checkpoint();
             }
         }
@@ -412,7 +415,9 @@ public class LogSystem {
             session.addLogPos(log, pos);
             record.setLastLog(log, pos);
             currentLog.add(session, storageId, record);
-            if (currentLog.getFileSize() > maxLogSize) {
+int test;            
+//            if (currentLog.getFileSize() > maxLogSize) {
+            if (currentLog.getFileSize()*100 > maxLogSize) {
                 checkpoint();
             }
         }

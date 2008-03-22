@@ -359,7 +359,9 @@ public class SysProperties {
      * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />
      * Reuse space in database files quickly.
      */
-    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
+int test;    
+//    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
+public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", false);
 
     /**
      * System property <code>h2.runFinalize</code> (default: true).<br />
@@ -478,7 +480,9 @@ public class SysProperties {
      * INTERNAL
      */
     public static int getLogFileDeleteDelay() {
+int test;        
         return getIntSetting(H2_LOG_DELETE_DELAY, 0);
+//return getIntSetting(H2_LOG_DELETE_DELAY, 1000);
     }
 
     /**

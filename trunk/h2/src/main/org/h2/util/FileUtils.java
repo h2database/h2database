@@ -193,4 +193,8 @@ public class FileUtils {
         FileSystem.getInstance(fileName).delete(fileName);
     }
 
+    public static long getLastModified(String fileName) {
+        return FileSystem.getInstance(fileName).getLastModified(fileName);
+    }
+
 }

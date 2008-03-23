@@ -359,9 +359,7 @@ public class SysProperties {
      * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />
      * Reuse space in database files quickly.
      */
-int test;    
-//    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
-public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", false);
+    public static final boolean REUSE_SPACE_QUICKLY = getBooleanSetting("h2.reuseSpaceQuickly", true);
 
     /**
      * System property <code>h2.runFinalize</code> (default: true).<br />

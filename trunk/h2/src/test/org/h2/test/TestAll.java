@@ -163,15 +163,16 @@ java org.h2.test.TestAll timer
 should write (log) to system table before adding to internal data structures
 //new TestCrashAPI().init(test).testCase(2046453618); 
 
-temp file delete should be per-database and should stop deleting once the database is closed
-
 --------------
 
 scheduler: what if invoke takes more than...
 scheduler: log at startup next 5
 scheduler: add an a cron functionality
 
-document: read uncommitted and multi-threaded mode at the same time is dangerous
+document: read uncommitted and multi-threaded mode at the same time 
+is dangerous
+
+C:\temp\db\diff.patch
 
 more tests with disk based select distinct; order by:
 select distinct x from system_range(1, 200000);
@@ -189,24 +190,8 @@ INSERT INTO TEST VALUES(1,'Apples',1.20),
 (9,NULL,-10.0);
 SELECT DISTINCT NAME FROM TEST;
 
-C:\temp\db\diff.patch
-
-out of memory problem:
-java -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m 
-    -cp bin/h2.jar org.h2.tools.Server -log true
-jdbc:h2:test;CACHE_SIZE=10000
-drop all objects;
-CREATE TABLE test (field1 number(10) not null, field2 number(8));
-@LOOP 1000000 insert into test values(?, ?);
-create index idx_number1 on test(field1);
-The table 'test' contains a little over 100.000.000 records.
-
 merge query and result frames
 in-place auto-complete 
-
-test with:
-- large varchar columns (40 KB)
-- not closing the database
 
 test multi-threaded kernel fulltext
 
@@ -215,10 +200,12 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
-When a log file switch occured in the middle of a sequence flush (sequences are only
-    flushed every 32 values by default), the sequence was lost. Fixed.
-When a log file switch occured just after a truncate table or drop table statement,
-    the database could not be started normally (RECOVER=1 was required). Fixed.
+When a log file switch occured in the middle of a sequence flush 
+    (sequences are only flushed every 32 values by default), the sequence 
+    was lost. Fixed.
+When a log file switch occured just after a truncate table or drop table 
+    statement, the database could not be started normally (RECOVER=1 
+    was required). Fixed.
 There was a bug in the recovery code that would stop recovery sometimes when
     there are multiple log files to recover.
 A new Shell tools is now included (org.h2.tools.Shell) query a 
@@ -240,7 +227,8 @@ For years below 1, the YEAR method didn't return the correct value,
 CSVWRITE caused a NullPointerException when not specifying a nullString.
 New system property h2.sortNullsHigh to invert the default sorting behavior 
      for NULL. The default didn't change.
-Altering a sequence didn't unlock the system table when autocommit switched off.     
+Altering a sequence didn't unlock the system table 
+    when autocommit switched off.
 
 
 Roadmap:
@@ -248,7 +236,7 @@ SET LOG_SYSTEM
 {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
 Fluent API for tools: Server.createTcpServer().
     setPort(9081).setPassword(password).start();
-MySQL compatiblity: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
+MySQL compatibility: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 Use a default delay of 1 second before closing a database.
 
 */

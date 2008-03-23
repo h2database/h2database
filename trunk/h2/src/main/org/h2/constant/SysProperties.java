@@ -389,9 +389,9 @@ public class SysProperties {
     
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
-     * Invert the default sorting behavior for NULL values, such that NULL values
-     * are sorted to the end of a result set in an ascending sort and to the beginning
-     * of a result set in a descending sort.
+     * Invert the default sorting behavior for NULL values, such that NULL
+     * values are sorted to the end of a result set in an ascending sort and to
+     * the beginning of a result set in a descending sort.
      */
     public static final boolean SORT_NULLS_HIGH = getBooleanSetting("h2.sortNullsHigh", false);
 

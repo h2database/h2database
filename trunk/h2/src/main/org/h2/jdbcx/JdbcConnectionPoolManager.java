@@ -8,7 +8,7 @@
  * This module is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
- * any later version. See http://www.gnu.org/licenses/lgpl.html.
+ * any later version. See http://www.gnu.org/licenses/lgpl.html
  * 
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -32,7 +32,8 @@ import javax.sql.PooledConnection;
  *  MiniConnectionPoolManager written by Christian d'Heureuse (JDK 1.5)
  * </a>.
  * 
- * @author Christian d'Heureuse (<a href="http://www.source-code.biz">www.source-code.biz</a>)
+ * @author Christian d'Heureuse 
+ *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
  * @author Thomas Mueller (ported to JDK 1.4)
  */
 public class JdbcConnectionPoolManager {

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * (license2)
+ * Initial Developer: H2 Group
+ */
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
@@ -7,6 +12,9 @@ import org.h2.jdbcx.JdbcConnectionPoolManager;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
 
+/**
+ * This class tests the JdbcConnectionPool.
+ */
 public class TestConnectionPool extends TestBase {
     
     public void test() throws Exception {

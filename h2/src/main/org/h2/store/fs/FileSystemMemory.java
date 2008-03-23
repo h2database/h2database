@@ -77,8 +77,8 @@ public class FileSystemMemory extends FileSystem {
         for (int i = 0;; i++) {
 
             int test;
-            String n = name + RandomUtils.getSecureLong() + suffix;
-//            String n = name + i + suffix;
+//            String n = name + RandomUtils.getSecureLong() + suffix;
+            String n = name + i + suffix;
             
             
             if (!exists(n)) {

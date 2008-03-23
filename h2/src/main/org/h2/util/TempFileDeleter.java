@@ -20,22 +20,38 @@ public class TempFileDeleter {
 
     private static final ReferenceQueue QUEUE = new ReferenceQueue();
     private static final HashMap REF_MAP = new HashMap();
+    
+    private static class TempFile {
+        String fileName;
+        long lastModified;
+    }
 
     public static synchronized Reference addFile(String fileName, Object file) {
         FileUtils.trace("TempFileDeleter.addFile", fileName, file);
         PhantomReference ref = new PhantomReference(file, QUEUE);
-        REF_MAP.put(ref, fileName);
+        TempFile f = new TempFile();
+        f.fileName = fileName;
+        f.lastModified = FileUtils.getLastModified(fileName);
+        REF_MAP.put(ref, f);
         deleteUnused();
         return ref;
     }
 
     public static synchronized void deleteFile(Reference ref, String fileName) {
         if (ref != null) {
-            String f2 = (String) REF_MAP.remove(ref);
-            if (SysProperties.CHECK && f2 != null && fileName != null && !f2.equals(fileName)) {
-                throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
+            TempFile f2 = (TempFile) REF_MAP.remove(ref);
+            if (f2 != null) {
+                if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
+                    throw Message.getInternalError("f2:" + f2.fileName + " f:" + fileName);
+                }
+                fileName = f2.fileName;
+                long mod = FileUtils.getLastModified(fileName);
+                if (mod != f2.lastModified) {
+                    // the file has been deleted and a new one created
+                    // or it has been modified afterwards
+                    return;
+                }
             }
-            fileName = f2;
         }
         if (fileName != null && FileUtils.exists(fileName)) {
             try {
@@ -64,9 +80,9 @@ public class TempFileDeleter {
     public static void stopAutoDelete(Reference ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
-            String f2 = (String) REF_MAP.remove(ref);
-            if (SysProperties.CHECK && (f2 == null || !f2.equals(fileName))) {
-                throw Message.getInternalError("f2:" + f2 + " f:" + fileName);
+            TempFile f2 = (TempFile) REF_MAP.remove(ref);
+            if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
+                throw Message.getInternalError("f2:" + f2.fileName + " f:" + fileName);
             }
         }
         deleteUnused();

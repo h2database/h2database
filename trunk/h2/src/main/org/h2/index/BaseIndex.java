@@ -176,7 +176,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * Calculate the cost for the given mask as if this index was a typical
      * b-tree range index.
      * 
-     * @param mask the search mask
+     * @param masks the search mask
      * @param rowCount the number of rows in the index
      * @return the calculated cost
      */

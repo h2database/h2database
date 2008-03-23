@@ -45,10 +45,6 @@ public class Wildcard extends Expression {
         throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
     }
 
-    public void checkMapped() {
-        throw Message.getInternalError();
-    }
-
     public Expression optimize(Session session) throws SQLException {
         throw Message.getSQLException(ErrorCode.SYNTAX_ERROR_1, table);
     }

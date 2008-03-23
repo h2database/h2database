@@ -200,44 +200,9 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
-When a log file switch occured in the middle of a sequence flush 
-    (sequences are only flushed every 32 values by default), the sequence 
-    was lost. Fixed.
-When a log file switch occured just after a truncate table or drop table 
-    statement, the database could not be started normally (RECOVER=1 
-    was required). Fixed.
-There was a bug in the recovery code that would stop recovery sometimes when
-    there are multiple log files to recover.
-A new Shell tools is now included (org.h2.tools.Shell) query a 
-    database from the command line.
-Performance was very slow when using LOG=2 and deleting or 
-    updating all rows of a table in a loop. Fixed.
-ALTER TABLE or CREATE TABLE now support parameters for the password field.
-The linear hash has been removed. It was always slower than the b-tree index, 
-    and there were some bugs that would be hard to fix.
-TRACE_LEVEL_ settings are no longer persistent. This was a problem 
-    when database initialization code caused a lot of logging.
-Fulltext search (native implementation): The words table is no longer 
-    an in-memory table because this caused memory problems in some cases.
-It was possible to create a role with the name as an existing user 
-    (but not vice versa). This is not allowed any more.
-The recovery tool didn't work correctly for tables without rows.
-For years below 1, the YEAR method didn't return the correct value,
-    and the conversion from date and timestamp to varchar was incorrect.
-CSVWRITE caused a NullPointerException when not specifying a nullString.
-New system property h2.sortNullsHigh to invert the default sorting behavior 
-     for NULL. The default didn't change.
-Altering a sequence didn't unlock the system table 
-    when autocommit switched off.
-
 
 Roadmap:
-SET LOG_SYSTEM 
-{NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
-Fluent API for tools: Server.createTcpServer().
-    setPort(9081).setPassword(password).start();
-MySQL compatibility: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
-Use a default delay of 1 second before closing a database.
+
 
 */
 

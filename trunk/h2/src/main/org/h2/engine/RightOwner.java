@@ -36,6 +36,12 @@ public abstract class RightOwner extends DbObjectBase {
         initDbObjectBase(database, id, name, traceModule);
     }
 
+    /**
+     * Check if a role has been granted for this right owner.
+     * 
+     * @param grantedRole the role
+     * @return true if the role has been granted
+     */
     public boolean isRoleGranted(Role grantedRole) {
         if (grantedRole == this) {
             return true;
@@ -77,6 +83,13 @@ public abstract class RightOwner extends DbObjectBase {
         return false;
     }
 
+    /**
+     * Grant a right for the given table. Only one right object per table is
+     * supported.
+     * 
+     * @param table the table
+     * @param right the right
+     */
     public void grantRight(Table table, Right right) {
         if (grantedRights == null) {
             grantedRights = new HashMap();
@@ -84,6 +97,11 @@ public abstract class RightOwner extends DbObjectBase {
         grantedRights.put(table, right);
     }
 
+    /**
+     * Revoke the right for the given table.
+     * 
+     * @param table the table
+     */
     public void revokeRight(Table table) {
         if (grantedRights == null) {
             return;
@@ -108,6 +126,13 @@ public abstract class RightOwner extends DbObjectBase {
         grantedRoles.put(role, right);
     }
 
+    /**
+     * Remove the right for the given role.
+     * 
+     * @param session the session
+     * @param role the role to revoke
+     * @throws SQLException if the right has not been granted
+     */
     public void revokeRole(Session session, Role role) throws SQLException {
         if (grantedRoles == null) {
             throw Message.getSQLException(ErrorCode.RIGHT_NOT_FOUND);
@@ -122,6 +147,12 @@ public abstract class RightOwner extends DbObjectBase {
         }
     }
 
+    /**
+     * Get the 'grant table' right of this object.
+     * 
+     * @param table the granted table
+     * @return the right or null if the right has not been granted
+     */
     public Right getRightForTable(Table table) {
         if (grantedRights == null) {
             return null;
@@ -129,6 +160,12 @@ public abstract class RightOwner extends DbObjectBase {
         return (Right) grantedRights.get(table);
     }
 
+    /**
+     * Get the 'grant role' right of this object.
+     * 
+     * @param role the granted role
+     * @return the right or null if the right has not been granted
+     */
     public Right getRightForRole(Role role) {
         if (grantedRoles == null) {
             return null;

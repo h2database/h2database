@@ -42,6 +42,7 @@ package org.h2.engine;
  *
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all Javadoc files are in the index
+ * - Update the changelog (add new version)
  * - Update newsfeed and create files
  * - ant docs
  * - PDF

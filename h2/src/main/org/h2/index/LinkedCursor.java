@@ -61,5 +61,9 @@ public class LinkedCursor implements Cursor {
         }
         return true;
     }
+    
+    public boolean previous() {
+        throw Message.getInternalError();
+    }
 
 }

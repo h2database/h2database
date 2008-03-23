@@ -17,8 +17,22 @@ import org.h2.test.TestBase;
 public class TestSequence extends TestBase {
 
     public void test() throws Exception {
+        testAlterSequence();
         testCache();
         testTwo();
+    }
+    
+    private void testAlterSequence() throws Exception {
+        deleteDb("sequence");
+        Connection conn = getConnection("sequence");
+        Statement stat = conn.createStatement();
+        stat.execute("create sequence test");
+        conn.setAutoCommit(false);
+        stat.execute("alter sequence test restart with 1");
+        for (int i = 0; i < 40; i++) {
+            stat.execute("select nextval('test')");
+        }
+        conn.close();
     }
 
     private void testCache() throws Exception {

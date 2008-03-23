@@ -7,6 +7,7 @@ package org.h2.result;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.ObjectArray;
@@ -21,6 +22,7 @@ import org.h2.value.ValueNull;
 public class SortOrder {
     public static final int ASCENDING = 0, DESCENDING = 1;
     public static final int NULLS_FIRST = 2, NULLS_LAST = 4;
+    private static final int DEFAULT_NULL_SORT = SysProperties.SORT_NULLS_HIGH ? 1 : -1;
 
     private Database database;
     private int len;
@@ -67,7 +69,7 @@ public class SortOrder {
             return aNull ? 1 : -1;
         } else {
             // see also JdbcDatabaseMetaData.nullsAreSorted*
-            int comp = aNull ? -1 : 1;
+            int comp = aNull ? DEFAULT_NULL_SORT : -DEFAULT_NULL_SORT;
             return (type & DESCENDING) == 0 ? comp : -comp;
         }
     }

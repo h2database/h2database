@@ -23,6 +23,7 @@ import org.h2.test.TestBase;
 public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
+        testMinMaxNullOptimization();
         if (config.networked) {
             return;
         }
@@ -35,6 +36,63 @@ public class TestOptimizations extends TestBase {
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+    }
+    
+    private void testMinMaxNullOptimization() throws Exception {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        Random random = new Random(1);
+        int len = getSize(50, 500);
+        for (int i = 0; i < len; i++) {
+            stat.execute("drop table if exists test");
+            stat.execute("create table test(x int)");
+            if (random.nextBoolean()) {
+                int count = random.nextBoolean() ? 1 : 1 + random.nextInt(len);
+                if (count > 0) {
+                    stat.execute("insert into test select null from system_range(1, " + count + ")");
+                }
+            }
+            int maxExpected = -1;
+            int minExpected = -1;
+            if (random.nextInt(10) != 1) {
+                minExpected = 1;
+                maxExpected = 1 + random.nextInt(len);
+                stat.execute("insert into test select x from system_range(1, " + maxExpected + ")");
+            }
+            String sql = "create index idx on test(x";
+            if (random.nextBoolean()) {
+                sql += " desc";
+            }
+            if (random.nextBoolean()) {
+                if (random.nextBoolean()) {
+                    sql += " nulls first";
+                } else {
+                    sql += " nulls last";
+                }
+            }
+            sql += ")";
+            stat.execute(sql);
+            ResultSet rs = stat.executeQuery("explain select min(x), max(x) from test");
+            rs.next();
+            if (!config.mvcc) {
+                String plan = rs.getString(1);
+                check(plan.indexOf("direct") > 0);
+            }
+            rs = stat.executeQuery("select min(x), max(x) from test");
+            rs.next();
+            int min = rs.getInt(1);
+            if (rs.wasNull()) {
+                min = -1;
+            }
+            int max = rs.getInt(2);
+            if (rs.wasNull()) {
+                max = -1;
+            }
+            check(minExpected, min);
+            check(maxExpected, max);
+        }
+        conn.close();
     }
 
     private void testMultiColumnRangeQuery() throws Exception {

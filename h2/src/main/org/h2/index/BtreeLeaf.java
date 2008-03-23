@@ -182,6 +182,18 @@ public class BtreeLeaf extends BtreePage {
         cursor.pop();
         nextUpper(cursor);
     }
+    
+    public void previous(BtreeCursor cursor, int i) throws SQLException {
+        i--;
+        if (i >= 0) {
+            SearchRow r = (SearchRow) pageData.get(i);
+            cursor.setCurrentRow(r);
+            cursor.setStackPosition(i);
+            return;
+        }
+        cursor.pop();
+        previousUpper(cursor);
+    }
 
     public void first(BtreeCursor cursor) throws SQLException {
         if (pageData.size() == 0) {
@@ -195,6 +207,20 @@ public class BtreeLeaf extends BtreePage {
         SearchRow row = (SearchRow) pageData.get(0);
         cursor.setCurrentRow(row);
     }
+    
+    public void last(BtreeCursor cursor) throws SQLException {
+        int last = pageData.size() - 1;
+        if (last < 0) {
+            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
+                throw Message.getInternalError("Empty btree page");
+            }
+            previousUpper(cursor);
+            return;
+        }
+        cursor.push(this, last);
+        SearchRow row = (SearchRow) pageData.get(last);
+        cursor.setCurrentRow(row);
+    }
 
     private void nextUpper(BtreeCursor cursor) throws SQLException {
         BtreePosition upper = cursor.pop();
@@ -205,6 +231,16 @@ public class BtreeLeaf extends BtreePage {
             upper.page.next(cursor, upper.position);
         }
     }
+    
+    private void previousUpper(BtreeCursor cursor) throws SQLException {
+        BtreePosition upper = cursor.pop();
+        if (upper == null) {
+            cursor.setCurrentRow(null);
+        } else {
+            cursor.push(upper.page, upper.position);
+            upper.page.previous(cursor, upper.position);
+        }
+    }    
 
     public void prepareWrite() throws SQLException {
         if (getRealByteCount() >= DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE) {
@@ -261,16 +297,6 @@ public class BtreeLeaf extends BtreePage {
         size += index.getRecordOverhead();
         cachedRealByteCount = size;
         return size;
-    }
-
-    SearchRow getLast(Session session) throws SQLException {
-        if (pageData.size() == 0) {
-            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                throw Message.getInternalError("Empty btree page");
-            }
-            return null;
-        }
-        return (SearchRow) pageData.get(pageData.size() - 1);
     }
 
     SearchRow getFirst(Session session) throws SQLException {

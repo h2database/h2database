@@ -495,9 +495,27 @@ The database can be used from Microsoft .NET even without using Java, by using I
 </li></ul>
 <p>
 If you want your C# application use H2, you need to add the h2.dll and the 
-IKVM.OpenJDK.ClassLibrary.dll to your C# solution. See also the short 
-<a href="http://groups.google.com/group/h2-database/browse_thread/thread/400bc5a9bc9de3fd">C# source code example</a>.
+IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 </p>
+<pre>
+using System;
+using java.sql;
+
+class Test
+{
+    static public void Main()
+    {
+        org.h2.Driver.load();
+        Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "sa");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT 'Hello World'");
+        while (rs.next())
+        {
+            Console.WriteLine(rs.getString(1));
+        }
+    }
+} 
+</pre>
 
 <br /><a name="acid"></a>
 <h2>ACID</h2>

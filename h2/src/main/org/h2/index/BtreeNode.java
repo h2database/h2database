@@ -63,9 +63,9 @@ public class BtreeNode extends BtreePage {
         SearchRow r = (SearchRow) pageData.get(i);
         if (r == null) {
             int p = pageChildren.get(i + 1);
-            Session session = index.getDatabase().getSystemSession();
-            BtreePage page = index.getPage(session, p);
-            r = page.getFirst(session);
+            Session sysSession = index.getDatabase().getSystemSession();
+            BtreePage page = index.getPage(sysSession, p);
+            r = page.getFirst(sysSession);
             pageData.set(i, r);
         }
         return r;
@@ -272,6 +272,17 @@ public class BtreeNode extends BtreePage {
         }
         nextUpper(cursor);
     }
+    
+    public void previous(BtreeCursor cursor, int i) throws SQLException {
+        i--;
+        if (i >= 0) {
+            cursor.setStackPosition(i);
+            BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(i));
+            page.last(cursor);
+            return;
+        }
+        previousUpper(cursor);
+    }
 
     private void nextUpper(BtreeCursor cursor) throws SQLException {
         cursor.pop();
@@ -283,11 +294,29 @@ public class BtreeNode extends BtreePage {
             upper.page.next(cursor, upper.position);
         }
     }
-
+    
+    private void previousUpper(BtreeCursor cursor) throws SQLException {
+        cursor.pop();
+        BtreePosition upper = cursor.pop();
+        if (upper == null) {
+            cursor.setCurrentRow(null);
+        } else {
+            cursor.push(upper.page, upper.position);
+            upper.page.previous(cursor, upper.position);
+        }
+    }
+    
     public void first(BtreeCursor cursor) throws SQLException {
         cursor.push(this, 0);
         BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(0));
         page.first(cursor);
+    }
+    
+    public void last(BtreeCursor cursor) throws SQLException {
+        int last = pageChildren.size() - 1;
+        cursor.push(this, last);
+        BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(last));
+        page.last(cursor);
     }
 
     public void prepareWrite() throws SQLException {
@@ -337,19 +366,6 @@ public class BtreeNode extends BtreePage {
             size += getRowSize(dummy, row);
         }
         return size + index.getRecordOverhead();
-    }
-
-    SearchRow getLast(Session session) throws SQLException {
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
-            throw Message.getInternalError("Empty btree page");
-        }
-        for (int i = pageChildren.size() - 1; i >= 0; i--) {
-            BtreePage page = index.getPage(session, pageChildren.get(i));
-            if (page != null) {
-                return page.getLast(session);
-            }
-        }
-        return null;
     }
 
     SearchRow getFirst(Session session) throws SQLException {

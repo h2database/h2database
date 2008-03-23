@@ -16,6 +16,7 @@ import java.sql.RowIdLifetime;
 //#endif
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -434,21 +435,21 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks is NULL values are sorted high (bigger than any non-null values).
      * 
-     * @return false
+     * @return false by default; true if the system property h2.sortNullsHigh is set to true
      */
     public boolean nullsAreSortedHigh() {
         debugCodeCall("nullsAreSortedHigh");
-        return false;
+        return SysProperties.SORT_NULLS_HIGH;
     }
 
     /**
      * Checks is NULL values are sorted low (smaller than any non-null values).
      *
-     * @return true
+     * @return true by default; false if the system property h2.sortNullsHigh is set to true
      */
     public boolean nullsAreSortedLow() {
         debugCodeCall("nullsAreSortedLow");
-        return true;
+        return !SysProperties.SORT_NULLS_HIGH;
     }
 
     /**

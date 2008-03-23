@@ -50,5 +50,13 @@ public interface Cursor {
      * @return true if another row is available
      */
     boolean next() throws SQLException;
+    
+    /**
+     * Skip to the previous row if one is available.
+     * No filtering is made here.
+     *
+     * @return true if another row is available
+     */
+    boolean previous() throws SQLException;    
 
 }

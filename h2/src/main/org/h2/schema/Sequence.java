@@ -92,21 +92,21 @@ public class Sequence extends SchemaObjectBase {
         return v;
     }
 
-    public void flush() throws SQLException {
+    public synchronized void flush() throws SQLException {
         // can not use the session, because it must be committed immediately
         // otherwise other threads can not access the sys table.
-        Session s = database.getSystemSession();
-        synchronized (this) {
+        Session sysSession = database.getSystemSession();
+        synchronized (sysSession) {
             // just for this case, use the value with the margin for the script
             long realValue = value;
             try {
                 value = valueWithMargin;
-                database.update(s, this);
+                database.update(sysSession, this);
             } finally {
                 value = realValue;
             }
+            sysSession.commit(false);
         }
-        s.commit(false);
     }
 
     public void close() throws SQLException {

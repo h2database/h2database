@@ -62,8 +62,8 @@ public class CreateView extends SchemaCommand {
         } else {
             querySQL = select.getSQL();
         }
-        Session s = db.getSystemSession();
-        TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, s, recursive);
+        Session sysSession = db.getSystemSession();
+        TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, recursive);
         view.setComment(comment);
         db.addSchemaObject(session, view);
         return 0;

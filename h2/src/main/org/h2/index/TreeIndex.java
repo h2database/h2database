@@ -336,6 +336,29 @@ public class TreeIndex extends BaseIndex {
         }
         return x;
     }
+    
+    public TreeNode previous(TreeNode x) {
+        if (x == null) {
+            return null;
+        }
+        TreeNode l = x.left;
+        if (l != null) {
+            x = l;
+            TreeNode r = x.right;
+            while (r != null) {
+                x = r;
+                r = x.right;
+            }
+            return x;
+        }
+        TreeNode ch = x;
+        x = x.parent;
+        while (x != null && ch == x.left) {
+            ch = x;
+            x = x.parent;
+        }
+        return x;
+    }    
 
     public void checkRename() throws SQLException {
     }
@@ -348,7 +371,7 @@ public class TreeIndex extends BaseIndex {
         return true;
     }
 
-    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         if (first) {
             // TODO optimization: this loops through NULL values
             Cursor cursor = find(session, null, null);
@@ -356,7 +379,7 @@ public class TreeIndex extends BaseIndex {
                 SearchRow row = cursor.getSearchRow();
                 Value v = row.getValue(columnIds[0]);
                 if (v != ValueNull.INSTANCE) {
-                    return row;
+                    return cursor;
                 }
             }
             return null;
@@ -369,9 +392,21 @@ public class TreeIndex extends BaseIndex {
                 }
                 x = n;
             }
-            if (x != null) {
-                return x.row;
+            if (x == null) {
+                return null;
             }
+            TreeCursor cursor = new TreeCursor(this, x, null, null);
+            // TODO optimization: this loops through NULL elements
+            do {
+                SearchRow row = cursor.getSearchRow();
+                if (row == null) {
+                    break;
+                }
+                Value v = row.getValue(columnIds[0]);
+                if (v != ValueNull.INSTANCE) {
+                    return cursor;
+                }
+            } while (cursor.previous());
             return null;
         }
     }

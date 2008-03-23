@@ -130,9 +130,9 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param first true if the first (lowest for ascending indexes) or last
      *            value should be returned
-     * @return the search row with the value
+     * @return a cursor or null
      */
-    SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
+    Cursor findFirstOrLast(Session session, boolean first) throws SQLException;
 
     /**
      * Check if the index needs to be rebuilt.

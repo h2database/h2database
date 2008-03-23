@@ -58,5 +58,11 @@ public class TreeCursor implements Cursor {
         }
         return node != null;
     }
+    
+    public boolean previous() throws SQLException {
+        node = tree.previous(node);
+        return node != null;
+    }
+    
 
 }

@@ -15,6 +15,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
@@ -167,11 +168,12 @@ public class Aggregate extends Expression {
                 if ((sortType & SortOrder.DESCENDING) != 0) {
                     first = !first;
                 }
-                SearchRow row = index.findFirstOrLast(session, first);
+                Cursor cursor = index.findFirstOrLast(session, first);
                 Value v;
-                if (row == null) {
+                if (cursor == null) {
                     v = ValueNull.INSTANCE;
                 } else {
+                    SearchRow row = cursor.getSearchRow();
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;

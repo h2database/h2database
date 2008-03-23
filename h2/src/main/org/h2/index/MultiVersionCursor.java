@@ -167,4 +167,9 @@ public class MultiVersionCursor implements Cursor {
             }
         }
     }
+    
+    public boolean previous() {
+        throw Message.getInternalError();
+    }    
+
 }

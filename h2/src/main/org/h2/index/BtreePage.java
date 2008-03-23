@@ -56,9 +56,10 @@ public abstract class BtreePage extends Record {
     abstract BtreePage split(Session session, int splitPoint) throws SQLException;
     abstract boolean findFirst(BtreeCursor cursor, SearchRow row, boolean bigger) throws SQLException;
     abstract SearchRow getFirst(Session session) throws SQLException;
-    abstract SearchRow getLast(Session session) throws SQLException;
     abstract void next(BtreeCursor cursor, int i) throws SQLException;
+    abstract void previous(BtreeCursor cursor, int i) throws SQLException;
     abstract void first(BtreeCursor cursor) throws SQLException;
+    abstract void last(BtreeCursor cursor) throws SQLException;
     abstract int getRealByteCount() throws SQLException;
 
     BtreePage(BtreeIndex index) {

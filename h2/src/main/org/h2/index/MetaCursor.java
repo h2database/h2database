@@ -42,5 +42,9 @@ public class MetaCursor implements Cursor {
         current =  (Row) (index >= rows.size() ? null : rows.get(index++));
         return current != null;
     }
+    
+    public boolean previous() {
+        throw Message.getInternalError();
+    }
 
 }

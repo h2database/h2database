@@ -17,7 +17,31 @@ import org.h2.table.Table;
  */
 public class Right extends DbObjectBase {
 
-    public static final int SELECT = 1, DELETE = 2, INSERT = 4, UPDATE = 8, ALL = 15;
+    /**
+     * The right bit mask that means: selecting from a table is allowed.
+     */
+    public static final int SELECT = 1;
+
+    /**
+     * The right bit mask that means: deleting rows from a table is allowed.
+     */
+    public static final int DELETE = 2;
+    
+    /**
+     * The right bit mask that means: inserting rows into a table is allowed.
+     */
+    public static final int INSERT = 4;
+    
+    /**
+     * The right bit mask that means: updating data is allowed.
+     */
+    public static final int UPDATE = 8;
+    
+    /**
+     * The right bit mask that means: select, insert, update, delete, and update
+     * for this object is allowed.
+     */
+    public static final int ALL = SELECT | DELETE | INSERT | UPDATE;
 
     private Role grantedRole;
     private int grantedRight;

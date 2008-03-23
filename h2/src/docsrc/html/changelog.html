@@ -15,9 +15,36 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>.
-</li>
-</ul>
+<li>When a log file switch occured in the middle of a sequence flush 
+    (sequences are only flushed every 32 values by default), the sequence 
+    was lost. Fixed.
+</li><li>When a log file switch occured just after a truncate table or drop table 
+    statement, the database could not be started normally (RECOVER=1 
+    was required). Fixed.
+</li><li>There was a bug in the recovery code that would stop recovery sometimes when
+    there are multiple log files to recover.
+</li><li>A new Shell tools is now included (org.h2.tools.Shell) query a 
+    database from the command line.
+</li><li>Performance was very slow when using LOG=2 and deleting or 
+    updating all rows of a table in a loop. Fixed.
+</li><li>ALTER TABLE or CREATE TABLE now support parameters for the password field.
+</li><li>The linear hash has been removed. It was always slower than the b-tree index, 
+    and there were some bugs that would be hard to fix.
+</li><li>TRACE_LEVEL_ settings are no longer persistent. This was a problem 
+    when database initialization code caused a lot of logging.
+</li><li>Fulltext search (native implementation): The words table is no longer 
+    an in-memory table because this caused memory problems in some cases.
+</li><li>It was possible to create a role with the name as an existing user 
+    (but not vice versa). This is not allowed any more.
+</li><li>The recovery tool didn't work correctly for tables without rows.
+</li><li>For years below 1, the YEAR method didn't return the correct value,
+    and the conversion from date and timestamp to varchar was incorrect.
+</li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.
+</li><li>New system property h2.sortNullsHigh to invert the default sorting behavior 
+     for NULL. The default didn't change.
+</li><li>Altering a sequence didn't unlock the system table 
+    when autocommit switched off.
+</li></ul>
 
 <h2>Version 1.0.68 (2008-03-18)</h2>
 <ul>
@@ -315,36 +342,6 @@ Change Log
 </li><li>Two-phase commit: commit with transaction name was only supported in the recovery scan. Now it is always supported.
 </li><li>The column name C_CURRENT_TIMESTAMP did not work in the last release.
 </li><li>OpenOffice compatibility: support database name in column names.
-</li></ul>
-
-<h2>Version 1.0.56 (2007-08-02)</h2>
-<ul>
-<li>A new tool to help translation has been implemented: src/tools/org/h2/tools/i18n/PrepareTranslation. This tool can detect delta changes in the original (English) and prepends '#' in translation if the original text was changed. It can also extract text from the user documentation (however, it is incomplete).
-</li><li>The error messages (src/main/org/h2/res/_*.*) can now be translated.
-</li><li>Part of the documentation has been translated to Japanese by Yusuke Fukushima.
-</li><li>Some Unicode characters where not supported as identifier name. Thanks Yusuke Fukushima for reporting this problem.
-</li><li>The default value DEFAULT_MAX_LENGTH_INPLACE_LOB has been changed from 128 to 1024.
-</li><li>A server that implements the PostgreSQL protocol is now included and documented. That means, the PostgreSQL ODBC driver can be used to access a H2 database. See in the documentation for details.
-</li><li>The experimental H2 ODBC driver has been removed.
-</li><li>The default value for h2.defaultMaxMemoryUndo is now 50000. This avoids out of memory problems when using large transactions, however large transactions are slower because they are buffered to disk. To disable, use -Dh2.defaultMaxMemoryUndo=2000000000.
-</li><li>Support for regular expression function REGEXP_REPLACE(expression, regex, replacement) and regular expression LIKE: expression REGEXP matchExpression. However, indexes are not yet used.
-</li><li>The old view implementation has been removed.
-</li><li>The SysTray tool has been removed, because JDK 1.6 has native support for system tray icons. Use the Console tool (org.h2.tools.Console) automatically installs a system tray icon if JDK 1.6 is used.
-</li><li>H2 Console: In the last release, the shutdown button did not work. Fixed.
-</li><li>Referential integrity can now be disabled using SET REFERENTIAL_INTEGRITY FALSE. It can also be disable only for one table using ALTER TABLE SET REFERENTIAL_INTEGRITY FALSE.
-</li><li>The Backup and Restore tools, and the BACKUP command did not back up LOBs when h2.lobFilesInDirectories was enabled. Fixed.
-</li><li>Calculation of cache memory usage has been improved.
-</li><li>In some situations record were released too late from the cache. Fixed.
-</li><li>The cache size is now measured in KB instead of blocks of 128 byte.
-</li><li>CREATE TABLE ... AS SELECT now needs less memory. While inserting the rows, the undo log is temporarily disabled. This avoid out of memory problems when creating large tables.
-</li><li>The per session undo log can now be disabled. This setting is useful for bulk operations that don't need to be atomic, like bulk delete or update.
-</li><li>The database file could get corrupted when there was an OutOfMemoryException in the middle of inserting a row.
-</li><li>Optimization for WHERE NOT(...) and WHERE [NOT] booleanFlagColumn. This can be disabled using the system property h2.optimizeNot.
-</li><li>Optimization for conditions like WHERE A=B AND B=X (A=X is added). This often appears in joins. This can be disabled using the system property h2.optimizeTwoEquals.
-</li><li>Documentation: the source code in 'Compacting a Database' was incorrect. Fixed.
-</li><li>In the H2 Console, result sets could not be modified because the default result set type is now forward only. For H2, now uses scrollable result sets. Also for other databases, but only when the query starts with @EDIT.
-</li><li>Views using UNION did not work correctly. Fixed.
-</li><li>Function tables did not work with views and EXPLAIN. Fixed.
 </li></ul>
 
 </div></td></tr></table><!-- analytics --></body></html>

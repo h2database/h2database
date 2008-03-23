@@ -238,6 +238,15 @@ public class Database implements DataHandler {
         return textStorage;
     }
 
+    /**
+     * Check if the storage mode of the given database file is 'text'.
+     * 
+     * @param fileName the file name of the database file
+     * @param defaultValue the value to use if the file doesn't exist or is too
+     *            small
+     * @return true if the storage mode is 'text'
+     * @throws SQLException if the database file version does not match
+     */
     public static boolean isTextStorage(String fileName, boolean defaultValue) throws SQLException {
         byte[] magicText = Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
         byte[] magicBinary = Constants.MAGIC_FILE_HEADER.getBytes();
@@ -1647,6 +1656,12 @@ public class Database implements DataHandler {
         this.lobCompressionAlgorithm = stringValue;
     }
 
+    /**
+     * Called when the size if the data or index file has been changed. The log
+     * file size is at least 10% of the largest file.
+     * 
+     * @param length the new file size
+     */
     public void notifyFileSize(long length) {
         if (length > biggestFileSize) {
             biggestFileSize = length;
@@ -1690,6 +1705,11 @@ public class Database implements DataHandler {
         return cacheType;
     }
 
+    /**
+     * Called when the summary of the index in the log file has become invalid.
+     * This method is only called if index changes are not logged, and if an
+     * index has been changed.
+     */
     public void invalidateIndexSummary() throws SQLException {
         if (indexSummaryValid) {
             indexSummaryValid = false;
@@ -1717,14 +1737,29 @@ public class Database implements DataHandler {
         return referentialIntegrity;
     }
 
+    /**
+     * Check if the database is currently opening. This is true until all stored
+     * SQL statements have been executed.
+     * 
+     * @return true if the database is still starting
+     */
     public boolean isStarting() {
         return starting;
     }
 
+    /**
+     * Check if multi version concurrency is enabled for this database.
+     * 
+     * @return true if it is enabled
+     */
     public boolean isMultiVersion() {
         return multiVersion;
     }
 
+    /**
+     * Called after the database has been opened and initialized. This method
+     * notifies the event listener if one has been set.
+     */
     public void opened() throws SQLException {
         if (eventListener != null) {
             eventListener.opened();

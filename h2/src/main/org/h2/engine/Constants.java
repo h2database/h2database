@@ -79,6 +79,12 @@ public class Constants {
     public static final int BUILD_ID = 68;
     private static final String BUILD = "2008-03-15";
 
+    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
+    public static final int ALLOW_LITERALS_NONE = 0;
+    public static final int ALLOW_LITERALS_NUMBERS = 1;
+    public static final int ALLOW_LITERALS_ALL = 2;
+    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
+
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
 
@@ -170,12 +176,7 @@ public class Constants {
     public static final boolean SERIALIZE_JAVA_OBJECTS = true;
     public static final long DEFAULT_MAX_LOG_SIZE = 32 * 1024 * 1024;
     public static final long LOG_SIZE_DIVIDER = 10;
-    public static final int ALLOW_LITERALS_NONE = 0;
-    public static final int ALLOW_LITERALS_NUMBERS = 1;
-    public static final int ALLOW_LITERALS_ALL = 2;
     public static final int DEFAULT_ALLOW_LITERALS = ALLOW_LITERALS_ALL;
-    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
-    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
     public static final String CONN_URL_COLUMNLIST = "jdbc:columnlist:connection";
     public static final int VIEW_INDEX_CACHE_SIZE = 64;

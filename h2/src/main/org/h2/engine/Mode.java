@@ -15,6 +15,9 @@ import org.h2.util.StringUtils;
  */
 public class Mode {
 
+    /**
+     * The name of the default mode.
+     */
     public static final String REGULAR = "REGULAR";
 
     public boolean nullConcatIsNull;
@@ -66,6 +69,12 @@ public class Mode {
         this.name = name;
     }
 
+    /**
+     * Get the mode with the given name.
+     * 
+     * @param name the name of the mode
+     * @return the mode object
+     */
     public static Mode getInstance(String name) {
         return (Mode) MODES.get(StringUtils.toUpperEnglish(name));
     }

@@ -35,6 +35,11 @@ public class MetaRecord {
         sql = r.getValue(3).getString();
     }
 
+    /**
+     * Sort the list of meta records by 'create order'.
+     * 
+     * @param records the list of meta records
+     */
     public static void sort(ObjectArray records) {
         records.sort(new Comparator() {
             public int compare(Object o1, Object o2) {

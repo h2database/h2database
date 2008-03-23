@@ -102,6 +102,12 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Set the value of the given variable for this session.
+     * 
+     * @param name the name of the variable (may not be null)
+     * @param value the new value (may not be null)
+     */
     public void setVariable(String name, Value value) throws SQLException {
         initVariables();
         Value old;
@@ -143,6 +149,12 @@ public class Session implements SessionInterface {
         return list;
     }
 
+    /**
+     * Add a local temporary table to this session.
+     * 
+     * @param table the table to add
+     * @throws SQLException if a table with this name already exists
+     */
     public void addLocalTempTable(Table table) throws SQLException {
         if (localTempTables == null) {
             localTempTables = new HashMap();
@@ -364,6 +376,12 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Add a lock for the given table. The object is unlocked on commit or
+     * rollback.
+     * 
+     * @param table the table that is locked
+     */
     public void addLock(Table table) {
         if (SysProperties.CHECK) {
             if (locks.indexOf(table) >= 0) {
@@ -474,6 +492,13 @@ public class Session implements SessionInterface {
         return lastIdentity;
     }
 
+    /**
+     * Called when a log entry for this session is added. The session keeps
+     * track of the first entry in the log file that is not yet committed.
+     * 
+     * @param logId the log file id
+     * @param pos the position of the log entry in the log file
+     */
     public void addLogPos(int logId, int pos) {
         if (firstUncommittedLog == LogSystem.LOG_WRITTEN) {
             firstUncommittedLog = logId;
@@ -651,6 +676,11 @@ public class Session implements SessionInterface {
         return "TEMP_VIEW_" + tempViewIndex++;
     }
 
+    /**
+     * Add a procedure to this session.
+     * 
+     * @param procedure the procedure to add
+     */
     public void addProcedure(Procedure procedure) {
         if (procedures == null) {
             procedures = new HashMap();
@@ -658,12 +688,24 @@ public class Session implements SessionInterface {
         procedures.put(procedure.getName(), procedure);
     }
 
+    /**
+     * Remove a procedure from this session.
+     * 
+     * @param procedure the procedure to remove
+     */
     public void removeProcedure(String name) {
         if (procedures != null) {
             procedures.remove(name);
         }
     }
 
+    /**
+     * Get the procedure with the given name, or null
+     * if none exists.
+     * 
+     * @param name the procedure name
+     * @return the procedure or null
+     */
     public Procedure getProcedure(String name) {
         if (procedures == null) {
             return null;

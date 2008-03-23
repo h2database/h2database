@@ -36,6 +36,7 @@ public class JdbcDriverUtils {
         "jdbc:postgresql:", "org.postgresql.Driver",
         "jdbc:sybase:", "com.sybase.jdbc3.jdbc.SybDriver",
         "jdbc:sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+        "jdbc:teradata:", "com.ncr.teradata.TeraDriver",
     };
     
     public static String getDriver(String url) {

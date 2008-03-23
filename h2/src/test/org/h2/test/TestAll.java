@@ -163,6 +163,8 @@ java org.h2.test.TestAll timer
 should write (log) to system table before adding to internal data structures
 //new TestCrashAPI().init(test).testCase(2046453618); 
 
+temp file delete should be per-database and should stop deleting once the database is closed
+
 --------------
 
 scheduler: what if invoke takes more than...
@@ -449,7 +451,6 @@ Use a default delay of 1 second before closing a database.
         beforeTest();
 
         // db
-
         new TestScriptSimple().runTest(this);
         new TestScript().runTest(this);
         new TestAutoRecompile().runTest(this);

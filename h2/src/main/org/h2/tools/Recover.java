@@ -537,11 +537,15 @@ public class Recover implements DataHandler {
                             break;
                         case 'I':
                             writer.println("//   insert session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            writeLogRecord(writer, s);
+                            if (storageId >= 0) {
+                                writeLogRecord(writer, s);
+                            }
                             break;
                         case 'D':
                             writer.println("//   delete session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            writeLogRecord(writer, s);
+                            if (storageId >= 0) {
+                                writeLogRecord(writer, s);
+                            }
                             break;
                         default:
                             writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);

@@ -72,6 +72,8 @@ public class TableLink extends Table {
         conn = JdbcUtils.getConnection(driver, url, user, password);
         DatabaseMetaData meta = conn.getMetaData();
         boolean storesLowerCase = meta.storesLowerCaseIdentifiers();
+        boolean storesMixedCase = meta.storesMixedCaseIdentifiers();
+        boolean supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
         ResultSet rs = meta.getColumns(null, null, originalTable, null);
         int i = 0;
         ObjectArray columnList = new ObjectArray();
@@ -96,6 +98,9 @@ public class TableLink extends Table {
             String n = rs.getString("COLUMN_NAME");
             if (storesLowerCase && n.equals(StringUtils.toLowerEnglish(n))) {
                 n = StringUtils.toUpperEnglish(n);
+            } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
+                // TeraData
+                n = StringUtils.toUpperEnglish(n);            
             }
             int sqlType = rs.getInt("DATA_TYPE");
             long precision = rs.getInt("COLUMN_SIZE");

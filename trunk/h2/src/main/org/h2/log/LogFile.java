@@ -212,7 +212,7 @@ public class LogFile {
         int blocks = in.readInt();
         if (blocks < 0) {
             return true;
-        } else if (blocks == 0) {
+        } else if (blocks == 0 && !database.getReadOnly()) {
             truncate(pos);
             return false;
         }

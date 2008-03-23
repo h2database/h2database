@@ -898,6 +898,7 @@ public class Database implements DataHandler {
                     sequence.close();
                 }
                 meta.close(systemSession);
+                systemSession.commit(true);                
                 indexSummaryValid = true;
             }
         } catch (SQLException e) {

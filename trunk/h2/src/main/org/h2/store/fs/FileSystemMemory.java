@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
+import org.h2.util.RandomUtils;
 
 /**
  * This file system keeps files fully in memory.
@@ -64,7 +65,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public boolean tryDelete(String fileName) {
+    public boolean tryDelete(String fileName) {      
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
         }
@@ -74,7 +75,12 @@ public class FileSystemMemory extends FileSystem {
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
         name += ".";
         for (int i = 0;; i++) {
-            String n = name + i + suffix;
+
+            int test;
+            String n = name + RandomUtils.getSecureLong() + suffix;
+//            String n = name + i + suffix;
+            
+            
             if (!exists(n)) {
                 // creates the file (not thread safe)
                 getMemoryFile(n);

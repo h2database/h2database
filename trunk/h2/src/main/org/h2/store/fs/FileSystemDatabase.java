@@ -170,7 +170,7 @@ public class FileSystemDatabase extends FileSystem {
         if (log) {
             e.printStackTrace();
         }
-        return new RuntimeException(e.toString());
+        return new RuntimeException(e.toString(), e);
     }
 
     public boolean canWrite(String fileName) {

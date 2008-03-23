@@ -82,6 +82,10 @@ public class LogSystem {
             return;
         }
         file.flush();
+        if (database.getLogIndexChanges()) {
+            file = database.getIndexFile();
+            file.flush();
+        }
         if (containsInDoubtTransactions()) {
             // if there are any in-doubt transactions 
             // (even if they are resolved), can't update or delete the log files

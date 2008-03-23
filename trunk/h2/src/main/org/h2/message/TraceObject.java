@@ -210,14 +210,17 @@ public class TraceObject {
             buff.append(" {");
             for (int i = 0; i < params.size(); i++) {
                 try {
-                    ParameterInterface p = (ParameterInterface) params.get(i);
-                    String s = p.getParamValue().getSQL();
                     if (i > 0) {
                         buff.append(", ");
                     }
                     buff.append(i + 1);
                     buff.append(": ");
-                    buff.append(s);
+                    ParameterInterface p = (ParameterInterface) params.get(i);
+                    if (p == null) {
+                        buff.append("unset");
+                    } else {
+                        buff.append(p.getParamValue().getSQL());
+                    }
                 } catch (SQLException e) {
                     buff.append("/* ");
                     buff.append(i + 1);

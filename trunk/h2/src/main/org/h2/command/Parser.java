@@ -3386,19 +3386,20 @@ public class Parser {
         CreateSequence command = new CreateSequence(session, getSchema());
         command.setIfNotExists(ifNotExists);
         command.setSequenceName(sequenceName);
-        if (readIf("START")) {
-            readIf("WITH");
-            command.setStartWith(readExpression());
-        }
-        if (readIf("INCREMENT")) {
-            readIf("BY");
-            command.setIncrement(readExpression());
-        }
-        if (readIf("CACHE")) {
-            command.setCacheSize(readExpression());
-        }
-        if (readIf("BELONGS_TO_TABLE")) {
-            command.setBelongsToTable(true);
+        while (true) {
+            if (readIf("START")) {
+                readIf("WITH");
+                command.setStartWith(readExpression());
+            } else if (readIf("INCREMENT")) {
+                readIf("BY");
+                command.setIncrement(readExpression());
+            } else if (readIf("CACHE")) {
+                command.setCacheSize(readExpression());
+            } else if (readIf("BELONGS_TO_TABLE")) {
+                command.setBelongsToTable(true);
+            } else {
+                break;
+            }
         }
         return command;
     }

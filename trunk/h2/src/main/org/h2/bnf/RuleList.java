@@ -116,9 +116,9 @@ public class RuleList implements Rule {
     }
 
     public void addNextTokenList(String query, Sentence sentence) {
-        if (sentence.stop()) {
+        // if (sentence.stop()) {
             //
-        }
+        // }
         if (or) {
             for (int i = 0; i < list.size(); i++) {
                 get(i).addNextTokenList(query, sentence);

@@ -747,6 +747,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.scriptDirectory", SysProperties.scriptDirectory});
             add(rows, new String[]{"h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS});
             add(rows, new String[]{"h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE});
+            add(rows, new String[]{"h2.sortNullsHigh", "" + SysProperties.SORT_NULLS_HIGH});
             DiskFile dataFile = database.getDataFile();
             if (dataFile != null) {
                 add(rows, new String[] { "CACHE_TYPE", dataFile.getCache().getTypeName() });

@@ -386,6 +386,14 @@ public class SysProperties {
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
+    
+    /**
+     * System property <code>h2.sortNullsHigh</code> (default: false).<br />
+     * Invert the default sorting behavior for NULL values, such that NULL values
+     * are sorted to the end of a result set in an ascending sort and to the beginning
+     * of a result set in a descending sort.
+     */
+    public static final boolean SORT_NULLS_HIGH = getBooleanSetting("h2.sortNullsHigh", false);
 
     /**
      * System property <code>h2.traceIO</code> (default: false).<br />

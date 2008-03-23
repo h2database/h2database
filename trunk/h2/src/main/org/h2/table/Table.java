@@ -27,7 +27,6 @@ import org.h2.result.RowList;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
-import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
@@ -643,12 +642,6 @@ public abstract class Table extends SchemaObjectBase {
         for (int i = 1; indexes != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
             if (index.canGetFirstOrLast()) {
-                IndexColumn idxCol = index.getIndexColumns()[0];
-                if ((idxCol.sortType & SortOrder.DESCENDING) != 0 && (idxCol.sortType & SortOrder.NULLS_FIRST) == 0) {
-                    // for descending sorted columns, if the NULLs 
-                    // are at the end, it does not work for some index types
-                    continue;
-                }
                 int idx = index.getColumnIndex(column);
                 if (idx == 0) {
                     return index;

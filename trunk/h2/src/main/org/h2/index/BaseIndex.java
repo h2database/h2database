@@ -119,8 +119,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param session the session
      * @param first true for the first value, false for the last
+     * @return a cursor or null
      */
-    public abstract SearchRow findFirstOrLast(Session session, boolean first) throws SQLException;
+    public abstract Cursor findFirstOrLast(Session session, boolean first) throws SQLException;
 
     /**
      * Check if this index needs to be re-built.

@@ -44,5 +44,9 @@ public class FunctionCursor implements Cursor {
         }
         return row != null;
     }
+    
+    public boolean previous() {
+        throw Message.getInternalError();
+    }
 
 }

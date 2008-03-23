@@ -75,12 +75,7 @@ public class FileSystemMemory extends FileSystem {
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
         name += ".";
         for (int i = 0;; i++) {
-
-            int test;
-//            String n = name + RandomUtils.getSecureLong() + suffix;
-            String n = name + i + suffix;
-            
-            
+            String n = name + Math.abs(RandomUtils.getSecureLong()) + suffix;
             if (!exists(n)) {
                 // creates the file (not thread safe)
                 getMemoryFile(n);
@@ -166,18 +161,24 @@ public class FileSystemMemory extends FileSystem {
 
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         try {
-            return new FileObjectOutputStream(getMemoryFile(fileName), append);
+            FileObjectMemory obj = getMemoryFile(fileName);
+            obj.seek(0);            
+            return new FileObjectOutputStream(obj, append);
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
     }
 
     public InputStream openFileInputStream(String fileName) throws IOException {
-        return new FileObjectInputStream(getMemoryFile(fileName));
+        FileObjectMemory obj = getMemoryFile(fileName);
+        obj.seek(0);
+        return new FileObjectInputStream(obj);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        return getMemoryFile(fileName);
+        FileObjectMemory obj = getMemoryFile(fileName);
+        obj.seek(0);
+        return obj;
     }
 
     private FileObjectMemory getMemoryFile(String fileName) {
@@ -188,8 +189,6 @@ public class FileSystemMemory extends FileSystem {
                 m = new FileObjectMemory(fileName, compress);
                 MEMORY_FILES.put(fileName, m);
             }
-            // TODO the memory file only supports one pointer
-            m.seek(0);
             return m;
         }
     }

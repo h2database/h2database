@@ -311,7 +311,7 @@ public class Recover implements DataHandler {
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {
-        writer.println("-- ERROR:" + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
+        writer.println("-- ERROR: " + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
                 + storageId + " recordLength: " + recordLength + " valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
@@ -720,7 +720,7 @@ public class Recover implements DataHandler {
                     writeDataError(writer, "blockCount<0", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
-                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
+                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4 || (blockCount * blockSize) < 0) {
                     writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
                     blockCount = 1;
                     continue;
@@ -737,8 +737,16 @@ public class Recover implements DataHandler {
                     if ((blockCount * blockSize) < 0) {
                         writeDataError(writer, "wrong blockCount", s.getBytes(), 1);
                         blockCount = 1;
+                        continue;
                     } else {
-                        store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                        try {
+                            store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                        } catch (Throwable e) {
+                            writeDataError(writer, "eof", s.getBytes(), 1);
+                            blockCount = 1;
+                            store = FileStore.open(null, fileName, "r", magic);
+                            continue;
+                        }
                     }
                 }
                 try {

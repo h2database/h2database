@@ -147,7 +147,7 @@ public class HashIndex extends BaseIndex {
         return false;
     }
 
-    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
+    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
     }
 

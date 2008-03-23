@@ -51,5 +51,9 @@ public class RangeCursor implements Cursor {
         currentRow = new Row(new Value[]{ValueLong.get(current)}, 0);
         return current <= max;
     }
+    
+    public boolean previous() {
+        throw Message.getInternalError();
+    }    
 
 }

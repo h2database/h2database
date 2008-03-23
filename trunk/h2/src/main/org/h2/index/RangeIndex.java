@@ -13,8 +13,6 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
-import org.h2.value.Value;
-import org.h2.value.ValueLong;
 
 /**
  * An index for the SYSTEM_RANGE table.
@@ -75,8 +73,9 @@ public class RangeIndex extends BaseIndex {
         return true;
     }
 
-    public SearchRow findFirstOrLast(Session session, boolean first) throws SQLException {
-        return new Row(new Value[] { ValueLong.get(first ? min : max) }, 0);
+    public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+        long pos = first ? min : max;
+        return new RangeCursor(pos, pos);
     }
 
 }

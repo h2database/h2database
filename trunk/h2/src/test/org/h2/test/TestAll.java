@@ -238,6 +238,9 @@ The recovery tool didn't work correctly for tables without rows.
 For years below 1, the YEAR method didn't return the correct value,
     and the conversion from date and timestamp to varchar was incorrect.
 CSVWRITE caused a NullPointerException when not specifying a nullString.
+New system property h2.sortNullsHigh to invert the default sorting behavior 
+     for NULL. The default didn't change.
+Altering a sequence didn't unlock the system table when autocommit switched off.     
 
 
 Roadmap:
@@ -536,28 +539,6 @@ Use a default delay of 1 second before closing a database.
         new TestDataPage().runTest(this);
         new TestDate().runTest(this);
         new TestExit().runTest(this);
-        new TestFile().runTest(this);
-        new TestFileLock().runTest(this);
-        new TestFtp().runTest(this);
-        new TestFileSystem().runTest(this);
-        new TestIntArray().runTest(this);
-        new TestIntIntHashMap().runTest(this);
-        new TestMultiThreadedKernel().runTest(this);
-        new TestOverflow().runTest(this);
-        new TestPattern().runTest(this);
-        new TestReader().runTest(this);
-        new TestRecovery().runTest(this);
-        new TestSampleApps().runTest(this);
-        new TestScriptReader().runTest(this);
-        runTest("org.h2.test.unit.TestServlet");
-        new TestSecurity().runTest(this);
-        new TestStreams().runTest(this);
-        new TestStringCache().runTest(this);
-        new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
-        new TestValue().runTest(this);
-        new TestValueHashMap().runTest(this);
-        new TestValueMemory().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
         new TestFtp().runTest(this);

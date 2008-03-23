@@ -163,7 +163,10 @@ public class DbContextRule implements Rule {
                 }
             }
         }
-        String q = StringUtils.toUpperEnglish(query.trim());
+        String q = StringUtils.toUpperEnglish(query);
+        if (q.trim().length() == 0) {
+            q = q.trim();
+        }
         DbTableOrView[] tables = schema.tables;
         for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];

@@ -42,7 +42,7 @@ public class TestKillRestart extends TestBase {
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();
             while (true) {
-                String s = catcher.readLine(5 * 60 * 1000);
+                String s = catcher.readLine(60 * 1000);
                 // System.out.println("> " + s);
                 if (s == null) {
                     error("No reply from process");

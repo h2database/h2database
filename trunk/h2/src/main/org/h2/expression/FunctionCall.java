@@ -13,7 +13,7 @@ import org.h2.value.ValueResultSet;
 
 /**
  * This interface is used by the built-in functions,
- * as well as the user defined functions.
+ * as well as the user-defined functions.
  */
 public interface FunctionCall {
 

@@ -8,7 +8,6 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.h2.server.TcpServer;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -160,6 +159,31 @@ java org.h2.test.TestAll timer
 
 /*
 
+database.tgz
+output.zip
+function table called twice: document:
+Yes. The first call is to get the list of columns, and the second call is to get the data.
+
+maven: upload source code and javadocs as well
+
+Browser problems:
+The H2 Console doesn't work.
+Try with another browser.
+There has been a reported incompatibility with the 
+RealPlayer Browser Record Plugin 1.0 when using Firefox 2.0 and Vista
+
+web server: support trace
+remove 'log true' everywhere
+
+tools
+cd ....
+add a shell script
+add %DRIVERS% if required
+how to quote quotes in command line (windows, linux)
+simplify command line options (no 'true' settings)
+better command line help
+
+
 should write (log) to system table before adding to internal data structures
 //new TestCrashAPI().init(test).testCase(2046453618); 
 
@@ -200,6 +224,11 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
+The command line options in the tools have changed:
+    instead of '-log true' now '-trace' is used.
+    Also, '-ifExists', '-tcpSSL' and '-tcpAllowOthers' and so on have changed:
+    now the 'true' is no longer needed.
+    The old behavior is still supported.
 
 Roadmap:
 
@@ -536,7 +565,6 @@ Roadmap:
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {
-            TcpServer.logInternalErrors = true;
             String[] args = ssl ? new String[] { "-tcpSSL", "true", "-tcpPort", "9192" } : new String[] { "-tcpPort",
                     "9192" };
             server = Server.createTcpServer(args);

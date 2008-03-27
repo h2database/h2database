@@ -15,26 +15,29 @@ import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.util.FileUtils;
+import org.h2.util.Tool;
 
 /**
  * A tools to change, remove or set a file password of a database without
  * opening it.
  */
-public class ChangePassword {
+public class ChangePassword extends Tool {
 
     private String dir;
     private String cipher;
     private byte[] decrypt;
     private byte[] encrypt;
 
-    // TODO security: maybe allow functions in the url
-    // jdbc:h2:test;action=[decrypt|encrypt|check|reindex|recover|compress...]
-    // and/or implement SQL commands that call this functions (only for the admin)
-
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " [-dir <dir>] [-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
+        out.println("Allows changing the database file password.");
+        out.println("java "+getClass().getName() + "\n" +
+                " -cipher <type>    AES or XTEA\n" +
+                " [-dir <dir>]      The database directory (default: .)\n" +
+                " [-db <database>]  The database name (default: all databases)\n" +
+                " [-decrypt <pwd>]  The decryption password (default: the database is not yet encrypted)\n" +
+                " [-encrypt <pwd>]  The encryption password (default: the database should not be encrypted)\n" +
+                " [-quiet]          Do not print progress information");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -58,7 +61,7 @@ public class ChangePassword {
         new ChangePassword().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String dir = ".";
         String cipher = null;
         char[] decryptPassword = null;
@@ -83,16 +86,16 @@ public class ChangePassword {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
         }
-        if (encryptPassword == null && decryptPassword == null) {
+        if ((encryptPassword == null && decryptPassword == null) || cipher == null) {
             showUsage();
             return;
         }
-        execute(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
     }
 
     /**
@@ -123,7 +126,19 @@ public class ChangePassword {
      * @throws SQLException
      */
     public static void execute(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
+        new ChangePassword().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+    }
+    
+    private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         ChangePassword change = new ChangePassword();
+        if (encryptPassword != null) {
+            for (int i = 0; i < encryptPassword.length; i++) {
+                if (encryptPassword[i] == ' ') {
+                    throw new SQLException("The file password may not contain spaces");
+                }
+            }
+        }
+        change.out = out;
         change.dir = dir;
         change.cipher = cipher;
         change.decrypt = getFileEncryptionKey(decryptPassword);
@@ -147,7 +162,7 @@ public class ChangePassword {
             change.process(fileName);
         }
         if (files.size() == 0 && !quiet) {
-            System.out.println("No database files found");
+            out.println("No database files found");
         }
     }
 
@@ -168,32 +183,32 @@ public class ChangePassword {
         String temp = dir + "/temp.db";
         FileUtils.delete(temp);
         byte[] magic = Database.getMagic(textStorage);
-        FileStore out;
+        FileStore fileOut;
         if (key == null) {
-            out = FileStore.open(null, temp, "rw", magic);
+            fileOut = FileStore.open(null, temp, "rw", magic);
         } else {
-            out = FileStore.open(null, temp, "rw", magic, cipher, key);
+            fileOut = FileStore.open(null, temp, "rw", magic, cipher, key);
         }
-        out.init();
+        fileOut.init();
         byte[] buffer = new byte[4 * 1024];
         long remaining = in.length() - FileStore.HEADER_LENGTH;
         long total = remaining;
         in.seek(FileStore.HEADER_LENGTH);
-        out.seek(FileStore.HEADER_LENGTH);
+        fileOut.seek(FileStore.HEADER_LENGTH);
         long time = System.currentTimeMillis();
         while (remaining > 0) {
             if (System.currentTimeMillis() - time > 1000) {
-                System.out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
+                out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
                 time = System.currentTimeMillis();
             }
             int len = (int) Math.min(buffer.length, remaining);
             in.readFully(buffer, 0, len);
-            out.write(buffer, 0, len);
+            fileOut.write(buffer, 0, len);
             remaining -= len;
         }
         try {
             in.close();
-            out.close();
+            fileOut.close();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }

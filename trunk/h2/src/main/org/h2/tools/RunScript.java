@@ -26,15 +26,24 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 
 /**
  * Executes the contents of a SQL script file against a database.
  */
-public class RunScript {
+public class RunScript extends Tool {
 
     private void showUsage() {
-        System.out.println("java " + getClass().getName() + " -url <url> -user <user> [-password <pwd>] [-script <file>] [-driver <driver] [-options <option> ...]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/RunScript.html");
+        out.println("Runs a SQL script.");
+        out.println("java "+getClass().getName() + "\n" +
+                " -url <url>         The database URL\n" +
+                " -user <user>       The user name\n" +
+                " [-password <pwd>]  The password\n" +
+                " [-script <file>]   The script file to run (default: backup.sql)\n" +
+                " [-driver <class>]  The JDBC driver class to use (not required in most cases)\n" +
+                " [-quiet]           Do not print progress information\n" +
+                " [-options ...]     The list of options (only for H2 embedded mode)");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -69,7 +78,7 @@ public class RunScript {
         new RunScript().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String url = null;
         String user = null;
         String password = "";
@@ -110,7 +119,7 @@ public class RunScript {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
@@ -121,13 +130,13 @@ public class RunScript {
         }
         long time = System.currentTimeMillis();
         if (options != null) {
-            executeRunscript(url, user, password, script, options);
+            processRunscript(url, user, password, script, options);
         } else {
-            execute(url, user, password, script, null, continueOnError);
+            process(url, user, password, script, null, continueOnError);
         }
         if (showTime) {
             time = System.currentTimeMillis() - time;
-            System.out.println("Done in " + time + " ms");
+            out.println("Done in " + time + " ms");
         }
     }
 
@@ -139,6 +148,10 @@ public class RunScript {
      * @return the last result set
      */
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
+        return new RunScript().process(conn, reader);
+    }
+    
+    private ResultSet process(Connection conn, Reader reader) throws SQLException {
         reader = new BufferedReader(reader);
         Statement stat = conn.createStatement();
         ResultSet rs = null;
@@ -160,19 +173,19 @@ public class RunScript {
         return rs;
     }
 
-    private static void execute(Connection conn, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
+    private void process(Connection conn, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
         InputStream in = FileUtils.openFileInputStream(fileName);
         String path = FileUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
             Reader reader = new InputStreamReader(in, charsetName);
-            execute(conn, continueOnError, path, reader, charsetName);
+            process(conn, continueOnError, path, reader, charsetName);
         } finally {
             IOUtils.closeSilently(in);
         }
     }
 
-    private static void execute(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
+    private void process(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
         Statement stat = conn.createStatement();
         ScriptReader r = new ScriptReader(new BufferedReader(reader));
         while (true) {
@@ -186,7 +199,7 @@ public class RunScript {
                 if (!FileUtils.isAbsolute(sql)) {
                     sql = path + File.separator + sql;
                 }
-                execute(conn, sql, continueOnError, charsetName);
+                process(conn, sql, continueOnError, charsetName);
             } else {
                 try {
                     if (sql.trim().length() > 0) {
@@ -203,7 +216,7 @@ public class RunScript {
         }
     }
 
-    private static void executeRunscript(String url, String user, String password, String fileName, String options) throws SQLException {
+    private static void processRunscript(String url, String user, String password, String fileName, String options) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -230,6 +243,10 @@ public class RunScript {
      * @throws SQLException
      */
     public static void execute(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
+        new RunScript().process(url, user, password, fileName, charsetName, continueOnError);
+    }
+    
+    void process(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
         try {
             org.h2.Driver.load();
             Connection conn = DriverManager.getConnection(url, user, password);
@@ -237,7 +254,7 @@ public class RunScript {
                 charsetName = Constants.UTF8;
             }
             try {
-                execute(conn, fileName, continueOnError, charsetName);
+                process(conn, fileName, continueOnError, charsetName);
             } finally {
                 conn.close();
             }

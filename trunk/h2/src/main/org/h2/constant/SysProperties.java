@@ -258,6 +258,13 @@ public class SysProperties {
     public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
 
     /**
+     * System property <code>h2.oldCommandLineOptions</code> (default: true).<br />
+     * Support old command line options.
+     */
+    // TODO change in version 1.1
+    public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", true);
+    
+    /**
      * System property <code>h2.optimizeDropDependencies</code> (default:
      * true).<br />
      * Improve the performance of DROP and DROP ALL OBJECTS by quicker scanning

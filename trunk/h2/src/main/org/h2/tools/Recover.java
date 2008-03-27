@@ -47,6 +47,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.Tool;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
@@ -58,7 +59,7 @@ import org.h2.value.ValueLob;
  * system software, or if an application writes into the database file that
  * doesn't understand the the file format, or if there is a hardware problem.
  */
-public class Recover implements DataHandler {
+public class Recover extends Tool implements DataHandler {
 
     private String databaseName;
     private boolean textStorage;
@@ -67,12 +68,16 @@ public class Recover implements DataHandler {
     private int storageId;
     private int recordLength;
     private int valueId;
-    private boolean log;
+    private boolean trace;
     private boolean lobFilesInDirectories;
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-log true]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Recover.html");
+        out.println("Helps recovering a corrupted database.");
+        out.println("java "+getClass().getName() + "\n" +
+                " [-dir <dir>]      The directory (default: .)\n" +
+                " [-db <database>]  The database name\n" +
+                " [-trace]          Print additional trace information");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -83,7 +88,7 @@ public class Recover implements DataHandler {
      * <li>-help or -? (print the list of options)
      * </li><li>-dir database directory (the default is the current directory)
      * </li><li>-db database name (all databases if no name is specified)
-     * </li><li>-log {true|false} (log additional messages)
+     * </li><li>-trace (print additional trace information while processing)
      * </li></ul>
      *
      * @param args the command line arguments
@@ -93,7 +98,7 @@ public class Recover implements DataHandler {
         new Recover().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String dir = ".";
         String db = null;
         boolean removePassword = false;
@@ -105,14 +110,13 @@ public class Recover implements DataHandler {
                 db = args[++i];
             } else if ("-removePassword".equals(arg)) {
                 removePassword = true;
-                log = true;
-            } else if ("-log".equals(arg)) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if ("-trace".equals(arg)) {
+                trace = true;
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
@@ -148,15 +152,15 @@ public class Recover implements DataHandler {
         }
     }
 
-    private void log(String message) {
-        if (log) {
-            System.out.println(message);
+    private void trace(String message) {
+        if (trace) {
+            out.println(message);
         }
     }
 
-    private void logError(String message, Throwable t) {
-        System.out.println(message + ": " + t.toString());
-        if (log) {
+    private void traceError(String message, Throwable t) {
+        out.println(message + ": " + t.toString());
+        if (trace) {
             t.printStackTrace();
         }
     }
@@ -263,8 +267,8 @@ public class Recover implements DataHandler {
                     s.updateChecksum();
                     store.seek(start);
                     store.write(s.getBytes(), 0, s.length());
-                    if (log) {
-                        System.out.println("User: " + userName);
+                    if (trace) {
+                        out.println("User: " + userName);
                     }
                     break;
                 } catch (Throwable e) {
@@ -306,7 +310,7 @@ public class Recover implements DataHandler {
     private PrintWriter getWriter(String fileName, String suffix) throws IOException, SQLException {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
-        log("Created file: " + outputFile);
+        trace("Created file: " + outputFile);
         return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
     }
 
@@ -336,13 +340,13 @@ public class Recover implements DataHandler {
     }
 
     private void dumpLob(String fileName, boolean lobCompression) {
-        OutputStream out = null;
+        OutputStream fileOut = null;
         FileStore store = null;
         int size = 0;
         String n = fileName + (lobCompression ? ".comp" : "") + ".txt";
         InputStream in = null;
         try {
-            out = FileUtils.openFileOutputStream(n, false);
+            fileOut = FileUtils.openFileOutputStream(n, false);
             textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, "r", magic);
@@ -354,18 +358,18 @@ public class Recover implements DataHandler {
                 if (l < 0) {
                     break;
                 }
-                out.write(buffer, 0, l);
+                fileOut.write(buffer, 0, l);
                 size += l;
             }
-            out.close();
+            fileOut.close();
         } catch (Throwable e) {
             // this is usually not a problem, because we try both compressed and
             // uncompressed
-            if (log) {
-                logError(fileName, e);
+            if (trace) {
+                traceError(fileName, e);
             }
         } finally {
-            IOUtils.closeSilently(out);
+            IOUtils.closeSilently(fileOut);
             IOUtils.closeSilently(in);
             closeSilently(store);
         }
@@ -373,7 +377,7 @@ public class Recover implements DataHandler {
             try {
                 FileUtils.delete(n);
             } catch (SQLException e) {
-                logError(n, e);
+                traceError(n, e);
             }
         }
     }
@@ -403,8 +407,8 @@ public class Recover implements DataHandler {
                     }
                     sb.append(getSQL(v));
                 } catch (Exception e) {
-                    if (log) {
-                        logError("log data", e);
+                    if (trace) {
+                        traceError("log data", e);
                     }
                     writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
                     continue;
@@ -875,7 +879,7 @@ public class Recover implements DataHandler {
         if (writer != null) {
             writer.println("// error: " + e);
         }
-        logError("Error", e);
+        traceError("Error", e);
     }
 
     /**

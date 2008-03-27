@@ -18,8 +18,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
+import org.h2.tools.Server;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 
@@ -35,7 +37,7 @@ public class PgServer implements Service {
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean stop;
-    private boolean log;
+    private boolean trace;
     private ServerSocket serverSocket;
     private Set running = Collections.synchronizedSet(new HashSet());
     private String baseDir;
@@ -47,16 +49,29 @@ public class PgServer implements Service {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
             String a = args[i];
-            if ("-log".equals(a)) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
+            if ("-trace".equals(a)) {
+                trace = true;
+            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+                trace = Server.readArgBoolean(args, i) == 1;
+                i++;
             } else if ("-pgPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-pgAllowOthers".equals(a)) {
-                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    allowOthers = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    allowOthers = true;
+                }
             } else if ("-ifExists".equals(a)) {
-                ifExists = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    ifExists = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    ifExists = true;
+                }
             }
         }
         org.h2.Driver.load();
@@ -66,12 +81,12 @@ public class PgServer implements Service {
 //        log = true;
     }
 
-    boolean getLog() {
-        return log;
+    boolean getTrace() {
+        return trace;
     }
 
-    void log(String s) {
-        if (log) {
+    void trace(String s) {
+        if (trace) {
             System.out.println(s);
         }
     }
@@ -80,8 +95,8 @@ public class PgServer implements Service {
         running.remove(t);
     }
 
-    void logError(Exception e) {
-        if (log) {
+    void traceError(Exception e) {
+        if (trace) {
             e.printStackTrace();
         }
     }
@@ -107,7 +122,7 @@ public class PgServer implements Service {
             while (!stop) {
                 Socket s = serverSocket.accept();
                 if (!allow(s)) {
-                    log("Connection not allowed");
+                    trace("Connection not allowed");
                     s.close();
                 } else {
                     PgServerThread c = new PgServerThread(s, this);

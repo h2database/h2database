@@ -21,7 +21,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * Represents a user defined function, or alias.
+ * Represents a user-defined function, or alias.
  */
 public class FunctionAlias extends DbObjectBase {
 
@@ -154,7 +154,7 @@ public class FunctionAlias extends DbObjectBase {
     }
 
     /**
-     * Call the user defined function and return the value.
+     * Call the user-defined function and return the value.
      * 
      * @param session the session
      * @param args the argument list

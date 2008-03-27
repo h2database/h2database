@@ -20,7 +20,7 @@ public class MixedMode {
 
     public static void main(String[] args) throws Exception {
 
-        // start the server, allows to access the database remotly
+        // start the server, allows to access the database remotely
         Server server = Server.createTcpServer(new String[] { "-tcpPort", "9081" });
         server.start();
         System.out.println("You can access the database remotely now, using the URL:");

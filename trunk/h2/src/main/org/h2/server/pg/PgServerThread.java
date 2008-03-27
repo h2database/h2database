@@ -70,7 +70,7 @@ public class PgServerThread implements Runnable {
 
     public void run() {
         try {
-            server.log("Connect");
+            server.trace("Connect");
             InputStream ins = socket.getInputStream();
             out = socket.getOutputStream();
             dataInRaw = new DataInputStream(ins);
@@ -82,9 +82,9 @@ public class PgServerThread implements Runnable {
             // more or less normal disconnect
         } catch (Exception e) {
             error("process", e);
-            server.logError(e);
+            server.traceError(e);
         } finally {
-            server.log("Disconnect");
+            server.trace("Disconnect");
             close();
         }
     }
@@ -119,7 +119,7 @@ public class PgServerThread implements Runnable {
 
     private void error(String message, Exception e) {
         if (e != null) {
-            server.logError(e);
+            server.traceError(e);
         }
     }
 
@@ -141,19 +141,19 @@ public class PgServerThread implements Runnable {
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switch (x) {
         case 0:
-            server.log("Init");
+            server.trace("Init");
             int version = readInt();
             if (version == 80877102) {
-                server.log("CancelRequest (not supported)");
-                server.log(" pid: " + readInt());
-                server.log(" key: " + readInt());
+                server.trace("CancelRequest (not supported)");
+                server.trace(" pid: " + readInt());
+                server.trace(" key: " + readInt());
                 error("CancelRequest", null);
             } else if (version == 80877103) {
-                server.log("SSLRequest");
+                server.trace("SSLRequest");
                 out.write('N');
             } else {
-                server.log("StartupMessage");
-                server.log(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
+                server.trace("StartupMessage");
+                server.trace(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
                 while (true) {
                     String param = readString();
                     if (param.length() == 0) {
@@ -176,7 +176,7 @@ public class PgServerThread implements Runnable {
             }
             break;
         case 'p': {
-            server.log("PasswordMessage");
+            server.trace("PasswordMessage");
             String password = readString();
             try {
                 ConnectionInfo ci = new ConnectionInfo(databaseName);
@@ -208,7 +208,7 @@ public class PgServerThread implements Runnable {
             break;
         }
         case 'P': {
-            server.log("Parse");
+            server.trace("Parse");
             Prepared p = new Prepared();
             p.name = readString();
             p.sql = getSQL(readString());
@@ -229,7 +229,7 @@ public class PgServerThread implements Runnable {
             break;
         }
         case 'B': {
-            server.log("Bind");
+            server.trace("Bind");
             Portal portal = new Portal();
             portal.name = readString();
             String prepName = readString();
@@ -268,7 +268,7 @@ public class PgServerThread implements Runnable {
         case 'D': {
             char type = (char) readByte();
             String name = readString();
-            server.log("Describe");
+            server.trace("Describe");
             PreparedStatement prep;
             if (type == 'S') {
                 Prepared p = (Prepared) prepared.get(name);
@@ -297,7 +297,7 @@ public class PgServerThread implements Runnable {
         }
         case 'E': {
             String name = readString();
-            server.log("Execute");
+            server.trace("Execute");
             Portal p = (Portal) portals.get(name);
             if (p == null) {
                 sendErrorResponse("Portal not found: " + name);
@@ -305,7 +305,7 @@ public class PgServerThread implements Runnable {
             }
             int maxRows = readShort();
             PreparedStatement prep = p.prep;
-            server.log(p.sql);
+            server.trace(p.sql);
             try {
                 prep.setMaxRows(maxRows);
                 boolean result = prep.execute();
@@ -330,12 +330,12 @@ public class PgServerThread implements Runnable {
             break;
         }
         case 'S': {
-            server.log("Sync");
+            server.trace("Sync");
             sendReadyForQuery();
             break;
         }
         case 'Q': {
-            server.log("Query");
+            server.trace("Query");
             String query = readString();
             ScriptReader reader = new ScriptReader(new StringReader(query));
             while (true) {
@@ -369,7 +369,7 @@ public class PgServerThread implements Runnable {
             break;
         }
         case 'X': {
-            server.log("Terminate");
+            server.trace("Terminate");
             close();
             break;
         }
@@ -393,8 +393,8 @@ public class PgServerThread implements Runnable {
             s = "set DATESTYLE ISO";
         }
         // s = StringUtils.replaceAll(s, "i.indkey[ia.attnum-1]", "0");
-        if (server.getLog()) {
-            server.log(s + ";");
+        if (server.getTrace()) {
+            server.trace(s + ";");
         }
         return s;
     }
@@ -462,7 +462,7 @@ public class PgServerThread implements Runnable {
             if (text) {
                 s = new String(d2, getEncoding());
             } else {
-                server.logError(new SQLException("Binary format not supported"));
+                server.traceError(new SQLException("Binary format not supported"));
                 s = new String(d2, getEncoding());
             }
         } catch (Exception e) {
@@ -634,9 +634,9 @@ public class PgServerThread implements Runnable {
             if (socket != null) {
                 socket.close();
             }
-            server.log("Close");
+            server.trace("Close");
         } catch (Exception e) {
-            server.logError(e);
+            server.traceError(e);
         }
         conn = null;
         socket = null;

@@ -352,7 +352,7 @@ regular regularly regulation rehash rein reindex rejected rekord rel related
 relating relation relational relations relationship relative relatively release
 released releases relevant reliable relies reload rely relying remain remainder
 remaining remains remap remark remarks remco remember remembered remote remotely
-remoting remotly remove removed removes removing rename renamed renames renaming
+remoting remove removed removes removing rename renamed renames renaming
 reopen repair repeat repeatable repeated repeatedly repeating repl replace
 replaced replacement replaces replacing replayed replicating replication replied
 reply repo report reported reporting reports repositories repository represent
@@ -433,7 +433,7 @@ theoretically theory there thereafter therefore thereof these theta thetasym the
 thin thing things think thinsp third this thomas thorn those thousand thousands
 thread threaded threading threads three threshold threw throttle throttling
 through throw throwable throwing thrown throws thus ticker tid tilde time timed
-timeout timer times timestamp timestamps timezone timezones timing tiny tinyblob
+timeout timer times timestamp timestamps timing tiny tinyblob
 tinyint tinytext tired title titled tls tmendrscan tmfail tmjoin tmnoflags
 tmonephase tmp tmresume tmstartrscan tmsuccess tmsuspend today todo together
 token tokenize tokenized tokenizer tokens tolerant tom tomcat too took tool
@@ -470,7 +470,7 @@ vulnerability wait waiting waits walk walker want wants warehouse warehouses war
 warning warnings warranties warranty was washington watchdog watermark way
 wayback ways weak web webclient weblog webserver website week weeks wegorkiewicz
 weierp weight weights weightx weighty weird welcome well welt were werkzeugkasten
-what when whenever where whereever wherever whether which while whirlpool white
+what when whenever where wherever whether which while whirlpool white
 whitespace who whole whom why wide widely width wiki wikipedia wildcard wildcards
 will william win window windows wiscorp with withdraw withdrawn within without
 wizard wlam wondering wood word wordid words work workaround workarounds
@@ -488,4 +488,4 @@ greenwich sqli informix pointbase fbj pervasive jtds ifx syb mimer sybase
 frontbase intersys maxwidth belonging learning mono typical toggle winexe 
 hider ikvmc invert recycle filtering lesser recycled assertion runner teradata
 christian lgpl elapsed ncr disposed heureuse tera years retrieves unlocked 
-selecting
+selecting vista everywhere locations zones fragment

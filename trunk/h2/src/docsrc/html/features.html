@@ -64,7 +64,7 @@ Features
 <a href="#passwords">
     Using Passwords</a><br />
 <a href="#user_defined_functions">
-    User Defined Functions and Stored Procedures</a><br />
+    User-Defined Functions and Stored Procedures</a><br />
 <a href="#triggers">
     Triggers</a><br />
 <a href="#compacting">
@@ -229,7 +229,7 @@ http://groups.google.com/group/h2-database/web/roadmap
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
-<td>User Defined Datatypes</td>
+<td>User-Defined Datatypes</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareN">No</td>
@@ -274,9 +274,7 @@ It looks like the development of this database has stopped. The last release was
 <h2>H2 in Use</h2>
 <p>
 For a list of applications that work with or use H2, see:
-<a href="http://groups.google.com/group/h2-database/web/h2-in-use">
-http://groups.google.com/group/h2-database/web/h2-in-use
-</a>
+<a href="links.html">Links</a>.
 </p>
 
 <br /><a name="connection_modes"></a>
@@ -294,8 +292,8 @@ The following connection modes are supported:
 <br /><a name="database_url"></a>
 <h2>Database URL Overview</h2>
 <p>
-This database does support multiple connection modes and features when connecting to a database.
-This is achieved using different database URLs. The settings in the URLs are not case sensitive.
+This database supports multiple connection modes and connection settings.
+This is achieved using different database URLs. Settings in the URLs are not case sensitive.
 </p>
 <table><tr><th>Topic</th><th>URL Format and Examples</th></tr>
 <tr>
@@ -322,22 +320,22 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>Remote using TCP/IP</td>
   <td>
     jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
-    jdbc:h2:tcp://localhost/test<br />
-    jdbc:h2:tcp://dbserv:8084/sample
+    jdbc:h2:tcp://localhost/~/test<br />
+    jdbc:h2:tcp://dbserv:8084/~/sample
   </td>
 </tr>
 <tr>
   <td>Remote using SSL/TLS</td>
   <td>
     jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
-    jdbc:h2:ssl://secureserv:8085/sample;
+    jdbc:h2:ssl://secureserv:8085/~/sample;
   </td>
 </tr>
 <tr>
   <td>Using Encrypted Files</td>
   <td>
     jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
-    jdbc:h2:ssl://secureserv/testdb;CIPHER=AES<br />
+    jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
     jdbc:h2:file:~/secure;CIPHER=XTEA<br />
   </td>
 </tr>
@@ -403,7 +401,7 @@ This is achieved using different database URLs. The settings in the URLs are not
   <td>Database in or Zip File</td>
   <td>
     jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
-    jdbc:h2:zip:db.zip!/test
+    jdbc:h2:zip:~/db.zip!/test
   </td>
 </tr>
 <tr>
@@ -420,7 +418,7 @@ This is achieved using different database URLs. The settings in the URLs are not
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
 The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working
 directory is used as a starting point. The case sensitivity of the path and database name depend on the
-operating system, however it is suggested to use lowercase letters only.
+operating system, however it is recommended to use lowercase letters only.
 The database name must be at least three characters long (a limitation of File.createTempFile).
 To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 </p>
@@ -461,8 +459,8 @@ and the file password. The algorithm needs to be specified using the connection 
 Two algorithms are supported: XTEA and AES. The file password is specified in the password field,
 before the user password. A single space needs to be added between the file password
 and the user password; the file password itself may not contain spaces. File passwords
-(as well as user passwords) are case sensitive. Here is an example to connect to a password
-encrypted database:
+(as well as user passwords) are case sensitive. Here is an example to connect to a 
+password-encrypted database:
 </p>
 <pre>
 Class.forName("org.h2.Driver");
@@ -577,7 +575,7 @@ The update performance of the database will be reduced when using this option.
 <p>
 Some applications (for example OpenOffice.org Base) pass some additional parameters
 when connecting to the database. Why those parameters are passed is unknown.
-The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples,
+The parameters PREFERDOSLIKELINEENDS and IGNOREDRIVERPRIVILEGES are such examples;
 they are simply ignored to improve the compatibility with OpenOffice.org. If an application
 passes other parameters when connecting to the database, usually the database throws an exception
 saying the parameter is not supported. It is possible to ignored such parameters by adding
@@ -633,7 +631,7 @@ other processes (that could reside on other computers as well) connect to the se
 <p>
 This database is multithreading-safe. That means, if an application is multi-threaded, it does not need
 o worry about synchronizing the access to the database. Internally, most requests to the same database
-are synchronized. That means an application can use multiple threads all accessing the same database
+are synchronized. That means an application can use multiple threads accessing the same database
 at the same time, however if one thread executes a long running query, the other threads
 need to wait.
 </p>
@@ -844,7 +842,7 @@ and tries to be compatible to other databases. There are still a few differences
 <p>
 In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However
 H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append
-IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
+IGNORECASE=TRUE to the database URL (example: jdbc:h2:~/test;IGNORECASE=TRUE).
 </p>
 
 <h3>Compatibility Modes</h3>
@@ -1000,13 +998,13 @@ BACKUP TO 'data.zip'
 Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
 </p>
 <pre>
-jdbc:h2:zip:data.zip!/test
+jdbc:h2:zip:~/data.zip!/test
 </pre>
 <p>
 Databases in a zip file are read-only. The performance for some queries will be slower than when using
 a regular database, because random access in zip files is not supported (only streaming). How much this
 affects the performance depends on the queries and the data. The database
-is not read in memory, so large databases are supported as well. The same indexes are used than when using
+is not read in memory; so large databases are supported as well. The same indexes are used than when using
 a regular database.
 </p>
 
@@ -1045,7 +1043,7 @@ See also the DatabaseEventListener API.
 
 <h3>Opening a Corrupted Database</h3>
 <p>
-If a database can not be opened because the boot info (the SQL script that is run at startup)
+If a database cannot be opened because the boot info (the SQL script that is run at startup)
 is corrupted, then the database can be opened by specifying a database event listener.
 The exceptions are logged, but opening the database will continue.
 </p>
@@ -1129,7 +1127,7 @@ This database supports using char arrays instead of String to pass user and file
 The following code can be used to do that:
 <pre>
 Class.forName("org.h2.Driver");
-String url = "jdbc:h2:simple";
+String url = "jdbc:h2:~/simple";
 String user = "sam";
 char[] password =
 {'t','i','a','S','&amp;',E','t','r','p'};
@@ -1164,9 +1162,9 @@ The settings in the URL override the settings passed as a separate parameter.
 </p>
 
 <br /><a name="user_defined_functions"></a>
-<h2>User Defined Functions and Stored Procedures</h2>
+<h2>User-Defined Functions and Stored Procedures</h2>
 <p>
-In addition to the built-in functions, this database supports user defined Java functions.
+In addition to the built-in functions, this database supports user-defined Java functions.
 In this database, Java functions can be used as stored procedures as well.
 A function must be declared (registered) before it can be used.
 Only static Java methods are supported; both the class and the method must be public.
@@ -1302,7 +1300,7 @@ The trigger can be used to veto a change, by throwing a SQL Exception.
 <h2>Compacting a Database</h2>
 <p>
 Empty space in the database file is re-used automatically.
-To re-build the indexes, the most simple way is to delete the .index.db file
+To re-build the indexes, the simplest way is to delete the .index.db file
 while the database is closed. However in some situations (for example after deleting
 a lot of data in a database), one sometimes wants to shrink the size of the database
 (compact a database). Here is a sample function to do this:
@@ -1317,7 +1315,7 @@ public static void compact(String dir, String dbName,
 }
 </pre>
 See also the sample application org.h2.samples.Compact.
-The commands SCRIPT / RUNSCRIPT can be used as well to create the a backup
+The commands SCRIPT / RUNSCRIPT can be used as well to create a backup
 of a database and re-build the database from the script.
 </p>
 
@@ -1332,10 +1330,10 @@ SET CACHE_SIZE size.
 </p><p>
 This database supports two cache page replacement algorithms: LRU (the default) and
 2Q. For LRU, the pages that were least frequently used are removed from the
-cache if it becomes full. The 2Q algorithm is a bit more complicated, basically two
+cache if it becomes full. The 2Q algorithm is a bit more complicated: basically two
 queues are used. The 2Q algorithm is more resistant to table scans, however the overhead
 is a bit higher compared to the LRU. To use the cache algorithm 2Q, use a database URL
-of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm can not be changed
+of the form jdbc:h2:~/test;CACHE_TYPE=TQ. The cache algorithm cannot be changed
 once the database is open.
 </p><p>
 To get information about page reads and writes, and the current caching algorithm in use,

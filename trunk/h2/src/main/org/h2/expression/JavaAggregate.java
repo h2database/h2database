@@ -23,7 +23,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This class wraps a user defined aggregate.
+ * This class wraps a user-defined aggregate.
  */
 public class JavaAggregate extends Expression {
 

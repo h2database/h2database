@@ -162,7 +162,7 @@ SQLite was not tested because the JDBC driver doesn't support transactions.
 <h4>Number of Connections</h4>
 <p>
 This is mostly a single-connection benchmark.
-BenchB uses multiple connections, the other tests one connection.
+BenchB uses multiple connections; the other tests use one connection.
 </p>
 
 <h4>Real-World Tests</h4>
@@ -193,7 +193,7 @@ The VM used is Sun JDK 1.5.
 When a Java benchmark is run first, the code is not fully compiled and
 therefore runs slower than when running multiple times. A benchmark
 should always run the same test multiple times and ignore the first run(s).
-This benchmark runs three times, the last run counts.
+This benchmark runs three times, but only the last run is measured.
 </p>
 
 <h4>Memory Usage</h4>
@@ -201,7 +201,7 @@ This benchmark runs three times, the last run counts.
 It is not enough to measure the time taken, the memory usage is important as well.
 Performance can be improved in databases by using a bigger in-memory cache,
 but there is only a limited amount of memory available on the system.
-HSQLDB tables are kept fully in memory by default, this benchmark
+HSQLDB tables are kept fully in memory by default; this benchmark
 uses 'disk based' tables for all databases.
 Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL
 and MySQL, because they run in a different process than the test. This benchmark currently

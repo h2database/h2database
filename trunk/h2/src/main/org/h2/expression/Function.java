@@ -1152,7 +1152,7 @@ public class Function extends Expression implements FunctionCall {
         Calendar calendar = Calendar.getInstance();
         long t1 = d1.getTime(), t2 = d2.getTime();
         // need to convert to UTC, otherwise we get inconsistent results with
-        // certain timezones (those that are 30 minutes off)
+        // certain time zones (those that are 30 minutes off)
         TimeZone zone = calendar.getTimeZone();
         calendar.setTime(d1);
         t1 += zone.getOffset(calendar.get(Calendar.ERA), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),

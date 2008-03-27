@@ -20,16 +20,21 @@ import org.h2.message.Message;
 import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.Tool;
 
 /**
  * Backs up a H2 database by creating a .zip file from the database files.
  */
-public class Backup {
-
+public class Backup extends Tool {
+    
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Backup.html");
+        out.println("Creates a backup of a database.");
+        out.println("java "+getClass().getName() + "\n" +
+            " [-file <filename>]  The target file name (default: backup.zip)\n" +
+            " [-dir <dir>]        Source directory (default: .)\n" +
+            " [-db <database>]    Source database name\n" +
+            " [-quiet]            Do not print progress information");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -51,7 +56,7 @@ public class Backup {
         new Backup().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
         String db = null;
@@ -70,12 +75,12 @@ public class Backup {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
         }
-        Backup.execute(zipFileName, dir, db, quiet);
+        process(zipFileName, dir, db, quiet);
     }
 
     /**
@@ -88,10 +93,14 @@ public class Backup {
      * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+        new Backup().process(zipFileName, directory, db, quiet);
+    }
+    
+    private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {
             if (!quiet) {
-                System.out.println("No database files found");
+                out.println("No database files found");
             }
             return;
         }
@@ -99,10 +108,10 @@ public class Backup {
         if (FileUtils.exists(zipFileName)) {
             FileUtils.delete(zipFileName);
         }
-        OutputStream out = null;
+        OutputStream fileOut = null;
         try {
-            out = FileUtils.openFileOutputStream(zipFileName, false);
-            ZipOutputStream zipOut = new ZipOutputStream(out);
+            fileOut = FileUtils.openFileOutputStream(zipFileName, false);
+            ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (int i = 0; i < list.size(); i++) {
                 String fileName = (String) list.get(i);
@@ -132,7 +141,7 @@ public class Backup {
                 }
                 zipOut.closeEntry();
                 if (!quiet) {
-                    System.out.println("processed: " + fileName);
+                    out.println("Processed: " + fileName);
                 }
             }
             zipOut.closeEntry();
@@ -140,7 +149,7 @@ public class Backup {
         } catch (IOException e) {
             throw Message.convertIOException(e, zipFileName);
         } finally {
-            IOUtils.closeSilently(out);
+            IOUtils.closeSilently(fileOut);
         }
     }
 

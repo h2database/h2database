@@ -104,7 +104,7 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     /**
-     * Call the fire method of the user defined trigger class.
+     * Call the fire method of the user-defined trigger class.
      * 
      * @param session the session
      * @param oldRow the old row

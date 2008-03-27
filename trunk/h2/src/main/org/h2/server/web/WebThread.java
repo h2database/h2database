@@ -7,6 +7,7 @@ package org.h2.server.web;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -48,7 +50,17 @@ import org.h2.bnf.Bnf;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.message.Message;
 import org.h2.message.TraceSystem;
+import org.h2.tools.Backup;
+import org.h2.tools.ChangePassword;
+import org.h2.tools.ConvertTraceFile;
+import org.h2.tools.CreateCluster;
+import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
+import org.h2.tools.Restore;
+import org.h2.tools.RunScript;
+import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -59,6 +71,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -412,6 +425,8 @@ class WebThread extends Thread implements DatabaseEventListener {
                 file = adminShutdown();
             } else if ("autoCompleteList.do".equals(file)) {
                 file = autoCompleteList();
+            } else if ("tools.do".equals(file)) {
+                file = tools();
             } else {
                 file = "error.jsp";
             }
@@ -527,6 +542,52 @@ class WebThread extends Thread implements DatabaseEventListener {
             server.trace(e.toString());
         }
         return admin();
+    }
+
+    private String tools() {
+        try {
+            String toolName = (String) attributes.get("tool");
+            session.put("tool", toolName);
+            String args = (String) attributes.get("args");
+            String[] argList = StringUtils.arraySplit(args, ',', false);
+            Tool tool = null;
+            if ("Backup".equals(toolName)) {
+                tool = new Backup();
+            } else if ("Restore".equals(toolName)) {
+                tool = new Restore();
+            } else if ("Recover".equals(toolName)) {
+                tool = new Recover();
+            } else if ("DeleteDbFiles".equals(toolName)) {
+                tool = new DeleteDbFiles();
+            } else if ("ChangePassword".equals(toolName)) {
+                tool = new ChangePassword();
+            } else if ("Script".equals(toolName)) {
+                tool = new Script();
+            } else if ("RunScript".equals(toolName)) {
+                tool = new RunScript();
+            } else if ("ConvertTraceFile".equals(toolName)) {
+                tool = new ConvertTraceFile();
+            } else if ("CreateCluster".equals(toolName)) {
+                tool = new CreateCluster();
+            } else {
+                throw Message.getInternalError(toolName);
+            }
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            PrintStream out = new PrintStream(bout, false, "UTF-8");
+            tool.setPrintStream(out);
+            try {
+                tool.run(argList);
+                out.flush();
+                byte[] data = bout.toByteArray();
+                String result = new String(data, "UTF-8");
+                session.put("toolResult", PageParser.escapeHtml(result));
+            } catch (Exception e) {
+                session.put("toolResult", getStackTrace(0, e, true));
+            }
+        } catch (Exception e) {
+            server.traceError(e);
+        }
+        return "tools.jsp";
     }
 
     private String adminShutdown() {
@@ -1084,6 +1145,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             session.remove("result");
             session.remove("tables");
             session.remove("user");
+            session.remove("tool");
             if (conn != null) {
                 conn.close();
             }

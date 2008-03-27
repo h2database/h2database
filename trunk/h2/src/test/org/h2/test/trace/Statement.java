@@ -47,7 +47,7 @@ class Statement {
     Object execute() throws Exception {
         if (object == player) {
             // there was an exception previously
-            player.log("> " + assignVariable + " not set");
+            player.trace("> " + assignVariable + " not set");
             if (assignment) {
                 player.assign(assignVariable, player);
             }
@@ -81,7 +81,7 @@ class Statement {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
-            player.log("> " + t.toString());
+            player.trace("> " + t.toString());
             if (assignment) {
                 player.assign(assignVariable, player);
             }

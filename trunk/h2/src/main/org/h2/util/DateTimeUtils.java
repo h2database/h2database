@@ -154,17 +154,17 @@ public class DateTimeUtils {
                     s = s.substring(0, s.length() - 1);
                     tz = TimeZone.getTimeZone("UTC");
                 } else {
-                    int timezoneStart = s.indexOf('+', s2 + 1);
-                    if (timezoneStart < 0) {
-                        timezoneStart = s.indexOf('-', s2 + 1);
+                    int timeZoneStart = s.indexOf('+', s2 + 1);
+                    if (timeZoneStart < 0) {
+                        timeZoneStart = s.indexOf('-', s2 + 1);
                     }
-                    if (timezoneStart >= 0) {
-                        String tzName = "GMT" + s.substring(timezoneStart);
+                    if (timeZoneStart >= 0) {
+                        String tzName = "GMT" + s.substring(timeZoneStart);
                         tz = TimeZone.getTimeZone(tzName);
                         if (!tz.getID().equals(tzName)) {
                             throw Message.getSQLException(errorCode, new String[] { s, tz.getID() + " <>" + tzName });
                         }
-                        s = s.substring(0, timezoneStart).trim();
+                        s = s.substring(0, timeZoneStart).trim();
                     }
                 }
 

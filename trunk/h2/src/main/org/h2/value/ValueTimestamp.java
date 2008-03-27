@@ -26,7 +26,7 @@ public class ValueTimestamp extends Value {
     private final Timestamp value;
     
     /**
-     * This is used to find out if a date is possibly BC. Because of timezone
+     * This is used to find out if a date is possibly BC. Because of time zone
      * issues (the date is time zone specific), the second day is used. That
      * means the value is not exact, but it does not need to be.
      */

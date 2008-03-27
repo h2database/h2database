@@ -12,17 +12,22 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 
 /**
  * Convert a trace file to a java class.
  * This is required because the find command truncates lines.
  */
-public class ConvertTraceFile {
+public class ConvertTraceFile extends Tool {
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " [-traceFile <trace file name>]\n [-javaClass <java class name>] [-script <sql script file>]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/ConvertTraceFile.html");
+        out.println("Converts a .trace.db file to a SQL script and Java source code.");
+        out.println("java "+getClass().getName() + "\n" +
+                " [-traceFile <file>]  The trace file name (default: test.trace.db)\n" +
+                " [-script <file>]     The script file name (default: test.sql)\n" +
+                " [-javaClass <file>]  The Java directory and class file name (default: Test)");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -43,7 +48,7 @@ public class ConvertTraceFile {
         new ConvertTraceFile().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String traceFile = "test.trace.db";
         String javaClass = "Test";
         String script = "test.sql";
@@ -59,7 +64,7 @@ public class ConvertTraceFile {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
@@ -86,7 +91,12 @@ public class ConvertTraceFile {
         javaWriter.println("import java.sql.*;");
         javaWriter.println("import java.math.*;");
         javaWriter.println("import java.util.Calendar;");
-        javaWriter.println("public class " + javaClassName + " {");
+        String cn = javaClassName.replace('\\', '/');
+        int idx = cn.lastIndexOf('/');
+        if (idx > 0) {
+            cn = cn.substring(idx + 1);
+        }
+        javaWriter.println("public class " + cn + " {");
         javaWriter.println("    public static void main(String[] args) throws Exception {");
         javaWriter.println("        Class.forName(\"org.h2.Driver\");");
         while (true) {
@@ -99,7 +109,7 @@ public class ConvertTraceFile {
                 javaWriter.println(line);
             } else if (line.startsWith("/*SQL*/")) {
                 line = line.substring("/*SQL*/".length());
-                scriptWriter.println(line);
+                scriptWriter.println(StringUtils.javaDecode(line));
             }
         }
         javaWriter.println("    }");

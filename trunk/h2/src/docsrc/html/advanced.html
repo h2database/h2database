@@ -189,7 +189,7 @@ for each connection.
 <p>
 The MVCC feature allows higher concurrency than using (table level or row level) locks.
 When using MVCC in this database, delete, insert and update operations will only issue a
-shared lock on the table. Table are still locked exclusively when adding or removing columns,
+shared lock on the table. An exclusive lock is still used when adding or removing columns,
 when dropping the table, and when using SELECT ... FOR UPDATE. Connections
 only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
@@ -261,14 +261,14 @@ java org.h2.tools.Server
     Run the tool on the command line:
 <pre>
 java org.h2.tools.CreateCluster
-  -urlSource jdbc:h2:tcp://localhost:9101/test
-  -urlTarget jdbc:h2:tcp://localhost:9102/test
+  -urlSource jdbc:h2:tcp://localhost:9101/~/test
+  -urlTarget jdbc:h2:tcp://localhost:9102/~/test
   -user sa
   -serverlist localhost:9101,localhost:9102
 </pre>
 </li><li>You can now connect to the databases using
 an application or the H2 Console using the JDBC URL
-jdbc:h2:tcp://localhost:9101,localhost:9102/test
+jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
 </li><li>If you stop a server (by killing the process),
 you will notice that the other machine continues to work,
 and therefore the database is still accessible.
@@ -462,7 +462,7 @@ Problems are fixed as they are found.
 Currently, statements can not be cancelled when using the PG protocol.
 </p>
 <p>
-PostgreSQL ODBC Driver Setup requires a database password, that means it
+PostgreSQL ODBC Driver Setup requires a database password; that means it
 is not possible to connect to H2 databases without password. This is a limitation
 of the ODBC driver.
 </p>
@@ -568,7 +568,7 @@ The test is included in the H2 download, see org.h2.test.poweroff.Test.
 
 <h3>Ways to (Not) Achieve Durability</h3>
 <p>
-Making sure that committed transaction are not lost is more complicated than it seems first.
+Making sure that committed transactions are not lost is more complicated than it seems first.
 To guarantee complete durability, a database must ensure that the log record is on the hard drive
 before the commit call returns. To do that, databases use different methods. One
 is to use the 'synchronous write' file access mode. In Java, RandomAccessFile
@@ -589,7 +589,7 @@ then the disk would need to make at least 50 thousand revolutions per second, or
 or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
 </p>
 <p>
-Buffers can be flushed by calling the function fsync. There are two ways to do that in Java:
+Calling fsync flushes the buffers. There are two ways to do that in Java:
 </p>
 <ul>
 <li>FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device.
@@ -605,7 +605,7 @@ Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(),
 data is not always persisted to the hard drive, because most hard drives do not obey
 fsync(): see 
 <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
-In Mac OS X fsync does not flush hard drive buffers, see
+In Mac OS X, fsync does not flush hard drive buffers. See
 <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
 So the situation is confusing, and tests prove there is a problem.
 </p>
@@ -835,7 +835,7 @@ By default all classes are allowed. Example:
 java -Dh2.allowedClasses=java.lang.Math,com.acme.*
 </pre>
 This mechanism is used for all user classes, including database event listeners,
-trigger classes, user defined functions, user defined aggregate functions, and JDBC
+trigger classes, user-defined functions, user-defined aggregate functions, and JDBC
 driver classes (with the exception of the H2 driver) when using the H2 Console.
 </p>
 
@@ -910,7 +910,7 @@ encrypted using the AES-128 or XTEA algorithm.
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key,
 and then the IV is calculated combined with the decrypted text using XOR.
 </p><p>
-Therefore, the block cipher modes of operation is CBC (Cipher-block chaining), but each chain
+Therefore, the block cipher mode of operation is CBC (Cipher-block chaining), but each chain
 is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns
 in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits
 are not propagated to flipped plaintext bits in the next block.

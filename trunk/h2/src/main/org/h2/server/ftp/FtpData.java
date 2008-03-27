@@ -46,11 +46,11 @@ public class FtpData extends Thread {
             synchronized (this) {
                 Socket s = serverSocket.accept();
                 if (s.getInetAddress().equals(address)) {
-                    server.log("Data connected:" + s.getInetAddress() + " expected:" + address);
+                    server.trace("Data connected:" + s.getInetAddress() + " expected:" + address);
                     socket = s;
                     notifyAll();
                 } else {
-                    server.log("Data REJECTED:" + s.getInetAddress() + " expected:" + address);
+                    server.trace("Data REJECTED:" + s.getInetAddress() + " expected:" + address);
                     close();
                 }
             }
@@ -75,7 +75,7 @@ public class FtpData extends Thread {
                 // ignore
             }
         }
-        server.log("connected");
+        server.trace("connected");
     }
 
     public void close() {
@@ -93,7 +93,7 @@ public class FtpData extends Thread {
         } finally {
             socket.close();
         }
-        server.log("closed");
+        server.trace("closed");
     }
 
     public synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
@@ -107,7 +107,7 @@ public class FtpData extends Thread {
         } finally {
             socket.close();
         }
-        server.log("closed");
+        server.trace("closed");
     }
 
     public synchronized void send(byte[] data) throws IOException {
@@ -118,7 +118,7 @@ public class FtpData extends Thread {
         } finally {
             socket.close();
         }
-        server.log("closed");
+        server.trace("closed");
     }
 
 }

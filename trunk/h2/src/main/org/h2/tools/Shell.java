@@ -59,8 +59,13 @@ public class Shell {
     }
     
     private void showUsage() {
-        out.println("java " + getClass().getName() + " [-url <url> -user <user> -password <pwd> -driver <driver]");
-        out.println("See also http://h2database.com/javadoc/org/h2/tools/Prompt.html");
+        out.println("An interactive command line database tool.");
+        out.println("java "+getClass().getName() + "\n" +
+                " [-url <url>]       The database URL\n" +
+                " [-user <user>]     The user name\n" +
+                " [-password <pwd>]  The password\n" +
+                " [-driver <class>]  The JDBC driver class to use (not required in most cases)");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
     
     private void run(String[] args) throws SQLException {
@@ -97,12 +102,12 @@ public class Shell {
     
     private void showHelp() {
         out.println("Commands are case insensitive; SQL statements end with ';'");
-        out.println("help or ?     - Display this help");
-        out.println("list          - Toggle result list mode");
-        out.println("maxwidth      - Set maximum column width (default is 100)");
-        out.println("show          - List all tables");
-        out.println("describe      - Describe a table");
-        out.println("quit or exit  - Close the connection and exit");
+        out.println("help or ?      Display this help");
+        out.println("list           Toggle result list mode");
+        out.println("maxwidth       Set maximum column width (default is 100)");
+        out.println("show           List all tables");
+        out.println("describe       Describe a table");
+        out.println("quit or exit   Close the connection and exit");
         out.println();
     }
 

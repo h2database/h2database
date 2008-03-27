@@ -1133,7 +1133,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Gets the list of user defined data types.
+     * Gets the list of user-defined data types.
      * This call returns an empty result set.
      *
      * <ul>

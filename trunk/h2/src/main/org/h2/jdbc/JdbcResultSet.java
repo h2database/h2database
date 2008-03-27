@@ -818,7 +818,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date using a
-     * specified timezone.
+     * specified time zone.
      * 
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
@@ -840,7 +840,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Date using a
-     * specified timezone.
+     * specified time zone.
      * 
      * @param columnName the name of the column label
      * @param calendar the calendar
@@ -862,7 +862,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time using a
-     * specified timezone.
+     * specified time zone.
      * 
      * @param columnIndex (1,2,...)
      * @param calendar the calendar
@@ -884,7 +884,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Time using a
-     * specified timezone.
+     * specified time zone.
      * 
      * @param columnName the name of the column label
      * @param calendar the calendar
@@ -906,7 +906,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp using a
-     * specified timezone.
+     * specified time zone.
      * 
      * @param columnIndex (1,2,...)
      * @param calendar the calendar

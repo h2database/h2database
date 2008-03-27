@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * A user defined aggregate function needs to implement this interface.
+ * A user-defined aggregate function needs to implement this interface.
  * The class must be public and must have a public non-argument constructor.
  */
 public interface AggregateFunction {

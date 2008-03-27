@@ -215,7 +215,7 @@ INSERT INTO ITEM VALUES(33,
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>Certain setting in the Server didn''t work.
-</li><li>In timezones where the summer time saving limit is at midnight, 
+</li><li>In time zones where the summer time saving limit is at midnight, 
   some dates did not work in some virtual machines, 
     for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05.
 </li><li>The native fulltext search was not working properly after re-connecting. 

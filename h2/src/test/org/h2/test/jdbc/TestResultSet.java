@@ -635,10 +635,10 @@ public class TestResultSet extends TestBase {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?, ?)");
         Calendar regular = Calendar.getInstance();
         Calendar other = null;
-        String[] timezones = TimeZone.getAvailableIDs();
+        String[] timeZones = TimeZone.getAvailableIDs();
         // search a locale that has a _different_ raw offset
-        for (int i = 0; i < timezones.length; i++) {
-            TimeZone zone = TimeZone.getTimeZone(timezones[i]);
+        for (int i = 0; i < timeZones.length; i++) {
+            TimeZone zone = TimeZone.getTimeZone(timeZones[i]);
             if (regular.getTimeZone().getRawOffset() != zone.getRawOffset()) {
                 other = Calendar.getInstance(zone);
                 break;

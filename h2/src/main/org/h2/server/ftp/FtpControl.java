@@ -74,7 +74,7 @@ public class FtpControl extends Thread {
                 }
             }
         } catch (Throwable t) {
-            server.logError(t);
+            server.traceError(t);
         }
         server.closeConnection();
     }
@@ -91,7 +91,7 @@ public class FtpControl extends Thread {
             reply(506, "No command");
             return;
         }
-        server.log(">" + command);
+        server.trace(">" + command);
         FtpEventListener listener = server.getEventListener();
         FtpEvent event = null;
         if (listener != null) {
@@ -227,7 +227,7 @@ public class FtpControl extends Thread {
                     data = new FtpData(server, address, port);
                     reply(200, "Ok");
                 } else {
-                    server.log("Port REJECTED:" + address + " expected:" + control.getInetAddress());
+                    server.trace("Port REJECTED:" + address + " expected:" + control.getInetAddress());
                     reply(550, "Failed");
                 }
             }
@@ -254,7 +254,7 @@ public class FtpControl extends Thread {
                             reply(250, "Ok");
                             ok = true;
                         } catch (SQLException e) {
-                            server.logError(e);
+                            server.traceError(e);
                         }
                     }
                     if (!ok) {
@@ -269,7 +269,7 @@ public class FtpControl extends Thread {
                         data.send(fs, fileName, restart);
                         reply(226, "Ok");
                     } catch (IOException e) {
-                        server.logError(e);
+                        server.traceError(e);
                         reply(426, "Failed");
                     }
                     restart = 0;
@@ -312,7 +312,7 @@ public class FtpControl extends Thread {
                         }
                         reply(226, "Ok");
                     } catch (Exception e) {
-                        server.logError(e);
+                        server.traceError(e);
                         reply(426, "Failed");
                     }
                 } else {
@@ -359,7 +359,7 @@ public class FtpControl extends Thread {
                 reply(257, StringUtils.quoteIdentifier(param) + " directory");
                 ok = true;
             } catch (SQLException e) {
-                server.logError(e);
+                server.traceError(e);
             }
         }
         if (!ok) {
@@ -395,7 +395,7 @@ public class FtpControl extends Thread {
         }
         String list = server.getDirectoryListing(directory, directories);
         reply(150, "Starting transfer");
-        server.log(list);
+        server.trace(list);
         // need to use the current locale (UTF-8 would be wrong for the Windows
         // Explorer)
         data.send(list.getBytes());
@@ -403,7 +403,7 @@ public class FtpControl extends Thread {
     }
 
     private void reply(int code, String message) throws IOException {
-        server.log(code + " " + message);
+        server.trace(code + " " + message);
         output.print(code + " " + message + "\r\n");
         output.flush();
         replied = true;

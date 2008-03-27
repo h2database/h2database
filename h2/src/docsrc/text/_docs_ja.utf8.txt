@@ -190,7 +190,7 @@ Phantom Reads (ファントムリード)
 #Multi-Version Concurrency Control (MVCC)
 
 @advanced_1063_p
-#The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. Table are still locked exclusively when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
+#The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. An exclusive lock is still used when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
 
 @advanced_1064_p
 #To use the MVCC feature, append MVCC=TRUE to the database URL:
@@ -241,7 +241,7 @@ CreateClusterツールを使用する
 クラスタリングを初期化するためにCreateClusterツールを使用します。 データベースが存在しなければ、自動的に新しい、空のデータベースを作成します。 次のコマンドラインでツールを実行します:
 
 @advanced_1080_li
-これでアプリケーション、または JDBC URL jdbc:h2:tcp://localhost:9101,localhost:9102/test を使用したH2コンソールを使用してデータベースへアクセスできます。
+#You can now connect to the databases using an application or the H2 Console using the JDBC URL jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
 
 @advanced_1081_li
 サーバーを止めたら (プロセスを無視して)、他のマシンは動作を続行し、 従ってデータベースもまだアクセス可能だということがわかります。
@@ -478,7 +478,7 @@ PGプロトコルサポートの制限
 現時点では、PostgreSQLネットワークプロトコルのサブセットのみ実装されています。また、カタログ、またはテキストエンコーディングでのSQLレベル上の互換性問題がある可能性があります。問題は発見されたら修正されます。現在、PGプロトコルが使用されている時、ステートメントはキャンセルされません。
 
 @advanced_1159_p
-#PostgreSQL ODBC Driver Setup requires a database password, that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
+#PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
 
 @advanced_1160_h3
 セキュリティ考慮
@@ -586,7 +586,7 @@ FileDescriptor.sync() ドキュメンテーションには、これは強制的�
 FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
 
 @advanced_1195_p
-#By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X fsync does not flush hard drive buffers, see <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
+#By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
 
 @advanced_1196_p
 ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
@@ -706,7 +706,7 @@ ZERO() 関数を使用する
 #To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
 
 @advanced_1235_p
-#This mechanism is used for all user classes, including database event listeners, trigger classes, user defined functions, user defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
+#This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
 
 @advanced_1236_h2
 セキュリティプロトコル
@@ -1381,7 +1381,7 @@ Centralリポジトリの利用
 #The SecurePassword example has been improved.
 
 @changelog_1132_li
-#In timezones where the summer time saving limit is at midnight, some dates do not work in some virtual machines, for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05. Fixed.
+#In time zones where the summer time saving limit is at midnight, some dates do not work in some virtual machines, for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05. Fixed.
 
 @changelog_1133_li
 #The native fulltext search was not working properly after re-connecting.
@@ -1672,7 +1672,7 @@ Centralリポジトリの利用
 #Version 1.0.57 (2007-08-25)
 
 @changelog_1229_li
-#New experimental feature MVCC (multi version concurrency control). Can be set as a option when opening the database (jdbc:h2:test;MVCC=TRUE) or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
+#New experimental feature MVCC (multi version concurrency control). Can be set as a option when opening the database (jdbc:h2:~/test;MVCC=TRUE) or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
 
 @changelog_1230_li
 #The version number is now major.minor.micro where micro is the build number. Not all version are public, so there may be gaps in the micro. The minor changes when there is a file format change.
@@ -2404,7 +2404,7 @@ ODBCドライバ
 対応
 
 @features_1150_td
-#User Defined Datatypes
+#User-Defined Datatypes
 
 @features_1151_td
 対応
@@ -2479,7 +2479,7 @@ McKoi
 #H2 in Use
 
 @features_1175_p
-#For a list of applications that work with or use H2, see: <a href="http://groups.google.com/group/h2-database/web/h2-in-use">http://groups.google.com/group/h2-database/web/h2-in-use</a>
+#For a list of applications that work with or use H2, see: <a href="links.html">Links</a> .
 
 @features_1176_h2
 接続モード
@@ -2503,7 +2503,7 @@ TCP/IP上でODBCを使用しているリモート接続 (クライアント/サ�
 データベースURL概要
 
 @features_1183_p
-このデータベースは、データベースに接続している時、複数の接続モードと特徴をサポートしています。これは、異なったデータベースのURLを使用することにより可能となります。URLの設定は大文字と小文字を区別していません。
+#This database supports multiple connection modes and connection settings. This is achieved using different database URLs. Settings in the URLs are not case sensitive.
 
 @features_1184_th
 トピック
@@ -2548,10 +2548,10 @@ TCP/IPを使用したリモート
 jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
 @features_1198_td
-jdbc:h2:tcp://localhost/test
+#jdbc:h2:tcp://localhost/~/test
 
 @features_1199_td
-jdbc:h2:tcp://dbserv:8084/sample
+#jdbc:h2:tcp://dbserv:8084/~/sample
 
 @features_1200_td
 SSL/TLSを使用したリモート
@@ -2560,7 +2560,7 @@ SSL/TLSを使用したリモート
 jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
 @features_1202_td
-jdbc:h2:ssl://secureserv:8085/sample;
+#jdbc:h2:ssl://secureserv:8085/~/sample;
 
 @features_1203_td
 暗号化ファイルの使用
@@ -2569,7 +2569,7 @@ jdbc:h2:ssl://secureserv:8085/sample;
 jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
 
 @features_1205_td
-jdbc:h2:ssl://secureserv/testdb;CIPHER=AES
+#jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES
 
 @features_1206_td
 jdbc:h2:file:~/secure;CIPHER=XTEA
@@ -2653,7 +2653,7 @@ jdbc:h2:mem:
 #jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
 
 @features_1233_td
-#jdbc:h2:zip:db.zip!/test
+#jdbc:h2:zip:~/db.zip!/test
 
 @features_1234_td
 他の設定の変更
@@ -2668,7 +2668,7 @@ jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
 エンベッド (ローカル) データベースに接続
 
 @features_1238_p
-ローカルデータベースに接続するためのデータベースURLは、<code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> です。接頭辞 <code>file:</code> はオプションです。相対パスが使われていない、または相対パスのみ使われている場合、現在作業しているディレクトリは、スターティングポイントとして使われます。パスとデータベース名の大文字と小文字の区別はOSに依存されますが、小文字のみの使用が推奨されています。データベース名は少なくとも3文字でなくてはなりません (File.createTempFile の制限)。ユーザーホームディレクトリを示すために、~/ を次のように使用します: jdbc:h2:~/test
+#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 
 @features_1239_h2
 メモリオンリーデータベース
@@ -3037,7 +3037,7 @@ checksumのレコードが合わないために (例えば、別のアプリケ�
 #All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
 
 @features_1361_p
-#In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: jdbc:h2:test;IGNORECASE=TRUE).
+#In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: jdbc:h2:~/test;IGNORECASE=TRUE).
 
 @features_1362_h3
 互換モード
@@ -3145,7 +3145,7 @@ Javaのソースコードを得るために、 /**/ のない行を取り除く�
 #Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
 
 @features_1397_p
-#Databases in a zip file are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory, so large databases are supported as well. The same indexes are used than when using a regular database.
+#Databases in a zip file are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory; so large databases are supported as well. The same indexes are used than when using a regular database.
 
 @features_1398_h2
 バイナリーとテキストストレージフォーマット
@@ -3346,7 +3346,7 @@ Javaアプリケーションの統合は非常に簡単
 ネイティブアプリケーションより、より安全 (バッファーのオーバーフローがない)
 
 @history_1013_li
-ユーザー定義関数 (またはトリガー) が非常に高速で実行される
+#User defined functions (or triggers) run very fast
 
 @history_1014_li
 Unicodeをサポート
@@ -5101,7 +5101,7 @@ MySQL
 #Number of Connections
 
 @performance_1255_p
-#This is mostly a single-connection benchmark. BenchB uses multiple connections, the other tests one connection.
+#This is mostly a single-connection benchmark. BenchB uses multiple connections; the other tests use one connection.
 
 @performance_1256_h4
 #Real-World Tests
@@ -5125,13 +5125,13 @@ MySQL
 #Multiple Runs
 
 @performance_1263_p
-#When a Java benchmark is run first, the code is not fully compiled and therefore runs slower than when running multiple times. A benchmark should always run the same test multiple times and ignore the first run(s). This benchmark runs three times, the last run counts.
+#When a Java benchmark is run first, the code is not fully compiled and therefore runs slower than when running multiple times. A benchmark should always run the same test multiple times and ignore the first run(s). This benchmark runs three times, but only the last run is measured.
 
 @performance_1264_h4
 #Memory Usage
 
 @performance_1265_p
-#It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved in databases by using a bigger in-memory cache, but there is only a limited amount of memory available on the system. HSQLDB tables are kept fully in memory by default, this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
+#It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved in databases by using a bigger in-memory cache, but there is only a limited amount of memory available on the system. HSQLDB tables are kept fully in memory by default; this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
 
 @performance_1266_h4
 #Delayed Operations
@@ -5890,7 +5890,7 @@ SQLコマンドがコマンドエリアに表示されます。
 #Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 
 @roadmap_1084_li
-#Document, implement tool for long running transactions using user defined compensation statements
+#Document, implement tool for long running transactions using user-defined compensation statements
 
 @roadmap_1085_li
 #Support SET TABLE DUAL READONLY
@@ -6427,7 +6427,7 @@ SQLコマンドがコマンドエリアに表示されます。
 #Support materialized views (using triggers)
 
 @roadmap_1263_li
-#Store dates in local timezone (portability of database files)
+#Store dates in local time zone (portability of database files)
 
 @roadmap_1264_li
 #Ability to resize the cache array when resizing the cache
@@ -6907,7 +6907,7 @@ Java Web Start / JNLP
 フルテキストサーチ
 
 @tutorial_1014_a
-#User Defined Variables
+#User-Defined Variables
 
 @tutorial_1015_a
 #Date and Time
@@ -7260,7 +7260,7 @@ BACKUP SQLステートメントとバックアップツールの両方が全て�
 #ChangePassword
 
 @tutorial_1131_li
-#allows to change the file password of a database.
+#allows changing the file password of a database.
 
 @tutorial_1132_b
 #Console
@@ -7290,7 +7290,7 @@ BACKUP SQLステートメントとバックアップツールの両方が全て�
 #Script
 
 @tutorial_1141_li
-#allows to convert a database to a SQL script for backup or migration.
+#allows converting a database to a SQL script for backup or migration.
 
 @tutorial_1142_b
 #Recover
@@ -7431,7 +7431,7 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 Luceneフルテキストサーチを使用する
 
 @tutorial_1188_p
-#To use the Lucene full text search, you need the Lucene library in the classpath. How his is done depends on the application; if you use the H2 Console, you can add the Lucene jar file to the the environment variables H2DRIVERS or CLASSPATH. To initialize the Lucene full text search in a database, call:
+#To use the Lucene full text search, you need the Lucene library in the classpath. How his is done depends on the application; if you use the H2 Console, you can add the Lucene jar file to the environment variables H2DRIVERS or CLASSPATH. To initialize the Lucene full text search in a database, call:
 
 @tutorial_1189_p
 #You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using:
@@ -7443,25 +7443,25 @@ PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト 
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
 
 @tutorial_1192_h2
-#User Defined Variables
+#User-Defined Variables
 
 @tutorial_1193_p
-#This database supports user defined variables. Variables start with @ and can be used whereever expressions or parameters are used. Variables not persisted and session scoped, that means only visible for the session where they are defined. A value is usually assigned using the SET command:
+#This database supports user-defined variables. Variables start with @ and can be used wherever expressions or parameters are used. Variables not persisted and session scoped, that means only visible for the session where they are defined. A value is usually assigned using the SET command:
 
 @tutorial_1194_p
 #It is also possible to change a value using the SET() method. This is useful in queries:
 
 @tutorial_1195_p
-#Variables that are not set evaluate to NULL. The data type of a user defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values, large objects (LOBs) are supported as well.
+#Variables that are not set evaluate to NULL. The data type of a user-defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values; large objects (LOBs) are supported as well.
 
 @tutorial_1196_h2
 #Date and Time
 
 @tutorial_1197_p
-#Date, time and timestamp values support ISO 8601 formatting, including timezone:
+#Date, time and timestamp values support ISO 8601 formatting, including time zone:
 
 @tutorial_1198_p
-#If the timezone is not set, the value is parsed using the current timezone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system timezone, the date and time will change accordingly. If you want to move a database from one timezone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new timezone.
+#If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system time zone, the date and time will change accordingly. If you want to move a database from one time zone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
 
 @~advanced_1022_h2
 Result Sets

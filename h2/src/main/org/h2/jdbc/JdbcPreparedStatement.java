@@ -578,8 +578,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the date using a specified timezone. The value will be converted to
-     * the local timezone.
+     * Sets the date using a specified time zone. The value will be converted to
+     * the local time zone.
      * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -602,8 +602,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the time using a specified timezone. The value will be converted to
-     * the local timezone.
+     * Sets the time using a specified time zone. The value will be converted to
+     * the local time zone.
      * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -626,8 +626,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Sets the timestamp using a specified timezone. The value will be
-     * converted to the local timezone.
+     * Sets the timestamp using a specified time zone. The value will be
+     * converted to the local time zone.
      * 
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value

@@ -344,7 +344,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "Commands (DDL)","CREATE AGGREGATE","
 CREATE AGGREGATE [IF NOT EXISTS] newAggregateName FOR className
 ","
-Creates a new user defined aggregate function. The method name must be the full qualified class name.
+Creates a new user-defined aggregate function. The method name must be the full qualified class name.
 The class must implement the interface org.h2.api.AggregateFunction.
 Admin rights are required to execute this command.
 ","
@@ -502,7 +502,7 @@ CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "Commands (DDL)","DROP AGGREGATE","
 DROP AGGREGATE [IF EXISTS] aggregateName
 ","
-Drops an existing user defined aggregate function.
+Drops an existing user-defined aggregate function.
 Admin rights are required to execute this command.
 ","
 CREATE AGGREGATE MEDIAN
@@ -521,7 +521,7 @@ CREATE ALIAS MY_SQRT
 DROP ALL OBJECTS [DELETE FILES]
 ","
 Drops all existing views, tables, sequences, schemas, function aliases, roles,
-user defined aggregate functions, domains, and users (except the current user).
+user-defined aggregate functions, domains, and users (except the current user).
 If DELETE FILES is specified, the database files will be
 removed when the last user disconnects from the database.
 Warning: This command can not be rolled back.
@@ -732,7 +732,7 @@ SAVEPOINT HALF_DONE
 "Commands (Other)","SET @","
 SET @variableName [=] expression
 ","
-Updates a user defined variable.
+Updates a user-defined variable.
 ","
 SET @TOTAL=0
 "
@@ -2518,7 +2518,7 @@ Returns a specific value from a timestamps.
 EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
 "Functions (Time and Date)","FORMATDATETIME","
-FORMATDATETIME(timestamp, formatString [, localeString [, timezoneString]]): string
+FORMATDATETIME(timestamp, formatString [, localeString [, timeZoneString]]): string
 ","
 Formats a date, time or timestamp as a string.
 The most important format characters are: y year, M month, d day, H hour, m minute, s second
@@ -2555,7 +2555,7 @@ Returns the name of the month (in English).
 MONTHNAME(CREATED)
 "
 "Functions (Time and Date)","PARSEDATETIME","
-PARSEDATETIME(string, formatString [, localeString [, timezoneString]]): string
+PARSEDATETIME(string, formatString [, localeString [, timeZoneString]]): string
 ","
 Parses a string and returns a timestamp.
 The most important format characters are: y year, M month, d day, H hour, m minute, s second

@@ -24,7 +24,7 @@ public class TestPgServer extends TestBase {
 
     public void test() throws Exception {
         deleteDb("test");
-        Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-ifExists", "false", "-pgAllowOthers", "false", "-pgPort", "5535"});
+        Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-pgPort", "5535"});
         server.start();
         try {
             Class.forName("org.postgresql.Driver");

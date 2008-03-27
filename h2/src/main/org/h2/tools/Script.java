@@ -17,16 +17,23 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Tool;
 
 /**
  * Creates a SQL script file by extracting the schema and data of a database.
  */
-public class Script {
+public class Script extends Tool {
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " -url <url> -user <user> [-password <pwd>] [-script <filename>] [-options <option> ...]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Script.html");
+        out.println("Allows converting a database to a SQL script.");
+        out.println("java "+getClass().getName() + "\n" +
+                " -url <url>         The database URL\n" +
+                " -user <user>       The user name\n" +
+                " [-password <pwd>]  The password\n" +
+                " [-script <file>]   The script file to run (default: backup.sql)\n" +
+                " [-quiet]           Do not print progress information\n" +
+                " [-options ...]     The list of options (only for H2 embedded mode)");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -49,7 +56,7 @@ public class Script {
         new Script().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String url = null;
         String user = null;
         String password = "";
@@ -86,7 +93,7 @@ public class Script {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
@@ -96,16 +103,13 @@ public class Script {
             return;
         }
         if (options1 != null) {
-            executeScript(url, user, password, file, options1, options2);
+            processScript(url, user, password, file, options1, options2);
         } else {
-            execute(url, user, password, file);
+            process(url, user, password, file);
         }
     }
 
-    /**
-     * INTERNAL
-     */
-    public static void executeScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
+    private void processScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -130,6 +134,10 @@ public class Script {
      * @throws SQLException
      */
     public static void execute(String url, String user, String password, String fileName) throws SQLException {
+        new Script().process(url, user, password, fileName);
+    }
+        
+    void process(String url, String user, String password, String fileName) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         Writer fileWriter = null;

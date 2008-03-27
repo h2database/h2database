@@ -17,16 +17,21 @@ import org.h2.message.Message;
 import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.Tool;
 
 /**
  * Restores a H2 database by extracting the database files from a .zip file.
  */
-public class Restore {
+public class Restore extends Tool {
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " [-file <filename>] [-dir <dir>] [-db <database>] [-quiet]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/Restore.html");
+        out.println("Restores a database backup.");
+        out.println("java "+getClass().getName() + "\n" +
+                " [-file <filename>]  The source file name (default: backup.zip)\n" +
+                " [-dir <dir>]        Target directory (default: .)\n" +
+                " [-db <database>]    Target database name\n" +
+                " [-quiet]            Do not print progress information");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -48,7 +53,7 @@ public class Restore {
         new Restore().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
         String db = null;
@@ -67,12 +72,12 @@ public class Restore {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
         }
-        Restore.execute(zipFileName, dir, db, quiet);
+        process(zipFileName, dir, db, quiet);
     }
 
     private static String getOriginalDbName(String fileName, String db) throws IOException {
@@ -125,6 +130,19 @@ public class Restore {
      * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+        new Restore().process(zipFileName, directory, db, quiet);
+    }
+    
+    /**
+     * Restores database files.
+     *
+     * @param zipFileName the name of the backup file
+     * @param directory the directory name
+     * @param db the database name (null for all databases)
+     * @param quiet don't print progress information
+     * @throws SQLException
+     */
+    private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         InputStream in = null;
         try {
             if (!FileUtils.exists(zipFileName)) {

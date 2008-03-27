@@ -15,7 +15,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 
 /**
- * A user defined variable, for example: @ID.
+ * A user-defined variable, for example: @ID.
  */
 public class Variable extends Expression {
 

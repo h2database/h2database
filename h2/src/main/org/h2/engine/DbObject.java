@@ -86,7 +86,7 @@ public interface DbObject {
     int COMMENT = 13;
 
     /**
-     * This object is a user defined aggregate function.
+     * This object is a user-defined aggregate function.
      */
     int AGGREGATE = 14;
 

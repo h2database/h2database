@@ -226,8 +226,8 @@ class Database {
         }
     }
 
-    public void update(PreparedStatement prep, String log) throws Exception {
-        test.log(log);
+    public void update(PreparedStatement prep, String trace) throws Exception {
+        test.trace(trace);
         prep.executeUpdate();
         executedStatements++;
     }

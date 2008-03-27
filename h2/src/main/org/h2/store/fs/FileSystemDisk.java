@@ -54,6 +54,8 @@ public class FileSystemDisk extends FileSystem {
     }
 
     public void rename(String oldName, String newName) throws SQLException {
+        oldName = translateFileName(oldName);
+        newName = translateFileName(newName);
         File oldFile = new File(oldName);
         File newFile = new File(newName);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {

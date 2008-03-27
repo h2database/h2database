@@ -18,9 +18,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
+import org.h2.tools.Server;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
@@ -53,7 +55,7 @@ public class FtpServer implements Service {
     private HashMap tasks = new HashMap();
 
     private FileSystem fs;
-    private boolean log;
+    private boolean trace;
     private boolean allowTask;
     static final String TASK_SUFFIX = ".task";
 
@@ -72,7 +74,7 @@ public class FtpServer implements Service {
                 c.start();
             }
         } catch (Exception e) {
-            logError(e);
+            traceError(e);
         }
     }
 
@@ -135,7 +137,7 @@ public class FtpServer implements Service {
         while (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        log("path: " + path);
+        trace("path: " + path);
         return path;
     }
 
@@ -172,10 +174,13 @@ public class FtpServer implements Service {
                 writeUserName = args[++i];
             } else if ("-ftpWritePassword".equals(a)) {
                 writePassword = args[++i];
-            } else if ("-log".equals(a)) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if ("-trace".equals(a)) {
+                trace = true;
+            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+                trace = Server.readArgBoolean(args, i) == 1;
+                i++;
             } else if ("-ftpTask".equals(a)) {
-                allowTask = Boolean.valueOf(args[++i]).booleanValue();
+                allowTask = true;
             }
         }
         fs = FileSystem.getInstance(root);
@@ -195,7 +200,7 @@ public class FtpServer implements Service {
         try {
             serverSocket.close();
         } catch (IOException e) {
-            logError(e);
+            traceError(e);
         }
         serverSocket = null;
     }
@@ -225,14 +230,14 @@ public class FtpServer implements Service {
         return "H2 FTP Server";
     }
 
-    void log(String s) {
-        if (log) {
+    void trace(String s) {
+        if (trace) {
             System.out.println(s);
         }
     }
 
-    void logError(Throwable e) {
-        if (log) {
+    void traceError(Throwable e) {
+        if (trace) {
             e.printStackTrace();
         }
     }
@@ -244,7 +249,7 @@ public class FtpServer implements Service {
     void startTask(String path) throws IOException {
         stopTask(path);
         if (path.endsWith(".zip.task")) {
-            log("expand: " + path);
+            trace("expand: " + path);
             Process p = Runtime.getRuntime().exec("jar -xf " + path, null, new File(root));
             new StreamRedirect(path, p.getInputStream(), null).start();
             return;
@@ -254,7 +259,7 @@ public class FtpServer implements Service {
         String outFile = path.substring(0, path.length() - TASK_SUFFIX.length());
         String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");
         String outputFile = root + "/" + prop.getProperty("output", outFile + ".out.txt");
-        log("start process: " + path + " / " + command);
+        trace("start process: " + path + " / " + command);
         Process p = Runtime.getRuntime().exec(command, null, new File(root));
         new StreamRedirect(path, p.getErrorStream(), errorFile).start();
         new StreamRedirect(path, p.getInputStream(), outputFile).start();
@@ -306,7 +311,7 @@ public class FtpServer implements Service {
     }
 
     void stopTask(String processName) {
-        log("kill process: " + processName);
+        trace("kill process: " + processName);
         Process p = (Process) tasks.remove(processName);
         if (p == null) {
             return;

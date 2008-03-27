@@ -378,8 +378,8 @@ public class StringUtils {
     /**
      * Formats a date using a format string
      */
-    public static String formatDateTime(Date date, String format, String locale, String timezone) throws SQLException {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
+    public static String formatDateTime(Date date, String format, String locale, String timeZone) throws SQLException {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
         synchronized (dateFormat) {
             return dateFormat.format(date);
         }
@@ -388,8 +388,8 @@ public class StringUtils {
     /**
      * Parses a date using a format string
      */
-    public static Date parseDateTime(String date, String format, String locale, String timezone) throws SQLException {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timezone);
+    public static Date parseDateTime(String date, String format, String locale, String timeZone) throws SQLException {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
         try {
             synchronized (dateFormat) {
                 return dateFormat.parse(date);
@@ -399,7 +399,7 @@ public class StringUtils {
         }
     }
 
-    private static SimpleDateFormat getDateFormat(String format, String locale, String timezone) throws SQLException {
+    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) throws SQLException {
         try {
             // currently, a new instance is create for each call
             // however, could cache the last few instances
@@ -417,12 +417,12 @@ public class StringUtils {
 //#endif
                 df = new SimpleDateFormat(format, l);
             }
-            if (timezone != null) {
-                df.setTimeZone(TimeZone.getTimeZone(timezone));
+            if (timeZone != null) {
+                df.setTimeZone(TimeZone.getTimeZone(timeZone));
             }
             return df;
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, new String []{format + "/" + locale + "/" + timezone}, e);
+            throw Message.getSQLException(ErrorCode.PARSE_ERROR_1, new String []{format + "/" + locale + "/" + timeZone}, e);
         }
     }
 

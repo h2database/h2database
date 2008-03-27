@@ -13,7 +13,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * Represents a domain (user defined data type).
+ * Represents a domain (user-defined data type).
  */
 public class UserDataType extends DbObjectBase {
 

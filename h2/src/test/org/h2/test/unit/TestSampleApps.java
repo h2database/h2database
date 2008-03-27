@@ -33,15 +33,11 @@ public class TestSampleApps extends TestBase {
 
         // tools
         testApp(org.h2.tools.ChangePassword.class, new String[] { "-help" },
-                "java org.h2.tools.ChangePassword [-dir <dir>] "
-                        + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
-                        + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
-        testApp(org.h2.tools.ChangePassword.class, null, "java org.h2.tools.ChangePassword [-dir <dir>] "
-                + "[-db <database>] [-cipher <cipher>] [-decrypt <pwd>] [-encrypt <pwd>] [-quiet]\n"
-                + "See also http://h2database.com/javadoc/org/h2/tools/ChangePassword.html");
+                "Allows changing the database file password*");
+        testApp(org.h2.tools.ChangePassword.class, null, 
+                "Allows changing the database file password*");
         testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-help" },
-                "java org.h2.tools.DeleteDbFiles [-dir <dir>] [-db <database>] [-quiet]\n"
-                + "See also http://h2database.com/javadoc/org/h2/tools/DeleteDbFiles.html");
+                "Deletes all files belonging to a database.*");
     }
 
     private void testApp(Class clazz, String[] args, String expected) throws Exception {
@@ -62,6 +58,15 @@ public class TestSampleApps extends TestBase {
         System.setErr(oldErr);
         String s = new String(buff.toByteArray(), "UTF-8");
         s = StringUtils.replaceAll(s, "\r\n", "\n");
-        check(s.trim(), expected.trim());
+        s = s.trim();
+        expected = expected.trim();
+        if (expected.endsWith("*")) {
+            expected = expected.substring(0, expected.length() - 1);
+            if (!s.startsWith(expected)) {
+                check(s.trim(), expected.trim());
+            }
+        } else {
+            check(s.trim(), expected.trim());
+        }
     }
 }

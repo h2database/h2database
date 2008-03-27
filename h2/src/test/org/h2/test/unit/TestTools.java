@@ -67,31 +67,31 @@ public class TestTools extends TestBase {
         org.h2.Driver.load();
 
         result = runServer(new String[]{"-?"}, 1);
-        check(result.indexOf("[options]") >= 0);
+        check(result.indexOf("Starts H2 Servers") >= 0);
         check(result.indexOf("Unknown option") < 0);
 
         result = runServer(new String[]{"-xy"}, 1);
-        check(result.indexOf("[options]") >= 0);
+        check(result.indexOf("Starts H2 Servers") >= 0);
         check(result.indexOf("Unsupported option") >= 0);
-        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "false", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
+        result = runServer(new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
         check(result.indexOf("tcp://") >= 0);
         check(result.indexOf(":9001") >= 0);
         check(result.indexOf("only local") >= 0);
-        check(result.indexOf("[options]") < 0);
+        check(result.indexOf("Starts H2 Servers") < 0);
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
-        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
+        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
         check(result.indexOf("Shutting down") >= 0);
 
-        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL", "true"}, 0);
+        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"}, 0);
         check(result.indexOf("ssl://") >= 0);
         check(result.indexOf(":9001") >= 0);
         check(result.indexOf("others can") >= 0);
-        check(result.indexOf("[options]") < 0);
+        check(result.indexOf("Starts H2 Servers") < 0);
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
-        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef", "-tcpShutdownForce", "false"}, 0);
+        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"}, 0);
         check(result.indexOf("Shutting down") >= 0);
         try {
             conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
@@ -101,10 +101,10 @@ public class TestTools extends TestBase {
         }
 
         result = runServer(new String[]{
-                "-web", "-webPort", "9002", "-webAllowOthers", "true", "-webSSL", "true",
-                "-pg", "-pgAllowOthers", "true", "-pgPort", "9003",
-                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", "true",
-                "-tcp", "-tcpAllowOthers", "true", "-tcpPort", "9005", "-tcpPassword", "abc"}, 0);
+                "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL", 
+                "-pg", "-pgAllowOthers", "-pgPort", "9003",
+                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", 
+                "-tcp", "-tcpAllowOthers", "-tcpPort", "9005", "-tcpPassword", "abc"}, 0);
         Server stop = server;
         check(result.indexOf("https://") >= 0);
         check(result.indexOf(":9002") >= 0);
@@ -117,7 +117,7 @@ public class TestTools extends TestBase {
         check(result.indexOf("tcp://") >= 0);
         check(result.indexOf(":9005") >= 0);
 
-        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce", "true"}, 0);
+        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
         check(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
@@ -185,7 +185,7 @@ public class TestTools extends TestBase {
 
     private void testTraceFile(String url) throws Exception {
         Connection conn;
-        Recover.main(new String[]{"-removePassword", "-log", "false", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
+        Recover.main(new String[]{"-removePassword", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
         conn = DriverManager.getConnection(url, "sa", "");
         Statement stat = conn.createStatement();
         ResultSet rs;
@@ -226,7 +226,7 @@ public class TestTools extends TestBase {
                 FileUtils.delete(fileName);
             }
         }
-        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword", "-log", "false"});
+        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword"});
         conn = DriverManager.getConnection(url, "sa", "");
         stat = conn.createStatement();
         ResultSet rs;
@@ -405,12 +405,12 @@ public class TestTools extends TestBase {
     private void testServer() throws Exception {
         Connection conn;
         deleteDb("test");
-        Server server = Server.createTcpServer(new String[] { "-ifExists", "false", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
+        Server server = Server.createTcpServer(new String[] { "-baseDir", baseDir, "-tcpPort", "9192" }).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();
         server = Server.createTcpServer(
-                new String[] { "-ifExists", "true", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
+                new String[] { "-ifExists", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             error("should not be able to create new db");

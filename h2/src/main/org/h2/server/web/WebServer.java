@@ -30,6 +30,7 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
+import org.h2.tools.Server;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
@@ -115,6 +116,7 @@ public class WebServer implements Service {
     private Thread listenerThread;
     private boolean ifExists;
     private boolean allowScript;
+    private boolean trace;
 
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
@@ -195,16 +197,36 @@ public class WebServer implements Service {
             if ("-webPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-webSSL".equals(a)) {
-                ssl = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    ssl = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    ssl = true;
+                }
             } else if ("-webAllowOthers".equals(a)) {
-                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    allowOthers = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    allowOthers = true;
+                }
             } else if ("-webScript".equals(a)) {
-                allowScript = Boolean.valueOf(args[++i]).booleanValue();
+                allowScript = true;
             } else if ("-baseDir".equals(a)) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
             } else if ("-ifExists".equals(a)) {
-                ifExists = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    ifExists = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    ifExists = true;
+                }
+            } else if ("-trace".equals(a)) {
+                trace = true;
+            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+                trace = Server.readArgBoolean(args, i) == 1;
+                i++;
             }
         }
 //            if(driverList != null) {
@@ -308,7 +330,9 @@ public class WebServer implements Service {
     }
 
     void trace(String s) {
-        // System.out.println(s);
+        if (trace) {
+            System.out.println(s);
+        }
     }
 
     public void traceError(Exception e) {

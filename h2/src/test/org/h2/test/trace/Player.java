@@ -46,7 +46,7 @@ public class Player {
     // TODO support Map
     // TODO support SQLXML
 
-    private boolean log;
+    private boolean trace;
     private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
     private HashMap objects = new HashMap();
 
@@ -82,8 +82,8 @@ public class Player {
         try {
             fileName = args[args.length - 1];
             for (int i = 0; i < args.length - 1; i++) {
-                if ("-log".equals(args[i])) {
-                    log = true;
+                if ("-trace".equals(args[i])) {
+                    trace = true;
                 } else {
                     throw new Error("Unknown setting: " + args[i]);
                 }
@@ -91,14 +91,14 @@ public class Player {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Usage: java " + getClass().getName()
-                    + " [-log] <fileName>");
+                    + " [-trace] <fileName>");
             return;
         }
-        runFile(fileName, log);
+        runFile(fileName, trace);
     }
 
-    private void runFile(String fileName, boolean log) throws IOException {
-        this.log = log;
+    private void runFile(String fileName, boolean trace) throws IOException {
+        this.trace = trace;
         LineNumberReader reader = new LineNumberReader(new BufferedReader(
                 new FileReader(fileName)));
         while (true) {
@@ -110,8 +110,8 @@ public class Player {
         }
     }
 
-    void log(String s) {
-        if (log) {
+    void trace(String s) {
+        if (trace) {
             System.out.println(s);
         }
     }
@@ -122,12 +122,12 @@ public class Player {
         }
         line = line.substring("/**/".length()) + ";";
         Statement s = Parser.parseStatement(this, line);
-        log("> " + s.toString());
+        trace("> " + s.toString());
         try {
             s.execute();
         } catch (Exception e) {
             e.printStackTrace();
-            log("error: " + e.toString());
+            trace("error: " + e.toString());
         }
     }
 

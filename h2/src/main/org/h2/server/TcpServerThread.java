@@ -49,14 +49,14 @@ public class TcpServerThread implements Runnable {
         transfer.setSocket(socket);
     }
 
-    private void log(String s) {
-        server.log(this + " " + s);
+    private void trace(String s) {
+        server.trace(this + " " + s);
     }
 
     public void run() {
         try {
             transfer.init();
-            log("Connect");
+            trace("Connect");
             // TODO server: should support a list of allowed databases and a
             // list of allowed clients
             try {
@@ -94,7 +94,7 @@ public class TcpServerThread implements Runnable {
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK).flush();
                 server.addConnection(id, originalURL, ci.getUserName());
-                log("Connected");
+                trace("Connected");
             } catch (Throwable e) {
                 sendError(e);
                 stop = true;
@@ -106,9 +106,9 @@ public class TcpServerThread implements Runnable {
                     sendError(e);
                 }
             }
-            log("Disconnect");
+            trace("Disconnect");
         } catch (Throwable e) {
-            server.logError(e);
+            server.traceError(e);
         } finally {
             close();
         }
@@ -122,7 +122,7 @@ public class TcpServerThread implements Runnable {
                 session.close();
                 server.removeConnection(id);
             } catch (Exception e) {
-                server.logError(e);
+                server.traceError(e);
             } finally {
                 session = null;
             }
@@ -134,9 +134,9 @@ public class TcpServerThread implements Runnable {
             stop = true;
             closeSession();
             transfer.close();
-            log("Close");
+            trace("Close");
         } catch (Exception e) {
-            server.logError(e);
+            server.traceError(e);
         }
         server.remove(this);
     }
@@ -160,7 +160,7 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(SessionRemote.STATUS_ERROR).writeString(s.getSQLState()).writeString(message)
                     .writeString(sql).writeInt(s.getErrorCode()).writeString(trace).flush();
         } catch (IOException e2) {
-            server.logError(e2);
+            server.traceError(e2);
             // if writing the error does not work, close the connection
             stop = true;
         }
@@ -298,8 +298,7 @@ public class TcpServerThread implements Runnable {
             break;
         }
         default:
-            server.logInternalError("Unknown operation: " + operation);
-            server.log("Unknown operation: " + operation);
+            trace("Unknown operation: " + operation);
             closeSession();
             close();
         }

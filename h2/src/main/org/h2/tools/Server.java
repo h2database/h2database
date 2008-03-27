@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
@@ -35,40 +36,34 @@ public class Server implements Runnable, ShutdownHandler {
             out.println("Unsupported option: " + a);
             out.println();
         }
-        out.println("java "+getClass().getName() + " [options]");
-        out.println("See also http://h2database.com/javadoc/org/h2/tools/Server.html");
-        out.println("By default, -tcp, -web, -browser and -pg are started.");
-        out.println("Options are case sensitive. Options:");
-        out.println();
-        out.println("-web (start the Web Server and H2 Console)");
-        out.println("-webAllowOthers [true|false}");
-        out.println("-webPort <port> (default: " + Constants.DEFAULT_HTTP_PORT+")");
-        out.println("-webSSL [true|false}");
-        out.println();
-        out.println("-browser (start a browser to connect to the H2 Console)");
-        out.println();
-        out.println("-tcp (start the TCP Server)");
-        out.println("-tcpAllowOthers {true|false}");
-        out.println("-tcpPort <port> (default: " + TcpServer.DEFAULT_PORT+")");
-        out.println("-tcpSSL {true|false}");
-        out.println("-tcpPassword {password} (the password for shutting down a TCP Server)");
-        out.println("-tcpShutdown {url} (shutdown the TCP Server, URL example: tcp://localhost:9094)");
-        out.println("-tcpShutdownForce {true|false} (don't wait for other connections to close)");
-        out.println();
-        out.println("-pg (start the PG Server)");
-        out.println("-pgAllowOthers {true|false}");
-        out.println("-pgPort <port> (default: " + PgServer.DEFAULT_PORT+")");
-        out.println();
-        out.println("-ftp (start the FTP Server)");
-        out.println("-ftpPort <port> (default: " + Constants.DEFAULT_FTP_PORT+")");
-        out.println("-ftpDir <directory> (default: " + FtpServer.DEFAULT_ROOT+", use jdbc:... to access a database)");
-        out.println("-ftpRead <readUserName> (default: " + FtpServer.DEFAULT_READ+")");
-        out.println("-ftpWrite <writeUserName> (default: " + FtpServer.DEFAULT_WRITE+")");
-        out.println("-ftpWritePassword <password> (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");
-        out.println();
-        out.println("-log {true|false} (enable or disable logging, for all servers)");
-        out.println("-baseDir <directory> (sets the base directory for H2 databases, for all servers)");
-        out.println("-ifExists {true|false} (only existing databases may be opened, for all servers)");
+        out.println("Starts H2 Servers");
+        out.println("By default, -tcp, -web, -browser and -pg are started. Options are case sensitive.");
+        out.println("java "+getClass().getName());
+        out.println("-web                  Start the Web Server and H2 Console");
+        out.println("-webAllowOthers       Allow other computers to connect");
+        out.println("-webPort <port>       The port (default: " + Constants.DEFAULT_HTTP_PORT+")");
+        out.println("-webSSL               Use encrypted HTTPS connections");
+        out.println("-browser              Start a browser to connect to the H2 Console");
+        out.println("-tcp                  Start the TCP Server");
+        out.println("-tcpAllowOthers       Allow other computers to connect");
+        out.println("-tcpPort <port>       The port (default: " + TcpServer.DEFAULT_PORT+")");
+        out.println("-tcpSSL               Use encrypted SSL connections");
+        out.println("-tcpPassword <pass>   The password for shutting down a TCP Server");
+        out.println("-tcpShutdown <url>    Shutdown the TCP Server; example: tcp://localhost:9094");
+        out.println("-tcpShutdownForce     Don't wait for other connections to close");
+        out.println("-pg                   Start the PG Server");
+        out.println("-pgAllowOthers        Allow other computers to connect");
+        out.println("-pgPort <port>        The port (default: " + PgServer.DEFAULT_PORT+")");
+        out.println("-ftp                  Start the FTP Server");
+        out.println("-ftpPort <port>       The port (default: " + Constants.DEFAULT_FTP_PORT+")");
+        out.println("-ftpDir <dir>         The base directory (default: " + FtpServer.DEFAULT_ROOT + ")");
+        out.println("-ftpRead <user>       The user name for reading (default: " + FtpServer.DEFAULT_READ+")");
+        out.println("-ftpWrite <user>      The user name for writing (default: " + FtpServer.DEFAULT_WRITE+")");
+        out.println("-ftpWritePassword <p> The write password (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");
+        out.println("-baseDir <dir>        The base directory for H2 databases; for all servers");
+        out.println("-ifExists             Only existing databases may be opened; for all servers");
+        out.println("-trace                Print additional trace information; for all servers");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     public Server() {
@@ -83,35 +78,35 @@ public class Server implements Runnable, ShutdownHandler {
      * <ul>
      * <li>-help or -? (print the list of options) </li>
      * <li>-web (start the Web Server and H2 Console) </li>
+     * <li>-browser (start a browser and open a page to connect to the 
+     *     Web Server) </li>
      * <li>-tcp (start the TCP Server) </li>
      * <li>-tcpShutdown {url} (shutdown the running TCP Server, 
      *     URL example: tcp://localhost:9094) </li>
      * <li>-pg (start the PG Server) </li>
-     * <li>-browser (start a browser and open a page to connect to the 
-     *     Web Server) </li>
-     * <li>-log {true|false} (enable or disable logging, for all servers) </li>
-     * <li>-baseDir {directory} (sets the base directory for H2 databases, 
-     *     for all servers) </li>
-     * <li>-ifExists {true|false} (only existing databases may be opened, 
-     *     for all servers) </li>
      * <li>-ftp (start the FTP Server) </li>
+     * <li>-trace (print additional trace information; for all servers) </li>
+     * <li>-baseDir {directory} (sets the base directory for H2 databases;
+     *     for all servers) </li>
+     * <li>-ifExists (only existing databases may be opened;
+     *     for all servers) </li>
      * </ul>
      * For each Server, additional options are available:
      * <ul>
      * <li>-webPort {port} (the port of Web Server, default: 8082) </li>
-     * <li>-webSSL {true|false} (if SSL should be used) </li>
-     * <li>-webAllowOthers {true|false} (enable/disable remote connections)
+     * <li>-webSSL (HTTPS is to be be used) </li>
+     * <li>-webAllowOthers (enable remote connections)
      * </li>
      * <li>-tcpPort {port} (the port of TCP Server, default: 9092) </li>
-     * <li>-tcpSSL {true|false} (if SSL should be used) </li>
-     * <li>-tcpAllowOthers {true|false} (enable/disable remote connections)
+     * <li>-tcpSSL (SSL is to be used) </li>
+     * <li>-tcpAllowOthers (enable remote connections)
      * </li>
      * <li>-tcpPassword {password} (the password for shutting down a TCP
      * Server) </li>
-     * <li>-tcpShutdownForce {true|false} (don't wait for other connections to
+     * <li>-tcpShutdownForce (don't wait for other connections to
      * close) </li>
      * <li>-pgPort {port} (the port of PG Server, default: 5435) </li>
-     * <li>-pgAllowOthers {true|false} (enable/disable remote connections)
+     * <li>-pgAllowOthers (enable remote connections)
      * </li>
      * <li>-ftpPort {port} </li>
      * <li>-ftpDir {directory} </li>
@@ -152,12 +147,16 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
-                    i++;
+                    if (readArgBoolean(args, i) != 0) {
+                        i++;
+                    }
+                } else if ("-webSSL".equals(arg)) {
+                    if (readArgBoolean(args, i) != 0) {
+                        i++;
+                    }
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webScript".equals(arg)) {
-                    i++;
-                } else if ("-webSSL".equals(arg)) {
                     i++;
                 } else {
                     showUsage(arg, out);
@@ -171,10 +170,14 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     tcpStart = true;
                 } else if ("-tcpAllowOthers".equals(arg)) {
-                    i++;
-                } else if ("-tcpPort".equals(arg)) {
-                    i++;
+                    if (readArgBoolean(args, i) != 0) {
+                        i++;
+                    }
                 } else if ("-tcpSSL".equals(arg)) {
+                    if (readArgBoolean(args, i) != 0) {
+                        i++;
+                    }
+                } else if ("-tcpPort".equals(arg)) {
                     i++;
                 } else if ("-tcpPassword".equals(arg)) {
                     tcpPassword = args[++i];
@@ -183,7 +186,12 @@ public class Server implements Runnable, ShutdownHandler {
                     tcpShutdown = true;
                     tcpShutdownServer = args[++i];
                 } else if ("-tcpShutdownForce".equals(arg)) {
-                    tcpShutdownForce = Boolean.valueOf(args[++i]).booleanValue();
+                    if (readArgBoolean(args, i) != 0) {
+                        tcpShutdownForce = readArgBoolean(args, i) == 1;
+                        i++;
+                    } else {
+                        tcpShutdownForce = true;
+                    }
                 } else {
                     showUsage(arg, out);
                     return EXIT_ERROR;
@@ -193,7 +201,9 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     pgStart = true;
                 } else if ("-pgAllowOthers".equals(arg)) {
-                    i++;
+                    if (readArgBoolean(args, i) != 0) {
+                        i++;
+                    }
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
@@ -215,19 +225,20 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-ftpWritePassword".equals(arg)) {
                     i++;
                 } else if ("-ftpTask".equals(arg)) {
-                    i++;
                 } else {
                     showUsage(arg, out);
                     return EXIT_ERROR;
                 }
-            } else if (arg.startsWith("-log")) {
-                i++;
-            } else if ("-baseDir".equals(arg)) {
+            } else if ("-trace".equals(arg)) {
+            } else if ("-log".equals(arg) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
                 i++;
             } else if ("-ifExists".equals(arg)) {
+                if (readArgBoolean(args, i) != 0) {
+                    i++;
+                }
+            } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
-                out.println("Unsupported option: " + arg);
                 showUsage(arg, out);
                 return EXIT_ERROR;
             }
@@ -299,6 +310,29 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     /**
+     * Read an argument and check if it is true (1), false (-1), or not (0).
+     * This method is used for compatibility with older versions only.
+     * 
+     * @param args the list of arguments
+     * @param i the index - 1
+     * @return 1, -1, or 0
+     */
+    public static int readArgBoolean(String[] args, int i) {
+        if (!SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+            return 0;
+        }
+        if (i + 1 < args.length) {
+            String a = args[++i];
+            if ("true".equals(a)) {
+                return 1;
+            } else if ("false".equals(a)) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Shutdown a TCP server. If force is set to false, the server will not
      * allow new connections, but not kill existing connections, instead it will
      * stop if the last connection is closed. If force is set to true, existing
@@ -345,7 +379,7 @@ public class Server implements Runnable, ShutdownHandler {
      * 
      * <pre>
      * Server server = Server.createWebServer(
-     *     new String[] { &quot;-log&quot;, &quot;true&quot; }).start();
+     *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
      * 
      * @param args
@@ -363,7 +397,7 @@ public class Server implements Runnable, ShutdownHandler {
      * 
      * <pre>
      * Server server = Server.createFtpServer(
-     *     new String[] { &quot;-log&quot;, &quot;true&quot; }).start();
+     *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
      * 
      * @param args
@@ -378,7 +412,7 @@ public class Server implements Runnable, ShutdownHandler {
      * 
      * <pre>
      * Server server = Server.createTcpServer(
-     *     new String[] { &quot;-tcpAllowOthers&quot;, &quot;true&quot; }).start();
+     *     new String[] { &quot;-tcpAllowOthers&quot; }).start();
      * </pre>
      * 
      * @param args
@@ -394,7 +428,7 @@ public class Server implements Runnable, ShutdownHandler {
      * <pre>
      * Server server = 
      *     Server.createPgServer(new String[]{
-     *         "-pgAllowOthers", "true"}).start();
+     *         "-pgAllowOthers"}).start();
      * </pre>
      *
      * @param args

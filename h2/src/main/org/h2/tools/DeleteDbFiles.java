@@ -11,16 +11,21 @@ import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.util.FileUtils;
+import org.h2.util.Tool;
 
 /**
  * Delete the database files. The database must be closed before calling this
  * tool.
  */
-public class DeleteDbFiles {
+public class DeleteDbFiles extends Tool {
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()+" [-dir <dir>] [-db <database>] [-quiet]");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/DeleteDbFiles.html");
+        out.println("Deletes all files belonging to a database.");
+        out.println("java "+getClass().getName() + "\n" +
+                " [-dir <dir>]      The directory (default: .)\n" +
+                " [-db <database>]  The database name\n" +
+                " [-quiet]          Do not print progress information");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -41,7 +46,7 @@ public class DeleteDbFiles {
         new DeleteDbFiles().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String dir = ".";
         String db = null;
         boolean quiet = false;
@@ -57,14 +62,14 @@ public class DeleteDbFiles {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
         }
-        execute(dir, db, quiet);
+        process(dir, db, quiet);
     }
-
+    
     /**
      * Deletes the database files.
      *
@@ -74,17 +79,29 @@ public class DeleteDbFiles {
      * @throws SQLException
      */
     public static void execute(String dir, String db, boolean quiet) throws SQLException {
+        new DeleteDbFiles().process(dir, db, quiet);
+    }    
+
+    /**
+     * Deletes the database files.
+     *
+     * @param dir the directory
+     * @param db the database name (null for all databases)
+     * @param quiet don't print progress information
+     * @throws SQLException
+     */
+    private void process(String dir, String db, boolean quiet) throws SQLException {
         DeleteDbFiles delete = new DeleteDbFiles();
         ArrayList files = FileLister.getDatabaseFiles(dir, db, true);
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);
             delete.process(fileName, quiet);
             if (!quiet) {
-                System.out.println("processed: " + fileName);
+                out.println("Processed: " + fileName);
             }
         }
         if (files.size() == 0 && !quiet) {
-            System.out.println("No database files found");
+            out.println("No database files found");
         }
     }
 

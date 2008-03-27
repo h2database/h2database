@@ -12,17 +12,23 @@ import java.sql.Statement;
 
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.Tool;
 
 /**
  * Tool to create a database cluster. This will copy a database to another
  * location if required, and modify the cluster setting.
  */
-public class CreateCluster {
+public class CreateCluster extends Tool {
 
     private void showUsage() {
-        System.out.println("java "+getClass().getName()
-                + " -urlSource <url> -urlTarget <url> -user <user> [-password <pwd>] -serverlist <serverlist>");
-        System.out.println("See also http://h2database.com/javadoc/org/h2/tools/CreateCluster.html");
+        out.println("Creates a cluster from a standalone database.");
+        out.println("java "+getClass().getName() + "\n" +
+                " -urlSource <url>    The database URL of the source database (jdbc:h2:...)\n" +
+                " -urlTarget <url>    The database URL of the target database (jdbc:h2:...)\n" +
+                " -user <user>        The user name\n" +
+                " [-password <pwd>]   The password\n" +
+                " -serverlist <list>  The comma separated list of host names or IP addresses");
+        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
     /**
@@ -34,8 +40,10 @@ public class CreateCluster {
      * <li>-urlSource jdbc:h2:... (the database URL of the source database)
      * </li>
      * <li>-urlTarget jdbc:h2:... (the database URL of the target database)
-     * </li>
-     * </ul>
+     * </li><li>-user (the user name)
+     * </li><li>-password (the password)
+     * </li><li>-serverlist (the server list)
+     * </li></ul>
      * 
      * @param args the command line arguments
      * @throws SQLException
@@ -44,7 +52,7 @@ public class CreateCluster {
         new CreateCluster().run(args);
     }
 
-    private void run(String[] args) throws SQLException {
+    public void run(String[] args) throws SQLException {
         String urlSource = null;
         String urlTarget = null;
         String user = null;
@@ -66,7 +74,7 @@ public class CreateCluster {
                 showUsage();
                 return;
             } else {
-                System.out.println("Unsupported option: " + arg);
+                out.println("Unsupported option: " + arg);
                 showUsage();
                 return;
             }
@@ -75,8 +83,7 @@ public class CreateCluster {
             showUsage();
             return;
         }
-
-        execute(urlSource, urlTarget, user, password, serverlist);
+        process(urlSource, urlTarget, user, password, serverlist);
     }
 
     /**
@@ -89,7 +96,11 @@ public class CreateCluster {
      * @param serverlist the server list
      * @throws SQLException
      */
-    public static void execute(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
+    public void execute(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
+        new CreateCluster().process(urlSource, urlTarget, user, password, serverlist);
+    }
+    
+    private void process(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -116,8 +127,12 @@ public class CreateCluster {
             // But there is currently no exclusive mode.
 
             String scriptFile = "backup.sql";
-            Script.execute(urlSource, user, password, scriptFile);
-            RunScript.execute(urlTarget, user, password, scriptFile, null, false);
+            Script sc = new Script();
+            sc.setPrintStream(out);
+            sc.process(urlSource, user, password, scriptFile);
+            RunScript runscript = new RunScript();
+            runscript.setPrintStream(out);
+            runscript.process(urlTarget, user, password, scriptFile, null, false);
             FileUtils.delete(scriptFile);
 
             // set the cluster to the serverlist on both databases

@@ -17,8 +17,8 @@ Initial Developer: H2 Group
         <servlet-name>H2Console</servlet-name>
         <servlet-class>org.h2.server.web.WebServlet</servlet-class>
         <init-param>
-            <param-name>log</param-name>
-            <param-value>true</param-value>
+            <param-name>trace</param-name>
+            <param-value></param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

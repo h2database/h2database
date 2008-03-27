@@ -1413,7 +1413,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90105</code> is thrown when
-     * an exception occured in a user defined method.
+     * an exception occured in a user-defined method.
      * Example:
      * <pre>
      * CREATE ALIAS SYS_PROP FOR "java.lang.System.getProperty";
@@ -1709,7 +1709,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90132</code> is thrown when
-     * trying to drop a user defined aggregate function that doesn't exist.
+     * trying to drop a user-defined aggregate function that doesn't exist.
      * Example:
      * <pre>
      * DROP AGGREGATE UNKNOWN;

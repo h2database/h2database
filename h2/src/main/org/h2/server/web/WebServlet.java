@@ -42,7 +42,9 @@ public class WebServlet extends HttpServlet {
                 name = "-" + name;
             }
             list.add(name);
-            list.add(value);
+            if (value.length() > 0) {
+                list.add(value);
+            }
         }
         String[] args = new String[list.size()];
         list.toArray(args);

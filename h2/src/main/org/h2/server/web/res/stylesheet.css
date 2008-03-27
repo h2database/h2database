@@ -7,25 +7,33 @@ td, input, select, textarea, body, code, pre {
     font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
 }
 
+h1, h2, h3, h4, h5 {
+    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font-weight: bold;
+}
+
 body {
     margin: 4px;
 }
 
+code {
+    background-color: #ece9d8;
+    padding: 0px 2px;
+}
+
 h1 {
-    border-bottom: 1px solid #CCC;
-    color: #800;
-    font-size: 16pt;
+    background-color: #0000bb;
+    padding: 2px 4px 2px 4px;
+    color: #fff;
+    font-size: 15pt;
     line-height: normal;
 }
 
 h2 {
-    border-bottom: 1px solid #CCC;
-    color: #800;
     font-size: 13pt;
 }
 
 h3 {
-    color: #800;
     font-size: 10pt;
 }
 
@@ -39,8 +47,36 @@ li {
     margin-top: 6px;
 }
 
-.toolbar {
+table {
+    background-color: #ffffff;
+    border-collapse: collapse;
+    border: 1px solid #aca899;
+}
+
+th {
+    font-size: 9pt;
+    font-weight: normal;
+    text-align: left;
     background-color: #ece9d8;
+    padding: 2px;
+    border: 1px solid #aca899;
+}
+
+td {
+    background-color: #ffffff;
+    font-size: 9pt;
+    padding: 2px;
+    text-align: left;
+    vertical-align:top;
+    border: 1px solid #aca899;
+}
+
+form {
+}
+
+textarea {
+    width: 100%;
+    overflow: auto;
 }
 
 .result {
@@ -48,8 +84,11 @@ li {
     margin: 10px;
 }
 
+.toolbar {
+    background-color: #ece9d8;
+}
+
 table.toolbar {
-    background-color: #ffffff;
     border-collapse: collapse;
     border: 0px;
     padding: 0px 0px;
@@ -138,38 +177,6 @@ td.empty {
 
 p.error {
     color: #ff0000;
-}
-
-table {
-    background-color: #ffffff;
-    border-collapse: collapse;
-    border: 1px solid #aca899;
-}
-
-th {
-    font-size: 9pt;
-    font-weight: normal;
-    text-align: left;
-    background-color: #ece9d8;
-    padding: 2px;
-    border: 1px solid #aca899;
-}
-
-td {
-    background-color: #ffffff;
-    font-size: 9pt;
-    padding: 2px;
-    text-align: left;
-    vertical-align:top;
-    border: 1px solid #aca899;
-}
-
-form {
-}
-
-textarea {
-    width: 100%;
-    overflow: auto;
 }
 
 input.button {
@@ -309,3 +316,7 @@ td.autoCompHide {
     display: none;
 }
 
+table.tool, table.tool tr, table.tool tr td {
+    padding: 0px;
+    border: 0px; 
+}

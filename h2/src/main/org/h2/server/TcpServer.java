@@ -22,9 +22,11 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.h2.Driver;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
+import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -47,10 +49,9 @@ public class TcpServer implements Service {
     public static final int DEFAULT_PORT = 9092;
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
-    public static boolean logInternalErrors;
 
     private int port;
-    private boolean log;
+    private boolean trace;
     private boolean ssl;
     private boolean stop;
     private ServerSocket serverSocket;
@@ -147,10 +148,18 @@ public class TcpServer implements Service {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
             String a = args[i];
-            if ("-log".equals(a)) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
+            if ("-trace".equals(a)) {
+                trace = true;
+            } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+                trace = Server.readArgBoolean(args, i) == 1;
+                i++;
             } else if ("-tcpSSL".equals(a)) {
-                ssl = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    ssl = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    ssl = true;
+                }
             } else if ("-tcpPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-tcpPassword".equals(a)) {
@@ -158,9 +167,19 @@ public class TcpServer implements Service {
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-tcpAllowOthers".equals(a)) {
-                allowOthers = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    allowOthers = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    allowOthers = true;
+                }
             } else if ("-ifExists".equals(a)) {
-                ifExists = Boolean.valueOf(args[++i]).booleanValue();
+                if (Server.readArgBoolean(args, i) != 0) {
+                    ifExists = Server.readArgBoolean(args, i) == 1;
+                    i++;
+                } else {
+                    ifExists = true;
+                }
             }
         }
         org.h2.Driver.load();
@@ -287,15 +306,14 @@ public class TcpServer implements Service {
         return baseDir;
     }
 
-    void log(String s) {
-        // TODO log: need concept for server log
-        if (log) {
+    void trace(String s) {
+        if (trace) {
             System.out.println(s);
         }
     }
 
-    void logError(Throwable e) {
-        if (log) {
+    void traceError(Throwable e) {
+        if (trace) {
             e.printStackTrace();
         }
     }
@@ -310,13 +328,6 @@ public class TcpServer implements Service {
 
     public String getName() {
         return "H2 TCP Server";
-    }
-
-    public void logInternalError(String string) {
-        if (logInternalErrors) {
-            System.out.println(string);
-            new Error(string).printStackTrace();
-        }
     }
 
     public boolean getIfExists() {

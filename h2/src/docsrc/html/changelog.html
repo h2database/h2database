@@ -199,7 +199,7 @@ Change Log
 <h2>Version 1.0.63 (2007-12-02)</h2>
 <ul>
 <li>The SecurePassword example has been improved.
-</li><li>In timezones where the summer time saving limit is at midnight, some dates do not work in some virtual machines, for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05. Fixed.
+</li><li>In time zones where the summer time saving limit is at midnight, some dates do not work in some virtual machines, for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05. Fixed.
 </li><li>The native fulltext search was not working properly after re-connecting.
 </li><li>Improved FTP server: now the PORT command is supported.
 </li><li>Temporary views (FROM(...)) with UNION didn't work if nested. Fixed.
@@ -316,7 +316,7 @@ Change Log
 
 <h2>Version 1.0.57 (2007-08-25)</h2>
 <ul>
-<li>New experimental feature MVCC (multi version concurrency control). Can be set as a option when opening the database (jdbc:h2:test;MVCC=TRUE) or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
+<li>New experimental feature MVCC (multi version concurrency control). Can be set as a option when opening the database (jdbc:h2:~/test;MVCC=TRUE) or as a system property (-Dh2.mvcc=true). This is work-in-progress, use it at your own risk. Feedback is welcome.
 </li><li>The version number is now major.minor.micro where micro is the build number. Not all version are public, so there may be gaps in the micro. The minor changes when there is a file format change.
 </li><li>The backup tool (org.h2.tools.Backup) did not work. The restore tool did not work when the -db parameter was used. Fixed. The documentation of the backup tool has been changed: only one database may be backed up at any time.
 </li><li>Opening large read-only databases was very slow. Fixed.

@@ -27,7 +27,7 @@ import org.h2.util.JdbcUtils;
 public class TestPerformance {
 
     boolean collect;
-    boolean log;
+    boolean trace;
 
     public static void main(String[] args) throws Exception {
         new TestPerformance().test(args);
@@ -66,8 +66,8 @@ public class TestPerformance {
                 init = true;
             } else if (args[i].equals("-out")) {
                 out = args[++i];
-            } else if (args[i].equals("-log")) {
-                log = Boolean.valueOf(args[++i]).booleanValue();
+            } else if (args[i].equals("-trace")) {
+                trace = true;
             }
         }
         openResults(init);
@@ -232,8 +232,8 @@ public class TestPerformance {
         bench.runTest();
     }
 
-    public void log(String s) {
-        if (log) {
+    public void trace(String s) {
+        if (trace) {
             System.out.println(s);
         }
     }

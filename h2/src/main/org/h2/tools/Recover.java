@@ -161,7 +161,7 @@ public class Recover extends Tool implements DataHandler {
     private void traceError(String message, Throwable t) {
         out.println(message + ": " + t.toString());
         if (trace) {
-            t.printStackTrace();
+            t.printStackTrace(out);
         }
     }
 
@@ -272,7 +272,7 @@ public class Recover extends Tool implements DataHandler {
                     }
                     break;
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    e.printStackTrace(out);
                 }
             }
         }
@@ -688,21 +688,34 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpData(String fileName) throws SQLException {
+        setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
+        try {
+            textStorage = Database.isTextStorage(fileName, false);
+            dumpData(fileName, textStorage, fileName, FileStore.HEADER_LENGTH);
+        } catch (SQLException e) {
+            traceError("Can not parse file header", e);
+            for (int i = 0; i < 256; i += 16) {
+                textStorage = (i % 2) == 0;
+                int offset = i / 2;
+                String out = fileName + (textStorage ? ".txt." : ".") + offset + ".data.db";
+                dumpData(fileName, textStorage, out, offset);
+            }
+        }
+    }
+    
+    private void dumpData(String fileName, boolean textStorage, String outputName, int offset) {
         PrintWriter writer = null;
         FileStore store = null;
         try {
-            setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-            writer = getWriter(fileName, ".sql");
+            writer = getWriter(outputName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
             ObjectArray schema = new ObjectArray();
             HashSet objectIdSet = new HashSet();
             HashMap tableMap = new HashMap();
-            textStorage = Database.isTextStorage(fileName, false);
             byte[] magic = Database.getMagic(textStorage);
             store = FileStore.open(null, fileName, "r", magic);
             long length = store.length();
-            int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
             blockCount = 1;

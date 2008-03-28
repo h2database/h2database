@@ -49,9 +49,10 @@ public interface Service {
     /**
      * Check if the service is running.
      *
+     * @param traceError if errors should be written
      * @return if the server is running
      */
-    boolean isRunning();
+    boolean isRunning(boolean traceError);
 
     /**
      * Check if remote connections are allowed.

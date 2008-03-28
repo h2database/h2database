@@ -32,11 +32,10 @@ function quote(x) {
     var q = '';
     for (var i=0; i<x.length; i++) {
         var c = x.charAt(i);
-        if(c == '"') {
-            q += '\\"';
-        } else {
-            q += c;
+        if(c == '"' || c == '\\') {
+            q += '\\';
         }
+        q += c;
     }
     return q;
 }

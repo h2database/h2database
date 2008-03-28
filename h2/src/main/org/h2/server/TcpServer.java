@@ -224,7 +224,7 @@ public class TcpServer implements Service {
         stopManagementDb();
     }
 
-    public synchronized boolean isRunning() {
+    public synchronized boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
         }
@@ -233,6 +233,9 @@ public class TcpServer implements Service {
             s.close();
             return true;
         } catch (Exception e) {
+            if (traceError) {
+                traceError(e);
+            }
             return false;
         }
     }

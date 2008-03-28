@@ -135,7 +135,7 @@ ShutdownHandler {
         // because some people don't look at the output,
         // but are wondering why nothing happens
         StartBrowser.openURL(web.getURL());
-        if (!web.isRunning()) {
+        if (!web.isRunning(true)) {
             exitCode = EXIT_ERROR;
         }
         return exitCode;
@@ -158,15 +158,15 @@ ShutdownHandler {
     }
 
     private void stopAll() {
-        if (web != null && web.isRunning()) {
+        if (web != null && web.isRunning(false)) {
             web.stop();
             web = null;
         }
-        if (tcp != null && tcp.isRunning()) {
+        if (tcp != null && tcp.isRunning(false)) {
             tcp.stop();
             tcp = null;
         }
-        if (pg != null && pg.isRunning()) {
+        if (pg != null && pg.isRunning(false)) {
             pg.stop();
             pg = null;
         }

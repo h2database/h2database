@@ -205,7 +205,7 @@ public class FtpServer implements Service {
         serverSocket = null;
     }
 
-    public boolean isRunning() {
+    public boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
         }
@@ -214,6 +214,9 @@ public class FtpServer implements Service {
             s.close();
             return true;
         } catch (Exception e) {
+            if (traceError) {
+                traceError(e);
+            }
             return false;
         }
     }

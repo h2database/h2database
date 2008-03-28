@@ -15,13 +15,14 @@ import java.sql.SQLException;
 public abstract class Tool {
     
     protected PrintStream out = System.out;
+    protected PrintStream err = System.err;
     
     /**
-     * Sets the print stream.
+     * Sets the standard output stream.
      * 
-     * @param out the new print stream
+     * @param out the new standard output stream
      */
-    public void setPrintStream(PrintStream out) {
+    public void setOut(PrintStream out) {
         this.out = out;
     }
 

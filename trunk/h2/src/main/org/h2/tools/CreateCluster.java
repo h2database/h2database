@@ -128,10 +128,10 @@ public class CreateCluster extends Tool {
 
             String scriptFile = "backup.sql";
             Script sc = new Script();
-            sc.setPrintStream(out);
+            sc.setOut(out);
             sc.process(urlSource, user, password, scriptFile);
             RunScript runscript = new RunScript();
-            runscript.setPrintStream(out);
+            runscript.setOut(out);
             runscript.process(urlTarget, user, password, scriptFile, null, false);
             FileUtils.delete(scriptFile);
 

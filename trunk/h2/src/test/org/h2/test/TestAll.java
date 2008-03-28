@@ -159,7 +159,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-database.tgz
+server problem : only log error the last iteration
+
 output.zip
 function table called twice: document:
 Yes. The first call is to get the list of columns, and the second call is to get the data.

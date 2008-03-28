@@ -356,7 +356,7 @@ public class Server implements Runnable, ShutdownHandler {
 
     String getStatus() {
         StringBuffer buff = new StringBuffer();
-        if (isRunning()) {
+        if (isRunning(false)) {
             buff.append(service.getType());
             buff.append(" server running on ");
             buff.append(service.getURL());
@@ -450,10 +450,13 @@ public class Server implements Runnable, ShutdownHandler {
         t.start();
         for (int i = 1; i < 64; i += i) {
             wait(i);
-            if (isRunning()) {
+            if (isRunning(false)) {
                 return this;
             }
         }
+        if (isRunning(true)) {
+            return this;
+        }        
         throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
     }
 
@@ -468,19 +471,19 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     private void stopAll() {
-        if (web != null && web.isRunning()) {
+        if (web != null && web.isRunning(false)) {
             web.stop();
             web = null;
         }
-        if (tcp != null && tcp.isRunning()) {
+        if (tcp != null && tcp.isRunning(false)) {
             tcp.stop();
             tcp = null;
         }
-        if (pg != null && pg.isRunning()) {
+        if (pg != null && pg.isRunning(false)) {
             pg.stop();
             pg = null;
         }
-        if (ftp != null && ftp.isRunning()) {
+        if (ftp != null && ftp.isRunning(false)) {
             ftp.stop();
             ftp = null;
         }
@@ -489,10 +492,11 @@ public class Server implements Runnable, ShutdownHandler {
     /**
      * Checks if the server is running.
      *
+     * @param traceError if errors should be written
      * @return if the server is running
      */
-    public boolean isRunning() {
-        return service.isRunning();
+    public boolean isRunning(boolean traceError) {
+        return service.isRunning(traceError);
     }
 
     /**

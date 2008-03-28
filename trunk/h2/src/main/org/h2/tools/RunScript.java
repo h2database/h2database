@@ -207,7 +207,7 @@ public class RunScript extends Tool {
                     }
                 } catch (SQLException e) {
                     if (continueOnError) {
-                        e.printStackTrace();
+                        e.printStackTrace(out);
                     } else {
                         throw e;
                     }

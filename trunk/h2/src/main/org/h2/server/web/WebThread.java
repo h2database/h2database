@@ -572,15 +572,15 @@ class WebThread extends Thread implements DatabaseEventListener {
             } else {
                 throw Message.getInternalError(toolName);
             }
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            PrintStream out = new PrintStream(bout, false, "UTF-8");
-            tool.setPrintStream(out);
+            ByteArrayOutputStream outBuff = new ByteArrayOutputStream();
+            PrintStream out = new PrintStream(outBuff, false, "UTF-8");
+            tool.setOut(out);
             try {
                 tool.run(argList);
                 out.flush();
-                byte[] data = bout.toByteArray();
-                String result = new String(data, "UTF-8");
-                session.put("toolResult", PageParser.escapeHtml(result));
+                String o = new String(outBuff.toByteArray(), "UTF-8");
+                String result = PageParser.escapeHtml(o);
+                session.put("toolResult", result);
             } catch (Exception e) {
                 session.put("toolResult", getStackTrace(0, e, true));
             }

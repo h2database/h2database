@@ -276,7 +276,7 @@ public class WebServer implements Service {
         }
     }
 
-    public boolean isRunning() {
+    public boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
         }
@@ -285,6 +285,9 @@ public class WebServer implements Service {
             s.close();
             return true;
         } catch (Exception e) {
+            if (traceError) {
+                traceError(e);
+            }
             return false;
         }
     }

@@ -82,7 +82,7 @@ public class TempFileDeleter {
         if (ref != null) {
             TempFile f2 = (TempFile) REF_MAP.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
-                throw Message.getInternalError("f2:" + f2.fileName + " f:" + fileName);
+                throw Message.getInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
             }
         }
         deleteUnused();

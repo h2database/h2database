@@ -159,6 +159,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+Fix ScriptBase.getFileName()
+Fix Shell.java 159 (close PreparedStatement)
+
 Browser problems:
 There has been a reported incompatibility with the 
 RealPlayer Browser Record Plugin 1.0 when using Firefox 2.0 and Vista

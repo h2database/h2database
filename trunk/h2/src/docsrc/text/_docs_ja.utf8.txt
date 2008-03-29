@@ -7481,4 +7481,3 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 @tutorial_1198_p
 #If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system time zone, the date and time will change accordingly. If you want to move a database from one time zone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
 
-

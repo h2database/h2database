@@ -691,7 +691,7 @@ public class Session implements SessionInterface {
     /**
      * Remove a procedure from this session.
      * 
-     * @param procedure the procedure to remove
+     * @param name the name of the procedure to remove
      */
     public void removeProcedure(String name) {
         if (procedures != null) {

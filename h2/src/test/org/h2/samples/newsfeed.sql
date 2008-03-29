@@ -10,6 +10,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(39,
+'New version available: 1.0.69 (2008-03-29)', '2008-03-29 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Most command line tools can now be called within the H2 Console.
+</li><li>A new Shell tools is now included to query a database from the command line.
+</li><li>Some command line options have changed (the old behavior is still supported).
+</li><li>New system property h2.sortNullsHigh to invert the default NULL sorting.
+</li><li>ALTER TABLE or CREATE TABLE now support parameters.
+</li><li>TRACE_LEVEL_ settings are no longer persistent.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>When a log file switch occured in the middle of certain operations,
+    the database could not be started normally (RECOVER=1 was required).
+</li><li>Altering a sequence didn''t unlock the system table with autocommit disabled.
+</li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.
+</li><li>Years below 1 were not supported correctly.
+</li><li>The recovery tool didn''t work correctly for tables without rows.
+</li><li>It is no longer possible to create a role with the name of an existing user.
+</li><li>The memory usage of native fulltext search has been improved.
+</li><li>Performance was very slow when using LOG=2. 
+</li><li>The linear hash has been removed because it was slow and sometimes incorrect.
+</li></ul>
+For details, see the ''Change Log'' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the ''Roadmap'' page at
+http://www.h2database.com/html/roadmap.html
+');
+
 INSERT INTO ITEM VALUES(38,
 'New version available: 1.0.68 (2008-03-15)', '2008-03-15 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

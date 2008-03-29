@@ -29,7 +29,6 @@ public abstract class Tool {
     /**
      * Run the tool with the given output stream and arguments.
      * 
-     * @param out the print stream, for example System.out
      * @param args the argument list
      */
     public abstract void run(String[] args) throws SQLException;

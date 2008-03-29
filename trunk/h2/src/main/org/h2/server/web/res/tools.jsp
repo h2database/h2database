@@ -46,10 +46,10 @@ function update() {
         if (f != null && f.value.length > 0) {
             var x = quote(f.value);
             if (f.type == 'password') {
-            	x = '';
-            	for (var j = 0; j < f.value.length; j++) {
-	            	x += '*';
-	            }
+                x = '';
+                for (var j = 0; j < f.value.length; j++) {
+                    x += '*';
+                }
             }
             line += ' -' + f.name + ' "' + x + '"';
             if (args.length > 0) {
@@ -89,125 +89,125 @@ function update() {
     <h2>Backup</h2>
     <p>Creates a backup of a database.</p>
     <table class="tool">
-	    <tr><td>
-	    Target file name:&nbsp;</td><td><input id="optionBackup.0" name="file" onkeyup="update()" onchange="update()" value="~/backup.zip" size="50" />
-	    </td></tr><tr><td>
-	    Source directory:&nbsp;</td><td><input id="optionBackup.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
-	    </td></tr><tr><td>
-	    Source database name:&nbsp;</td><td><input id="optionBackup.2" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
-	    </td></tr>
+        <tr><td>
+        Target file name:&nbsp;</td><td><input id="optionBackup.0" name="file" onkeyup="update()" onchange="update()" value="~/backup.zip" size="50" />
+        </td></tr><tr><td>
+        Source directory:&nbsp;</td><td><input id="optionBackup.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        </td></tr><tr><td>
+        Source database name:&nbsp;</td><td><input id="optionBackup.2" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolRestore" name="Restore" style="display: none">
     <h2>Restore</h2>
     <p>Restores a database backup.</p>
     <table class="tool">
-	    <tr><td>
-	    Source file name:&nbsp;</td><td><input id="optionRestore.0" name="file" onkeyup="update()" onchange="update()" value="~/backup.zip" size="50" />
-	    </td></tr><tr><td>
-	    Target directory:&nbsp;</td><td><input id="optionRestore.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
-	    </td></tr><tr><td>
-	    Target database name:&nbsp;</td><td><input id="optionRestore.2" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
-	    </td></tr>
+        <tr><td>
+        Source file name:&nbsp;</td><td><input id="optionRestore.0" name="file" onkeyup="update()" onchange="update()" value="~/backup.zip" size="50" />
+        </td></tr><tr><td>
+        Target directory:&nbsp;</td><td><input id="optionRestore.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        </td></tr><tr><td>
+        Target database name:&nbsp;</td><td><input id="optionRestore.2" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolRecover" style="display: none">
     <h2>Recover</h2>
     <p>Helps recovering a corrupted database.</p>
     <table class="tool">
-	    <tr><td>
-	    Directory:&nbsp;</td><td><input id="optionRecover.0" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
-	    </td></tr><tr><td>
-	    Database name:&nbsp;</td><td><input id="optionRecover.1" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
-	    </td></tr>
+        <tr><td>
+        Directory:&nbsp;</td><td><input id="optionRecover.0" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        </td></tr><tr><td>
+        Database name:&nbsp;</td><td><input id="optionRecover.1" name="db" onkeyup="update()" onchange="update()" value="" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolDeleteDbFiles" style="display: none">
     <h2>DeleteDbFiles</h2>
     <p>Deletes all files belonging to a database.</p>
     <table class="tool">
-	    <tr><td>
-	    Directory:&nbsp;</td><td><input id="optionDeleteDbFiles.0" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
-	    </td></tr><tr><td>
-	    Database name:&nbsp;</td><td><input id="optionDeleteDbFiles.1" name="db" onkeyup="update()" onchange="update()" value="delete" size="50" />
-	    </td></tr>
+        <tr><td>
+        Directory:&nbsp;</td><td><input id="optionDeleteDbFiles.0" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        </td></tr><tr><td>
+        Database name:&nbsp;</td><td><input id="optionDeleteDbFiles.1" name="db" onkeyup="update()" onchange="update()" value="delete" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolChangePassword" style="display: none">
     <h2>ChangePassword</h2>
     <p>Allows changing the database file password.</p>
     <table class="tool">
-	    <tr><td>
-	    Cipher (AES or XTEA):&nbsp;</td><td><input id="optionChangePassword.0" name="cipher" onkeyup="update()" onchange="update()" value="XTEA" />
-	    </td></tr><tr><td>
-	    Directory:&nbsp;</td><td><input id="optionChangePassword.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
-	    </td></tr><tr><td>
-	    Database name:&nbsp;</td><td><input id="optionChangePassword.2" name="db" onkeyup="update()" onchange="update()" value="test" size="50" />
-	    </td></tr><tr><td>
-	    Decryption password:&nbsp;</td><td><input type="password" id="optionChangePassword.3" name="decrypt" onkeyup="update()" onchange="update()" value="" />
-	    </td></tr><tr><td>
-	    Encryption password:&nbsp;</td><td><input type="password" id="optionChangePassword.4" name="encrypt" onkeyup="update()" onchange="update()" value="" />
-	    </td></tr>
+        <tr><td>
+        Cipher (AES or XTEA):&nbsp;</td><td><input id="optionChangePassword.0" name="cipher" onkeyup="update()" onchange="update()" value="XTEA" />
+        </td></tr><tr><td>
+        Directory:&nbsp;</td><td><input id="optionChangePassword.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        </td></tr><tr><td>
+        Database name:&nbsp;</td><td><input id="optionChangePassword.2" name="db" onkeyup="update()" onchange="update()" value="test" size="50" />
+        </td></tr><tr><td>
+        Decryption password:&nbsp;</td><td><input type="password" id="optionChangePassword.3" name="decrypt" onkeyup="update()" onchange="update()" value="" />
+        </td></tr><tr><td>
+        Encryption password:&nbsp;</td><td><input type="password" id="optionChangePassword.4" name="encrypt" onkeyup="update()" onchange="update()" value="" />
+        </td></tr>
     </table>
 </div>
 <div id="toolScript" style="display: none">
     <h2>Script</h2>
     <p>Allows to convert a database to a SQL script for backup or migration.</p>
     <table class="tool">
-	    <tr><td>
-	    Source database URL:&nbsp;</td><td><input id="optionScript.0" name="url" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
-	    </td></tr><tr><td>
-	    User name:&nbsp;</td><td><input id="optionScript.1" name="user" onkeyup="update()" onchange="update()" value="sa" />
-	    </td></tr><tr><td>
-	    Password:&nbsp;</td><td><input type="password" id="optionScript.2" name="password" onkeyup="update()" onchange="update()" value="" />
-	    </td></tr><tr><td>
-	    Target script file name:&nbsp;</td><td><input id="optionScript.3" name="script" onkeyup="update()" onchange="update()" value="~/backup.sql" size="50" />
-	    </td></tr>
+        <tr><td>
+        Source database URL:&nbsp;</td><td><input id="optionScript.0" name="url" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
+        </td></tr><tr><td>
+        User name:&nbsp;</td><td><input id="optionScript.1" name="user" onkeyup="update()" onchange="update()" value="sa" />
+        </td></tr><tr><td>
+        Password:&nbsp;</td><td><input type="password" id="optionScript.2" name="password" onkeyup="update()" onchange="update()" value="" />
+        </td></tr><tr><td>
+        Target script file name:&nbsp;</td><td><input id="optionScript.3" name="script" onkeyup="update()" onchange="update()" value="~/backup.sql" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolRunScript" style="display: none">
     <h2>RunScript</h2>
     <p>Runs a SQL script.</p>
     <table class="tool">
-	    <tr><td>
-	    Target database URL:&nbsp;</td><td><input id="optionRunScript.0" name="url" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
-	    </td></tr><tr><td>
-	    User name:&nbsp;</td><td><input id="optionRunScript.1" name="user" onkeyup="update()" onchange="update()" value="sa" />
-	    </td></tr><tr><td>
-	    Password:&nbsp;</td><td><input type="password" id="optionRunScript.2" name="password" onkeyup="update()" onchange="update()" value="" />
-	    </td></tr><tr><td>
-	    Source script file name:&nbsp;</td><td><input id="optionRunScript.3" name="script" onkeyup="update()" onchange="update()" value="~/backup.sql" size="50" />
-	    </td></tr>
+        <tr><td>
+        Target database URL:&nbsp;</td><td><input id="optionRunScript.0" name="url" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
+        </td></tr><tr><td>
+        User name:&nbsp;</td><td><input id="optionRunScript.1" name="user" onkeyup="update()" onchange="update()" value="sa" />
+        </td></tr><tr><td>
+        Password:&nbsp;</td><td><input type="password" id="optionRunScript.2" name="password" onkeyup="update()" onchange="update()" value="" />
+        </td></tr><tr><td>
+        Source script file name:&nbsp;</td><td><input id="optionRunScript.3" name="script" onkeyup="update()" onchange="update()" value="~/backup.sql" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolConvertTraceFile" style="display: none">
     <h2>ConvertTraceFile</h2>
     <p>Converts a .trace.db file to a Java application and SQL script.</p>
     <table class="tool">
-	    <tr><td>
-	    Trace file name:&nbsp;</td><td><input id="optionConvertTraceFile.0" name="traceFile" onkeyup="update()" onchange="update()" value="~/test.trace.db" size="50" />
-	    </td></tr><tr><td>
-	    Script file name:&nbsp;</td><td><input id="optionConvertTraceFile.1" name="script" onkeyup="update()" onchange="update()" value="~/test.sql" size="50" />
-	    </td></tr><tr><td>
-	    Java directory and class name:&nbsp;</td><td><input id="optionConvertTraceFile.2" name="javaClass" onkeyup="update()" onchange="update()" value="~/Test" size="50" />
-	    </td></tr>
+        <tr><td>
+        Trace file name:&nbsp;</td><td><input id="optionConvertTraceFile.0" name="traceFile" onkeyup="update()" onchange="update()" value="~/test.trace.db" size="50" />
+        </td></tr><tr><td>
+        Script file name:&nbsp;</td><td><input id="optionConvertTraceFile.1" name="script" onkeyup="update()" onchange="update()" value="~/test.sql" size="50" />
+        </td></tr><tr><td>
+        Java directory and class name:&nbsp;</td><td><input id="optionConvertTraceFile.2" name="javaClass" onkeyup="update()" onchange="update()" value="~/Test" size="50" />
+        </td></tr>
     </table>
 </div>
 <div id="toolCreateCluster" style="display: none">
     <h2>CreateCluster</h2>
     <p>Creates a cluster from a standalone database.</p>
     <table class="tool">
-	    <tr><td>
-	    Source database URL:&nbsp;</td><td><input id="optionCreateCluster.0" name="urlSource" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
-	    </td></tr><tr><td>
-	    Target database URL:&nbsp;</td><td><input id="optionCreateCluster.1" name="urlTarget" onkeyup="update()" onchange="update()" value="jdbc:h2:~/copy/test" size="50" />
-	    </td></tr><tr><td>
-	    User name:&nbsp;</td><td><input id="optionCreateCluster.2" name="user" onkeyup="update()" onchange="update()" value="sa" />
-	    </td></tr><tr><td>
-	    Password:&nbsp;</td><td><input type="password" id="optionCreateCluster.3" name="password" onkeyup="update()" onchange="update()" value="" />
-	    </td></tr><tr><td>
-	    Server list:&nbsp;</td><td><input id="optionCreateCluster.4" name="serverlist" onkeyup="update()" onchange="update()" value="server1,server2" size="50" />
-	    </td></tr>
+        <tr><td>
+        Source database URL:&nbsp;</td><td><input id="optionCreateCluster.0" name="urlSource" onkeyup="update()" onchange="update()" value="jdbc:h2:~/test" size="50" />
+        </td></tr><tr><td>
+        Target database URL:&nbsp;</td><td><input id="optionCreateCluster.1" name="urlTarget" onkeyup="update()" onchange="update()" value="jdbc:h2:~/copy/test" size="50" />
+        </td></tr><tr><td>
+        User name:&nbsp;</td><td><input id="optionCreateCluster.2" name="user" onkeyup="update()" onchange="update()" value="sa" />
+        </td></tr><tr><td>
+        Password:&nbsp;</td><td><input type="password" id="optionCreateCluster.3" name="password" onkeyup="update()" onchange="update()" value="" />
+        </td></tr><tr><td>
+        Server list:&nbsp;</td><td><input id="optionCreateCluster.4" name="serverlist" onkeyup="update()" onchange="update()" value="server1,server2" size="50" />
+        </td></tr>
     </table>
 </div>
 

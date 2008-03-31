@@ -155,8 +155,10 @@ public class Shell {
                     if (tableName.length() == 0) {
                         out.println("Usage: describe <table name>");
                     } else {
+                        PreparedStatement prep = null;
+                        ResultSet rs = null;
                         try {
-                            PreparedStatement prep = conn.prepareStatement(
+                            prep = conn.prepareStatement(
                                     "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " + 
                                     "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " + 
                                     "NUMERIC_PRECISION \"Precision\", " + 
@@ -165,22 +167,28 @@ public class Shell {
                                     "FROM INFORMATION_SCHEMA.COLUMNS " + 
                                     "WHERE UPPER(TABLE_NAME)=? ORDER BY ORDINAL_POSITION");
                             prep.setString(1, tableName.toUpperCase());
-                            ResultSet rs = prep.executeQuery();
+                            rs = prep.executeQuery();
                             printResult(rs, false);
                         } catch (SQLException e) {
                             out.println("Exception: " + e.toString());
                             e.printStackTrace();
+                        } finally {
+                            JdbcUtils.closeSilently(rs);
+                            JdbcUtils.closeSilently(prep);
                         }
                     }
                 } else if (upper.startsWith("SHOW")) {
+                    ResultSet rs = null;
                     try {
-                        ResultSet rs = stat.executeQuery(
+                        rs = stat.executeQuery(
                                 "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) \"Schema\", TABLE_NAME \"Table Name\" " +
                                 "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
                         printResult(rs, false);
                     } catch (SQLException e) {
                         out.println("Exception: " + e.toString());
                         e.printStackTrace();
+                    } finally {
+                        JdbcUtils.closeSilently(rs);
                     }
                 } else if (upper.startsWith("MAXWIDTH")) {
                     upper = upper.substring("MAXWIDTH".length()).trim();
@@ -322,9 +330,10 @@ public class Shell {
             out.println("Error: " + e.toString());
             return;
         }
+        ResultSet rs = null;
         try {
             if (result) {
-                ResultSet rs = stat.getResultSet();
+                rs = stat.getResultSet();
                 int rowCount = printResult(rs, listMode);
                 time = System.currentTimeMillis() - time;
                 out.println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
@@ -336,6 +345,8 @@ public class Shell {
         } catch (SQLException e) {
             out.println("Error: " + e.toString());
             e.printStackTrace();
+        } finally {
+            JdbcUtils.closeSilently(rs);
         }
     }
     

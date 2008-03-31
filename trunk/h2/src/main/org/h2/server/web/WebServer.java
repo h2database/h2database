@@ -19,10 +19,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.Map.Entry;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.SysProperties;
@@ -353,6 +355,14 @@ public class WebServer implements Service {
             byte[] trans = getFile("_text_"+language+".properties");
             trace("  "+new String(trans));
             text.load(new ByteArrayInputStream(trans));
+            // remove starting # (if not translated yet)
+            for (Iterator it = text.entrySet().iterator(); it.hasNext();) {
+                Entry entry = (Entry) it.next();
+                String value = (String) entry.getValue();
+                if (value.startsWith("#")) {
+                    entry.setValue(value.substring(1));
+                }
+            }
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);
         }

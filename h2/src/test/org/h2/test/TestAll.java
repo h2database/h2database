@@ -159,8 +159,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-Fix ScriptBase.getFileName()
-Fix Shell.java 159 (close PreparedStatement)
+Shell.java 159 (close PreparedStatement)
 
 Browser problems:
 There has been a reported incompatibility with the 

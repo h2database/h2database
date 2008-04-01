@@ -318,6 +318,9 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s,
                 false);
+        if (v.createException != null) {
+            throw v.createException;
+        }
         v.setOwner(owner);
         v.setTemporary(true);
         return v;

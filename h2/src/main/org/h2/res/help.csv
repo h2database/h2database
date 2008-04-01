@@ -1632,6 +1632,7 @@ TIMESTAMP
 ","
 Represents a byte array. For very long arrays, use BLOB.
 There is no maximum precision. The maximum size is the memory available.
+The precision is a size constraint; only the actual data is persisted.
 The whole object is kept in memory when using this data type.
 For large text data BLOB should be used.
 ","
@@ -1657,6 +1658,7 @@ VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 ","
 Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available.
+The precision is a size constraint; only the actual data is persisted.
 For large text data CLOB should be used.
 See also java.lang.String.
 ","
@@ -1678,7 +1680,7 @@ VARCHAR_IGNORECASE
 [( precisionInt )]
 ","
 This type is supported for compatibility with other databases and older applications.
-The difference to VARCHAR is that trailing spaces are ignored.
+The difference to VARCHAR is that trailing spaces are ignored and not persisted.
 Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available.
 For large text data CLOB should be used.
@@ -2581,6 +2583,7 @@ SECOND(CREATED)
 WEEK(timestamp): int
 ","
 Returns the week (1-53) from a timestamp.
+This method uses the current system locale.
 ","
 WEEK(CREATED)
 "

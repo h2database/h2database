@@ -159,11 +159,46 @@ java org.h2.test.TestAll timer
 
 /*
 
-Shell.java 159 (close PreparedStatement)
+test # in h2 console (other languages)
+
+include in the execution times in the debug log.
+(for each SQL statement ran)
+SQL:checksum:1ms SELECT * FROM TEST
+checksum: not including values, case insensitive
+
+make everything translatable
+
+Derby doesn't optimize it
+drop table test;
+create table test(id int, version int, idx int);
+@LOOP 1000 insert into test values(1, 1, ?);
+@LOOP 1000 insert into test values(1, 2, ?);
+@LOOP 1000 insert into test values(2, 1, ?);
+create index idxtest on test(id, version, idx);
+@LOOP 1000 select max(id)+1 from test;
+@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
+@LOOP 1000 select max(id)+1 from test;
+@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
+@LOOP 1000 select max(id)+1 from test;
+@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
+-- should be direct query
+
+
+
+Fix ScriptBase.getFileName()
+Fix Shell.java 159 (close PreparedStatement)
 
 Browser problems:
 There has been a reported incompatibility with the 
 RealPlayer Browser Record Plugin 1.0 when using Firefox 2.0 and Vista
+
+prep.setObject(1, new double[3]); 
+// setArray() is not supported according to
+ * double[] is currently serialized (using the 
+    standard Java object serialization). 
+ * I will try to support this for the next release; 
+    if it is not as easy as I thought I will add a feature request. 
+ * The same with supporting setArray.
 
 --------------
 
@@ -202,6 +237,10 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 History:
+The tools in the H2 Console are now translatable.
+Invalid inline views threw confusing SQL exceptions.
+The Japanese translation of the error messages and the 
+  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
 
 Roadmap:
 

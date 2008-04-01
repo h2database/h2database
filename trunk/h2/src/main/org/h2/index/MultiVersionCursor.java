@@ -54,6 +54,24 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
+    private void loadPrevious(boolean base) throws SQLException {
+        synchronized (sync) {
+            if (base) {
+                if (baseCursor.previous()) {
+                    baseRow = baseCursor.getSearchRow();
+                } else {
+                    baseRow = null;
+                }
+            } else {
+                if (deltaCursor.previous()) {
+                    deltaRow = deltaCursor.get();
+                } else {
+                    deltaRow = null;
+                }
+            }
+        }
+    }
+
     public Row get() throws SQLException {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {

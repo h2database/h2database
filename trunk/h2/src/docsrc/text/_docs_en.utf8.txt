@@ -4256,10 +4256,10 @@ Download
 Version 1.0.69 (2008-03-29):
 
 @mainWeb_1009_a
-Windows Installer (2.9 MB)
+Windows Installer (3.0 MB)
 
 @mainWeb_1010_a
-All platforms (zip, 4.1 MB)
+All platforms (zip, 4.2 MB)
 
 @mainWeb_1011_a
 All Downloads
@@ -6763,13 +6763,16 @@ Maven: upload source code and javadocs as well
 @roadmap_1373_li
 Write (log) to system table before adding to internal data structures
 
-@roadmap_1374_h2
+@roadmap_1374_li
+Support very large deletes and updates
+
+@roadmap_1375_h2
 Not Planned
 
-@roadmap_1375_li
+@roadmap_1376_li
 HSQLDB (did) support this: select id i from test where i>0 (other databases don't). Supporting it may break compatibility.
 
-@roadmap_1376_li
+@roadmap_1377_li
 String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @search_1000_b

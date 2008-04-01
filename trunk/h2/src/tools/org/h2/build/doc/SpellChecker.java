@@ -35,7 +35,7 @@ public class SpellChecker {
     private static final String[] SUFFIX = new String[] { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
             "csv", "xml", "js", "Driver", "properties", "task", "" };
     private static final String[] IGNORE = new String[] { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
-            "bz2", "rc", "layout", "res", "dll", "jar" };
+            "bz2", "rc", "layout", "res", "dll", "jar", "svg" };
     private static final String PREFIX_IGNORE = "abc";
     private static final String IGNORE_FILE = "mainWeb.html";
     private int errorCount;

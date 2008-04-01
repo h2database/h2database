@@ -17,6 +17,8 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.ObjectArray;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * A multi-version index is a combination of a regular index,
@@ -79,7 +81,37 @@ public class MultiVersionIndex implements Index {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
+        int test;
         throw Message.getUnsupportedException();
+   
+//        if (first) {
+//            // TODO optimization: this loops through NULL elements
+//            Cursor cursor = find(session, null, false, null);
+//            while (cursor.next()) {
+//                SearchRow row = cursor.getSearchRow();
+//                Value v = row.getValue(columnIds[0]);
+//                if (v != ValueNull.INSTANCE) {
+//                    return cursor;
+//                }
+//            }
+//            return null;
+//        } else {
+//            BtreePage root = getRoot(session);
+//            BtreeCursor cursor = new BtreeCursor(session, this, null);
+//            root.last(cursor);
+//            // TODO optimization: this loops through NULL elements
+//            do {
+//                SearchRow row = cursor.getSearchRow();
+//                if (row == null) {
+//                    break;
+//                }
+//                Value v = row.getValue(columnIds[0]);
+//                if (v != ValueNull.INSTANCE) {
+//                    return cursor;
+//                }
+//            } while (cursor.previous());
+//            return null;
+//        }        
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {

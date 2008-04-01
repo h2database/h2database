@@ -1532,14 +1532,14 @@ public class ErrorCode {
      * The error with code <code>90117</code> is thrown when
      * trying to connect to a TCP server from another machine, if remote
      * connections are not allowed. To allow remote connections,
-     * start the TCP server using the option -tcpAllowOthers true as in:
+     * start the TCP server using the option -tcpAllowOthers as in:
      * <pre>
-     * java org.h2.tools.Server -tcp -tcpAllowOthers true
+     * java org.h2.tools.Server -tcp -tcpAllowOthers
      * </pre>
      * Or, when starting the server from an application, use:
      * <pre>
      * Server server = Server.createTcpServer(new String[] { 
-     *          "-tcpAllowOthers", "true" });
+     *          "-tcpAllowOthers" });
      * server.start();
      * </pre>
      */

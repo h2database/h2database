@@ -345,7 +345,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                     return cursor;
                 }
             }
-            return null;
+            return cursor;
         } else {
             BtreePage root = getRoot(session);
             BtreeCursor cursor = new BtreeCursor(session, this, null);
@@ -361,7 +361,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                     return cursor;
                 }
             } while (cursor.previous());
-            return null;
+            return cursor;
         }
     }
 

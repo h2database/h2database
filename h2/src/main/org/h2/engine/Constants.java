@@ -191,11 +191,4 @@ public class Constants {
     public static final String SCRIPT_SQL = "script.sql";
     public static final int CACHE_MIN_RECORDS = 16;
 
-    /**
-     * The delay in milliseconds before an exception about
-     * a wrong user or password is thrown.
-     * This slows down dictionary attacks.
-     * An attacker can still open multiple connections.
-     */
-    public static final long DELAY_WRONG_PASSWORD = 200;
 }

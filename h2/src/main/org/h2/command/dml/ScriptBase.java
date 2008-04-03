@@ -79,8 +79,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
     
     protected String getFileName() throws SQLException {
-        if (fileName != null) {
-            fileName = file == null ? null : file.getValue(session).getString();
+        if (file != null && fileName == null) {
+            fileName = file.getValue(session).getString();
             if (fileName == null || fileName.trim().length() == 0) {
                 fileName = "script.sql";
             }

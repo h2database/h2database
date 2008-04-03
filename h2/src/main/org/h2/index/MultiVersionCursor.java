@@ -26,6 +26,7 @@ public class MultiVersionCursor implements Cursor {
     private boolean onBase;
     private boolean end;
     private boolean needNewDelta, needNewBase;
+    private boolean reverse;
 
     MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) throws SQLException {
         this.session = session;
@@ -35,17 +36,26 @@ public class MultiVersionCursor implements Cursor {
         this.sync = sync;
         needNewDelta = needNewBase = true;
     }
+    
+    void loadCurrent() throws SQLException {
+        synchronized (sync) {
+            baseRow = baseCursor.getSearchRow();
+            deltaRow = deltaCursor.get();
+            needNewDelta = false;
+            needNewBase = false;
+        }
+    }
 
     private void loadNext(boolean base) throws SQLException {
         synchronized (sync) {
             if (base) {
-                if (baseCursor.next()) {
+                if (step(baseCursor)) {
                     baseRow = baseCursor.getSearchRow();
                 } else {
                     baseRow = null;
                 }
             } else {
-                if (deltaCursor.next()) {
+                if (step(deltaCursor)) {
                     deltaRow = deltaCursor.get();
                 } else {
                     deltaRow = null;
@@ -53,29 +63,15 @@ public class MultiVersionCursor implements Cursor {
             }
         }
     }
-
-    private void loadPrevious(boolean base) throws SQLException {
-        synchronized (sync) {
-            if (base) {
-                if (baseCursor.previous()) {
-                    baseRow = baseCursor.getSearchRow();
-                } else {
-                    baseRow = null;
-                }
-            } else {
-                if (deltaCursor.previous()) {
-                    deltaRow = deltaCursor.get();
-                } else {
-                    deltaRow = null;
-                }
-            }
-        }
+    
+    private boolean step(Cursor cursor) throws SQLException {
+        return reverse ? cursor.previous() : cursor.next();
     }
 
     public Row get() throws SQLException {
         synchronized (sync) {
-            if (SysProperties.CHECK && end) {
-                throw Message.getInternalError();
+            if (end) {
+                return null;
             }
             return onBase ? baseCursor.get() : deltaCursor.get();
         }
@@ -92,8 +88,8 @@ public class MultiVersionCursor implements Cursor {
 
     public SearchRow getSearchRow() throws SQLException {
         synchronized (sync) {
-            if (SysProperties.CHECK && end) {
-                throw Message.getInternalError();
+            if (end) {
+                return null;
             }
             return onBase ? baseCursor.getSearchRow() : deltaCursor.getSearchRow();
         }
@@ -186,8 +182,13 @@ public class MultiVersionCursor implements Cursor {
         }
     }
     
-    public boolean previous() {
-        throw Message.getInternalError();
+    public boolean previous() throws SQLException {
+        reverse = true;
+        try {
+            return next();
+        } finally {
+            reverse = false;
+        }
     }    
 
 }

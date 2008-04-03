@@ -31,6 +31,7 @@ public class MultiVersionIndex implements Index {
     private final TreeIndex delta;
     private final TableData table;
     private final Object sync;
+    private final Column firstColumn;
 
     public MultiVersionIndex(Index base, TableData table) throws SQLException {
         this.base = base;
@@ -38,6 +39,7 @@ public class MultiVersionIndex implements Index {
         IndexType deltaIndexType = IndexType.createNonUnique(false);
         this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(), deltaIndexType);
         this.sync = base.getDatabase();
+        this.firstColumn = base.getColumns()[0];
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -76,42 +78,39 @@ public class MultiVersionIndex implements Index {
     }
 
     public boolean canGetFirstOrLast() {
-        // TODO in many cases possible, but more complicated
-        return false;
+        return base.canGetFirstOrLast() && delta.canGetFirstOrLast();
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        int test;
-        throw Message.getUnsupportedException();
-   
-//        if (first) {
-//            // TODO optimization: this loops through NULL elements
-//            Cursor cursor = find(session, null, false, null);
-//            while (cursor.next()) {
-//                SearchRow row = cursor.getSearchRow();
-//                Value v = row.getValue(columnIds[0]);
-//                if (v != ValueNull.INSTANCE) {
-//                    return cursor;
-//                }
-//            }
-//            return null;
-//        } else {
-//            BtreePage root = getRoot(session);
-//            BtreeCursor cursor = new BtreeCursor(session, this, null);
-//            root.last(cursor);
-//            // TODO optimization: this loops through NULL elements
-//            do {
-//                SearchRow row = cursor.getSearchRow();
-//                if (row == null) {
-//                    break;
-//                }
-//                Value v = row.getValue(columnIds[0]);
-//                if (v != ValueNull.INSTANCE) {
-//                    return cursor;
-//                }
-//            } while (cursor.previous());
-//            return null;
-//        }        
+        if (first) {
+            // TODO optimization: this loops through NULL elements
+            Cursor cursor = find(session, null, null);
+            while (cursor.next()) {
+                SearchRow row = cursor.getSearchRow();
+                Value v = row.getValue(firstColumn.getColumnId());
+                if (v != ValueNull.INSTANCE) {
+                    return cursor;
+                }
+            }
+            return cursor;
+        } else {
+            Cursor baseCursor = base.findFirstOrLast(session, false);
+            Cursor deltaCursor = delta.findFirstOrLast(session, false);
+            MultiVersionCursor cursor = new MultiVersionCursor(session, this, baseCursor, deltaCursor, sync);
+            cursor.loadCurrent();
+            // TODO optimization: this loops through NULL elements
+            while (cursor.previous()) {
+                SearchRow row = cursor.getSearchRow();
+                if (row == null) {
+                    break;
+                }
+                Value v = row.getValue(firstColumn.getColumnId());
+                if (v != ValueNull.INSTANCE) {
+                    return cursor;
+                }
+            }
+            return cursor;
+        }        
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {

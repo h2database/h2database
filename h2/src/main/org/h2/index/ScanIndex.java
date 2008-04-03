@@ -166,7 +166,7 @@ public class ScanIndex extends BaseIndex {
                 for (int i = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     if (v.isLinked()) {
-                        session.unlinkAtCommit(v);
+                        session.unlinkAtCommit((ValueLob) v);
                     }
                 }
             }

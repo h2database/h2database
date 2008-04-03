@@ -12,8 +12,10 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -22,10 +24,9 @@ import org.h2.util.StringUtils;
  * This is a singleton class.
  */
 public class Engine {
-    // TODO use a 'engine'/'master' database to allow shut down the server, 
-    // view & kill sessions and so on
 
     private static final Engine INSTANCE = new Engine();
+    private static long delayWrongPassword = SysProperties.DELAY_WRONG_PASSWORD_MIN;
     private final HashMap databases = new HashMap();
 
     private Engine() {
@@ -73,12 +74,16 @@ public class Engine {
             }
             if (user == null) {
                 try {
-                    database.checkFilePasswordHash(cipher, ci.getFilePasswordHash());
-                    // create the exception here so it is not possible from the stack trace
-                    // to see if the user name was wrong or the password
-                    SQLException wrongUserOrPassword = Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
-                    user = database.getUser(ci.getUserName(), wrongUserOrPassword);
-                    user.checkUserPasswordHash(ci.getUserPasswordHash(), wrongUserOrPassword);
+                    boolean correct = database.validateFilePasswordHash(cipher, ci.getFilePasswordHash());
+                    if (correct) {
+                        user = database.findUser(ci.getUserName());
+                        if (user == null) {
+                            correct = false;
+                        } else {
+                            correct = user.validateUserPasswordHash(ci.getUserPasswordHash());
+                        }
+                    }
+                    validateUserAndPassword(correct);
                     if (opened && !user.getAdmin()) {
                         // reset - because the user is not an admin, and has no
                         // right to listen to exceptions
@@ -157,5 +162,48 @@ public class Engine {
     public void close(String name) {
         databases.remove(name);
     }
+    
+    /**
+     * This method is called after validating user name and password. If user
+     * name and password were correct, the sleep time is reset, otherwise this
+     * method waits some time (to make brute force / rainbow table attacks
+     * harder) and then throws a 'wrong user or password' exception. The delay
+     * is a bit randomized to protect against timing attacks. Also the delay
+     * doubles after each unsuccessful logins, to make brute force attacks harder.
+     * 
+     * There is only one exception both for wrong user and for wrong password,
+     * to make it harder to get the list of user names. This method must only be
+     * called from one place, so it is not possible from the stack trace to see 
+     * if the user name was wrong or the password.
+     * 
+     * @param correct if the user name or the password was correct
+     * @throws SQLException the exception 'wrong user or password'
+     */
+    public static synchronized void validateUserAndPassword(boolean correct) throws SQLException {
+        int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+        if (correct) {
+            delayWrongPassword = min;
+        } else {
+            long delay = delayWrongPassword;
+            if (min > 0) {
+                // a bit more to protect against timing attacks
+                delay += Math.abs(RandomUtils.getSecureLong() % 100);
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+            int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;
+            if (max <= 0) {
+                max = Integer.MAX_VALUE;
+            }
+            delayWrongPassword += delayWrongPassword;
+            if (delayWrongPassword > max || delayWrongPassword < 0) {
+                delayWrongPassword = max;
+            }
+            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
+        }
+    }    
 
 }

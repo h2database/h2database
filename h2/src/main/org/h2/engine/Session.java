@@ -659,7 +659,10 @@ public class Session implements SessionInterface {
         return database;
     }
 
-    public void unlinkAtCommit(Value v) {
+    public void unlinkAtCommit(ValueLob v) {
+        if (SysProperties.CHECK && !v.isLinked()) {
+            throw Message.getInternalError();
+        }
         if (unlinkMap == null) {
             unlinkMap = new HashMap();
         }

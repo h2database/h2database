@@ -157,7 +157,7 @@ public class RowList {
                 // the table id is 0 if it was linked when writing 
                 // a temporary entry
                 if (lob.getTableId() == 0) {
-                    session.unlinkAtCommit(v);
+                    session.unlinkAtCommit(lob);
                 }
             }
             values[i] = v;

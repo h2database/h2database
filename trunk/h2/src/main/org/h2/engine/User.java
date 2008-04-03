@@ -149,28 +149,15 @@ public class User extends RightOwner {
     }
 
     /**
-     * Check the password of this user. If the password is wrong, this method
-     * waits a short amount of time (to make S attacks harder) and then throws
-     * the exception that is passed. There is only one exception both for wrong
-     * user and for wrong password, to make it harder to get the list of user
-     * names.
+     * Check the password of this user.
      * 
      * @param userPasswordHash the password data (the user password hash)
-     * @param onError the exception that should be thrown if the password does
-     *            not match
-     * @throws SQLException if the password does not match
+     * @return true if the user password hash is correct
      */
-    public void checkUserPasswordHash(byte[] userPasswordHash, SQLException onError) throws SQLException {
+    public boolean validateUserPasswordHash(byte[] userPasswordHash) {
         SHA256 sha = new SHA256();
         byte[] hash = sha.getHashWithSalt(userPasswordHash, salt);
-        if (!ByteUtils.compareSecure(hash, passwordHash)) {
-            try {
-                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-            throw onError;
-        }
+        return ByteUtils.compareSecure(hash, passwordHash);
     }
 
     /**

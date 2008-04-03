@@ -169,11 +169,11 @@ public class Aggregate extends Expression {
                     first = !first;
                 }
                 Cursor cursor = index.findFirstOrLast(session, first);
+                SearchRow row = cursor.getSearchRow();
                 Value v;
-                if (cursor == null) {
+                if (row == null) {
                     v = ValueNull.INSTANCE;
                 } else {
-                    SearchRow row = cursor.getSearchRow();
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;

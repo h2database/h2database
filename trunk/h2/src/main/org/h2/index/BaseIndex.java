@@ -115,11 +115,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public abstract boolean canGetFirstOrLast();
 
     /**
-     * Find the first (or last) value of this index.
-     *
+     * Find the first (or last) value of this index. The cursor returned is
+     * positioned on the correct row, or on null if no row has been found.
+     * 
      * @param session the session
      * @param first true for the first value, false for the last
-     * @return a cursor or null
+     * @return a cursor (never null)
      */
     public abstract Cursor findFirstOrLast(Session session, boolean first) throws SQLException;
 

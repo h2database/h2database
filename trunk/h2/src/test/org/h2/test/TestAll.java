@@ -159,14 +159,41 @@ java org.h2.test.TestAll timer
 
 /*
 
-test # in h2 console (other languages)
+delay on wrong password: double the time, randomized, reset on right password
+
+optimize where x not in (select):
+SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
+VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
+
+drop table test;
+create table test(id int);
+select * from test t1 inner join test t2 
+inner join test t3 on t3.id=t2.id on t1.id=t2.id;
+-- supported by PostgreSQL, Derby,...; 
+not supported by MySQL,...
+
+wrong password should be synchronized outside: 
+wrong password should delay other wrong password, 
+but not right password
+
+javadocs: constructors are not listed (JdbcConnectionPoolManager)
+
+JdbcConnectionPoolManager pm = 
+new JdbcConnectionPoolManager();
+pm.setDataSource(ds);
+pm.setMaxConnection(10);
+pm.setTimeout(10);
+pm.start();
+or:
+JdbcConnectionPoolManager pm = 
+new JdbcConnectionPoolManager();
+    pm.setDataSource(ds).
+    setMaxConnection(10).setTimeout(10).start();
 
 include in the execution times in the debug log.
 (for each SQL statement ran)
 SQL:checksum:1ms SELECT * FROM TEST
 checksum: not including values, case insensitive
-
-make everything translatable
 
 Derby doesn't optimize it
 drop table test;
@@ -182,10 +209,6 @@ create index idx_test on test(id, version, idx);
 @LOOP 1000 select max(id)+1 from test;
 @LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
 -- should be direct query
-
-
-Fix ScriptBase.getFileName()
-Fix Shell.java 159 (close PreparedStatement)
 
 Browser problems:
 There has been a reported incompatibility with the 
@@ -240,6 +263,7 @@ The tools in the H2 Console are now translatable.
 Invalid inline views threw confusing SQL exceptions.
 The Japanese translation of the error messages and the 
   H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
+Optimization for MIN() and MAX() when using MVCC.
 
 Roadmap:
 
@@ -441,6 +465,7 @@ Roadmap:
      * Run all tests with the current settings.
      */
     private void test() throws Exception {
+        
         System.out.println();
         System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc + " deleteIndex:" + deleteIndex);
         beforeTest();

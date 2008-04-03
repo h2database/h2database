@@ -92,7 +92,9 @@ public class BtreeCursor implements Cursor {
     }
     
     public boolean previous() throws SQLException {
-        top.page.previous(this, top.position);
+        if (currentSearchRow != null) {
+            top.page.previous(this, top.position);
+        }
         return currentSearchRow != null;
     }
     

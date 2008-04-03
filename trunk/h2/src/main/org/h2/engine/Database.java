@@ -396,15 +396,8 @@ public class Database implements DataHandler {
         return store;
     }
 
-    public void checkFilePasswordHash(String c, byte[] hash) throws SQLException {
-        if (!ByteUtils.compareSecure(hash, filePasswordHash) || !StringUtils.equals(c, cipher)) {
-            try {
-                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
-        }
+    public boolean validateFilePasswordHash(String c, byte[] hash) throws SQLException {
+        return ByteUtils.compareSecure(hash, filePasswordHash) && StringUtils.equals(c, cipher);
     }
 
     private void openFileData() throws SQLException {
@@ -789,33 +782,12 @@ public class Database implements DataHandler {
         return (UserDataType) userDataTypes.get(name);
     }
 
-    /**
-     * Get the user with the given name. If there is no such user, this method
-     * waits a short amount of time (to make rainbow table attacks harder) and
-     * then throws the exception that is passed. There is only one exception
-     * both for wrong user and for wrong password, to make it harder to get the
-     * list of user names.
-     * 
-     * @param name the user name
-     * @param notFound the exception that should be thrown if the user does not
-     *            exist
-     * @throws SQLException if the user does not exist
-     */
-    public User getUser(String name, SQLException notFound) throws SQLException {
-        User user = (User) users.get(name);
+    public User getUser(String name) throws SQLException {
+        User user = findUser(name);
         if (user == null) {
-            try {
-                Thread.sleep(Constants.DELAY_WRONG_PASSWORD);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-            throw notFound;
+            throw Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name);
         }
         return user;
-    }
-
-    public User getUser(String name) throws SQLException {
-        return getUser(name, Message.getSQLException(ErrorCode.USER_NOT_FOUND_1, name));
     }
 
     public synchronized Session createUserSession(User user) throws SQLException {

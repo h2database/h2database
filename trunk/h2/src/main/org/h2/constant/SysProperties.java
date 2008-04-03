@@ -157,6 +157,24 @@ public class SysProperties {
      * The default value for the LOCK_MODE setting.
      */
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
+    
+    /**
+     * System property <code>h2.delayWrongPasswordMin</code> (default: 200).<br />
+     * The minimum delay in milliseconds before an exception is thrown for using
+     * the wrong user name or password. This slows down brute force attacks. The
+     * delay is reset to this value after a successful login. Unsuccessful
+     * logins will double the time until DELAY_WRONG_PASSWORD_MAX.
+     */
+    public static final int DELAY_WRONG_PASSWORD_MIN = getIntSetting("h2.delayWrongPasswordMin", 200);
+    
+    /**
+     * System property <code>h2.delayWrongPasswordMax</code> (default: 0).<br />
+     * The maximum delay in milliseconds before an exception is thrown for using
+     * the wrong user name or password. This slows down brute force attacks. The
+     * delay is reset after a successful login. The value 0 means there is no
+     * maximum delay.
+     */
+    public static final int DELAY_WRONG_PASSWORD_MAX = getIntSetting("h2.delayWrongPasswordMax", 0);
 
     /**
      * System property <code>h2.emergencySpaceInitial</code> (default: 262144).<br />

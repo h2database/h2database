@@ -382,7 +382,7 @@ public class TreeIndex extends BaseIndex {
                     return cursor;
                 }
             }
-            return null;
+            return cursor;
         } else {
             TreeNode x = root, n;
             while (x != null) {
@@ -392,10 +392,10 @@ public class TreeIndex extends BaseIndex {
                 }
                 x = n;
             }
-            if (x == null) {
-                return null;
-            }
             TreeCursor cursor = new TreeCursor(this, x, null, null);
+            if (x == null) {
+                return cursor;
+            }
             // TODO optimization: this loops through NULL elements
             do {
                 SearchRow row = cursor.getSearchRow();
@@ -407,7 +407,7 @@ public class TreeIndex extends BaseIndex {
                     return cursor;
                 }
             } while (cursor.previous());
-            return null;
+            return cursor;
         }
     }
 

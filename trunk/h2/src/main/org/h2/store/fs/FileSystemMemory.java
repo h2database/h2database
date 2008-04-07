@@ -36,6 +36,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public void rename(String oldName, String newName) throws SQLException {
+        oldName = normalize(oldName);
+        newName = normalize(newName);
         FileObjectMemory f = getMemoryFile(oldName);
         f.setName(newName);
         synchronized (MEMORY_FILES) {
@@ -54,18 +56,21 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean exists(String fileName) {
+        fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             return MEMORY_FILES.get(fileName) != null;
         }
     }
 
     public void delete(String fileName) throws SQLException {
+        fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
         }
     }
 
-    public boolean tryDelete(String fileName) {      
+    public boolean tryDelete(String fileName) {    
+        fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
         }
@@ -104,12 +109,21 @@ public class FileSystemMemory extends FileSystem {
         return false;
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
+        fileName = fileName.replace('\\', '/');
+        int idx = fileName.indexOf(":/");
+        if (idx > 0) {
+            fileName = fileName.substring(0, idx + 1) + fileName.substring(idx + 2);
+        }
         return fileName;
     }
 
     public String getParent(String fileName) {
-        int idx = Math.max(fileName.indexOf(':'), fileName.lastIndexOf('/'));
+        fileName = normalize(fileName);
+        int idx = fileName.lastIndexOf('/');
+        if (idx < 0) {
+            idx = fileName.indexOf(':') + 1;
+        }
         return fileName.substring(0, idx);
     }
 
@@ -125,7 +139,7 @@ public class FileSystemMemory extends FileSystem {
 
     public String getAbsolutePath(String fileName) {
         // TODO relative files are not supported
-        return fileName;
+        return normalize(fileName);
     }
 
     public long getLastModified(String fileName) {
@@ -156,6 +170,8 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
+        fileName = normalize(fileName);
+        prefix = normalize(prefix);
         return fileName.startsWith(prefix);
     }
 
@@ -182,6 +198,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     private FileObjectMemory getMemoryFile(String fileName) {
+        fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);
             if (m == null) {

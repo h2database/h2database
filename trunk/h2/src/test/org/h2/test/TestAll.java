@@ -159,11 +159,28 @@ java org.h2.test.TestAll timer
 
 /*
 
-delay on wrong password: double the time, randomized, reset on right password
+1. get application here: http://krtonozka23.savana.cz/mismatch_error.zip
+2. unpack and execute: java -jar executeh2script.jar
+3. it will copy the prepared database from basedb into dbtest
+directory and execute the crashScript.txt upon it.
+4. connect to created dbtest database with h2 console and execute:
+SELECT Data FROM FD_12_5001 WHERE TypeId=4 ORDER BY Ts DESC;
+5. you should got something like: General error: java.lang.Error: File
+ID mismatch got=1707400262 expected=41 pos=57219 true
+org.h2.store.DiskFile:E:\WiMax\projects\Java\ExecuteH2Script\dbtest
+\dbtest.data.db blockCount:-755423910 [50000-67] (Help)
 
-optimize where x not in (select):
-SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
-VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
+File ID mismatch: 2008-03-21.trace.zip
+
+test ConvertTraceFile
+include in the execution times in the debug log.
+(for each SQL statement ran)
+SQL:checksum:1ms SELECT * FROM TEST
+checksum: not including values, case insensitive
+
+better document system tables
+
+.tar.bz2 instead of .zip
 
 drop table test;
 create table test(id int);
@@ -172,43 +189,9 @@ inner join test t3 on t3.id=t2.id on t1.id=t2.id;
 -- supported by PostgreSQL, Derby,...; 
 not supported by MySQL,...
 
-wrong password should be synchronized outside: 
-wrong password should delay other wrong password, 
-but not right password
-
-javadocs: constructors are not listed (JdbcConnectionPoolManager)
-
-JdbcConnectionPoolManager pm = 
-new JdbcConnectionPoolManager();
-pm.setDataSource(ds);
-pm.setMaxConnection(10);
-pm.setTimeout(10);
-pm.start();
-or:
-JdbcConnectionPoolManager pm = 
-new JdbcConnectionPoolManager();
-    pm.setDataSource(ds).
-    setMaxConnection(10).setTimeout(10).start();
-
-include in the execution times in the debug log.
-(for each SQL statement ran)
-SQL:checksum:1ms SELECT * FROM TEST
-checksum: not including values, case insensitive
-
-Derby doesn't optimize it
-drop table test;
-create table test(id int, version int, idx int);
-@LOOP 1000 insert into test values(1, 1, ?);
-@LOOP 1000 insert into test values(1, 2, ?);
-@LOOP 1000 insert into test values(2, 1, ?);
-create index idx_test on test(id, version, idx);
-@LOOP 1000 select max(id)+1 from test;
-@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
-@LOOP 1000 select max(id)+1 from test;
-@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
-@LOOP 1000 select max(id)+1 from test;
-@LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
--- should be direct query
+optimize where x not in (select):
+SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
+VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
 
 Browser problems:
 There has been a reported incompatibility with the 
@@ -258,14 +241,31 @@ Can sometimes not delete log file? need test case
 
 Add where required // TODO: change in version 1.1
 
+http://www.w3schools.com/sql/
+
 History:
+The autocomplete in the H2 Console has been improved a bit.
 The tools in the H2 Console are now translatable.
 Invalid inline views threw confusing SQL exceptions.
 The Japanese translation of the error messages and the 
   H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
 Optimization for MIN() and MAX() when using MVCC.
+To protect against remote brute force password attacks, 
+    the delay after each unsuccessful login now gets double as long.
+    Use the system properties h2.delayWrongPasswordMin
+    and h2.delayWrongPasswordMax
+After setting the query timeout and then resetting it, the next query
+    would still timeout. Fixed.
+Adding a IDENTITY column to a table with data threw a lock timeout.
+OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
+The built-in connection pool is not called JdbcConnectionPool. 
+    The API and documentation has been changed.
 
 Roadmap:
+Doclet (javadocs): constructors are not listed
+Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup)
+
+
 
 */
 

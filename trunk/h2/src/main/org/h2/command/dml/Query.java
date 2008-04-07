@@ -217,7 +217,7 @@ public abstract class Query extends Prepared {
         }
         Value[] params = getParameterValues();
         long now = session.getDatabase().getModificationDataId();
-        if (lastResult != null && limit == lastLimit) {
+        if (lastResult != null && !lastResult.isClosed() && limit == lastLimit) {
             if (sameResultAsLast(session, params, lastParameters, lastEvaluated)) {
                 lastResult = lastResult.createShallowCopy(session);
                 if (lastResult != null) {

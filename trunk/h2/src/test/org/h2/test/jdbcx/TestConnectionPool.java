@@ -8,7 +8,7 @@ package org.h2.test.jdbcx;
 import java.sql.Connection;
 import java.sql.Statement;
 
-import org.h2.jdbcx.JdbcConnectionPoolManager;
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
 
@@ -25,7 +25,7 @@ public class TestConnectionPool extends TestBase {
     
     private void testThreads() throws Exception {
         final int len = getSize(4, 20);
-        final JdbcConnectionPoolManager man = getConnectionPool(len - 2);
+        final JdbcConnectionPool man = getConnectionPool(len - 2);
         final boolean[] stop = new boolean[1];
         class TestRunner implements Runnable {
             public void run() {
@@ -57,16 +57,18 @@ public class TestConnectionPool extends TestBase {
         man.dispose();
     }
     
-    JdbcConnectionPoolManager getConnectionPool(int poolSize) throws Exception {
+    JdbcConnectionPool getConnectionPool(int poolSize) throws Exception {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("connectionPool", true));
         ds.setUser(getUser());
         ds.setPassword(getPassword());
-        return new JdbcConnectionPoolManager(ds, poolSize, 2);
+        JdbcConnectionPool pool = JdbcConnectionPool.create(ds);
+        pool.setMaxConnections(poolSize);
+        return pool;
     }
     
     private void testConnect() throws Exception {
-        JdbcConnectionPoolManager man = getConnectionPool(3);
+        JdbcConnectionPool man = getConnectionPool(3);
         for (int i = 0; i < 100; i++) {
             Connection conn = man.getConnection();
             conn.close();

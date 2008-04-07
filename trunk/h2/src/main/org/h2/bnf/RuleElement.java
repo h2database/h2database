@@ -29,6 +29,10 @@ public class RuleElement implements Rule {
         topic = StringUtils.toLowerEnglish(topic);
         this.type = topic.startsWith("function") ? Sentence.FUNCTION : Sentence.KEYWORD;
     }
+    
+    public String toString() {
+        return name;
+    }
 
     RuleElement merge(RuleElement rule) {
         return new RuleElement(name + " " + rule.name, topic);
@@ -72,41 +76,48 @@ public class RuleElement implements Rule {
         }
     }
 
-    public String matchRemove(String query, Sentence sentence) {
+    public boolean matchRemove(Sentence sentence) {
         if (sentence.stop()) {
-            return null;
+            return false;
         }
+        String query = sentence.query;
         if (query.length() == 0) {
-            return null;
+            return false;
         }
         if (keyword) {
-            String up = StringUtils.toUpperEnglish(query);
+            String up = sentence.queryUpper;
             if (up.startsWith(name)) {
                 query = query.substring(name.length());
                 while (!"_".equals(name) && query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                     query = query.substring(1);
                 }
-                return query;
+                sentence.setQuery(query);
+                return true;
             }
-            return null;
+            return false;
         } else {
-            query = link.matchRemove(query, sentence);
-            if (query != null && name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
+            if (!link.matchRemove(sentence)) {
+                return false;
+            }
+            if (name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
+                query = sentence.query;
                 while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                     query = query.substring(1);
                 }
+                sentence.setQuery(query);
             }
-            return query;
+            return true;
         }
     }
 
-    public void addNextTokenList(String query, Sentence sentence) {
+    public void addNextTokenList(Sentence sentence) {
         if (sentence.stop()) {
             return;
         }
         if (keyword) {
+            String query = sentence.query;
             String q = query.trim();
-            String up = StringUtils.toUpperEnglish(q);
+            String up = sentence.queryUpper.trim();
             if (q.length() == 0 || name.startsWith(up)) {
                 if (q.length() < name.length()) {
                     sentence.add(name, name.substring(q.length()), type);
@@ -114,7 +125,7 @@ public class RuleElement implements Rule {
             }
             return;
         }
-        link.addNextTokenList(query, sentence);
+        link.addNextTokenList(sentence);
     }
 
     boolean isKeyword() {

@@ -53,9 +53,7 @@ public class Driver implements java.sql.Driver {
             if (!acceptsURL(url)) {
                 return null;
             }
-            synchronized (this) {
-                return new JdbcConnection(url, info);
-            }
+            return new JdbcConnection(url, info);
         } catch (Throwable e) {
             throw Message.convert(e);
         }

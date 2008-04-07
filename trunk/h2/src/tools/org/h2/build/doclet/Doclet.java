@@ -59,8 +59,9 @@ public class Doclet {
         return true;
     }
 
-    private static String getClass(String name) {
-        if (name.startsWith("Jdbc")) {
+    private static String getClass(ClassDoc clazz) {
+        String name = clazz.name();
+        if (clazz.qualifiedName().indexOf(".jdbc.") > 0 && name.startsWith("Jdbc")) {
             return name.substring(4);
         }
         return name;
@@ -71,7 +72,7 @@ public class Doclet {
         String dir = destDir + "/" + packageName.replace('.', '/');
         (new File(dir)).mkdirs();
         String fileName = dir + "/" + clazz.name() + ".html";
-        String className = getClass(clazz.name());
+        String className = getClass(clazz);
         FileWriter out = new FileWriter(fileName);
         PrintWriter writer = new PrintWriter(new BufferedWriter(out));
         writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" " + 

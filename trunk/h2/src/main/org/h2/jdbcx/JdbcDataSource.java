@@ -291,7 +291,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 //#endif
 
     /**
-     * Open a new XA connection using the current URL, user name and password.
+     * Open a new pooled connection using the current URL, user name and password.
      *
      * @return the connection
      */
@@ -303,7 +303,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
 //#endif
 
     /**
-     * Open a new XA connection using the current URL and the specified user
+     * Open a new pooled connection using the current URL and the specified user
      * name and password.
      * 
      * @param user the user name

@@ -82,36 +82,44 @@ public class Sequence extends SchemaObjectBase {
         return buff.toString();
     }
 
-    public synchronized long getNext() throws SQLException {
+    public synchronized long getNext(Session session) throws SQLException {
         if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
             valueWithMargin += increment * cacheSize;
-            flush();
+            flush(session);
         }
         long v = value;
         value += increment;
         return v;
     }
 
-    public synchronized void flush() throws SQLException {
-        // can not use the session, because it must be committed immediately
-        // otherwise other threads can not access the sys table.
+    public synchronized void flush(Session session) throws SQLException {
         Session sysSession = database.getSystemSession();
-        synchronized (sysSession) {
+        if (session == null || !database.isSysTableLocked()) {
+            // this session may not lock the sys table (except if it already has locked it)
+            // because it must be committed immediately
+            // otherwise other threads can not access the sys table.
+            session = sysSession;
+        }
+        synchronized (session) {
             // just for this case, use the value with the margin for the script
             long realValue = value;
             try {
                 value = valueWithMargin;
-                database.update(sysSession, this);
+                database.update(session, this);
             } finally {
                 value = realValue;
             }
-            sysSession.commit(false);
+            if (session == sysSession) {
+                // if the system session is used,
+                // the transaction must be committed immediately
+                sysSession.commit(false);
+            }
         }
     }
 
     public void close() throws SQLException {
         valueWithMargin = value;
-        flush();
+        flush(null);
     }
 
     public int getType() {

@@ -45,6 +45,7 @@ public class LocalResult implements ResultInterface {
     private boolean isUpdateCount;
     private int updateCount;
     private boolean distinct;
+    private boolean closed;
 
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
         ObjectArray cols = getExpressionColumns(session, rs);
@@ -314,11 +315,16 @@ public class LocalResult implements ResultInterface {
             }
         }
     }
+    
+    public boolean needToClose() {
+        return disk != null;
+    }
 
     public void close() {
         if (disk != null) {
             disk.close();
             disk = null;
+            closed = true;
         }
     }
 
@@ -392,6 +398,10 @@ public class LocalResult implements ResultInterface {
 
     public String toString() {
         return "columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
 }

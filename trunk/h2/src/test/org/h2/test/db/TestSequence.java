@@ -17,9 +17,22 @@ import org.h2.test.TestBase;
 public class TestSequence extends TestBase {
 
     public void test() throws Exception {
+        testAlterSequenceColumn();
         testAlterSequence();
         testCache();
         testTwo();
+    }
+    
+    private void testAlterSequenceColumn() throws Exception {
+        deleteDb("sequence");
+        Connection conn = getConnection("sequence");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT , NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT IDENTITY");
+        stat.execute("ALTER TABLE test ALTER COLUMN ID RESTART WITH 3");
+        stat.execute("INSERT INTO TEST (name) VALUES('Other World')");
+        conn.close();
     }
     
     private void testAlterSequence() throws Exception {

@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.StringTokenizer;
 
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
@@ -20,6 +24,31 @@ import org.h2.util.Tool;
  * This is required because the find command truncates lines.
  */
 public class ConvertTraceFile extends Tool {
+    
+    private HashMap stats = new HashMap();
+    private long timeTotal;
+    
+    private static class Stat implements Comparable {
+        String sql;
+        int executeCount;
+        long time;
+        long resultCountTotal;
+        
+        public int compareTo(Object o) {
+            Stat other = (Stat) o;
+            if (other == this) {
+                return 0;
+            }
+            int c = other.time > time ? 1 : other.time < time ? -1 : 0;
+            if (c == 0) {
+                c = other.executeCount > executeCount ? 1 : other.executeCount < executeCount ? -1 : 0;
+                if (c == 0) {
+                    c = sql.compareTo(other.sql);
+                }
+            }
+            return c;
+        }
+    }
 
     private void showUsage() {
         out.println("Converts a .trace.db file to a SQL script and Java source code.");
@@ -107,16 +136,60 @@ public class ConvertTraceFile extends Tool {
             if (line.startsWith("/**/")) {
                 line = "        " + line.substring(4);
                 javaWriter.println(line);
-            } else if (line.startsWith("/*SQL*/")) {
-                line = line.substring("/*SQL*/".length());
-                scriptWriter.println(StringUtils.javaDecode(line));
+            } else if (line.startsWith("/*SQL")) {
+                int end = line.indexOf("*/");
+                String sql = line.substring(end + "*/".length());
+                line = line.substring("/*SQL".length(), end);
+                if (line.length() > 0) {
+                    int len = sql.length();
+                    int count = 0;
+                    int time = 0;
+                    line = line.trim();
+                    if (line.length() > 0) {
+                        StringTokenizer tk = new StringTokenizer(line, " :");
+                        while (tk.hasMoreElements()) {
+                            String token = tk.nextToken();
+                            if ("l".equals(token)) {
+                                len = Integer.parseInt(tk.nextToken());
+                            } else if ("#".equals(token)) {
+                                count = Integer.parseInt(tk.nextToken());
+                            } else if ("t".equals(token)) {
+                                time = Integer.parseInt(tk.nextToken());
+                            }
+                        }
+                    }
+                    String statement = sql.substring(0, len);
+                    addToStats(statement, count, time);
+                }
+                scriptWriter.println(StringUtils.javaDecode(sql));
             }
         }
         javaWriter.println("    }");
         javaWriter.println("}");
         reader.close();
         javaWriter.close();
+        if (stats.size() > 0) {
+            scriptWriter.println("---------------------------------------------------------------");
+            ArrayList list = new ArrayList(stats.values());
+            Collections.sort(list);
+            
+            int todo;
+            scriptWriter.println("--");
+        }
         scriptWriter.close();
+    }
+
+    private void addToStats(String sql, int resultCount, int time) {
+        Stat stat = (Stat) stats.get(sql);
+        if (stat == null) {
+            stat = new Stat();
+            stat.sql = sql;
+            stats.put(sql, stat);
+        }
+        stat.executeCount++;
+        stat.resultCountTotal += resultCount;
+        stat.time += time;
+        timeTotal += time;
     }
 
 }

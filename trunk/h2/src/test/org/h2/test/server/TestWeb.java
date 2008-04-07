@@ -55,6 +55,14 @@ public class TestWeb extends TestBase {
         result = client.get(url, "getHistory.do?id=4");
         checkContains(result, "select * from test");
         result = client.get(url, "autoCompleteList.do?query=se");
+        
+//        long time = System.currentTimeMillis();
+//        for (int i=0; i<1000; i++) {
+//            if(System.currentTimeMillis()-time > 15000) {
+//                break;
+//            }
+//        result = client.get(url, "autoCompleteList.do?query=select * from ");
+        
         checkContains(result, "select");
         checkContains(result, "set");
         result = client.get(url, "tables.do");

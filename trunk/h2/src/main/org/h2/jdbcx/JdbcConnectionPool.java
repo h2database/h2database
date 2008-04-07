@@ -19,82 +19,116 @@
  */
 package org.h2.jdbcx;
 
-import java.util.Stack;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import javax.sql.ConnectionPoolDataSource;
+import java.util.Stack;
+
 import javax.sql.ConnectionEvent;
+import javax.sql.DataSource;
 import javax.sql.ConnectionEventListener;
+import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
 
 /**
- * A simple standalone JDBC connection pool manager.
+ * A simple standalone JDBC connection pool.
  * It is based on the 
  * <a href="http://www.source-code.biz/snippets/java/8.htm">
- *  MiniConnectionPoolManager written by Christian d'Heureuse (JDK 1.5)
- * </a>.
+ *  MiniConnectionPoolManager written by Christian d'Heureuse (Java 1.5)
+ * </a>. It is used as follows:
+ * <pre>
+ * // init
+ * import org.h2.jdbcx.*;
+ * ...
+ * JdbcDataSource ds = new JdbcDataSource();
+ * ds.setURL("jdbc:h2:~/test");
+ * ds.setUser("sa");
+ * ds.setPassword("sa");
+ * JdbcConnectionPool cp = JdbcConnectionPool.create(ds);
+ * // use
+ * Connection conn = cp.getConnection();
+ * ...
+ * conn.close();
+ * // dispose
+ * cp.dispose();
+ * </pre>
  * 
  * @author Christian d'Heureuse 
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
- * @author Thomas Mueller (ported to JDK 1.4)
+ * @author Thomas Mueller (ported to Java 1.4, some changes)
  */
-public class JdbcConnectionPoolManager {
+public class JdbcConnectionPool implements DataSource {
 
-    private ConnectionPoolDataSource dataSource;
-    private int maxConnections;
-    private int timeout;
+    private final ConnectionPoolDataSource dataSource;
+    private final Stack recycledConnections = new Stack();
+    private final PoolConnectionEventListener poolConnectionEventListener = new PoolConnectionEventListener();
     private PrintWriter logWriter;
-    private Stack recycledConnections;
+    private int maxConnections = 10;
+    private int timeout = 60;
     private int activeConnections;
-    private PoolConnectionEventListener poolConnectionEventListener;
     private boolean isDisposed;
 
     /**
-     * This inThrown in {@link #getConnection()} when no free connection becomes
-     * available within <code>timeout</code> seconds.
-     */
-    public static class TimeoutException extends RuntimeException {
-        private static final long serialVersionUID = 1;
-
-        public TimeoutException() {
-            super("Timeout while waiting for a free database connection.");
-        }
-    }
-
-    /**
-     * Constructs a JdbcConnectionPoolManager object with a timeout of 60
-     * seconds.
+     * Constructs a new connection pool.
      * 
-     * @param dataSource the data source for the connections.
-     * @param maxConnections the maximum number of connections.
+     * @param dataSource the data source to create connections
+     * @return the connection pool
      */
-    public JdbcConnectionPoolManager(ConnectionPoolDataSource dataSource, int maxConnections) {
-        this(dataSource, maxConnections, 60);
+    public static JdbcConnectionPool create(ConnectionPoolDataSource dataSource) {
+        return new JdbcConnectionPool(dataSource);
     }
-
-    /**
-     * Constructs a JdbcConnectionPoolManager object.
-     * 
-     * @param dataSource the data source for the connections.
-     * @param maxConnections the maximum number of connections.
-     * @param timeout the maximum time in seconds to wait for a free connection.
-     */
-    public JdbcConnectionPoolManager(ConnectionPoolDataSource dataSource, int maxConnections, int timeout) {
+    
+    private JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
         this.dataSource = dataSource;
-        this.maxConnections = maxConnections;
-        this.timeout = timeout;
         try {
             logWriter = dataSource.getLogWriter();
         } catch (SQLException e) {
         }
+    }
+    
+    /**
+     * Sets the maximum number of connections to use from now on.
+     * The default value is 10 connections.
+     * 
+     * @param max the maximum number of connections
+     */
+    public synchronized void setMaxConnections(int max) {
         if (maxConnections < 1) {
             throw new IllegalArgumentException("Invalid maxConnections value.");
         }
-        recycledConnections = new Stack();
-        poolConnectionEventListener = new PoolConnectionEventListener();
+        this.maxConnections = max;
+        // notify waiting threads if the value was increased
+        notifyAll();
     }
-
+    
+    /**
+     * Gets the maximum number of connections to use.
+     * 
+     * @return the max the maximum number of connections
+     */
+    public synchronized int getMaxConnections() {
+        return maxConnections;
+    }
+    
+    /**
+     * Gets the maximum time in seconds to wait for a free connection.
+     * 
+     * @return the timeout in seconds
+     */    
+    public synchronized int getLoginTimeout() {
+        return timeout;
+    }
+    
+    /**
+     * Sets the maximum time in seconds to wait for a free connection.
+     * The default timeout is 60 seconds.
+     * 
+     * @param seconds the maximum timeout
+     */
+    public synchronized void setLoginTimeout(int seconds) throws SQLException {
+        this.timeout = seconds;
+    }
+    
     /**
      * Closes all unused pooled connections.
      */
@@ -125,10 +159,12 @@ public class JdbcConnectionPoolManager {
      * waits until a connection becomes available or <code>timeout</code>
      * seconds elapsed. When the application is finished using the connection,
      * it must close it in order to return it to the pool.
+     * If no connection becomes available within the given timeout, an exception
+     * with SQL state 08001 and vendor code 8001 is thrown.
      * 
      * @return a new Connection object.
-     * @throws TimeoutException when no connection becomes available within
-     *             <code>timeout</code> seconds.
+     * @throws SQLException when a new connection could not be established, 
+     *      or a timeout occured
      */
     public Connection getConnection() throws SQLException {
         for (int i = 0;; i++) {
@@ -137,7 +173,7 @@ public class JdbcConnectionPoolManager {
                     return getConnectionNow();
                 }
                 if (i >= timeout) {
-                    throw new TimeoutException();
+                    throw new SQLException("Login timeout", "08001", 8001);
                 }
                 try {
                     wait(1000);
@@ -161,7 +197,6 @@ public class JdbcConnectionPoolManager {
         Connection conn = pc.getConnection();
         activeConnections++;
         pc.addConnectionEventListener(poolConnectionEventListener);
-        assertInnerState();
         return conn;
     }
 
@@ -174,9 +209,20 @@ public class JdbcConnectionPoolManager {
             throw new AssertionError();
         }
         activeConnections--;
+        if (activeConnections < maxConnections) {
+            recycledConnections.push(pc);
+        } else {
+            closeConnection(pc);
+        }
         notifyAll();
-        recycledConnections.push(pc);
-        assertInnerState();
+    }
+    
+    private void closeConnection(PooledConnection pc) {
+        try {
+            pc.close();
+        } catch (SQLException e) {
+            log("Error while closing database connection: " + e.toString());
+        }
     }
 
     private synchronized void disposeConnection(PooledConnection pc) {
@@ -185,16 +231,11 @@ public class JdbcConnectionPoolManager {
         }
         activeConnections--;
         notifyAll();
-        try {
-            pc.close();
-        } catch (SQLException e) {
-            log("Error while closing database connection: " + e.toString());
-        }
-        assertInnerState();
+        closeConnection(pc);
     }
 
     private void log(String msg) {
-        String s = "JdbcConnectionPoolManager: " + msg;
+        String s = getClass().getName() + ": " + msg;
         try {
             if (logWriter == null) {
                 System.err.println(s);
@@ -202,15 +243,6 @@ public class JdbcConnectionPoolManager {
                 logWriter.println(s);
             }
         } catch (Exception e) {
-        }
-    }
-
-    private void assertInnerState() {
-        if (activeConnections < 0) {
-            throw new AssertionError();
-        }
-        if (activeConnections + recycledConnections.size() > maxConnections) {
-            throw new AssertionError();
         }
     }
 
@@ -238,6 +270,27 @@ public class JdbcConnectionPoolManager {
      */
     public synchronized int getActiveConnections() {
         return activeConnections;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Connection getConnection(String username, String password) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public PrintWriter getLogWriter() throws SQLException {
+        return logWriter;
+    }
+
+    /**
+     * INTERNAL
+     */    
+    public void setLogWriter(PrintWriter logWriter) throws SQLException {
+        this.logWriter = logWriter;
     }
 
 }

@@ -274,11 +274,12 @@ public abstract class Prepared {
         this.session = currentSession;
     }
 
-    void trace() throws SQLException {
+    void trace(long startTime, int count) throws SQLException {
         if (session.getTrace().info()) {
-            StringBuffer buff = new StringBuffer();
-            buff.append(sql);
+            long time = System.currentTimeMillis() - startTime;
+            String params;
             if (parameters.size() > 0) {
+                StringBuffer buff = new StringBuffer(parameters.size() * 10);
                 buff.append(" {");
                 for (int i = 0; i < parameters.size(); i++) {
                     if (i > 0) {
@@ -289,11 +290,12 @@ public abstract class Prepared {
                     Expression e = (Expression) parameters.get(i);
                     buff.append(e.getValue(session).getSQL());
                 }
-                buff.append("};");
+                buff.append("}");
+                params = buff.toString();
             } else {
-                buff.append(';');
+                params = "";
             }
-            session.getTrace().infoSQL(buff.toString());
+            session.getTrace().infoSQL(sql, params, count, time);
         }
     }
 

@@ -17,6 +17,10 @@ public class RuleOptional implements Rule {
     RuleOptional(Rule rule, boolean repeat) {
         this.rule = rule;
     }
+    
+    public String toString() {
+        return "[" + rule.toString() + "]";
+    }
 
     public String name() {
         return null;
@@ -41,25 +45,25 @@ public class RuleOptional implements Rule {
         }
     }
 
-    public String matchRemove(String query, Sentence sentence) {
+    public boolean matchRemove(Sentence sentence) {
         if (sentence.stop()) {
-            return null;
+            return false;
         }
+        String query = sentence.query;
         if (query.length() == 0) {
-            return query;
+            return true;
         }
-        String s = rule.matchRemove(query, sentence);
-        if (s == null) {
-            return query;
+        if (!rule.matchRemove(sentence)) {
+            return true;
         }
-        return s;
+        return true;
     }
 
-    public void addNextTokenList(String query, Sentence sentence) {
+    public void addNextTokenList(Sentence sentence) {
         if (sentence.stop()) {
             return;
         }
-        rule.addNextTokenList(query, sentence);
+        rule.addNextTokenList(sentence);
     }
 
 }

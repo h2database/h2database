@@ -772,10 +772,16 @@ public class Session implements SessionInterface {
     }
 
     public void addTemporaryResult(LocalResult result) {
+        if (!result.needToClose()) {
+            return;
+        }
         if (temporaryResults == null) {
             temporaryResults = new HashSet();
         }
-        temporaryResults.add(result);
+        if (temporaryResults.size() < 100) {
+            // reference at most 100 result sets to avoid memory problems
+            temporaryResults.add(result);
+        }
     }
 
     public void closeTemporaryResults() {
@@ -784,6 +790,7 @@ public class Session implements SessionInterface {
                 LocalResult result = (LocalResult) it.next();
                 result.close();
             }
+            temporaryResults = null;
         }
     }
 
@@ -794,6 +801,9 @@ public class Session implements SessionInterface {
             queryTimeout = max;
         }
         this.queryTimeout = queryTimeout;
+        // must reset the cancel at here,
+        // otherwise it is still used
+        this.cancelAt = 0;
     }
 
     public int getQueryTimeout() {

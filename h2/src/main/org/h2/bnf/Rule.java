@@ -46,21 +46,19 @@ public interface Rule {
      * Add the next possible token for a query.
      * Used for autocomplete support.
      *
-     * @param query the query
      * @param sentence the sentence context
      */
-    void addNextTokenList(String query, Sentence sentence);
+    void addNextTokenList(Sentence sentence);
 
     /**
      * Remove a token from a sentence. Used for autocomplete support.
+     * If there was a match, the query in the sentence is updated
+     * (the matched token is removed).
      * 
-     * @param query
-     *            the query
      * @param sentence
      *            the sentence context
-     * @return null if not a match or a partial match, query.substring... if a
-     *         full match
+     * @return false if not a match or a partial match, true if a full match
      */
-    String matchRemove(String query, Sentence sentence);
+    boolean matchRemove(Sentence sentence);
 
 }

@@ -44,10 +44,27 @@ public class TestCancel extends TestBase {
     }
 
     public void test() throws Exception {
+        testReset();
         testMaxQueryTimeout();
         testQueryTimeout();
         testJdbcQueryTimeout();
         testCancelStatement();
+    }
+    
+    private void testReset() throws Exception {
+        deleteDb("cancel");
+        Connection conn = getConnection("cancel");
+        Statement stat = conn.createStatement();
+        stat.execute("set query_timeout 1");
+        try {
+            stat.execute("select count(*) from system_range(1, 1000000), system_range(1, 1000000)");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        stat.execute("set query_timeout 0");
+        stat.execute("select count(*) from system_range(1, 1000), system_range(1, 1000)");
+        conn.close();
     }
 
     private void testJdbcQueryTimeout() throws Exception {

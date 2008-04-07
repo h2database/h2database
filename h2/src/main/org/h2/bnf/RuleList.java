@@ -16,6 +16,28 @@ public class RuleList implements Rule {
     private boolean or;
     private ArrayList list;
     private boolean mapSet;
+    
+    public String toString() {
+        StringBuffer buff = new StringBuffer();
+        if (or) {
+            buff.append("{");
+            for (int i = 0; i < list.size(); i++) {
+                if (i > 0) {
+                    buff.append("|");
+                }
+                buff.append(list.get(i).toString());
+            }
+            buff.append("}");
+        } else {
+            for (int i = 0; i < list.size(); i++) {
+                if (i > 0) {
+                    buff.append(" ");
+                }
+                buff.append(list.get(i).toString());
+            }
+        }
+        return buff.toString();
+    }
 
     RuleList(Rule first, Rule next, boolean or) {
         list = new ArrayList();
@@ -91,48 +113,47 @@ public class RuleList implements Rule {
         }
     }
 
-    public String matchRemove(String query, Sentence sentence) {
+    public boolean matchRemove(Sentence sentence) {
+        String query = sentence.query;
         if (query.length() == 0) {
-            return null;
+            return false;
         }
         if (or) {
             for (int i = 0; i < list.size(); i++) {
-                String s = get(i).matchRemove(query, sentence);
-                if (s != null) {
-                    return s;
+                if (get(i).matchRemove(sentence)) {
+                    return true;
                 }
             }
-            return null;
+            return false;
         } else {
             for (int i = 0; i < list.size(); i++) {
                 Rule r = get(i);
-                query = r.matchRemove(query, sentence);
-                if (query == null) {
-                    return null;
+                if (!r.matchRemove(sentence)) {
+                    return false;
                 }
             }
-            return query;
+            return true;
         }
     }
 
-    public void addNextTokenList(String query, Sentence sentence) {
-        // if (sentence.stop()) {
-            //
-        // }
+    public void addNextTokenList(Sentence sentence) {
+        String old = sentence.query;
         if (or) {
             for (int i = 0; i < list.size(); i++) {
-                get(i).addNextTokenList(query, sentence);
+                sentence.setQuery(old);
+                Rule r = get(i);
+                r.addNextTokenList(sentence);
             }
         } else {
             for (int i = 0; i < list.size(); i++) {
                 Rule r = get(i);
-                r.addNextTokenList(query, sentence);
-                query = r.matchRemove(query, sentence);
-                if (query == null) {
+                r.addNextTokenList(sentence);
+                if (!r.matchRemove(sentence)) {
                     break;
                 }
             }
         }
+        sentence.setQuery(old);
     }
 
 }

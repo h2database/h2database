@@ -71,9 +71,28 @@ public class Trace {
         traceSystem.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
     }
 
-    public void infoSQL(String sql) {
-        sql = StringUtils.javaEncode(sql);
-        traceSystem.write(TraceSystem.INFO, module, lineSeparator + "/*SQL*/" + sql, null);
+    public void infoSQL(String sql, String params, int count, long time) {
+        StringBuffer buff = new StringBuffer(sql.length() + 20);
+        buff.append(lineSeparator);
+        buff.append("/*SQL ");
+        if (params.length() > 0) {
+            buff.append("l:");
+            buff.append(sql.length());
+        }
+        if (count > 0) {
+            buff.append(" #:");
+            buff.append(count);
+        }
+        if (time > 0) {
+            buff.append(" t:");
+            buff.append(time);
+        }
+        buff.append("*/");
+        buff.append(StringUtils.javaEncode(sql));
+        buff.append(params);
+        buff.append(';');
+        sql = buff.toString();
+        traceSystem.write(TraceSystem.INFO, module, sql, null);
     }
 
     public void debug(String s) {

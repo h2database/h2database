@@ -588,28 +588,30 @@ Example permission tags:
 <p>
 For many databases, opening a connection is slow, and it is a good idea to use a connection pool
 to re-use connections. For H2 however opening a connection usually is fast if the database is already
-open. Using a connection pool manager for H2 actually slows down the process a bit, except if
+open. Using a connection pool for H2 actually slows down the process a bit, except if
 file encryption is used (in this case opening a connection is about half as fast as using
-a connection pool). A simple connection pool manager is included in H2. It is based on the
+a connection pool). A simple connection pool is included in H2. It is based on the
 <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>
 from Christian d'Heureuse. There are other, more complex connection pools available, for example 
 <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a>. The build-in
-connection pool manager is used as follows:
+connection pool is used as follows:
 <pre>
 // init
+import org.h2.jdbcx.*;
+...
 JdbcDataSource ds = new JdbcDataSource();
 ds.setURL("jdbc:h2:~/test");
 ds.setUser("sa");
 ds.setPassword("sa");
-JdbcConnectionPoolManager man = new JdbcConnectionPoolManager(ds);
+JdbcConnectionPool cp = JdbcConnectionPool.create(ds);
 
 // use
-Connection conn = man.getConnection();
+Connection conn = cp.getConnection();
 ...
 conn.close();
 
 // dispose
-man.dispose();
+cp.dispose();
 </pre>
 </p>
 

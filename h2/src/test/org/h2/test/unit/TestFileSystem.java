@@ -26,6 +26,7 @@ import org.h2.test.TestBase;
 public class TestFileSystem extends TestBase {
 
     public void test() throws Exception {
+        testDatabaseInMemFileSys();
         testDatabaseInJar();
         testFileSystem(baseDir + "/fs");
         testFileSystem(FileSystem.MEMORY_PREFIX);
@@ -33,6 +34,20 @@ public class TestFileSystem extends TestBase {
         testFileSystem("jdbc:h2:mem:fs");
         testFileSystem(FileSystem.MEMORY_PREFIX_LZF);
         testUserHome();
+    }
+    
+    private void testDatabaseInMemFileSys() throws Exception {
+        Class.forName("org.h2.Driver");
+        String url = "jdbc:h2:" + baseDir + "/fsMem";
+        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
+        conn.createStatement().execute("BACKUP TO '" + baseDir + "/fsMem.zip'");
+        conn.close();
+        org.h2.tools.Restore.main(new String[]{"-file", baseDir + "/fsMem.zip", "-dir", "memFS:"});
+        conn = DriverManager.getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
+        ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+        rs.close();
+        conn.close();
     }
 
     private void testDatabaseInJar() throws Exception {

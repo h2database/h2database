@@ -182,7 +182,7 @@ public class Database implements DataHandler {
                 if (listener.endsWith("'")) {
                     listener = listener.substring(0, listener.length() - 1);
                 }
-                setEventListener(listener);
+                setEventListenerClass(listener);
             }
         }
         String log = ci.getProperty(SetTypes.LOG, null);
@@ -396,7 +396,7 @@ public class Database implements DataHandler {
         return store;
     }
 
-    public boolean validateFilePasswordHash(String c, byte[] hash) throws SQLException {
+    public boolean validateFilePasswordHash(String c, byte[] hash) {
         return ByteUtils.compareSecure(hash, filePasswordHash) && StringUtils.equals(c, cipher);
     }
 
@@ -1405,8 +1405,12 @@ public class Database implements DataHandler {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
         }
     }
+    
+    public void setEventListener(DatabaseEventListener eventListener) {
+        this.eventListener = eventListener;
+    }
 
-    public void setEventListener(String className) throws SQLException {
+    public void setEventListenerClass(String className) throws SQLException {
         if (className == null || className.length() == 0) {
             eventListener = null;
         } else {
@@ -1776,6 +1780,10 @@ public class Database implements DataHandler {
 
     public SmallLRUCache getLobFileListCache() {
         return lobFileListCache;
+    }
+
+    public boolean isSysTableLocked() {
+        return meta.isLockedExclusively();
     }
 
 }

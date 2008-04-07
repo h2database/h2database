@@ -8,8 +8,6 @@ package org.h2.bnf;
 import java.util.HashMap;
 import java.util.Random;
 
-import org.h2.util.StringUtils;
-
 /**
  * Represents a hard coded terminal rule in a BNF object.
  */
@@ -26,6 +24,36 @@ public class RuleFixed implements Rule {
 
     RuleFixed(int type) {
         this.type = type;
+    }
+    
+    public String toString() {
+        switch(type) {
+        case YMD:
+            return "2000-01-01";
+        case HMS:
+            return "12:00";
+        case NANOS:
+            return "0";
+        case ANY_UNTIL_EOL:
+        case ANY_EXCEPT_SINGLE_QUOTE:
+        case ANY_EXCEPT_DOUBLE_QUOTE:
+        case ANY_WORD:
+        case ANY_UNTIL_END: {
+            return "XYZ";
+        }
+        case HEX_START:
+            return "0x";
+        case CONCAT:
+            return "||";
+        case AZ_UNDERLINE:
+            return "A";
+        case AF:
+            return "F";
+        case DIGIT:
+            return "0";
+        default:
+            throw new Error("type="+type);
+        }
     }
 
     public String random(Bnf config, int level) {
@@ -75,12 +103,13 @@ public class RuleFixed implements Rule {
     public void setLinks(HashMap ruleMap) {
     }
 
-    public String matchRemove(String query, Sentence sentence) {
+    public boolean matchRemove(Sentence sentence) {
         if (sentence.stop()) {
-            return null;
+            return false;
         }
+        String query = sentence.query;
         if (query.length() == 0) {
-            return null;
+            return false;
         }
         String s = query;
         switch(type) {
@@ -139,9 +168,9 @@ public class RuleFixed implements Rule {
             }
             break;
         case HEX_START:
-            if (StringUtils.toUpperEnglish(s).startsWith("0X")) {
+            if (s.startsWith("0X") || s.startsWith("0x")) {
                 s = s.substring(2);
-            } else if (StringUtils.toUpperEnglish(s).startsWith("0")) {
+            } else if (s.startsWith("0")) {
                 s = s.substring(1);
             }
             break;
@@ -174,16 +203,17 @@ public class RuleFixed implements Rule {
             throw new Error("type=" + type);
         }
         if (s == query) {
-            return null;
+            return false;
         }
-        return s;
+        sentence.setQuery(s);
+        return true;
     }
 
-    public void addNextTokenList(String query, Sentence sentence) {
+    public void addNextTokenList(Sentence sentence) {
         if (sentence.stop()) {
             return;
         }
-        // String s = matchRemove(query, iteration);
+        String query = sentence.query;
         switch(type) {
         case YMD:
             if (query.length() == 0) {

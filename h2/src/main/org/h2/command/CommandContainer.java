@@ -65,8 +65,9 @@ public class CommandContainer extends Command {
         // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
-        prepared.trace();
-        return prepared.update();
+        int updateCount = prepared.update();
+        prepared.trace(startTime, updateCount);
+        return updateCount;
     }
 
     public LocalResult query(int maxrows) throws SQLException {
@@ -74,8 +75,9 @@ public class CommandContainer extends Command {
         // TODO query time: should keep lock time separate from running time
         start();
         prepared.checkParameters();
-        prepared.trace();
-        return prepared.query(maxrows);
+        LocalResult result = prepared.query(maxrows);
+        prepared.trace(startTime, result.getRowCount());
+        return result;
     }
 
     public boolean isReadOnly() {

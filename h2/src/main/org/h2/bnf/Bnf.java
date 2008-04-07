@@ -299,7 +299,8 @@ public class Bnf {
                 continue;
             }
             sentence.max = System.currentTimeMillis() + MAX_PARSE_TIME;
-            head.getRule().addNextTokenList(query, sentence);
+            sentence.setQuery(query);
+            head.getRule().addNextTokenList(sentence);
         }
         return next;
     }

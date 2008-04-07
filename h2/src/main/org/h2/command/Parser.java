@@ -3012,15 +3012,7 @@ public class Parser {
         if (readIf("IDENTITY") || readIf("SERIAL")) {
             column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
-            long start = 1, increment = 1;
-            if (readIf("(")) {
-                start = readLong();
-                if (readIf(",")) {
-                    increment = readLong();
-                }
-                read(")");
-            }
-            column.setAutoIncrement(true, start, increment);
+            parseAutoIncrement(column);
         } else {
             column = parseColumn(columnName);
         }
@@ -3063,15 +3055,7 @@ public class Parser {
             readIf("NULL");
         }
         if (readIf("AUTO_INCREMENT") || readIf("IDENTITY")) {
-            long start = 1, increment = 1;
-            if (readIf("(")) {
-                start = readLong();
-                if (readIf(",")) {
-                    increment = readLong();
-                }
-                read(")");
-            }
-            column.setAutoIncrement(true, start, increment);
+            parseAutoIncrement(column);
             if (readIf("NOT")) {
                 read("NULL");
             }
@@ -3089,6 +3073,18 @@ public class Parser {
         }
         column.setComment(readCommentIf());
         return column;
+    }
+    
+    private void parseAutoIncrement(Column column) throws SQLException {
+        long start = 1, increment = 1;
+        if (readIf("(")) {
+            start = readLong();
+            if (readIf(",")) {
+                increment = readLong();
+            }
+            read(")");
+        }
+        column.setAutoIncrement(true, start, increment);
     }
 
     private String readCommentIf() throws SQLException {
@@ -4397,6 +4393,9 @@ public class Parser {
                             pk.setTableName(tableName);
                             pk.setIndexColumns(cols);
                             command.addConstraintCommand(pk);
+                            if (readIf("AUTO_INCREMENT")) {
+                                parseAutoIncrement(column);
+                            }
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema);
                             unique.setConstraintName(constraintName);

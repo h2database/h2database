@@ -26,7 +26,8 @@ import org.h2.util.StringUtils;
 public class Engine {
 
     private static final Engine INSTANCE = new Engine();
-    private static long delayWrongPassword = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+    private static volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+    private static Object wrongPasswordSync = new Object();
     private final HashMap databases = new HashMap();
 
     private Engine() {
@@ -73,26 +74,23 @@ public class Engine {
                 return null;
             }
             if (user == null) {
-                try {
-                    boolean correct = database.validateFilePasswordHash(cipher, ci.getFilePasswordHash());
-                    if (correct) {
-                        user = database.findUser(ci.getUserName());
-                        if (user == null) {
-                            correct = false;
-                        } else {
-                            correct = user.validateUserPasswordHash(ci.getUserPasswordHash());
+                if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
+                    user = database.findUser(ci.getUserName());
+                    if (user != null) {
+                        if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
+                            user = null;
                         }
                     }
-                    validateUserAndPassword(correct);
-                    if (opened && !user.getAdmin()) {
-                        // reset - because the user is not an admin, and has no
-                        // right to listen to exceptions
-                        database.setEventListener(null);
-                    }
-                } catch (SQLException e) {
-                    database.removeSession(null);
-                    throw e;
                 }
+                if (opened && (user == null || !user.getAdmin())) {
+                    // reset - because the user is not an admin, and has no
+                    // right to listen to exceptions
+                    database.setEventListener(null);
+                }
+            }
+            if (user == null) {
+                database.removeSession(null);
+                throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
             checkClustering(ci, database);
             Session session = database.createUserSession(user);
@@ -100,7 +98,20 @@ public class Engine {
         }
     }
 
-    public synchronized Session getSession(ConnectionInfo ci) throws SQLException {
+    public Session getSession(ConnectionInfo ci) throws SQLException {
+        try {
+            Session session = openSession(ci);
+            validateUserAndPassword(true);
+            return session;
+        } catch (SQLException e) {
+            if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
+                validateUserAndPassword(false);
+            }
+            throw e;
+        }
+    }
+    
+    private synchronized Session openSession(ConnectionInfo ci) throws SQLException {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
@@ -179,30 +190,34 @@ public class Engine {
      * @param correct if the user name or the password was correct
      * @throws SQLException the exception 'wrong user or password'
      */
-    public static synchronized void validateUserAndPassword(boolean correct) throws SQLException {
+    private static void validateUserAndPassword(boolean correct) throws SQLException {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
         if (correct) {
-            delayWrongPassword = min;
+            wrongPasswordDelay = min;
         } else {
-            long delay = delayWrongPassword;
-            if (min > 0) {
-                // a bit more to protect against timing attacks
-                delay += Math.abs(RandomUtils.getSecureLong() % 100);
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    // ignore
+            // this method is not synchronized on the Engine, so that
+            // successful attempts are not blocked
+            synchronized (wrongPasswordSync) {
+                long delay = wrongPasswordDelay;
+                int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;
+                if (max <= 0) {
+                    max = Integer.MAX_VALUE;
                 }
+                wrongPasswordDelay += wrongPasswordDelay;
+                if (wrongPasswordDelay > max || wrongPasswordDelay < 0) {
+                    wrongPasswordDelay = max;
+                }
+                if (min > 0) {
+                    // a bit more to protect against timing attacks
+                    delay += Math.abs(RandomUtils.getSecureLong() % 100);
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+                throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
-            int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;
-            if (max <= 0) {
-                max = Integer.MAX_VALUE;
-            }
-            delayWrongPassword += delayWrongPassword;
-            if (delayWrongPassword > max || delayWrongPassword < 0) {
-                delayWrongPassword = max;
-            }
-            throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
         }
     }    
 

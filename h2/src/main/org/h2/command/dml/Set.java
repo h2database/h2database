@@ -168,7 +168,7 @@ public class Set extends Prepared {
         }
         case SetTypes.DATABASE_EVENT_LISTENER: {
             session.getUser().checkAdmin();
-            database.setEventListener(stringValue);
+            database.setEventListenerClass(stringValue);
             break;
         }
         case SetTypes.MAX_MEMORY_ROWS: {

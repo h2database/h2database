@@ -36,6 +36,7 @@ public class WebSession {
     private DbContents contents = new DbContents();
     private DbContextRule columnRule;
     private DbContextRule newAliasRule;
+    private DbContextRule schemaRule;
     private DbContextRule tableRule;
     private DbContextRule aliasRule;
     private DbContextRule columnAliasRule;
@@ -73,6 +74,7 @@ public class WebSession {
             newAliasRule = new DbContextRule(contents, DbContextRule.NEW_TABLE_ALIAS);
             aliasRule = new DbContextRule(contents, DbContextRule.TABLE_ALIAS);
             tableRule = new DbContextRule(contents, DbContextRule.TABLE);
+            schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
             columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
 //            bnf.updateTopic("newTableName", new String[]{"TEST"});
 //            String[] schemas;
@@ -90,6 +92,7 @@ public class WebSession {
             newBnf.updateTopic("tableAlias", aliasRule);
             newBnf.updateTopic("columnAlias", columnAliasRule);
             newBnf.updateTopic("tableName", tableRule);
+            newBnf.updateTopic("schemaName", schemaRule);
             // bnf.updateTopic("name", new String[]{""});
             newBnf.linkStatements();
             bnf = newBnf;

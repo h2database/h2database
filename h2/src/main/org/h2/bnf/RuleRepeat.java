@@ -17,6 +17,10 @@ public class RuleRepeat implements Rule {
     RuleRepeat(Rule rule) {
         this.rule = rule;
     }
+    
+    public String toString() {
+        return "...";
+    }
 
     public String name() {
         return rule.name();
@@ -34,36 +38,36 @@ public class RuleRepeat implements Rule {
         return rule.random(config, level);
     }
 
-    public String matchRemove(String query, Sentence sentence) {
+    public boolean matchRemove(Sentence sentence) {
         if (sentence.stop()) {
-            return null;
+            return false;
         }
+        String query = sentence.query;
         if (query.length() == 0) {
-            return null;
+            return false;
         }
         while (true) {
-            String s = rule.matchRemove(query, sentence);
-            if (s == null) {
-                return query;
-            } else if (s.length() == 0) {
-                return s;
+            if (!rule.matchRemove(sentence)) {
+                return true;
             }
-            query = s;
+            if (sentence.query.length() == 0) {
+                return true;
+            }
         }
     }
 
-    public void addNextTokenList(String query, Sentence sentence) {
+    public void addNextTokenList(Sentence sentence) {
         if (sentence.stop()) {
             return;
         }
+        String old = sentence.query;
         while (true) {
-            rule.addNextTokenList(query, sentence);
-            String s = rule.matchRemove(query, sentence);
-            if (s == null || s == query) {
+            rule.addNextTokenList(sentence);
+            if (!rule.matchRemove(sentence) || old == sentence.query) {
                 break;
             }
-            query = s;
         }
+        sentence.setQuery(old);
     }
 
 }

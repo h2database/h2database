@@ -1220,13 +1220,14 @@ If the table name is not specified, then the same table is referenced.
 As this database does not support deferred checking,
 RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
 If the referenced columns are not specified, then the primary key columns are used.
+The required indexes are automatically created if required.
 ","
 FOREIGN KEY(ID) REFERENCES TEST(ID)
 "
 "Other Grammar","Table Expression","
-{tableName | (select)} [[AS] newTableAlias]
+{[schemaName.] tableName | (select)} [[AS] newTableAlias]
 [{{LEFT | RIGHT} [OUTER] | [INNER] | CROSS | NATURAL}
-JOIN {tableName | viewName} [[AS] newTableAlias] [ON expression] ]
+JOIN tableExpression [[AS] newTableAlias] [ON expression] ]
 ","
 Joins a table. The join expression is not supported for cross and natural joins.
 A natural join is an inner join, where the condition is automatically on the columns with the same name.
@@ -2628,7 +2629,7 @@ Returns true if the statement was cancelled, false if the session is closed
 or no statement is currently executing.
 Admin rights are required to execute this command.
 ","
-CANCEL_STATEMENT(3)
+CANCEL_SESSION(3)
 "
 
 "Functions (System)","CASEWHEN Function","

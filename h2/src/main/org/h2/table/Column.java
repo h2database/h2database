@@ -266,7 +266,7 @@ public class Column {
             if (update) {
                 sequence.setStartValue(now + increment);
                 session.setLastIdentity(ValueLong.get(now));
-                sequence.flush();
+                sequence.flush(session);
             }
         }
     }

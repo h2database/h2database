@@ -30,7 +30,11 @@ import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
 
+//#ifdef JDK16
+/*    
 import org.h2.message.Message;
+*/    
+//#endif
 
 /**
  * A simple standalone JDBC connection pool.

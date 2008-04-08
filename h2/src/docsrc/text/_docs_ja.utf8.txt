@@ -757,126 +757,132 @@ ZERO() 関数を使用する
 ファイル暗号化はデータベースエンジンのパフォーマンスを低速にします。非暗号化モードと比較すると、 データベースオペレーションは、XTEAを使用する時はおよそ2.2倍長くかかり、 AESを使用する時は2.5倍長くかかります (エンベッドモード)。
 
 @advanced_1252_h3
-SSL/TLS 接続
+#Wrong Password Delay
 
 @advanced_1253_p
-遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
+#To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
 
 @advanced_1254_h3
-HTTPS 接続
+SSL/TLS 接続
 
 @advanced_1255_p
-webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
+遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
 
-@advanced_1256_h2
-汎用一意識別子 (UUID)
+@advanced_1256_h3
+HTTPS 接続
 
 @advanced_1257_p
-このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
+webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
 
-@advanced_1258_p
-いくつかの値は:
+@advanced_1258_h2
+汎用一意識別子 (UUID)
 
 @advanced_1259_p
-人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
+このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
 
-@advanced_1260_h2
-システムプロパティから読み込まれた設定
+@advanced_1260_p
+いくつかの値は:
 
 @advanced_1261_p
-いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
+人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
 
-@advanced_1262_p
-#The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
+@advanced_1262_h2
+システムプロパティから読み込まれた設定
 
 @advanced_1263_p
-#For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
+いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
 
-@advanced_1264_h2
-#Setting the Server Bind Address
+@advanced_1264_p
+#The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
 
 @advanced_1265_p
-#Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
+#For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
 
 @advanced_1266_h2
+#Setting the Server Bind Address
+
+@advanced_1267_p
+#Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
+
+@advanced_1268_h2
 用語集とリンク
 
-@advanced_1267_th
+@advanced_1269_th
 用語
 
-@advanced_1268_th
+@advanced_1270_th
 説明
 
-@advanced_1269_td
+@advanced_1271_td
 AES-128
 
-@advanced_1270_td
+@advanced_1272_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1271_td
+@advanced_1273_td
 Birthday Paradox
 
-@advanced_1272_td
+@advanced_1274_td
 部屋にいる二人が同じ誕生日の可能性が期待された以上に高いということを説明する。 また、有効なランダムに生成されたUUID。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1273_td
+@advanced_1275_td
 Digest
 
-@advanced_1274_td
+@advanced_1276_td
 パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1275_td
+@advanced_1277_td
 GCJ
 
-@advanced_1276_td
+@advanced_1278_td
 JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1277_td
+@advanced_1279_td
 HTTPS
 
-@advanced_1278_td
+@advanced_1280_td
 セキュリティをHTTP接続に提供するプロトコル。こちらもご覧下さい: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1279_td
+@advanced_1281_td
 Modes of Operation
 
-@advanced_1280_a
+@advanced_1282_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1281_td
+@advanced_1283_td
 Salt
 
-@advanced_1282_td
+@advanced_1284_td
 パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1283_td
+@advanced_1285_td
 SHA-256
 
-@advanced_1284_td
+@advanced_1286_td
 暗号化の一方方向のハッシュ関数。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1285_td
+@advanced_1287_td
 SQLインジェクション
 
-@advanced_1286_td
+@advanced_1288_td
 組み込みのユーザー入力でアプリケーションがSQLステートメントを生成するセキュリティ脆弱性 こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1287_td
+@advanced_1289_td
 Watermark Attack (透かし攻撃)
 
-@advanced_1288_td
+@advanced_1290_td
 復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 
-@advanced_1289_td
+@advanced_1291_td
 SSL/TLS
 
-@advanced_1290_td
+@advanced_1292_td
 Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1291_td
+@advanced_1293_td
 XTEA
 
-@advanced_1292_td
+@advanced_1294_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -7425,7 +7431,7 @@ Java Web Start / JNLP (Java Network Launch Protocol) を使用している時、
 #Using a Connection Pool
 
 @tutorial_1179_p
-#For many databases, opening a connection is slow, and it is a good idea to use a connection pool to re-use connections. For H2 however opening a connection usually is fast if the database is already open. Using a connection pool manager for H2 actually slows down the process a bit, except if file encryption is used (in this case opening a connection is about half as fast as using a connection pool). A simple connection pool manager is included in H2. It is based on the <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a> from Christian d'Heureuse. There are other, more complex connection pools available, for example <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a> . The build-in connection pool manager is used as follows:
+#For many databases, opening a connection is slow, and it is a good idea to use a connection pool to re-use connections. For H2 however opening a connection usually is fast if the database is already open. Using a connection pool for H2 actually slows down the process a bit, except if file encryption is used (in this case opening a connection is about half as fast as using a connection pool). A simple connection pool is included in H2. It is based on the <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a> from Christian d'Heureuse. There are other, more complex connection pools available, for example <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a> . The build-in connection pool is used as follows:
 
 @tutorial_1180_h2
 フルテキストサーチ
@@ -7483,6 +7489,39 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 
 @tutorial_1198_p
 #If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system time zone, the date and time will change accordingly. If you want to move a database from one time zone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
+
+@~advanced_1256_h2
+汎用一意識別子 (UUID)
+
+@~advanced_1258_p
+いくつかの値は:
+
+@~advanced_1260_h2
+システムプロパティから読み込まれた設定
+
+@~advanced_1262_p
+#The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
+
+@~advanced_1264_h2
+#Setting the Server Bind Address
+
+@~advanced_1267_th
+用語
+
+@~advanced_1268_th
+説明
+
+@~advanced_1269_td
+AES-128
+
+@~advanced_1270_td
+ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
+
+@~advanced_1280_a
+Wikipedia: Block cipher modes of operation
+
+@~advanced_1282_td
+パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
 @~roadmap_1374_h2
 #Not Planned

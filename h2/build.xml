@@ -335,6 +335,31 @@
 	</target>
 
 	<target name="zip">
+
+		<delete includeemptydirs="true">
+			<fileset dir="dist" includes="**/*"/>
+		</delete>
+	    
+	    <copy todir="dist">
+			<fileset dir=".." includes="h2/build.xml"/>
+			<fileset dir=".." includes="h2/ant-build.properties"/>
+			<fileset dir=".." includes="h2/bin/**/*"/>
+			<fileset dir=".." includes="h2/docs/**/*"/>
+			<fileset dir=".." includes="h2/service/**/*"/>
+			<fileset dir=".." includes="h2/src/**/*"/>
+	    </copy>
+
+	    <tar destfile="../h2.tar">
+	        <fileset dir="dist" includes="**/*.java,**/*.css,**/*.js" />
+	        <fileset dir="dist" includes="**/*.xml" />
+	        <fileset dir="dist" includes="**/*.html,**/*.jsp" />
+	        <fileset dir="dist" includes="**/*.csv,**/*.txt,**/*.properties" />
+	        <fileset dir="dist" includes="**/*.sql,**/*.bat" />
+	        <fileset dir="dist" excludes="**/*.java,,**/*.css,**/*.js,**/*.xml,**/*.html,**/*.jsp,**/*.csv,**/*.txt,**/*.properties,**/*.sql,**/*.bat" />
+	    </tar>
+	    
+	    <bzip2 destfile="../h2.tar.bz2" src="../h2.tar" />
+	    
 		<zip destfile="../h2.zip">
 			<fileset dir=".." includes="h2/build.xml"/>
 			<fileset dir=".." includes="h2/ant-build.properties"/>

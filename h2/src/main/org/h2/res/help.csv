@@ -2898,35 +2898,11 @@ CURRENT_USER()
 "
 
 "System tables","Information schema","
-INFORMATION_SCHEMA.tableName
+INFORMATION_SCHEMA
 ","
-INFORMATION_SCHEMA.CATALOGS contains the catalogs.
-INFORMATION_SCHEMA.COLLATIONS contains the available collations.
-INFORMATION_SCHEMA.COLUMNS contains the columns.
-INFORMATION_SCHEMA.COLUMN_PRIVILEGES contains column privileges.
-INFORMATION_SCHEMA.CONSTANTS contains the constants.
-INFORMATION_SCHEMA.CONSTRAINTS contains the constraints.
-INFORMATION_SCHEMA.CROSS_REFERENCES contains all foreign key constraint data.
-INFORMATION_SCHEMA.DOMAINS contains all domains (custom data types).
-INFORMATION_SCHEMA.FUNCTION_ALIASES contains the function aliases.
-INFORMATION_SCHEMA.FUNCTION_COLUMNS contains the function columns.
-INFORMATION_SCHEMA.HELP contains the reference help.
-INFORMATION_SCHEMA.INDEXES contains the indexes.
-INFORMATION_SCHEMA.IN_DOUBT contains all in-doubt transactions.
-INFORMATION_SCHEMA.LOCKS contains all locks.
-INFORMATION_SCHEMA.RIGHTS contains the rights.
-INFORMATION_SCHEMA.ROLES contains the roles.
-INFORMATION_SCHEMA.SCHEMATA contains the schemas.
-INFORMATION_SCHEMA.SESSIONS contains the open sessions.
-INFORMATION_SCHEMA.SEQUENCES contains the sequences.
-INFORMATION_SCHEMA.SETTINGS contains the settings.
-INFORMATION_SCHEMA.TABLES contains the tables.
-INFORMATION_SCHEMA.TABLE_PRIVILEGES contains table privileges.
-INFORMATION_SCHEMA.TABLE_TYPES contains the table types.
-INFORMATION_SCHEMA.TRIGGERS contains the triggers.
-INFORMATION_SCHEMA.TYPE_INFO contains the data types.
-INFORMATION_SCHEMA.USERS contains the users.
-INFORMATION_SCHEMA.VIEWS contains the views.
+To get the list of system tables, execute the statement
+SELECT * FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 ","
 
 "

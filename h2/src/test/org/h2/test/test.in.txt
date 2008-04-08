@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from system_range(1, 3) t1 inner join system_range(2, 3) t2 inner join system_range(1, 2) t3 on t3.x=t2.x on t1.x=t2.x;
+> ok
+
 CREATE TABLE p(d date);
 > ok
 
@@ -2830,7 +2833,7 @@ create table test(id int primary key);
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
 > PLAN
 > ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT A.ID, B.ID, C.ID FROM PUBLIC.TEST A /* PUBLIC.TEST_TABLE_SCAN */ INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST_TABLE_SCAN */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID
+> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST_TABLE_SCAN */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST_TABLE_SCAN */
 > rows: 1
 
 SELECT T.ID FROM TEST "T";

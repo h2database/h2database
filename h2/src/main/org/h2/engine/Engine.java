@@ -193,10 +193,25 @@ public class Engine {
     private static void validateUserAndPassword(boolean correct) throws SQLException {
         int min = SysProperties.DELAY_WRONG_PASSWORD_MIN;
         if (correct) {
-            wrongPasswordDelay = min;
+            long delay = wrongPasswordDelay;
+            if (delay > min && delay > 0) {
+                // the first correct password must be blocked, 
+                // otherwise parallel attacks are possible
+                synchronized (wrongPasswordSync) {
+                    // delay up to the last delay
+                    // an attacker can't know how long it will be
+                    delay = RandomUtils.nextInt((int) delay);
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                    wrongPasswordDelay = min;
+                }
+            }
         } else {
             // this method is not synchronized on the Engine, so that
-            // successful attempts are not blocked
+            // regular successful attempts are not blocked
             synchronized (wrongPasswordSync) {
                 long delay = wrongPasswordDelay;
                 int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;

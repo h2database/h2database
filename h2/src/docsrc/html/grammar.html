@@ -28,6 +28,9 @@ SQL Grammar
 <c:forEach var="item" items="otherGrammar">
     <a href="#${item.link}">${item.topic}</a><br />
 </c:forEach>
+<h2>System Tables</h2>
+<a href="#information_schema">Information Schema</a><br />
+<a href="#range_table">Range table</a><br />
 
 <c:forEach var="item" items="commands">
 <br />
@@ -56,5 +59,28 @@ ${item.text}
 ${item.example}
 <br />
 </c:forEach>
+
+<br />
+<a name="information_schema"></a><h3>Information Schema</h3>
+<p>
+The system tables in the schema 'INFORMATION_SCHEMA' contain the meta data
+of all tables in the database as well as the current settings.
+</p>
+<table><tr><th>Table</th><th>Columns</th></tr>
+<c:forEach var="item" items="informationSchema">
+<tr><td>${item.topic}</td><td>${item.syntax}</td></tr>
+</c:forEach>
+</table>
+
+<br />
+<a name="range_table"></a><h3>Range table</h3>
+<p>
+The range table is a dynamic system table that contains all values from a start to an end value.
+The table contains one column called X. Both the start and end values are included in the result. 
+The table is used as follows:
+</p>
+<pre>
+SELECT X FROM SYSTEM_RANGE(1, 10);
+</pre>
 
 </div></td></tr></table><!-- analytics --></body></html>

@@ -32,7 +32,7 @@ public class ConvertTraceFile extends Tool {
         String sql;
         int executeCount;
         long time;
-        long resultCountTotal;
+        long resultCount;
         
         public int compareTo(Object o) {
             Stat other = (Stat) o;
@@ -141,7 +141,7 @@ public class ConvertTraceFile extends Tool {
                 String sql = line.substring(end + "*/".length());
                 line = line.substring("/*SQL".length(), end);
                 if (line.length() > 0) {
-                    int len = sql.length();
+                    String statement = sql;
                     int count = 0;
                     int time = 0;
                     line = line.trim();
@@ -150,7 +150,8 @@ public class ConvertTraceFile extends Tool {
                         while (tk.hasMoreElements()) {
                             String token = tk.nextToken();
                             if ("l".equals(token)) {
-                                len = Integer.parseInt(tk.nextToken());
+                                int len = Integer.parseInt(tk.nextToken());
+                                statement = sql.substring(0, len) + ";";
                             } else if ("#".equals(token)) {
                                 count = Integer.parseInt(tk.nextToken());
                             } else if ("t".equals(token)) {
@@ -158,7 +159,6 @@ public class ConvertTraceFile extends Tool {
                             }
                         }
                     }
-                    String statement = sql.substring(0, len);
                     addToStats(statement, count, time);
                 }
                 scriptWriter.println(StringUtils.javaDecode(sql));
@@ -169,16 +169,43 @@ public class ConvertTraceFile extends Tool {
         reader.close();
         javaWriter.close();
         if (stats.size() > 0) {
-            scriptWriter.println("---------------------------------------------------------------");
+            scriptWriter.println("-----------------------------------------");
+            scriptWriter.println("-- SQL Statement Statistics");
+            scriptWriter.println("-- time: total time in milliseconds");
+            scriptWriter.println("-- count: how many times the statement ran");
+            scriptWriter.println("-- result: total update count or row count");
+            scriptWriter.println("-----------------------------------------");
+            scriptWriter.println("-- self accu    time   count  result sql");
+            int accumTime = 0;
             ArrayList list = new ArrayList(stats.values());
             Collections.sort(list);
-            
-            int todo;
-            scriptWriter.println("--");
+            if (timeTotal == 0) {
+                timeTotal = 1;
+            }
+            for (int i = 0; i < list.size(); i++) {
+                Stat stat = (Stat) list.get(i);
+                StringBuffer buff = new StringBuffer(100);
+                buff.append("-- ");
+                buff.append(padNumberLeft(100 * stat.time / timeTotal, 3));
+                buff.append("% ");
+                accumTime += stat.time;
+                buff.append(padNumberLeft(100 * accumTime / timeTotal, 3));
+                buff.append('%');
+                buff.append(padNumberLeft(stat.time, 8));
+                buff.append(padNumberLeft(stat.executeCount, 8));
+                buff.append(padNumberLeft(stat.resultCount, 8));
+                buff.append(' ');
+                buff.append(stat.sql);
+                scriptWriter.println(buff.toString());
+            }
         }
         scriptWriter.close();
     }
-
+    
+    private String padNumberLeft(long number, int digits) {
+        return StringUtils.pad(String.valueOf(number), digits, " ", false);
+    }
+    
     private void addToStats(String sql, int resultCount, int time) {
         Stat stat = (Stat) stats.get(sql);
         if (stat == null) {
@@ -187,7 +214,7 @@ public class ConvertTraceFile extends Tool {
             stats.put(sql, stat);
         }
         stat.executeCount++;
-        stat.resultCountTotal += resultCount;
+        stat.resultCount += resultCount;
         stat.time += time;
         timeTotal += time;
     }

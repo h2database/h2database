@@ -30,6 +30,8 @@ import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
 
+import org.h2.message.Message;
+
 /**
  * A simple standalone JDBC connection pool.
  * It is based on the 
@@ -292,5 +294,31 @@ public class JdbcConnectionPool implements DataSource {
     public void setLogWriter(PrintWriter logWriter) throws SQLException {
         this.logWriter = logWriter;
     }
+
+    /**
+     * [Not supported] Return an object of this class if possible.
+     *
+     * @param iface the class
+     */
+//#ifdef JDK16
+/*    
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+*/    
+//#endif
+
+    /**
+     * [Not supported] Checks if unwrap can return an object of this class.
+     *
+     * @param iface the class
+     */
+//#ifdef JDK16
+/*    
+    public boolean isWrapperFor(Class< ? > iface) throws SQLException {
+        throw Message.getUnsupportedException();
+    }
+*/    
+//#endif
 
 }

@@ -924,6 +924,19 @@ File encryption slows down the performance of the database engine. Compared to u
 database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
 </p>
 
+<h3>Wrong Password Delay</h3>
+<p>
+To protect against remote brute force password attacks, the delay after each unsuccessful 
+login gets double as long. Use the system properties h2.delayWrongPasswordMin
+and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) 
+or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only 
+applies for those using the wrong password. Normally there is no delay for a user that knows the correct 
+password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) 
+the same delay as for a wrong password. This is to protect against parallel brute force attacks,
+so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required 
+to protect against parallel attacks.
+</p>
+
 <h3>SSL/TLS Connections</h3>
 <p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension

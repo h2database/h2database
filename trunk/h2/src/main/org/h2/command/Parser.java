@@ -1133,6 +1133,7 @@ public class Parser {
                 read("JOIN");
                 // the right hand side is the 'inner' table usually
                 TableFilter newTop = readTableFilter(fromOuter);
+                newTop = readJoin(newTop, command, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1144,6 +1145,7 @@ public class Parser {
                 readIf("OUTER");
                 read("JOIN");
                 TableFilter join = readTableFilter(true);
+                top = readJoin(top, command, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1155,6 +1157,7 @@ public class Parser {
             } else if (readIf("INNER")) {
                 read("JOIN");
                 TableFilter join = readTableFilter(fromOuter);
+                top = readJoin(top, command, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1163,6 +1166,7 @@ public class Parser {
                 last = join;
             } else if (readIf("JOIN")) {
                 TableFilter join = readTableFilter(fromOuter);
+                top = readJoin(top, command, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();

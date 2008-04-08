@@ -159,35 +159,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-1. get application here: http://krtonozka23.savana.cz/mismatch_error.zip
-2. unpack and execute: java -jar executeh2script.jar
-3. it will copy the prepared database from basedb into dbtest
-directory and execute the crashScript.txt upon it.
-4. connect to created dbtest database with h2 console and execute:
-SELECT Data FROM FD_12_5001 WHERE TypeId=4 ORDER BY Ts DESC;
-5. you should got something like: General error: java.lang.Error: File
-ID mismatch got=1707400262 expected=41 pos=57219 true
-org.h2.store.DiskFile:E:\WiMax\projects\Java\ExecuteH2Script\dbtest
-\dbtest.data.db blockCount:-755423910 [50000-67] (Help)
+test self runnable jar with uncompressed jar inside compressed jar
 
-File ID mismatch: 2008-03-21.trace.zip
-
-test ConvertTraceFile
-include in the execution times in the debug log.
-(for each SQL statement ran)
-SQL:checksum:1ms SELECT * FROM TEST
-checksum: not including values, case insensitive
-
-better document system tables
-
-.tar.bz2 instead of .zip
-
-drop table test;
-create table test(id int);
-select * from test t1 inner join test t2 
-inner join test t3 on t3.id=t2.id on t1.id=t2.id;
--- supported by PostgreSQL, Derby,...; 
-not supported by MySQL,...
+implementation javadocs
+.tar.bz2 in addition to .zip
 
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
@@ -252,18 +227,23 @@ The Japanese translation of the error messages and the
 Optimization for MIN() and MAX() when using MVCC.
 To protect against remote brute force password attacks, 
     the delay after each unsuccessful login now gets double as long.
-    Use the system properties h2.delayWrongPasswordMin
-    and h2.delayWrongPasswordMax
+    New system properties h2.delayWrongPasswordMin
+    and h2.delayWrongPasswordMax.
 After setting the query timeout and then resetting it, the next query
     would still timeout. Fixed.
 Adding a IDENTITY column to a table with data threw a lock timeout.
 OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
 The built-in connection pool is not called JdbcConnectionPool. 
     The API and documentation has been changed.
+The ConvertTraceFile tool now generates SQL statement statistics 
+    at the end of the SQL script file (similar to the profiling data
+    generated when using java -Xrunhprof).
+Nested joins are now supported (A JOIN B JOIN C ON .. ON ..)
 
 Roadmap:
 Doclet (javadocs): constructors are not listed
-Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup)
+Support direct lookup for MIN and MAX when using WHERE 
+    (see todo.txt / Direct Lookup)
 
 
 

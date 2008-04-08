@@ -1,6 +1,9 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
 select * from system_range(1, 3) t1 inner join system_range(2, 3) t2 inner join system_range(1, 2) t3 on t3.x=t2.x on t1.x=t2.x;
-> ok
+> X X X
+> - - -
+> 2 2 2
+> rows: 1
 
 CREATE TABLE p(d date);
 > ok

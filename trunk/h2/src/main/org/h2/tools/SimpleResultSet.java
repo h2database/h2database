@@ -26,13 +26,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.NClob;
 import java.sql.RowId;
 import java.sql.SQLXML;
-*/
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * This class is a simple result set and meta data implementation.
@@ -1565,57 +1563,49 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public RowId getRowId(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public RowId getRowId(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateRowId(String columnName, RowId x) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * Returns the current result set holdability.
      *
      * @return the holdability
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public int getHoldability() {
         return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Returns whether this result set has been closed.
@@ -1643,92 +1633,76 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateNClob(String columnName, NClob nClob) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public NClob getNClob(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public NClob getNClob(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public SQLXML getSQLXML(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) 
             throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void updateSQLXML(String columnName, SQLXML xmlObject) 
             throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
@@ -1775,24 +1749,20 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 

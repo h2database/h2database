@@ -5,7 +5,7 @@
  */
 package org.h2.jdbcx;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,15 +22,13 @@ import org.h2.util.ByteUtils;
 import org.h2.util.JdbcConnectionListener;
 import org.h2.util.JdbcUtils;
 import org.h2.jdbc.JdbcConnection;
-//#endif
+//## Java 1.4 end ##
 
 import org.h2.message.TraceObject;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import javax.sql.StatementEventListener;
-*/
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * This class provides support for distributed transactions.
@@ -38,12 +36,12 @@ import javax.sql.StatementEventListener;
  * It is used by the transaction manager internally.
  */
 public class JdbcXAConnection extends TraceObject
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements XAConnection, XAResource, JdbcConnectionListener
-//#endif
+//## Java 1.4 end ##
 {
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
     private JdbcDataSourceFactory factory;
     private String url, user, password;
     private JdbcConnection connSentinel;
@@ -66,25 +64,25 @@ implements XAConnection, XAResource, JdbcConnectionListener
         connSentinel = openConnection();
         getConnection();
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Get the XAResource object.
      *
      * @return itself
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public XAResource getXAResource() throws SQLException {
         debugCodeCall("getXAResource");
         return this;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Close the physical connection.
      * This method is usually called by the connection pool.
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void close() throws SQLException {
         debugCodeCall("close");
         try {
@@ -95,7 +93,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
             connSentinel = null;
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Get a new connection. This method is usually called by the connection
@@ -103,7 +101,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * 
      * @return the connection
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         if (conn != null) {
@@ -114,14 +112,14 @@ implements XAConnection, XAResource, JdbcConnectionListener
         conn.setJdbcConnectionListener(this);
         return conn;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Register a new listener for the connection.
      *
      * @param listener the event listener
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener);");
         listeners.add(listener);
@@ -129,24 +127,24 @@ implements XAConnection, XAResource, JdbcConnectionListener
             conn.setJdbcConnectionListener(this);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Remove the event listener.
      *
      * @param listener the event listener
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         debugCode("removeConnectionEventListener(listener);");
         listeners.remove(listener);
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * INTERNAL
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
         debugCode("fatalErrorOccurred(conn, e);");
         for (int i = 0; i < listeners.size(); i++) {
@@ -156,12 +154,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         close();
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * INTERNAL
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void closed(JdbcConnection conn) {
         debugCode("closed(conn);");
         for (int i = 0; i < listeners.size(); i++) {
@@ -170,19 +168,19 @@ implements XAConnection, XAResource, JdbcConnectionListener
             listener.connectionClosed(event);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Get the transaction timeout.
      *
      * @return 0
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public int getTransactionTimeout() throws XAException {
         debugCodeCall("getTransactionTimeout");
         return 0;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Set the transaction timeout.
@@ -190,12 +188,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param seconds ignored
      * @return false
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public boolean setTransactionTimeout(int seconds) throws XAException {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Checks if this is the same XAResource.
@@ -203,12 +201,12 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param xares the other object
      * @return true if this is the same object
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public boolean isSameRM(XAResource xares) throws XAException {
         debugCode("isSameRM(xares);");
         return xares == this;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Get the list of prepared transaction branches.
@@ -218,7 +216,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *  TMNOFLAGS must be used.
      *  @return zero or more Xid objects
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
@@ -244,14 +242,14 @@ implements XAConnection, XAResource, JdbcConnectionListener
             JdbcUtils.closeSilently(stat);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Prepare a transaction.
      *
      * @param xid the transaction id
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
         if (debug()) {
             debugCode("prepare("+quoteXid(xid)+");");
@@ -274,7 +272,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("return XA_OK");
         return XA_OK;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Forget a transaction.
@@ -282,20 +280,20 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *
      * @param xid the transaction id
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void forget(Xid xid) throws XAException {
         if (debug()) {
             debugCode("forget("+quoteXid(xid)+");");
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Roll back a transaction.
      *
      * @param xid the transaction id
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void rollback(Xid xid) throws XAException {
         if (debug()) {
             debugCode("rollback("+quoteXid(xid)+");");
@@ -308,7 +306,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("rolled back");
         currentTransaction = null;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * End a transaction.
@@ -316,7 +314,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param xid the transaction id
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void end(Xid xid, int flags) throws XAException {
         if (debug()) {
             debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+");");
@@ -330,7 +328,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw new XAException(XAException.XAER_OUTSIDE);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Start or continue to work on a transaction.
@@ -338,7 +336,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param xid the transaction id
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void start(Xid xid, int flags) throws XAException {
         if (debug()) {
             debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+");");
@@ -358,7 +356,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("currentTransaction=xid");
         currentTransaction = xid;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Commit a transaction.
@@ -366,7 +364,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param xid the transaction id
      * @param onePhase use a one-phase protocol if true
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (debug()) {
             debugCode("commit("+quoteXid(xid)+", "+onePhase+");");
@@ -387,38 +385,34 @@ implements XAConnection, XAResource, JdbcConnectionListener
         getTrace().debug("committed");
         currentTransaction = null;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * [Not supported] Add a statement event listener.
      *
      * @param listener the new statement event listener
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void addStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Remove a statement event listener.
      *
      * @param listener the statement event listener
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void removeStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
     }
@@ -503,6 +497,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw new XAException(XAException.XAER_RMERR);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
 }

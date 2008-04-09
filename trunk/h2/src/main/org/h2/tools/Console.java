@@ -5,7 +5,7 @@
  */
 package org.h2.tools;
 
-//#ifdef AWT
+//## AWT begin ##
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -32,7 +32,7 @@ import org.h2.util.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-//#endif
+//## AWT end ##
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
@@ -47,17 +47,17 @@ import org.h2.util.StartBrowser;
  * @author Thomas Mueller, Ridvan Agar
  */
 public class Console implements
-//#ifdef AWT
+//## AWT begin ##
 ActionListener, MouseListener,
-//#endif
+//## AWT end ##
 ShutdownHandler {
 
-//#ifdef AWT
+//## AWT begin ##
     private Font font;
     private Image icon16, icon24;
     private Frame frame;
     private Button startBrowser;
-//#endif
+//## AWT end ##
     private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg;
     private boolean isWindows;
@@ -112,7 +112,7 @@ ShutdownHandler {
                 System.out.println(pg.getStatus());
             }
         }
-//#ifdef AWT
+//## AWT begin ##
         if (!GraphicsEnvironment.isHeadless()) {
             if (isWindows) {
                 font = new Font("Dialog", Font.PLAIN, 11);
@@ -129,7 +129,7 @@ ShutdownHandler {
                 e.printStackTrace();
             }
         }
-//#endif
+//## AWT end ##
 
         // start browser anyway (even if the server is already running)
         // because some people don't look at the output,
@@ -170,16 +170,16 @@ ShutdownHandler {
             pg.stop();
             pg = null;
         }
-//#ifdef AWT
+//## AWT begin ##
         if (frame != null) {
             frame.dispose();
             frame = null;
         }
-//#endif
+//## AWT end ##
         System.exit(0);
     }
 
-//#ifdef AWT
+//## AWT begin ##
     private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
@@ -329,12 +329,12 @@ ShutdownHandler {
             StartBrowser.openURL(web.getURL());
         }
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
@@ -348,49 +348,49 @@ ShutdownHandler {
             startBrowser();
         }
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
         }
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void mouseEntered(MouseEvent e) {
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void mouseExited(MouseEvent e) {
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void mousePressed(MouseEvent e) {
     }
-//#endif
+//## AWT end ##
 
     /**
      * INTERNAL
      */
-//#ifdef AWT
+//## AWT begin ##
     public void mouseReleased(MouseEvent e) {
     }
-//#endif
+//## AWT end ##
 
 }

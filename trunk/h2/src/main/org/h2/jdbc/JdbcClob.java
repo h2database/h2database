@@ -20,21 +20,17 @@ import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
 import org.h2.value.Value;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.NClob;
-*/
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * Represents a CLOB value.
  */
 public class JdbcClob extends TraceObject implements Clob
-//#ifdef JDK16
-/*
-, NClob
-*/
-//#endif
+/*## Java 1.6 begin ##
+    , NClob
+## Java 1.6 end ##*/
 {
 
     private Value value;

@@ -63,7 +63,7 @@ public class SecureSocketFactory {
 
     public Socket createSocket(InetAddress address, int port) throws IOException {
         Socket socket = null;
-//#ifdef JDK14
+//## Java 1.4 begin ##
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket secureSocket = (SSLSocket) f.createSocket(address, port);
@@ -73,13 +73,13 @@ public class SecureSocketFactory {
             secureSocket.setEnabledCipherSuites(list);
         }
         socket = secureSocket;
-//#endif
+//## Java 1.4 end ##
         return socket;
     }
 
     public ServerSocket createServerSocket(int port) throws IOException, SQLException {
         ServerSocket socket = null;
-//#ifdef JDK14
+//## Java 1.4 begin ##
         setKeystore();
         ServerSocketFactory f = SSLServerSocketFactory.getDefault();
         SSLServerSocket secureSocket;
@@ -95,11 +95,11 @@ public class SecureSocketFactory {
             secureSocket.setEnabledCipherSuites(list);
         }
         socket = secureSocket;
-//#endif
+//## Java 1.4 end ##
         return socket;
     }
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
     private static byte[] getBytes(String hex) throws SQLException {
         return ByteUtils.convertStringToBytes(hex);
     }
@@ -183,6 +183,6 @@ public class SecureSocketFactory {
         return newList;
     }
 
-//#endif
+//## Java 1.4 end ##
 
 }

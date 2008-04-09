@@ -9,11 +9,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.RowIdLifetime;
-*/
-//#endif
+## Java 1.6 end ##*/
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
@@ -2524,23 +2522,23 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      *            CLOSE_CURSORS_AT_COMMIT
      * @return true if the holdability is ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public boolean supportsResultSetHoldability(int holdability) {
         debugCodeCall("supportsResultSetHoldability", holdability);
         return holdability == ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Gets the result set holdability.
      * @return ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public int getResultSetHoldability() {
         debugCodeCall("getResultSetHoldability");
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Gets the major version of the database.
@@ -2582,12 +2580,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the SQL State type.
      * @return DatabaseMetaData.sqlStateSQL99
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
    public int getSQLStateType() {
         debugCodeCall("getSQLStateType");
         return DatabaseMetaData.sqlStateSQL99;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Does the database make a copy before updating.
@@ -2635,14 +2633,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Get the lifetime of a rowid.
      * @return ROWID_UNSUPPORTED
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public RowIdLifetime getRowIdLifetime() {
         debugCodeCall("getRowIdLifetime");
         return RowIdLifetime.ROWID_UNSUPPORTED;
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Gets the list of schemas.
@@ -2681,26 +2677,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * [Not supported] Return an object of this class if possible.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Gets the list of function columns.

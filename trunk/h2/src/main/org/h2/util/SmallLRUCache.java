@@ -5,28 +5,24 @@
  */
 package org.h2.util;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.util.LinkedHashMap;
-//#endif
-//#ifdef JDK13
-/*
+//## Java 1.4 end ##
+/*## Java 1.3 only begin ##
 import java.util.HashMap;
-*/
-//#endif
+## Java 1.3 only end ##*/
 import java.util.Map;
 
 /**
  * This class implements a small LRU object cache.
  */
 public class SmallLRUCache
-//#ifdef JDK14
+//## Java 1.4 begin ##
 extends LinkedHashMap
-//#endif
-//#ifdef JDK13
-/*
+//## Java 1.4 end ##
+/*## Java 1.3 only begin ##
 extends HashMap
-*/
-//#endif
+## Java 1.3 only end ##*/
 {
 
     private static final long serialVersionUID = 3643268440910181829L;
@@ -36,9 +32,9 @@ extends HashMap
         this.size = size;
     }
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
     protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > size;
      }
-//#endif
+//## Java 1.4 end ##
 }

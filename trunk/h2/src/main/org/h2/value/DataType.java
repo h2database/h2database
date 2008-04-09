@@ -71,15 +71,14 @@ public class DataType {
     public static final int TYPE_DATALINK = 70;
 
     static {
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         if (TYPE_BOOLEAN != Types.BOOLEAN) {
             new Exception("Types.BOOLEAN: " + Types.BOOLEAN).printStackTrace();
         }
         if (TYPE_DATALINK != Types.DATALINK) {
             new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
         }
-
-//#endif
+        //## Java 1.4 end ##
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
                 new String[]{"NULL"},

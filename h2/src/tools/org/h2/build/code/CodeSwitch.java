@@ -26,7 +26,7 @@ import java.util.Vector;
  * it can be compiled for different JDKs.
  */
 public class CodeSwitch {
-    // TODO codeswitch: replace with ant 'Replace' task is possible
+    // TODO codeswitch: compatibility with ant 'Replace' task is possible
     private boolean recurse;
     private ArrayList list = new ArrayList();
     private ArrayList switchOn = new ArrayList();
@@ -38,7 +38,7 @@ public class CodeSwitch {
     private boolean changed;
 
     public static void main(String[] argv) throws Exception {
-        (new CodeSwitch()).run(argv);
+        new CodeSwitch().run(argv);
     }
 
     private void run(String[] a) throws Exception {

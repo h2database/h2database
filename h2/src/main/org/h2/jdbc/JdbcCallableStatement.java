@@ -15,13 +15,11 @@ import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.Ref;
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.NClob;
 import java.sql.SQLXML;
 import java.sql.RowId;
-*/
-//#endif
+## Java 1.6 end ##*/
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -608,35 +606,29 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public RowId getRowId(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public RowId getRowId(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setRowId(String parameterName, RowId x) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -655,13 +647,11 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setNClob(String parameterName, NClob value) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -687,58 +677,48 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public NClob getNClob(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public NClob getNClob(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setSQLXML(String parameterName, SQLXML xmlObject) 
             throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public SQLXML getSQLXML(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]

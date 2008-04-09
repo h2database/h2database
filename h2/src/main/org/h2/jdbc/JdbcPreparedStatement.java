@@ -12,10 +12,10 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.sql.ParameterMetaData;
 import java.sql.Statement;
-//#endif
+//## Java 1.4 end ##
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
@@ -50,13 +50,11 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.RowId;
 import java.sql.NClob;
 import java.sql.SQLXML;
-*/
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * Represents a prepared statement.
@@ -1050,9 +1048,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                         next = e;
                     }
                     logAndConvert(e);
-//#ifdef JDK14
+                    //## Java 1.4 begin ##
                     result[i] = Statement.EXECUTE_FAILED;
-//#endif
+                    //## Java 1.4 end ##
                     error = true;
                 }
             }
@@ -1193,7 +1191,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      *
      * @return the meta data
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public ParameterMetaData getParameterMetaData() throws SQLException {
         try {
             int id = getNextId(TraceObject.PARAMETER_META_DATA);
@@ -1207,7 +1205,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     // =============================================================
 
@@ -1231,13 +1229,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a row id.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter.
@@ -1297,8 +1293,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setNClob(int parameterIndex, NClob x) throws SQLException {
         try {
             if (debug()) {
@@ -1316,8 +1311,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1402,13 +1396,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL

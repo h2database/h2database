@@ -8,9 +8,9 @@ package org.h2.jdbcx;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import javax.transaction.xa.Xid;
-//#endif
+//## Java 1.4 end ##
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
@@ -21,9 +21,9 @@ import org.h2.util.ByteUtils;
  * An object of this class represents a transaction id.
  */
 public class JdbcXid extends TraceObject 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements Xid 
-//#endif
+//## Java 1.4 end ##
 {
     
     private static final String PREFIX = "XID";

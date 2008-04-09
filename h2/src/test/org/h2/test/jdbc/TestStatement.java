@@ -106,11 +106,11 @@ public class TestStatement extends TestBase {
 
         Statement stat = conn.createStatement();
 
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         check(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         conn.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
         check(ResultSet.CLOSE_CURSORS_AT_COMMIT, conn.getHoldability());
-//#endif
+        //## Java 1.4 end ##
 
         // ignored
         stat.setCursorName("x");

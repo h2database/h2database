@@ -33,7 +33,7 @@ public class FileObjectMemory implements FileObject {
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final byte[] COMPRESSED_BLOCK;
     
-//#ifdef JDK14
+//## Java 1.4 begin ##
     static class Cache extends LinkedHashMap {
         private static final long serialVersionUID = 5549197956072850355L;
         private int size;
@@ -69,18 +69,18 @@ public class FileObjectMemory implements FileObject {
         }
     }
     private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
-//#endif
+//## Java 1.4 end ##
     
     
     private static void compressLater(byte[][] data, int l) {
-//#ifdef JDK14
+//## Java 1.4 begin ##
         CompressItem c = new CompressItem();
         c.data = data;
         c.l = l;
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
-//#endif
+//## Java 1.4 end ##
     }
     
     private static void expand(byte[][] data, int i) {

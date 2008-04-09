@@ -41,15 +41,13 @@ import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import java.sql.Array;
 import java.sql.NClob;
 import java.sql.Struct;
 import java.sql.SQLXML;
 import java.sql.SQLClientInfoException;
-*/
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * Represents a connection (session) to a database.
@@ -70,9 +68,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
     private Exception openStackTrace;
-//#ifdef JDK14
+    
+    //## Java 1.4 begin ##
     private int savepointId;
-//#endif
+    //## Java 1.4 end ##
     private Trace trace;
     private JdbcConnectionListener listener;
     private boolean isInternal;
@@ -785,7 +784,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return the new savepoint
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public Savepoint setSavepoint() throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -802,14 +801,14 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Creates a new named savepoint.
      *
      * @return the new savepoint
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public Savepoint setSavepoint(String name) throws SQLException {
         try {
             int id = getNextId(TraceObject.SAVEPOINT);
@@ -825,12 +824,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Rolls back to a savepoint.
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void rollback(Savepoint savepoint) throws SQLException {
         try {
             JdbcSavepoint sp = convertSavepoint(savepoint);
@@ -841,12 +840,12 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Releases a savepoint.
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public void releaseSavepoint(Savepoint savepoint) throws SQLException {
         try {
             debugCode("releaseSavepoint(savepoint);");
@@ -863,7 +862,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         return (JdbcSavepoint) savepoint;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Creates a prepared statement with the specified result set type,
@@ -1006,11 +1005,11 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private void checkJavaVersion() throws SQLException {
         try {
-//#ifdef JDK14
+            //## Java 1.4 begin ##
             // check for existence of this class (avoiding Class . forName)
             Class clazz = java.sql.Savepoint.class;
             clazz.getClass();
-//#endif
+            //## Java 1.4 end ##
         } catch (Throwable e) {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_JAVA_VERSION);
         }
@@ -1210,12 +1209,12 @@ public class JdbcConnection extends TraceObject implements Connection {
     private void checkHoldability(int resultSetHoldability) throws SQLException {
         // TODO compatibility / correctness: DBPool uses 
         // ResultSet.HOLD_CURSORS_OVER_COMMIT
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         if (resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT
                 && resultSetHoldability != ResultSet.CLOSE_CURSORS_AT_COMMIT) {
             throw Message.getInvalidValueException("" + resultSetHoldability, "resultSetHoldability");
         }
-//#endif
+        //## Java 1.4 end ##
     }
 
     void checkClosed() throws SQLException {
@@ -1326,8 +1325,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @return the object
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public NClob createNClob() throws SQLException {
         try {
             int id = getNextId(TraceObject.CLOB);
@@ -1339,43 +1337,36 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw logAndConvert(e);
         }
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Create a new empty SQLXML object.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public SQLXML createSQLXML() throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Create a new empty Array object.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public Array createArrayOf(String typeName, Object[] elements) 
             throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Create a new empty Struct object.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public Struct createStruct(String typeName, Object[] attributes) 
             throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * Returns true if this connection is still valid.
@@ -1398,36 +1389,30 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * [Not supported] Set a client property.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setClientInfo(String name, String value) 
             throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Set the client properties.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Get the client properties.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public Properties getClientInfo() throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Set a client property.
@@ -1441,26 +1426,22 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     Value createClob(Reader x, long length) throws SQLException {
         if (x == null) {

@@ -20,88 +20,66 @@ import org.h2.message.Message;
 public class ObjectUtils {
 
     public static Integer getInteger(int x) {
-        // actually this method is available in JDK15
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Integer.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Integer(x); // NOPMD
-//#endif
     }
 
     public static Character getCharacter(char x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Character.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Character(x);
-//#endif
     }
 
     public static Long getLong(long x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Long.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Long(x); // NOPMD
-//#endif
     }
 
     public static Short getShort(short x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Short.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Short(x); // NOPMD
-//#endif
     }
 
     public static Byte getByte(byte x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Byte.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Byte(x); // NOPMD
-//#endif
     }
 
     public static Float getFloat(float x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Float.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Float(x);
-//#endif
     }
 
     public static Double getDouble(double x) {
-//#ifdef JDK16
-/*
-        if(true)
+/*## Java 1.5 begin ##
+        if (true) {
             return Double.valueOf(x);
-*/
-//#endif
-//#ifdef JDK14
+        }
+## Java 1.5 end ##*/
         return new Double(x);
-//#endif
     }
 
     public static byte[] serialize(Object obj) throws SQLException {

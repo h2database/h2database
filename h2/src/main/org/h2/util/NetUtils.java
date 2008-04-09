@@ -109,9 +109,9 @@ public class NetUtils {
 
     public static boolean isLoopbackAddress(Socket socket) {
         boolean result = true;
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         result = socket.getInetAddress().isLoopbackAddress();
-//#endif
+        //## Java 1.4 end ##
         return result;
     }
 

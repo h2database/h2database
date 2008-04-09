@@ -30,11 +30,9 @@ import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
 
-//#ifdef JDK16
-/*    
+/*## Java 1.6 begin ##
 import org.h2.message.Message;
-*/    
-//#endif
+## Java 1.6 end ##*/
 
 /**
  * A simple standalone JDBC connection pool.
@@ -304,25 +302,21 @@ public class JdbcConnectionPool implements DataSource {
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*    
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/    
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*    
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/    
-//#endif
+## Java 1.6 end ##*/
 
 }

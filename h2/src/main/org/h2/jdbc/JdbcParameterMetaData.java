@@ -19,9 +19,9 @@ import org.h2.message.TraceObject;
  * Information about the parameters of a prepared statement.
  */
 public class JdbcParameterMetaData extends TraceObject
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements ParameterMetaData
-//#endif
+//## Java 1.4 end ##
 {
 
     private JdbcPreparedStatement prep;
@@ -48,7 +48,7 @@ implements ParameterMetaData
      *
      * @return parameterModeIn
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public int getParameterMode(int param) throws SQLException {
         try {
             debugCodeCall("getParameterMode", param);
@@ -58,7 +58,7 @@ implements ParameterMetaData
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Returns the parameter type.
@@ -192,26 +192,22 @@ implements ParameterMetaData
     /**
      * [Not supported] Return an object of this class if possible.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
     
     /**
      * INTERNAL

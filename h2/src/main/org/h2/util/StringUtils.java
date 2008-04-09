@@ -284,19 +284,19 @@ public class StringUtils {
     }
 
     public static String urlEncode(String s) {
-//#ifdef JDK14
+//## Java 1.4 begin ##
         try {
             return URLEncoder.encode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             return s;
         }
-//#endif
-//#ifdef JDK13
+//## Java 1.4 end ##
+/*## Java 1.3 only begin ##
 /*
         return URLEncoder.encode(s);
 */
-//#endif
+//## Java 1.4 end ##
 //        byte[] utf = utf8Encode(s);
 //        StringBuffer buff = new StringBuffer(utf.length);
 //        for(int i=0; i<utf.length; i++) {
@@ -407,14 +407,12 @@ public class StringUtils {
             if (locale == null) {
                 df = new SimpleDateFormat(format);
             } else {
-//#ifdef JDK14
+                //## Java 1.4 begin ##
                 Locale l = new Locale(locale);
-//#endif
-//#ifdef JDK13
-/*
+                //## Java 1.4 end ##
+                /*## Java 1.3 only begin ##
                 Locale l = new Locale(locale, "");
-*/
-//#endif
+                ## Java 1.3 only end ##*/
                 df = new SimpleDateFormat(format, l);
             }
             if (timeZone != null) {

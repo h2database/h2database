@@ -14,7 +14,26 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>.
+<ul><li>The autocomplete in the H2 Console has been improved a bit.
+</li><li>The tools in the H2 Console are now translatable.
+</li><li>Invalid inline views threw confusing SQL exceptions.
+</li><li>The Japanese translation of the error messages and the 
+  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
+</li><li>Optimization for MIN() and MAX() when using MVCC.
+</li><li>To protect against remote brute force password attacks, 
+    the delay after each unsuccessful login now gets double as long.
+    New system properties h2.delayWrongPasswordMin
+    and h2.delayWrongPasswordMax.
+</li><li>After setting the query timeout and then resetting it, the next query
+    would still timeout. Fixed.
+</li><li>Adding a IDENTITY column to a table with data threw a lock timeout.
+</li><li>OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
+</li><li>The built-in connection pool is not called JdbcConnectionPool. 
+    The API and documentation has been changed.
+</li><li>The ConvertTraceFile tool now generates SQL statement statistics 
+    at the end of the SQL script file (similar to the profiling data
+    generated when using java -Xrunhprof).
+</li><li>Nested joins are now supported (A JOIN B JOIN C ON .. ON ..)
 </li></ul>
 
 <h2>Version 1.0.69 (2008-03-29)</h2>

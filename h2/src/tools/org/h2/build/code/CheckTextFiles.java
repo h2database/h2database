@@ -111,14 +111,14 @@ public class CheckTextFiles {
                 if (text.indexOf(copyrightLicense) < 0) {
                     fail(file, "license is missing", 0);
                 }
-                if (text.indexOf(" " + "//#") > 0) {
-                    fail(file, "unexpected space,//#", 0);
+                if (text.indexOf("// " + "##") > 0) {
+                    fail(file, "unexpected space between // and ##", 0);
                 }
-                if (text.indexOf(" " + "#ifdef") > 0) {
-                    fail(file, "unexpected space,#if", 0);
+                if (text.indexOf("/* " + "##") > 0) {
+                    fail(file, "unexpected space between /* and ##", 0);
                 }
-                if (text.indexOf(" " + "#endif") > 0) {
-                    fail(file, "unexpected space,#endif", 0);
+                if (text.indexOf("##" + " */") > 0) {
+                    fail(file, "unexpected space between ## and */", 0);
                 }
             }
         }

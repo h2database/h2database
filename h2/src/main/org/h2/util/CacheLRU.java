@@ -46,10 +46,11 @@ public class CacheLRU implements Cache {
 
     public void put(CacheObject rec) throws SQLException {
         if (SysProperties.CHECK) {
+            int pos = rec.getPos();
             for (int i = 0; i < rec.getBlockCount(); i++) {
-                CacheObject old = find(rec.getPos() + i);
+                CacheObject old = find(pos + i);
                 if (old != null) {
-                    throw Message.getInternalError("try to add a record twice i=" + i);
+                    throw Message.getInternalError("try to add a record twice pos:" + pos + " i:" + i);
                 }
             }
         }

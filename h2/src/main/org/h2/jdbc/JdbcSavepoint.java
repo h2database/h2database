@@ -6,9 +6,9 @@
 package org.h2.jdbc;
 
 import java.sql.SQLException;
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.sql.Savepoint;
-//#endif
+//## Java 1.4 end ##
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
@@ -22,9 +22,9 @@ import org.h2.util.StringUtils;
  * back in this case.
  */
 public class JdbcSavepoint extends TraceObject
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements Savepoint
-//#endif
+//## Java 1.4 end ##
 {
 
     static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";

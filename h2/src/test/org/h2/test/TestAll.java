@@ -159,11 +159,33 @@ java org.h2.test.TestAll timer
 
 /*
 
-test self runnable jar with uncompressed jar inside compressed jar
+Caused by: java.lang.Error: read len -1170950400
+       at org.h2.message.Message.getInternalError(Message.java:128)
+       at org.h2.store.FileStore.readFully(FileStore.java:210)
+       at org.h2.store.DiskFile.copyDirect(DiskFile.java:838)
+       at org.h2.command.dml.BackupCommand.backupDiskFile(BackupCommand.java:113)
+       at org.h2.command.dml.BackupCommand.backupTo(BackupCommand.java:71)
+       at org.h2.command.dml.BackupCommand.update(BackupCommand.java:52)
+       at org.h2.command.CommandContainer.update(CommandContainer.java:69)
+       at org.h2.command.Command.executeUpdate(Command.java:197)
+       
+in your cvs tutorial (on h2database.com) you have an example code for
+Reading a CSV File from a Java Application.
+In the example you use the static reference Csv.read(...);
+to the non static method read(...) in line 1.
+I used Csv csv = Csv.getInstance();
+and then csv.read(...)
+i guess the same problem occurs in the
+Writing a CSV File from a Java Application
+example above with Csv.write(...)
 
-implementation javadocs
-.tar.bz2 in addition to .zip
-
+Caused by: java.io.IOException: File system is read-only
+   at org.h2.store.fs.FileSystemZip.createTempFile(FileSystemZip.java:52)
+   at org.h2.util.FileUtils.createTempFile(FileUtils.java:140)
+   at org.h2.engine.Database.createTempFile(Database.java:1177)
+   
+analyzer configuration option for the fulltext search   
+   
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
@@ -171,14 +193,6 @@ VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
 Browser problems:
 There has been a reported incompatibility with the 
 RealPlayer Browser Record Plugin 1.0 when using Firefox 2.0 and Vista
-
-prep.setObject(1, new double[3]); 
-// setArray() is not supported according to
- * double[] is currently serialized (using the 
-    standard Java object serialization). 
- * I will try to support this for the next release; 
-    if it is not as easy as I thought I will add a feature request. 
- * The same with supporting setArray.
 
 --------------
 
@@ -219,33 +233,11 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-The autocomplete in the H2 Console has been improved a bit.
-The tools in the H2 Console are now translatable.
-Invalid inline views threw confusing SQL exceptions.
-The Japanese translation of the error messages and the 
-  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
-Optimization for MIN() and MAX() when using MVCC.
-To protect against remote brute force password attacks, 
-    the delay after each unsuccessful login now gets double as long.
-    New system properties h2.delayWrongPasswordMin
-    and h2.delayWrongPasswordMax.
-After setting the query timeout and then resetting it, the next query
-    would still timeout. Fixed.
-Adding a IDENTITY column to a table with data threw a lock timeout.
-OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
-The built-in connection pool is not called JdbcConnectionPool. 
-    The API and documentation has been changed.
-The ConvertTraceFile tool now generates SQL statement statistics 
-    at the end of the SQL script file (similar to the profiling data
-    generated when using java -Xrunhprof).
-Nested joins are now supported (A JOIN B JOIN C ON .. ON ..)
+The servlet and lucene jar files are now automatically downloaded in the build.
+The code switch tool has been replaced by a simpler tool called 
+    SwitchSource that just uses find and replace. 
 
 Roadmap:
-Doclet (javadocs): constructors are not listed
-Support direct lookup for MIN and MAX when using WHERE 
-    (see todo.txt / Direct Lookup)
-
-
 
 */
 

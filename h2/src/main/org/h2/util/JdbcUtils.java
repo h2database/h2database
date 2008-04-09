@@ -12,12 +12,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.sql.XAConnection;
-//#endif
+//## Java 1.4 end ##
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
@@ -59,13 +59,13 @@ public class JdbcUtils {
 
     public static ResultSet getGeneratedKeys(Statement stat) throws SQLException {
         ResultSet rs = null;
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         rs = stat.getGeneratedKeys();
-//#endif
+        //## Java 1.4 end ##
         return rs;
     }
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public static void closeSilently(XAConnection conn) {
         if (conn != null) {
             try {
@@ -75,7 +75,7 @@ public class JdbcUtils {
             }
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Create a new database connection with the given settings.
@@ -101,7 +101,7 @@ public class JdbcUtils {
                 Class d = ClassUtils.loadUserClass(driver);
                 if (java.sql.Driver.class.isAssignableFrom(d)) {
                     return DriverManager.getConnection(url, prop);
-//#ifdef JDK14
+                    //## Java 1.4 begin ##
                 } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                     // JNDI context
                     try {
@@ -121,7 +121,7 @@ public class JdbcUtils {
                      } catch (NamingException e) {
                          throw Message.convert(e);
                      }
-//#endif
+                     //## Java 1.4 end ##
                  } else {
                     // Don't know, but maybe it loaded a JDBC Driver
                     return DriverManager.getConnection(url, prop);

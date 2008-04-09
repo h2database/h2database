@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.io.Serializable;
 import javax.naming.NamingException;
 import javax.naming.Reference;
@@ -22,16 +22,14 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
-//#endif
+//## Java 1.4 end ##
 
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
 import org.h2.message.Message;
-*/
-//#endif
+//## Java 1.4 end ##
 
 /**
  * A data source for H2 database connections. It is a factory for XAConnection
@@ -67,9 +65,9 @@ import org.h2.message.Message;
  * well; this may be a security problem in some cases.
  */
 public class JdbcDataSource extends TraceObject
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Referenceable
-//#endif
+//## Java 1.4 end ##
 {
 
     private static final long serialVersionUID = 1288136338451857771L;
@@ -246,7 +244,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @return the new reference
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public Reference getReference() throws NamingException {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();
@@ -257,20 +255,20 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
         return ref;
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Open a new XA connection using the current URL, user name and password.
      *
      * @return the connection
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Open a new XA connection using the current URL and the specified user
@@ -280,7 +278,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * @param password the password
      * @return the connection
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public XAConnection getXAConnection(String user, String password) throws SQLException {
         if (debug()) {
             debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
@@ -288,19 +286,19 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         int id = getNextId(XA_DATA_SOURCE);
         return new JdbcXAConnection(factory, id, url, user, password);
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Open a new pooled connection using the current URL, user name and password.
      *
      * @return the connection
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public PooledConnection getPooledConnection() throws SQLException {
         debugCodeCall("getPooledConnection");
         return getXAConnection();
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * Open a new pooled connection using the current URL and the specified user
@@ -310,40 +308,36 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * @param password the password
      * @return the connection
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
         if (debug()) {
             debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
         }
         return getXAConnection(user, password);
     }
-//#endif
+//## Java 1.4 end ##
 
     /**
      * [Not supported] Return an object of this class if possible.
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL

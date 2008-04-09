@@ -610,9 +610,9 @@ public class JdbcStatement extends TraceObject implements Statement {
                     result[i] = executeUpdate(sql);
                 } catch (SQLException e) {
                     logAndConvert(e);
-//#ifdef JDK14
+                    //## Java 1.4 begin ##
                     result[i] = Statement.EXECUTE_FAILED;
-//#endif
+                    //## Java 1.4 end ##
                     error = true;
                 }
             }
@@ -797,7 +797,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the holdability
      */
-//#ifdef JDK14
+//## Java 1.4 begin ##
     public int getResultSetHoldability() throws SQLException {
         try {
             debugCodeCall("getResultSetHoldability");
@@ -807,7 +807,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             throw logAndConvert(e);
         }
     }
-//#endif
+//## Java 1.4 end ##
 
     // =============================================================
 
@@ -861,24 +861,20 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * [Not supported] Return an object of this class if possible.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
-//#ifdef JDK16
-/*
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-*/
-//#endif
+## Java 1.6 end ##*/
 
     /**
      * Returns whether this object is poolable.

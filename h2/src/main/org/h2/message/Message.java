@@ -131,14 +131,12 @@ public class Message {
     }
 
     public static Error getInternalError(String s, Exception e) {
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         Error e2 = new Error(s, e);
-//#endif
-//#ifdef JDK13
-/*
+        //## Java 1.4 end ##
+        /*## Java 1.3 only begin ##
         Error e2 = new Error(s);
-*/
-//#endif
+        ## Java 1.3 only end ##*/
         TraceSystem.traceThrowable(e2);
         return e2;
     }
@@ -200,9 +198,9 @@ public class Message {
             }
         }
         IOException io = new IOException(e.toString());
-//#ifdef JDK14
+        //## Java 1.4 begin ##
         io.initCause(e);
-//#endif
+        //## Java 1.4 end ##
         return io;
     }
 

@@ -21,7 +21,7 @@ package org.h2.engine;
  *   set classpath=
  *   ant javadoc
  *   ant javadocImpl (to find missing javadocs)
- *   ant codeswitchJdk14
+ *   ant switchSourceJdk14
  *   ant javadocImpl
  *
  * - Change version and build number in
@@ -53,7 +53,7 @@ package org.h2.engine;
  *      - table of contents
  * - Switch off auto-build
  * - ant all
- * - Make sure FullTextLucene is included in h2.jar
+ * - Make sure external jars are not included
  * - Copy the pdf file to h2/docs
  * - Make sure the build files are removed
  * - ant zip

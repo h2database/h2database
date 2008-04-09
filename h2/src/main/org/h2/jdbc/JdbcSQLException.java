@@ -37,9 +37,9 @@ public class JdbcSQLException extends SQLException {
         this.cause = cause;
         this.trace = trace;
         buildMessage();
-//#ifdef JDK14
+//## Java 1.4 begin ##
         initCause(cause);
-//#endif
+//## Java 1.4 end ##
     }
 
     /**
@@ -77,13 +77,11 @@ public class JdbcSQLException extends SQLException {
     public void printStackTrace(PrintWriter s) {
         if (s != null) {
             super.printStackTrace(s);
-//#ifdef JDK13
-/*
+            /*## Java 1.3 only begin ##
             if (cause != null) {
                 cause.printStackTrace(s);
             }
-*/
-//#endif
+            ## Java 1.3 only end ##*/
             // getNextException().printStackTrace(s) would be very very slow
             // if many exceptions are joined
             SQLException next = getNextException();
@@ -105,13 +103,11 @@ public class JdbcSQLException extends SQLException {
     public void printStackTrace(PrintStream s) {
         if (s != null) {
             super.printStackTrace(s);
-//#ifdef JDK13
-/*
+            /*## Java 1.3 only begin ##
             if (cause != null) {
                 cause.printStackTrace(s);
             }
-*/
-//#endif
+            ## Java 1.3 only end ##*/
             // getNextException().printStackTrace(s) would be very very slow
             // if many exceptions are joined
             SQLException next = getNextException();

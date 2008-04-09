@@ -5,7 +5,7 @@
  */
 package org.h2.fulltext;
 
-//#ifdef JDK14
+//## Java 1.4 begin ##
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -39,18 +39,18 @@ import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.StringUtils;
-//#endif
+//## Java 1.4 end ##
 
 /**
  * This class implements the full text search based on Apache Lucene.
  */
 public class FullTextLucene extends FullText
-//#ifdef JDK14
+//## Java 1.4 begin ##
 implements Trigger
-//#endif
+//## Java 1.4 end ##
 {
 
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     private static HashMap indexers = new HashMap();
     private static final String FIELD_DATA = "DATA";
     private static final String FIELD_QUERY = "QUERY";
@@ -64,7 +64,7 @@ implements Trigger
     private String[] columnNames;
     private int[] dataTypes;
     private IndexModifier indexer;
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Create a new full text index for a table and column list. Each table may
@@ -75,7 +75,7 @@ implements Trigger
      * @param table the table name
      * @param columnList the column list (null for all columns)
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO "+SCHEMA+".INDEXES(SCHEMA, TABLE, COLUMNS) VALUES(?, ?, ?)");
@@ -86,14 +86,14 @@ implements Trigger
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Re-creates the full text index for this database
      *
      * @param conn the connection
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static void reindex(Connection conn) throws SQLException {
         init(conn);
         removeAllTriggers(conn);
@@ -107,21 +107,21 @@ implements Trigger
             indexExistingRows(conn, schema, table);
         }
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Drops all full text indexes from the database.
      *
      * @param conn the connection
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static void dropAll(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
         removeAllTriggers(conn);
         removeIndexFiles(conn);
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -145,7 +145,7 @@ implements Trigger
      * 
      * @param conn
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static void init(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
@@ -156,12 +156,12 @@ implements Trigger
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * INTERNAL
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
         init(conn);
         this.schemaName = schemaName;
@@ -212,12 +212,12 @@ implements Trigger
         indexColumns = new int[indexList.size()];
         setColumns(indexColumns, indexList, columnList);
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * INTERNAL
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
         if (oldRow != null) {
             delete(oldRow);
@@ -226,7 +226,7 @@ implements Trigger
             insert(newRow);
         }
     }
-//#endif
+    //## Java 1.4 end ##
 
     /**
      * Searches from the full text index for this database. The result contains
@@ -247,11 +247,11 @@ implements Trigger
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, true);
     }
-//#endif
+    //## Java 1.4 end ##
     
     /**
      * Searches from the full text index for this database.
@@ -267,7 +267,7 @@ implements Trigger
      * @param offset the offset or 0 for no offset
      * @return the result set
      */    
-//#ifdef JDK14
+    //## Java 1.4 begin ##
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, false);
     }
@@ -602,6 +602,6 @@ implements Trigger
             index[i] = found;
         }
     }
-//#endif
+    //## Java 1.4 end ##
 
 }

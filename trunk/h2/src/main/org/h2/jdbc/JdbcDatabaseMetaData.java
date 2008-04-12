@@ -65,7 +65,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public String getDatabaseProductVersion() {
         debugCodeCall("getDatabaseProductVersion");
-        return Constants.getVersion();
+        return Constants.getFullVersion();
     }
 
     /**
@@ -86,7 +86,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public String getDriverVersion() {
         debugCodeCall("getDriverVersion");
-        return Constants.getVersion();
+        return Constants.getFullVersion();
     }
 
     /**

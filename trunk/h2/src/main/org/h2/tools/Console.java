@@ -28,10 +28,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import org.h2.util.IOUtils;
+import org.h2.util.Resources;
 
 import java.io.IOException;
-import java.io.InputStream;
 //## AWT end ##
 import java.sql.SQLException;
 
@@ -142,12 +141,11 @@ ShutdownHandler {
     }
 
     private Image loadImage(String name) throws IOException {
-        InputStream in = Console.class.getResourceAsStream(name);
-        if (in != null) {
-            byte[] imageData = IOUtils.readBytesAndClose(in, -1);
-            return Toolkit.getDefaultToolkit().createImage(imageData);
+        byte[] imageData = Resources.get(name);
+        if (imageData == null) {
+            return null;
         }
-        return null;
+        return Toolkit.getDefaultToolkit().createImage(imageData);
     }
 
     /**

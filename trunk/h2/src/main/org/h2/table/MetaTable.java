@@ -696,7 +696,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"info.BUILD_ID", "" + Constants.BUILD_ID});
             add(rows, new String[]{"info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR});
             add(rows, new String[]{"info.VERSION_MINOR", "" + Constants.VERSION_MINOR});
-            add(rows, new String[]{"info.VERSION", "" + Constants.getVersion()});
+            add(rows, new String[]{"info.VERSION", "" + Constants.getFullVersion()});
             if (session.getUser().getAdmin()) {
                 String[] settings = new String[]{
                         "java.runtime.version",

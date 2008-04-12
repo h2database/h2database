@@ -87,6 +87,8 @@ public class Constants {
 
     public static final int VERSION_MAJOR = 1;
     public static final int VERSION_MINOR = 0;
+    
+    public static final String VERSION = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
 
     public static final int FILE_BLOCK_SIZE = 16;
     public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
@@ -95,8 +97,8 @@ public class Constants {
     public static final int VERSION_JDBC_MAJOR = 3;
     public static final int VERSION_JDBC_MINOR = 0;
 
-    public static String getVersion() {
-        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID + " (" + BUILD + ")";
+    public static String getFullVersion() {
+        return VERSION+ " (" + BUILD + ")";
     }
 
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs

@@ -44,20 +44,8 @@
 		</delete>
 	</target>
 
-	<target name="compileResources" depends="clean">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/Resources.java"/>
-		<java classname="org.h2.util.Resources" classpath="bin"/>
-		<delete>
-			<fileset dir="bin" includes="org/h2/util/ResourceData.class"/>
-		</delete>
-		<javac executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/util/ResourceData.java"/>
-		<delete>
-			<fileset dir="bin" includes="org/h2/util/ResourceData.java"/>
-		</delete>
-	</target>
-
-	<target name="compile" depends="compileResources, switchSourceAuto, downloadServletJar, downloadLuceneJar">
-		<javac executable="${javac}" destdir="bin" debug="true">
+	<target name="compile" depends="switchSourceAuto, resources, downloadServletJar, downloadLuceneJar">
+		<javac executable="${javac}" destdir="bin" debug="true" debuglevel="lines,source" >
 			<classpath location="ext/servlet-api-2.4.jar" />
 		    <classpath location="ext/lucene-core-2.2.0.jar" />
 		    <src path="src/main"/>
@@ -65,13 +53,9 @@
 	       	<src path="src/tools"/>
 	    </javac>
 		<copy todir="bin" overwrite="true">
-			<fileset dir="src/main" includes="META-INF/**/*"/>
-			<fileset dir="src/main" includes="**/*.png"/>
-			<fileset dir="src/main" includes="**/*.sql"/>
+			<fileset dir="src/main" includes="META-INF/services/*"/>
 			<fileset dir="src/installer" includes="*.bat"/>
-			<fileset dir="src/test" includes="**/*.txt"/>
-			<fileset dir="src/test" includes="**/*.sql"/>
-			<fileset dir="src/test" includes="**/*.properties"/>
+			<fileset dir="src/test" excludes="**/*.java,**/package.html"/>
 		</copy>
 	</target>
 
@@ -82,7 +66,7 @@
 		<java classname="org.h2.test.coverage.Coverage" classpath="." dir="bin" fork="true">
 			<arg line="-r org/h2"/>
 		</java>
-		<javac executable="${javac}" srcdir="bin" destdir="bin" debug="true" includes="org/h2/**"/>
+		<javac executable="${javac}" srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
     </target>
 
 	<target name="docs" depends="clean, javadoc, compile">
@@ -132,8 +116,8 @@
 		</jar>
 	</target>
 
-	<target name="jarClient" depends="compileResources, manifest">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true">
+	<target name="jarClient" depends="resources, manifest">
+		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" debuglevel="lines,source">
 			<include name="org/h2/*" />
 			<include name="org/h2/jdbc/**" />
 			<include name="org/h2/jdbcx/**" />
@@ -144,7 +128,7 @@
 		</jar>
 	</target>
 
-	<target name="jarDb" depends="compileResources, manifest">
+	<target name="jarDb" depends="resources, manifest">
 		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="false">
 			<include name="org/h2/*" />
 			<include name="org/h2/engine/**" />
@@ -158,9 +142,9 @@
 	</target>
 
 	<target name="javadoc">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" includes="org/h2/util/StringUtils.java"/>
-		<javac executable="${javac}" srcdir="src/test" destdir="bin" debug="true" includes="org/h2/test/bnf/*.java"/>
-		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/build/doclet/*.java"/>
+		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/util/StringUtils.java"/>
+		<javac executable="${javac}" srcdir="src/test" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/test/bnf/*.java"/>
+		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/build/doclet/*.java"/>
 		<mkdir dir="docs/javadoc"/>
 		<javadoc
 			sourcepath="src/main"
@@ -240,8 +224,16 @@
 		</exec>
 	</target>
     
+	<target name="resources" depends="clean">
+	    <mkdir dir="bin/org/h2/util"/>
+	    <zip destfile="bin/org/h2/util/data.zip" 
+	        basedir="src/main" 
+	        compress="false"
+	        excludes="**/*.java,**/package.html,**/java.sql.Driver" />
+	</target>
+
 	<target name="switchSourcePrepare" depends="clean">
-		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" includes="org/h2/build/code/SwitchSource.java"/>
+		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/build/code/SwitchSource.java"/>
 	</target>
 
     <target name="switchSourceAndroid" depends="switchSourcePrepare">

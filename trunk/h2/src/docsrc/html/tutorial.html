@@ -413,13 +413,16 @@ SELECT * FROM CSVREAD('test.csv');
 The CSV tool can be used in a Java application even when not using a database at all.
 Example:
 <pre>
+import org.h2.tools.Csv;
+import org.h2.tools.SimpleResultSet;
+...
 SimpleResultSet rs = new SimpleResultSet();
 rs.addColumn("NAME", Types.VARCHAR, 255, 0);
 rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
 rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
-rs.addRow(new String[]{"Bob Meier", "bob.meier@abcde.abc", "+41123456789"});
-rs.addRow(new String[]{"John Jones", "john.jones@abcde.abc", "+41976543210"});
-Csv.write("test.csv", rs, null);
+rs.addRow(new String[] { "Bob Meier", "bob.meier@abcde.abc", "+41123456789" });
+rs.addRow(new String[] { "John Jones", "john.jones@abcde.abc", "+41976543210" });
+Csv.getInstance().write("data/test.csv", rs, null);
 </pre>
 </p>
 
@@ -428,11 +431,13 @@ Csv.write("test.csv", rs, null);
 It is possible to read a CSV file without opening a database.
 Example:
 <pre>
-ResultSet rs = Csv.read("test.csv", null, null);
+import org.h2.tools.Csv;
+...
+ResultSet rs = Csv.getInstance().read("data/test.csv", null, null);
 ResultSetMetaData meta = rs.getMetaData();
-while(rs.next()) {
-    for(int i=0; i&lt;meta.getColumnCount(); i++) {
-        System.out.println(meta.getColumnLabel(i+1) + ": " + rs.getString(i+1));
+while (rs.next()) {
+    for (int i = 0; i &lt; meta.getColumnCount(); i++) {
+        System.out.println(meta.getColumnLabel(i + 1) + ": " + rs.getString(i + 1));
     }
     System.out.println();
 }

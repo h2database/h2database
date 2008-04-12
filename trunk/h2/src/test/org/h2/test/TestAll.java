@@ -159,6 +159,42 @@ java org.h2.test.TestAll timer
 
 /*
 
+build.sh
+run.sh
+
+jdbc:h2:zip:source.zip!/source
+The database is read only [90097-69] 90097/90097 (Help)
+org.h2.jdbc.JdbcSQLException: The database is read only [90097-69]
+   at org.h2.message.Message.getSQLException(Message.java:91)
+   at org.h2.message.Message.getSQLException(Message.java:95)
+   at org.h2.message.Message.getSQLException(Message.java:73)
+   at org.h2.message.Message.getSQLException(Message.java:116)
+   at org.h2.engine.Database.checkWritingAllowed(Database.java:1401)
+   at org.h2.log.LogSystem.add(LogSystem.java:410)
+   at org.h2.store.DiskFile.addRecord(DiskFile.java:867)
+   at org.h2.store.Storage.addRecord(Storage.java:141)
+   at org.h2.index.ScanIndex.add(ScanIndex.java:115)
+   at org.h2.table.TableData.addRow(TableData.java:97)
+   at org.h2.engine.Database.addMeta(Database.java:685)
+   at org.h2.engine.Database.addDatabaseObject(Database.java:759)
+   at org.h2.engine.Database.setMasterUser(Database.java:1364)
+   at org.h2.engine.Engine.openSession(Engine.java:63)
+   at org.h2.engine.Engine.getSession(Engine.java:104)
+   at org.h2.engine.Session.createSession(Session.java:203)
+   at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:976)
+   
+timebomb should interrupt all threads
+        Thread[] list = new Thread[1000];
+        Thread.currentThread().getThreadGroup().enumerate(list);
+        for (int i = 0; i < list.length; i++) {
+            Thread t = list[i];
+            if (t != null && t != Thread.currentThread()) {
+                System.out.println("interrupting " + t.toString());
+                t.interrupt();
+
+
+test case for out of memory (try to corrupt the database using out of memory)
+
 Caused by: java.lang.Error: read len -1170950400
        at org.h2.message.Message.getInternalError(Message.java:128)
        at org.h2.store.FileStore.readFully(FileStore.java:210)
@@ -233,9 +269,19 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-The servlet and lucene jar files are now automatically downloaded in the build.
+The servlet and lucene jar files are now automatically downloaded when building.
 The code switch tool has been replaced by a simpler tool called 
     SwitchSource that just uses find and replace. 
+Started to write a Ant replacement ('JAnt') that uses pure Java 
+    build definitions. Advantages: ability to debug the build, extensible, 
+    flexible, no XML, a bit faster. Future plan: support creating custom h2 
+    distributions (for embedded use). Maybe create a new project 'Jant'
+    or 'Javen' if other people are interested.
+The jar file is now about 10% smaller because the variable debugging info 
+    is no longer included. The source file and line number debugging info 
+    is still included. If required, the jar file size of the full version can 
+    be further reduced to about 720 KB using 'build jarSmall' or even 
+    more by removing unneeded components.
 
 Roadmap:
 

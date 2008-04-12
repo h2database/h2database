@@ -1,7 +1,6 @@
 #! /bin/sh
 if [ -z "$JAVA_HOME" ] ; then
   echo "Error: JAVA_HOME is not defined."
-  exit 1
 fi
 if [ ! -f "bin/org/h2/build/Build.class" ] ; then
   if [ ! -d "bin" ] ; then

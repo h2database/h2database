@@ -396,6 +396,9 @@ public class BuildBase {
     
     protected void java(String className, String[] args) {
         out.println("Executing " + className);
+        if (args == null) {
+            args = new String[0];
+        }
         try {
             Method main = Class.forName(className).getMethod("main", new Class[] { String[].class });
             main.invoke(null, new Object[] { args });

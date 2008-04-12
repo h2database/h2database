@@ -17,6 +17,7 @@ import org.h2.tools.SimpleResultSet;
  * This sample application shows how to use the CSV tool
  * to write CSV (comma separated values) files, and
  * how to use the tool to read such files.
+ * See also the section CSV (Comma Separated Values) Support in the Tutorial.
  */
 public class CsvSample {
 

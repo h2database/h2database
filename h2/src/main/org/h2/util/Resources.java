@@ -6,6 +6,7 @@
 package org.h2.util;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * This class is responsible to read resources and generate the
@@ -23,8 +26,40 @@ public class Resources {
     private static final HashMap FILES = new HashMap();
 
     static {
-        ResourceData.load();
+        if (!loadFromZip()) {
+            ResourceData.load();
+        }
     }
+    
+    private static boolean loadFromZip() {
+        InputStream in = Resources.class.getResourceAsStream("data.zip");
+        if (in == null) {
+            return false;
+        }
+        ZipInputStream zipIn = new ZipInputStream(in);
+        try {
+            while (true) {
+                ZipEntry entry = zipIn.getNextEntry();
+                if (entry == null) {
+                    break;
+                }
+                String entryName = entry.getName();
+                if (!entryName.startsWith("/")) {
+                    entryName = "/" + entryName;
+                }
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                IOUtils.copy(zipIn, out);
+                zipIn.closeEntry();
+                FILES.put(entryName, out.toByteArray());
+            }
+            zipIn.close();
+        } catch (IOException e) {
+            // if this happens we have a real problem
+            e.printStackTrace();
+        }
+        return true;
+    }
+    
 
     public static void main(String[] args) throws Exception {
         String inDir = args.length > 0 ? args[0] : null;

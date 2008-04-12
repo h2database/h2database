@@ -113,7 +113,7 @@ public class Shell {
 
     private void promptLoop() {
         out.println();
-        out.println("Welcome to H2 Shell " + Constants.getVersion());
+        out.println("Welcome to H2 Shell " + Constants.getFullVersion());
         out.println("Exit with Ctrl+C");
         if (conn != null) {
             showHelp();

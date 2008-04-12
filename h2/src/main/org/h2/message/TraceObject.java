@@ -216,7 +216,7 @@ public class TraceObject {
                     buff.append(i + 1);
                     buff.append(": ");
                     ParameterInterface p = (ParameterInterface) params.get(i);
-                    if (p == null) {
+                    if (p == null || p.getParamValue() == null) {
                         buff.append("unset");
                     } else {
                         buff.append(p.getParamValue().getSQL());

@@ -1033,7 +1033,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 writer.println("<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheet.css\" /></head>");
                 writer.println("<body><h2>Opening Database</h2>URL: " + PageParser.escapeHtml(url) + "<br />");
                 writer.println("User: " + PageParser.escapeHtml(user) + "<br />");
-                writer.println("Version: " + Constants.getVersion() + "<br /><br />");
+                writer.println("Version: " + Constants.getFullVersion() + "<br /><br />");
                 writer.flush();
                 log("Start...");
             }
@@ -1168,7 +1168,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                         result = getStackTrace(0, t, false);
                     }
                 } else {
-                    result = "Executing Java code is not allowed, use command line parameters -webScript true";
+                    result = "Executing Java code is not allowed, use command line parameter -webScript";
                 }
             } else if ("@AUTOCOMMIT TRUE".equals(sql)) {
                 conn.setAutoCommit(true);
@@ -1266,28 +1266,10 @@ class WebThread extends Thread implements DatabaseEventListener {
             out.println(importCode);
             out.println("public class Java { public static Object run() throws Throwable {" + code + "}}");
             out.close();
-            Process p = Runtime.getRuntime().exec("javac Java.java");
-            InputStream processIn = p.getInputStream();
-            InputStream processErrorIn = p.getErrorStream();
-            StringBuffer buff = new StringBuffer();
-            while (true) {
-                int c = processIn.read();
-                if (c == -1) {
-                    break;
-                }
-                buff.append((char) c);
-            }
-            while (true) {
-                int c = processErrorIn.read();
-                if (c == -1) {
-                    break;
-                }
-                buff.append((char) c);
-            }
-            String error = buff.toString().trim();
-            if (error.length() > 0) {
-                throw new Exception("Error compiling: " + error);
-            }
+            Class javacClass = Class.forName("com.sun.tools.javac.Main");
+            Method compile = javacClass.getMethod("compile", new Class[] { String[].class });
+            Object javac = javacClass.newInstance();
+            compile.invoke(javac, new Object[] { new String[]{"Java.java"}});
             byte[] data = new byte[(int) classFile.length()];
             DataInputStream in = new DataInputStream(new FileInputStream(classFile));
             in.readFully(data);

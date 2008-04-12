@@ -150,6 +150,7 @@ public class BackupCommand extends Prepared {
         }
         return f;
     }
+    
     public boolean needRecompile() {
         return false;
     }

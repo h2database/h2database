@@ -32,9 +32,11 @@ import java.util.HashSet;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.Message;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectUtils;
+import org.h2.util.Resources;
 import org.h2.util.ScriptReader;
 
 /**
@@ -605,7 +607,11 @@ public class PgServerThread implements Runnable {
                     }
                 }
             }
-            r = new InputStreamReader(PgServerThread.class.getResourceAsStream("pg_catalog.sql"));
+            try {
+                r = new InputStreamReader(new ByteArrayInputStream(Resources.get("/org/h2/server/pg/pg_catalog.sql")));
+            } catch (IOException e) {
+                throw Message.convertIOException(e, "Can not read pg_catalog resource");
+            }
             ScriptReader reader = new ScriptReader(new BufferedReader(r));
             while (true) {
                 String sql = reader.readStatement();

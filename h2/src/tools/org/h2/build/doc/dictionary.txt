@@ -64,7 +64,7 @@ classes classification classloader classloaders classpath clause clazz clean
 cleaned cleaner clear cleared clearing clearly clears cleartext click clicked
 clicking client clients clientside clob clock clone close closed closely closer
 closes closing clubs cluster clustered clustering cmd cmu cnt coalesce code
-codebase codebook coded codehaus codes codist coffee col coldrick coll
+codebase codebook coded codehaus codes codeswitch codist coffee col coldrick coll
 collaborative collapse collateral collation collations collator collators collect
 collected collecting collection collections collector colon color cols colspan
 column columnlist columns com combination combinations combinatorics combine
@@ -490,4 +490,6 @@ hider ikvmc invert recycle filtering lesser recycled assertion runner teradata
 christian lgpl elapsed ncr disposed heureuse tera years retrieves unlocked 
 selecting vista everywhere locations zones fragment svg thought constructors
 doubles validating matched established accu accum stats resetting parallel 
-delays guess downloaded jars
+delays guess downloaded jars advantages interrupt javen sourcepath unneeded 
+compressibility ext crc enumerate components mkdir jant downloading mismatch 
+timebomb 

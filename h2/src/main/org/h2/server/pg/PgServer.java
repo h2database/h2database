@@ -262,7 +262,7 @@ public class PgServer implements Service {
     }
 
     public static String getVersion() {
-        return "PostgreSQL 8.1.4  server protocol using H2 " + Constants.getVersion();
+        return "PostgreSQL 8.1.4  server protocol using H2 " + Constants.getFullVersion();
     }
 
     public static Timestamp getStartTime() {

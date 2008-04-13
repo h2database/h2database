@@ -28,7 +28,9 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 
 - Could you send the full stack trace of the exception?
 - What is your database URL?
+- You can find out if the database is corrupted when running SCRIPT TO 'test.sql'
 - What version H2 are you using?
+- With which version of H2 was this database created? You can find it out using: select * from information_schema.settings where name='info.BUILD_ID'
 - Did you use multiple connections?
 - The first workarounds is: append ;RECOVER=1 to the database URL. Does it work when you do this?
 - The second workarounds is: delete the index.db file (it is re-created automatically) and try again. Does it work when you do this?
@@ -40,6 +42,5 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - Is the database usually closed normally, or is process terminated forcefully or the computer switched off?
 - Is it possible to reproduce this problem using a fresh database (sometimes, or always)?
 - Are there any other exceptions (maybe in the .trace.db file)? Could you send them to me please?
-- Was the database originally created with an older version of H2?
 - Do you still have any .trace.db files, and if yes could you send them?
 - Could you send me the .data.db file where this exception occurs?

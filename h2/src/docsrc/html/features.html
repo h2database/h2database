@@ -989,13 +989,15 @@ By calling Connection.isReadOnly() or by executing the SQL statement CALL READON
 <h2>Read Only Databases in Zip or Jar File</h2>
 <p>
 To create a read-only database in a zip, first create a regular persistent database, and then create a backup.
-If you are using a database named 'test', an easy way to do that is using the BACKUP SQL statement:
+If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
 </p>
 <pre>
 BACKUP TO 'data.zip'
 </pre>
 <p>
-Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
+The database must not have pending changes, that means you need to close all connections to the 
+database, open one single connection, and then execute the statement. Afterwards, you can log out, 
+and directly open the database in the zip file using the following database URL:
 </p>
 <pre>
 jdbc:h2:zip:~/data.zip!/test

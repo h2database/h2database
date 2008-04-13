@@ -55,6 +55,7 @@
 		<copy todir="bin" overwrite="true">
 			<fileset dir="src/main" includes="META-INF/services/*"/>
 			<fileset dir="src/installer" includes="*.bat"/>
+			<fileset dir="src/installer" includes="*.sh"/>
 			<fileset dir="src/test" excludes="**/*.java,**/package.html"/>
 		</copy>
 	</target>
@@ -112,6 +113,7 @@
 			<exclude name="org/h2/samples/**/*.*"/>
 			<exclude name="org/h2/test/**/*.*"/>
 			<exclude name="**/*.bat"/>
+			<exclude name="**/*.sh"/>
 			<exclude name="**/*.txt"/>
 		</jar>
 	</target>
@@ -125,6 +127,7 @@
 		<jar jarfile="bin/h2client.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>
 			<exclude name="**/*.bat"/>
+			<exclude name="**/*.sh"/>
 		</jar>
 	</target>
 
@@ -138,6 +141,7 @@
 		<jar jarfile="bin/h2db.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
 			<include name="**/*.*"/>
 			<exclude name="**/*.bat"/>
+			<exclude name="**/*.sh"/>
 		</jar>
 	</target>
 
@@ -284,7 +288,7 @@
 
 	<target name="zip">
 		<zip destfile="../h2.zip">
-			<fileset dir=".." includes="h2/build.xml"/>
+			<fileset dir=".." includes="h2/build.*"/>
 			<fileset dir=".." includes="h2/ant-build.properties"/>
 			<fileset dir=".." includes="h2/bin/**/*"/>
 			<fileset dir=".." includes="h2/docs/**/*"/>

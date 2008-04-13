@@ -404,6 +404,7 @@ Roadmap
 </li><li>Doclet (javadocs): constructors are not listed
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup)
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object); 
+</li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem)
 </li></ul>
 
 <h2>Not Planned</h2>

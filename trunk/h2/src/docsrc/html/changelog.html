@@ -16,6 +16,24 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul><li>The autocomplete in the H2 Console has been improved a bit.
 </li><li>The tools in the H2 Console are now translatable.
+</li><li>The servlet and lucene jar files are now automatically downloaded when building.
+</li><li>The code switch tool has been replaced by a simpler tool called 
+    SwitchSource that just uses find and replace. 
+</li><li>Started to write a Ant replacement ('JAnt') that uses pure Java 
+    build definitions. Advantages: ability to debug the build, extensible, 
+    flexible, no XML, a bit faster. Future plan: support creating custom h2 
+    distributions (for embedded use). Maybe create a new project 'Jant'
+    or 'Javen' if other people are interested.
+</li><li>The jar file is now about 10% smaller because the variable debugging info 
+    is no longer included. The source file and line number debugging info 
+    is still included. If required, the jar file size of the full version can 
+    be further reduced to about 720 KB using 'build jarSmall' or even 
+    more by removing unneeded components.
+</li><li>Added shell scripts run.sh and build.sh. chmod +x is required, 
+    but otherwise it should work. Feedback or improvements are welcome!
+</li><li>Databases in zip files: large queries are now support. Temp files are created in
+    the temp directory if required. The documentation how to create
+    the zip file has been corrected.
 </li><li>Invalid inline views threw confusing SQL exceptions.
 </li><li>The Japanese translation of the error messages and the 
   H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 

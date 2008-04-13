@@ -49,7 +49,10 @@ public class FileSystemZip extends FileSystem {
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
-        throw new IOException("File system is read-only");
+        if (!inTempDir) {
+            throw new IOException("File system is read-only");
+        }
+        return FileSystemDisk.getInstance().createTempFile(prefix, suffix, deleteOnExit, true);
     }
 
     public void delete(String fileName) throws SQLException {

@@ -53,8 +53,7 @@ public class TestMvcc1 extends TestBase {
         if (!config.mvcc) {
             return;
         }
-        // TODO Prio 1: make unit test work (remaining problem: optimization for
-        //     select min/max)
+        // TODO Prio 1: row level locking for update / delete (as PostgreSQL)
         // TODO Prio 1: document: exclusive table lock still used when altering
         //     tables, adding indexes, select ... for update; table level locks are
         //     checked
@@ -112,7 +111,18 @@ public class TestMvcc1 extends TestBase {
         c2.commit();
         s2.execute("drop table test");
         c2.rollback();
-
+        
+        // update same key problem
+        s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");
+        s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        c1.commit();
+        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        s1.execute("UPDATE TEST SET NAME = 'Hallo' WHERE ID=1");
+        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
+        s1.execute("DROP TABLE TEST");
+        c1.commit();
+        c2.commit();
 
         // referential integrity problem
         s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");

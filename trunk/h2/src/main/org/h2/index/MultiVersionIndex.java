@@ -127,8 +127,10 @@ public class MultiVersionIndex implements Index {
         while (c.next()) {
             Row r = c.get();
             if (r.getPos() == row.getPos()) {
-                delta.remove(session, row);
-                return true;
+                if (r == row || table.getScanIndex(session).compareRows(r, row) == 0) {
+                    delta.remove(session, row);
+                    return true;
+                }
             }
         }
         return false;

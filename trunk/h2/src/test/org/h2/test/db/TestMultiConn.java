@@ -19,12 +19,40 @@ import org.h2.test.TestBase;
 public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     public void test() throws Exception {
+        testConcurrentShutdownQuery();
         testCommitRollback();
         testConcurrentOpen();
         testThreeThreads();
     }
 
     private static int wait;
+    
+    private void testConcurrentShutdownQuery() throws Exception {
+        Connection conn1 = getConnection("multiConn");
+        Connection conn2 = getConnection("multiConn");
+        final Statement stat1 = conn1.createStatement();
+        stat1.execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep(long)\"");
+        final Statement stat2 = conn2.createStatement();
+        stat1.execute("SET THROTTLE 100");
+        new Thread() {
+            public void run() {
+                try {
+                    stat2.executeQuery("CALL SLEEP(100)");
+                    try {
+                        Thread.sleep(10);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                    stat2.executeQuery("CALL SLEEP(100)");
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
+        } .start();
+        Thread.sleep(50);
+        stat1.execute("SHUTDOWN");
+        conn1.close();
+    }
 
     private void testThreeThreads() throws Exception {
         deleteDb("multiConn");

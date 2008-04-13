@@ -80,6 +80,7 @@ public class Build extends BuildBase {
         files = filterFiles(files, false, "target/org/h2/samples/*");
         files = filterFiles(files, false, "target/org/h2/test/*");
         files = filterFiles(files, false, "*.bat");
+        files = filterFiles(files, false, "*.sh");
         files = filterFiles(files, false, "*.txt");
         jar("target/h2.jar", "target", files);
     }
@@ -92,6 +93,7 @@ public class Build extends BuildBase {
         files = filterFiles(files, false, "target/org/h2/samples/*");
         files = filterFiles(files, false, "target/org/h2/test/*");
         files = filterFiles(files, false, "*.bat");
+        files = filterFiles(files, false, "*.sh");
         files = filterFiles(files, false, "*.txt");
         files = filterFiles(files, false, "target/META-INF/*");
         zip("target/h2classes.zip", "target", files, true, true);
@@ -145,6 +147,7 @@ public class Build extends BuildBase {
 
         files = getFiles("src/installer");
         files = filterFiles(files, true, "*.bat");
+        files = filterFiles(files, true, "*.sh");
         copy("target", files, "src/installer");
 
         files = getFiles("src/test");

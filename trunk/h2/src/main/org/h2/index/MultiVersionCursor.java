@@ -149,9 +149,7 @@ public class MultiVersionCursor implements Cursor {
                         if (isThisSession) {
                             throw Message.getInternalError();
                         } else {
-                            // another session updated the row: must be deleted
-                            // in base as well
-                            throw Message.getInternalError();
+                            // another session updated the row
                         }
                     } else {
                         if (isThisSession) {

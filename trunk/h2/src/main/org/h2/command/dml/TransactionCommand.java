@@ -161,10 +161,21 @@ public class TransactionCommand extends Prepared {
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();
+            // throttle, to allow testing concurrent 
+            // execution of shutdown and query
+            session.throttle();
             Session[] sessions = db.getSessions(false);
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
-                synchronized (s) {
+                if (db.getMultiThreaded()) {
+                    synchronized (s) {
+                        s.rollback();
+                    }
+                } else {
+                    // if not multi-threaded, the session could already own 
+                    // the lock, which would result in a deadlock
+                    // the other session can not concurrently do anything
+                    // because the current session has locked the database
                     s.rollback();
                 }
                 if (s != session) {

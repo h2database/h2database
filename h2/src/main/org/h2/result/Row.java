@@ -19,10 +19,24 @@ public class Row extends Record implements SearchRow {
     public static final int MEMORY_CALCULATE = -1;
     private final Value[] data;
     private final int memory;
+    private int version;
 
     public Row(Value[] data, int memory) {
         this.data = data;
         this.memory = memory;
+    }
+    
+    public void setPosAndVersion(SearchRow row) {
+        setPos(row.getPos());
+        setVersion(row.getVersion());
+    }
+    
+    public int getVersion() {
+        return version;
+    }
+    
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     public Row(Row old) {
@@ -79,6 +93,9 @@ public class Row extends Record implements SearchRow {
         StringBuffer buff = new StringBuffer(data.length * 5);
         buff.append("( /* pos:");
         buff.append(getPos());
+        if (version != 0) {
+            buff.append(" v:" + version);
+        }
         if (getDeleted()) {
             buff.append(" deleted");
         }

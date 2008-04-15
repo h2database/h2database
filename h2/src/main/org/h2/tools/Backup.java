@@ -86,9 +86,9 @@ public class Backup extends Tool {
     /**
      * Backs up database files.
      *
-     * @param zipFileName the name of the backup file
-     * @param directory the directory name
-     * @param db the database name (null if there is only one database)
+     * @param zipFileName the name of the target backup file (including path)
+     * @param directory the source directory name
+     * @param db the source database name (null if there is only one database)
      * @param quiet don't print progress information
      * @throws SQLException
      */

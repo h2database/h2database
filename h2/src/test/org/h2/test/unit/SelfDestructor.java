@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 
 /**
@@ -37,7 +38,43 @@ public class SelfDestructor extends Thread {
                         }
                     }
                     String time = new Timestamp(System.currentTimeMillis()).toString();
-                    System.out.println(time + " Killing the process after " + minutes + " minutes");
+                    System.out.println(time + " Killing the process after " + minutes + " minute(s)");
+                    try {
+                        int activeCount = Thread.activeCount();
+                        Thread[] threads = new Thread[activeCount + 100];
+                        int len = Thread.enumerate(threads);
+                        for (int i = 0; i < len; i++) {
+                            Thread t = threads[i];
+                            String threadName = "Thread #" + i + ": " + t.getName();
+                            System.out.println(threadName);
+                        }
+                        System.out.flush();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                        Method stop = Thread.class.getMethod("stop", new Class[]{Throwable.class});
+                        for (int i = 0; i < len; i++) {
+                            Thread t = threads[i];
+                            String threadName = "Thread #" + i + ": " + t.getName();
+                            Error e = new Error(threadName);
+                            if (t != Thread.currentThread()) {
+                                stop.invoke(t, new Object[]{e});
+                                t.interrupt();
+                            }
+                        }
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                        // ignore
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                    System.out.println("Killing the process now");
+                    
                     Runtime.getRuntime().halt(1);
                 }
             };

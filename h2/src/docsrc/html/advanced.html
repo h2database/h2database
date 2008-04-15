@@ -943,6 +943,16 @@ Remote SSL/TLS connections are supported using the Java Secure Socket Extension
 (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
 The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
 </p>
+<p>
+To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and 
+<code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. 
+See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
+Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
+for more information.
+</p>
+<p>
+To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
+</p>
 
 <h3>HTTPS Connections</h3>
 <p>

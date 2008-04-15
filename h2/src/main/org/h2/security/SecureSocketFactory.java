@@ -28,6 +28,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
@@ -45,8 +46,6 @@ public class SecureSocketFactory {
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
     public static final String KEYSTORE_PASSWORD = "h2pass";
 
-    // TODO security / SSL: need a way to disable anonymous ssl
-    private static final boolean ENABLE_ANONYMOUS_SSL = true;
     private static SecureSocketFactory factory;
     private static final String ANONYMOUS_CIPHER_SUITE = "SSL_DH_anon_WITH_RC4_128_MD5";
 
@@ -67,7 +66,7 @@ public class SecureSocketFactory {
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket secureSocket = (SSLSocket) f.createSocket(address, port);
-        if (ENABLE_ANONYMOUS_SSL) {
+        if (SysProperties.ENABLE_ANONYMOUS_SSL) {
             String[] list = secureSocket.getEnabledCipherSuites();
             list = addAnonymous(list);
             secureSocket.setEnabledCipherSuites(list);
@@ -89,7 +88,7 @@ public class SecureSocketFactory {
         } else {
             secureSocket = (SSLServerSocket) f.createServerSocket(port, 0, bindAddress);
         }
-        if (ENABLE_ANONYMOUS_SSL) {
+        if (SysProperties.ENABLE_ANONYMOUS_SSL) {
             String[] list = secureSocket.getEnabledCipherSuites();
             list = addAnonymous(list);
             secureSocket.setEnabledCipherSuites(list);

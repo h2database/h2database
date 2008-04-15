@@ -14,11 +14,11 @@ import org.h2.value.Value;
 public interface SearchRow {
 
     /**
-     * Get the position of the row in the data file.
+     * Get the column count.
      *
-     * @return the position
+     * @return the column count
      */
-    int getPos();
+    int getColumnCount();
 
     /**
      * Get the value for the column
@@ -29,13 +29,6 @@ public interface SearchRow {
     Value getValue(int index);
 
     /**
-     * Get the column count.
-     *
-     * @return the column count
-     */
-    int getColumnCount();
-
-    /**
      * Set the value for given column
      *
      * @param index the column number (starting with 0)
@@ -44,10 +37,31 @@ public interface SearchRow {
     void setValue(int index, Value v);
 
     /**
+     * Set the position and version to match another row.
+     *
+     * @param old the other row.
+     */
+    void setPosAndVersion(SearchRow old);
+
+    /**
      * Set the position (where the row is stored in the data file).
      *
      * @param pos the position.
      */
     void setPos(int pos);
+
+    /**
+     * Get the position of the row in the data file.
+     *
+     * @return the position
+     */
+    int getPos();
+
+    /**
+     * Get the version of the row.
+     *
+     * @return the version
+     */
+    int getVersion();
 
 }

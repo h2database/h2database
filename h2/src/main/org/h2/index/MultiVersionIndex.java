@@ -120,15 +120,17 @@ public class MultiVersionIndex implements Index {
     public boolean needRebuild() {
         return base.needRebuild();
     }
-
+    
     private boolean removeIfExists(Session session, Row row) throws SQLException {
         // maybe it was inserted by the same session just before
         Cursor c = delta.find(session, row, row);
         while (c.next()) {
             Row r = c.get();
-            if (r.getPos() == row.getPos()) {
-                if (r == row || table.getScanIndex(session).compareRows(r, row) == 0) {
-                    delta.remove(session, row);
+            if (r.getPos() == row.getPos() && r.getVersion() == row.getVersion()) {
+                if (r != row && table.getScanIndex(session).compareRows(r, row) != 0) {
+                    row.setVersion(r.getVersion() + 1);
+                } else {
+                    delta.remove(session, r);
                     return true;
                 }
             }
@@ -146,7 +148,7 @@ public class MultiVersionIndex implements Index {
             }
         }
     }
-
+    
     public void remove(Session session) throws SQLException {
         synchronized (sync) {
             base.remove(session);

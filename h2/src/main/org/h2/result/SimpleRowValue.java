@@ -13,12 +13,26 @@ import org.h2.value.Value;
 public class SimpleRowValue implements SearchRow {
 
     private int pos;
+    private int version;
     private int index;
     private int virtualColumnCount;
     private Value data;
 
     public SimpleRowValue(int columnCount) {
         this.virtualColumnCount = columnCount;
+    }
+    
+    public void setPosAndVersion(SearchRow row) {
+        pos = row.getPos();
+        version = row.getVersion();
+    }
+    
+    public int getVersion() {
+        return version;
+    }
+    
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     public int getColumnCount() {

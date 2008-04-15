@@ -44,11 +44,12 @@ public class RowList {
     }
     
     private void writeRow(DataPage buff, Row r) throws SQLException {
-        buff.checkCapacity(1 + buff.getIntLen() * 6);
+        buff.checkCapacity(1 + buff.getIntLen() * 7);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
         buff.writeInt(r.getColumnCount());
         buff.writeInt(r.getPos());
+        buff.writeInt(r.getVersion());
         buff.writeInt(r.getDeleted() ? 1 : 0);
         buff.writeInt(r.getSessionId());
         buff.writeInt(r.getStorageId());
@@ -143,6 +144,7 @@ public class RowList {
         int memory = buff.readInt();
         int columnCount = buff.readInt();
         int pos = buff.readInt();
+        int version = buff.readInt();
         if (readUncached) {
             pos = 0;
         }
@@ -170,6 +172,7 @@ public class RowList {
         }
         Row row = new Row(values, memory);
         row.setPos(pos);
+        row.setVersion(version);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);
         row.setStorageId(storageId);

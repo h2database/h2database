@@ -165,7 +165,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         // create a row that only contains the key values
         setChanged(session);
         Row row = table.getTemplateRow();
-        row.setPos(r.getPos());
+        row.setPosAndVersion(r);
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             int idx = col.getColumnId();
@@ -189,7 +189,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     SearchRow getSearchRow(Row row) {
         SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
-        r.setPos(row.getPos());
+        r.setPosAndVersion(row);
         for (int j = 0; j < columns.length; j++) {
             int idx = columns[j].getColumnId();
             r.setValue(idx, row.getValue(idx));

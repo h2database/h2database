@@ -13,6 +13,7 @@ import org.h2.value.Value;
 public class SimpleRow implements SearchRow {
 
     private int pos;
+    private int version;
     private Value[] data;
 
     public SimpleRow(Value[] data) {
@@ -29,6 +30,15 @@ public class SimpleRow implements SearchRow {
 
     public void setPos(int pos) {
         this.pos = pos;
+    }
+    
+    public void setPosAndVersion(SearchRow row) {
+        pos = row.getPos();
+        version = row.getVersion();
+    }
+    
+    public int getVersion() {
+        return version;
     }
 
     public void setValue(int i, Value v) {

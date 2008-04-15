@@ -29,7 +29,7 @@ import org.h2.message.TraceObject;
 
 /*## Java 1.6 begin ##
 import org.h2.message.Message;
-//## Java 1.4 end ##
+## Java 1.6 end ##*/
 
 /**
  * A data source for H2 database connections. It is a factory for XAConnection

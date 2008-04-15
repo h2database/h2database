@@ -142,7 +142,11 @@ public class MultiVersionCursor implements Cursor {
                 }
                 int compare = index.compareRows(deltaRow, baseRow);
                 if (compare == 0) {
-                    compare = index.compareKeys(deltaRow, baseRow);
+                    // can't use compareKeys because the 
+                    // version would be compared as well
+                    int k1 = deltaRow.getPos();
+                    int k2 = baseRow.getPos();
+                    compare = k1 == k2 ? 0 : k1 > k2 ? 1 : -1;
                 }
                 if (compare == 0) {
                     if (isDeleted) {
@@ -169,9 +173,6 @@ public class MultiVersionCursor implements Cursor {
                     onBase = true;
                     needNewBase = true;
                     return true;
-                }
-                if (!isDeleted) {
-                    throw Message.getInternalError();
                 }
                 onBase = false;
                 needNewDelta = true;

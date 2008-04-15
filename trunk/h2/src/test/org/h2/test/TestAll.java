@@ -159,6 +159,17 @@ java org.h2.test.TestAll timer
 
 /*
    
+Flux
+Java Job Scheduler. File Transfer. Workflow. BPM.   
+http://www.fluxcorp.com/
+
+   
+No database files found > in directory " +  for a database called .
+
+Has anyone had difficulty with Open Office Base and UUID type fields
+in H2?  I think that I may not be able to view table data that has
+UUID data in it.  Any ideas?
+   
 test case for out of memory (try to corrupt the database using out of memory)
 
 analyzer configuration option for the fulltext search   
@@ -216,11 +227,13 @@ Multi version concurrency (MVCC): when a row was updated,
     not committed
 Calling SHUTDOWN on one connection and starting a query on 
     another connection concurrently could result in a Java level deadlock.
+New system property h2.enableAnonymousSSL (default: true) to enable
+    anonymous SSL connections.
 
 Roadmap:
 
 */
-
+        
         if (args.length > 0) {
             if ("crash".equals(args[0])) {
                 test.endless = true;
@@ -417,7 +430,6 @@ Roadmap:
      * Run all tests with the current settings.
      */
     private void test() throws Exception {
-        
         System.out.println();
         System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc + " deleteIndex:" + deleteIndex);
         beforeTest();

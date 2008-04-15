@@ -502,7 +502,7 @@ public class TestCases extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('Hi')");
         ResultSet rs = conn.createStatement().executeQuery("CALL IDENTITY()");
         rs.next();
-        check(rs.getInt(1), 1);
+        check(1, rs.getInt(1));
         conn.createStatement().execute("SELECT * FROM TEST2");
         conn.createStatement().execute("SELECT * FROM TEST_B");
         conn.createStatement().execute("ALTER TABLE TEST_B RENAME TO TEST_B2");
@@ -512,7 +512,7 @@ public class TestCases extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('World')");
         rs = conn.createStatement().executeQuery("CALL IDENTITY()");
         rs.next();
-        check(rs.getInt(1), 2);
+        check(2, rs.getInt(1));
         conn.close();
     }
 

@@ -88,6 +88,12 @@ public class SysProperties {
     public static final String ALLOWED_CLASSES = getStringSetting("h2.allowedClasses", "*");
 
     /**
+     * System property <code>h2.enableAnonymousSSL</code> (default: true).<br />
+     * Comma separated list of class names or prefixes.
+     */
+    public static final boolean ENABLE_ANONYMOUS_SSL = getBooleanSetting("h2.enableAnonymousSSL", true);
+    
+    /**
      * System property <code>h2.bindAddress</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */

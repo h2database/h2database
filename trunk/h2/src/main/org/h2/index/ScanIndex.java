@@ -114,6 +114,7 @@ public class ScanIndex extends BaseIndex {
             }
             storage.addRecord(session, row, Storage.ALLOCATE_POS);
         } else {
+            // in-memory
             if (firstFree == -1) {
                 int key = rows.size();
                 row.setPos(key);
@@ -171,6 +172,7 @@ public class ScanIndex extends BaseIndex {
                 }
             }
         } else {
+            // in-memory
             Row free = new Row(null, 0);
             free.setPos(firstFree);
             int key = row.getPos();

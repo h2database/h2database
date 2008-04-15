@@ -3013,6 +3013,7 @@ public class Parser {
 
     private Column parseColumnForTable(String columnName) throws SQLException {
         Column column;
+        boolean isIdentity = false;
         if (readIf("IDENTITY") || readIf("SERIAL")) {
             column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
@@ -3028,6 +3029,9 @@ public class Parser {
             column.setNullable(true);
         }
         if (readIf("AS")) {
+            if (isIdentity) {
+                getSyntaxError();
+            }
             Expression expr = readExpression();
             column.setComputed(true, expr);
         } else if (readIf("DEFAULT")) {

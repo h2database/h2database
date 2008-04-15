@@ -85,6 +85,33 @@ public class TestMvcc1 extends TestBase {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
+        
+        // update same key problem
+        s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");
+        s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        c1.commit();
+        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        s1.execute("UPDATE TEST SET NAME = 'Hallo' WHERE ID=1");
+        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
+        s1.execute("DROP TABLE TEST");
+        c1.commit();
+        c2.commit();
+        
+        // referential integrity problem
+        s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
+        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
+        s1.execute("insert into a(code) values('one')");
+        try {
+             s2.execute("insert into b values('un B', 1)");
+             error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        c2.commit();
+        c1.rollback();
+        s1.execute("drop table a, b");
+        c2.commit();
 
         // it should not be possible to drop a table 
         // when an uncommitted transaction changed something
@@ -112,33 +139,6 @@ public class TestMvcc1 extends TestBase {
         s2.execute("drop table test");
         c2.rollback();
         
-        // update same key problem
-        s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");
-        s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
-        c1.commit();
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
-        s1.execute("UPDATE TEST SET NAME = 'Hallo' WHERE ID=1");
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
-        test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
-        s1.execute("DROP TABLE TEST");
-        c1.commit();
-        c2.commit();
-
-        // referential integrity problem
-        s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
-        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
-        s1.execute("insert into a(code) values('one')");
-        try {
-             s2.execute("insert into b values('un B', 1)");
-             error();
-        } catch (SQLException e) {
-            checkNotGeneralException(e);
-        }
-        c2.commit();
-        c1.rollback();
-        s1.execute("drop table a, b");
-        c2.commit();
-
         // select for update should do an exclusive lock, even with mvcc
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'y')");

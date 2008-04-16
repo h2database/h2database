@@ -100,7 +100,7 @@ public class Backup extends Tool {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {
             if (!quiet) {
-                out.println("No database files found");
+                printNoDatabaseFilesFound(directory, db);
             }
             return;
         }

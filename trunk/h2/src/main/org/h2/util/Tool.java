@@ -33,4 +33,23 @@ public abstract class Tool {
      */
     public abstract void run(String[] args) throws SQLException;
     
+    /**
+     * Print to the output stream that no database files have been found.
+     * 
+     * @param dir the directory or null
+     * @param db the database name or null
+     */
+    protected void printNoDatabaseFilesFound(String dir, String db) {
+        StringBuffer buff = new StringBuffer("No database files have been found");
+        if (dir != null) {
+            buff.append(" in directory ");
+            buff.append(dir);
+        }
+        if (db != null) {
+            buff.append(" for the directory ");
+            buff.append(db);
+        }
+        out.println(buff.toString());
+    }
+    
 }

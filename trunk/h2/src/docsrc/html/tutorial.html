@@ -62,7 +62,7 @@ Depending on your platform and environment, there are multiple ways to start the
     Click [Start], [All Programs], [H2], and [H2 Console (Command Line)]<br />
     When using the Sun JDK 1.4 or 1.5, a window with the title 'H2 Console ' should appear.
     When using the Sun JDK 1.6, an icon will be added to the system tray:
-    <img src="images/h2.png" alt="[H2 icon]" /><br />
+    <img src="images/db-16.png" alt="[H2 icon]" /><br />
     If you don't get the window and the system tray icon,
     then maybe Java is not installed correctly (in this case, try another way to start the application).
     A browser window should open and point to the Login page http://localhost:8082).
@@ -536,16 +536,18 @@ OpenOffice.org Base supports database access over the JDBC API. To connect to a 
 using OpenOffice Base, you first need to add the JDBC driver to OpenOffice.
 The steps to connect to a H2 database are:
 </p>
-<ul>
-<li>Stop OpenOffice, including the autostart
-</li><li>Copy h2.jar into the directory &lt;OpenOffice&gt;\program\classes
+<ul><li>Start OpenOffice Writer, go to [Tools], [Options]
+</li><li>Make sure you have selected a Java runtime environment in OpenOffice.org / Java
+</li><li>Click [Class Path...], [Add Archive...]
+</li><li>Select your h2.jar (location is up to you, could be wherever you choose)
+</li><li>Click [OK] (as much as needed), stop OpenOffice (including the Quickstarter)
 </li><li>Start OpenOffice Base
 </li><li>Connect to an existing database; select JDBC; [Next]
-</li><li>Example datasource URL: jdbc:h2:c:/temp/test
+</li><li>Example datasource URL: jdbc:h2:~/test
 </li><li>JDBC driver class: org.h2.Driver
 </li></ul>
 <p>
-Now you can access the database stored in the directory C:/temp.
+Now you can access the database stored in the current users home directory.
 </p>
 <p>
 To use H2 in NeoOffice (OpenOffice without X11):

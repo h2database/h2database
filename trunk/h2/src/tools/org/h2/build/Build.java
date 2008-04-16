@@ -55,7 +55,7 @@ public class Build extends BuildBase {
         files = filterFiles(files, false, "*.java");
         files = filterFiles(files, false, "*/package.html");
         files = filterFiles(files, false, "*/java.sql.Driver");
-        zip("target/org/h2/util/data.zip", "src/main", files, true, false);
+        zip("temp/org/h2/util/data.zip", "src/main", files, true, false);
     }
 
     private void manifest(String mainClassName) {
@@ -68,39 +68,39 @@ public class Build extends BuildBase {
         manifest = replaceAll(manifest, "${createdBy}", createdBy);
         String mainClassTag = manifest == null ? "" : "Main-Class: " + mainClassName;
         manifest = replaceAll(manifest, "${mainClassTag}", mainClassTag);
-        writeFile(new File("target/META-INF/MANIFEST.MF"), manifest.getBytes());
+        writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
     }
 
     public void jar() {
         compile();
         manifest("org.h2.tools.Console");
-        List files = getFiles("target");
-        files = filterFiles(files, false, "target/org/h2/dev/*");
-        files = filterFiles(files, false, "target/org/h2/build/*");
-        files = filterFiles(files, false, "target/org/h2/samples/*");
-        files = filterFiles(files, false, "target/org/h2/test/*");
+        List files = getFiles("temp");
+        files = filterFiles(files, false, "temp/org/h2/dev/*");
+        files = filterFiles(files, false, "temp/org/h2/build/*");
+        files = filterFiles(files, false, "temp/org/h2/samples/*");
+        files = filterFiles(files, false, "temp/org/h2/test/*");
         files = filterFiles(files, false, "*.bat");
         files = filterFiles(files, false, "*.sh");
         files = filterFiles(files, false, "*.txt");
-        jar("target/h2.jar", "target", files);
+        jar("bin/h2.jar", "temp", files);
     }
     
     public void jarSmall() {
         compile(false);
-        List files = getFiles("target");
-        files = filterFiles(files, false, "target/org/h2/dev/*");
-        files = filterFiles(files, false, "target/org/h2/build/*");
-        files = filterFiles(files, false, "target/org/h2/samples/*");
-        files = filterFiles(files, false, "target/org/h2/test/*");
+        List files = getFiles("temp");
+        files = filterFiles(files, false, "temp/org/h2/dev/*");
+        files = filterFiles(files, false, "temp/org/h2/build/*");
+        files = filterFiles(files, false, "temp/org/h2/samples/*");
+        files = filterFiles(files, false, "temp/org/h2/test/*");
         files = filterFiles(files, false, "*.bat");
         files = filterFiles(files, false, "*.sh");
         files = filterFiles(files, false, "*.txt");
-        files = filterFiles(files, false, "target/META-INF/*");
-        zip("target/h2classes.zip", "target", files, true, true);
+        files = filterFiles(files, false, "temp/META-INF/*");
+        zip("temp/h2classes.zip", "temp", files, true, true);
         manifest("org.h2.tools.Console\nClass-Path: h2classes.zip");
-        files = getFiles("target/h2classes.zip");
-        files.addAll(getFiles("target/META-INF"));
-        jar("target/h2small.jar", "target", files);
+        files = getFiles("temp/h2classes.zip");
+        files.addAll(getFiles("temp/META-INF"));
+        jar("bin/h2small.jar", "temp", files);
     }
 
     public void download() {
@@ -123,44 +123,45 @@ public class Build extends BuildBase {
             throw new Error(e);
         }
         clean();
+        mkdir("temp");
         resources();
         download();
 
-        String classpath = "target" + File.pathSeparatorChar + "ext/servlet-api-2.4.jar" + File.pathSeparatorChar
+        String classpath = "temp" + File.pathSeparatorChar + "ext/servlet-api-2.4.jar" + File.pathSeparatorChar
                 + "ext/lucene-core-2.2.0.jar" + File.pathSeparator + System.getProperty("java.home")
                 + "/../lib/tools.jar";
 
         List files = getFiles("src/main");
         if (debugInfo) {
-            javac(new String[] { "-d", "target", "-sourcepath", "src/main", "-classpath", classpath }, files);
+            javac(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
         } else {
-            javac(new String[] { "-g:none", "-d", "target", "-sourcepath", "src/main", "-classpath", classpath }, files);
+            javac(new String[] { "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
         }
 
         files = getFiles("src/test");
         files.addAll(getFiles("src/tools"));
-        javac(new String[] { "-d", "target", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+        javac(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                 "-classpath", classpath }, files);
 
         files = getFiles("src/main/META-INF/services");
-        copy("target", files, "src/main");
+        copy("temp", files, "src/main");
 
         files = getFiles("src/installer");
         files = filterFiles(files, true, "*.bat");
         files = filterFiles(files, true, "*.sh");
-        copy("target", files, "src/installer");
+        copy("temp", files, "src/installer");
 
         files = getFiles("src/test");
         files = filterFiles(files, false, "*.java");
         files = filterFiles(files, false, "*/package.html");
-        copy("target", files, "src/test");
+        copy("temp", files, "src/test");
     }
 
     public void clean() {
-        delete("target");
+        delete("temp");
         delete("docs");
-        mkdir("target");
         mkdir("docs");
+        mkdir("bin");
     }
 
     public void test() {

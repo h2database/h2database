@@ -61,6 +61,7 @@ Roadmap
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: constant/isDeterministic to allow early evaluation when all parameters are constant
+</li><li>Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types)
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>System table / function: cache usage
@@ -124,7 +125,6 @@ Roadmap
 </li><li>Close all files when closing the database (including LOB files that are open on the client side)
 </li><li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
 </li><li>Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
-</li><li>Function to read/write a file from/to LOB
 </li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
 </li><li>SELECT ... FOR READ WAIT [maxMillisToWait]
@@ -398,13 +398,14 @@ Roadmap
 </li><li>Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 </li><li>MySQL compatibility: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 </li><li>Use a default delay of 1 second before closing a database.
-</li><li>Maven: upload source code and javadocs as well
-</li><li>Write (log) to system table before adding to internal data structures
-</li><li>Support very large deletes and updates
-</li><li>Doclet (javadocs): constructors are not listed
-</li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup)
+</li><li>Maven: upload source code and javadocs as well.
+</li><li>Write (log) to system table before adding to internal data structures.
+</li><li>Support very large deletes and updates.
+</li><li>Doclet (javadocs): constructors are not listed.
+</li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object); 
-</li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem)
+</li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
+</li><li>Support CREATE TEMPORARY LINKED TABLE.
 </li></ul>
 
 <h2>Not Planned</h2>

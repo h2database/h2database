@@ -283,11 +283,44 @@ For a list of applications that work with or use H2, see:
 The following connection modes are supported:
 </p>
 <ul>
-<li>Local connections using JDBC (embedded)
-</li><li>Remote connections using JDBC over TCP/IP (client/server)
-</li><li>Remote connections using ODBC over TCP/IP (client/server)
-</li><li>In-Memory databases (private and shared)
+<li>Embedded mode (local connections using JDBC)
+</li><li>Remote mode (remote connections using JDBC or ODBC over TCP/IP)
+</li><li>Mixed mode (local and remote connections at the same time)
 </li></ul>
+
+<h3>Embedded Mode</h3>
+<p>
+In embedded mode, an application opens a database from within the same JVM using JDBC.
+This is the fastest and easiest connection mode.
+The disadvantage is that a database may only be open in one virtual machine (and class loader) at any time.
+As in all modes, both persistent and in-memory databases are supported.
+There is no limit on the number of database open concurrently,
+or on the number of open connections.
+</p>
+<img src="images/connection-mode-embedded.png" />
+
+<h3>Remote Mode</h3>
+<p>
+When using the remote mode (sometimes called client/server mode), an application opens a 
+database remotely using the JDBC or ODBC API. A server needs to be started within the same
+or another virtual machine (or on another computer).
+Many applications can connect to the same database at the same time.
+The remote mode is slower than the embedded mode, because all data
+is transferred over TCP/IP.
+As in all modes, both persistent and in-memory databases are supported.
+There is no limit on the number of database open concurrently,
+or on the number of open connections.
+</p>
+<img src="images/connection-mode-remote.png" />
+
+<h3>Mixed Mode</h3>
+<p>
+The mixed mode is a combination of the embedded and the remote mode.
+The main application connects to a database in embedded mode, but also starts
+a server so that other applications (running in different virtual machines) can
+concurrently access the same data.
+</p>
+<img src="images/connection-mode-mixed.png" />
 
 <br /><a name="database_url"></a>
 <h2>Database URL Overview</h2>

@@ -153,10 +153,15 @@ public class TableLink extends Table {
         int id = getId();
         linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
-        rs = meta.getPrimaryKeys(null, null, originalTable);
+        try {
+            rs = meta.getPrimaryKeys(null, null, originalTable);
+        } catch (SQLException e) {
+            // Some ODBC bridge drivers don't support it.
+            rs = null;
+        }
         String pkName = "";
         ObjectArray list;
-        if (rs.next()) {
+        if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
             list = new ObjectArray();
             do {

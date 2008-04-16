@@ -159,17 +159,6 @@ java org.h2.test.TestAll timer
 
 /*
    
-Flux
-Java Job Scheduler. File Transfer. Workflow. BPM.   
-http://www.fluxcorp.com/
-
-   
-No database files found > in directory " +  for a database called .
-
-Has anyone had difficulty with Open Office Base and UUID type fields
-in H2?  I think that I may not be able to view table data that has
-UUID data in it.  Any ideas?
-   
 test case for out of memory (try to corrupt the database using out of memory)
 
 analyzer configuration option for the fulltext search   

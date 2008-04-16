@@ -93,15 +93,15 @@ public class DeleteDbFiles extends Tool {
     private void process(String dir, String db, boolean quiet) throws SQLException {
         DeleteDbFiles delete = new DeleteDbFiles();
         ArrayList files = FileLister.getDatabaseFiles(dir, db, true);
+        if (files.size() == 0 && !quiet) {
+            printNoDatabaseFilesFound(dir, db);
+        }
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);
             delete.process(fileName, quiet);
             if (!quiet) {
                 out.println("Processed: " + fileName);
             }
-        }
-        if (files.size() == 0 && !quiet) {
-            out.println("No database files found");
         }
     }
 

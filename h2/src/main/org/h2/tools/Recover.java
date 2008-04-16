@@ -144,6 +144,9 @@ public class Recover extends Tool implements DataHandler {
 
     private void removePassword(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
+        if (list.size() == 0) {
+            printNoDatabaseFilesFound(dir, db);
+        }
         for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
@@ -292,6 +295,9 @@ public class Recover extends Tool implements DataHandler {
 
     private void process(String dir, String db) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
+        if (list.size() == 0) {
+            printNoDatabaseFilesFound(dir, db);
+        }
         for (int i = 0; i < list.size(); i++) {
             String fileName = (String) list.get(i);
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {

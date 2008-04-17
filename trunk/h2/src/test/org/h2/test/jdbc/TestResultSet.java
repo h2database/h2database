@@ -40,7 +40,7 @@ public class TestResultSet extends TestBase {
         stat = conn.createStatement();
 
         testFindColumn();
-
+        testSubstringPrecision();
         testColumnLength();
         testArray();
         testLimitMaxRows();
@@ -62,6 +62,25 @@ public class TestResultSet extends TestBase {
 
         conn.close();
 
+    }
+    
+    private void checkPrecision(int expected, String sql) throws Exception {
+        ResultSetMetaData meta = stat.executeQuery(sql).getMetaData();
+        check(expected, meta.getPrecision(1));
+    }
+    
+    private void testSubstringPrecision() throws Exception {
+        trace("testSubstringPrecision");
+        stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR(10))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'WorldPeace')");
+        checkPrecision(9, "SELECT SUBSTR(NAME, 2) FROM TEST");
+        checkPrecision(10, "SELECT SUBSTR(NAME, ID) FROM TEST");
+        checkPrecision(4, "SELECT SUBSTR(NAME, 2, 4) FROM TEST");
+        checkPrecision(0, "SELECT SUBSTR(NAME, 12, 4) FROM TEST");
+        checkPrecision(3, "SELECT SUBSTR(NAME, 8, 4) FROM TEST");
+        checkPrecision(4, "SELECT SUBSTR(NAME, 7, 4) FROM TEST");
+        checkPrecision(8, "SELECT SUBSTR(NAME, 3, ID*0) FROM TEST");
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testFindColumn() throws Exception {

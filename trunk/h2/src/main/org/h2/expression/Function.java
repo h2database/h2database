@@ -1614,6 +1614,22 @@ public class Function extends Expression implements FunctionCall {
             displaySize = Integer.MAX_VALUE;
             break;
         }
+        case SUBSTRING:
+        case SUBSTR: {
+            precision = args[0].getPrecision();
+            if (args[1].isConstant()) {
+                // if only two arguments are used, 
+                // subtract offset from first argument length
+                precision -= args[1].getValue(session).getLong() - 1;
+            }
+            if (args.length == 3 && args[2].isConstant()) {
+                // if the third argument is constant it is at most this value
+                precision = Math.min(precision, args[2].getValue(session).getLong());
+            }
+            precision = Math.max(0, precision);
+            displaySize = MathUtils.convertLongToInt(precision);
+            break;
+        }
         default:
             dataType = info.dataType;
             precision = 0;

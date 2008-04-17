@@ -91,7 +91,7 @@ public class CheckTextFiles {
                 }
             }
             if (ignore == check) {
-                throw new Error("Unknown suffix: " + suffix + " for file: " + name);
+                throw new Error("Unknown suffix: " + suffix + " for file: " + file.getAbsolutePath());
             }
             if (check) {
                 checkOrFixFile(file, autoFix, checkLicense);

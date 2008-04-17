@@ -36,6 +36,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected Table table;
     protected IndexType indexType;
     protected long rowCount;
+    protected boolean isMultiVersion;
 
     public void initBaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
         initSchemaObjectBase(table.getSchema(), id, name, Trace.INDEX);
@@ -249,7 +250,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         int k1 = rowData.getPos();
         int k2 = compare.getPos();
         if (k1 == k2) {
-            if (database.isMultiVersion()) {
+            if (isMultiVersion) {
                 int v1 = rowData.getVersion();
                 int v2 = compare.getVersion();
                 return v1 == v2 ? 0 : v1 < v2 ? 1 : -1;
@@ -339,6 +340,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public void commit(int operation, Row row) throws SQLException {
+    }
+    
+    public void setMultiVersion(boolean multiVersion) {
+        this.isMultiVersion = multiVersion;
     }
 
 }

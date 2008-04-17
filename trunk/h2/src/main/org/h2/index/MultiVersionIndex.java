@@ -38,6 +38,7 @@ public class MultiVersionIndex implements Index {
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
         this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(), deltaIndexType);
+        delta.setMultiVersion(true);
         this.sync = base.getDatabase();
         this.firstColumn = base.getColumns()[0];
     }

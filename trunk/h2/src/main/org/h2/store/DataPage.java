@@ -478,14 +478,16 @@ public abstract class DataPage {
                 int objectId = readInt();
                 long precision = 0;
                 boolean compression = false;
-                // -2 is for historical reasons (-1 didn't store precision)
+                // -1: historical (didn't store precision)
+                // -2: regular
+                // -3: regular, but not linked (in this case: including file name)
                 if (smallLen == -2 || smallLen == -3) {
                     precision = readLong();
                     compression = readByte() == 1;
                 }
                 ValueLob lob = ValueLob.open(dataType, handler, tableId, objectId, precision, compression);
                 if (smallLen == -3) {
-                    lob.setFileName(readString());
+                    lob.setFileName(readString(), false);
                 }
                 return lob;
             }

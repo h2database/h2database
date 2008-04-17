@@ -156,7 +156,9 @@ public class TableLink extends Table {
         try {
             rs = meta.getPrimaryKeys(null, null, originalTable);
         } catch (SQLException e) {
-            // Some ODBC bridge drivers don't support it.
+            // Some ODBC bridge drivers don't support it:
+            // some combinations of "DataDirect SequeLink(R) for JDBC"
+            // http://www.datadirect.com/index.ssp
             rs = null;
         }
         String pkName = "";

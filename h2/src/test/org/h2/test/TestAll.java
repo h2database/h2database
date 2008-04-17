@@ -159,6 +159,19 @@ java org.h2.test.TestAll timer
 
 /*
    
+fix ee te
+
+drop table t1;
+drop table t2;
+create table t1 (id int primary key);
+@LOOP 1000 insert into t1 values(?);
+create table t2 (id int primary key);
+@LOOP 1000 insert into t2 values(?);
+explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
+select count(*) from t1 where t1.id in ( select t2.id from t2 );
+select count(*) from t1 inner join t2 on t1.id = t2.id;
+
+
 test case for out of memory (try to corrupt the database using out of memory)
 
 analyzer configuration option for the fulltext search   
@@ -210,14 +223,6 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-Multi version concurrency (MVCC): when a row was updated, 
-    and the updated column was not indexed,
-    this update was visible sometimes for other sessions even if it was
-    not committed
-Calling SHUTDOWN on one connection and starting a query on 
-    another connection concurrently could result in a Java level deadlock.
-New system property h2.enableAnonymousSSL (default: true) to enable
-    anonymous SSL connections.
 
 Roadmap:
 

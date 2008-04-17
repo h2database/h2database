@@ -446,8 +446,10 @@ public class ValueLob extends Value {
         if (!linked) {
             this.tableId = tabId;
             String live = getFileName(handler, tableId, objectId);
-            tempFile.stopAutoDelete();
-            tempFile = null;
+            if (tempFile != null) {
+                tempFile.stopAutoDelete();
+                tempFile = null;
+            }
             renameFile(handler, fileName, live);
             fileName = live;
             linked = true;
@@ -695,8 +697,9 @@ public class ValueLob extends Value {
         }
     }
 
-    public void setFileName(String fileName) {
+    public void setFileName(String fileName, boolean linked) {
         this.fileName = fileName;
+        this.linked = linked;
     }
 
     public int getMemory() {

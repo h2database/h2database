@@ -59,19 +59,22 @@ public class BuildBase {
                     break;
                 }
                 out.println("Running target " + a);
-                try {
-                    try {
-                        m.invoke(this, new Object[0]);
-                    } catch (InvocationTargetException e) {
-                        throw e.getTargetException();
-                    }
-                } catch (Throwable e) {
-                    throw new Error(e);
-                }
+                invoke(m, this, new Object[0]);
             }
         }
         out.println("Done in " + (System.currentTimeMillis() - time) + " ms");
-        
+    }
+    
+    private Object invoke(Method m, Object instance, Object[] args) {
+        try {
+            try {
+                return m.invoke(instance, args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        } catch (Throwable e) {
+            throw e instanceof Error ? ((Error) e) : new Error(e);
+        }
     }
     
     protected void all() {
@@ -146,7 +149,7 @@ public class BuildBase {
         try {
             Class clazz = Class.forName("com.sun.tools.javadoc.Main");
             Method execute = clazz.getMethod("execute", new Class[] { String[].class });
-            result = ((Integer) execute.invoke(null, new Object[] { args })).intValue();
+            result = ((Integer) invoke(execute, null, new Object[] { args })).intValue();
         } catch (Exception e) {
             result = exec("javadoc", args);
         }
@@ -384,7 +387,7 @@ public class BuildBase {
             Class clazz = Class.forName("com.sun.tools.javac.Main");
             Method compile = clazz.getMethod("compile", new Class[] { String[].class });
             Object instance = clazz.newInstance();
-            result = ((Integer) compile.invoke(instance, new Object[] { args })).intValue();
+            result = ((Integer) invoke(compile, instance, new Object[] { args })).intValue();
         } catch (Exception e) {
             e.printStackTrace();
             result = exec("javac", args);
@@ -401,7 +404,7 @@ public class BuildBase {
         }
         try {
             Method main = Class.forName(className).getMethod("main", new Class[] { String[].class });
-            main.invoke(null, new Object[] { args });
+            invoke(main, null, new Object[] { args });
         } catch (Exception e) {
             throw new Error(e);
         }

@@ -14,7 +14,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The autocomplete in the H2 Console has been improved a bit.
+<ul><li>Multi version concurrency (MVCC): when a row was updated, 
+    and the updated column was not indexed, this update was visible sometimes 
+    for other sessions even if it was not committed.
+</li><li>Calling SHUTDOWN on one connection and starting a query on 
+    another connection concurrently could result in a Java level deadlock.
+</li><li>New system property h2.enableAnonymousSSL (default: true) to enable
+    anonymous SSL connections.
+</li><li>The precision if SUBSTR is now calculated if possible.    
+</li><li>The autocomplete in the H2 Console has been improved a bit.
 </li><li>The tools in the H2 Console are now translatable.
 </li><li>The servlet and lucene jar files are now automatically downloaded when building.
 </li><li>The code switch tool has been replaced by a simpler tool called 

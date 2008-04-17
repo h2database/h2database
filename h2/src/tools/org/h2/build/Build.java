@@ -22,11 +22,11 @@ public class Build extends BuildBase {
 
     public void all() {
         jarSmall();
-        javadoc();
         docs();
     }
 
     public void docs() {
+        javadoc();
         copy("docs", getFiles("src/docsrc/index.html"), "src/docsrc");
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);

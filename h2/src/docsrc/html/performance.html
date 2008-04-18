@@ -98,11 +98,13 @@ and the write delay is 1 second (SET WRITE_DELAY 1).
 HSQLDB is fast when using simple operations.
 HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer.
 One query where HSQLDB is slow is a two-table join:
+</p>
 <pre>
 SELECT COUNT(DISTINCT S_I_ID) FROM ORDER_LINE, STOCK
 WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID>=?
 AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
 </pre>
+<p>
 The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries.
 A disadvantage in HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
 The reason is, a backup of the database is created whenever the database is opened or closed.

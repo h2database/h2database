@@ -116,9 +116,8 @@ Initial Developer: H2 Group
         </c:forEach>
     </table>
     </form>
-    <p>
-        <form name="shutdown" method="post" action="adminShutdown.do?jsessionid=${sessionId}">
-            <input type="submit" class="button" value="${text.adminShutdown}" />
-        </form>
-    </p>
+    <br />
+    <form name="shutdown" method="post" action="adminShutdown.do?jsessionid=${sessionId}">
+        <input type="submit" class="button" value="${text.adminShutdown}" />
+    </form>
 </body></html>

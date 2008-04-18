@@ -12,6 +12,15 @@ h1, h2, h3, h4, h5 {
     font-weight: bold;
 }
 
+a {
+    text-decoration: none;
+    color: #0000ff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
 body {
     margin: 4px;
 }
@@ -37,28 +46,18 @@ h3 {
     font-size: 10pt;
 }
 
-ul {
-    list-style-type: circle;
-    list-style-position: outside;
-    padding-left: 20px;
-}
-
 li {
     margin-top: 6px;
+}
+
+ol {
+    list-style-type: upper-roman;
+    list-style-position: outside;
 }
 
 table {
     background-color: #ffffff;
     border-collapse: collapse;
-    border: 1px solid #aca899;
-}
-
-th {
-    font-size: 9pt;
-    font-weight: normal;
-    text-align: left;
-    background-color: #ece9d8;
-    padding: 2px;
     border: 1px solid #aca899;
 }
 
@@ -71,12 +70,24 @@ td {
     border: 1px solid #aca899;
 }
 
-form {
-}
-
 textarea {
     width: 100%;
     overflow: auto;
+}
+
+th {
+    font-size: 9pt;
+    font-weight: normal;
+    text-align: left;
+    background-color: #ece9d8;
+    padding: 2px;
+    border: 1px solid #aca899;
+}
+
+ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 20px;
 }
 
 .result {
@@ -182,43 +193,6 @@ p.error {
 input.button {
     padding: 1px;
 }
-/*
-    border-style: solid;
-    border-width: 1px;
-    background-color: #eeeeee;
-    border-top-color: #aaaaaa;
-    border-left-color: #aaaaaa;
-    border-bottom-color: #222222;
-    border-right-color: #222222;
-*/
-
-textarea {
-}
-
-select {
-}
-
-ul {
-    list-style-type: disc;
-    list-style-position: outside;
-}
-
-li {
-}
-
-ol {
-    list-style-type: upper-roman;
-    list-style-position: outside;
-}
-
-a {
-    text-decoration: none;
-    color: #0000ff;
-}
-
-a:hover {
-    text-decoration: underline;
-}
 
 .tree {
     border: 0px;
@@ -261,6 +235,10 @@ td.content {
     border-left:1px solid #aca899;
 }
 
+.contentDiv {
+    margin:10px;
+}
+
 tr.contentResult {
     border:0px; 
     border-top:1px solid #aca899;
@@ -271,10 +249,6 @@ td.contentResult {
     border:0px; 
     border-top:1px solid #aca899;
     border-left:1px solid #aca899;
-}
-
-.contentDiv {
-    margin:10px;
 }
 
 table.autoComp {

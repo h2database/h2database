@@ -40,7 +40,6 @@ public class GenerateDoc {
     Bnf bnf;
 
     void run(String[] args) throws Exception {
-        System.out.println(getClass().getName());
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-in")) {
                 inDir = args[++i];

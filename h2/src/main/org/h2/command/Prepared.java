@@ -16,6 +16,8 @@ import org.h2.expression.Parameter;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
+import org.h2.util.StringUtils;
+import org.h2.value.Value;
 
 /**
  * A prepared statement.
@@ -288,7 +290,15 @@ public abstract class Prepared {
                     buff.append(i + 1);
                     buff.append(": ");
                     Expression e = (Expression) parameters.get(i);
-                    buff.append(e.getValue(session).getSQL());
+                    Value v = e.getValue(session);
+                    try {
+                        String sql = v.getSQL();
+                        buff.append(sql);
+                    } catch (Exception t) {
+                        buff.append("? /*");
+                        buff.append(StringUtils.quoteJavaString(t.getMessage()));
+                        buff.append("*/");
+                    }
                 }
                 buff.append("}");
                 params = buff.toString();

@@ -58,7 +58,7 @@ public class BuildBase {
                     projectHelp();
                     break;
                 }
-                out.println("Running target " + a);
+                out.println("Target: " + a);
                 invoke(m, this, new Object[0]);
             }
         }
@@ -147,6 +147,7 @@ public class BuildBase {
     protected void javadoc(String[] args) {
         int result;        
         try {
+            out.println("Javadoc");
             Class clazz = Class.forName("com.sun.tools.javadoc.Main");
             Method execute = clazz.getMethod("execute", new Class[] { String[].class });
             result = ((Integer) invoke(execute, null, new Object[] { args })).intValue();
@@ -274,7 +275,7 @@ public class BuildBase {
         return path;
     }
     
-    protected void writeFile(File file, byte[] data) {
+    public static void writeFile(File file, byte[] data) {
         try {
             RandomAccessFile ra = new RandomAccessFile(file, "rw");
             ra.write(data);
@@ -284,7 +285,7 @@ public class BuildBase {
         }
     }
     
-    protected byte[] readFile(File file) {
+    public static byte[] readFile(File file) {
         try {
             RandomAccessFile ra = new RandomAccessFile(file, "r");
             long len = ra.length();
@@ -306,10 +307,12 @@ public class BuildBase {
     }
     
     protected void jar(String destFile, String basePath, List files) {
+        out.println("Jar " + destFile);
         zipOrJar(destFile, basePath, files, false, false, true);
     }
 
     protected void zip(String destFile, String basePath, List files, boolean storeOnly, boolean sortBySuffix) {
+        out.println("Zip " + destFile);
         zipOrJar(destFile, basePath, files, storeOnly, sortBySuffix, false);
     }
 
@@ -398,7 +401,7 @@ public class BuildBase {
     }
     
     protected void java(String className, String[] args) {
-        out.println("Executing " + className);
+        out.println("Running " + className);
         if (args == null) {
             args = new String[0];
         }

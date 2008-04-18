@@ -16,6 +16,7 @@ public class InternalException extends RuntimeException {
     private Exception cause;
 
     public InternalException(Exception e) {
+        super(e.getMessage());
         cause = e;
     }
 

@@ -159,8 +159,6 @@ java org.h2.test.TestAll timer
 
 /*
    
-fix ee te
-
 drop table t1;
 drop table t2;
 create table t1 (id int primary key);
@@ -170,7 +168,6 @@ create table t2 (id int primary key);
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
 select count(*) from t1 inner join t2 on t1.id = t2.id;
-
 
 test case for out of memory (try to corrupt the database using out of memory)
 

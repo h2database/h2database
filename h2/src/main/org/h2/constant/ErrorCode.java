@@ -947,7 +947,16 @@ public class ErrorCode {
     /**
      * The error with code <code>90061</code> is thrown when
      * trying to start a server if a server is already running on the same port.
-     * It could also be a firewall problem.
+     * It could also be a firewall problem. To find out if another server is
+     * already running, run the following command on Windows:
+     * <pre>
+     * netstat -ano
+     * </pre>
+     * The column PID is the process id as listed in the Task Manager.
+     * For Linux, use: 
+     * <pre>
+     * netstat -npl
+     * </pre>
      */
     public static final int EXCEPTION_OPENING_PORT_2 = 90061;
 

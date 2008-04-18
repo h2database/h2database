@@ -37,10 +37,15 @@ public class XMLParser {
     private String[] attributeValues = new String[3];
     private int currentAttribute;
     private boolean endElement;
+    private boolean html;
 
     public XMLParser(String xml) {
         this.xml = xml;
         eventType = START_DOCUMENT;
+    }
+    
+    public void setHTML(boolean html) {
+        this.html = html;
     }
 
     void addAttributeName(String prefix, String localName) {
@@ -259,6 +264,7 @@ public class XMLParser {
             }
             int end;
             int localNameStart = start;
+            boolean noValue = false;
             while (true) {
                 end = index;
                 ch = readChar();
@@ -268,13 +274,26 @@ public class XMLParser {
                     skipSpaces();
                     ch = readChar();
                     if (ch != '=') {
-                        error("=");
+                        if (html) {
+                            back();
+                            noValue = true;
+                        } else {
+                            error("=");
+                        }
                     }
                     break;
                 } else if (ch == '=') {
                     break;
                 } else if (ch == ':') {
                     localNameStart = index;
+                } else if (ch == '/' || ch == '>') {
+                    if (html) {
+                        back();
+                        noValue = true;
+                        break;
+                    } else {
+                        error("=");
+                    }
                 }
             }
             if (localNameStart == start) {
@@ -282,19 +301,23 @@ public class XMLParser {
             } else {
                 addAttributeName(xml.substring(start, localNameStart - 1), xml.substring(localNameStart, end));
             }
-            skipSpaces();
-            ch = readChar();
-            if (ch != '\"') {
-                error("\"");
-            }
-            start = index;
-            while (true) {
-                end = index;
+            if (noValue) {
+                noValue = false;
+            } else {
+                skipSpaces();
                 ch = readChar();
-                if (ch < 0) {
+                if (ch != '\"') {
                     error("\"");
-                } else if (ch == '\"') {
-                    break;
+                }
+                start = index;
+                while (true) {
+                    end = index;
+                    ch = readChar();
+                    if (ch < 0) {
+                        error("\"");
+                    } else if (ch == '\"') {
+                        break;
+                    }
                 }
             }
             addAttributeValue(xml.substring(start, end));

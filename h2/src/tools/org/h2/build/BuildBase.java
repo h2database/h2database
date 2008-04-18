@@ -205,6 +205,7 @@ public class BuildBase {
                 }
                 buff.write(x);
             }
+            in.close();
         } catch (IOException e) {
             throw new Error("Error downloading", e);
         }

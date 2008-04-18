@@ -199,10 +199,10 @@ database fails fast: a concurrent update exception is thrown.
 </p>
 <p>
 To use the MVCC feature, append MVCC=TRUE to the database URL:
+</p>
 <pre>
 jdbc:h2:~/test;MVCC=TRUE
 </pre>
-</p>
 <p>
 The MVCC feature is not fully tested yet.
 </p>
@@ -406,22 +406,28 @@ The Windows version of the PostgreSQL ODBC driver is available at
 <h3>Starting the Server</h3>
 <p>
 After installing the ODBC driver, start the H2 Server using the command line:
+</p>
 <pre>
 java -cp h2.jar org.h2.tools.Server
 </pre>
+<p>
 The PG Server (PG for PostgreSQL protocol) is started as well.
 By default, databases are stored in the current working directory where the server is started.
 Use -baseDir to save databases in another directory, for example the user home directory:
+</p>
 <pre>
 java -cp h2.jar org.h2.tools.Server -baseDir ~
 </pre>
+<p>
 The PG server can be started and stopped from within a Java application as follows:
+</p>
 <pre>
 Server server = Server.createPgServer(new String[]{"-baseDir", "~"});
 server.start();
 ...
 server.stop();
 </pre>
+<p>
 By default, only connections from localhost are allowed. To allow remote connections, use
 <code>-pgAllowOthers true</code> when starting the server.
 </p>
@@ -644,9 +650,11 @@ consult the source code of the listener and test application.
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
 At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
 To run the tool, type on the command line:
+</p>
 <pre>
 java org.h2.tools.Recover
 </pre>
+<p>
 For each database in the current directory, a text file will be created.
 This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate
 the schema of the database. This file cannot be executed directly, as the raw insert statements
@@ -821,19 +829,23 @@ SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 <p>
 By default there is no restriction on loading classes and executing Java code for admins.
 That means an admin may call system functions such as System.setProperty by executing:
+</p>
 <pre>
 CREATE ALIAS SET_PROPERTY FOR "java.lang.System.setProperty";
 CALL SET_PROPERTY('abc', '1');
 CREATE ALIAS GET_PROPERTY FOR "java.lang.System.getProperty";
 CALL GET_PROPERTY('abc');
 </pre>
+<p>
 To restrict users (including admins) from loading classes and executing code,
 the list of allowed classes can be set in the system property h2.allowedClasses
 in the form of a comma separated list of classes or patterns (items ending with '*').
 By default all classes are allowed. Example:
+</p>
 <pre>
 java -Dh2.allowedClasses=java.lang.Math,com.acme.*
 </pre>
+<p>
 This mechanism is used for all user classes, including database event listeners,
 trigger classes, user-defined functions, user-defined aggregate functions, and JDBC
 driver classes (with the exception of the H2 driver) when using the H2 Console.
@@ -973,6 +985,7 @@ Standardized randomly generated UUIDs have 122 random bits.
 This database supports generating such UUIDs using the built-in function RANDOM_UUID().
 Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
+</p>
 <pre>
 double x = Math.pow(2, 122);
 for(int i=35; i&lt;62; i++) {
@@ -982,12 +995,15 @@ for(int i=35; i&lt;62; i++) {
     System.out.println("2^"+i+"="+(1L&lt;&lt;i)+" probability: 0"+ps);
 }
 </pre>
+<p>
 Some values are:
+</p>
 <pre>
 2^36=68'719'476'736 probability: 0.000'000'000'000'000'4
 2^41=2'199'023'255'552 probability: 0.000'000'000'000'4
 2^46=70'368'744'177'664 probability: 0.000'000'000'4
 </pre>
+<p>
 To help non-mathematicians understand what those numbers mean, here a comparison:
 One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
 that means the probability is about 0.000'000'000'06.
@@ -1000,9 +1016,11 @@ Some settings of the database can be set on the command line using
 -DpropertyName=value. It is usually not required to change those settings manually.
 The settings are case sensitive.
 Example:
+</p>
 <pre>
 java -Dh2.serverCachedObjects=256 org.h2.tools.Server
 </pre>
+<p>
 The current value of the settings can be read in the table
 INFORMATION_SCHEMA.SETTINGS.
 </p>

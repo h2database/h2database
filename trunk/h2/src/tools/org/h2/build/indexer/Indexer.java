@@ -44,7 +44,6 @@ public class Indexer {
     }
 
     void run(String[] args) throws Exception {
-        System.out.println(getClass().getName());
         String dir = "docs";
         String destDir = "docs/html";
         for (int i = 0; i < args.length; i++) {
@@ -55,7 +54,6 @@ public class Indexer {
             }
         }
         File file = new File(dir);
-        System.out.println("indexing " + file.getCanonicalPath());
         setNoIndex(new String[] { "index.html", "html/header.html", "html/search.html", "html/frame.html",
                 "javadoc/index.html", "javadoc/classes.html", "javadoc/allclasses-frame.html",
                 "javadoc/allclasses-noframe.html", "javadoc/constant-values.html", "javadoc/overview-frame.html",

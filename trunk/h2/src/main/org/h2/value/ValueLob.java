@@ -492,6 +492,8 @@ public class ValueLob extends Value {
             }
         } catch (IOException e) {
             throw Message.convertToInternal(Message.convertIOException(e, fileName));
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
         }
     }
 
@@ -541,7 +543,11 @@ public class ValueLob extends Value {
         if (type == Value.CLOB) {
             return getReader();
         } else {
-            return getInputStream();
+            try {
+                return getInputStream();
+            } catch (SQLException e) {
+                throw Message.convertToInternal(e);
+            }
         }
     }
 
@@ -553,18 +559,14 @@ public class ValueLob extends Value {
         }
     }
 
-    public InputStream getInputStream() {
-        try {
-            if (fileName == null) {
-                return new ByteArrayInputStream(small);
-            }
-            FileStore store = handler.openFile(fileName, "r", true);
-            boolean alwaysClose = SysProperties.lobCloseBetweenReads;
-            return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose),
-                    Constants.IO_BUFFER_SIZE);
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
+    public InputStream getInputStream() throws SQLException {
+        if (fileName == null) {
+            return new ByteArrayInputStream(small);
         }
+        FileStore store = handler.openFile(fileName, "r", true);
+        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+        return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose),
+                Constants.IO_BUFFER_SIZE);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

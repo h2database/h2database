@@ -6,17 +6,14 @@
 package org.h2.build.doc;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-import org.h2.util.IOUtils;
+import org.h2.build.BuildBase;
 
 /**
  * The spell checker makes sure that each word used in the source code
@@ -130,14 +127,7 @@ public class SpellChecker {
             if (!ok) {
                 throw new IOException("Unsupported suffix: " + suffix + " for file: " + fileName);
             }
-            FileReader reader = null;
-            String text = null;
-            try {
-                reader = new FileReader(file);
-                text = readStringAndClose(reader, -1);
-            } finally {
-                IOUtils.closeSilently(reader);
-            }
+            String text = new String(BuildBase.readFile(file));
             if (fileName.endsWith("dictionary.txt")) {
                 addToDictionary = true;
             } else {
@@ -269,23 +259,4 @@ public class SpellChecker {
         map.put(key, value);
     }
 
-    public static String readStringAndClose(Reader in, int length) throws IOException {
-        if (length <= 0) {
-            length = Integer.MAX_VALUE;
-        }
-        int block = Math.min(4096, length);
-        StringWriter out = new StringWriter(length == Integer.MAX_VALUE ? block : length);
-        char[] buff = new char[block];
-        while (length > 0) {
-            int len = Math.min(block, length);
-            len = in.read(buff, 0, len);
-            if (len < 0) {
-                break;
-            }
-            out.write(buff, 0, len);
-            length -= len;
-        }
-        in.close();
-        return out.toString();
-    }
 }

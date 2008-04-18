@@ -37,7 +37,6 @@ public class CheckTextFiles {
     boolean hasError;
 
     void run() throws Exception {
-        System.out.println(getClass().getName());
         String baseDir = "src";
         check(new File(baseDir));
         if (hasError) {

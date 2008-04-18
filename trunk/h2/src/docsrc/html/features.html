@@ -297,7 +297,8 @@ As in all modes, both persistent and in-memory databases are supported.
 There is no limit on the number of database open concurrently,
 or on the number of open connections.
 </p>
-<img src="images/connection-mode-embedded.png" />
+<img src="images/connection-mode-embedded.png" 
+    alt="The database is embedded in the application" />
 
 <h3>Remote Mode</h3>
 <p>
@@ -311,7 +312,8 @@ As in all modes, both persistent and in-memory databases are supported.
 There is no limit on the number of database open concurrently,
 or on the number of open connections.
 </p>
-<img src="images/connection-mode-remote.png" />
+<img src="images/connection-mode-remote.png" 
+    alt="The database is running in a server; the application connects to the server" />
 
 <h3>Mixed Mode</h3>
 <p>
@@ -320,7 +322,8 @@ The main application connects to a database in embedded mode, but also starts
 a server so that other applications (running in different virtual machines) can
 concurrently access the same data.
 </p>
-<img src="images/connection-mode-mixed.png" />
+<img src="images/connection-mode-mixed.png" 
+    alt="The database and the server is running inside the application; another application connects remotely" />
 
 <br /><a name="database_url"></a>
 <h2>Database URL Overview</h2>
@@ -525,15 +528,19 @@ in this case it is up to the application to protect the database files.
 <p>
 To open the database with a different file locking method, use the parameter 'FILE_LOCK'.
 The following code opens the database with the 'socket' locking method:
+</p>
 <pre>
 String url = "jdbc:h2:~/test;FILE_LOCK=SOCKET";
 </pre>
+<p>
 The following code forces the database to not create a lock file at all. Please note that
 this is unsafe as another process is able to open the same database, possibly leading to
 data corruption:
+</p>
 <pre>
 String url = "jdbc:h2:~/test;FILE_LOCK=NO";
 </pre>
+<p>
 For more information about the algorithms please see in Advanced Topics under
 File Locking Protocol.
 </p>
@@ -564,9 +571,11 @@ The automatic closing of the database can be delayed or disabled with the SQL st
 SET DB_CLOSE_DELAY &lt;seconds&gt;. The seconds specifies the number of seconds to keep
 a database open after the last connection to it was closed. For example the following statement
 will keep the database open for 10 seconds:
+</p>
 <pre>
 SET DB_CLOSE_DELAY 10
 </pre>
+<p>
 The value -1 means the database is never closed automatically.
 The value 0 is the default and means the database is closed when the last connection is closed.
 This setting is persistent and can be set by an administrator only.
@@ -636,9 +645,11 @@ Also supported are 'rws' and 'rwd'.
 The access mode used for log files is set via ACCESS_MODE_LOG; for
 data and index files use ACCESS_MODE_DATA.
 These settings must be specified in the database URL:
+</p>
 <pre>
 String url = "jdbc:h2:~/test;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws";
 </pre>
+<p>
 For more information see <a href="advanced.html#durability_problems">Durability Problems</a>.
 On many operating systems the access mode 'rws' does not guarantee that the data is written to the disk.
 </p>
@@ -934,17 +945,19 @@ There are two settings, one for System.out (TRACE_LEVEL_SYSTEM_OUT) tracing,
 and one for file tracing (TRACE_LEVEL_FILE).
 The trace levels are 0 for OFF, 1 for ERROR (the default), 2 for INFO and 3 for DEBUG.
 A database URL with both levels set to DEBUG is:
+</p>
 <pre>
 jdbc:h2:~/test;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3
 </pre>
+<p>
 The trace level can be changed at runtime by executing the SQL command
 <code>SET TRACE_LEVEL_SYSTEM_OUT level</code> (for System.out tracing)
 or <code>SET TRACE_LEVEL_FILE level</code> (for file tracing).
 Example:
+</p>
 <pre>
 SET TRACE_LEVEL_SYSTEM_OUT 3
 </pre>
-</p>
 
 <h3>Setting the Maximum Size of the Trace File</h3>
 <p>
@@ -963,6 +976,7 @@ SET TRACE_MAX_FILE_SIZE 1
 <p>
 When setting the trace level to INFO or DEBUG, Java source code is generated as well, so that
 problem can be reproduced more easily. The trace file looks like this:
+</p>
 <pre>
 ...
 12-20 20:58:09 jdbc[0]:
@@ -971,12 +985,16 @@ problem can be reproduced more easily. The trace file looks like this:
 /**/dbMeta3.getTables(null, "", null, new String[]{"TABLE", "VIEW"});
 ...
 </pre>
+<p>
 You need to filter out the lines without /**/ to get the Java source code.
 In Windows, a simple way to do that is:
+</p>
 <pre>
 find "**" test.trace.db > Trace.java
 </pre>
+<p>
 Afterwards, you need to complete the file Trace.java before it can be compiled, for example with:
+</p>
 <pre>
 import java.sql.*;
 public class Trace { public static void main(String[]a)throws Exception {
@@ -984,6 +1002,7 @@ Class.forName("org.h2.Driver");
 ...
 }}
 </pre>
+<p>
 Also, the user name and password needs to be set, because they are not listed in the trace file.
 </p>
 
@@ -1090,6 +1109,7 @@ Function indexes are not directly supported by this database, but they can be ea
 by using computed columns. For example, if an index on the upper-case version of
 a column is required, just create a computed column with the upper-case version of the original column,
 and index this column:
+</p>
 <pre>
 CREATE TABLE ADDRESS(
   ID INT PRIMARY KEY,
@@ -1098,14 +1118,15 @@ CREATE TABLE ADDRESS(
 );
 CREATE INDEX IDX_U_NAME ON ADDRESS(UPPER_NAME);
 </pre>
+<p>
 When inserting data, it is not required (better: not allowed) to specify a value for the upper-case
 version of the column, because the value is generated. But you can use the
 column when querying the table:
+</p>
 <pre>
 INSERT INTO ADDRESS(ID, NAME) VALUES(1, 'Miller');
 SELECT * FROM ADDRESS WHERE UPPER_NAME='MILLER';
 </pre>
-</p>
 
 <br /><a name="multi_dimensional"></a>
 <h2>Multi-Dimensional Indexes</h2>
@@ -1160,6 +1181,7 @@ password will not be stored in the swap file.
 </p><p>
 This database supports using char arrays instead of String to pass user and file passwords.
 The following code can be used to do that:
+</p>
 <pre>
 Class.forName("org.h2.Driver");
 String url = "jdbc:h2:~/simple";
@@ -1177,6 +1199,7 @@ try {
     Arrays.fill(password, 0);
 }
 </pre>
+<p>
 In this example, the password is hard code in the application, which is not secure of course.
 However, Java Swing supports a way to get passwords using a char array (JPasswordField).
 </p>
@@ -1204,6 +1227,7 @@ In this database, Java functions can be used as stored procedures as well.
 A function must be declared (registered) before it can be used.
 Only static Java methods are supported; both the class and the method must be public.
 Example Java method:
+</p>
 <pre>
 package org.h2.samples;
 ...
@@ -1213,10 +1237,13 @@ public class Function {
     }
 }
 </pre>
+<p>
 The Java function must be registered in the database by calling CREATE ALIAS:
+</p>
 <pre>
 CREATE ALIAS IS_PRIME FOR "org.h2.samples.Function.isPrime"
 </pre>
+<p>
 For a complete sample application, see src/test/org/h2/samples/Function.java.
 </p>
 
@@ -1242,6 +1269,7 @@ and the exception is thrown to the application.
 <h3>Functions returning a Result Set</h3>
 <p>
 Functions may returns a result set. Such a function can be called with the CALL statement:
+</p>
 <pre>
 public static ResultSet query(Connection conn, String sql) throws SQLException {
     return conn.createStatement().executeQuery(sql);
@@ -1250,11 +1278,11 @@ public static ResultSet query(Connection conn, String sql) throws SQLException {
 CREATE ALIAS QUERY FOR "org.h2.samples.Function.query";
 CALL QUERY('SELECT * FROM TEST');
 </pre>
-</p>
 
 <h3>Using SimpleResultSet</h3>
 <p>
 A function that returns a result set can create this result set from scratch using the SimpleResultSet tool:
+</p>
 <pre>
 import org.h2.tools.SimpleResultSet;
 ...
@@ -1270,7 +1298,6 @@ public static ResultSet simpleResultSet() throws SQLException {
 CREATE ALIAS SIMPLE FOR "org.h2.samples.Function.simpleResultSet";
 CALL SIMPLE();
 </pre>
-</p>
 
 <h3>Using a Function as a Table</h3>
 <p>
@@ -1281,6 +1308,7 @@ First while parsing the statement to collect the column names
 And then, while executing the statement to get the data (may be repeatedly if this is a join).
 If the function is called just to get the column list, the URL of the connection passed to the function is
 jdbc:columnlist:connection. Otherwise, the URL of the connection is jdbc:default:connection.
+</p>
 <pre>
 public static ResultSet getMatrix(Integer id) throws SQLException {
     SimpleResultSet rs = new SimpleResultSet();
@@ -1300,7 +1328,6 @@ public static ResultSet getMatrix(Integer id) throws SQLException {
 CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(3) WHERE X>0;
 </pre>
-</p>
 
 <br /><a name="triggers"></a>
 <h2>Triggers</h2>
@@ -1310,6 +1337,7 @@ Triggers can be used for complex consistency checks, or to update related data i
 It is also possible to use triggers to simulate materialized views.
 For a complete sample application, see src/test/org/h2/samples/TriggerSample.java.
 A Java trigger must implement the interface org.h2.api.Trigger:
+</p>
 <pre>
 import org.h2.api.Trigger;
 ...
@@ -1322,12 +1350,15 @@ public class TriggerSample implements Trigger {
     }
 }
 </pre>
+<p>
 The connection can be used to query or update data in other tables.
 The trigger then needs to be defined in the database:
+</p>
 <pre>
 CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
   FOR EACH ROW CALL "org.h2.samples.TriggerSample"
 </pre>
+<p>
 The trigger can be used to veto a change, by throwing a SQL Exception.
 </p>
 
@@ -1339,6 +1370,7 @@ To re-build the indexes, the simplest way is to delete the .index.db file
 while the database is closed. However in some situations (for example after deleting
 a lot of data in a database), one sometimes wants to shrink the size of the database
 (compact a database). Here is a sample function to do this:
+</p>
 <pre>
 public static void compact(String dir, String dbName,
         String user, String password) throws Exception {
@@ -1349,6 +1381,7 @@ public static void compact(String dir, String dbName,
     RunScript.execute(url, user, password, file, null, false);
 }
 </pre>
+<p>
 See also the sample application org.h2.samples.Compact.
 The commands SCRIPT / RUNSCRIPT can be used as well to create a backup
 of a database and re-build the database from the script.

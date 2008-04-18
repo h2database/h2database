@@ -24,6 +24,10 @@ public class Build extends BuildBase {
         jarSmall();
         docs();
     }
+    
+    public void spellcheck() {
+        java("org.h2.build.doc.SpellChecker", null);
+    }
 
     public void docs() {
         javadoc();
@@ -31,7 +35,6 @@ public class Build extends BuildBase {
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);
         java("org.h2.build.doc.GenerateDoc", null);
-        java("org.h2.build.i18n.PrepareTranslation", null);
         java("org.h2.build.i18n.PrepareTranslation", null);
         java("org.h2.build.indexer.Indexer", null);
         java("org.h2.build.doc.MergeDocs", null);

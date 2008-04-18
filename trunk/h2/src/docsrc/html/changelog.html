@@ -14,7 +14,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Multi version concurrency (MVCC): when a row was updated, 
+<ul>
+<li>The plan is to dual-license H2. The additional license is EPL (Eclipse Public License).
+    The current license (MPL, Mozilla Public License) will stay.
+    Current users are not affected because they can keep MPL. 
+    EPL is very similar to MPL, the only bigger difference is related to patents
+    (EPL is a bit more business friendly in this regard).
+    See also http://opensource.org/licenses/eclipse-1.0.php,
+    http://www.eclipse.org/legal/eplfaq.php (FAQ),
+    http://blogs.zdnet.com/Burnette/?p=131
+</li><li>Multi version concurrency (MVCC): when a row was updated, 
     and the updated column was not indexed, this update was visible sometimes 
     for other sessions even if it was not committed.
 </li><li>Calling SHUTDOWN on one connection and starting a query on 

@@ -159,6 +159,8 @@ java org.h2.test.TestAll timer
 
 /*
    
+a huge number of columns in each table   
+   
 drop table t1;
 drop table t2;
 create table t1 (id int primary key);

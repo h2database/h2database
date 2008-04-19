@@ -520,8 +520,9 @@ public abstract class Value {
             switch(getType()) {
             case JAVA_OBJECT:
             case BLOB:
-            case UUID:
                 return ValueBytes.getNoCopy(getBytesNoCopy());
+            case UUID:
+                return ValueBytes.getNoCopy(getBytes());
             }
             break;
         }

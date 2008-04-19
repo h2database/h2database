@@ -92,9 +92,21 @@ public class ErrorCode {
 
     /**
      * The error with code <code>22025</code> is thrown when using an invalid
-     * escape character sequence for LIKE or REGEXP. Example:
+     * escape character sequence for LIKE or REGEXP. The default escape
+     * character is '\'. When searching for the characters '%', '_' and the
+     * escape character, you need to prepend the escape character. That means if
+     * you want to search for the text '10%', you need to use LIKE '10\%'. If
+     * you want to search for 'C:\temp' you need to use 'C:\\temp'. The escape
+     * character can be changed using the ESCAPE clause as in LIKE '10+%' ESCAPE
+     * '+'. Example of wrong usage:
      * <pre>
-     * CALL 'Hello' LIKE '1+' ESCAPE '+';
+     * CALL 'C:\temp' LIKE 'C:\temp';
+     * CALL '1+1' LIKE '1+1' ESCAPE '+';
+     * </pre>
+     * Correct:
+     * <pre>
+     * CALL 'C:\temp' LIKE 'C:\\temp';
+     * CALL '1+1' LIKE '1++1' ESCAPE '+';
      * </pre>
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;

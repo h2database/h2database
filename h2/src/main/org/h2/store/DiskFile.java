@@ -863,10 +863,10 @@ public class DiskFile implements CacheWriter {
 
     void addRecord(Session session, Record record) throws SQLException {
         synchronized (database) {
+            cache.put(record);
             if (logChanges) {
                 log.add(session, this, record);
             }
-            cache.put(record);
         }
     }
 

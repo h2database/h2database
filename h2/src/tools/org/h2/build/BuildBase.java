@@ -415,8 +415,15 @@ public class BuildBase {
     }
     
     protected void mkdir(String dir) {
-        if (!new File(dir).mkdirs()) {
-            throw new Error("Can not create directory " + dir);
+        File f = new File(dir);
+        if (f.exists()) {
+            if (f.isFile()) {
+                throw new Error("Can not create directory " + dir + " because a file with this name exists");
+            }
+        } else {
+            if (!f.mkdirs()) {
+                throw new Error("Can not create directory " + dir);
+            }                
         }
     }
     

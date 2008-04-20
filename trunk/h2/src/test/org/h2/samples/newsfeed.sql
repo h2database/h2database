@@ -10,6 +10,62 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(40,
+'New version available: 1.0.70 (2008-04-20)', '2008-04-20 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>The plan is to dual-license H2. The additional license is EPL (Eclipse Public License).
+    The current license (MPL, Mozilla Public License) will stay.
+    Current users are not affected because they can keep MPL. 
+    EPL is very similar to MPL, the only bigger difference is related to patents
+    (EPL is a bit more business friendly in this regard).
+    See also http://opensource.org/licenses/eclipse-1.0.php,
+    http://www.eclipse.org/legal/eplfaq.php (FAQ),
+    http://blogs.zdnet.com/Burnette/?p=131
+</li><li>The ConvertTraceFile tool now generates SQL statement statistics.
+</li><li>New system property h2.enableAnonymousSSL (default: true).
+</li><li>The precision if SUBSTR is now calculated if possible.    
+</li><li>The autocomplete in the H2 Console has been improved a bit.
+</li><li>The tools in the H2 Console are now translatable.
+</li><li>The servlet and lucene jar files are now automatically downloaded when building.
+</li><li>The code switch tool has been replaced by a simpler tool. 
+</li><li>Started to write a Ant replacement (''JAnt'') that uses pure Java 
+    build definitions.Future plan: support creating custom h2 
+    distributions (for embedded use). Maybe create a new project ''Jant''
+    or ''Javen'' if other people are interested.
+</li><li>The jar file is now about 10% smaller because the variable debugging info 
+    is no longer included.
+</li><li>Added shell scripts run.sh and build.sh.
+</li><li>The Japanese translation of the error messages and the 
+  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO. 
+</li><li>Optimization for MIN() and MAX() when using MVCC.
+</li><li>To protect against remote brute force password attacks, 
+    the delay after each unsuccessful login now gets double as long.
+</li><li>The built-in connection pool is not called JdbcConnectionPool. 
+</li><li>Nested joins are now supported (A JOIN B JOIN C ON .. ON ..)
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Multi version concurrency (MVCC): when a row was updated, 
+    and the updated column was not indexed, this update was visible sometimes 
+    for other sessions even if it was not committed.
+</li><li>Calling SHUTDOWN on one connection and starting a query on 
+    another connection concurrently could result in a Java level deadlock.
+</li><li>Databases in zip files: large queries are now supported.
+</li><li>Invalid inline views threw confusing SQL exceptions.
+</li><li>After setting the query timeout and then resetting it, the next query
+    would still timeout. Fixed.
+</li><li>Adding a IDENTITY column to a table with data threw a lock timeout.
+</li><li>OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
+</li></ul>
+For details, see the ''Change Log'' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the ''Roadmap'' page at
+http://www.h2database.com/html/roadmap.html
+');
+
 INSERT INTO ITEM VALUES(39,
 'New version available: 1.0.69 (2008-03-29)', '2008-03-29 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

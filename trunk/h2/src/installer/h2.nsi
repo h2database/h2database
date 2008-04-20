@@ -122,6 +122,8 @@ Section "All"
   SetOutPath "$INSTDIR\service"
   File /r /x CVS /x .cvsignore /x .svn ..\..\service\*.*
   SetOutPath "$INSTDIR"
+  File /r /x CVS /x .cvsignore ..\..\build.bat  
+  File /r /x CVS /x .cvsignore ..\..\build.sh  
   File /r /x CVS /x .cvsignore ..\..\build.xml  
   File /r /x CVS /x .cvsignore ..\..\ant-build.properties
   

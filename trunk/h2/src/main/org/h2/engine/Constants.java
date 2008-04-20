@@ -15,8 +15,8 @@ package org.h2.engine;
  * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
- *   set path=C:\Program Files\Java\jdk1.6.0_03\bin;%PATH%
- *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_03
+ *   set path=C:\Program Files\Java\jdk1.6.0_05\bin;%PATH%
+ *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_05
  *   ant compile
  *   set classpath=
  *   ant javadoc
@@ -76,8 +76,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 69;
-    private static final String BUILD = "2008-03-29";
+    public static final int BUILD_ID = 70;
+    private static final String BUILD = "2008-04-20";
 
     public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final int ALLOW_LITERALS_NONE = 0;

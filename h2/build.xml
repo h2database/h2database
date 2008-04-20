@@ -118,7 +118,7 @@
 		</jar>
 	</target>
 
-	<target name="jarClient" depends="resources, manifest">
+	<target name="jarClient" depends="switchSourceAuto, resources, manifest">
 		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" debuglevel="lines,source">
 			<include name="org/h2/*" />
 			<include name="org/h2/jdbc/**" />
@@ -165,7 +165,7 @@
 		<mkdir dir="docs/javadocImpl"/>
 		<javadoc
 			sourcepath="src/main;src/test;src/tools"
-		    classpath="${path.lucene.jar};${path.servlet.jar};${java.class.path}"
+		    classpath="ext/servlet-api-2.4.jar;ext/lucene-core-2.2.0.jar;${java.class.path}"
 			packagenames="org.h2.*"
 			doclet="org.h2.build.doclet.Doclet"  
 		    docletpath="bin"
@@ -176,7 +176,7 @@
 		    noindex="true"
 			packagenames="org.h2.*"
 		    excludepackagenames="org.h2.build.*,org.h2.dev.*"
-		    classpath="${path.lucene.jar};${path.servlet.jar};${java.class.path}"
+		    classpath="ext/servlet-api-2.4.jar;ext/lucene-core-2.2.0.jar;${java.class.path}"
 			destDir="docs/javadocImpl"
 		/>
 		<copy todir="docs/javadoc">

@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -138,8 +139,9 @@ public class ConditionInSelect extends Condition {
         TableFilter filter = new TableFilter(session, view, view.getName(), false, select);
         select.addTableFilter(filter, true);
         ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);
-        Comparison on = new Comparison(session, Comparison.EQUAL, left, column);
+        Expression on = new Comparison(session, Comparison.EQUAL, left, column);
         on.mapColumns(filter, 0);
+        on.createIndexConditions(session, filter);
         filter.addFilterCondition(on, true);
         return ValueExpression.get(ValueBoolean.get(true));
     }

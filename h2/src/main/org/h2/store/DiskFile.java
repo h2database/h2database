@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -621,7 +622,11 @@ public class DiskFile implements CacheWriter {
                 for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
                     int p = ((Integer) it.next()).intValue();
                     if (oldest == 0) {
-                        setPageOwner(p, FREE_PAGE);
+                        if (isPageFree(p)) {
+                            // the page may not be free: the storage
+                            // could have re-used it using the storage local free list
+                            setPageOwner(p, FREE_PAGE);
+                        }
                         it.remove();
                     }
                 }

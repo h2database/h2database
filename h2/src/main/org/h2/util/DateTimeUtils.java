@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,6 +24,8 @@ import org.h2.value.ValueTimestamp;
  * This utility class contains time conversion functions.
  */
 public class DateTimeUtils {
+    
+    private static final Calendar CALENDAR = Calendar.getInstance();
 
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
         if (x != null) {
@@ -35,20 +38,28 @@ public class DateTimeUtils {
     }
 
     public static Time cloneAndNormalizeTime(Time value) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(value);
-        cal.set(1970, 0, 1);
-        return new Time(cal.getTime().getTime());
+        Calendar cal = CALENDAR;
+        long time;
+        synchronized (cal) {
+            cal.setTime(value);
+            cal.set(1970, 0, 1);
+            time = cal.getTime().getTime();
+        }
+        return new Time(time);
     }
 
     public static Date cloneAndNormalizeDate(Date value) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(value);
-        cal.set(Calendar.MILLISECOND, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        return new Date(cal.getTime().getTime());
+        Calendar cal = CALENDAR;
+        long time;
+        synchronized (cal) {
+            cal.setTime(value);
+            cal.set(Calendar.MILLISECOND, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            time = cal.getTime().getTime();
+        }
+        return new Date(time);
     }
 
     public static Value convertDateToUniversal(Date x, Calendar source) throws SQLException {

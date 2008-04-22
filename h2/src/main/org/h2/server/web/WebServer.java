@@ -1,5 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -66,7 +67,8 @@ public class WebServer implements Service {
         { "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"},
         { "tr", "T\u00fcrk\u00e7e"},
         { "uk", "\u0423\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u0430"},
-        { "zh_CN", "\u4E2D\u6587"},
+        { "zh_CN", "\u4e2d\u6587 (\u7c21\u9ad4)"},
+        { "zh_TW", "\u4e2d\u6587 (\u7e41\u9ad4)"},
     };
 
     private static final String[] GENERIC = new String[] {

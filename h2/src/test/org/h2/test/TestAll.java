@@ -1,6 +1,7 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
- * (license2)
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
@@ -158,18 +159,8 @@ java org.h2.test.TestAll timer
         test.printSystem();
 
 /*
-   
-a huge number of columns in each table   
-   
-drop table t1;
-drop table t2;
-create table t1 (id int primary key);
-@LOOP 1000 insert into t1 values(?);
-create table t2 (id int primary key);
-@LOOP 1000 insert into t2 values(?);
-explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
-select count(*) from t1 where t1.id in ( select t2.id from t2 );
-select count(*) from t1 inner join t2 on t1.id = t2.id;
+
+Multiple-Multiple-Licensed under the H2 License, 
 
 test case for out of memory (try to corrupt the database using out of memory)
 
@@ -178,10 +169,6 @@ analyzer configuration option for the fulltext search
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
-
-Browser problems:
-There has been a reported incompatibility with the 
-RealPlayer Browser Record Plugin 1.0 when using Firefox 2.0 and Vista
 
 --------------
 

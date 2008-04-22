@@ -1,6 +1,7 @@
 /*
- * Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0
- * (license2)
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -25,6 +26,7 @@ import org.h2.test.TestBase;
 public class TestCases extends TestBase {
 
     public void test() throws Exception {
+        testReuseSpace();
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
@@ -51,6 +53,30 @@ public class TestCases extends TestBase {
         testDoubleRecovery();
         testConstraintReconnect();
         testCollation();
+    }
+    
+    private void testReuseSpace() throws Exception {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        int tableCount = getSize(2, 5);
+        for (int i = 0; i < tableCount; i++) {
+            stat.execute("create table t" + i + "(data varchar)");
+        }
+        Random random = new Random(1);
+        int len = getSize(50, 500);
+        for (int i = 0; i < len; i++) {
+            String table = "t" + random.nextInt(tableCount);
+            String sql;
+            if (random.nextBoolean()) {
+                sql = "insert into " + table + " values(space(100000))";
+            } else {
+                sql = "delete from " + table;
+            }
+            stat.execute(sql);
+            stat.execute("script to 'test.sql'");
+        }
+        conn.close();
     }
 
     private void testDeleteGroup() throws Exception {

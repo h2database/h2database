@@ -1,6 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2008 H2 Group. Licensed under the H2 License, Version 1.0 (http://h2database.com/html/license.html).
+Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -407,6 +409,7 @@ Roadmap
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
 </li><li>Support CREATE TEMPORARY LINKED TABLE.
 </li><li>MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
+</li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li></ul>
 
 <h2>Not Planned</h2>

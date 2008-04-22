@@ -1,4 +1,31 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table t1 (id int primary key);
+> ok
+
+create table t2 (id int primary key);
+> ok
+
+insert into t1 select x from system_range(1, 1000);
+> update count: 1000
+
+insert into t2 select x from system_range(1, 1000);
+> update count: 1000
+
+explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
+> PLAN
+> --------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ WHERE T1.ID IN(SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */)
+> rows: 1
+
+select count(*) from t1 where t1.id in ( select t2.id from t2 );
+> COUNT(*)
+> --------
+> 1000
+> rows: 1
+
+drop table t1, t2;
+> ok
+
 select * from system_range(1, 3) t1 inner join system_range(2, 3) t2 inner join system_range(1, 2) t3 on t3.x=t2.x on t1.x=t2.x;
 > X X X
 > - - -

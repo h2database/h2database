@@ -32,8 +32,8 @@ public class CheckTextFiles {
     boolean autoFix = true;
     boolean useCRLF = true;
     // must contain "+" otherwise this here counts as well
-    String copyrightLicense = "Copyright 2004-2008 H2 Group. " + 
-        "Multiple-Licensed under the H2 License,";
+    static final String COPYRIGHT = "Copyright 2004-2008 " + "H2 Group.";
+    static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
     String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
     boolean hasError;
 
@@ -106,10 +106,13 @@ public class CheckTextFiles {
         in.readFully(data);
         in.close();
         if (checkLicense) {
-            if (data.length > copyrightLicense.length()) {
+            if (data.length > COPYRIGHT.length() + LICENSE.length()) {
                 // don't check tiny files
                 String text = new String(data);
-                if (text.indexOf(copyrightLicense) < 0) {
+                if (text.indexOf(COPYRIGHT) < 0) {
+                    fail(file, "copyright is missing", 0);
+                }
+                if (text.indexOf(LICENSE) < 0) {
                     fail(file, "license is missing", 0);
                 }
                 if (text.indexOf("// " + "##") > 0) {

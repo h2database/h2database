@@ -8,12 +8,11 @@ package org.h2.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.h2.build.code.SwitchSource;
 
 /**
- * The implementation of the pure Java build.
+ * The build definition.
  */
 public class Build extends BuildBase {
 
@@ -55,11 +54,11 @@ public class Build extends BuildBase {
     }        
 
     public void resources() {
-        List files = getFiles("src/main");
-        files = filterFiles(files, false, "*.java");
-        files = filterFiles(files, false, "*/package.html");
-        files = filterFiles(files, false, "*/java.sql.Driver");
-        zip("temp/org/h2/util/data.zip", "src/main", files, true, false);
+        FileList files = getFiles("src/main").
+            exclude("*.java").
+            exclude("*/package.html").
+            exclude("*/java.sql.Driver");
+        zip("temp/org/h2/util/data.zip", files, "src/main", true, false);
     }
 
     private void manifest(String mainClassName) {
@@ -67,8 +66,8 @@ public class Build extends BuildBase {
         String version = getStaticField("org.h2.engine.Constants", "VERSION");
         manifest = replaceAll(manifest, "${version}", version);
         manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
-        String createdBy = System.getProperty("java.runtime.version") + " (" + System.getProperty("java.vm.vendor")
-                + ")";
+        String createdBy = System.getProperty("java.runtime.version") + 
+            " (" + System.getProperty("java.vm.vendor") + ")";
         manifest = replaceAll(manifest, "${createdBy}", createdBy);
         String mainClassTag = manifest == null ? "" : "Main-Class: " + mainClassName;
         manifest = replaceAll(manifest, "${mainClassTag}", mainClassTag);
@@ -78,33 +77,33 @@ public class Build extends BuildBase {
     public void jar() {
         compile();
         manifest("org.h2.tools.Console");
-        List files = getFiles("temp");
-        files = filterFiles(files, false, "temp/org/h2/dev/*");
-        files = filterFiles(files, false, "temp/org/h2/build/*");
-        files = filterFiles(files, false, "temp/org/h2/samples/*");
-        files = filterFiles(files, false, "temp/org/h2/test/*");
-        files = filterFiles(files, false, "*.bat");
-        files = filterFiles(files, false, "*.sh");
-        files = filterFiles(files, false, "*.txt");
-        jar("bin/h2.jar", "temp", files);
+        FileList files = getFiles("temp").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/test/*").
+            exclude("*.bat").
+            exclude("*.sh").
+            exclude("*.txt");
+        jar("bin/h2.jar", files, "temp");
     }
     
     public void jarSmall() {
         compile(false);
-        List files = getFiles("temp");
-        files = filterFiles(files, false, "temp/org/h2/dev/*");
-        files = filterFiles(files, false, "temp/org/h2/build/*");
-        files = filterFiles(files, false, "temp/org/h2/samples/*");
-        files = filterFiles(files, false, "temp/org/h2/test/*");
-        files = filterFiles(files, false, "*.bat");
-        files = filterFiles(files, false, "*.sh");
-        files = filterFiles(files, false, "*.txt");
-        files = filterFiles(files, false, "temp/META-INF/*");
-        zip("temp/h2classes.zip", "temp", files, true, true);
+        FileList files = getFiles("temp").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/test/*").
+            exclude("*.bat").
+            exclude("*.sh").
+            exclude("*.txt").
+            exclude("temp/META-INF/*");
+        zip("temp/h2classes.zip", files, "temp", true, true);
         manifest("org.h2.tools.Console\nClass-Path: h2classes.zip");
         files = getFiles("temp/h2classes.zip");
         files.addAll(getFiles("temp/META-INF"));
-        jar("bin/h2small.jar", "temp", files);
+        jar("bin/h2small.jar", files, "temp");
     }
 
     public void download() {
@@ -135,7 +134,7 @@ public class Build extends BuildBase {
                 + "ext/lucene-core-2.2.0.jar" + File.pathSeparator + System.getProperty("java.home")
                 + "/../lib/tools.jar";
 
-        List files = getFiles("src/main");
+        FileList files = getFiles("src/main");
         if (debugInfo) {
             javac(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
         } else {
@@ -150,14 +149,13 @@ public class Build extends BuildBase {
         files = getFiles("src/main/META-INF/services");
         copy("temp", files, "src/main");
 
-        files = getFiles("src/installer");
-        files = filterFiles(files, true, "*.bat");
-        files = filterFiles(files, true, "*.sh");
+        files = getFiles("src/installer").keep("*.bat");
+        files.addAll(getFiles("src/installer").keep("*.sh"));
         copy("temp", files, "src/installer");
 
-        files = getFiles("src/test");
-        files = filterFiles(files, false, "*.java");
-        files = filterFiles(files, false, "*/package.html");
+        files = getFiles("src/test").
+            exclude("*.java").
+            exclude("*/package.html");
         copy("temp", files, "src/test");
     }
 

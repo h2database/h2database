@@ -67,7 +67,7 @@ public class WebServer implements Service {
         { "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"},
         { "tr", "T\u00fcrk\u00e7e"},
         { "uk", "\u0423\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u0430"},
-        { "zh_CN", "\u4e2d\u6587 (\u7c21\u9ad4)"},
+        { "zh_CN", "\u4e2d\u6587 (\u7b80\u4f53)"},
         { "zh_TW", "\u4e2d\u6587 (\u7e41\u9ad4)"},
     };
 

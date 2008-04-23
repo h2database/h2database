@@ -584,15 +584,19 @@ public class StringUtils {
     }
 
     public static String replaceAll(String s, String before, String after) {
+        StringBuffer buff = new StringBuffer(s.length());
         int index = 0;
         while (true) {
             int next = s.indexOf(before, index);
             if (next < 0) {
-                return s;
+                buff.append(s.substring(index));
+                break;
             }
-            s = s.substring(0, next) + after + s.substring(next + before.length());
-            index = next + after.length();
+            buff.append(s.substring(index, next));
+            buff.append(after);
+            index = next + before.length();
         }
+        return buff.toString();
     }
 
     public static String quoteIdentifier(String s) {

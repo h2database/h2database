@@ -42,8 +42,47 @@ import java.util.zip.ZipOutputStream;
  */
 public class BuildBase {
     
+    /**
+     * A list of files.
+     */
+    public static class FileList extends ArrayList implements List {
+        
+        private static final long serialVersionUID = -3241001695597802578L;
+
+        /**
+         * Remove the files that match from the list.
+         * Patterns must start or end with a *.
+         * 
+         * @param pattern the pattern of the file names to remove
+         * @return the new file list
+         */
+        public FileList exclude(String pattern) {
+            return filterFiles(this, false, pattern);
+        }
+        
+        /**
+         * Only keep the files that match.
+         * Patterns must start or end with a *.
+         * 
+         * @param pattern the pattern of the file names to keep
+         * @return the new file list
+         */
+        public FileList keep(String pattern) {
+            return filterFiles(this, true, pattern);
+        }
+        
+    };
+    
+    /**
+     * The output stream (System.out).
+     */
     protected PrintStream out = System.out;
     
+    /**
+     * This method should be called by the main method.
+     * 
+     * @param args the command line parameters
+     */
     protected void run(String[] args) {
         long time = System.currentTimeMillis();
         if (args.length == 0) {
@@ -78,10 +117,19 @@ public class BuildBase {
         }
     }
     
+    /**
+     * This method is called if no other target is specified in the command line.
+     * The default behavior is to call projectHelp().
+     * Override this method if you want another default behavior.
+     */
     protected void all() {
         projectHelp();
     }
     
+    /**
+     * Lists all targets (all public methods non-static methods without
+     * parameters).
+     */
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
         out.println("Targets:");
@@ -121,6 +169,13 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Read a final static field in a class using reflection.
+     * 
+     * @param className the name of the class
+     * @param fieldName the field name
+     * @return the value as a string
+     */
     protected String getStaticField(String className, String fieldName) {
         try {
             Class clazz = Class.forName(className);
@@ -131,6 +186,13 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Copy files to the specified target directory.
+     * 
+     * @param targetDir the target directory
+     * @param files the list of files to copy
+     * @param baseDir the base directory
+     */
     protected void copy(String targetDir, List files, String baseDir) {
         File target = new File(targetDir);
         File base = new File(baseDir);
@@ -145,6 +207,11 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Run a Javadoc task.
+     * 
+     * @param args the command line arguments to pass
+     */
     protected void javadoc(String[] args) {
         int result;        
         try {
@@ -180,6 +247,15 @@ public class BuildBase {
         } 
     }
     
+    /**
+     * Download a file if it does not yet exist.
+     * If no checksum is used (that is, if the parameter is null), the
+     * checksum is printed. For security, checksums should always be used.
+     * 
+     * @param target the target file name
+     * @param fileURL the source url of the file
+     * @param sha1Checksum the SHA-1 checksum or null
+     */
     protected void download(String target, String fileURL, String sha1Checksum) {
         File targetFile = new File(target);
         if (targetFile.exists()) {
@@ -223,9 +299,15 @@ public class BuildBase {
         writeFile(targetFile, data);
     }
     
-    protected List getFiles(String path) {
-        ArrayList list = new ArrayList();
-        addFiles(list, new File(path));
+    /**
+     * Get the list of files in the given directory and all subdirectories.
+     * 
+     * @param dir the source directory
+     * @return the file list
+     */
+    protected FileList getFiles(String dir) {
+        FileList list = new FileList();
+        addFiles(list, new File(dir));
         return list;
     }
     
@@ -241,24 +323,24 @@ public class BuildBase {
         }
     }
     
-    protected List filterFiles(List files, boolean keep, String mask) {
+    private static FileList filterFiles(FileList files, boolean keep, String pattern) {
         boolean start = false;
-        if (mask.endsWith("*")) {
-            mask = mask.substring(0, mask.length() - 1);
+        if (pattern.endsWith("*")) {
+            pattern = pattern.substring(0, pattern.length() - 1);
             start = true;
-        } else if (mask.startsWith("*")) {
-            mask = mask.substring(1);
+        } else if (pattern.startsWith("*")) {
+            pattern = pattern.substring(1);
         }
-        if (mask.indexOf('*') >= 0) {
-            throw new Error("Unsupported mask, may only start or end with *:" + mask);
+        if (pattern.indexOf('*') >= 0) {
+            throw new Error("Unsupported pattern, may only start or end with *:" + pattern);
         }
         // normalize / and \
-        mask = new File(mask).getPath();
-        ArrayList list = new ArrayList();
+        pattern = new File(pattern).getPath();
+        FileList list = new FileList();
         for (int i = 0; i < files.size(); i++) {
             File f = (File) files.get(i);
             String path = f.getPath();
-            boolean match = start ? path.startsWith(mask) : path.endsWith(mask);
+            boolean match = start ? path.startsWith(pattern) : path.endsWith(pattern);
             if (match == keep) {
                 list.add(f);
             }
@@ -277,16 +359,29 @@ public class BuildBase {
         return path;
     }
     
+    /**
+     * Create or overwrite a file.
+     * 
+     * @param file the file
+     * @param data the data to write
+     */
     public static void writeFile(File file, byte[] data) {
         try {
             RandomAccessFile ra = new RandomAccessFile(file, "rw");
             ra.write(data);
+            ra.setLength(data.length);
             ra.close();
         } catch (IOException e) {
             throw new Error("Error writing to file " + file, e);
         }
     }
     
+    /**
+     * Read a file. The maximum file size is Integer.MAX_VALUE.
+     * 
+     * @param file the file
+     * @return the data
+     */
     public static byte[] readFile(File file) {
         try {
             RandomAccessFile ra = new RandomAccessFile(file, "r");
@@ -308,17 +403,33 @@ public class BuildBase {
         return idx < 0 ? "" : fileName.substring(idx);
     }
     
-    protected void jar(String destFile, String basePath, List files) {
+    /**
+     * Create a jar file.
+     * 
+     * @param destFile the target file name
+     * @param files the file list
+     * @param basePath the base path
+     */
+    protected void jar(String destFile, List files, String basePath) {
         out.println("Jar " + destFile);
-        zipOrJar(destFile, basePath, files, false, false, true);
+        zipOrJar(destFile, files, basePath, false, false, true);
     }
 
-    protected void zip(String destFile, String basePath, List files, boolean storeOnly, boolean sortBySuffix) {
+    /**
+     * Create a zip file.
+     * 
+     * @param destFile the target file name
+     * @param files the file list
+     * @param basePath the base path
+     * @param if the files should not be compressed
+     * @param if the file should be sorted by the file suffix
+     */
+    protected void zip(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix) {
         out.println("Zip " + destFile);
-        zipOrJar(destFile, basePath, files, storeOnly, sortBySuffix, false);
+        zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
     }
 
-    protected void zipOrJar(String destFile, String basePath, List files, boolean storeOnly, boolean sortBySuffix, boolean jar) {
+    private void zipOrJar(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
             Collections.sort(files, new Comparator() {
@@ -369,6 +480,11 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Get the current java specification version (for example, 1.4).
+     * 
+     * @return the java specification version
+     */
     protected String getJavaSpecVersion() {
         return System.getProperty("java.specification.version");
     }
@@ -381,7 +497,13 @@ public class BuildBase {
         return list;
     }
     
-    protected void javac(String[] args, List files) {
+    /**
+     * Compile the files.
+     * 
+     * @param args the command line parameters
+     * @param files the file list
+     */
+    protected void javac(String[] args, FileList files) {
         out.println("Compiling " + files.size() + " classes");
         ArrayList argList = new ArrayList(Arrays.asList(args));
         argList.addAll(getPaths(filterFiles(files, true, ".java")));
@@ -402,6 +524,12 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Call the main method of the given Java class using reflection.
+     * 
+     * @param className the class name
+     * @param args the command line parameters to pass
+     */
     protected void java(String className, String[] args) {
         out.println("Running " + className);
         if (args == null) {
@@ -415,6 +543,11 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Create the directory including the parent directories if they don't exist.
+     * 
+     * @param dir the directory to create
+     */
     protected void mkdir(String dir) {
         File f = new File(dir);
         if (f.exists()) {
@@ -428,9 +561,14 @@ public class BuildBase {
         }
     }
     
-    protected void delete(String path) {
-        out.println("Deleting " + path);
-        delete(new File(path));
+    /**
+     * Delete all files in the given directory and all subdirectories.
+     *  
+     * @param dir the name of the directory
+     */
+    protected void delete(String dir) {
+        out.println("Deleting " + dir);
+        delete(new File(dir));
     }
     
     private void delete(File f) {
@@ -447,6 +585,14 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Replace each substring in a given string. Regular expression is not used.
+     * 
+     * @param s the original text
+     * @param before the old substring
+     * @param after the new substring
+     * @return the string with the string replaced
+     */
     protected String replaceAll(String s, String before, String after) {
         int index = 0;
         while (true) {

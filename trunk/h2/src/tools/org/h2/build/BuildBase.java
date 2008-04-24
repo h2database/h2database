@@ -154,8 +154,7 @@ public class BuildBase {
      * @return the exit value
      */
     protected int execScript(String script, String args) {
-        int testLinux;
-        return exec(isWindows() ? ".bat" : ".sh" + " " + args, null);
+        return exec(script + (isWindows() ? ".bat " : " ") + args, null);
     }
 
     /**
@@ -181,6 +180,7 @@ public class BuildBase {
             }
             copy(p.getInputStream(), out);
             copy(p.getErrorStream(), out);
+            p.waitFor();
             return p.exitValue();
         } catch (Exception e) {
             throw new Error("Error: " + e, e);

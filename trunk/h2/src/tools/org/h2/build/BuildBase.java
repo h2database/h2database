@@ -141,8 +141,31 @@ public class BuildBase {
         }
         out.println();
     }
+    
+    private boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0;
+    }
+    
+    /**
+     * Execute a script in a separate process.
+     * 
+     * @param script the script name (for example mvn or ant)
+     * @param args the command line parameters
+     * @return the exit value
+     */
+    protected int execScript(String script, String args) {
+        int testLinux;
+        return exec(isWindows() ? ".bat" : ".sh" + " " + args, null);
+    }
 
-    private int exec(String command, String[] args) {
+    /**
+     * Execute a program in a separate process.
+     * 
+     * @param command the program to run
+     * @param args the command line parameters
+     * @return the exit value
+     */
+    protected int exec(String command, String[] args) {
         try {
             out.print(command);
             for (int i = 0; args != null && i < args.length; i++) {
@@ -150,7 +173,12 @@ public class BuildBase {
                 out.print(args[i]);
             }
             out.println();
-            Process p = Runtime.getRuntime().exec(command, args);
+            Process p;
+            if (args == null) {
+                p = Runtime.getRuntime().exec(command);
+            } else {
+                p = Runtime.getRuntime().exec(command, args);
+            }
             copy(p.getInputStream(), out);
             copy(p.getErrorStream(), out);
             return p.exitValue();
@@ -261,7 +289,7 @@ public class BuildBase {
         if (targetFile.exists()) {
             return;
         }
-        targetFile.getParentFile().mkdirs();
+        targetFile.getAbsoluteFile().getParentFile().mkdirs();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
             out.println("Downloading " + fileURL);
@@ -335,7 +363,7 @@ public class BuildBase {
             throw new Error("Unsupported pattern, may only start or end with *:" + pattern);
         }
         // normalize / and \
-        pattern = new File(pattern).getPath();
+        pattern = replaceAll(pattern, "/", File.separator);
         FileList list = new FileList();
         for (int i = 0; i < files.size(); i++) {
             File f = (File) files.get(i);
@@ -444,7 +472,7 @@ public class BuildBase {
                 }
             });
         }
-        new File(destFile).getParentFile().mkdirs();
+        new File(destFile).getAbsoluteFile().getParentFile().mkdirs();
         // normalize the path (replace / with \ if required)
         basePath = new File(basePath).getPath();
         try {
@@ -593,7 +621,7 @@ public class BuildBase {
      * @param after the new substring
      * @return the string with the string replaced
      */
-    protected String replaceAll(String s, String before, String after) {
+    protected static String replaceAll(String s, String before, String after) {
         int index = 0;
         while (true) {
             int next = s.indexOf(before, index);

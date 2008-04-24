@@ -44,10 +44,10 @@ Newer version or compatible software works too.
 <ul>
     <li>Windows XP
     </li><li>Sun JDK Version 1.4
-    </li><li>Apache Ant Version 1.6.5
     </li><li>Mozilla Firefox 1.5
     </li><li>Eclipse Version 3.2.2
     </li><li>YourKit Java Profiler
+    </li><li>Apache Ant Version 1.6.5
 </li></ul>
 
 <br /><a name="building"></a>
@@ -56,20 +56,20 @@ Newer version or compatible software works too.
 On the command line, go to the directory src and execute the following command:
 </p>
 <pre>
-ant -projecthelp
+build -?
 </pre>
 <p>
-You will get a list of targets. If you want to build the jar files, execute:
+You will get a list of targets. If you want to build the jar file, execute:
 </p>
 <pre>
-ant jar
+build jar
 </pre>
 <p>
 To create a jar file with the JDBC API and the classes required to connect to a server only,
 use the target jarClient:
 </p>
 <pre>
-ant jarClient
+build jarClient
 </pre>
 <p>
 The other targets may be used as well.
@@ -100,7 +100,7 @@ they are available there.
 To build a 'snapshot' H2 .jar file and upload it the to the local Maven 2 repository, execute the following command:
 </p>
 <pre>
-ant mavenInstallLocal
+build mavenInstallLocal
 </pre>
 <p>
 Afterwards, you can include the database in your Maven 2 project as a dependency:
@@ -126,7 +126,7 @@ The translation of this software is split into the following parts:
 <p>
 The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&amp;#..;)
 is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
-using <code>ant docs</code>.
+using <code>build docs</code>.
 </p>
 
 </div></td></tr></table><!-- analytics --></body></html>

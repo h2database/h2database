@@ -21,12 +21,15 @@ public class Build extends BuildBase {
     }
 
     public void all() {
-        jarSmall();
+        jar();
         docs();
     }
     
-    public void spellcheck() {
-        java("org.h2.build.doc.SpellChecker", null);
+    public void clean() {
+        delete("temp");
+        delete("docs");
+        mkdir("docs");
+        mkdir("bin");
     }
 
     public void docs() {
@@ -44,6 +47,15 @@ public class Build extends BuildBase {
         java("org.h2.build.doc.SpellChecker", null);
     }
 
+    public void download() {
+        download("ext/servlet-api-2.4.jar",
+                "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar",
+                "3fc542fe8bb8164e8d3e840fe7403bc0518053c0");
+        download("ext/lucene-core-2.2.0.jar",
+                "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
+                "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
+    }
+    
     public void javadoc() {
         delete("docs");
         mkdir("docs/javadoc");
@@ -52,19 +64,50 @@ public class Build extends BuildBase {
                 "-doclet", "org.h2.build.doclet.Doclet" });
         copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }        
-
-    public void resources() {
+    
+    public void javadocImpl() {
+        mkdir("docs/javadocImpl");
+        System.setProperty("h2.interfacesOnly", "false");
+        System.setProperty("h2.destDir", "docs/javadocImpl");
+        javadoc(new String[] { 
+                "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools", 
+                "-classpath", "ext/servlet-api-2.4.jar" + File.pathSeparator + "ext/lucene-core-2.2.0.jar" + 
+                File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar",
+                "-subpackages", "org.h2",
+                "-doclet", "org.h2.build.doclet.Doclet" });
+        javadoc(new String[] { 
+                "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools" , 
+                "-noindex",
+                "-classpath", "ext/servlet-api-2.4.jar" + File.pathSeparator + "ext/lucene-core-2.2.0.jar" + 
+                File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar",
+                "-subpackages", "org.h2",
+                "-exclude", "org.h2.build.*,org.h2.dev.*",
+                "-doclet", "org.h2.build.doclet.Doclet" });
+        copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
+    }
+    
+    private void resources(boolean clientOnly) {
         FileList files = getFiles("src/main").
             exclude("*.java").
             exclude("*/package.html").
             exclude("*/java.sql.Driver");
+        if (clientOnly) {
+            files = files.exclude("src/main/org/h2/server/*");
+        }
         zip("temp/org/h2/util/data.zip", files, "src/main", true, false);
+    }
+    
+    public void spellcheck() {
+        java("org.h2.build.doc.SpellChecker", null);
+    }
+    
+    private String getVersion() {
+        return getStaticField("org.h2.engine.Constants", "VERSION");
     }
 
     private void manifest(String mainClassName) {
         String manifest = new String(readFile(new File("src/main/META-INF/MANIFEST.MF")));
-        String version = getStaticField("org.h2.engine.Constants", "VERSION");
-        manifest = replaceAll(manifest, "${version}", version);
+        manifest = replaceAll(manifest, "${version}", getVersion());
         manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
         String createdBy = System.getProperty("java.runtime.version") + 
             " (" + System.getProperty("java.vm.vendor") + ")";
@@ -72,6 +115,35 @@ public class Build extends BuildBase {
         String mainClassTag = manifest == null ? "" : "Main-Class: " + mainClassName;
         manifest = replaceAll(manifest, "${mainClassTag}", mainClassTag);
         writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
+    }
+    
+    public void mavenInstallLocal() {
+        jar();
+        String pom = new String(readFile(new File("src/installer/pom.xml")));
+        pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
+        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        execScript("mvn", "install:install-file " + 
+                    "-Dversion=1.0-SNAPSHOT " + 
+                    "-Dfile=bin/h2.jar " + 
+                    "-Dpackaging=jar " +
+                    "-DpomFile=bin/pom.xml " + 
+                    "-DartifactId=h2 " +
+                    "-DgroupId=com.h2database");
+    }
+    
+    public void mavenDeployCentral() {
+        jar();
+        String pom = new String(readFile(new File("src/installer/pom.xml")));
+        pom = replaceAll(pom, "@version@", getVersion());
+        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        execScript("mvn", "deploy:deploy-file " + 
+                    "-Dfile=bin/h2.jar " +
+                    "-Durl=file:///data/h2database/m2-repo " +
+                    "-Dpackaging=jar " +
+                    "-Dversion=" + getVersion() + " " +
+                    "-DpomFile=bin/pom.xml " + 
+                    "-DartifactId=h2 " + 
+                    "-DgroupId=com.h2database");
     }
 
     public void jar() {
@@ -88,8 +160,21 @@ public class Build extends BuildBase {
         jar("bin/h2.jar", files, "temp");
     }
     
+    public void jarClient() {
+        compile(true, true);
+        FileList files = getFiles("temp").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/test/*").
+            exclude("*.bat").
+            exclude("*.sh").
+            exclude("*.txt");
+        jar("bin/h2client.jar", files, "temp");
+    }
+    
     public void jarSmall() {
-        compile(false);
+        compile(false, false);
         FileList files = getFiles("temp").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/build/*").
@@ -106,20 +191,11 @@ public class Build extends BuildBase {
         jar("bin/h2small.jar", files, "temp");
     }
 
-    public void download() {
-        download("ext/servlet-api-2.4.jar",
-                "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar",
-                "3fc542fe8bb8164e8d3e840fe7403bc0518053c0");
-        download("ext/lucene-core-2.2.0.jar",
-                "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
-                "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
-    }
-
     public void compile() {
-        compile(true);
+        compile(true, false);
     }
     
-    private void compile(boolean debugInfo) {
+    private void compile(boolean debugInfo, boolean clientOnly) {
         try {
             SwitchSource.main(new String[] { "-dir", "src", "-auto" });
         } catch (IOException e) {
@@ -127,46 +203,57 @@ public class Build extends BuildBase {
         }
         clean();
         mkdir("temp");
-        resources();
+        resources(clientOnly);
         download();
-
         String classpath = "temp" + File.pathSeparatorChar + "ext/servlet-api-2.4.jar" + File.pathSeparatorChar
                 + "ext/lucene-core-2.2.0.jar" + File.pathSeparator + System.getProperty("java.home")
                 + "/../lib/tools.jar";
 
-        FileList files = getFiles("src/main");
+        FileList files;
+        if (clientOnly) {
+            files = getFiles("src/main/org/h2/Driver.java");
+            files.addAll(getFiles("src/main/org/h2/jdbc"));
+            files.addAll(getFiles("src/main/org/h2/jdbcx"));
+        } else {
+            files = getFiles("src/main");
+        }
         if (debugInfo) {
             javac(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
         } else {
             javac(new String[] { "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
         }
-
-        files = getFiles("src/test");
-        files.addAll(getFiles("src/tools"));
-        javac(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
-                "-classpath", classpath }, files);
-
+        
         files = getFiles("src/main/META-INF/services");
         copy("temp", files, "src/main");
 
-        files = getFiles("src/installer").keep("*.bat");
-        files.addAll(getFiles("src/installer").keep("*.sh"));
-        copy("temp", files, "src/installer");
+        if (!clientOnly) {
+            files = getFiles("src/test");
+            files.addAll(getFiles("src/tools"));
+            javac(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+                    "-classpath", classpath }, files);
 
-        files = getFiles("src/test").
-            exclude("*.java").
-            exclude("*/package.html");
-        copy("temp", files, "src/test");
-    }
-
-    public void clean() {
-        delete("temp");
-        delete("docs");
-        mkdir("docs");
-        mkdir("bin");
+            files = getFiles("src/installer").keep("*.bat");
+            files.addAll(getFiles("src/installer").keep("*.sh"));
+            copy("temp", files, "src/installer");
+    
+            files = getFiles("src/test").
+                exclude("*.java").
+                exclude("*/package.html");
+            copy("temp", files, "src/test");
+        }
     }
 
     public void test() {
 
     }
+    
+    public void zip() {
+        FileList files = getFiles("../h2").keep("../h2/build.*");
+        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));
+        files.addAll(getFiles("../h2/docs"));
+        files.addAll(getFiles("../h2/service"));
+        files.addAll(getFiles("../h2/src"));
+        zip("../h2.zip", files, "../", false, false);
+    }
+    
 }

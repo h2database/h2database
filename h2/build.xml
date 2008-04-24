@@ -1,25 +1,15 @@
 <project name="h2" default="all" basedir=".">
 
-	<property file="ant-build.properties" />
-
 	<!-- jar files required by the benchmark -->
 	<path id="benchmark.drivers.path">
 		<pathelement location="bin"/>
-		<pathelement path="${java.class.path}/"/>
-		<fileset dir="${benchmark.drivers.dir}">
+		<pathelement path="data/java"/>
+		<fileset dir="benchmark.drivers.dir">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
 
-	<target name="all" depends="jar, javadoc, docs">
-		<delete includeemptydirs="true">
-			<fileset dir="bin" includes="**/*.txt"/>
-			<fileset dir="bin" includes="org/**/*"/>
-			<fileset dir="bin" includes="org"/>
-			<fileset dir="bin" includes="META-INF/**/*"/>
-			<fileset dir="bin" includes="META-INF"/>
-			<fileset dir="docs/html" includes="onePage.html"/>
-		</delete>
+	<target name="all" depends="jar">
 	</target>
 
 	<target name="benchmark" depends="compile">
@@ -45,7 +35,7 @@
 	</target>
 
 	<target name="compile" depends="switchSourceAuto, resources, downloadServletJar, downloadLuceneJar">
-		<javac executable="${javac}" destdir="bin" debug="true" debuglevel="lines,source" >
+		<javac destdir="bin" debug="true" debuglevel="lines,source" >
 			<classpath location="ext/servlet-api-2.4.jar" />
 		    <classpath location="ext/lucene-core-2.2.0.jar" />
 		    <src path="src/main"/>
@@ -67,24 +57,8 @@
 		<java classname="org.h2.test.coverage.Coverage" classpath="." dir="bin" fork="true">
 			<arg line="-r org/h2"/>
 		</java>
-		<javac executable="${javac}" srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
+		<javac srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
     </target>
-
-	<target name="docs" depends="clean, javadoc, compile">
-		<copy todir="docs">
-			<fileset dir="src/docsrc" includes="index.html"/>
-		</copy>
-		<java classname="org.h2.build.code.CheckJavadoc" classpath="bin"/>
-		<java classname="org.h2.build.code.CheckTextFiles" classpath="bin"/>
-		<java classname="org.h2.build.doc.GenerateDoc" classpath="bin"/>
-		<java classname="org.h2.build.i18n.PrepareTranslation" classpath="bin"/>
-		<java classname="org.h2.build.indexer.Indexer" classpath="bin"/>
-		<java classname="org.h2.build.doc.MergeDocs" classpath="bin"/>
-		<java classname="org.h2.build.doc.WebSite" classpath="bin"/>
-		<java classname="org.h2.build.doc.LinkChecker" classpath="bin"/>
-		<java classname="org.h2.build.doc.XMLChecker" classpath="bin"/>
-		<java classname="org.h2.build.doc.SpellChecker" classpath="bin"/>
-	</target>
     
     <target name="downloadServletJar" depends="init" unless="servlet.jar.present">
         <get dest="ext/servlet-api-2.4.jar"
@@ -118,21 +92,8 @@
 		</jar>
 	</target>
 
-	<target name="jarClient" depends="switchSourceAuto, resources, manifest">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" debuglevel="lines,source">
-			<include name="org/h2/*" />
-			<include name="org/h2/jdbc/**" />
-			<include name="org/h2/jdbcx/**" />
-		</javac>
-		<jar jarfile="bin/h2client.jar" basedir="bin" manifest="bin/META-INF/MANIFEST.MF">
-			<include name="**/*.*"/>
-			<exclude name="**/*.bat"/>
-			<exclude name="**/*.sh"/>
-		</jar>
-	</target>
-
 	<target name="jarDb" depends="resources, manifest">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="false">
+		<javac srcdir="src/main" destdir="bin" debug="false">
 			<include name="org/h2/*" />
 			<include name="org/h2/engine/**" />
 			<include name="org/h2/jdbc/**" />
@@ -145,87 +106,13 @@
 		</jar>
 	</target>
 
-	<target name="javadoc">
-		<javac executable="${javac}" srcdir="src/main" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/util/StringUtils.java"/>
-		<javac executable="${javac}" srcdir="src/test" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/test/bnf/*.java"/>
-		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/build/doclet/*.java"/>
-		<mkdir dir="docs/javadoc"/>
-		<javadoc
-			sourcepath="src/main"
-			packagenames="org.h2.jdbc.*,org.h2.jdbcx.*,org.h2.tools.*,org.h2.api.*,org.h2.constant.*"
-			doclet="org.h2.build.doclet.Doclet"
-			docletpath="bin"
-		/>
-		<copy todir="docs/javadoc">
-			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
-		</copy>
-	</target>
-
-	<target name="javadocImpl" depends="javadoc">
-		<mkdir dir="docs/javadocImpl"/>
-		<javadoc
-			sourcepath="src/main;src/test;src/tools"
-		    classpath="ext/servlet-api-2.4.jar;ext/lucene-core-2.2.0.jar;${java.class.path}"
-			packagenames="org.h2.*"
-			doclet="org.h2.build.doclet.Doclet"  
-		    docletpath="bin"
-		    additionalparam="-J-Dh2.interfacesOnly=false -J-Dh2.destDir=docs/javadocImpl"
-		/>
-		<javadoc
-			sourcepath="src/main;src/test;src/tools"
-		    noindex="true"
-			packagenames="org.h2.*"
-		    excludepackagenames="org.h2.build.*,org.h2.dev.*"
-		    classpath="ext/servlet-api-2.4.jar;ext/lucene-core-2.2.0.jar;${java.class.path}"
-			destDir="docs/javadocImpl"
-		/>
-		<copy todir="docs/javadoc">
-			<fileset dir="src/docsrc/javadoc" includes="**/*"/>
-		</copy>
-	</target>
-
     <target name="manifest">
 		<mkdir dir="bin/META-INF"/>
 		<manifest file="bin/META-INF/MANIFEST.MF">
-			<!--
-			<attribute name="Bundle-Activator" value="org.h2.osgi.Activator"/>
-			-->
 			<attribute name="Implementation-Title" value="H2 Database Engine"/>
 			<attribute name="Implementation-URL" value="http://www.h2database.com"/>
-			<attribute name="Implementation-Version" value="${version.name.maven}"/>
 			<attribute name="Build-Jdk" value="${java.specification.version}"/>
 		</manifest>
-	</target>
-
-	<target name="mavenDeployCentral" depends="jar">
-		<copy tofile="bin/h2-${version.name.maven}.jar" file="bin/h2.jar" />
-		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pomUpload.xml">
-			<filterset>
-				<filter token="version" value="${version.name.maven}"/>
-		    </filterset>
-		</copy>
-		<exec executable="mvn.bat">
-			<arg value="deploy:deploy-file"/>
-			<arg value="-Dfile=bin/h2.jar"/>
-			<arg value="-Durl=file://C:/data/h2database/m2-repo"/>
-			<arg value="-Dpackaging=jar"/>
-			<arg value="-DpomFile=bin/pom.xml"/>
-		</exec>
-	</target>
-
-	<target name="mavenInstallLocal" depends="jar">
-		<copy tofile="bin/pom.xml" filtering="true" file="src/installer/pom.xml">
-			<filterset>
-				<filter token="version" value="1.0-SNAPSHOT"/>
-		    </filterset>
-		</copy>
-		<exec executable="mvn.bat">
-			<arg value="install:install-file"/>
-			<arg value="-Dversion=1.0-SNAPSHOT"/>
-			<arg value="-Dfile=bin/h2.jar"/>
-			<arg value="-Dpackaging=jar"/>
-			<arg value="-DpomFile=bin/pom.xml"/>
-		</exec>
 	</target>
     
 	<target name="resources" depends="clean">
@@ -237,7 +124,7 @@
 	</target>
 
 	<target name="switchSourcePrepare" depends="clean">
-		<javac executable="${javac}" srcdir="src/tools" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/build/code/SwitchSource.java"/>
+		<javac srcdir="src/tools" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/build/code/SwitchSource.java"/>
 	</target>
 
     <target name="switchSourceAndroid" depends="switchSourcePrepare">
@@ -284,17 +171,6 @@
 		<war destfile="bin/h2console.war" webxml="src/tools/WEB-INF/web.xml" basedir="src/tools/WEB-INF" includes="console.html">
 			<lib file="bin/h2.jar" />
 		</war>
-	</target>
-
-	<target name="zip">
-		<zip destfile="../h2.zip">
-			<fileset dir=".." includes="h2/build.*"/>
-			<fileset dir=".." includes="h2/ant-build.properties"/>
-			<fileset dir=".." includes="h2/bin/**/*"/>
-			<fileset dir=".." includes="h2/docs/**/*"/>
-			<fileset dir=".." includes="h2/service/**/*"/>
-			<fileset dir=".." includes="h2/src/**/*"/>
-		</zip>
 	</target>
 
 </project>

@@ -44,7 +44,7 @@ package org.h2.engine;
  * - Documentation: check if all Javadoc files are in the index
  * - Update the changelog (add new version)
  * - Update newsfeed and create files
- * - ant docs
+ * - build docs
  * - PDF
  *      - footer
  *      - front page
@@ -52,17 +52,17 @@ package org.h2.engine;
  *      - check images
  *      - table of contents
  * - Switch off auto-build
- * - ant all
+ * - build all
  * - Make sure external jars are not included
  * - Copy the pdf file to h2/docs
  * - Make sure the build files are removed
- * - ant zip
+ * - build zip
  * - Windows installer (nsis)
  * - Test Console
  * - Test all languages
  * - Test the windows service
  * - Scan for viruses
- * - ant mavenDeployCentral
+ * - build mavenDeployCentral
  * - Upload to SourceForge
  * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare, send (always send to BCC!!)

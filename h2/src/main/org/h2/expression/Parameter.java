@@ -58,10 +58,6 @@ public class Parameter extends Expression implements ParameterInterface {
         // can't map
     }
 
-    public void checkMapped() {
-        // always ok
-    }
-
     public void checkSet() throws SQLException {
         if (value == null) {
             throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));

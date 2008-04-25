@@ -449,8 +449,8 @@ public class BuildBase {
      * @param destFile the target file name
      * @param files the file list
      * @param basePath the base path
-     * @param if the files should not be compressed
-     * @param if the file should be sorted by the file suffix
+     * @param storeOnly if the files should not be compressed
+     * @param sortBySuffix if the file should be sorted by the file suffix
      */
     protected void zip(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix) {
         out.println("Zip " + destFile);

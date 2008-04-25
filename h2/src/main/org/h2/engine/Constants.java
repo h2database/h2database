@@ -76,8 +76,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 70;
-    private static final String BUILD = "2008-04-20";
+    public static final int BUILD_ID = 71;
+    private static final String BUILD = "2008-04-25";
 
     public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final int ALLOW_LITERALS_NONE = 0;

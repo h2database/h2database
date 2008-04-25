@@ -53,9 +53,9 @@ package org.h2.engine;
  *      - table of contents
  * - Switch off auto-build
  * - build all
- * - Make sure external jars are not included
  * - Copy the pdf file to h2/docs
- * - Make sure the build files are removed
+ * - Remove onePage.html
+ * - Remove files in bin
  * - build zip
  * - Windows installer (nsis)
  * - Test Console

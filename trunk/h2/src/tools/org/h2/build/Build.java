@@ -21,8 +21,8 @@ public class Build extends BuildBase {
     }
 
     public void all() {
-    	jar();
-    	docs();
+        jar();
+        docs();
     }
     
     public void clean() {

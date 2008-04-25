@@ -117,6 +117,7 @@ public class TriggerObject extends SchemaObjectBase {
         if (!rowBased || before != beforeAction) {
             return;
         }
+        load(session);
         Object[] oldList;
         Object[] newList;
         boolean fire = false;

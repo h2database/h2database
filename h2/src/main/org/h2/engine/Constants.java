@@ -11,23 +11,22 @@ package org.h2.engine;
  * Release checklist
  * - Test with Hibernate
  * - Run FindBugs
- * - ant jarClient, check jar file size
- * - ant jar, test with IKVM
+ * - build jarClient, check jar file size
+ * - build jar, test with IKVM
  * - Compile with JDK 1.4, 1.5 and 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   set path=C:\Program Files\Java\jdk1.6.0_05\bin;%PATH%
  *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_05
- *   ant compile
+ *   build compile
  *   set classpath=
- *   ant javadoc
- *   ant javadocImpl (to find missing javadocs)
- *   ant switchSourceJdk14
- *   ant javadocImpl
+ *   build javadoc
+ *   build javadocImpl (to find missing javadocs)
+ *   build switchSourceJdk14
+ *   build javadocImpl
  *
  * - Change version and build number in
  *     Constants.java
- *     ant-build.properties
  *     build.html
  *     mainWeb.html
  *     download.html

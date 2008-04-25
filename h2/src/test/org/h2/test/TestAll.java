@@ -162,6 +162,8 @@ java org.h2.test.TestAll timer
 
 upload jazoon 
 
+deactivate triggers during alter table (during re-creating a table)
+
 test case for out of memory (try to corrupt the database using out of memory)
 
 analyzer configuration option for the fulltext search   

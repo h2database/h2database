@@ -13,6 +13,32 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(41,
+'New version available: 1.0.70 (2008-04-25)', '2008-04-25 12:00:00',
+'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click ''Refresh'').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>H2 is now dual-licensed under the Eclipse Public License (EPL) and the
+    old ''H2 License'' (which is basically MPL).
+</li><li>New traditional Chinese translation. Thanks a lot to Derek Chao!
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Sometimes an exception ''File ID mismatch'' or ''try to add a record twice''
+    occured after large records (8 KB or larger) are updated or deleted.
+    See also http://code.google.com/p/h2database/issues/detail?id=22
+</li><li>H2 Console: The tools can now be translated 
+    (it didn''t work in the last release).
+</li><li>Indexes were not used when enabling the optimization for 
+    IN(SELECT...) (system property h2.optimizeInJoin).
+</li></ul>
+For details, see the ''Change Log'' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the ''Roadmap'' page at
+http://www.h2database.com/html/roadmap.html
+');
+
 INSERT INTO ITEM VALUES(40,
 'New version available: 1.0.70 (2008-04-20)', '2008-04-20 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -373,65 +399,6 @@ INSERT INTO ITEM VALUES(31,
 </li></ul>
 For future plans, see the ''Roadmap'' page at
 http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(30,
-'New version available: 1.0.60 (2007-10-20)', '2007-10-20 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>User defined aggregate functions are now supported.
-</li><li>New Italian translation from PierPaolo Ucchino. Thanks a lot!
-</li><li>CSV: New methods to set the escape character and field delimiter in the Csv tool and the CSVWRITE and CSVREAD methods.
-</li><li>CSVREAD, RUNSCRIPT and so on now support URLs as well, using
-    URL.openStream(). Example: select * from csvread(''jar:file:///c:/temp/test.jar!/test.csv'');
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Prepared statements could not be used after data definition statements (creating tables and so on). Fixed.
-</li><li>PreparedStatement.setMaxRows could not be changed to a higher value after the statement was executed.
-</li><li>Linked tables: now tables in non-default schemas are supported as well 
-</li><li>JdbcXAConnection: starting a transaction before getting the connection didn''t switch off autocommit.
-</li><li>Server.shutdownTcpServer was blocked when first called with force=false and then force=true.
-    Now documentation is improved, and it is no longer blocked.
-</li><li>Stack traces did not include the SQL statement in all cases where they could have. 
-    Also, stack traces with SQL statement are now shorter.
-</li><li>The H2 Console could not connect twice to the same H2 embedded database at the same time. Fixed.
-</li></ul>
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(29,
-'New version available: 1.0.59 (2007-10-03)', '2007-10-03 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Fulltext search is now documented (see Tutorial).
-</li><li>H2 Console: Progress information when logging into a H2 embedded database.
-</li><li>SCRIPT: the SQL statements in the result set now include the terminating semicolon.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>If the process was killed while the database was running, 
-    sometimes the database could not be opened.
-</li><li>Comparing columns with constants that are out of range works again.
-</li><li>When the data type was unknown in a subquery, sometimes the wrong exception was thrown.
-</li><li>Multi-threaded kernel (MULTI_THREADED=1): A synchronization problem has been fixed.
-</li><li>A PreparedStatement that was cancelled could not be reused. 
-</li><li>When the database was closed while logging was disabled (LOG 0), 
-    re-opening the database was slow.
-</li><li>The Console did not always refresh the table list when required.
-</li><li>When creating a table using CREATE TABLE .. AS SELECT, 
-    the precision for some data types was wrong in some cases.
-</li><li>When using the (undocumented) in-memory file system 
-    (jdbc:h2:memFS:x or jdbc:h2:memLZF:x), and using multiple connections, 
-    a ConcurrentModificationException could occur. 
-</li><li>REGEXP compatibility: now Matcher.find is used.
-</li><li>When using a subquery with group by as a table, some columns could not be used.
-</li><li>Views with subqueries as tables and queries with nested subqueries as tables did not always work.
-</li></ul>
-For future plans, see the new ''Roadmap'' page on the web site.
 ');
 
 SELECT 'newsfeed-rss.xml' FILE,

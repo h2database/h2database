@@ -128,12 +128,27 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Get the value of the specified user defined variable. This method always
+     * returns a value; it returns ValueNull.INSTANCE if the variable doesn't
+     * exist.
+     * 
+     * @param name the variable name
+     * @return the value, or NULL
+     */
     public Value getVariable(String name) {
         initVariables();
         Value v = (Value) variables.get(name);
         return v == null ? ValueNull.INSTANCE : v;
     }
 
+    /**
+     * Get the local temporary table if one exists with that name, or null if
+     * not.
+     * 
+     * @param name the table name
+     * @return the table, or null
+     */
     public Table findLocalTempTable(String name) {
         Table t = null;
         if (localTempTables != null) {
@@ -166,6 +181,11 @@ public class Session implements SessionInterface {
         localTempTables.put(table.getName(), table);
     }
 
+    /**
+     * Drop and remove the given local temporary table from this session.
+     * 
+     * @param table the table
+     */
     public void removeLocalTempTable(Table table) throws SQLException {
         localTempTables.remove(table.getName());
         table.removeChildrenAndResources(this);
@@ -188,6 +208,11 @@ public class Session implements SessionInterface {
         return user;
     }
 
+    /**
+     * Change the autocommit setting for this session.
+     * 
+     * @param b the new value
+     */
     public void setAutoCommit(boolean b) {
         autoCommit = b;
     }
@@ -219,16 +244,37 @@ public class Session implements SessionInterface {
         return prepareLocal(sql);
     }
 
+    /**
+     * Parse and prepare the given SQL statement. This method also checks the
+     * rights.
+     * 
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
     public Prepared prepare(String sql) throws SQLException {
         return prepare(sql, false);
     }
 
+    /**
+     * Parse and prepare the given SQL statement.
+     * 
+     * @param sql the SQL statement
+     * @param rightsChecked true if the rights have already been checked
+     * @return the prepared statement
+     */
     public Prepared prepare(String sql, boolean rightsChecked) throws SQLException {
         Parser parser = new Parser(this);
         parser.setRightsChecked(rightsChecked);
         return parser.prepare(sql);
     }
 
+    /**
+     * Parse and prepare the given SQL statement.
+     * This method also checks if the connection has been closed.
+     * 
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
     public Command prepareLocal(String sql) throws SQLException {
         if (closed) {
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
@@ -257,6 +303,13 @@ public class Session implements SessionInterface {
         lastUncommittedDelete = deleteId;
     }
 
+    /**
+     * Commit the current transaction. If the statement was not a data
+     * definition statement, and if there are temporary tables that should be
+     * dropped or truncated at commit, this is done as well.
+     * 
+     * @param ddl if the statement was a data definition statement
+     */
     public void commit(boolean ddl) throws SQLException {
         checkCommitRollback();
         lastUncommittedDelete = 0;
@@ -312,6 +365,9 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Fully roll back the current transaction.
+     */
     public void rollback() throws SQLException {
         checkCommitRollback();
         currentTransactionName = null;
@@ -330,7 +386,12 @@ public class Session implements SessionInterface {
             autoCommitAtTransactionEnd = false;
         }
     }
-
+    
+    /**
+     * Partially roll back the current transaction.
+     * 
+     * @param index the position to which should be rolled back
+     */    
     public void rollbackTo(int index) throws SQLException {
         while (undoLog.size() > index) {
             UndoLogRecord entry = undoLog.getAndRemoveLast();
@@ -419,6 +480,10 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Unlock all read locks. This is done if the transaction isolation mode is
+     * READ_COMMITTED.
+     */
     public void unlockReadLocks() {
         if (database.isMultiVersion()) {
             // MVCC: keep shared locks (insert / update / delete)
@@ -524,6 +589,11 @@ public class Session implements SessionInterface {
         return firstUncommittedLog != LogSystem.LOG_WRITTEN;
     }
 
+    /**
+     * Create a savepoint that is linked to the current log position.
+     * 
+     * @param name the savepoint name
+     */
     public void addSavepoint(String name) {
         if (savepoints == null) {
             savepoints = new HashMap();
@@ -531,6 +601,11 @@ public class Session implements SessionInterface {
         savepoints.put(name, ObjectUtils.getInteger(getLogId()));
     }
 
+    /**
+     * Undo all operations back to the log position of the given savepoint.
+     * 
+     * @param name the savepoint name
+     */
     public void rollbackToSavepoint(String name) throws SQLException {
         checkCommitRollback();        
         if (savepoints == null) {
@@ -544,6 +619,11 @@ public class Session implements SessionInterface {
         rollbackTo(i);
     }
 
+    /**
+     * Prepare the given transaction.
+     * 
+     * @param transactionName the name of the transaction
+     */
     public void prepareCommit(String transactionName) throws SQLException {
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop
@@ -553,6 +633,12 @@ public class Session implements SessionInterface {
         currentTransactionName = transactionName;
     }
 
+    /**
+     * Commit or roll back the given transaction.
+     * 
+     * @param transactionName the name of the transaction
+     * @param commit true for commit, false for rollback
+     */
     public void setPreparedTransaction(String transactionName, boolean commit) throws SQLException {
         if (currentTransactionName != null && currentTransactionName.equals(transactionName)) {
             if (commit) {
@@ -586,6 +672,9 @@ public class Session implements SessionInterface {
         this.throttle = throttle;
     }
 
+    /**
+     * Wait for some time if this session is throttled (slowed down).
+     */
     public void throttle() {
         if (throttle == 0) {
             return;
@@ -602,6 +691,13 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Set the current command of this session. This is done just before
+     * executing the statement.
+     * 
+     * @param command the command
+     * @param startTime the time execution has been started
+     */
     public void setCurrentCommand(Command command, long startTime) {
         this.currentCommand = command;
         this.currentCommandStart = startTime;
@@ -610,6 +706,12 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Check if the current transaction is cancelled by calling
+     * Statement.cancel() or because a session timeout was set and expired.
+     * 
+     * @throws SQLException if the transaction is cancelled
+     */
     public void checkCancelled() throws SQLException {
         throttle();
         if (cancelAt == 0) {
@@ -646,6 +748,13 @@ public class Session implements SessionInterface {
         return currentSchemaName;
     }
 
+    /**
+     * Create an internal connection. This connection is used when initializing
+     * triggers, and when calling user defined functions.
+     * 
+     * @param columnList if the url should be 'jdbc:columnlist:connection'
+     * @return the internal connection
+     */
     public JdbcConnection createConnection(boolean columnList) throws SQLException {
         String url;
         if (columnList) {
@@ -660,6 +769,12 @@ public class Session implements SessionInterface {
         return database;
     }
 
+    /**
+     * Remember that the given LOB value must be un-linked (disconnected from
+     * the table) at commit.
+     * 
+     * @param v the value
+     */
     public void unlinkAtCommit(ValueLob v) {
         if (SysProperties.CHECK && !v.isLinked()) {
             throw Message.getInternalError();
@@ -670,6 +785,11 @@ public class Session implements SessionInterface {
         unlinkMap.put(v.toString(), v);
     }
 
+    /**
+     * Do not unlink this LOB value at commit any longer.
+     * 
+     * @param v the value
+     */
     public void unlinkAtCommitStop(Value v) {
         if (unlinkMap != null) {
             unlinkMap.remove(v.toString());
@@ -737,6 +857,9 @@ public class Session implements SessionInterface {
         return undoLogEnabled;
     }
 
+    /**
+     * Begin a transaction.
+     */
     public void begin() {
         autoCommitAtTransactionEnd = true;
         autoCommit = false;
@@ -758,6 +881,10 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Wait if the exclusive mode has been enabled for another session. This
+     * method returns as soon as the exclusive mode has been disabled.
+     */
     public void waitIfExclusiveModeEnabled() {
         while (true) {
             Session exclusive = database.getExclusiveSession();
@@ -772,6 +899,13 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Remember the result set and close it as soon as the transaction is
+     * committed (if it needs to be closed). This is done to delete temporary
+     * files as soon as possible.
+     * 
+     * @param result the temporary result set
+     */
     public void addTemporaryResult(LocalResult result) {
         if (!result.needToClose()) {
             return;
@@ -785,6 +919,10 @@ public class Session implements SessionInterface {
         }
     }
 
+    /**
+     * Close all temporary result set. This also deletes all temporary files
+     * held by the result sets.
+     */
     public void closeTemporaryResults() {
         if (temporaryResults != null) {
             for (Iterator it = temporaryResults.iterator(); it.hasNext();) {

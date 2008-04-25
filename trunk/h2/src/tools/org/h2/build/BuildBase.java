@@ -71,7 +71,7 @@ public class BuildBase {
             return filterFiles(this, true, pattern);
         }
         
-    };
+    }
     
     /**
      * The output stream (System.out).

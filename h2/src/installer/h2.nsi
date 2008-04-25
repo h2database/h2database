@@ -125,7 +125,6 @@ Section "All"
   File /r /x CVS /x .cvsignore ..\..\build.bat  
   File /r /x CVS /x .cvsignore ..\..\build.sh  
   File /r /x CVS /x .cvsignore ..\..\build.xml  
-  File /r /x CVS /x .cvsignore ..\..\ant-build.properties
   
   WriteRegStr HKCU "Software\H2" "" $INSTDIR
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\H2" "DisplayName" "H2"

@@ -2039,11 +2039,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether own updates are visible.
      *
-     * @return false
+     * @return true
      */
     public boolean ownUpdatesAreVisible(int type) {
         debugCodeCall("ownUpdatesAreVisible", type);
-        return false;
+        return true;
     }
 
     /**

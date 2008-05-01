@@ -2818,7 +2818,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             }
             checkOnValidRow();
             if (updateRow != null) {
-                getUpdatableRow().updateRow(result.currentRow(), updateRow);
+                UpdatableRow row = getUpdatableRow();
+                row.updateRow(result.currentRow(), updateRow);
+                row.refreshRow(result.currentRow());
                 updateRow = null;
             }
         } catch (Throwable e) {

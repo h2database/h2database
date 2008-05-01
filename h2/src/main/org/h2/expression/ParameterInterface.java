@@ -35,4 +35,34 @@ public interface ParameterInterface {
      * @throws SQLException if not set.
      */
     void checkSet() throws SQLException;
+    
+    /**
+     * Get the expected data type of the parameter if no value is set, or the
+     * data type of the value if one is set.
+     * 
+     * @return the data type
+     */
+    int getType();
+
+    /**
+     * Get the expected precision of this parameter.
+     * 
+     * @return the expected precision
+     */
+    long getPrecision();
+
+    /**
+     * Get the expected scale of this parameter.
+     * 
+     * @return the expected scale
+     */
+    int getScale();
+
+    /**
+     * Check if this column is nullable.
+     *
+     * @return Column.NULLABLE_*
+     */
+    int getNullable();
+
 }

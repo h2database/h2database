@@ -140,6 +140,7 @@ public class CompareMode {
                 result = Collator.getInstance(locale);
             }
         } else if (name.length() == 5) {
+            // LL_CC (language_country)
             int idx = name.indexOf('_');
             if (idx >= 0) {
                 String language = name.substring(0, idx).toLowerCase();

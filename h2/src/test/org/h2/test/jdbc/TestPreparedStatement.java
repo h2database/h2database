@@ -361,6 +361,27 @@ public class TestPreparedStatement extends TestBase {
         } catch (SQLException e) {
             checkNotGeneralException(e);
         }
+        
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST3(ID INT, NAME VARCHAR(255), DATA DECIMAL(10,2))");
+        PreparedStatement prep1 = conn.prepareStatement("UPDATE TEST3 SET ID=?, NAME=?, DATA=?");
+        PreparedStatement prep2 = conn.prepareStatement("INSERT INTO TEST3 VALUES(?, ?, ?)");
+        checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
+        checkParameter(prep1, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
+        checkParameter(prep1, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
+        checkParameter(prep2, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
+        checkParameter(prep2, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        stat.execute("DROP TABLE TEST3");
+    }
+
+    private void checkParameter(PreparedStatement prep, int index, String className, int type, String typeName, int precision, int scale) throws Exception {
+        ParameterMetaData meta = prep.getParameterMetaData();
+        check(className, meta.getParameterClassName(index));
+        check(type, meta.getParameterType(index));
+        check(typeName, meta.getParameterTypeName(index));
+        check(precision, meta.getPrecision(index));
+        check(scale, meta.getScale(index));
     }
 
     private void testLikeIndex(Connection conn) throws Exception {

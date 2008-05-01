@@ -6,10 +6,13 @@
  */
 package org.h2.expression;
 
+import java.io.IOException;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
+import org.h2.value.Transfer;
 import org.h2.value.Value;
 
 /**
@@ -19,6 +22,10 @@ public class ParameterRemote implements ParameterInterface {
 
     private Value value;
     private int index;
+    private int dataType = Value.UNKNOWN;
+    private long precision;
+    private int scale;
+    private int nullable = ResultSetMetaData.columnNullableUnknown;
 
     public ParameterRemote(int index) {
         this.index = index;
@@ -37,5 +44,36 @@ public class ParameterRemote implements ParameterInterface {
             throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
+    
+    public int getType() {
+        return value == null ? dataType : value.getType();
+    }
+
+    public long getPrecision() {
+        return value == null ? precision : value.getPrecision();
+    }
+
+    public int getScale() {
+        return value == null ? scale : value.getScale();
+    }
+
+    public int getNullable() {
+        return nullable;
+    }
+
+    public void read(Transfer transfer) throws IOException {
+        dataType = transfer.readInt();
+        precision = transfer.readLong();
+        scale = transfer.readInt();
+        nullable = transfer.readInt();
+    }
+    
+    public static void write(Transfer transfer, ParameterInterface p) throws IOException {
+        transfer.writeInt(p.getType());
+        transfer.writeLong(p.getPrecision());
+        transfer.writeInt(p.getScale());
+        transfer.writeInt(p.getNullable());
+    }
+
 
 }

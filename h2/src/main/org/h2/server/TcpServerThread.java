@@ -21,6 +21,7 @@ import org.h2.engine.Engine;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.Parameter;
+import org.h2.expression.ParameterRemote;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -42,6 +43,7 @@ public class TcpServerThread implements Runnable {
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
     private int id;
+    private int clientVersion;
 
     public TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
@@ -61,13 +63,16 @@ public class TcpServerThread implements Runnable {
             // TODO server: should support a list of allowed databases and a
             // list of allowed clients
             try {
-                int version = transfer.readInt();
+                clientVersion = transfer.readInt();
                 if (!server.allow(transfer.getSocket())) {
                     throw Message.getSQLException(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
-                if (version != Constants.TCP_DRIVER_VERSION) {
-                    throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2, new String[] { "" + version,
-                            "" + Constants.TCP_DRIVER_VERSION });
+                if (clientVersion == Constants.TCP_DRIVER_VERSION_6) {
+                    // version 6 and newer: read max version (currently not used)
+                    transfer.readInt();
+                } else if (clientVersion != Constants.TCP_DRIVER_VERSION_5) {
+                    throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2, new String[] { "" + clientVersion,
+                            "" + Constants.TCP_DRIVER_VERSION_5 });
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
@@ -93,7 +98,12 @@ public class TcpServerThread implements Runnable {
                 Engine engine = Engine.getInstance();
                 session = engine.getSession(ci);
                 transfer.setSession(session);
-                transfer.writeInt(SessionRemote.STATUS_OK).flush();
+                transfer.writeInt(SessionRemote.STATUS_OK);
+                if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+                    // version 6: reply what version to use
+                    transfer.writeInt(Constants.TCP_DRIVER_VERSION_6);
+                }
+                transfer.flush();
                 server.addConnection(id, originalURL, ci.getUserName());
                 trace("Connected");
             } catch (Throwable e) {
@@ -179,6 +189,7 @@ public class TcpServerThread implements Runnable {
     private void process() throws IOException, SQLException {
         int operation = transfer.readInt();
         switch (operation) {
+        case SessionRemote.SESSION_PREPARE_READ_PARAMS:
         case SessionRemote.SESSION_PREPARE: {
             int id = transfer.readInt();
             String sql = transfer.readString();
@@ -186,9 +197,17 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            int paramCount = command.getParameters().size();
+            ObjectArray params = command.getParameters();
+            int paramCount = params.size();
             transfer.writeInt(SessionRemote.STATUS_OK).writeBoolean(isQuery).writeBoolean(readonly)
-                    .writeInt(paramCount).flush();
+                    .writeInt(paramCount);
+            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
+                for (int i = 0; i < paramCount; i++) {
+                    Parameter p = (Parameter) params.get(i);
+                    ParameterRemote.write(transfer, p);
+                }
+            }
+            transfer.flush();
             break;
         }
         case SessionRemote.SESSION_CLOSE: {

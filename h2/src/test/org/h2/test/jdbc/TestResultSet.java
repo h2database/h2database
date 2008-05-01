@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,6 +41,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testOwnUpdates();
         testFindColumn();
         testSubstringPrecision();
         testColumnLength();
@@ -63,6 +65,29 @@ public class TestResultSet extends TestBase {
 
         conn.close();
 
+    }
+    
+    private void testOwnUpdates() throws Exception {
+        DatabaseMetaData meta = conn.getMetaData();
+        for (int i = 0; i < 3; i++) {
+            int type = i == 0 ? ResultSet.TYPE_FORWARD_ONLY : i == 1 ? ResultSet.TYPE_SCROLL_INSENSITIVE : ResultSet.TYPE_SCROLL_SENSITIVE;
+            check(meta.ownUpdatesAreVisible(type));
+            checkFalse(meta.ownDeletesAreVisible(type));
+            checkFalse(meta.ownInsertsAreVisible(type));
+        }
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                ResultSet.CONCUR_UPDATABLE);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        stat.execute("INSERT INTO TEST VALUES(2, 'World')");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT ID, NAME FROM TEST ORDER BY ID");
+        rs.next();
+        rs.next();
+        rs.updateString(2, "Hallo");
+        rs.updateRow();
+        check("Hallo", rs.getString(2));
+        stat.execute("DROP TABLE TEST");
     }
     
     private void checkPrecision(int expected, String sql) throws Exception {

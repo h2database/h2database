@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
@@ -42,28 +43,43 @@ public class CommandRemote implements CommandInterface {
         trace = session.getTrace();
         this.sql = sql;
         parameters = new ObjectArray();
-        prepare(session);
-        for (int i = 0; i < paramCount; i++) {
-            parameters.add(new ParameterRemote(i));
-        }
+        prepare(session, true);
         // set session late because prepare might fail - in this case we don't
         // need to close the object
         this.session = session;
         this.fetchSize = fetchSize;
     }
 
-    private void prepare(SessionRemote session) throws SQLException {
+    private void prepare(SessionRemote session, boolean createParams) throws SQLException {
         id = session.getNextId();
         paramCount = 0;
+        boolean readParams = session.getClientVersion() >= Constants.TCP_DRIVER_VERSION_6;
         for (int i = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = (Transfer) transferList.get(i);
-                session.traceOperation("SESSION_PREPARE", id);
-                transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
+                if (readParams) {
+                    session.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
+                    transfer.writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).writeInt(id).writeString(sql);
+                } else {
+                    session.traceOperation("SESSION_PREPARE", id);
+                    transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
+                }
                 session.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
                 paramCount = transfer.readInt();
+                if (createParams) {
+                    parameters.clear();
+                    for (int j = 0; j < paramCount; j++) {
+                        if (readParams) {
+                            ParameterRemote p = new ParameterRemote(j);
+                            p.read(transfer);
+                            parameters.add(p);
+                        } else {
+                            parameters.add(new ParameterRemote(j));
+                        }
+                    }
+                }
             } catch (IOException e) {
                 session.removeServer(i--);
             }
@@ -86,7 +102,7 @@ public class CommandRemote implements CommandInterface {
             }
             if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
-                prepare(session);
+                prepare(session, false);
             }
             int objectId = session.getNextId();
             ResultRemote result = null;
@@ -115,7 +131,7 @@ public class CommandRemote implements CommandInterface {
             session.checkClosed();
             if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
-                prepare(session);
+                prepare(session, false);
             }
             int objectId = session.getNextId();
             ResultRemote result = null;
@@ -160,7 +176,7 @@ public class CommandRemote implements CommandInterface {
             session.checkClosed();
             if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
                 // object is too old - we need to prepare again
-                prepare(session);
+                prepare(session, false);
             }
             int updateCount = 0;
             boolean autoCommit = false;

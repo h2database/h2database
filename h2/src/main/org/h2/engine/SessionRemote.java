@@ -15,10 +15,12 @@ import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.expression.ParameterInterface;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.util.FileUtils;
@@ -29,6 +31,7 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueString;
 
 /**
  * The client side part of a session when using the server mode.
@@ -47,6 +50,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int COMMAND_COMMIT = 8;
     public static final int CHANGE_ID = 9;
     public static final int COMMAND_GET_META_DATA = 10;
+    public static final int SESSION_PREPARE_READ_PARAMS = 11;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -64,13 +68,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private String cipher;
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
+    private int clientVersion = Constants.TCP_DRIVER_VERSION_5; 
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
         Transfer trans = new Transfer(this);
         trans.setSocket(socket);
         trans.init();
-        trans.writeInt(Constants.TCP_DRIVER_VERSION);
+        trans.writeInt(clientVersion);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -227,6 +232,28 @@ public class SessionRemote implements SessionInterface, DataHandler {
         } catch (SQLException e) {
             traceSystem.close();
             throw e;
+        }
+        upgradeClientVersionIfPossible();
+    }
+    
+    private void upgradeClientVersionIfPossible() {
+        try {
+            // TODO check if a newer client version can be used - not required when sending TCP_DRIVER_VERSION_6
+            CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
+            ParameterInterface param = (ParameterInterface) command.getParameters().get(0);
+            param.setValue(ValueString.get("info.BUILD_ID"));
+            ResultInterface result = command.executeQuery(1, false);
+            if (result.next()) {
+                Value[] v = result.currentRow();
+                String version = v[0].getString();
+                if (version.compareTo("71") > 0) {
+                    clientVersion = Constants.TCP_DRIVER_VERSION_6;
+                }
+            }
+            result.close();
+        } catch (Exception e) {
+            trace.error("Error trying to upgrade client version", e);
+            // ignore
         }
     }
 
@@ -437,6 +464,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public SmallLRUCache getLobFileListCache() {
         return null;
+    }
+
+    public int getClientVersion() {
+        return clientVersion;
     }
 
 }

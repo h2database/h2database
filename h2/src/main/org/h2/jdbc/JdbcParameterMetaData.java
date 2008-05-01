@@ -7,14 +7,17 @@
 package org.h2.jdbc;
 
 import java.sql.ParameterMetaData;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.SessionInterface;
+import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
+import org.h2.util.MathUtils;
+import org.h2.util.ObjectArray;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * Information about the parameters of a prepared statement.
@@ -27,6 +30,7 @@ implements ParameterMetaData
 
     private JdbcPreparedStatement prep;
     private int paramCount;
+    private ObjectArray parameters;
 
     /**
      * Returns the number of parameters.
@@ -45,15 +49,16 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter mode.
-     * Always returns parameterModeIn
+     * Always returns parameterModeIn.
      *
+     * @param param the column index (1,2,...)
      * @return parameterModeIn
      */
 //## Java 1.4 begin ##
     public int getParameterMode(int param) throws SQLException {
         try {
             debugCodeCall("getParameterMode", param);
-            checkParameterIndex(param);
+            getParameter(param);
             return parameterModeIn;
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -63,15 +68,20 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter type.
-     * Always returns Types.VARCHAR as everything can be passed as a VARCHAR.
-     *
-     * @return Types.VARCHAR
+     * java.sql.Types.VARCHAR is returned if the data type is not known.
+     * 
+     * @param param the column index (1,2,...)
+     * @return the data type
      */
     public int getParameterType(int param) throws SQLException {
         try {
             debugCodeCall("getParameterType", param);
-            checkParameterIndex(param);
-            return Types.VARCHAR;
+            ParameterInterface p = getParameter(param);
+            int type = p.getType();
+            if (type == Value.UNKNOWN) {
+                type = Value.STRING;
+            }
+            return DataType.getDataType(type).sqlType;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -79,31 +89,33 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter precision.
-     * Always returns 0.
+     * 0 is returned if the precision is not known.
      *
-     * @return 0
+     * @param param the column index (1,2,...)
+     * @return the precision
      */
     public int getPrecision(int param) throws SQLException {
         try {
             debugCodeCall("getPrecision", param);
-            checkParameterIndex(param);
-            return 0;
+            ParameterInterface p = getParameter(param);
+            return MathUtils.convertLongToInt(p.getPrecision());
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Returns the parameter precision.
-     * Always returns 0.
+     * Returns the parameter scale.
+     * 0 is returned if the scale is not known.
      *
-     * @return 0
+     * @param param the column index (1,2,...)
+     * @return the scale
      */
     public int getScale(int param) throws SQLException {
         try {
             debugCodeCall("getScale", param);
-            checkParameterIndex(param);
-            return 0;
+            ParameterInterface p = getParameter(param);
+            return p.getScale();
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -113,13 +125,13 @@ implements ParameterMetaData
      * Checks if this is nullable parameter.
      * Returns ResultSetMetaData.columnNullableUnknown..
      *
+     * @param param the column index (1,2,...)
      * @return ResultSetMetaData.columnNullableUnknown
      */
     public int isNullable(int param) throws SQLException {
         try {
             debugCodeCall("isNullable", param);
-            checkParameterIndex(param);
-            return ResultSetMetaData.columnNullableUnknown;
+            return getParameter(param).getNullable();
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -129,12 +141,13 @@ implements ParameterMetaData
      * Checks if this parameter is signed.
      * It always returns true.
      *
+     * @param param the column index (1,2,...)
      * @return true
      */
     public boolean isSigned(int param) throws SQLException {
         try {
             debugCodeCall("isSigned", param);
-            checkParameterIndex(param);
+            getParameter(param);
             return true;
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -142,16 +155,21 @@ implements ParameterMetaData
     }
 
     /**
-     * Returns the parameter class name.
-     * Always returns java.lang.String.
+     * Returns the Java class name of the parameter.
+     * "java.lang.String" is returned if the type is not known.
      *
-     * @return "java.lang.String"
+     * @param param the column index (1,2,...)
+     * @return the Java class name
      */
     public String getParameterClassName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterClassName", param);
-            checkParameterIndex(param);
-            return String.class.getName();
+            ParameterInterface p = getParameter(param);
+            int type = p.getType();
+            if (type == Value.UNKNOWN) {
+                type = Value.STRING;
+            }
+            return DataType.getTypeClassName(type);
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -159,15 +177,20 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter type name.
-     * Always returns VARCHAR.
+     * "VARCHAR" is returned if the type is not known.
      *
-     * @return "VARCHAR"
+     * @param param the column index (1,2,...)
+     * @return the type name
      */
     public String getParameterTypeName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterTypeName", param);
-            checkParameterIndex(param);
-            return "VARCHAR";
+            ParameterInterface p = getParameter(param);
+            int type = p.getType();
+            if (type == Value.UNKNOWN) {
+                type = Value.STRING;
+            }
+            return DataType.getDataType(type).name;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -176,17 +199,19 @@ implements ParameterMetaData
     JdbcParameterMetaData(SessionInterface session, JdbcPreparedStatement prep, CommandInterface command, int id) {
         setTrace(session.getTrace(), TraceObject.PARAMETER_META_DATA, id);
         this.prep = prep;
-        this.paramCount = command.getParameters().size();
+        this.parameters = command.getParameters();
+        this.paramCount = parameters.size();
     }
 
-    void checkParameterIndex(int param) throws SQLException {
+    private ParameterInterface getParameter(int param) throws SQLException {
         checkClosed();
         if (param < 1 || param > paramCount) {
             throw Message.getInvalidValueException("" + param, "param");
         }
+        return (ParameterInterface) parameters.get(param - 1);
     }
 
-    void checkClosed() throws SQLException {
+    private void checkClosed() throws SQLException {
         prep.checkClosed();
     }
 

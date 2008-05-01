@@ -414,9 +414,9 @@ public class TestMetaData extends TestBase {
         checkFalse(meta.ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY));
         checkFalse(meta.ownInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE));
         checkFalse(meta.ownInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE));
-        checkFalse(meta.ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY));
-        checkFalse(meta.ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE));
-        checkFalse(meta.ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE));
+        check(meta.ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY));
+        check(meta.ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE));
+        check(meta.ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE));
         checkFalse(meta.storesLowerCaseIdentifiers());
         checkFalse(meta.storesLowerCaseQuotedIdentifiers());
         checkFalse(meta.storesMixedCaseIdentifiers());

@@ -14,6 +14,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
@@ -156,6 +157,9 @@ public class LogSystem {
                 }
             } catch (SQLException e) {
                 closeException = e;
+            } catch (Throwable e) {
+                // for example out of memory exception
+                closeException = Message.convert(e);
             }
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile l = (LogFile) activeLogs.get(i);

@@ -154,20 +154,33 @@ public class Shell {
                 } else if (upper.startsWith("DESCRIBE")) {
                     String tableName = upper.substring("DESCRIBE".length()).trim();
                     if (tableName.length() == 0) {
-                        out.println("Usage: describe <table name>");
+                        out.println("Usage: describe [<schema name>.]<table name>");
                     } else {
+                        String schemaName = null;
+                        int dot = tableName.indexOf('.');
+                        if (dot >= 0) {
+                            schemaName = tableName.substring(0, dot);
+                            tableName = tableName.substring(dot + 1);
+                        }
                         PreparedStatement prep = null;
                         ResultSet rs = null;
                         try {
-                            prep = conn.prepareStatement(
-                                    "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " + 
-                                    "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " + 
-                                    "NUMERIC_PRECISION \"Precision\", " + 
-                                    "CAST(IS_NULLABLE AS VARCHAR(8)) \"Nullable\", " + 
-                                    "CAST(COLUMN_DEFAULT AS VARCHAR(20)) \"Default\" " + 
-                                    "FROM INFORMATION_SCHEMA.COLUMNS " + 
-                                    "WHERE UPPER(TABLE_NAME)=? ORDER BY ORDINAL_POSITION");
+                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " + 
+                                "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " + 
+                                "NUMERIC_PRECISION \"Precision\", " + 
+                                "CAST(IS_NULLABLE AS VARCHAR(8)) \"Nullable\", " + 
+                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) \"Default\" " + 
+                                "FROM INFORMATION_SCHEMA.COLUMNS " + 
+                                "WHERE UPPER(TABLE_NAME)=?";
+                            if (schemaName != null) {
+                                sql += " AND UPPER(TABLE_SCHEMA)=?";
+                            }
+                            sql += " ORDER BY ORDINAL_POSITION";
+                            prep = conn.prepareStatement(sql);
                             prep.setString(1, tableName.toUpperCase());
+                            if (schemaName != null) {
+                                prep.setString(2, schemaName.toUpperCase());
+                            }
                             rs = prep.executeQuery();
                             printResult(rs, false);
                         } catch (SQLException e) {

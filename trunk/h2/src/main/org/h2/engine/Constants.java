@@ -35,8 +35,8 @@ package org.h2.engine;
  * - No "  Message.get" (must be "throw Message.get")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
- *
- * - Change version(s) in performance.html; use latest versions of other dbs
+ * - Use latest versions of other dbs (Derby 10.4.1.3; PostgreSQL 8.3.1; MySQL 5.0.51)
+ * - Change version(s) in performance.html
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
  *
@@ -76,8 +76,8 @@ package org.h2.engine;
  */
 public class Constants {
 
-    public static final int BUILD_ID = 71;
-    private static final String BUILD = "2008-04-25";
+    public static final int BUILD_ID = 72;
+    private static final String BUILD = "2008-04-30";
 
     public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
     public static final int ALLOW_LITERALS_NONE = 0;
@@ -93,7 +93,8 @@ public class Constants {
     public static final int FILE_BLOCK_SIZE = 16;
     public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
-    public static final int TCP_DRIVER_VERSION = 5;
+    public static final int TCP_DRIVER_VERSION_5 = 5;
+    public static final int TCP_DRIVER_VERSION_6 = 6;
     public static final int VERSION_JDBC_MAJOR = 3;
     public static final int VERSION_JDBC_MINOR = 0;
 

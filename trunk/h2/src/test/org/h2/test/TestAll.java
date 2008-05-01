@@ -160,9 +160,15 @@ java org.h2.test.TestAll timer
 
 /*
 
-upload jazoon 
-
 deactivate triggers during alter table (during re-creating a table)
+
+improve javadocs
+
+Pluggable tracing system
+
+test japanese translation
+
+upload jazoon 
 
 test case for out of memory (try to corrupt the database using out of memory)
 
@@ -211,6 +217,16 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
+    Some databases could not be opened when appending 
+        ;RECOVER=1 to the database URL.
+    The Japanese translation of the error messages and the H2 Console has been completed 
+        by Masahiro Ikemoto (Arizona Design Inc.)
+    Updates made to updatable rows are now visible within the same result set. 
+        DatabaseMetaData.ownUpdatesAreVisible now returns true.
+    ParameterMetaData now returns the correct data 
+        for INSERT and UPDATE statements.
+    H2 Shell: DESCRIBE now supports an schema name.
+ 
 
 Roadmap:
 
@@ -417,48 +433,48 @@ Roadmap:
         beforeTest();
 
         // db
-        new TestScriptSimple().runTest(this);
-        new TestScript().runTest(this);
-        new TestAutoRecompile().runTest(this);
-        new TestBackup().runTest(this);
-        new TestBigDb().runTest(this);
-        new TestBigResult().runTest(this);
-        new TestCases().runTest(this);
-        new TestCheckpoint().runTest(this);
-        new TestCluster().runTest(this);
-        new TestCompatibility().runTest(this);
-        new TestCsv().runTest(this);
-        new TestEncryptedDb().runTest(this);
-        new TestExclusive().runTest(this);
-        new TestFullText().runTest(this);
-        new TestFunctions().runTest(this);
-        new TestIndex().runTest(this);
-        new TestLinkedTable().runTest(this);
-        new TestListener().runTest(this);
-        new TestLob().runTest(this);
-        new TestLogFile().runTest(this);
-        new TestMemoryUsage().runTest(this);
-        new TestMultiConn().runTest(this);
-        new TestMultiDimension().runTest(this);
-        new TestMultiThread().runTest(this);
-        new TestOpenClose().runTest(this);
-        new TestOptimizations().runTest(this);
-        new TestPowerOff().runTest(this);
-        new TestReadOnly().runTest(this);
-        new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
-        new TestSQLInjection().runTest(this);
-        new TestSessionsLocks().runTest(this);
-        new TestSequence().runTest(this);
-        new TestSpaceReuse().runTest(this);
-        new TestSpeed().runTest(this);
-        new TestTempTables().runTest(this);
-        new TestTransaction().runTest(this);
-        new TestTriggersConstraints().runTest(this);
-        new TestTwoPhaseCommit().runTest(this);
-        new TestView().runTest(this);
-
-        // jdbc
+//        new TestScriptSimple().runTest(this);
+//        new TestScript().runTest(this);
+//        new TestAutoRecompile().runTest(this);
+//        new TestBackup().runTest(this);
+//        new TestBigDb().runTest(this);
+//        new TestBigResult().runTest(this);
+//        new TestCases().runTest(this);
+//        new TestCheckpoint().runTest(this);
+//        new TestCluster().runTest(this);
+//        new TestCompatibility().runTest(this);
+//        new TestCsv().runTest(this);
+//        new TestEncryptedDb().runTest(this);
+//        new TestExclusive().runTest(this);
+//        new TestFullText().runTest(this);
+//        new TestFunctions().runTest(this);
+//        new TestIndex().runTest(this);
+//        new TestLinkedTable().runTest(this);
+//        new TestListener().runTest(this);
+//        new TestLob().runTest(this);
+//        new TestLogFile().runTest(this);
+//        new TestMemoryUsage().runTest(this);
+//        new TestMultiConn().runTest(this);
+//        new TestMultiDimension().runTest(this);
+//        new TestMultiThread().runTest(this);
+//        new TestOpenClose().runTest(this);
+//        new TestOptimizations().runTest(this);
+//        new TestPowerOff().runTest(this);
+//        new TestReadOnly().runTest(this);
+//        new TestRights().runTest(this);
+//        new TestRunscript().runTest(this);
+//        new TestSQLInjection().runTest(this);
+//        new TestSessionsLocks().runTest(this);
+//        new TestSequence().runTest(this);
+//        new TestSpaceReuse().runTest(this);
+//        new TestSpeed().runTest(this);
+//        new TestTempTables().runTest(this);
+//        new TestTransaction().runTest(this);
+//        new TestTriggersConstraints().runTest(this);
+//        new TestTwoPhaseCommit().runTest(this);
+//        new TestView().runTest(this);
+//
+//        // jdbc
         new TestBatchUpdates().runTest(this);
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
@@ -473,57 +489,57 @@ Roadmap:
         new TestUpdatableResultSet().runTest(this);
         new TestZloty().runTest(this);
 
-        // jdbcx
-        new TestConnectionPool().runTest(this);
-        new TestDataSource().runTest(this);
-        new TestXA().runTest(this);
-        new TestXASimple().runTest(this);
-
-        // server
-        new TestNestedLoop().runTest(this);
-        new TestWeb().runTest(this);
-        new TestPgServer().runTest(this);
-
-        // mvcc
-        new TestMvcc1().runTest(this);
-        new TestMvcc2().runTest(this);
-        new TestMvcc3().runTest(this);
-
-        // synth
-        new TestCrashAPI().runTest(this);
-        new TestRandomSQL().runTest(this);
-        new TestKillRestart().runTest(this);
-        new TestKillRestartMulti().runTest(this);
-
-        // unit
-        new TestBitField().runTest(this);
-        new TestCache().runTest(this);
-        new TestCompress().runTest(this);
-        new TestDataPage().runTest(this);
-        new TestDate().runTest(this);
-        new TestExit().runTest(this);
-        new TestFile().runTest(this);
-        new TestFileLock().runTest(this);
-        new TestFtp().runTest(this);
-        new TestFileSystem().runTest(this);
-        new TestIntArray().runTest(this);
-        new TestIntIntHashMap().runTest(this);
-        new TestMultiThreadedKernel().runTest(this);
-        new TestOverflow().runTest(this);
-        new TestPattern().runTest(this);
-        new TestReader().runTest(this);
-        new TestRecovery().runTest(this);
-        new TestSampleApps().runTest(this);
-        new TestScriptReader().runTest(this);
-        runTest("org.h2.test.unit.TestServlet");
-        new TestSecurity().runTest(this);
-        new TestStreams().runTest(this);
-        new TestStringCache().runTest(this);
-        new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
-        new TestValue().runTest(this);
-        new TestValueHashMap().runTest(this);
-        new TestValueMemory().runTest(this);
+//        // jdbcx
+//        new TestConnectionPool().runTest(this);
+//        new TestDataSource().runTest(this);
+//        new TestXA().runTest(this);
+//        new TestXASimple().runTest(this);
+//
+//        // server
+//        new TestNestedLoop().runTest(this);
+//        new TestWeb().runTest(this);
+//        new TestPgServer().runTest(this);
+//
+//        // mvcc
+//        new TestMvcc1().runTest(this);
+//        new TestMvcc2().runTest(this);
+//        new TestMvcc3().runTest(this);
+//
+//        // synth
+//        new TestCrashAPI().runTest(this);
+//        new TestRandomSQL().runTest(this);
+//        new TestKillRestart().runTest(this);
+//        new TestKillRestartMulti().runTest(this);
+//
+//        // unit
+//        new TestBitField().runTest(this);
+//        new TestCache().runTest(this);
+//        new TestCompress().runTest(this);
+//        new TestDataPage().runTest(this);
+//        new TestDate().runTest(this);
+//        new TestExit().runTest(this);
+//        new TestFile().runTest(this);
+//        new TestFileLock().runTest(this);
+//        new TestFtp().runTest(this);
+//        new TestFileSystem().runTest(this);
+//        new TestIntArray().runTest(this);
+//        new TestIntIntHashMap().runTest(this);
+//        new TestMultiThreadedKernel().runTest(this);
+//        new TestOverflow().runTest(this);
+//        new TestPattern().runTest(this);
+//        new TestReader().runTest(this);
+//        new TestRecovery().runTest(this);
+//        new TestSampleApps().runTest(this);
+//        new TestScriptReader().runTest(this);
+//        runTest("org.h2.test.unit.TestServlet");
+//        new TestSecurity().runTest(this);
+//        new TestStreams().runTest(this);
+//        new TestStringCache().runTest(this);
+//        new TestStringUtils().runTest(this);
+//        new TestTools().runTest(this);
+//        new TestValue().runTest(this);
+//        new TestValueHashMap().runTest(this);
+//        new TestValueMemory().runTest(this);
 
         afterTest();
     }

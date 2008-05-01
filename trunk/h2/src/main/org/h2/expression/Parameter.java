@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -23,6 +24,7 @@ import org.h2.value.ValueNull;
 public class Parameter extends Expression implements ParameterInterface {
 
     private Value value;
+    private Column column;
     private int index;
 
     public Parameter(int index) {
@@ -51,7 +53,13 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public int getType() {
-        return value == null ? Value.UNKNOWN : value.getType();
+        if (value != null) {
+            return value.getType();
+        }
+        if (column != null) {
+            return column.getType();
+        }
+        return Value.UNKNOWN;
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {
@@ -81,15 +89,33 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public int getScale() {
-        return value == null ? 0 : value.getScale();
+        if (value != null) {
+            return value.getScale();
+        }
+        if (column != null) {
+            return column.getScale();
+        }
+        return 0;
     }
 
     public long getPrecision() {
-        return value == null ? 0 : value.getPrecision();
+        if (value != null) {
+            return value.getPrecision();
+        }
+        if (column != null) {
+            return column.getPrecision();
+        }
+        return 0;
     }
 
     public int getDisplaySize() {
-        return value == null ? 0 : value.getDisplaySize();
+        if (value != null) {
+            return value.getDisplaySize();
+        }
+        if (column != null) {
+            return column.getDisplaySize();
+        }
+        return 0;
     }
 
     public void updateAggregate(Session session) {
@@ -126,6 +152,10 @@ public class Parameter extends Expression implements ParameterInterface {
 
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
+    }
+
+    public void setColumn(Column column) {
+        this.column = column;
     }
 
 }

@@ -649,7 +649,7 @@ public class Recover extends Tool implements DataHandler {
                     writeDataError(writer, "blockCount<0", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
-                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
+                } else if (((long) blockCount * blockSize) >= Integer.MAX_VALUE / 4) {
                     writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
                     blockCount = 1;
                     continue;
@@ -688,6 +688,7 @@ public class Recover extends Tool implements DataHandler {
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
+e.printStackTrace();            
         } finally {
             IOUtils.closeSilently(writer);
             closeSilently(store);
@@ -744,7 +745,7 @@ public class Recover extends Tool implements DataHandler {
                     writeDataError(writer, "blockCount<0", s.getBytes(), 1);
                     blockCount = 1;
                     continue;
-                } else if ((blockCount * blockSize) >= Integer.MAX_VALUE / 4 || (blockCount * blockSize) < 0) {
+                } else if (((long) blockCount * blockSize) >= Integer.MAX_VALUE / 4 || (blockCount * blockSize) < 0) {
                     writeDataError(writer, "blockCount=" + blockCount, s.getBytes(), 1);
                     blockCount = 1;
                     continue;

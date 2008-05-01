@@ -13,6 +13,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -63,6 +64,10 @@ public class Update extends Prepared {
                     .getName());
         }
         expressions[id] = expression;
+        if (expression instanceof Parameter) {
+            Parameter p = (Parameter) expression;
+            p.setColumn(column);
+        }
     }
 
     public int update() throws SQLException {

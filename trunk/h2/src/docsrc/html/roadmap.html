@@ -37,26 +37,22 @@ Roadmap
 <h2>Priority 1</h2>
 <ul>
 <li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
+</li><li>Row level locking
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
-</li><li>Row level locking
 </li><li>Long running queries / errors / trace system table
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Shutdown compact
-</li><li>Document server mode, embedded mode, web app mode, dual mode (server+embedded)
-</li><li>Updatable result sets: DatabaseMetaData.ownUpdatesAreVisible = true (for insert, delete, update) Simple solution: automatically calls 'refresh' when the result was changed. Compare with other databases.
 </li></ul>
 
 <h2>Priority 2</h2>
 <ul>
 <li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
-</li><li>Better space re-use in the files after deleting data (shrink the files)
-</li><li>Shrink the data file without closing the database (if the end of the file is empty)
-</li><li>ParameterMetaData should return correct data type where possible (INSERT, UPDATE; supported by PostgreSQL, Derby, HSQLDB)
+</li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Pluggable tracing system
 </li><li>Full outer joins
 </li><li>Procedural language / script language (Javascript)
@@ -99,6 +95,7 @@ Roadmap
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
 </li><li>Eclipse plugin
+</li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
@@ -129,7 +126,6 @@ Roadmap
 </li><li>Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
 </li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
-</li><li>SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Automatically delete the index file if opening it fails
 </li><li>Performance: Automatically build in-memory indexes if the whole table is in memory
 </li><li>H2 Console: The webclient could support more features like phpMyAdmin.
@@ -233,8 +229,6 @@ Roadmap
 </li><li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
 </li><li>Functions: options readonly, deterministic (pure, always return the same value)
 </li><li>Document FTP server, including -ftpTask option to execute / kill remote processes
-</li><li>Add jdbcx to the javadocs
-</li><li>Delay reading the row if data is not required
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
@@ -300,7 +294,6 @@ Roadmap
 </li><li>Access rights: Finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
-</li><li>Support DESCRIBE like MySQL or Oracle (DESC|DESCRIBE {[schema.]object[@connect_identifier]})
 </li><li>Set a connection read only (Connection.setReadOnly)
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
@@ -398,7 +391,7 @@ Roadmap
 </li><li>Javadocs: add @author tags.
 </li><li>SET LOG_SYSTEM {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
 </li><li>Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
-</li><li>MySQL compatibility: SHOW TABLES, DESCRIBE TEST (then remove from Shell)
+</li><li>MySQL compatibility: real SQL statements for SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Maven: upload source code and javadocs as well.
 </li><li>Write (log) to system table before adding to internal data structures.
@@ -411,6 +404,7 @@ Roadmap
 </li><li>MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li><li>Support flashback queries as in Oracle.
+</li><li>Import / Export of fixed with text files.
 </li></ul>
 
 <h2>Not Planned</h2>

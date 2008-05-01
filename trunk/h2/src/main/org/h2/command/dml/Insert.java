@@ -14,6 +14,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.Parameter;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -184,7 +185,12 @@ public class Insert extends Prepared {
                 for (int i = 0; i < expr.length; i++) {
                     Expression e = expr[i];
                     if (e != null) {
-                        expr[i] = e.optimize(session);
+                        e = e.optimize(session);
+                        if (e instanceof Parameter) {
+                            Parameter p = (Parameter) e;
+                            p.setColumn(columns[i]);
+                        }
+                        expr[i] = e;
                     }
                 }
             }

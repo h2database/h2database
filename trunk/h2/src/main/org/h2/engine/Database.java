@@ -472,7 +472,13 @@ public class Database implements DataHandler {
             } catch (Throwable e) {
                 if (recovery) {
                     traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
-                    fileIndex.close();
+                    ArrayList list = new ArrayList(storageMap.values());
+                    for (int i = 0; i < list.size(); i++) {
+                        Storage s = (Storage) list.get(i);
+                        if (s.getDiskFile() == fileIndex) {
+                            removeStorage(s.getId(), fileIndex);
+                        }
+                    }
                     fileIndex.delete();
                     openFileIndex();
                 } else {
@@ -939,7 +945,11 @@ public class Database implements DataHandler {
     private synchronized void closeOpenFilesAndUnlock() throws SQLException {
         if (log != null) {
             stopWriter();
-            log.close();
+            try {
+                log.close();
+            } catch (Throwable e) {
+                traceSystem.getTrace(Trace.DATABASE).error("close", e);
+            }
             log = null;
         }
         closeFiles();

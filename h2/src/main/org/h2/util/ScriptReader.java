@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 
 /**
@@ -49,6 +50,7 @@ public class ScriptReader {
             return null;
         }
         StringBuffer buff = new StringBuffer(200);
+        int previous = 0;
         int c = read();
         while (true) {
             if (c < 0) {
@@ -58,6 +60,34 @@ public class ScriptReader {
                 break;
             }
             switch (c) {
+            case '$': {
+                buff.append((char) c);
+                c = read();
+                if (c == '$' && SysProperties.DOLLAR_QUOTING && previous <= ' ') {
+                    // dollar quoted string
+                    buff.append((char) c);
+                    while (true) {
+                        c = read();
+                        if (c < 0) {
+                            break;
+                        }
+                        buff.append((char) c);
+                        if (c == '$') {
+                            c = read();
+                            if (c < 0) {
+                                break;
+                            }
+                            buff.append((char) c);
+                            if (c == '$') {
+                                break;
+                            }
+                        }
+                    }
+                    previous = c;
+                    c = read();
+                }
+                break;
+            }
             case '\'':
                 buff.append((char) c);
                 while (true) {
@@ -70,6 +100,7 @@ public class ScriptReader {
                         break;
                     }
                 }
+                previous = c;
                 c = read();
                 break;
             case '"':
@@ -84,10 +115,12 @@ public class ScriptReader {
                         break;
                     }
                 }
+                previous = c;
                 c = read();
                 break;
             case '/': {
                 int last = c;
+                previous = c;
                 c = read();
                 if (c == '*') {
                     // block comment
@@ -119,6 +152,7 @@ public class ScriptReader {
                             }
                         }
                     }
+                    previous = c;
                     c = read();
                 } else if (c == '/') {
                     // single line comment
@@ -141,6 +175,7 @@ public class ScriptReader {
                             break;
                         }
                     }
+                    previous = c;
                     c = read();
                 } else {
                     buff.append((char) last);
@@ -148,6 +183,7 @@ public class ScriptReader {
                 break;
             }
             case '-': {
+                previous = c;
                 int last = c;
                 c = read();
                 if (c == '-') {
@@ -171,15 +207,18 @@ public class ScriptReader {
                             break;
                         }
                     }
+                    previous = c;
                     c = read();
                 } else {
                     buff.append((char) last);
                 }
                 break;
             }
-            default:
+            default: {
                 buff.append((char) c);
+                previous = c;
                 c = read();
+            }
             }
         }
         return buff.toString();

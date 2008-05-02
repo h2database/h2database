@@ -1333,7 +1333,7 @@ A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 'Hello'
 "
 "Other Grammar","Value","
-string | hexNumber | int | long | decimal | double |
+string | dollarQuotedString | hexNumber | int | long | decimal | double |
 date | time | timestamp | boolean | bytes | array | null
 ","
 A value of any data type, or null
@@ -1398,6 +1398,7 @@ An alias is a name that is only valid in the context of the statement.
 ","
 A
 "
+
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
@@ -1406,6 +1407,7 @@ Two double quotes can be used to create a single double quote inside an identifi
 ","
 ""FirstName""
 "
+
 "Other Grammar","String","
 'anythingExceptSingleQuote'
 ","
@@ -1414,6 +1416,17 @@ Two single quotes can be used to create a single quote inside a string.
 ","
 'John''s car'
 "
+
+"Other Grammar","Dollar Quoted String","
+$$anythingExceptTwoDollarSigns$$
+","
+A string starts and ends with two dollar signs. 
+Two dollar signs are not allowed within the text.
+No escaping is required within the text.
+","
+$$John's car$$
+"
+
 "Other Grammar","Int","
 [- | +] digit [...]
 ","
@@ -1421,6 +1434,7 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 ","
 10
 "
+
 "Other Grammar","Long","
 [- | +] digit [...]
 ","

@@ -184,6 +184,14 @@ public class SysProperties {
     public static final int DELAY_WRONG_PASSWORD_MAX = getIntSetting("h2.delayWrongPasswordMax", 4000);
 
     /**
+     * System property <code>h2.dollarQuoting</code> (default: true).<br />
+     * Dollar quoting is used to quote text without having to use escape
+     * characters. A dollar quoted string starts and ends with $$. Inside the
+     * text, $$ is not allowed.
+     */
+    public static final boolean DOLLAR_QUOTING = getBooleanSetting("h2.dollarQuoting", true);
+
+    /**
      * System property <code>h2.emergencySpaceInitial</code> (default: 262144).<br />
      * Size of 'reserve' file to detect disk full problems early.
      */

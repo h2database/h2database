@@ -75,5 +75,4 @@ public class ParameterRemote implements ParameterInterface {
         transfer.writeInt(p.getNullable());
     }
 
-
 }

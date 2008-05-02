@@ -238,7 +238,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
     
     private void upgradeClientVersionIfPossible() {
         try {
-            // TODO check if a newer client version can be used - not required when sending TCP_DRIVER_VERSION_6
+            // TODO check if a newer client version can be used 
+            // not required when sending TCP_DRIVER_VERSION_6
             CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
             ParameterInterface param = (ParameterInterface) command.getParameters().get(0);
             param.setValue(ValueString.get("info.BUILD_ID"));

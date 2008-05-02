@@ -77,6 +77,12 @@ public class Trace {
         buff.append(lineSeparator);
         buff.append("/*SQL ");
         if (params.length() > 0) {
+            // This looks like a bug, but it is intentional:
+            // If there are no parameters, the SQL statement is 
+            // the rest of the line. If there are parameters, they
+            // are appended at the end of the line. Knowing the size 
+            // of the statement simplifies separating the SQL statement
+            // from the parameters (no need to parse).
             buff.append("l:");
             buff.append(sql.length());
         }

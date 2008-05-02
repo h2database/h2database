@@ -103,11 +103,7 @@ public class RunScript extends Tool {
                 showTime = true;
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
-                try {
-                    ClassUtils.loadUserClass(driver);
-                } catch (ClassNotFoundException e) {
-                    throw Message.convert(e);
-                }
+                ClassUtils.loadUserClass(driver);
             } else if (arg.equals("-options")) {
                 StringBuffer buff = new StringBuffer();
                 i++;

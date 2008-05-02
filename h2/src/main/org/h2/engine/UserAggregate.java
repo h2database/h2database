@@ -13,6 +13,7 @@ import org.h2.command.Parser;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.util.ClassUtils;
 
 /**
  * Represents a user-defined aggregate function.
@@ -32,7 +33,7 @@ public class UserAggregate extends DbObjectBase {
 
     public AggregateFunction getInstance() throws SQLException {
         if (javaClass == null) {
-            javaClass = database.loadUserClass(className);
+            javaClass = ClassUtils.loadUserClass(className);
         }
         Object obj;
         try {

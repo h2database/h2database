@@ -94,11 +94,17 @@ public class Engine {
                 throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
             checkClustering(ci, database);
-            Session session = database.createUserSession(user);
+            Session session = database.createSession(user);
             return session;
         }
     }
 
+    /**
+     * Open a database connection with the given connection information.
+     * 
+     * @param ci the connection information
+     * @return the session
+     */
     public Session getSession(ConnectionInfo ci) throws SQLException {
         try {
             Session session = openSession(ci);
@@ -171,6 +177,12 @@ public class Engine {
         }
     }
 
+    /**
+     * Called after a database has been closed, to remove the object from the
+     * list of open databases.
+     * 
+     * @param name the database name
+     */
     public void close(String name) {
         databases.remove(name);
     }

@@ -10,7 +10,8 @@ import java.lang.ref.WeakReference;
 
 /**
  * This class is responsible to close a database if the application did not
- * close a connection.
+ * close a connection. A database closer object only exists if there is no user
+ * connected to the database.
  */
 public class DatabaseCloser extends Thread {
 
@@ -25,6 +26,10 @@ public class DatabaseCloser extends Thread {
         this.shutdownHook = shutdownHook;
     }
 
+    /**
+     * Stop and disable the database closer. This method is called after the
+     * database has been closed, or after a session has been created.
+     */
     public void reset() {
         synchronized (this) {
             databaseRef = null;

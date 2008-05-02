@@ -171,6 +171,7 @@ public class Build extends BuildBase {
         javadoc(new String[] {
                 "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools" , 
                 "-noindex",
+                "-d", "docs/javadocImpl2",
                 "-classpath", "ext/servlet-api-2.4.jar" + File.pathSeparator + "ext/lucene-core-2.2.0.jar" + 
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar",
                 "-subpackages", "org.h2",

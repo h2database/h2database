@@ -13,14 +13,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-//## Java 1.4 begin ##
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.sql.XAConnection;
-//## Java 1.4 end ##
 
-import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 
 /**
@@ -95,43 +92,37 @@ public class JdbcUtils {
     }
 
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
-        try {
-            if (StringUtils.isNullOrEmpty(driver)) {
-                JdbcDriverUtils.load(url);
-            } else {
-                Class d = ClassUtils.loadUserClass(driver);
-                if (java.sql.Driver.class.isAssignableFrom(d)) {
-                    return DriverManager.getConnection(url, prop);
-                    //## Java 1.4 begin ##
-                } else if (javax.naming.Context.class.isAssignableFrom(d)) {
-                    // JNDI context
-                    try {
-                        Context context = (Context) d.newInstance();
-                        DataSource ds = (DataSource) context.lookup(url);
-                        String user = prop.getProperty("user");
-                        String password = prop.getProperty("password");
-                        if (StringUtils.isNullOrEmpty(user) && StringUtils.isNullOrEmpty(password)) {
-                            return ds.getConnection();
-                        } else {
-                            return ds.getConnection(user, password);
-                        }
-                     } catch (InstantiationException e) {
-                         throw Message.convert(e);
-                     } catch (IllegalAccessException e) {
-                         throw Message.convert(e);
-                     } catch (NamingException e) {
-                         throw Message.convert(e);
-                     }
-                     //## Java 1.4 end ##
-                 } else {
-                    // Don't know, but maybe it loaded a JDBC Driver
-                    return DriverManager.getConnection(url, prop);
+        if (StringUtils.isNullOrEmpty(driver)) {
+            JdbcDriverUtils.load(url);
+        } else {
+            Class d = ClassUtils.loadUserClass(driver);
+            if (java.sql.Driver.class.isAssignableFrom(d)) {
+                return DriverManager.getConnection(url, prop);
+                //## Java 1.4 begin ##
+            } else if (javax.naming.Context.class.isAssignableFrom(d)) {
+                // JNDI context
+                try {
+                    Context context = (Context) d.newInstance();
+                    DataSource ds = (DataSource) context.lookup(url);
+                    String user = prop.getProperty("user");
+                    String password = prop.getProperty("password");
+                    if (StringUtils.isNullOrEmpty(user) && StringUtils.isNullOrEmpty(password)) {
+                        return ds.getConnection();
+                    } else {
+                        return ds.getConnection(user, password);
+                    }
+                 } catch (InstantiationException e) {
+                     throw Message.convert(e);
+                 } catch (IllegalAccessException e) {
+                     throw Message.convert(e);
+                 } catch (NamingException e) {
+                     throw Message.convert(e);
                  }
-            }
-        } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
-        } catch (NoClassDefFoundError e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[]{driver}, e);
+                 //## Java 1.4 end ##
+             } else {
+                // Don't know, but maybe it loaded a JDBC Driver
+                return DriverManager.getConnection(url, prop);
+             }
         }
         return DriverManager.getConnection(url, prop);
     }

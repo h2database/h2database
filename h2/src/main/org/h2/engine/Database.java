@@ -268,6 +268,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Get the file header (the 'magic bytes').
+     * 
+     * @param textStorage if the header of a text storage should be returned
+     * @return the magic bytes
+     */
     public static byte[] getMagic(boolean textStorage) {
         if (textStorage) {
             return Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
@@ -280,6 +286,13 @@ public class Database implements DataHandler {
         return getMagic(textStorage);
     }
 
+    /**
+     * Check if two values are equal with the current comparison mode.
+     * 
+     * @param a the first value
+     * @param b the second value
+     * @return true if both objects are equal
+     */
     public boolean areEqual(Value a, Value b) throws SQLException {
         // TODO optimization possible
         // boolean is = a.compareEqual(b);
@@ -292,10 +305,28 @@ public class Database implements DataHandler {
         return a.compareTo(b, compareMode) == 0;
     }
 
+    /**
+     * Compare two values with the current comparison mode. The values may not
+     * be of the same type.
+     * 
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
     public int compare(Value a, Value b) throws SQLException {
         return a.compareTo(b, compareMode);
     }
 
+    /**
+     * Compare two values with the current comparison mode. The values must be
+     * of the same type.
+     * 
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
     public int compareTypeSave(Value a, Value b) throws SQLException {
         return a.compareTypeSave(b, compareMode);
     }
@@ -375,10 +406,22 @@ public class Database implements DataHandler {
         throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
     }
 
+    /**
+     * Check if a database with the given name exists.
+     * 
+     * @param name the name of the database (including path)
+     * @return true if one exists
+     */
     public static boolean exists(String name) {
         return FileUtils.exists(name + Constants.SUFFIX_DATA_FILE);
     }
 
+    /**
+     * Get the trace object for the given module.
+     * 
+     * @param module the module name
+     * @return the trace object
+     */
     public Trace getTrace(String module) {
         return traceSystem.getTrace(module);
     }
@@ -397,8 +440,15 @@ public class Database implements DataHandler {
         return store;
     }
 
-    public boolean validateFilePasswordHash(String c, byte[] hash) {
-        return ByteUtils.compareSecure(hash, filePasswordHash) && StringUtils.equals(c, cipher);
+    /**
+     * Check if the file password hash is correct.
+     * 
+     * @param cipher the cipher algorithm
+     * @param hash the hash code
+     * @return true if the password matches
+     */
+    public boolean validateFilePasswordHash(String cipher, byte[] hash) {
+        return ByteUtils.compareSecure(hash, filePasswordHash) && StringUtils.equals(cipher, this.cipher);
     }
 
     private void openFileData() throws SQLException {
@@ -645,6 +695,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Remove the storage object from the file.
+     * 
+     * @param id the storage id
+     * @param file the file
+     */
     public void removeStorage(int id, DiskFile file) {
         if (SysProperties.CHECK) {
             Storage s = (Storage) storageMap.get(id);
@@ -655,6 +711,14 @@ public class Database implements DataHandler {
         storageMap.remove(id);
     }
 
+    /**
+     * Get the storage object for the given file. An new object is created if
+     * required.
+     * 
+     * @param id the storage id
+     * @param file the file
+     * @return the storage object
+     */
     public Storage getStorage(int id, DiskFile file) {
         Storage storage = (Storage) storageMap.get(id);
         if (storage != null) {
@@ -689,6 +753,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Remove the given object from the meta data.
+     * 
+     * @param session the session
+     * @param id the id of the object to remove
+     */
     public synchronized void removeMeta(Session session, int id) throws SQLException {
         SearchRow r = meta.getTemplateSimpleRow(false);
         r.setValue(0, ValueInt.get(id));
@@ -734,6 +804,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Add a schema object to the database.
+     * 
+     * @param session the session
+     * @param obj the object to add
+     */
     public synchronized void addSchemaObject(Session session, SchemaObject obj) throws SQLException {
         obj.getSchema().add(obj);
         int id = obj.getId();
@@ -742,6 +818,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Add an object to the database.
+     * 
+     * @param session the session
+     * @param obj the object to add
+     */
     public synchronized void addDatabaseObject(Session session, DbObject obj) throws SQLException {
         HashMap map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
@@ -760,11 +842,24 @@ public class Database implements DataHandler {
         }
         map.put(name, obj);
     }
-
-    public Setting findSetting(String name) {
-        return (Setting) settings.get(name);
+    
+    /**
+     * Get the user defined aggregate function if it exists, or null if not.
+     * 
+     * @param name the name of the user defined aggregate function
+     * @return the aggregate function or null
+     */
+    public UserAggregate findAggregate(String name) {
+        return (UserAggregate) aggregates.get(name);
     }
-
+    
+    /**
+     * Get the comment for the given database object if one exists, or null if
+     * not.
+     * 
+     * @param object the database object
+     * @return the comment or null
+     */
     public Comment findComment(DbObject object) {
         if (object.getType() == DbObject.COMMENT) {
             return null;
@@ -772,23 +867,75 @@ public class Database implements DataHandler {
         String key = Comment.getKey(object);
         return (Comment) comments.get(key);
     }
-
-    public User findUser(String name) {
-        return (User) users.get(name);
-    }
-
+    
+    /**
+     * Get the user defined function if it exists, or null if not.
+     * 
+     * @param name the name of the user defined function
+     * @return the function or null
+     */
     public FunctionAlias findFunctionAlias(String name) {
         return (FunctionAlias) functionAliases.get(name);
     }
-
-    public UserAggregate findAggregate(String name) {
-        return (UserAggregate) aggregates.get(name);
+    
+    /**
+     * Get the role if it exists, or null if not.
+     * 
+     * @param roleName the name of the role
+     * @return the role or null
+     */
+    public Role findRole(String roleName) {
+        return (Role) roles.get(roleName);
     }
 
+    /**
+     * Get the schema if it exists, or null if not.
+     * 
+     * @param schemaName the name of the schema
+     * @return the schema or null
+     */
+    public Schema findSchema(String schemaName) {
+        return (Schema) schemas.get(schemaName);
+    }
+
+    /**
+     * Get the setting if it exists, or null if not.
+     * 
+     * @param name the name of the setting
+     * @return the setting or null
+     */
+    public Setting findSetting(String name) {
+        return (Setting) settings.get(name);
+    }
+
+    /**
+     * Get the user if it exists, or null if not.
+     * 
+     * @param name the name of the user
+     * @return the user or null
+     */
+    public User findUser(String name) {
+        return (User) users.get(name);
+    }
+    
+    /**
+     * Get the user defined data type if it exists, or null if not.
+     * 
+     * @param name the name of the user defined data type
+     * @return the user defined data type or null
+     */
     public UserDataType findUserDataType(String name) {
         return (UserDataType) userDataTypes.get(name);
     }
 
+    /**
+     * Get user with the given name. This method throws an exception if the user
+     * does not exist.
+     * 
+     * @param name the user name
+     * @return the user
+     * @throws SQLException if the user does not exist
+     */
     public User getUser(String name) throws SQLException {
         User user = findUser(name);
         if (user == null) {
@@ -797,7 +944,14 @@ public class Database implements DataHandler {
         return user;
     }
 
-    public synchronized Session createUserSession(User user) throws SQLException {
+    /**
+     * Create a session for the given user.
+     * 
+     * @param user the user
+     * @return the session
+     * @throws SQLException if the database is in exclusive mode
+     */
+    public synchronized Session createSession(User user) throws SQLException {
         if (exclusiveSession != null) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
@@ -811,6 +965,11 @@ public class Database implements DataHandler {
         return session;
     }
 
+    /**
+     * Remove a session. This method is called after the user has disconnected.
+     * 
+     * @param session the session
+     */
     public synchronized void removeSession(Session session) throws SQLException {
         if (session != null) {
             if (exclusiveSession == session) {
@@ -1022,43 +1181,40 @@ public class Database implements DataHandler {
         objectIds.set(i);
         return i;
     }
-
-    public ObjectArray getAllSettings() {
-        return new ObjectArray(settings.values());
+    
+    public ObjectArray getAllAggregates() {
+        return new ObjectArray(aggregates.values());
     }
-
-    public ObjectArray getAllUsers() {
-        return new ObjectArray(users.values());
+    
+    public ObjectArray getAllComments() {
+        return new ObjectArray(comments.values());
     }
-
+    
+    public ObjectArray getAllFunctionAliases() {
+        return new ObjectArray(functionAliases.values());
+    }
+    
+    public int getAllowLiterals() {
+        if (starting) {
+            return Constants.ALLOW_LITERALS_ALL;
+        }
+        return allowLiterals;
+    }
+    
+    public ObjectArray getAllRights() {
+        return new ObjectArray(rights.values());
+    }
+    
     public ObjectArray getAllRoles() {
         return new ObjectArray(roles.values());
     }
 
-    public ObjectArray getAllRights() {
-        return new ObjectArray(rights.values());
-    }
-
-    public ObjectArray getAllComments() {
-        return new ObjectArray(comments.values());
-    }
-
-    public ObjectArray getAllSchemas() {
-        return new ObjectArray(schemas.values());
-    }
-
-    public ObjectArray getAllFunctionAliases() {
-        return new ObjectArray(functionAliases.values());
-    }
-
-    public ObjectArray getAllAggregates() {
-        return new ObjectArray(aggregates.values());
-    }
-
-    public ObjectArray getAllUserDataTypes() {
-        return new ObjectArray(userDataTypes.values());
-    }
-
+    /**
+     * Get all schema objects of the given type.
+     * 
+     * @param type the object type
+     * @return all objects of that type
+     */
     public ObjectArray getAllSchemaObjects(int type) {
         ObjectArray list = new ObjectArray();
         for (Iterator it = schemas.values().iterator(); it.hasNext();) {
@@ -1066,6 +1222,58 @@ public class Database implements DataHandler {
             list.addAll(schema.getAll(type));
         }
         return list;
+    }
+
+    public ObjectArray getAllSchemas() {
+        return new ObjectArray(schemas.values());
+    }
+    
+    public ObjectArray getAllSettings() {
+        return new ObjectArray(settings.values());
+    }
+    
+    public ObjectArray getAllStorages() {
+        return new ObjectArray(storageMap.values());
+    }
+
+    public ObjectArray getAllUserDataTypes() {
+        return new ObjectArray(userDataTypes.values());
+    }
+
+    public ObjectArray getAllUsers() {
+        return new ObjectArray(users.values());
+    }
+    
+    public int getCacheSize() {
+        return cacheSize;
+    }
+    
+    public String getCacheType() {
+        return cacheType;
+    }
+    
+    public int getChecksum(byte[] data, int start, int end) {
+        int x = 0;
+        while (start < end) {
+            x += data[start++];
+        }
+        return x;
+    }
+    
+    public String getCluster() {
+        return cluster;
+    }
+    
+    public CompareMode getCompareMode() {
+        return compareMode;
+    }
+    
+    public String getDatabasePath() {
+        if (persistent) {
+            return FileUtils.getAbsolutePath(databaseName);
+        } else {
+            return null;
+        }
     }
 
     public String getShortName() {
@@ -1080,6 +1288,13 @@ public class Database implements DataHandler {
         return log;
     }
 
+    /**
+     * Get all sessions that are currently connected to the database.
+     * 
+     * @param includingSystemSession if the system session should also be
+     *            included
+     * @return the list of sessions
+     */
     public Session[] getSessions(boolean includingSystemSession) {
         ArrayList list = new ArrayList(userSessions);
         if (includingSystemSession && systemSession != null) {
@@ -1090,6 +1305,12 @@ public class Database implements DataHandler {
         return array;
     }
 
+    /**
+     * Update an object in the system table.
+     * 
+     * @param session the session
+     * @param obj the database object
+     */
     public synchronized void update(Session session, DbObject obj) throws SQLException {
         int id = obj.getId();
         removeMeta(session, id);
@@ -1219,14 +1440,13 @@ public class Database implements DataHandler {
         return storage;
     }
 
-    public Role findRole(String roleName) {
-        return (Role) roles.get(roleName);
-    }
-
-    public Schema findSchema(String schemaName) {
-        return (Schema) schemas.get(schemaName);
-    }
-
+    /**
+     * Get the schema. If the schema does not exist, an exception is thrown.
+     * 
+     * @param schemaName the name of the schema
+     * @return the schema
+     * @throws SQLException no schema with that name exists
+     */
     public Schema getSchema(String schemaName) throws SQLException {
         Schema schema = findSchema(schemaName);
         if (schema == null) {
@@ -1235,6 +1455,12 @@ public class Database implements DataHandler {
         return schema;
     }
 
+    /**
+     * Remove the object from the database.
+     * 
+     * @param session the session
+     * @param obj the object to remove
+     */
     public synchronized void removeDatabaseObject(Session session, DbObject obj) throws SQLException {
         String objName = obj.getName();
         int type = obj.getType();
@@ -1290,6 +1516,12 @@ public class Database implements DataHandler {
         return null;
     }
 
+    /**
+     * Remove an object from the system table.
+     * 
+     * @param session the session
+     * @param obj the object to be removed
+     */
     public synchronized void removeSchemaObject(Session session, SchemaObject obj) throws SQLException {
         if (obj.getType() == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
@@ -1318,6 +1550,11 @@ public class Database implements DataHandler {
         removeMeta(session, id);
     }
 
+    /**
+     * Check if this database disk-based.
+     * 
+     * @return true if it is disk-based, false it it is in-memory only.
+     */
     public boolean isPersistent() {
         return persistent;
     }
@@ -1352,6 +1589,12 @@ public class Database implements DataHandler {
         return publicRole;
     }
 
+    /**
+     * Get a unique temporary table name.
+     * 
+     * @param sessionId the session id
+     * @return a unique name
+     */
     public String getTempTableName(int sessionId) {
         String tempName;
         for (int i = 0;; i++) {
@@ -1367,18 +1610,10 @@ public class Database implements DataHandler {
         this.compareMode = compareMode;
     }
 
-    public CompareMode getCompareMode() {
-        return compareMode;
-    }
-
-    public String getCluster() {
-        return cluster;
-    }
-
     public void setCluster(String cluster) {
         this.cluster = cluster;
     }
-
+    
     public void checkWritingAllowed() throws SQLException {
         if (readOnly) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
@@ -1399,6 +1634,15 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Delete an unused log file. It is deleted immediately if no writer thread
+     * is running, or deleted later on if one is running. Deleting is delayed
+     * because the hard drive otherwise may delete the file a bit before the
+     * data is written to the new file, which can cause problems when
+     * recovering.
+     * 
+     * @param fileName the name of the file to be deleted
+     */
     public void deleteLogFileLater(String fileName) throws SQLException {
         if (writer != null) {
             writer.deleteLogFileLater(fileName);
@@ -1407,16 +1651,6 @@ public class Database implements DataHandler {
         }
     }
 
-    public Class loadUserClass(String className) throws SQLException {
-        try {
-            return ClassUtils.loadUserClass(className);
-        } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
-        } catch (NoClassDefFoundError e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
-        }
-    }
-    
     public void setEventListener(DatabaseEventListener eventListener) {
         this.eventListener = eventListener;
     }
@@ -1426,7 +1660,7 @@ public class Database implements DataHandler {
             eventListener = null;
         } else {
             try {
-                eventListener = (DatabaseEventListener) loadUserClass(className).newInstance();
+                eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
                 String url = databaseURL;
                 if (cipher != null) {
                     url += ";CIPHER=" + cipher;
@@ -1474,7 +1708,14 @@ public class Database implements DataHandler {
             }
         }
     }
-
+    
+    /**
+     * This method is called after an exception occured, to inform the database
+     * event listener (if one is set).
+     * 
+     * @param e the exception
+     * @param sql the SQL statement
+     */
     public void exceptionThrown(SQLException e, String sql) {
         if (eventListener != null) {
             try {
@@ -1485,6 +1726,10 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Synchronize the files with the file system. This method is called when
+     * executing the SQL statement CHECKPOINT SYNC.
+     */
     public void sync() throws SQLException {
         if (log != null) {
             log.sync();
@@ -1511,14 +1756,6 @@ public class Database implements DataHandler {
 
     public int getMaxMemoryUndo() {
         return maxMemoryUndo;
-    }
-
-    public int getChecksum(byte[] data, int start, int end) {
-        int x = 0;
-        while (start < end) {
-            x += data[start++];
-        }
-        return x;
     }
 
     public void setLockMode(int lockMode) {
@@ -1570,24 +1807,12 @@ public class Database implements DataHandler {
         logLevel = level;
     }
 
-    public ObjectArray getAllStorages() {
-        return new ObjectArray(storageMap.values());
-    }
-
     public boolean getRecovery() {
         return recovery;
     }
 
     public Session getSystemSession() {
         return systemSession;
-    }
-
-    public String getDatabasePath() {
-        if (persistent) {
-            return FileUtils.getAbsolutePath(databaseName);
-        } else {
-            return null;
-        }
     }
 
     public void handleInvalidChecksum() throws SQLException {
@@ -1599,16 +1824,17 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Check if the database is in the process of closing.
+     * 
+     * @return true if the database is closing
+     */
     public boolean isClosing() {
         return closing;
     }
 
     public int getWriteDelay() {
         return writeDelay;
-    }
-
-    public int getCacheSize() {
-        return cacheSize;
     }
 
     public void setMaxLengthInplaceLob(int value) {
@@ -1673,23 +1899,12 @@ public class Database implements DataHandler {
         this.allowLiterals = value;
     }
 
-    public int getAllowLiterals() {
-        if (starting) {
-            return Constants.ALLOW_LITERALS_ALL;
-        }
-        return allowLiterals;
-    }
-
     public boolean getOptimizeReuseResults() {
         return optimizeReuseResults;
     }
 
     public void setOptimizeReuseResults(boolean b) {
         optimizeReuseResults = b;
-    }
-
-    public String getCacheType() {
-        return cacheType;
     }
 
     /**
@@ -1793,6 +2008,11 @@ public class Database implements DataHandler {
         return lobFileListCache;
     }
 
+    /**
+     * Checks if the system table (containing the catalog) is locked.
+     * 
+     * @return true if it is currently locked
+     */
     public boolean isSysTableLocked() {
         return meta.isLockedExclusively();
     }

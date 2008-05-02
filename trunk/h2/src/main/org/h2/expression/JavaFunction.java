@@ -31,7 +31,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public Value getValue(Session session) throws SQLException {
-        return functionAlias.getValue(session, args);
+        return functionAlias.getValue(session, args, false);
     }
 
     public int getType() {

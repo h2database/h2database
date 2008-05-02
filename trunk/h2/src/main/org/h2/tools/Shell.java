@@ -20,7 +20,6 @@ import java.sql.Statement;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
-import org.h2.message.Message;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
@@ -82,11 +81,7 @@ public class Shell {
                 password = args[++i];
             } else if (args[i].equals("-driver")) {
                 String driver = args[++i];
-                try {
-                    ClassUtils.loadUserClass(driver);
-                } catch (ClassNotFoundException e) {
-                    throw Message.convert(e);
-                }
+                ClassUtils.loadUserClass(driver);
             } else {
                 out.println("Unsupported option: " + args[i]);
                 showUsage();

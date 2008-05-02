@@ -48,7 +48,7 @@ public class ClassUtils {
         return Class.forName(className);
     }
 
-    public static Class loadUserClass(String className) throws ClassNotFoundException, SQLException {
+    public static Class loadUserClass(String className) throws SQLException {
         if (!ALLOW_ALL && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;
             for (int i = 0; i < ALLOWED_CLASS_NAME_PREFIXES.length; i++) {
@@ -61,7 +61,13 @@ public class ClassUtils {
                 throw Message.getSQLException(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
             }
         }
-        return Class.forName(className);
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+        } catch (NoClassDefFoundError e) {
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+        }
     }
 
 }

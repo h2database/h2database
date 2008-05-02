@@ -18,6 +18,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
+import org.h2.util.ClassUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -55,7 +56,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         try {
             Connection c2 = session.createConnection(false);
-            Object obj = session.getDatabase().loadUserClass(triggerClassName).newInstance();
+            Object obj = ClassUtils.loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName(), before, typeMask);
         } catch (Throwable e) {

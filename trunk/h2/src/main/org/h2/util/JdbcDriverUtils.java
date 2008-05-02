@@ -6,6 +6,8 @@
  */
 package org.h2.util;
 
+import java.sql.SQLException;
+
 /**
  * This class tries to automatically load the right JDBC driver for a given
  * database URL.
@@ -50,10 +52,10 @@ public class JdbcDriverUtils {
         return null;
     }
 
-    public static void load(String url) throws ClassNotFoundException {
+    public static void load(String url) throws SQLException {
         String driver = getDriver(url);
         if (driver != null) {
-            Class.forName(driver);
+            ClassUtils.loadUserClass(driver);
         }
     }
 

@@ -17,6 +17,7 @@ import org.h2.expression.Expression;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.util.ClassUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -57,7 +58,7 @@ public class FunctionAlias extends DbObjectBase {
         if (javaMethod != null) {
             return;
         }
-        Class javaClass = database.loadUserClass(className);
+        Class javaClass = ClassUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
@@ -150,10 +151,6 @@ public class FunctionAlias extends DbObjectBase {
         throw Message.getUnsupportedException();
     }
 
-    public Value getValue(Session session, Expression[] args) throws SQLException {
-        return getValue(session, args, false);
-    }
-
     /**
      * Call the user-defined function and return the value.
      * 
@@ -228,6 +225,11 @@ public class FunctionAlias extends DbObjectBase {
         return this.methodName;
     }
 
+    /**
+     * Check if this function requires a database connection.
+     * 
+     * @return if the function requires a connection
+     */
     public boolean hasConnectionParam() {
         return this.hasConnectionParam;
     }

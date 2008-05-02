@@ -7,8 +7,10 @@
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
 
 import org.h2.test.TestBase;
 
@@ -16,14 +18,157 @@ import org.h2.test.TestBase;
  * Tests the Connection.nativeSQL method.
  */
 public class TestNativeSQL extends TestBase {
+    
+    Connection conn;
 
     public void test() throws Exception {
         deleteDb("nativeSql");
-        Connection conn = getConnection("nativeSql");
-
+        conn = getConnection("nativeSql");
+        testPairs();
+        testCases();
+        testRandom();
+        testQuotes();
+        conn.close();
+        check(conn.isClosed());
+    }
+    
+    private void testQuotes() throws Exception {
+        Statement stat = conn.createStatement();
+        Random random = new Random(1);
+        String s = "'\"$/-* \n";
+        for (int i = 0; i < 200; i++) {
+            StringBuffer buffQuoted = new StringBuffer();
+            StringBuffer buffRaw = new StringBuffer();
+            if (random.nextBoolean()) {
+                buffQuoted.append("'");
+                for (int j = 0; j < 10; j++) {
+                    char c = s.charAt(random.nextInt(s.length()));
+                    if (c == '\'') {
+                        buffQuoted.append('\'');
+                    }
+                    buffQuoted.append(c);
+                    buffRaw.append(c);
+                }
+                buffQuoted.append("'");
+            } else {
+                buffQuoted.append("$$");
+                for (int j = 0; j < 10; j++) {
+                    char c = s.charAt(random.nextInt(s.length()));
+                    buffQuoted.append(c);
+                    buffRaw.append(c);
+                    if (c == '$') {
+                        buffQuoted.append(' ');
+                        buffRaw.append(' ');
+                    }
+                }
+                buffQuoted.append("$$");
+            }
+            String sql = "CALL " + buffQuoted.toString();
+            ResultSet rs = stat.executeQuery(sql);
+            rs.next();
+            String raw = buffRaw.toString();
+            check(raw, rs.getString(1));
+        }
+    }
+    
+    private void testRandom() throws Exception {
+        Random random = new Random(1);
+        for (int i = 0; i < 100; i++) {
+            StringBuffer buff = new StringBuffer("{oj }");
+            String s = "{}\'\"-/*$ $-";
+            for (int j = random.nextInt(30); j > 0; j--) {
+                buff.append(s.charAt(random.nextInt(s.length())));
+            }
+            String sql = buff.toString();
+            try {
+                conn.nativeSQL(sql);
+            } catch (SQLException e) {
+                checkNotGeneralException(sql, e);
+            }
+        }
+        String smallest = null;
+        for (int i = 0; i < 1000; i++) {
+            StringBuffer buff = new StringBuffer("{oj }");
+            for (int j = random.nextInt(10); j > 0; j--) {
+                String s;
+                switch(random.nextInt(7)) {
+                case 0:
+                    buff.append(" $$");
+                    s = "{}\'\"-/* a\n";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("$$");
+                    break;
+                case 1:
+                    buff.append("'");
+                    s = "{}\"-/*$ a\n";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("'");
+                    break;
+                case 2:
+                    buff.append("\"");
+                    s = "{}'-/*$ a\n";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("\"");
+                    break;
+                case 3:
+                    buff.append("/*");
+                    s = "{}'\"-/$ a\n";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("*/");
+                    break;
+                case 4:
+                    buff.append("--");
+                    s = "{}'\"-/$ a";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("\n");
+                    break;
+                case 5:
+                    buff.append("//");
+                    s = "{}'\"-/$ a";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    buff.append("\n");
+                    break;
+                case 6:
+                    s = " a\n";
+                    for (int k = random.nextInt(5); k > 0; k--) {
+                        buff.append(s.charAt(random.nextInt(s.length())));
+                    }
+                    break;
+                }
+            }
+            String sql = buff.toString();
+            try {
+                conn.nativeSQL(sql);
+            } catch (Exception e) {
+                if (smallest == null || sql.length() < smallest.length()) {
+                    smallest = sql;
+                }
+            }
+        }
+        if (smallest != null) {
+            conn.nativeSQL(smallest);
+        }
+    }
+    
+    private void testPairs() throws Exception {
         for (int i = 0; i < PAIRS.length; i += 2) {
             test(conn, PAIRS[i], PAIRS[i + 1]);
         }
+    }
+    
+    private void testCases() throws Exception {
         conn.nativeSQL("TEST");
         conn.nativeSQL("TEST--testing");
         conn.nativeSQL("TEST--testing{oj }");
@@ -49,15 +194,13 @@ public class TestNativeSQL extends TestBase {
             checkNotGeneralException(e);
         }
         checkFalse(conn.isClosed());
-        conn.close();
-        check(conn.isClosed());
     }
 
-    static final String[] PAIRS = new String[] { "CREATE TABLE TEST(ID INT PRIMARY KEY)",
+    static final String[] PAIRS = new String[] { 
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
-
+            "CREATE TABLE TEST(ID INT PRIMARY KEY)", 
+            
             "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
-
             "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
 
             "SELECT '{fn ABS(1)}' FROM TEST", "SELECT '{fn ABS(1)}' FROM TEST",

@@ -58,7 +58,7 @@ public class TestScriptReader extends TestBase {
             switch (random.nextInt(10)) {
             case 0: {
                 int l = random.nextInt(4);
-                String[] ch = new String[] { "\n", "\r", " ", "*", "a", "0" };
+                String[] ch = new String[] { "\n", "\r", " ", "*", "a", "0", "$ " };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -67,7 +67,7 @@ public class TestScriptReader extends TestBase {
             case 1: {
                 buff.append('\'');
                 int l = random.nextInt(4);
-                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"" };
+                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"", "$ " };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -77,7 +77,7 @@ public class TestScriptReader extends TestBase {
             case 2: {
                 buff.append('"');
                 int l = random.nextInt(4);
-                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'" };
+                String[] ch = new String[] { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'", "$" };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -87,14 +87,14 @@ public class TestScriptReader extends TestBase {
             case 3: {
                 buff.append('-');
                 if (random.nextBoolean()) {
-                    String[] ch = new String[] { "\n", "\r", "*", "a", " " };
+                    String[] ch = new String[] { "\n", "\r", "*", "a", " ", "$ " };
                     int l = 1 + random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append('-');
-                    String[] ch = new String[] { ";", "-", "//", "/*", "*/", "a" };
+                    String[] ch = new String[] { ";", "-", "//", "/*", "*/", "a", "$" };
                     int l = random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
@@ -106,14 +106,14 @@ public class TestScriptReader extends TestBase {
             case 4: {
                 buff.append('/');
                 if (random.nextBoolean()) {
-                    String[] ch = new String[] { "\n", "\r", "a", " ", "- " };
+                    String[] ch = new String[] { "\n", "\r", "a", " ", "- ", "$ " };
                     int l = 1 + random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
                     }
                 } else {
                     buff.append('*');
-                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a" };
+                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$" };
                     int l = random.nextInt(4);
                     for (int j = 0; j < l; j++) {
                         buff.append(ch[random.nextInt(ch.length)]);
@@ -121,6 +121,27 @@ public class TestScriptReader extends TestBase {
                     buff.append("*/");
                 }
                 break;
+            }
+            case 5: {
+                if (buff.length() > 0) {
+                    buff.append(" ");
+                }
+                buff.append("$");
+                if (random.nextBoolean()) {
+                    String[] ch = new String[] { "\n", "\r", "a", " ", "- ", "/ " };
+                    int l = 1 + random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
+                        buff.append(ch[random.nextInt(ch.length)]);
+                    }
+                } else {
+                    buff.append("$");
+                    String[] ch = new String[] { ";", "-", "//", "/* ", "--", "\n", "\r", "a", "$ " };
+                    int l = random.nextInt(4);
+                    for (int j = 0; j < l; j++) {
+                        buff.append(ch[random.nextInt(ch.length)]);
+                    }
+                    buff.append("$$");
+                }
             }
             }
         }
@@ -137,6 +158,11 @@ public class TestScriptReader extends TestBase {
         check(source.readStatement(), "--;\n");
         check(source.readStatement(), "/*;\n*/");
         check(source.readStatement(), "//;\na");
+        check(source.readStatement(), null);
+        source.close();
+        s = "/\n$ \n\n $';$$a$$ $\n;'";
+        source = new ScriptReader(new StringReader(s));
+        check(source.readStatement(), "/\n$ \n\n $';$$a$$ $\n;'");
         check(source.readStatement(), null);
         source.close();
     }

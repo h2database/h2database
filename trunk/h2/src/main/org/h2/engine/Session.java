@@ -580,6 +580,9 @@ public class Session implements SessionInterface {
         return firstUncommittedPos;
     }
 
+    /**
+     * This method is called after the log file has committed this session.
+     */
     public void setAllCommitted() {
         firstUncommittedLog = LogSystem.LOG_WRITTEN;
         firstUncommittedPos = LogSystem.LOG_WRITTEN;

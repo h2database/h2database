@@ -1027,6 +1027,16 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int translateGetEnd(String sql, int i, char c) throws SQLException {
         int len = sql.length();
         switch(c) {
+        case '$': {
+            if (i < len - 1 && sql.charAt(i + 1) == '$' && (i == 0 || sql.charAt(i - 1) <= ' ')) {
+                int j = sql.indexOf("$$", i + 2);
+                if (j < 0) {
+                    throw Message.getSyntaxError(sql, i);
+                }
+                return j + 1;
+            }
+            return i;
+        }
         case '\'': {
             int j = sql.indexOf('\'', i + 1);
             if (j < 0) {
@@ -1172,6 +1182,11 @@ public class JdbcConnection extends TraceObject implements Connection {
                     throw Message.getSyntaxError(sql, i);
                 }
                 chars[i] = ' ';
+                break;
+            case '$':
+                if (SysProperties.DOLLAR_QUOTING) {
+                    i = translateGetEnd(sql, i, c);
+                }
                 break;
             default:
             }

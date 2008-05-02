@@ -36,6 +36,24 @@ public class TestSQLInjection extends TestBase {
         check(checkPasswordSecure("123456"));
         checkFalse(checkPasswordSecure("abcdef"));
         checkFalse(checkPasswordSecure("' OR ''='"));
+        stat.execute("CALL 123");
+        stat.execute("CALL 'Hello'");
+        stat.execute("CALL $$Hello World$$");
+        stat.execute("SET ALLOW_LITERALS NUMBERS");
+        stat.execute("CALL 123");
+        try {
+            stat.execute("CALL 'Hello'");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+        try {
+            stat.execute("CALL $$Hello World$$");
+            error();
+        } catch (SQLException e) {
+            checkNotGeneralException(e);
+        }
+
         stat.execute("SET ALLOW_LITERALS NONE");
 
         try {

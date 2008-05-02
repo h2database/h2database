@@ -35,7 +35,8 @@ package org.h2.engine;
  * - No "  Message.get" (must be "throw Message.get")
  * - No TODO in the docs, remove @~ in .utf8.txt files
  * - Run regression test with JDK 1.4 and 1.5
- * - Use latest versions of other dbs (Derby 10.4.1.3; PostgreSQL 8.3.1; MySQL 5.0.51)
+ * - Use latest versions of other dbs (Derby 10.4.1.3; 
+ *      PostgreSQL 8.3.1; MySQL 5.0.51)
  * - Change version(s) in performance.html
  * - Run 'ant benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram

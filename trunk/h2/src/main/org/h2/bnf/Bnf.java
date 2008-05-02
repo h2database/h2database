@@ -31,7 +31,7 @@ public class Bnf {
 
     static final boolean COMBINE_KEYWORDS = false;
 
-    private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'";
+    private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'$";
     private static final long MAX_PARSE_TIME = 100;
 
     private final Random random = new Random();
@@ -127,6 +127,7 @@ public class Bnf {
         addFixedRule("anythingExceptDoubleQuote", RuleFixed.ANY_EXCEPT_DOUBLE_QUOTE);
         addFixedRule("anythingUntilEndOfLine", RuleFixed.ANY_UNTIL_EOL);
         addFixedRule("anythingUntilEndComment", RuleFixed.ANY_UNTIL_END);
+        addFixedRule("anythingExceptTwoDollarSigns", RuleFixed.ANY_EXCEPT_2_DOLLAR);
         addFixedRule("anything", RuleFixed.ANY_WORD);
         addFixedRule("@hexStart@", RuleFixed.HEX_START);
         addFixedRule("@concat@", RuleFixed.CONCAT);

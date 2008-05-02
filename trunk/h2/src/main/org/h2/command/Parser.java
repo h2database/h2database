@@ -150,7 +150,7 @@ public class Parser {
     // used during the tokenizer phase
     private static final int CHAR_END = -1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
     private static final int CHAR_NAME = 4, CHAR_SPECIAL_1 = 5, CHAR_SPECIAL_2 = 6;
-    private static final int CHAR_STRING = 7, CHAR_DECIMAL = 8;
+    private static final int CHAR_STRING = 7, CHAR_DECIMAL = 8, CHAR_DOLLAR_QUOTED_STRING = 9;
 
     // this are token types
     private static final int KEYWORD = 1, IDENTIFIER = 2, PARAMETER = 3, END = 4, VALUE = 5;
@@ -2561,7 +2561,21 @@ public class Parser {
                 i++;
             }
             currentToken = "'";
-            checkLiterals(false);
+            checkLiterals(true);
+            currentValue = ValueString.get(StringCache.getNew(result));
+            parseIndex = i;
+            currentTokenType = VALUE;
+            return;
+        }
+        case CHAR_DOLLAR_QUOTED_STRING: {
+            String result = null;
+            int begin = i - 1;
+            while (types[i] == CHAR_DOLLAR_QUOTED_STRING) {
+                i++;
+            }
+            result = sqlCommand.substring(begin, i);
+            currentToken = "'";
+            checkLiterals(true);
             currentValue = ValueString.get(StringCache.getNew(result));
             parseIndex = i;
             currentTokenType = VALUE;
@@ -2712,6 +2726,26 @@ public class Parser {
                     type = CHAR_SPECIAL_1;
                 }
                 break;
+            case '$':
+                if (SysProperties.DOLLAR_QUOTING && command[i + 1] == '$' && (i == 0 || command[i - 1] <= ' ')) {
+                    // dollar quoted string
+                    changed = true;
+                    command[i] = ' ';
+                    command[i + 1] = ' ';
+                    startLoop = i;
+                    i += 2;
+                    checkRunOver(i, len, startLoop);
+                    while (command[i] != '$' || command[i + 1] != '$') {
+                        types[i++] = CHAR_DOLLAR_QUOTED_STRING;
+                        checkRunOver(i, len, startLoop);
+                    }
+                    command[i] = ' ';
+                    command[i + 1] = ' ';
+                    i++;
+                } else {
+                    type = CHAR_SPECIAL_1;
+                }
+                break;
             case '(':
             case ')':
             case '{':
@@ -2723,7 +2757,6 @@ public class Parser {
             case '%':
             case '?':
             case '@':
-            case '$':
             case ']':
                 type = CHAR_SPECIAL_1;
                 break;

@@ -570,8 +570,12 @@ public abstract class TestBase {
     }
 
     protected void checkNotGeneralException(SQLException e) throws Exception {
+        checkNotGeneralException("", e);
+    }
+
+    protected void checkNotGeneralException(String message, SQLException e) throws Exception {
         if (e != null && e.getSQLState().startsWith("HY000")) {
-            TestBase.logError("Unexpected General error", e);
+            TestBase.logError("Unexpected General error " + message, e);
         }
     }
 

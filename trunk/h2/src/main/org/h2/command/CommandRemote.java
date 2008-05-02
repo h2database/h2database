@@ -57,7 +57,7 @@ public class CommandRemote implements CommandInterface {
         for (int i = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = (Transfer) transferList.get(i);
-                if (readParams) {
+                if (readParams && createParams) {
                     session.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).writeInt(id).writeString(sql);
                 } else {

@@ -19,6 +19,7 @@ public class RuleFixed implements Rule {
     static final int ANY_UNTIL_EOL = 5;
     static final int ANY_UNTIL_END = 6;
     static final int ANY_WORD = 7;
+    static final int ANY_EXCEPT_2_DOLLAR = 8;
     static final int HEX_START = 10, CONCAT = 11, AZ_UNDERLINE = 12, AF = 13, DIGIT = 14;
 
     private final int type;
@@ -39,6 +40,7 @@ public class RuleFixed implements Rule {
         case ANY_EXCEPT_SINGLE_QUOTE:
         case ANY_EXCEPT_DOUBLE_QUOTE:
         case ANY_WORD:
+        case ANY_EXCEPT_2_DOLLAR:
         case ANY_UNTIL_END: {
             return "XYZ";
         }
@@ -70,6 +72,7 @@ public class RuleFixed implements Rule {
         case ANY_EXCEPT_SINGLE_QUOTE:
         case ANY_EXCEPT_DOUBLE_QUOTE:
         case ANY_WORD:
+        case ANY_EXCEPT_2_DOLLAR:
         case ANY_UNTIL_END: {
             StringBuffer buff = new StringBuffer();
             int len = r.nextBoolean() ? 1 : r.nextInt(5);
@@ -168,6 +171,14 @@ public class RuleFixed implements Rule {
                 }
             }
             break;
+        case ANY_EXCEPT_2_DOLLAR:
+            while (true) {
+                while (s.length() > 0 && !s.startsWith("$$")) {
+                    s = s.substring(1);
+                }
+                break;
+            }
+            break;
         case HEX_START:
             if (s.startsWith("0X") || s.startsWith("0x")) {
                 s = s.substring(2);
@@ -232,6 +243,12 @@ public class RuleFixed implements Rule {
             }
             break;
         case ANY_EXCEPT_SINGLE_QUOTE:
+            if (query.length() == 0) {
+                sentence.add("anything", "Hello World", Sentence.KEYWORD);
+                sentence.add("'", "'", Sentence.KEYWORD);
+            }
+            break;
+        case ANY_EXCEPT_2_DOLLAR:
             if (query.length() == 0) {
                 sentence.add("anything", "Hello World", Sentence.KEYWORD);
                 sentence.add("'", "'", Sentence.KEYWORD);

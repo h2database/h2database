@@ -115,7 +115,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getTables(" + quote(catalog) + ", " + quote(schemaPattern) + ", " + quote(tableNamePattern)
                         + ", " + quoteArray(types) + ");");
             }
@@ -199,7 +199,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             String tableNamePattern, String columnNamePattern)
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getColumns(" + quote(catalog)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+", "
@@ -277,7 +277,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getIndexInfo(String catalog, String schema, String tableName, boolean unique, boolean approximate)
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getIndexInfo(" + quote(catalog) + ", " + quote(schema) + ", " + quote(tableName) + ", "
                         + unique + ", " + approximate + ");");
             }
@@ -339,7 +339,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getPrimaryKeys(String catalog, String schema, String tableName) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getPrimaryKeys("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -507,7 +507,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getProcedures(String catalog, String schemaPattern,
             String procedureNamePattern) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getProcedures("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -562,7 +562,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             String procedureNamePattern, String columnNamePattern)
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getProcedureColumns("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -708,7 +708,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getColumnPrivileges(String catalog, String schema,
             String table, String columnNamePattern) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getColumnPrivileges("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -767,7 +767,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getTablePrivileges("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -822,7 +822,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getBestRowIdentifier(String catalog, String schema,
             String tableName, int scope, boolean nullable) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getBestRowIdentifier("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -882,7 +882,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getVersionColumns(String catalog, String schema,
             String tableName) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getVersionColumns("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -939,7 +939,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getImportedKeys(String catalog, String schema, String tableName) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getImportedKeys("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -1009,7 +1009,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getExportedKeys(String catalog, String schema, String tableName)
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getExportedKeys("
                         +quote(catalog)+", "
                         +quote(schema)+", "
@@ -1086,7 +1086,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             String primarySchema, String primaryTable, String foreignCatalog,
             String foreignSchema, String foreignTable) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getCrossReference("
                         +quote(primaryCatalog)+", "
                         +quote(primarySchema)+", "
@@ -1155,7 +1155,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getUDTs(String catalog, String schemaPattern,
             String typeNamePattern, int[] types) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getUDTs("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -1429,7 +1429,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return true
      */
     public boolean supportsConvert(int fromType, int toType) {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("supportsConvert("+fromType+", "+fromType+");");
         }
         return true;
@@ -2030,7 +2030,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return true if the type is not ResultSet.TYPE_SCROLL_SENSITIVE
      */
     public boolean supportsResultSetConcurrency(int type, int concurrency) {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("supportsResultSetConcurrency("+type+", "+concurrency+");");
         }
         return type != ResultSet.TYPE_SCROLL_SENSITIVE;
@@ -2448,7 +2448,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getSuperTypes(String catalog, String schemaPattern,
             String typeNamePattern) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getSuperTypes("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -2476,7 +2476,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getSuperTables(String catalog, String schemaPattern,
             String tableNamePattern) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getSuperTables("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "
@@ -2503,7 +2503,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             String typeNamePattern, String attributeNamePattern)
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("getAttributes("
                         +quote(catalog)+", "
                         +quote(schemaPattern)+", "

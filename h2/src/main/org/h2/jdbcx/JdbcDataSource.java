@@ -164,14 +164,14 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * @return the connection
      */
     public Connection getConnection(String user, String password) throws SQLException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("getConnection("+quote(user)+", "+quote(password)+");");
         }
         return getJdbcConnection(user, password);
     }
 
     private JdbcConnection getJdbcConnection(String user, String password) throws SQLException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("getJdbcConnection("+quote(user)+", "+quote(password)+");");
         }
         Properties info = new Properties();
@@ -281,7 +281,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 //## Java 1.4 begin ##
     public XAConnection getXAConnection(String user, String password) throws SQLException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("getXAConnection("+quote(user)+", "+quote(password)+");");
         }
         int id = getNextId(XA_DATA_SOURCE);
@@ -311,7 +311,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      */
 //## Java 1.4 begin ##
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("getPooledConnection("+quote(user)+", "+quote(password)+");");
         }
         return getXAConnection(user, password);

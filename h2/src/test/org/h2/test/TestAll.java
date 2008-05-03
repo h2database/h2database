@@ -160,13 +160,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+test and document log_level_file=4
+
 deactivate triggers during alter table (during re-creating a table)
 
 improve javadocs
-
-Pluggable tracing system
-
-test japanese translation
 
 upload jazoon 
 
@@ -227,7 +225,8 @@ History:
         for INSERT and UPDATE statements.
     H2 Shell: DESCRIBE now supports an schema name.
     A subset of the PostgreSQL 'dollar quoting' feature is now supported.
- 
+    SLF4J is now supported by using adding TRACE_LEVEL_FILE=4
+        to the database URL.
 
 Roadmap:
 

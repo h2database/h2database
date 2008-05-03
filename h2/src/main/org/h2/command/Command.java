@@ -177,7 +177,7 @@ public abstract class Command implements CommandInterface {
                 session.unlockReadLocks();
             }
         }
-        if (trace.info()) {
+        if (trace.isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;
             if (time > Constants.LONG_QUERY_LIMIT_MS) {
                 trace.info("long query: " + time);

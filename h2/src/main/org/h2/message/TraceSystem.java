@@ -17,6 +17,7 @@ import java.util.Date;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.SmallLRUCache;
 
@@ -27,10 +28,9 @@ import org.h2.util.SmallLRUCache;
  * is possible to write after close was called, but that means for each write
  * the log file will be opened and closed again (which is slower).
  */
-public class TraceSystem {
+public class TraceSystem implements TraceWriter {
     public static final int OFF = 0, ERROR = 1, INFO = 2, DEBUG = 3;
-
-    // TODO log total and free memory from time to time
+    public static final int ADAPTER = 4;
 
     // max file size is currently 64 MB,
     // and then there could be a .old file of the same size
@@ -52,6 +52,7 @@ public class TraceSystem {
     private boolean closed;
     private boolean manualEnabling = true;
     private boolean writingErrorLogged;
+    private TraceWriter writer = this;
 
     public static void traceThrowable(Throwable e) {
         PrintWriter writer = DriverManager.getLogWriter();
@@ -80,7 +81,7 @@ public class TraceSystem {
     public Trace getTrace(String module) {
         Trace t = (Trace) traces.get(module);
         if (t == null) {
-            t = new Trace(this, module);
+            t = new Trace(writer, module);
             traces.put(module, t);
         }
         return t;
@@ -99,24 +100,33 @@ public class TraceSystem {
         this.maxFileSize = max;
     }
 
-    public int getMaxFileSize() {
-        return maxFileSize;
+    public void setLevelSystemOut(int level) {
+        levelSystemOut = level;
     }
 
-    public void setLevelSystemOut(int l) {
-        levelSystemOut = l;
-    }
-
-    public int getLevelFile() {
-        return levelFile;
-    }
-
-    public int getLevelSystemOut() {
-        return levelSystemOut;
-    }
-
-    public void setLevelFile(int l) {
-        levelFile = l;
+    public void setLevelFile(int level) {
+        if (level == ADAPTER) {
+            String adapterClass = "org.h2.message.TraceWriterAdapter";
+            try {
+                writer = (TraceWriter) ClassUtils.loadSystemClass(adapterClass).newInstance();
+            } catch (Throwable e) {
+                e = Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { adapterClass }, e);
+                write(ERROR, Trace.DATABASE, adapterClass, e);
+                return;
+            }
+            String name = fileName;
+            if (name != null) {
+                if (name.endsWith(Constants.SUFFIX_TRACE_FILE)) {
+                    name = name.substring(0, name.length() - Constants.SUFFIX_TRACE_FILE.length());
+                }
+                int idx = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+                if (idx >= 0) {
+                    name = name.substring(idx + 1);
+                }
+                writer.setName(name);
+            }
+        }
+        levelFile = level;
     }
 
     private String format(String module, String s) {
@@ -125,18 +135,18 @@ public class TraceSystem {
         }
     }
 
-    void write(int l, String module, String s, Throwable t) {
-        if (l <= levelSystemOut) {
+    public void write(int level, String module, String s, Throwable t) {
+        if (level <= levelSystemOut) {
             System.out.println(format(module, s));
             if (t != null && levelSystemOut == DEBUG) {
                 t.printStackTrace();
             }
         }
         if (fileName != null) {
-            if (l > levelFile) {
+            if (level > levelFile) {
                 enableIfRequired();
             }
-            if (l <= levelFile) {
+            if (level <= levelFile) {
                 writeFile(format(module, s), t);
             }
         }
@@ -195,7 +205,6 @@ public class TraceSystem {
             return;
         }
         writingErrorLogged = true;
-        // TODO translate trace messages
         SQLException se = Message.getSQLException(ErrorCode.TRACE_FILE_ERROR_2, new String[] { fileName, e.toString() },
                 e);
         // print this error only once
@@ -256,6 +265,9 @@ public class TraceSystem {
             return;
         }
         close();
+    }
+
+    public void setName(String name) {
     }
 
 }

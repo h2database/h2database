@@ -51,6 +51,8 @@ Features
     Compatibility</a><br />
 <a href="#trace_options">
     Using the Trace Options</a><br />
+<a href="#other_logging">
+    Using Other Logging APIs</a><br />
 <a href="#read_only">
     Read Only Databases</a><br />
 <a href="#database_in_zip">
@@ -1024,6 +1026,34 @@ If trace is enabled using the start file, the trace level is not persistent to t
 trace is switched back to the level that was set before when connecting to the database.
 However, if the start file is read only, the database engine cannot delete the file and
 will always enable the trace mode when connecting.
+</p>
+
+<br /><a name="other_logging"></a>
+<h2>Using Other Logging APIs</h2>
+<p>
+By default, this database uses its own native 'trace' facility. This facility is called 'trace' and not 
+'log' within this database to avoid confusion with the transaction log. Trace messages can be 
+written to both file and System.out. In most cases, this is sufficient, however sometimes
+it is better to use the same facility as the application, for example Log4j. To do that, this 
+database support SLF4J.
+</p>
+<p>
+<a href="http://www.slf4j.org">SLF4J</a> is a simple facade for various logging APIs 
+and allows to plug in the desired implementation at deployment time. 
+SLF4J supports implementations such as Logback, Log4j, Jakarta Commons Logging (JCL), 
+JDK 1.4 logging, x4juli, and Simple Log.
+</p>
+<p> 
+To enable SLF4J, set the file trace level to 4 in the database URL:
+</p>
+<pre>
+jdbc:h2:~/test;TRACE_LEVEL_FILE=4
+</pre>
+<p>
+Changing the log mechanism is not possible after the database is open, that means
+executing the SQL statement SET TRACE_LEVEL_FILE 4 when the database is already open 
+will not have the desired effect. To use SLF4J, all required jar files need to be in the classpath.
+If it does not work, check in the file &lt;database&gt;.trace.db for error messages.
 </p>
 
 <br /><a name="read_only"></a>

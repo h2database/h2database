@@ -1111,10 +1111,11 @@ SET THROTTLE 200
 SET {TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT} int
 ","
 Sets the trace level for file the file or system out stream.
-Levels: 0=off, 1=error, 2=info, 3=debug.
+Levels are: 0=off, 1=error, 2=info, 3=debug.
 This setting is not persistent.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
+To use SLF4J, append ;TRACE_LEVEL_FILE=4 to the database URL when opening the database.
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
